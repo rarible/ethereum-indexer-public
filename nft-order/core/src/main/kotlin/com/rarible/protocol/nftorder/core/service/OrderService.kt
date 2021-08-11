@@ -2,6 +2,7 @@ package com.rarible.protocol.nftorder.core.service
 
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrdersPaginationDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.order.api.client.OrderControllerApi
@@ -25,6 +26,7 @@ class OrderService(
                 itemId.tokenId.value.toString(),
                 null,
                 null,
+                PlatformDto.RARIBLE,
                 null,
                 1
             )
@@ -39,6 +41,7 @@ class OrderService(
                 id.tokenId.value.toString(),
                 id.owner.hex(),
                 null,
+                PlatformDto.RARIBLE,
                 null,
                 1
             )
@@ -53,6 +56,7 @@ class OrderService(
                 itemId.tokenId.value.toString(),
                 null,
                 null,
+                PlatformDto.RARIBLE,
                 null,
                 1
             )
