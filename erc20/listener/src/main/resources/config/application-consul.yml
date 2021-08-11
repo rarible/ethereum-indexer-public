@@ -1,0 +1,10 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.hosts}
+      database: ${mongodb.database}
+
+parityUrls: ${node.hosts}
+parityWebSocketUrls: ${node.webSocketHosts}
+
+jms-brokerUrls: ${broker.jms.hosts}

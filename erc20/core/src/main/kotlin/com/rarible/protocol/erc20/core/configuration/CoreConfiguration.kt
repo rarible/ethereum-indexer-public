@@ -1,0 +1,23 @@
+package com.rarible.protocol.erc20.core.configuration
+
+import com.rarible.core.mongo.configuration.EnableRaribleMongo
+import com.rarible.ethereum.converters.EnableScaletherMongoConversions
+import com.rarible.protocol.erc20.core.converters.Erc20BalanceDtoConverter
+import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
+import com.rarible.protocol.erc20.core.service.Erc20BalanceService
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.data.mongodb.config.EnableMongoAuditing
+import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
+
+@EnableRaribleMongo
+@EnableScaletherMongoConversions
+@EnableMongoAuditing
+@EnableReactiveMongoRepositories(basePackageClasses = [Erc20BalanceRepository::class])
+@ComponentScan(
+    basePackageClasses = [
+        Erc20BalanceService::class,
+        Erc20BalanceRepository::class,
+        Erc20BalanceDtoConverter::class
+    ]
+)
+class CoreConfiguration

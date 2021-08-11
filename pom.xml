@@ -124,6 +124,16 @@
                 <artifactId>protocol-subscriber-nft-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-api-erc20</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-erc20</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- ================== Other =================== -->
             <dependency>
@@ -201,6 +211,7 @@
     </profiles>
     <modules>
         <module>api</module>
+        <module>erc20</module>
         <module>nft</module>
         <module>order</module>
     </modules>

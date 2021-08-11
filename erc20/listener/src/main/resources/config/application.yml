@@ -1,0 +1,39 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  application.name: protocol-erc20-listener
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  codec:
+    max-in-memory-size: 50MB
+  aop:
+    proxy-target-class: false
+  main:
+    banner-mode: log
+    web-application-type: reactive
+mongock:
+  change-logs-scan-package:
+    - com.rarible.ethereum.listener.log.mongock
+    - com.rarible.protocol.erc20.core.mongock.mongo
+    - com.rarible.protocol.erc20.listener.mongock.mongo
+
+rarible:
+  blockchain:
+    monitoring:
+      blockchain: ${listener.blockchain}
+
+common:
+  kafka-replica-set: ${kafka.hosts}
+  blockchain: ${listener.blockchain}
+
+ethereumMaxFrameSize: 104857600
+ethereumBlockBatchSize: 50

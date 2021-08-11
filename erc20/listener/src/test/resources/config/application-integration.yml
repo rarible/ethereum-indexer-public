@@ -1,0 +1,2 @@
+jms-brokerUrls: ${rarible.common.jms-brokerUrls}
+eventTopic: ${rarible.common.jms-eventTopic}
