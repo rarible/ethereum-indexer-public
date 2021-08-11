@@ -1,0 +1,16 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.hosts}
+      database: ${mongodb.database}
+
+protocol:
+  nft:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  unlockable:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
