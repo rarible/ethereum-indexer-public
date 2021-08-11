@@ -40,12 +40,10 @@ class ItemController(
         return ResponseEntity.ok(result)
     }
 
-/*
-    todo override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
+    override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
         itemService.resetMeta(conversionService.convert(itemId))
         return ResponseEntity.noContent().build()
     }
-*/
 
     override suspend fun getNftAllItems(
         continuation: String?,
