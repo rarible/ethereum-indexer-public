@@ -1,0 +1,25 @@
+rarible:
+  protocol:
+    listener:
+      operator-private-key: "0000000000000000000000000000000000000000"
+      erc721-contract-addresses:
+        sales:
+          - "0000000000000000000000000000000000000000"
+      erc1155-contract-addresses:
+        sales:
+          - "0000000000000000000000000000000000000000"
+      exchange-contract-addresses:
+        v1: "0000000000000000000000000000000000000000"
+        v2: "0000000000000000000000000000000000000000"
+
+mongoUrls: ${rarible.common.mongoUrls}
+mongoDatabase: ${rarible.common.mongoDatabase}
+
+parityUrls: ${rarible.common.parityUrls}
+parityWebSocketUrls: ${rarible.common.parityWebSocketUrls}
+
+jms-brokerUrls: ${rarible.common.jms-brokerUrls}
+eventTopic: ${rarible.common.jms-eventTopic}
+
+common:
+  kafka-replica-set: ${kafka.hosts}

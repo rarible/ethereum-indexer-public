@@ -439,6 +439,5 @@
         <module>protocol-subscriber-order-starter</module>
         <module>protocol-subscriber-unlockable</module>
         <module>protocol-subscriber-unlockable-starter</module>
-        <module>test-coverage</module>
     </modules>
 </project>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-nft-indexer</artifactId>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>rarible-protocol-ethereum-indexer</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ============ Internal dependencies ============ -->
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-nft-indexer-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-nft-indexer-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-nft-indexer-contract</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-nft-indexer-listener</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-nft-indexer-migration</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- =============== Other dependencies ================ -->
+            <dependency>
+                <groupId>io.daonomic.scalether</groupId>
+                <artifactId>transport-mono_${scala.major.version}</artifactId>
+                <version>${scalether.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <version>${dev-jna.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.daonomic.scalether</groupId>
+            <artifactId>domain-test_${scala.major.version}</artifactId>
+            <version>${scalether.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <modules>
+        <module>contract</module>
+        <module>core</module>
+        <module>listener</module>
+        <module>migration</module>
+        <module>api</module>
+    </modules>
+</project>

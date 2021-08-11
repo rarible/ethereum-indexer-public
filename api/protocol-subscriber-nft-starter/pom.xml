@@ -10,7 +10,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>protocol-subscriber-nft-starter</artifactId>
-    <version>${project.parent.version}</version>
+
 
     <build>
         <resources>

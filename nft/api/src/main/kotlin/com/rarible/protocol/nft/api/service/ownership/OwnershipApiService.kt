@@ -1,0 +1,37 @@
+package com.rarible.protocol.nft.api.service.ownership
+
+import com.rarible.core.common.convert
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipFilterDto
+import com.rarible.protocol.nft.api.domain.OwnershipContinuation
+import com.rarible.protocol.nft.api.exceptions.OwnershipNotFoundException
+import com.rarible.protocol.nft.api.service.item.OwnershipFilterCriteria.toCriteria
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.springframework.core.convert.ConversionService
+import org.springframework.stereotype.Component
+
+@Component
+class OwnershipApiService(
+    private val conversionService: ConversionService,
+    private val ownershipRepository: OwnershipRepository
+) {
+    suspend fun get(ownershipId: OwnershipId): NftOwnershipDto {
+        return ownershipRepository
+            .findById(ownershipId).awaitFirstOrNull()
+            ?.let { conversionService.convert<NftOwnershipDto>(it) }
+            ?: throw OwnershipNotFoundException(ownershipId)
+    }
+
+    suspend fun search(
+        filter: NftOwnershipFilterDto,
+        continuation: OwnershipContinuation? = null,
+        size: Int? = null
+    ): List<Ownership> {
+        return ownershipRepository.search(
+            filter.toCriteria(continuation, size)
+        )
+    }
+}

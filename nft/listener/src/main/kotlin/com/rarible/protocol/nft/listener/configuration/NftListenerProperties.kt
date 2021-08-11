@@ -1,0 +1,15 @@
+package com.rarible.protocol.nft.listener.configuration
+
+import com.rarible.core.daemon.DaemonWorkerProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.ConstructorBinding
+
+internal const val RARIBLE_PROTOCOL_LISTENER_STORAGE = "listener"
+
+@ConstructorBinding
+@ConfigurationProperties(RARIBLE_PROTOCOL_LISTENER_STORAGE)
+data class NftListenerProperties(
+    val skipReduceTokens: List<String> = emptyList(),
+    val skipContracts: List<String> = emptyList(),
+    val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties()
+)

@@ -64,6 +64,21 @@
             </dependency>
 
             <!-- ============ Internal dependencies ============ -->
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-nft</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-api-nft</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-nft</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- ================== Other =================== -->
             <dependency>
@@ -133,5 +148,6 @@
     </profiles>
     <modules>
         <module>api</module>
+        <module>nft</module>
     </modules>
 </project>
