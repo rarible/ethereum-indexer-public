@@ -15,3 +15,8 @@ Indexers are built using Spring Framework and use these external services:
 ### [OpenAPI](./api)
 
 Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript etc.) and server controller interfaces are generated automatically using yaml OpenAPI files. 
+
+### License
+
+MIT license is used for [api and clients](./api)
+GPL v3 license is used for all services and other parts of the indexer
