@@ -212,6 +212,26 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NftIndexerApiError"
+  "/v0.1/items/{itemId}/resetMeta":
+    delete:
+      tags:
+        - nft-item-controller
+      operationId: resetNftItemMetaById
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftIndexerApiError"
   "/v0.1/items/{itemId}/lazy":
     get:
       tags:
