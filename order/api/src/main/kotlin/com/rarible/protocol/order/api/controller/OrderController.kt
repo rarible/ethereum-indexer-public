@@ -293,6 +293,6 @@ class OrderController(
     companion object {
         private const val DEFAULT_SIZE = 50
         private const val MAX_SIZE = 1000
-        private fun Int?.limit() = Integer.min(this ?: DEFAULT_SIZE, MAX_SIZE)
+        fun Int?.limit() = Integer.min(this ?: DEFAULT_SIZE, MAX_SIZE)
     }
 }
