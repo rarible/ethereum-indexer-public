@@ -249,6 +249,5 @@
         <module>erc20</module>
         <module>nft</module>
         <module>order</module>
-        <module>nft-order</module>
     </modules>
 </project>
