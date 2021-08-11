@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-order-indexer</artifactId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>rarible-protocol-ethereum-indexer</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <opensea-client-starter.version>0.7.0</opensea-client-starter.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ============ Internal dependencies ============ -->
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-contract</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-listener</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-migration</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- =============== Other dependencies ================ -->
+            <dependency>
+                <groupId>io.daonomic.scalether</groupId>
+                <artifactId>transport-mono_${scala.major.version}</artifactId>
+                <version>${scalether.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.daonomic.rpc</groupId>
+                <artifactId>domain_${scala.major.version}</artifactId>
+                <version>${scalether.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible</groupId>
+                <artifactId>rarible-opensea-client-starter</artifactId>
+                <version>${opensea-client-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <version>${dev-jna.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>contract</module>
+        <module>core</module>
+        <module>listener</module>
+        <module>api</module>
+        <module>migration</module>
+    </modules>
+</project>

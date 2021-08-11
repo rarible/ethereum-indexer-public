@@ -1,0 +1,3 @@
+mongock:
+  change-logs-scan-package:
+    - com.rarible.protocol.order.listener.mongock

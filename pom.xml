@@ -79,6 +79,51 @@
                 <artifactId>protocol-client-nft</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-erc20</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-api-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-nft-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-erc20-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-currency-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-subscriber-erc20-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-subscriber-nft-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- ================== Other =================== -->
             <dependency>
@@ -100,6 +145,14 @@
             <artifactId>domain-test_${scala.major.version}</artifactId>
             <version>${scalether.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-reflect</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -149,5 +202,6 @@
     <modules>
         <module>api</module>
         <module>nft</module>
+        <module>order</module>
     </modules>
 </project>

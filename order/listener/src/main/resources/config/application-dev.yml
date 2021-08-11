@@ -1,0 +1,5 @@
+common:
+  chain-id: 3
+rarible:
+  ethereum:
+    max-frame-size: 10485760

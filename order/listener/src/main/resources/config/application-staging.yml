@@ -1,0 +1,6 @@
+common:
+  chain-id: 4
+
+rarible:
+  opensea:
+    endpoint: https://rinkeby-api.opensea.io

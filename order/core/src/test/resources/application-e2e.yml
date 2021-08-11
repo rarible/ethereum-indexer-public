@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    service-registry:
+      auto-registration:
+        enabled: false
+    discovery:
+      enabled: false
+    consul:
+      config:
+        enabled: false
+rarible:
+  common:
+    elasticPrefix: dev_
+    elasticNode: localhost:9200
+
+mongoUrls: localhost
+mongoDatabase: rarible

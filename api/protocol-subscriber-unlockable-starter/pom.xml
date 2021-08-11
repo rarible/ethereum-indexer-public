@@ -48,11 +48,5 @@
             <artifactId>spring-boot-autoconfigure</artifactId>
         </dependency>
 
-        <!-- ================== Test ===================== -->
-        <dependency>
-            <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-test-common</artifactId>
-        </dependency>
-
     </dependencies>
 </project>

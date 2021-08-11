@@ -1,0 +1,38 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  application.name: protocol-order-indexer-api
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  main:
+    banner-mode: log
+    web-application-type: reactive
+
+rarible:
+  ethereum:
+    converter:
+      enabled: true
+    read-only-transaction-sender:
+      enabled: true
+  core:
+    contract:
+      enabled: true
+
+common:
+  eip712-domain-name: Exchange
+  eip712-domain-version: 2
+
+springdoc:
+  swagger-ui:
+    path: /v0.1/swagger/swagger-ui.html
+  api-docs:
+    path: /v0.1/swagger/v3/api-docs

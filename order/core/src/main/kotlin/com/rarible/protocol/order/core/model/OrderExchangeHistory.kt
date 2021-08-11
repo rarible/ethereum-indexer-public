@@ -1,0 +1,52 @@
+package com.rarible.protocol.order.core.model
+
+import com.rarible.core.common.nowMillis
+import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.EventData
+import io.daonomic.rpc.domain.Word
+import scalether.domain.Address
+import java.math.BigDecimal
+import java.time.Instant
+
+sealed class OrderExchangeHistory(var type: ItemType) : EventData {
+    abstract val hash: Word
+    abstract val make: Asset?
+    abstract val take: Asset?
+    abstract val date: Instant
+    abstract val maker: Address?
+    abstract val source: HistorySource
+
+    fun isBid() = take?.type?.nft ?: false
+}
+
+enum class OrderSide {
+    LEFT,
+    RIGHT
+}
+
+data class OrderSideMatch(
+    override val hash: Word,
+    val counterHash: Word? = null,
+    val side: OrderSide?,
+    val fill: EthUInt256,
+    override val maker: Address,
+    val taker: Address,
+    override val make: Asset,
+    override val take: Asset,
+    val makeUsd: BigDecimal?,
+    val takeUsd: BigDecimal?,
+    val makePriceUsd: BigDecimal?,
+    val takePriceUsd: BigDecimal?,
+    override val date: Instant = nowMillis(),
+    override val source: HistorySource = HistorySource.RARIBLE,
+    val externalOrderExecutedOnRarible: Boolean? = null
+) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
+
+data class OrderCancel(
+    override val hash: Word,
+    override val maker: Address?,
+    override val make: Asset?,
+    override val take: Asset?,
+    override val date: Instant = nowMillis(),
+    override val source: HistorySource = HistorySource.RARIBLE
+) : OrderExchangeHistory(type = ItemType.CANCEL)

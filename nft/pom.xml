@@ -55,15 +55,6 @@
         </dependencies>
     </dependencyManagement>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.daonomic.scalether</groupId>
-            <artifactId>domain-test_${scala.major.version}</artifactId>
-            <version>${scalether.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
     <modules>
         <module>contract</module>
         <module>core</module>

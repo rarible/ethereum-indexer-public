@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>protocol-order-indexer</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-order-indexer-core</artifactId>
+
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+    <dependencies>
+        <!-- =========== Internal dependencies =========== -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-order-indexer-contract</artifactId>
+        </dependency>
+
+        <!-- =============== Protocol-API ================ -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-model-order</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-currency-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-nft-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-erc20-starter</artifactId>
+        </dependency>
+
+        <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-mongo</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-kafka</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-mongo-watcher</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-application</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-contract</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-nft</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-sign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-converters</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-listener-log</artifactId>
+        </dependency>
+
+        <!-- ================== Spring =================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+        </dependency>
+
+        <!-- ================== Other =================== -->
+        <dependency>
+            <groupId>io.projectreactor.netty</groupId>
+            <artifactId>reactor-netty</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.daonomic.rpc</groupId>
+            <artifactId>transport-mono_${scala.major.version}</artifactId>
+            <version>${scalether.version}</version>
+        </dependency>
+
+        <!-- ================== Test ===================== -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-test-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
