@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>rarible-protocol-ethereum-indexer</artifactId>
+    <groupId>com.rarible.protocol</groupId>
+    <packaging>pom</packaging>
+    <version>1.0-SNAPSHOT</version>
+
+    <parent>
+        <groupId>com.rarible</groupId>
+        <artifactId>rarible-parent-pom</artifactId>
+        <version>1.1-SNAPSHOT</version>
+    </parent>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>nexus-snapshots</id>
+            <url>http://nexus.rarible.int/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>nexus-releases</id>
+            <url>http://nexus.rarible.int/repository/maven-releases/</url>
+        </repository>
+    </distributionManagement>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <rarible-core.version>1.2-SNAPSHOT</rarible-core.version>
+        <rarible-ethereum.version>1.0-SNAPSHOT</rarible-ethereum.version>
+        <dev-jna.version>5.7.0</dev-jna.version>
+
+        <!-- ============== Plugin versions ============== -->
+        <version.plugin.clean>3.1.0</version.plugin.clean>
+        <version.plugin.source>3.2.1</version.plugin.source>
+        <version.plugin.compiler>3.5.1</version.plugin.compiler>
+        <version.plugin.resources>3.2.0</version.plugin.resources>
+        <version.plugin.surefire>2.22.2</version.plugin.surefire>
+        <version.plugin.assembly>3.3.0</version.plugin.assembly>
+        <version.plugin.install>2.5.2</version.plugin.install>
+        <version.plugin.jar>3.2.0</version.plugin.jar>
+        <version.plugin.build.helper>3.2.0</version.plugin.build.helper>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.rarible.core</groupId>
+                <artifactId>rarible-core-parent</artifactId>
+                <version>${rarible-core.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.ethereum</groupId>
+                <artifactId>rarible-ethereum-parent</artifactId>
+                <version>${rarible-ethereum.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- ============ Internal dependencies ============ -->
+
+            <!-- ================== Other =================== -->
+            <dependency>
+                <groupId>net.java.dev.jna</groupId>
+                <artifactId>jna</artifactId>
+                <version>${dev-jna.version}</version>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-test-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.daonomic.scalether</groupId>
+            <artifactId>domain-test_${scala.major.version}</artifactId>
+            <version>${scalether.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0-alpha-2</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>../profiles/${config.file}.properties</file>
+                            </files>
+                            <quiet>true</quiet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>DEFAULT</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <config.file>default</config.file>
+            </properties>
+        </profile>
+        <profile>
+            <id>JENKINS</id>
+            <properties>
+                <config.file>jenkins</config.file>
+            </properties>
+        </profile>
+    </profiles>
+    <modules>
+        <module>api</module>
+    </modules>
+</project>

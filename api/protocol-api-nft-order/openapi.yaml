@@ -1,0 +1,783 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI definition
+  version: v0
+
+paths:
+  "/v0.1/ownerships/{ownershipId}":
+    get:
+      tags:
+        - nft-order-ownership-controller
+      operationId: getNftOrderOwnershipById
+      parameters:
+        - name: ownershipId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderOwnership"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '404':
+          description: Ownership not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/ownerships/byItem":
+    get:
+      tags:
+        - nft-order-ownership-controller
+      operationId: getNftOrderOwnershipsByItem
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/BigInteger"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderOwnershipItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/ownerships/all":
+    get:
+      tags:
+        - nft-order-ownership-controller
+      operationId: getNftOrderAllOwnerships
+      parameters:
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderOwnershipItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/{itemId}":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderItemById
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: includeMeta
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/mints":
+    post:
+      tags:
+        - nft-order-lazy-mint-controller
+      description: Lazy mint of NFT
+      operationId: mintNftOrderAsset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LazyNft"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderItem"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/{itemId}/meta":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderItemMetaById
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftItemMeta"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/{itemId}/lazy":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderLazyItemById
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LazyNft"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/byOwner":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderItemsByOwner
+      parameters:
+        - name: owner
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: includeMeta
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/byCreator":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderItemsByCreator
+      parameters:
+        - name: creator
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: includeMeta
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/byCollection":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderItemsByCollection
+      parameters:
+        - name: collection
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: includeMeta
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/items/all":
+    get:
+      tags:
+        - nft-order-item-controller
+      operationId: getNftOrderAllItems
+      parameters:
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: showDeleted
+          in: query
+          required: false
+          schema:
+            type: boolean
+        - name: lastUpdatedFrom
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: lastUpdatedTo
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: includeMeta
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PageNftOrderItem"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/activities/byUser":
+    get:
+      tags:
+        - nft-order-activity-controller
+      operationId: getNftOrderActivitiesByUser
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - TRANSFER_FROM
+                - TRANSFER_TO
+                - MINT
+                - BURN
+                - MAKE_BID
+                - GET_BID
+                - LIST
+                - BUY
+                - SELL
+        - name: user
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Activities"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/activities/byItem":
+    get:
+      tags:
+        - nft-order-activity-controller
+      operationId: getNftOrderActivitiesByItem
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - TRANSFER
+                - MINT
+                - BURN
+                - BID
+                - LIST
+                - SELL
+        - name: contract
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/BigInteger"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Activities"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/activities/byCollection":
+    get:
+      tags:
+        - nft-order-activity-controller
+      operationId: getNftOrderActivitiesByCollection
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - TRANSFER
+                - MINT
+                - BURN
+                - BID
+                - LIST
+                - SELL
+        - name: collection
+          in: query
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Activities"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/activities/all":
+    get:
+      tags:
+        - nft-order-activity-controller
+      operationId: getNftOrderAllActivities
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - TRANSFER
+                - MINT
+                - BURN
+                - BID
+                - LIST
+                - SELL
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Activities"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+
+  "/v0.1/collections/{collection}/generate_token_id":
+    get:
+      tags:
+        - nft-order-collection-controller
+      description: Returns next available tokenId for minter
+      operationId: generateNftOrderTokenId
+      parameters:
+        - name: collection
+          in: path
+          description: collection address
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: minter
+          in: query
+          description: minter address
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftTokenId"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/collections/{collection}":
+    get:
+      tags:
+        - nft-order-collection-controller
+      description: Returns Collection by address
+      operationId: getNftOrderCollectionById
+      parameters:
+        - name: collection
+          in: path
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftCollection"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/collections/byOwner":
+    get:
+      tags:
+        - nft-order-collection-controller
+      operationId: searchNftOrderCollectionsByOwner
+      parameters:
+        - name: owner
+          in: query
+          description: owner of searching collections
+          required: true
+          schema:
+            "$ref": "#/components/schemas/Address"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftCollections"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"
+  "/v0.1/collections/all":
+    get:
+      tags:
+        - nft-order-collection-controller
+      operationId: searchNftOrderAllCollections
+      parameters:
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftCollections"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftOrderApiError"

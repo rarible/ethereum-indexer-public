@@ -1,0 +1,60 @@
+openapi: 3.0.3
+info:
+  title: OpenAPI definition
+  version: v0.1
+
+paths:
+  /v0.1/balances/{contract}/{owner}:
+    get:
+      tags:
+        - erc20-balance-controller
+      operationId: getErc20Balance
+      parameters:
+        - name: contract
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Address'
+        - name: owner
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Address'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20DecimalBalance'
+
+  /v0.1/tokens/{contract}:
+    get:
+      tags:
+        - erc20-token-controller
+      operationId: getErc20TokenById
+      parameters:
+        - name: contract
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/Address'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20Token'
+        '404':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20IndexerApiError'
+        '500':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20IndexerApiError'

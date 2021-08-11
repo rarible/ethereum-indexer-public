@@ -1,0 +1,868 @@
+openapi: 3.0.3
+info:
+paths:
+
+components:
+  schemas:
+
+    OrderActivities:
+      required:
+        - items
+      type: object
+      properties:
+        continuation:
+          type: string
+          description: Continuation token to paginate items search result
+        items:
+          type: array
+          description: List of found activities
+          items:
+            "$ref": "#/components/schemas/OrderActivity"
+
+    OrderIndexerApiError:
+      required:
+        - code
+        - message
+        - status
+      type: object
+      properties:
+        status:
+          type: integer
+          format: int32
+        code:
+          type: string
+          enum:
+            - UNKNOWN
+            - SERVER_ERROR
+            - ABSENCE_OF_REQUIRED_FIELD
+            - INVALID_ARGUMENT
+            - ORDER_NOT_FOUND
+            - BALANCE_NOT_FOUND
+            - OWNERSHIP_NOT_FOUND
+            - LAZY_ITEM_NOT_FOUND
+            - INCORRECT_SIGNATURE
+            - INCORRECT_ORDER_DATA
+            - INCORRECT_LAZY_ASSET
+            - ORDER_CANCELED
+            - ORDER_INVALID_UPDATE
+            - ASSET_BALANCE_NOT_FOUND
+        message:
+          type: string
+
+    AggregationData:
+      type: object
+      required:
+        - address
+        - sum
+        - count
+      properties:
+        address:
+          $ref: "#/components/schemas/Address"
+        sum:
+          $ref: "#/components/schemas/BigDecimal"
+        count:
+          type: integer
+          format: int64
+
+    OrderBid:
+      type: object
+      required:
+        - orderHash
+        - status
+        - maker
+        - make
+        - take
+        - fill
+        - makeStock
+        - cancelled
+        - salt
+        - createdAt
+      properties:
+        orderHash:
+          $ref: "#/components/schemas/Word"
+        status:
+          $ref: "#/components/schemas/OrderBidStatus"
+        maker:
+          $ref: "#/components/schemas/Address"
+        taker:
+          $ref: "#/components/schemas/Address"
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
+        makeBalance:
+          $ref: "#/components/schemas/BigInteger"
+        makePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        takePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        fill:
+          $ref: "#/components/schemas/BigInteger"
+        makeStock:
+          $ref: "#/components/schemas/BigInteger"
+        cancelled:
+          type: boolean
+        salt:
+          $ref: "#/components/schemas/Binary"
+        signature:
+          $ref: "#/components/schemas/Binary"
+        createdAt:
+          type: string
+          format: date-time
+      discriminator:
+        propertyName: type
+        mapping:
+          RARIBLE_V1: "#/components/schemas/LegacyOrderBid"
+          RARIBLE_V2: "#/components/schemas/RaribleV2OrderBid"
+          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderBid"
+      oneOf:
+        - "$ref": "#/components/schemas/LegacyOrderBid"
+        - "$ref": "#/components/schemas/RaribleV2OrderBid"
+        - "$ref": "#/components/schemas/OpenSeaV1OrderBid"
+
+    LegacyOrderBid:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V1
+        data:
+          $ref: "#/components/schemas/OrderDataLegacy"
+
+    RaribleV2OrderBid:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V2
+        data:
+          $ref: "#/components/schemas/OrderRaribleV2DataV1"
+
+    OpenSeaV1OrderBid:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - OPEN_SEA_V1
+        data:
+          $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    OrderBidStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - FILLED
+        - HISTORICAL
+        - INACTIVE
+        - CANCELLED
+
+    EncodedOrderData:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          $ref: "#/components/schemas/Binary"
+        data:
+          $ref: "#/components/schemas/Binary"
+
+    SignMessage:
+      type: object
+      oneOf:
+        - "$ref": "#/components/schemas/EIP712SignMessage"
+        - "$ref": "#/components/schemas/TextSignMessage"
+
+    EIP712SignMessage:
+      type: object
+      required:
+        - "@type"
+        - domain
+        - struct
+        - structType
+        - types
+      properties:
+        "@type":
+          type: string
+          enum:
+            - EIP712
+        domain:
+          "$ref": "#/components/schemas/EIP712Domain"
+        struct:
+          "$ref": "#/components/schemas/ObjectNode"
+        structType:
+          type: string
+        types:
+          "$ref": "#/components/schemas/ObjectNode"
+
+    EIP712Domain:
+      type: object
+      required:
+        - name
+        - version
+        - chainId
+        - verifyingContract
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        chainId:
+          type: integer
+        verifyingContract:
+          "$ref": "#/components/schemas/Address"
+
+    TextSignMessage:
+      type: object
+      required:
+        - "@type"
+        - message
+      properties:
+        "@type":
+          type: string
+          enum:
+            - TEXT
+        message:
+          type: string
+
+    EncodedOrder:
+      type: object
+      required:
+        - signMessage
+      properties:
+        transferProxyAddress:
+          "$ref": "#/components/schemas/Address"
+        signMessage:
+          "$ref": "#/components/schemas/SignMessage"
+
+    OrderExchangeHistory:
+      type: object
+      required:
+        - hash
+        - date
+      properties:
+        hash:
+          $ref: "#/components/schemas/Word"
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
+        date:
+          type: string
+          format: date-time
+        maker:
+          $ref: "#/components/schemas/Address"
+      discriminator:
+        propertyName: type
+        mapping:
+          CANCEL: "#/components/schemas/OrderCancel"
+          ORDER_SIDE_MATCH: "#/components/schemas/OrderSideMatch"
+      oneOf:
+        - "$ref": "#/components/schemas/OrderCancel"
+        - "$ref": "#/components/schemas/OrderSideMatch"
+
+    ItemBuy:
+      type: object
+      required:
+        - fill
+      properties:
+        type:
+          type: string
+          enum:
+            - BUY
+        fill:
+          $ref: "#/components/schemas/BigInteger"
+        buyer:
+          $ref: "#/components/schemas/Address"
+
+    OrderSide:
+      type: string
+      enum:
+        - LEFT
+        - RIGHT
+
+    OrderSideMatch:
+      type: object
+      required:
+        - type
+        - fill
+      properties:
+        type:
+          type: string
+          enum:
+            - ORDER_SIDE_MATCH
+        side:
+          $ref: "#/components/schemas/OrderSide"
+        fill:
+          $ref: "#/components/schemas/BigInteger"
+        taker:
+          $ref: "#/components/schemas/Address"
+        counterHash:
+          $ref: "#/components/schemas/Word"
+        makeUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        takeUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        makePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        takePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+
+    OrderCancel:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - CANCEL
+        owner:
+          $ref: "#/components/schemas/Address"
+
+    OrderBidsPagination:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderBid"
+        continuation:
+          type: string
+
+    OrderData:
+      type: object
+      discriminator:
+        propertyName: dataType
+        mapping:
+          RARIBLE_V2_DATA_V1: "#/components/schemas/OrderRaribleV2DataV1"
+          LEGACY: "#/components/schemas/OrderDataLegacy"
+          OPEN_SEA_V1_DATA_V1: "#/components/schemas/OrderOpenSeaV1DataV1"
+      oneOf:
+        - "$ref": "#/components/schemas/OrderRaribleV2DataV1"
+        - "$ref": "#/components/schemas/OrderDataLegacy"
+        - "$ref": "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    OrderRaribleV2DataV1:
+      type: object
+      required:
+        - dataType
+        - payouts
+        - originFees
+      properties:
+        dataType:
+          type: string
+          enum:
+            - RARIBLE_V2_DATA_V1
+        payouts:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+        originFees:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+
+    OrderDataLegacy:
+      type: object
+      required:
+        - fee
+        - dataType
+      properties:
+        dataType:
+          type: string
+          enum:
+            - LEGACY
+        fee:
+          type: integer
+
+    OrderOpenSeaV1DataV1:
+      type: object
+      required:
+        - dataType
+        - exchange
+        - makerRelayerFee
+        - takerRelayerFee
+        - makerProtocolFee
+        - takerProtocolFee
+        - feeRecipient
+        - feeMethod
+        - side
+        - saleKind
+        - howToCall
+        - callData
+        - replacementPattern
+        - staticTarget
+        - staticExtraData
+        - extra
+      properties:
+        dataType:
+          type: string
+          enum:
+            - OPEN_SEA_V1_DATA_V1
+        exchange:
+          $ref: "#/components/schemas/Address"
+        makerRelayerFee:
+          $ref: "#/components/schemas/BigInteger"
+        takerRelayerFee:
+          $ref: "#/components/schemas/BigInteger"
+        makerProtocolFee:
+          $ref: "#/components/schemas/BigInteger"
+        takerProtocolFee:
+          $ref: "#/components/schemas/BigInteger"
+        feeRecipient:
+          $ref: "#/components/schemas/Address"
+        feeMethod:
+          type: string
+          enum:
+            - PROTOCOL_FEE
+            - SPLIT_FEE
+        side:
+          type: string
+          enum:
+            - BUY
+            - SELL
+        saleKind:
+          type: string
+          enum:
+            - FIXED_PRICE
+            - DUTCH_AUCTION
+        howToCall:
+          type: string
+          enum:
+            - CALL
+            - DELEGATE_CALL
+        callData:
+          $ref: "#/components/schemas/Binary"
+        replacementPattern:
+          $ref: "#/components/schemas/Binary"
+        staticTarget:
+          $ref: "#/components/schemas/Address"
+        staticExtraData:
+          $ref: "#/components/schemas/Binary"
+        extra:
+          $ref: "#/components/schemas/BigInteger"
+
+    Order:
+      type: object
+      required:
+        - maker
+        - make
+        - take
+        - fill
+        - makeStock
+        - cancelled
+        - salt
+        - createdAt
+        - lastUpdateAt
+        - hash
+      properties:
+        maker:
+          $ref: "#/components/schemas/Address"
+        taker:
+          $ref: "#/components/schemas/Address"
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
+        fill:
+          $ref: "#/components/schemas/BigInteger"
+        start:
+          type: integer
+          format: int64
+        end:
+          type: integer
+          format: int64
+        makeStock:
+          $ref: "#/components/schemas/BigInteger"
+        cancelled:
+          type: boolean
+        salt:
+          $ref: "#/components/schemas/Word"
+        signature:
+          $ref: "#/components/schemas/Binary"
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdateAt:
+          type: string
+          format: date-time
+        pending:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderExchangeHistory"
+        hash:
+          $ref: "#/components/schemas/Word"
+        makeBalance:
+          $ref: "#/components/schemas/BigInteger"
+        makePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+        takePriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
+      discriminator:
+        propertyName: type
+        mapping:
+          RARIBLE_V1: "#/components/schemas/LegacyOrder"
+          RARIBLE_V2: "#/components/schemas/RaribleV2Order"
+          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1Order"
+      oneOf:
+        - "$ref": "#/components/schemas/LegacyOrder"
+        - "$ref": "#/components/schemas/RaribleV2Order"
+        - "$ref": "#/components/schemas/OpenSeaV1Order"
+
+    LegacyOrder:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V1
+        data:
+          $ref: "#/components/schemas/OrderDataLegacy"
+
+    RaribleV2Order:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V2
+        data:
+          $ref: "#/components/schemas/OrderRaribleV2DataV1"
+
+    OpenSeaV1Order:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - OPEN_SEA_V1
+        data:
+          $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    OrderForm:
+      type: object
+      required:
+        - maker
+        - make
+        - take
+        - salt
+      properties:
+        maker:
+          $ref: "#/components/schemas/Address"
+        taker:
+          $ref: "#/components/schemas/Address"
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
+        salt:
+          $ref: "#/components/schemas/Word"
+        start:
+          type: integer
+          format: int64
+        end:
+          type: integer
+          format: int64
+        signature:
+          $ref: "#/components/schemas/Binary"
+      discriminator:
+        propertyName: type
+        mapping:
+          RARIBLE_V1: "#/components/schemas/LegacyOrderForm"
+          RARIBLE_V2: "#/components/schemas/RaribleV2OrderForm"
+          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderForm"
+      oneOf:
+        - "$ref": "#/components/schemas/LegacyOrderForm"
+        - "$ref": "#/components/schemas/RaribleV2OrderForm"
+        - "$ref": "#/components/schemas/OpenSeaV1OrderForm"
+
+    LegacyOrderForm:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V1
+        data:
+          $ref: "#/components/schemas/OrderDataLegacy"
+
+    RaribleV2OrderForm:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_V2
+        data:
+          $ref: "#/components/schemas/OrderRaribleV2DataV1"
+
+    OpenSeaV1OrderForm:
+      type: object
+      required:
+        - type
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - OPEN_SEA_V1
+        data:
+          $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    Platform:
+      type: string
+      enum:
+        - ALL
+        - RARIBLE
+        - OPEN_SEA
+
+    InvertOrderForm:
+      type: object
+      required: [maker, amount, originFees, salt]
+      properties:
+        maker:
+          "$ref": "#/components/schemas/Address"
+        amount:
+          "$ref": "#/components/schemas/BigInteger"
+        salt:
+          "$ref": "#/components/schemas/Word"
+        originFees:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+
+    OrdersPagination:
+      type: object
+      required:
+        - orders
+      properties:
+        orders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        continuation:
+          type: string
+
+    OrderEvent:
+      type: object
+      required:
+        - eventId
+        - orderId
+      properties:
+        eventId:
+          type: string
+        orderId:
+          type: string
+      discriminator:
+        propertyName: type
+        mapping:
+          UPDATE: "#/components/schemas/OrderUpdateEvent"
+      oneOf:
+        - "$ref": "#/components/schemas/OrderUpdateEvent"
+
+    OrderUpdateEvent:
+      type: object
+      required:
+        - order
+      properties:
+        type:
+          type: string
+          enum:
+            - UPDATE
+        order:
+          "$ref": "#/components/schemas/Order"
+
+    OrderFilter:
+      type: object
+      required:
+        - sort
+      properties:
+        origin:
+          "$ref": "#/components/schemas/Address"
+        platform:
+          "$ref": "#/components/schemas/Platform"
+        sort:
+          type: string
+          enum:
+            - LAST_UPDATE
+            - TAKE_PRICE_DESC
+            - MAKE_PRICE_ASC
+      oneOf:
+        - "$ref": "#/components/schemas/OrderFilterAll"
+        - "$ref": "#/components/schemas/OrderFilterSell"
+        - "$ref": "#/components/schemas/OrderFilterSellByItem"
+        - "$ref": "#/components/schemas/OrderFilterSellByCollection"
+        - "$ref": "#/components/schemas/OrderFilterSellByMaker"
+        - "$ref": "#/components/schemas/OrderFilterBidByItem"
+        - "$ref": "#/components/schemas/OrderFilterBidByMaker"
+
+    OrderFilterAll:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - all
+    OrderFilterSell:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - sell
+    OrderFilterSellByItem:
+      type: object
+      required:
+        - "@type"
+        - contract
+        - tokenId
+      properties:
+        "@type":
+          type: string
+          enum:
+            - sell_by_item
+        contract:
+          "$ref": "#/components/schemas/Address"
+        tokenId:
+          "$ref": "#/components/schemas/BigInteger"
+        maker:
+          "$ref": "#/components/schemas/Address"
+
+    OrderFilterSellByCollection:
+      type: object
+      required:
+        - "@type"
+        - collection
+      properties:
+        "@type":
+          type: string
+          enum:
+            - sell_by_collection
+        collection:
+          "$ref": "#/components/schemas/Address"
+
+    OrderFilterSellByMaker:
+      type: object
+      required:
+        - "@type"
+        - maker
+      properties:
+        "@type":
+          type: string
+          enum:
+            - sell_by_maker
+        maker:
+          "$ref": "#/components/schemas/Address"
+
+    OrderFilterBidByItem:
+      type: object
+      required:
+        - "@type"
+        - contract
+        - tokenId
+      properties:
+        "@type":
+          type: string
+          enum:
+            - bid_by_item
+        contract:
+          "$ref": "#/components/schemas/Address"
+        tokenId:
+          "$ref": "#/components/schemas/BigInteger"
+        maker:
+          "$ref": "#/components/schemas/Address"
+
+    OrderFilterBidByMaker:
+      type: object
+      required:
+        - "@type"
+        - maker
+      properties:
+        "@type":
+          type: string
+          enum:
+            - bid_by_maker
+        maker:
+          "$ref": "#/components/schemas/Address"
+
+    PrepareOrderTxForm:
+      type: object
+      required:
+        - maker
+        - amount
+        - payouts
+        - originFees
+      properties:
+        maker:
+          "$ref": "#/components/schemas/Address"
+        amount:
+          "$ref": "#/components/schemas/BigInteger"
+        payouts:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+        originFees:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+
+    PrepareOrderTxResponse:
+      type: object
+      required:
+        - asset
+        - transaction
+      properties:
+        transferProxyAddress:
+          "$ref": "#/components/schemas/Address"
+        asset:
+          "$ref": "#/components/schemas/Asset"
+        transaction:
+          "$ref": "#/components/schemas/PreparedOrderTx"
+
+    PreparedOrderTx:
+      type: object
+      required:
+        - to
+        - data
+      properties:
+        to:
+          "$ref": "#/components/schemas/Address"
+        data:
+          "$ref": "#/components/schemas/Binary"
+
+    ObjectNode:
+      type: object
