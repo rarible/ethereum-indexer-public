@@ -19,4 +19,5 @@ Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript 
 ### License
 
 MIT license is used for [api and clients](./api)
+
 GPL v3 license is used for all services and other parts of the indexer
