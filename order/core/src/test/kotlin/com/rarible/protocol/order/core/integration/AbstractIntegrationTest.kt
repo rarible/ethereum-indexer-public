@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -46,6 +47,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
+
+    @Autowired
+    protected lateinit var priceNormalizer: PriceNormalizer
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()

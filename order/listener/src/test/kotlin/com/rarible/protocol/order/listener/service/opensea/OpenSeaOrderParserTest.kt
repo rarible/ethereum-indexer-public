@@ -1,16 +1,17 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.mongodb.internal.connection.tlschannel.util.Util.assertTrue
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.opensea.client.model.FeeMethod
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
-import io.mockk.coEvery
-import io.mockk.mockk
+import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.math.BigInteger
 
 internal class OpenSeaOrderParserTest {
@@ -20,7 +21,11 @@ internal class OpenSeaOrderParserTest {
         coEvery { getAssetsUsdValue(any(), any(), any()) } returns null
     }
 
-    private val openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(priceUpdateService)
+    private val prizeNormalizer = mockk<PriceNormalizer> {
+        coEvery { normalize(any()) } returns BigDecimal(0)
+    }
+
+    private val openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(priceUpdateService, prizeNormalizer)
 
     @Test
     fun `should parse sell order simple test`() = runBlocking<Unit> {
@@ -57,6 +62,13 @@ internal class OpenSeaOrderParserTest {
         assertThat(buyMatch.make.type).isInstanceOf(EthAssetType::class.java)
         assertThat(buyMatch.make.value).isEqualTo(EthUInt256.of(price))
         assertThat(buyMatch.source).isEqualTo(HistorySource.OPEN_SEA)
+
+        coVerify(exactly = 2) { prizeNormalizer.normalize(withArg {
+            assertTrue(it.type is EthAssetType)
+        }) }
+        coVerify(exactly = 2) { prizeNormalizer.normalize(withArg {
+            assertTrue(it.type is Erc721AssetType)
+        }) }
     }
 
     @Test

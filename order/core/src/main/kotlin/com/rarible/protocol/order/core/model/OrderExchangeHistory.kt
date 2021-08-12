@@ -37,6 +37,8 @@ data class OrderSideMatch(
     val takeUsd: BigDecimal?,
     val makePriceUsd: BigDecimal?,
     val takePriceUsd: BigDecimal?,
+    val makeValue : BigDecimal?,
+    val takeValue : BigDecimal?,
     override val date: Instant = nowMillis(),
     override val source: HistorySource = HistorySource.RARIBLE,
     val externalOrderExecutedOnRarible: Boolean? = null
