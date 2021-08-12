@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.listener.service
 
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nftorder.listener.configuration.NftOrderJobProperties
 import com.rarible.protocol.order.api.client.OrderControllerApi
 import kotlinx.coroutines.reactive.awaitFirst
@@ -20,6 +21,7 @@ class OrderReconciliationService(
         logger.info("Fetching Orders from [{}]", lastUpdateContinuation)
         val page = orderControllerApi.getOrdersAll(
             null,
+            PlatformDto.ALL,
             lastUpdateContinuation,
             orderReconciliationConfig.batchSize
         ).awaitFirst()
@@ -34,7 +36,7 @@ class OrderReconciliationService(
             try {
                 orderEventService.updateOrder(it)
             } catch (e: Exception) {
-                logger.error("Unable to reconvile order: ${it}", e)
+                logger.error("Unable to reconcile order: ${it}", e)
             }
         }
         logger.info("${page.orders.size} Orders updated, next continuation is [{}]", nextContinuation)

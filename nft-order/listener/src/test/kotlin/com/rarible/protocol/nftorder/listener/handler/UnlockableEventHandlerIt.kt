@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.listener.handler
 
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.UnlockableEventDto
 import com.rarible.protocol.nftorder.core.model.ItemId
@@ -7,7 +8,6 @@ import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.randomItem
-import com.rarible.protocol.nftorder.listener.test.data.randomString
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

@@ -1,10 +1,14 @@
 package com.rarible.protocol.nftorder.api.controller
 
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomLong
 import com.rarible.protocol.dto.NftTokenIdDto
 import com.rarible.protocol.nftorder.api.client.NftOrderCollectionControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
-import com.rarible.protocol.nftorder.listener.test.mock.data.*
+import com.rarible.protocol.nftorder.listener.test.mock.data.randomNftCollectionDto
+import com.rarible.protocol.nftorder.listener.test.mock.data.randomNftSignatureDto
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -46,7 +50,7 @@ class CollectionControllerFt : AbstractFunctionalTest() {
     @Test
     fun `search collections by owner`() = runBlocking<Unit> {
         val owner = randomAddress()
-        val continuation = "${randomPositiveLong()} _ ${randomAddress().hex()}"
+        val continuation = "${randomLong()} _ ${randomAddress().hex()}"
         val size = 20
         val nftCollections = listOf(randomNftCollectionDto(), randomNftCollectionDto())
 
@@ -62,7 +66,7 @@ class CollectionControllerFt : AbstractFunctionalTest() {
 
     @Test
     fun `search all collections`() = runBlocking<Unit> {
-        val continuation = "${randomPositiveLong()} _ ${randomAddress().hex()}"
+        val continuation = "${randomLong()} _ ${randomAddress().hex()}"
         val size = 10
         val nftCollections = listOf(randomNftCollectionDto(), randomNftCollectionDto())
 

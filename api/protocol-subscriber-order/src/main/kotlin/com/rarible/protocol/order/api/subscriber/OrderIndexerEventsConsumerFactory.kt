@@ -21,7 +21,7 @@ class OrderIndexerEventsConsumerFactory(
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = OrderEventDto::class.java,
             consumerGroup = consumerGroup,
-            defaultTopic = OrderIndexerTopicProvider.getTopic(environment, blockchain.value),
+            defaultTopic = OrderIndexerTopicProvider.getTopic(environment, blockchain.value) + ".global",
             bootstrapServers = brokerReplicaSet
         )
     }

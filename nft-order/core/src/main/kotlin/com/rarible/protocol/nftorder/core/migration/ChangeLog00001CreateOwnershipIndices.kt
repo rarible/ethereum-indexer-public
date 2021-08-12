@@ -11,7 +11,7 @@ class ChangeLog00001CreateOwnershipIndices() {
 
     @ChangeSet(
         id = "ChangeLog00001CreateOwnershipIndices.createIndicesForAllCollections",
-        order = "2",
+        order = "1",
         author = "protocol",
         runAlways = true
     )

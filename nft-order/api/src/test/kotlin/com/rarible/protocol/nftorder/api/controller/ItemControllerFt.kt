@@ -1,5 +1,9 @@
 package com.rarible.protocol.nftorder.api.controller
 
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
 import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.dto.NftOrderApiErrorDto
@@ -78,7 +82,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val item = randomItem(itemId).copy(
             bestSellOrder = bestSell,
             bestBidOrder = bestBid,
-            totalStock = randomPositiveBigInt()
+            totalStock = randomBigInt()
         )
 
         itemRepository.save(item)
@@ -100,7 +104,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val item = randomItem(itemId).copy(
             bestSellOrder = bestSellOrder,
             bestBidOrder = bestBidOrder,
-            totalStock = randomPositiveBigInt()
+            totalStock = randomBigInt()
         )
 
         itemRepository.save(item)

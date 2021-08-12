@@ -25,6 +25,7 @@
     </distributionManagement>
 
     <properties>
+        <nexus.maven.public>http://nexus.rarible.int/repository/maven-public</nexus.maven.public>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
@@ -249,5 +250,7 @@
         <module>erc20</module>
         <module>nft</module>
         <module>order</module>
+        <module>nft-order</module>
+        <module>test-coverage</module>
     </modules>
 </project>
