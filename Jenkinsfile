@@ -1,3 +1,3 @@
-@Library('shared-library') _
+@Library('shared-library@no-tests') _
 
-servicePipeline('ethereum', 'protocol-ethereum', 'nexus-ci')
+servicePipeline('ethereum', 'protocol-ethereum', 'nexus-ci', true)
