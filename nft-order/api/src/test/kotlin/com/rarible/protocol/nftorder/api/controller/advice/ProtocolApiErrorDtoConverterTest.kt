@@ -1,11 +1,11 @@
 package com.rarible.protocol.nftorder.api.controller.advice
 
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomString
 import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.dto.NftOrderApiErrorDto
 import com.rarible.protocol.dto.OrderIndexerApiErrorDto
 import com.rarible.protocol.dto.UnlockableApiErrorDto
-import com.rarible.protocol.nftorder.listener.test.mock.data.randomBigInt
-import com.rarible.protocol.nftorder.listener.test.mock.data.randomString
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

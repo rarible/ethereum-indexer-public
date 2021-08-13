@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.listener.handler
 
 import com.rarible.core.kafka.KafkaMessage
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.OwnershipId
@@ -25,7 +26,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     fun `update event - ownership fetched and stored`() = runWithKafka {
         val itemId = randomItemId()
         val ownershipId = randomOwnershipId(itemId)
-        val bestSell = randomOrderDto(itemId)
+        val bestSell = randomLegacyOrderDto(itemId)
 
         orderControllerApiMock.mockGetSellOrdersByItem(ownershipId, bestSell)
 
@@ -46,7 +47,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     fun `update event - existing ownership updated`() = runWithKafka {
         val itemId = randomItemId()
         val ownership = ownershipService.save(randomOwnership(itemId))
-        val bestSell = randomOrderDto(itemId)
+        val bestSell = randomLegacyOrderDto(itemId)
 
         // Despite we already have stored enrichment data, we refreshing it on update
         orderControllerApiMock.mockGetSellOrdersByItem(ownership.id, bestSell)

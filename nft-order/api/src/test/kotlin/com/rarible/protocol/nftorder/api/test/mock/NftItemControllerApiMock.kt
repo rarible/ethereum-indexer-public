@@ -11,7 +11,7 @@ class NftItemControllerApiMock(
     private val nftItemControllerApi: NftItemControllerApi
 ) {
 
-    fun mockGetNftItemById(itemId: ItemId, returnItem: NftItemDto) {
+    fun mockGetNftItemById(itemId: ItemId, returnItem: NftItemDto?) {
         every {
             nftItemControllerApi.getNftItemById(itemId.decimalStringValue, null)
         } returns (if (returnItem == null) Mono.empty() else Mono.just(returnItem))

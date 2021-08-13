@@ -20,6 +20,7 @@ class OrderControllerApiMock(
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
             )
         } returns Mono.just(OrdersPaginationDto(returnOrders.asList(), null))
@@ -33,6 +34,7 @@ class OrderControllerApiMock(
                 itemId.owner.hex(),
                 any(),
                 any(),
+                any(),
                 any()
             )
         } returns Mono.just(OrdersPaginationDto(returnOrders.asList(), null))
@@ -43,6 +45,7 @@ class OrderControllerApiMock(
             orderControllerApi.getOrderBidsByItem(
                 itemId.token.hex(),
                 itemId.tokenId.value.toString(),
+                any(),
                 any(),
                 any(),
                 any(),

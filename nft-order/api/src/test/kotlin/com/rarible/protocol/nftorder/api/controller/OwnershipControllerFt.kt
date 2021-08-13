@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.api.controller
 
+import com.rarible.core.test.data.randomString
 import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.dto.NftOrderApiErrorDto

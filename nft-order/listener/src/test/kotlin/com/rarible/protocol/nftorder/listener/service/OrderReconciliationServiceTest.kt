@@ -2,6 +2,7 @@ package com.rarible.protocol.nftorder.listener.service
 
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrdersPaginationDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nftorder.listener.configuration.NftOrderJobProperties
 import com.rarible.protocol.nftorder.listener.configuration.OrderReconciliationConfig
 import com.rarible.protocol.nftorder.listener.configuration.ReconciliationJobConfig
@@ -80,7 +81,7 @@ internal class OrderReconciliationServiceTest {
 
     private fun mockGetOrdersAll(continuation: String?, size: Int, result: OrdersPaginationDto): Unit {
         every {
-            orderControllerApi.getOrdersAll(null, continuation, size)
+            orderControllerApi.getOrdersAll(null, PlatformDto.ALL, continuation, size)
         } returns Mono.just(result)
     }
 

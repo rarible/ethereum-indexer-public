@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.core.service
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.test.IntegrationTest
 import com.rarible.protocol.nftorder.core.test.data.*
