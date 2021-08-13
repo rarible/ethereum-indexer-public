@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>protocol-nft-order</artifactId>
-    <packaging>pom</packaging>
 
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-nft-order</artifactId>
+    <packaging>pom</packaging>
 
     <dependencyManagement>
         <dependencies>
@@ -30,7 +31,6 @@
                 <artifactId>protocol-nft-order-listener</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
         </dependencies>
 
     </dependencyManagement>

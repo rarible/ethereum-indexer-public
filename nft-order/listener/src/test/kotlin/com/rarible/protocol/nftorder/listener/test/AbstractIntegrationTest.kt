@@ -25,16 +25,16 @@ import java.util.*
 abstract class AbstractIntegrationTest {
 
     @Autowired
-    private lateinit var nftItemControllerApi: NftItemControllerApi
+    protected lateinit var nftItemControllerApi: NftItemControllerApi
 
     @Autowired
-    private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
+    protected lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
 
     @Autowired
-    private lateinit var orderControllerApi: OrderControllerApi
+    protected lateinit var orderControllerApi: OrderControllerApi
 
     @Autowired
-    private lateinit var lockControllerApi: LockControllerApi
+    protected lateinit var lockControllerApi: LockControllerApi
 
     @Autowired
     lateinit var itemConsumer: RaribleKafkaConsumer<NftOrderItemEventDto>

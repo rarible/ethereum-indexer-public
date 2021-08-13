@@ -1,55 +1,25 @@
 package com.rarible.protocol.nftorder.core.test.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
 import com.rarible.protocol.nftorder.core.model.Part
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
-import scalether.domain.AddressFactory
-import java.math.BigInteger
-import kotlin.math.abs
 
-fun randomInt(): Int {
-    return RandomUtils.nextInt()
-}
+fun randomEthUInt256() = EthUInt256.of(randomWord())
 
-fun randomPositiveInt(): Int {
-    return abs(randomInt())
-}
-
-fun randomLong(): Long {
-    return RandomUtils.nextLong()
-}
-
-fun randomPositiveLong(): Long {
-    return abs(randomLong())
-}
-
-fun randomPositiveBigInt(): BigInteger {
-    return BigInteger.valueOf(randomPositiveLong())
-}
-
-fun randomAddress(): Address {
-    return AddressFactory.create()
-}
-
-fun randomEthUInt256(): EthUInt256 {
-    return EthUInt256(randomPositiveBigInt())
-}
-
-fun randomPart() = Part(randomAddress(), randomPositiveInt())
-
+fun randomPart() = Part(randomAddress(), randomInt())
 fun randomItemId() = ItemId(randomAddress(), randomEthUInt256())
 
-fun randomOwnership(): Ownership {
-    return randomOwnership(randomItemId(), randomPart())
-}
-
+fun randomOwnership() = randomOwnership(randomItemId(), randomPart())
 fun randomOwnership(itemId: ItemId, creator: Part): Ownership {
     return Ownership(
         contract = itemId.token,
@@ -63,38 +33,38 @@ fun randomOwnership(itemId: ItemId, creator: Part): Ownership {
     )
 }
 
-fun randomAssetErc721(itemId: ItemId) =
-    AssetDto(Erc721AssetTypeDto(itemId.token, itemId.tokenId.value), randomPositiveBigInt())
+fun randomAssetErc721(itemId: ItemId) = AssetDto(
+    Erc721AssetTypeDto(itemId.token, itemId.tokenId.value),
+    randomBigInt()
+)
 
 fun randomAssetErc20() = randomAssetErc20(randomAddress())
-
-fun randomAssetErc20(address: Address) = AssetDto(Erc20AssetTypeDto(address), randomPositiveBigInt())
+fun randomAssetErc20(address: Address) = AssetDto(Erc20AssetTypeDto(address), randomBigInt())
 
 fun randomOrderDto(itemId: ItemId) = randomOrderDto(itemId, randomAddress())
+fun randomOrderDto(itemId: ItemId, maker: Address) = randomOrderDto(
+    randomAssetErc721(itemId), maker, randomAssetErc20()
+)
 
-fun randomOrderDto(itemId: ItemId, maker: Address) =
-    randomOrderDto(randomAssetErc721(itemId), maker, randomAssetErc20())
-
-fun randomOrderDto(make: AssetDto, maker: Address, take: AssetDto): OrderDto {
-    return OrderDto(
-        type = OrderTypeDto.RARIBLE_V2,
+fun randomOrderDto(make: AssetDto, maker: Address, take: AssetDto): LegacyOrderDto {
+    return LegacyOrderDto(
         maker = maker,
         taker = randomAddress(),
         make = make,
         take = take,
-        fill = randomPositiveBigInt(),
-        makeStock = randomPositiveBigInt(),
+        fill = randomBigInt(),
+        makeStock = randomBigInt(),
         cancelled = false,
-        salt = Binary.apply(),
+        salt = Word.apply(RandomUtils.nextBytes(32)),
         data = OrderDataLegacyDto(randomInt()),
         signature = null,
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis(),
         pending = emptyList(),
         hash = Word.apply(RandomUtils.nextBytes(32)),
-        makeBalance = randomPositiveBigInt(),
-        makePriceUsd = randomPositiveBigInt().toBigDecimal(),
-        takePriceUsd = randomPositiveBigInt().toBigDecimal(),
+        makeBalance = randomBigInt(),
+        makePriceUsd = randomBigInt().toBigDecimal(),
+        takePriceUsd = randomBigInt().toBigDecimal(),
         start = null,
         end = null
     )

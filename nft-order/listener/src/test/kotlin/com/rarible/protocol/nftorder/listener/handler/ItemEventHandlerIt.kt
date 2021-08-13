@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.listener.handler
 
 import com.rarible.core.kafka.KafkaMessage
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemId
@@ -24,8 +25,8 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
     @Test
     fun `update event - item fetched and stored`() = runWithKafka {
         val itemId = randomItemId()
-        val bestSell = randomOrderDto(itemId)
-        val bestBid = randomOrderDto(itemId)
+        val bestSell = randomLegacyOrderDto(itemId)
+        val bestBid = randomLegacyOrderDto(itemId)
 
         // Enrichment requests
         lockControllerApiMock.mockIsUnlockable(itemId, true)
@@ -51,8 +52,8 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
     fun `update event - existing item updated`() = runWithKafka {
         val item = itemService.save(randomItem())
         val itemId = item.id
-        val bestSell = randomOrderDto(itemId)
-        val bestBid = randomOrderDto(itemId)
+        val bestSell = randomLegacyOrderDto(itemId)
+        val bestBid = randomLegacyOrderDto(itemId)
 
         // Despite we already have stored enrichment data, we refreshing it on update
         lockControllerApiMock.mockIsUnlockable(itemId, false)
