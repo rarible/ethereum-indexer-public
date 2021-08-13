@@ -6,14 +6,11 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 
-enum class TokenStandard(
-    val interfaceId: Bytes? = null,
-    val assetType: AssetType
-) {
-    ERC721(Binary.apply("0x80ac58cd"), AssetType.ERC721),
-    ERC1155(Binary.apply("0xd9b67a26"), AssetType.ERC1155),
-    DEPRECATED(Binary.apply("0x9a20483d"), AssetType.ERC721_DEPRECATED),
-    NONE(assetType = AssetType.ERC20);
+enum class TokenStandard(val interfaceId: Bytes? = null) {
+    ERC721(Binary.apply("0x80ac58cd")),
+    ERC1155(Binary.apply("0xd9b67a26")),
+    DEPRECATED(Binary.apply("0x9a20483d")),
+    NONE;
 
     companion object {
         val CREATE_TOPIC_MAP = mapOf<Word, Pair<TokenStandard, Set<TokenFeature>>>(
