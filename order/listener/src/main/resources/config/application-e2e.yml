@@ -1,2 +1,4 @@
 common:
   chain-id: 17
+listener:
+  load-open-sea-orders: false

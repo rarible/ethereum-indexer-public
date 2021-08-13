@@ -29,10 +29,10 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import io.micrometer.core.instrument.MeterRegistry
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 import java.time.Duration
 
 @Configuration
@@ -96,7 +96,12 @@ class OrderListenerConfiguration(
     }
 
     @Bean
-    @Profile("!integration", "!dev")
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["load-open-sea-orders"],
+        havingValue="true",
+        matchIfMissing = true
+    )
     fun openSeaOrderLoadWorker(
         openSeaOrderService: OpenSeaOrderService,
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,

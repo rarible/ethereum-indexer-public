@@ -3,3 +3,5 @@ common:
 rarible:
   ethereum:
     max-frame-size: 10485760
+listener:
+  load-open-sea-orders: false
