@@ -27,8 +27,13 @@ data class OrderVersion(
 ) {
     fun isBid(): Boolean = take.type.nft
 
-    fun withPricesUsd(makePriceUsd: BigDecimal?, takePriceUsd: BigDecimal?): OrderVersion {
-        return copy(makePriceUsd = makePriceUsd, takePriceUsd = takePriceUsd)
+    fun withOrderUsdValue(usdValue: OrderUsdValue): OrderVersion {
+        return copy(
+            makeUsd = usdValue.makeUsd,
+            takeUsd = usdValue.takeUsd,
+            makePriceUsd = usdValue.makePriceUsd,
+            takePriceUsd = usdValue.takePriceUsd
+        )
     }
 }
 

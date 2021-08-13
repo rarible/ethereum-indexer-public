@@ -3,7 +3,8 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.model.OrderUsdValue
+import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -15,18 +16,21 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.dao.OptimisticLockingFailureException
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 
 @Component
 @Profile("!integration")
 class OrderPricesUpdateJob(
     private val properties: OrderListenerProperties,
     private val priceUpdateService: PriceUpdateService,
-    private val orderRepository: OrderRepository,
-    private val orderVersionRepository: OrderVersionRepository
+    private val orderVersionRepository: OrderVersionRepository,
+    reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
+    private val logger: Logger = LoggerFactory.getLogger(OrderPricesUpdateJob::class.java)
+    private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
+
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.priceUpdateScheduleRate}")
     fun updateOrdersPrices() = runBlocking {
         if (properties.priceUpdateEnabled.not()) return@runBlocking
@@ -34,42 +38,40 @@ class OrderPricesUpdateJob(
         logger.info("Starting updateOrdersPrices()...")
 
         orderRepository.findActive().collect {
-            val updatedOrder = updateOrder(it)
-
-            if (updatedOrder != null) {
-                updateOrderVersions(updatedOrder.hash, updatedOrder.makePriceUsd, updatedOrder.takePriceUsd)
+            val usdValue = updateOrder(it)
+            if (usdValue != null) {
+                updateOrderVersions(it.hash, usdValue)
             }
         }
         logger.info("Successfully updated order prices.")
     }
 
-    protected suspend fun updateOrder(order: Order): Order? {
-        return try {
-            order
-                .let { priceUpdateService.updateOrderPrice(it, nowMillis()) }
-                .let { orderRepository.save(it) }
+    protected suspend fun updateOrder(order: Order): OrderUsdValue? {
+        val usdValue = priceUpdateService.getAssetsUsdValue(
+            make = order.make,
+            take = order.take,
+            at = nowMillis()
+        ) ?: return null
+
+        try {
+            order.let { orderRepository.save(it.withOrderUsdValue(usdValue)) }
         } catch (_: OptimisticLockingFailureException) {
             optimisticLock {
-                orderRepository.findById(order.hash)
-                    ?.let { priceUpdateService.updateOrderPrice(it, nowMillis()) }
-                    ?.let { orderRepository.save(it) }
+                orderRepository.findById(order.hash)?.let { orderRepository.save(it.withOrderUsdValue(usdValue)) }
             }
         }
+        return usdValue
     }
 
-    protected suspend fun updateOrderVersions(hash: Word, makePriceUsb: BigDecimal?, takePriceUsd: BigDecimal?) {
+    protected suspend fun updateOrderVersions(hash: Word, usdValue: OrderUsdValue) {
         orderVersionRepository.findAllByHash(hash).collect { orderVersion ->
             try {
                 orderVersion
-                    .withPricesUsd(makePriceUsb, takePriceUsd)
+                    .withOrderUsdValue(usdValue)
                     .let { orderVersionRepository.save(it).awaitFirst() }
             } catch (ex: Exception) {
                 logger.error("Can't update prices for order version ${orderVersion.id}", ex)
             }
         }
-    }
-
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(OrderPricesUpdateJob::class.java)
     }
 }
