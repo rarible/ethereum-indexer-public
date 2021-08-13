@@ -12,6 +12,7 @@ import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Binary
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Instant
@@ -21,6 +22,8 @@ class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val assetBalanceProvider: AssetBalanceProvider
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): Order? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
         val r = clientOpenSeaOrder.r ?: return null
@@ -122,6 +125,10 @@ class OpenSeaOrderConverter(
                     token = asset.assetContract.address,
                     tokenId = EthUInt256.of(asset.tokenId)
                 )
+                AssetSchema.ERC20 -> {
+                    logger.info("Unsupported OpenSea order: $openSeaOrder")
+                    return null
+                }
             },
             value = EthUInt256.of(openSeaOrder.quantity)
         )

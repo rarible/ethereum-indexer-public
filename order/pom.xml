@@ -13,7 +13,7 @@
     </parent>
 
     <properties>
-        <opensea-client-starter.version>0.7.0</opensea-client-starter.version>
+        <opensea-client-starter.version>0.10.0</opensea-client-starter.version>
     </properties>
 
     <dependencyManagement>
