@@ -110,15 +110,11 @@ class OpenSeaOrderEventConverter(
             //This is a case of bid order (usually buying using WETH)
             Address.ZERO() -> {
                 require(orders.sellOrder.maker != Address.ZERO())
-                require(orders.sellOrder.taker != Address.ZERO())
-                require(orders.buyOrder.maker == orders.sellOrder.taker)
                 OrderSide.LEFT
             }
             //This is a case of sell order (usually buying using ETH)
             else -> {
                 require(orders.buyOrder.maker != Address.ZERO())
-                require(orders.buyOrder.taker != Address.ZERO())
-                require(orders.buyOrder.taker == orders.sellOrder.maker)
                 OrderSide.RIGHT
             }
         }

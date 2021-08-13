@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.job
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.protocol.order.core.event.OrderVersionListener
@@ -30,12 +31,13 @@ class OpenSeaOrdersFetcherWorker(
 ) : SequentialDaemonWorker(meterRegistry, properties, "open-sea-orders-fetcher-job") {
 
     override suspend fun handle() {
-        logger.info("Starting fetching OpenSea orders")
-
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
 
+        val now = nowMillis().epochSecond
         val listedAfter = state.listedAfter
         val listedBefore = state.listedAfter + MAX_LOAD_PERIOD.seconds
+
+        logger.info("Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
         val openSeaOrders = openSeaOrderService.getNextOrders(listedAfter = listedAfter, listedBefore = listedBefore)
 
         val nextListedAfter = if (openSeaOrders.isNotEmpty()) {
@@ -56,7 +58,7 @@ class OpenSeaOrdersFetcherWorker(
         } else {
             logger.info("No new orders to fetch")
             delay(pollingPeriod)
-            listedBefore
+            if (listedBefore > now) now else listedBefore
         }
         openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter + 1))
     }
