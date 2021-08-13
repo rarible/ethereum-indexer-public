@@ -14,7 +14,9 @@ Indexers are built using Spring Framework and use these external services:
 
 ### [OpenAPI](./api)
 
-Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript etc.) and server controller interfaces are generated automatically using yaml OpenAPI files. 
+Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript etc.) and server controller interfaces are generated automatically using yaml OpenAPI files.
+
+OpenAPI doc: [https://ethereum-api.rarible.org/v0.1/doc](https://ethereum-api.rarible.org/v0.1/doc)
 
 ### License
 
