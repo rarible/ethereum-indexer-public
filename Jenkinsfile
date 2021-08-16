@@ -60,8 +60,8 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'dev'
       }
       steps {
-        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, properties: ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, properties: POLYGON_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-ethereum", env.PREFIX, env.IMAGE_TAG, properties: ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-polygon", env.PREFIX, env.IMAGE_TAG, properties: POLYGON_PROPERTIES)
       }
     }
     stage("deploy to e2e") {
