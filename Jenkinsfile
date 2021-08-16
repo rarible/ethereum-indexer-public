@@ -1,4 +1,7 @@
-@Library('shared-library@no-test-get-env') _
+@Library('shared-library@no-tests-more-properties') _
+
+def ETHEREUM_PROPERTIES = ["BLOCKCHAIN":"ethereum"]
+def POLYGON_PROPERTIES = ["BLOCKCHAIN":"polygon"]
 
 pipeline {
   agent none
@@ -57,12 +60,8 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'dev'
       }
       steps {
-        withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
-        withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, POLYGON_PROPERTIES)
       }
     }
     stage("deploy to e2e") {
@@ -81,9 +80,7 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'e2e'
       }
       steps {
-        withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, ETHEREUM_PROPERTIES)
       }
     }
     stage("deploy to staging") {
@@ -102,12 +99,8 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'staging'
       }
       steps {
-        withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
-        withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, POLYGON_PROPERTIES)
       }
     }
     stage("deploy to prod") {
@@ -126,12 +119,8 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'prod'
       }
       steps {
-        withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
-        withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
-        }
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG, POLYGON_PROPERTIES)
       }
     }
   }
