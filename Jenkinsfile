@@ -8,7 +8,7 @@ pipeline {
   }
   environment {
     PREFIX = "protocol"
-    CREDENTIALS_ID: "nexus-ci"
+    CREDENTIALS_ID = "nexus-ci"
   }
 
   stages {
