@@ -1,4 +1,4 @@
-@Library('shared-library@no-tests') _
+@Library('shared-library@no-test-get-env') _
 
 pipeline {
   agent none
