@@ -6,10 +6,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
+import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.data.ItemEnrichmentData
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.repository.ItemRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -46,8 +49,13 @@ class ItemService(
         return itemRepository.findAll(ids)
     }
 
-    suspend fun getOrFetchItemById(itemId: ItemId): Item {
-        return get(itemId) ?: fetchItem(itemId)
+    suspend fun getOrFetchItemById(itemId: ItemId): Fetched<Item> {
+        val item = get(itemId)
+        return if (item != null) {
+            Fetched(item, false)
+        } else {
+            Fetched(fetchItem(itemId), true)
+        }
     }
 
     suspend fun fetchItemMetaById(itemId: ItemId): NftItemMetaDto {
@@ -81,12 +89,17 @@ class ItemService(
         )
     }
 
-    suspend fun getEnrichmentData(itemId: ItemId): ItemEnrichmentData {
+    suspend fun getEnrichmentData(itemId: ItemId) = coroutineScope {
+        val totalStock = async { ownershipService.getOwnershipsTotalStock(itemId) }
+        val bestBidOrder = async { orderService.getBestBid(itemId) }
+        val bestSellOrder = async { orderService.getBestSell(itemId) }
+        val unlockable = async { lockService.isUnlockable(itemId) }
+
         val result = ItemEnrichmentData(
-            totalStock = ownershipService.getOwnershipsTotalStock(itemId),
-            bestBidOrder = orderService.getBestBid(itemId),
-            bestSellOrder = orderService.getBestSell(itemId),
-            unlockable = lockService.isUnlockable(itemId)
+            totalStock = totalStock.await(),
+            bestBidOrder = bestBidOrder.await(),
+            bestSellOrder = bestSellOrder.await(),
+            unlockable = unlockable.await()
         )
         logger.debug(
             "Enrichment data for Item [{}] fetched:" +
@@ -96,6 +109,6 @@ class ItemService(
                     " unlockable={}",
             itemId, result.totalStock, result.bestBidOrder?.hash, result.bestSellOrder?.hash, result.unlockable
         )
-        return result
+        result
     }
 }
