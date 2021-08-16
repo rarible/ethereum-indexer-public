@@ -8,6 +8,7 @@ pipeline {
   }
   environment {
     PREFIX = "protocol"
+    CREDENTIALS_ID: "nexus-ci"
   }
 
   stages {
@@ -37,7 +38,7 @@ pipeline {
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
           env.VERSION = "${env.IMAGE_TAG}"
         }
-        publishDockerImages(env.PREFIX, credentialsId, env.IMAGE_TAG)
+        publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
     }
     stage("deploy to dev") {
