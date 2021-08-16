@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.listener.service
 
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.data.ItemEnrichmentData
 import com.rarible.protocol.nftorder.core.data.OwnershipEnrichmentData
 import com.rarible.protocol.nftorder.core.model.Item
@@ -10,6 +11,8 @@ import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OrderService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -24,28 +27,65 @@ class OrderEventService(
 
     private val logger = LoggerFactory.getLogger(OrderEventService::class.java)
 
-    suspend fun updateOrder(order: OrderDto) {
+    suspend fun updateOrder(order: OrderDto) = coroutineScope {
+
         val makeItemId = toItemId(order.make.assetType)
         val takeItemId = toItemId(order.take.assetType)
 
         // Reading or fetching data required update, if make/take item ids are present
-        val ownership = makeItemId?.let {
-            val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
-            ownershipService.getOrFetchOwnershipById(ownershipId)
+        val ownershipFuture = makeItemId?.let {
+            async {
+                val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
+                ownershipService.getOrFetchOwnershipById(ownershipId)
+            }
         }
 
-        val makeItem = makeItemId?.let { itemService.getOrFetchItemById(makeItemId) }
-        val takeItem = takeItemId?.let { itemService.getOrFetchItemById(takeItemId) }
+        val makeItemFuture = makeItemId?.let { async { itemService.getOrFetchItemById(makeItemId) } }
+        val takeItemFuture = takeItemId?.let { async { itemService.getOrFetchItemById(takeItemId) } }
+
+        val fetchedOwnership = ownershipFuture?.await()
+        val makeItem = makeItemFuture?.await()
+        val takeItem = takeItemFuture?.await()
 
         // Fetching actual best bid/sell data from adjusted services via HTTP API
-        val bestOwnershipSellOrder = ownership?.let { orderService.getBestSell(ownership.id) }
-        val bestSellOrder = makeItemId?.let { orderService.getBestSell(makeItemId) }
-        val bestBidOrder = takeItemId?.let { orderService.getBestBid(takeItemId) }
+        val bestOwnershipSellOrder = fetchedOwnership?.let { async { fetchBestSellOrder(fetchedOwnership) } }
+        val bestSellOrder = makeItem?.let { async { fetchBestSellOrderForItem(makeItem) } }
+        val bestBidOrder = takeItem?.let { async { fetchBestBidOrderForItem(takeItem) } }
 
         // Updating entities in local DB via event-services in order to emit related events
-        updateOwnership(ownership, bestOwnershipSellOrder)
-        updateMakeItem(makeItem, bestSellOrder)
-        updateTakeItem(takeItem, bestBidOrder)
+        updateOwnership(fetchedOwnership?.entity, bestOwnershipSellOrder?.await())
+        updateMakeItem(makeItem?.entity, bestSellOrder?.await())
+        updateTakeItem(takeItem?.entity, bestBidOrder?.await())
+    }
+
+    // If Ownership or Item just fetched, it means, it is already have actual enriched data,
+    // we don't need to retrieve it again.
+    // But it also means such records are not stored in DB, and we have to store them via regular update
+    private suspend fun fetchBestSellOrder(fetchedOwnership: Fetched<Ownership>): OrderDto? {
+        val ownership = fetchedOwnership.entity
+        return if (fetchedOwnership.isFetched) {
+            ownership.bestSellOrder
+        } else {
+            orderService.getBestSell(ownership.id)
+        }
+    }
+
+    private suspend fun fetchBestSellOrderForItem(fetchedItem: Fetched<Item>): OrderDto? {
+        val item = fetchedItem.entity
+        return if (fetchedItem.isFetched) {
+            item.bestSellOrder
+        } else {
+            orderService.getBestSell(item.id)
+        }
+    }
+
+    private suspend fun fetchBestBidOrderForItem(fetchedItem: Fetched<Item>): OrderDto? {
+        val item = fetchedItem.entity
+        return if (fetchedItem.isFetched) {
+            item.bestBidOrder
+        } else {
+            orderService.getBestBid(item.id)
+        }
     }
 
     private suspend fun updateOwnership(ownership: Ownership?, bestOwnershipSellOrder: OrderDto?) {
@@ -99,6 +139,7 @@ class OrderEventService(
     }
 
     private fun toItemId(assetType: AssetTypeDto): ItemId? {
+
         return when (assetType) {
             is Erc721AssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
             is Erc1155AssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)

@@ -5,6 +5,7 @@ import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
+import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.data.OwnershipEnrichmentData
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
@@ -47,14 +48,19 @@ class OwnershipService(
         val start = System.currentTimeMillis()
         val result = ownershipRepository.getTotalStock(itemId)
         logger.debug(
-            "Query for totalStok executed for itemId [{}], returned [{}] time spent: {}ms",
+            "Query for totalStock executed for itemId [{}], returned [{}] time spent: {}ms",
             itemId, result, System.currentTimeMillis() - start
         )
         return result
     }
 
-    suspend fun getOrFetchOwnershipById(ownership: OwnershipId): Ownership {
-        return get(ownership) ?: fetchOwnership(ownership)
+    suspend fun getOrFetchOwnershipById(ownershipId: OwnershipId): Fetched<Ownership> {
+        val ownership = get(ownershipId)
+        return if (ownership != null) {
+            Fetched(ownership, false)
+        } else {
+            Fetched(fetchOwnership(ownershipId), true)
+        }
     }
 
     private suspend fun fetchOwnership(ownershipId: OwnershipId): Ownership {

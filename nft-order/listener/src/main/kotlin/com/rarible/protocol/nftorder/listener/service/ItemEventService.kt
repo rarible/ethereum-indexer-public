@@ -73,7 +73,7 @@ class ItemEventService(
 
     suspend fun onLockCreated(itemId: ItemId) {
         logger.info("Updating Item [{}] marked as Unlockable", itemId)
-        val item = itemService.getOrFetchItemById(itemId).copy(unlockable = true)
+        val item = itemService.getOrFetchItemById(itemId).entity.copy(unlockable = true)
         itemService.save(item)
         notify(ItemEventUpdate(item))
     }
