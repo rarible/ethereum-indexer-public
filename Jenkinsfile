@@ -1,8 +1,5 @@
 @Library('shared-library@no-tests-more-properties') _
 
-def ETHEREUM_PROPERTIES = [BLOCKCHAIN:"ethereum"]
-def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
-
 pipeline {
   agent none
 
@@ -60,8 +57,8 @@ pipeline {
         APPLICATION_ENVIRONMENT = 'dev'
       }
       steps {
-        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-ethereum", env.PREFIX, env.IMAGE_TAG, properties: ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-polygon", env.PREFIX, env.IMAGE_TAG, properties: POLYGON_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-ethereum", env.PREFIX, env.IMAGE_TAG, [], [BLOCKCHAIN:"ethereum"])
+        deployStack(env.APPLICATION_ENVIRONMENT, "protocol-polygon", env.PREFIX, env.IMAGE_TAG, [], [BLOCKCHAIN:"polygon"])
       }
     }
     stage("deploy to e2e") {
