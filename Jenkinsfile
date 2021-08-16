@@ -6,6 +6,9 @@ pipeline {
   options {
     disableConcurrentBuilds()
   }
+  environment {
+    PREFIX = "protocol"
+  }
 
   stages {
 //     stage('test') {
@@ -34,7 +37,7 @@ pipeline {
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
           env.VERSION = "${env.IMAGE_TAG}"
         }
-        publishDockerImages(prefix, credentialsId, env.IMAGE_TAG)
+        publishDockerImages(env.PREFIX, credentialsId, env.IMAGE_TAG)
       }
     }
     stage("deploy to dev") {
@@ -54,10 +57,10 @@ pipeline {
       }
       steps {
         withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
         withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
       }
     }
@@ -78,7 +81,7 @@ pipeline {
       }
       steps {
         withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
       }
     }
@@ -99,10 +102,10 @@ pipeline {
       }
       steps {
         withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
         withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
       }
     }
@@ -123,10 +126,10 @@ pipeline {
       }
       steps {
         withEnv(["BLOCKCHAIN=ethereum"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
         withEnv(["BLOCKCHAIN=polygon"]) {
-            deployStack("${APPLICATION_ENVIRONMENT}", "protocol-${BLOCKCHAIN}", "protocol", env.IMAGE_TAG)
+            deployStack(env.APPLICATION_ENVIRONMENT, "protocol-${BLOCKCHAIN}", env.PREFIX, env.IMAGE_TAG)
         }
       }
     }
