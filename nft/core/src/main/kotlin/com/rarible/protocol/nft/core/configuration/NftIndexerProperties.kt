@@ -10,5 +10,6 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 @ConfigurationProperties(RARIBLE_PROTOCOL_NFT_INDEXER)
 data class NftIndexerProperties(
     val kafkaReplicaSet: String,
-    val blockchain: Blockchain
+    val blockchain: Blockchain,
+    var cryptoPunksContractAddress: String
 )

@@ -21,12 +21,14 @@ class TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
+    private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
+
     override val topic: Word = TransferEvent.id()
 
     override fun convert(log: Log, date: Instant): Mono<ItemTransfer> {
         return tokenRegistrationService.getTokenStandard(log.address())
             .flatMap { standard ->
-                if (standard != TokenStandard.NONE) {
+                if (standard !in ignoredStandards) {
                     val e = when (log.topics().size()) {
                         4 -> TransferEvent.apply(log)
                         1 -> TransferEventWithFullData.apply(log)

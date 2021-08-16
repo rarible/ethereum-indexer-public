@@ -9,6 +9,7 @@ import io.daonomic.rpc.domain.Word
 enum class TokenStandard(val interfaceId: Bytes? = null) {
     ERC721(Binary.apply("0x80ac58cd")),
     ERC1155(Binary.apply("0xd9b67a26")),
+    CRYPTO_PUNKS,
     DEPRECATED(Binary.apply("0x9a20483d")),
     NONE;
 

@@ -34,6 +34,7 @@ components:
           enum:
             - ERC721
             - ERC1155
+            - CRYPTO_PUNKS
         owner:
           "$ref": "#/components/schemas/Address"
         name:

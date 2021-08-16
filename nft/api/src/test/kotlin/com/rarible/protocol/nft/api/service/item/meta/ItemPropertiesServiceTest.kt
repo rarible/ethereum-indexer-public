@@ -173,6 +173,15 @@ class ItemPropertiesServiceTest {
 
     @Test
     @Disabled
+    fun cryptoPunks() {
+        val props = testing.getProperties(Address.apply("0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"), 33.toBigInteger()).block()!!
+        assertEquals("CryptoPunk #33", props.name)
+        assertEquals("https://www.larvalabs.com/cryptopunks/cryptopunk33.png", props.image)
+        assertEquals(listOf("accessory" to "Peak Spike", "type" to "Male"), props.attributes.sortedBy { it.key }.map { it.key to it.value })
+    }
+
+    @Test
+    @Disabled
     fun standardImagePreview() {
         val props = testing.getProperties(Address.apply("0xe414a94e31f5f31e640a26d2822e8fef3328b667"), 536.toBigInteger()).block()!!
         assertNotNull(props.imagePreview)

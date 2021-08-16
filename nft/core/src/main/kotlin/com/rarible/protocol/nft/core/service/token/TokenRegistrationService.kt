@@ -42,15 +42,16 @@ class TokenRegistrationService(
         }
     }
 
-    fun register(address: Address): Mono<Token> {
-        return LoggingUtils.withMarker { marker ->
+    fun register(address: Address): Mono<Token> = getOrSaveToken(address, ::fetchToken)
+
+    fun getOrSaveToken(address: Address, fetchToken: (Address) -> Mono<Token>): Mono<Token> =
+        LoggingUtils.withMarker { marker ->
             tokenRepository.findById(address)
                 .switchIfEmpty {
                     logger.info(marker, "Token $address not found. fetching")
                     fetchToken(address).flatMap { saveOrReturn(it) }
                 }
         }
-    }
 
     private fun saveOrReturn(token: Token): Mono<Token> {
         return tokenRepository.save(token)
