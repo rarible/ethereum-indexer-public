@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.request.Transaction
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.BigInteger.ONE
 import java.math.BigInteger.TEN
@@ -104,6 +105,12 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 .isEqualTo(orderRight.make.copy(value = EthUInt256.ONE))
             assertThat(right?.take)
                 .isEqualTo(orderRight.take.copy(value = EthUInt256.TEN))
+
+            assertThat(left?.makeValue).isEqualTo(BigDecimal("0.000000000000000010"))
+            assertThat(left?.takeValue).isEqualTo(BigDecimal(1))
+
+            assertThat(left?.makeValue).isEqualTo(right?.takeValue)
+            assertThat(left?.takeValue).isEqualTo(right?.makeValue)
 
             checkActivityWasPublished(orderLeft, MatchEvent.id(), OrderActivityMatchDto::class.java)
         }

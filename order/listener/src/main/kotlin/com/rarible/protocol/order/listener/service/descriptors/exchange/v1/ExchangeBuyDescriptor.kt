@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
@@ -20,7 +21,8 @@ import java.time.Instant
 class ExchangeBuyDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val assetTypeService: AssetTypeService,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val prizeNormalizer: PriceNormalizer
 ) : ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
 
     private val addresses = listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old)
@@ -52,6 +54,8 @@ class ExchangeBuyDescriptor(
                 taker = event.buyer(),
                 makeUsd = usdValue?.makeUsd,
                 takeUsd = usdValue?.takeUsd,
+                makeValue = prizeNormalizer.normalize(make),
+                takeValue = prizeNormalizer.normalize(take),
                 makePriceUsd = usdValue?.makePriceUsd,
                 takePriceUsd = usdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE
@@ -67,6 +71,8 @@ class ExchangeBuyDescriptor(
                 taker = event.owner(),
                 makeUsd = usdValue?.takeUsd,
                 takeUsd = usdValue?.makeUsd,
+                makeValue = prizeNormalizer.normalize(take),
+                takeValue = prizeNormalizer.normalize(make),
                 makePriceUsd = usdValue?.takePriceUsd,
                 takePriceUsd = usdValue?.makePriceUsd,
                 source = HistorySource.RARIBLE

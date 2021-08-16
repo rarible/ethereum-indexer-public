@@ -7,6 +7,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -20,7 +21,8 @@ import scalether.domain.response.Log
 @Service
 class ExchangeOrderMatchDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val prizeNormalizer: PriceNormalizer
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val exchangeContract = exchangeContractAddresses.v2
@@ -62,6 +64,8 @@ class ExchangeOrderMatchDescriptor(
                 taker = event.rightMaker(),
                 makeUsd = lestUsdValue?.makeUsd,
                 takeUsd = lestUsdValue?.takeUsd,
+                makeValue = prizeNormalizer.normalize(leftMake),
+                takeValue = prizeNormalizer.normalize(leftTake),
                 makePriceUsd = lestUsdValue?.makePriceUsd,
                 takePriceUsd = lestUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE
@@ -77,6 +81,8 @@ class ExchangeOrderMatchDescriptor(
                 taker = event.leftMaker(),
                 makeUsd = rightUsdValue?.makeUsd,
                 takeUsd = rightUsdValue?.takeUsd,
+                makeValue = prizeNormalizer.normalize(rightMake),
+                takeValue = prizeNormalizer.normalize(rightTake),
                 makePriceUsd = rightUsdValue?.makePriceUsd,
                 takePriceUsd = rightUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE

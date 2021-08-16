@@ -5,6 +5,7 @@ import com.rarible.contracts.erc721.IERC721
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
@@ -18,7 +19,8 @@ import kotlin.experimental.xor
 
 @Component
 class OpenSeaOrderEventConverter(
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val prizeNormalizer: PriceNormalizer
 ) {
     suspend fun convert(openSeaOrders: OpenSeaMatchedOrders, price: BigInteger): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
@@ -62,6 +64,8 @@ class OpenSeaOrderEventConverter(
                 taker = sellOrder.maker,
                 makeUsd = buyUsdValue?.makeUsd,
                 takeUsd = buyUsdValue?.takeUsd,
+                makeValue = prizeNormalizer.normalize(paymentAsset),
+                takeValue = prizeNormalizer.normalize(nftAsset),
                 makePriceUsd = buyUsdValue?.makePriceUsd,
                 takePriceUsd = buyUsdValue?.takePriceUsd,
                 source = HistorySource.OPEN_SEA,
@@ -78,6 +82,8 @@ class OpenSeaOrderEventConverter(
                 taker = buyOrder.maker,
                 makeUsd = sellUsdValue?.makeUsd,
                 takeUsd = sellUsdValue?.takeUsd,
+                makeValue = prizeNormalizer.normalize(nftAsset),
+                takeValue = prizeNormalizer.normalize(paymentAsset),
                 makePriceUsd = sellUsdValue?.makePriceUsd,
                 takePriceUsd = sellUsdValue?.takePriceUsd,
                 source = HistorySource.OPEN_SEA,

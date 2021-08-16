@@ -54,6 +54,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 takeUsd = null,
                 makePriceUsd = null,
                 takePriceUsd = null,
+                makeValue = priceNormalizer.normalize(order.make),
+                takeValue = priceNormalizer.normalize(order.take),
                 date = sideMatchDate1,
                 source = HistorySource.RARIBLE
             ),
@@ -70,6 +72,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 takeUsd = null,
                 makePriceUsd = null,
                 takePriceUsd = null,
+                makeValue = priceNormalizer.normalize(order.make),
+                takeValue = priceNormalizer.normalize(order.take),
                 date = sideMatchDate2,
                 source = HistorySource.RARIBLE
             ),
