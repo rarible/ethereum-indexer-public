@@ -1,7 +1,7 @@
 @Library('shared-library@no-tests-more-properties') _
 
-def ETHEREUM_PROPERTIES = ["BLOCKCHAIN":"ethereum"]
-def POLYGON_PROPERTIES = ["BLOCKCHAIN":"polygon"]
+def ETHEREUM_PROPERTIES = [BLOCKCHAIN:"ethereum"]
+def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
 
 pipeline {
   agent none
