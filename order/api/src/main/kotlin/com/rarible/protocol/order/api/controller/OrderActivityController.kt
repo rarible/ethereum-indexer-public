@@ -5,11 +5,11 @@ import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.order.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
+import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
-import java.lang.Integer.min
 
 @RestController
 class OrderActivityController(
@@ -40,11 +40,5 @@ class OrderActivityController(
         }
         val orderActivities = OrderActivitiesDto(nextContinuation, result)
         return ResponseEntity.ok(orderActivities)
-    }
-
-    companion object {
-        private const val DEFAULT_SIZE = 50
-        private const val MAX_SIZE = 1000
-        private fun Int?.limit() = min(this ?: DEFAULT_SIZE, MAX_SIZE)
     }
 }

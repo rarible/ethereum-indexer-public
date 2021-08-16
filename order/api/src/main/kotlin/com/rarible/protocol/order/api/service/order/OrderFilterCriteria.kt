@@ -3,7 +3,7 @@ package com.rarible.protocol.order.api.service.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.api.controller.OrderController.Companion.limit
+import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
