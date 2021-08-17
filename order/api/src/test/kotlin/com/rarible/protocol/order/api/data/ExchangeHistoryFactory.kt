@@ -15,6 +15,7 @@ fun OrderSideMatch.withMakeToken(token: Address): OrderSideMatch {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(make = make.copy(type = makeType.copy(token = token)))
         is Erc1155AssetType -> copy(make = make.copy(type = makeType.copy(token = token)))
+        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(marketAddress = token)))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -31,6 +32,7 @@ fun OrderCancel.withMakeToken(token: Address): OrderCancel {
     return when (val makeType = make?.type) {
         is Erc721AssetType -> copy(make = make?.copy(type = makeType.copy(token = token)))
         is Erc1155AssetType -> copy(make = make?.copy(type = makeType.copy(token = token)))
+        is CryptoPunksAssetType -> copy(make = make?.copy(type = makeType.copy(marketAddress = token)))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType?.javaClass}")
     }
 }
@@ -39,6 +41,7 @@ fun OrderCancel.withTakeToken(token: Address): OrderCancel {
     return when (val takeType = take?.type) {
         is Erc721AssetType -> copy(take = take?.copy(type = takeType.copy(token = token)))
         is Erc1155AssetType -> copy(take = take?.copy(type = takeType.copy(token = token)))
+        is CryptoPunksAssetType -> copy(take = take?.copy(type = takeType.copy(marketAddress = token)))
         else -> throw IllegalArgumentException("Unsupported take assert type ${takeType?.javaClass}")
     }
 }
@@ -47,6 +50,7 @@ fun OrderSideMatch.withMaker(maker: Address): OrderSideMatch {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(maker = maker)
         is Erc1155AssetType -> copy(maker = maker)
+        is CryptoPunksAssetType -> copy(maker = maker)
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -59,6 +63,7 @@ fun OrderSideMatch.withTakeUsd(value: BigDecimal): OrderSideMatch {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(takeUsd = value)
         is Erc1155AssetType -> copy(takeUsd = value)
+        is CryptoPunksAssetType -> copy(takeUsd = value)
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -67,6 +72,7 @@ fun OrderSideMatch.withMakeTokenId(tokenId: EthUInt256): OrderSideMatch {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(make = make.copy(type = makeType.copy(tokenId = tokenId)))
         is Erc1155AssetType -> copy(make = make.copy(type = makeType.copy(tokenId = tokenId)))
+        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(punkId = tokenId.value.toInt())))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -83,6 +89,7 @@ fun OrderCancel.withMakeTokenId(tokenId: EthUInt256): OrderCancel {
     return when (val makeType = make?.type) {
         is Erc721AssetType -> copy(make = make?.copy(type = makeType.copy(tokenId = tokenId)))
         is Erc1155AssetType -> copy(make = make?.copy(type = makeType.copy(tokenId = tokenId)))
+        is CryptoPunksAssetType -> copy(make = make?.copy(type = makeType.copy(punkId = tokenId.value.toInt())))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType?.javaClass}")
     }
 }
@@ -91,6 +98,7 @@ fun OrderCancel.withTakeTokenId(tokenId: EthUInt256): OrderCancel {
     return when (val takeType = take?.type) {
         is Erc721AssetType -> copy(take = take?.copy(type = takeType.copy(tokenId = tokenId)))
         is Erc1155AssetType -> copy(take = take?.copy(type = takeType.copy(tokenId = tokenId)))
+        is CryptoPunksAssetType -> copy(take = take?.copy(type = takeType.copy(punkId = tokenId.value.toInt())))
         else -> throw IllegalArgumentException("Unsupported make assert type ${take?.javaClass}")
     }
 }

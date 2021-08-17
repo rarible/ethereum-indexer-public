@@ -9,7 +9,6 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
-import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.Tuple10
 import scala.Tuple3
@@ -468,5 +467,7 @@ val AssetType.token: Address
             is Erc20AssetType -> token
             is Erc721LazyAssetType -> token
             is GenerativeArtAssetType, is EthAssetType -> Address.ZERO()
+            is CryptoPunksAssetType -> marketAddress
+            is EthAssetType -> Address.ZERO()
         }
     }

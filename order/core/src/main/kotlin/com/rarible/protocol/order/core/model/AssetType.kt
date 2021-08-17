@@ -47,6 +47,7 @@ sealed class AssetType(
         val ERC721_LAZY = id("ERC721_LAZY")
         val ERC1155 = id("ERC1155")
         val ERC1155_LAZY = id("ERC1155_LAZY")
+        val CRYPTO_PUNKS = id("CRYPTO_PUNKS")
         val GEN_ART = id("GEN_ART")
 
         val AssetType.isLazy: Boolean
@@ -191,6 +192,17 @@ data class Erc1155LazyAssetType(
     }
 }
 
+data class CryptoPunksAssetType(val marketAddress: Address, val punkId: Int) : AssetType(
+    CRYPTO_PUNKS, Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))), true
+) {
+    companion object {
+        fun apply(data: Binary) = run {
+            val decoded = Tuples.addressUintType().decode(data, 0)
+            CryptoPunksAssetType(decoded.value()._1, decoded.value()._2.toInt())
+        }
+    }
+}
+
 fun List<Bytes>.hash(): ByteArray = keccak256(fold(ByteArray(0)) { acc, next -> acc + next.bytes() }).bytes()
 
 private fun List<Binary>.toEthereum() = map { it.bytes() }.toTypedArray()
@@ -213,6 +225,7 @@ fun Tuple2<ByteArray, ByteArray>.toAssetType() =
         AssetType.ERC1155 -> Erc1155AssetType.apply(Binary(_2()))
         AssetType.ERC721_LAZY -> Erc721LazyAssetType.apply(Binary(_2()))
         AssetType.ERC1155_LAZY -> Erc1155LazyAssetType.apply(Binary(_2()))
+        AssetType.CRYPTO_PUNKS -> CryptoPunksAssetType.apply(Binary(_2()))
         AssetType.GEN_ART -> GenerativeArtAssetType(Binary(_2()))
         else -> throw IllegalArgumentException("asset type not supported: $type")
     }

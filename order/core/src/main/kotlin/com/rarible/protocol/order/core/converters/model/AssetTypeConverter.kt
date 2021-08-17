@@ -39,6 +39,10 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
                 royalties = source.royalties.map { Part(it.account, EthUInt256.of(it.value.toLong())) },
                 signatures = source.signatures
             )
+            is CryptoPunksAssetTypeDto -> CryptoPunksAssetType(
+                marketAddress = source.contract,
+                punkId = source.punkId
+            )
             is FlowAssetTypeDto -> throw IllegalArgumentException("Unsupported assert type ${source.javaClass} ")
         }
     }
