@@ -17,18 +17,18 @@ pipeline {
   }
 
   stages {
-//     stage('test') {
-//       agent any
-//       steps {
-//         sh 'mvn clean test'
-//       }
-//       post {
-//         always {
-//           junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-//           step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
-//         }
-//       }
-//     }
+    stage('test') {
+      agent any
+      steps {
+        sh 'mvn clean test -U'
+      }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+          step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
+        }
+      }
+    }
     stage('package and publish') {
       agent any
       when {
@@ -36,7 +36,7 @@ pipeline {
         beforeInput true
       }
       steps {
-        sh 'mvn clean package -U -DskipTests'
+        sh 'mvn clean package -DskipTests'
 
         script {
           env.BRANCH_NAME = "${env.GIT_BRANCH}"
@@ -102,7 +102,6 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to prod") {
@@ -122,7 +121,6 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
   }
