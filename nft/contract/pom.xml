@@ -5,7 +5,7 @@
     <parent>
         <artifactId>protocol-nft-indexer</artifactId>
         <groupId>com.rarible.protocol</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.12.0</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>

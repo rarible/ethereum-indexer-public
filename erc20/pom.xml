@@ -5,12 +5,15 @@
     <artifactId>protocol-erc20-indexer</artifactId>
     <packaging>pom</packaging>
 
-
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.12.0</version>
     </parent>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
