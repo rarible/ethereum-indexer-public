@@ -29,14 +29,6 @@ pipeline {
         }
       }
     }
-    stage('deploy') {
-      when {
-        anyOf { branch 'master'; branch 'release/*' }
-      }
-      steps {
-        deployToMaven('nexus-ci')
-      }
-    }
     stage('package and publish') {
       agent any
       when {
@@ -51,6 +43,7 @@ pipeline {
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
           env.VERSION = "${env.IMAGE_TAG}"
         }
+        deployToMaven('nexus-ci')
         publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
     }
