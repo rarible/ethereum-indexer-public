@@ -1,9 +1,10 @@
 ### Rarible Protocol Ethereum Indexers
 
 Here is the list of indexers:
-- [NFT indexer](./nft)
-- [ERC-20 indexer](./erc20)
-- [Order indexer](./order)
+- [NFT indexer](./nft) - aggregates data about NFTs
+- [ERC-20 indexer](./erc20) - aggregates data about ERC-20 tokens and balances 
+- [Order indexer](./order) - aggregates data about Orders from different platforms
+- [NFT-order](./nft-order) - connects together nft and order indexers
 
 ### Architecture
 
