@@ -17,6 +17,7 @@ class PriceNormalizer(
             is Erc20AssetType -> (contractService.get(assetType.token) as Erc20Token).decimals ?: 0
             is Erc721AssetType -> 0
             is Erc721LazyAssetType -> 0
+            is CryptoPunksAssetType -> 0
             is EthAssetType -> 18
         }
     }

@@ -20,7 +20,7 @@ class AssetBalanceProvider(
                     .getBalance(type.token, owner)
                     ?.let { balance -> EthUInt256.of(balance.balance) }
             }
-            is Erc721AssetType, is Erc1155AssetType -> {
+            is Erc721AssetType, is Erc1155AssetType, is CryptoPunksAssetType -> {
                 val ownershipId = type.ownershipId(owner)
                 nftOwnershipApi
                     .getOwnershipById(ownershipId)
