@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrderEventService(
     private val orderService: OrderService,
+    private val bestOrderService: BestOrderService,
     private val itemService: ItemService,
     private val ownershipService: OwnershipService,
     private val itemEventService: ItemEventService,
@@ -48,9 +49,10 @@ class OrderEventService(
         val takeItem = takeItemFuture?.await()
 
         // Fetching actual best bid/sell data from adjusted services via HTTP API
-        val bestOwnershipSellOrder = fetchedOwnership?.let { async { fetchBestSellOrder(fetchedOwnership) } }
-        val bestSellOrder = makeItem?.let { async { fetchBestSellOrderForItem(makeItem) } }
-        val bestBidOrder = takeItem?.let { async { fetchBestBidOrderForItem(takeItem) } }
+        val bestOwnershipSellOrder =
+            fetchedOwnership?.let { async { fetchBestSellOrderForOwnership(fetchedOwnership, order) } }
+        val bestSellOrder = makeItem?.let { async { fetchBestSellOrderForItem(makeItem, order) } }
+        val bestBidOrder = takeItem?.let { async { fetchBestBidOrderForItem(takeItem, order) } }
 
         // Updating entities in local DB via event-services in order to emit related events
         updateOwnership(fetchedOwnership?.entity, bestOwnershipSellOrder?.await())
@@ -61,30 +63,45 @@ class OrderEventService(
     // If Ownership or Item just fetched, it means, it is already have actual enriched data,
     // we don't need to retrieve it again.
     // But it also means such records are not stored in DB, and we have to store them via regular update
-    private suspend fun fetchBestSellOrder(fetchedOwnership: Fetched<Ownership>): OrderDto? {
+    private suspend fun fetchBestSellOrderForOwnership(
+        fetchedOwnership: Fetched<Ownership>,
+        order: OrderDto
+    ): OrderDto? {
         val ownership = fetchedOwnership.entity
         return if (fetchedOwnership.isFetched) {
+            logger.info(
+                "Ownership [{}] was fetched, using fetched BestSellOrder: [{}]",
+                ownership.id, ownership.bestSellOrder
+            )
             ownership.bestSellOrder
         } else {
-            orderService.getBestSell(ownership.id)
+            bestOrderService.getBestSellOrder(ownership, order)
         }
     }
 
-    private suspend fun fetchBestSellOrderForItem(fetchedItem: Fetched<Item>): OrderDto? {
+    private suspend fun fetchBestSellOrderForItem(
+        fetchedItem: Fetched<Item>,
+        order: OrderDto
+    ): OrderDto? {
         val item = fetchedItem.entity
         return if (fetchedItem.isFetched) {
+            logger.info("Item [{}] was fetched, using fetched BestSellOrder: [{}]", item.id, item.bestSellOrder)
             item.bestSellOrder
         } else {
-            orderService.getBestSell(item.id)
+            bestOrderService.getBestSellOrder(item, order)
         }
     }
 
-    private suspend fun fetchBestBidOrderForItem(fetchedItem: Fetched<Item>): OrderDto? {
+    private suspend fun fetchBestBidOrderForItem(
+        fetchedItem: Fetched<Item>,
+        order: OrderDto
+    ): OrderDto? {
         val item = fetchedItem.entity
         return if (fetchedItem.isFetched) {
+            logger.info("Item [{}] was fetched, using fetched BestBidOrder: [{}]", item.id, item.bestBidOrder)
             item.bestBidOrder
         } else {
-            orderService.getBestBid(item.id)
+            bestOrderService.getBestBidOrder(item, order)
         }
     }
 

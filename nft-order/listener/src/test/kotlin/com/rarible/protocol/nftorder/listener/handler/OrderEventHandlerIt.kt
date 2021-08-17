@@ -2,6 +2,7 @@ package com.rarible.protocol.nftorder.listener.handler
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderUpdateEventDto
@@ -11,6 +12,7 @@ import com.rarible.protocol.nftorder.core.service.OwnershipService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
+import io.daonomic.rpc.domain.Word
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -103,21 +105,19 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         itemService.save(item)
 
         // If ownership and item already stored in Mongo, no HTTP calls should be executed,
-        // except fetching bestSell Order for ownership and item
-        val bestSell = randomLegacyOrderDto(makeItemId)
-        val bestSellByOwnership = randomLegacyOrderDto(makeItemId, ownershipId.owner)
-        orderControllerApiMock.mockGetSellOrdersByItem(makeItemId, bestSell)
-        orderControllerApiMock.mockGetSellOrdersByItem(ownershipId, bestSellByOwnership)
-
-        val updatedOrder = randomLegacyOrderDto(makeItemId, ownershipId.owner)
-        orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
+        // updated order should be taken from event
+        val bestSell = randomLegacyOrderDto(makeItemId, ownershipId.owner)
+        orderEventHandler.handle(createOrderUpdateEvent(bestSell))
 
         // Ensure existing entities updated with enrich data
         val updatedMakeItem = itemService.get(makeItemId)!!
         assertThat(updatedMakeItem.bestSellOrder).isEqualTo(bestSell)
 
+        // Ensure existing entity updated order from event
+        verify(exactly = 0) { orderControllerApi.getSellOrdersByItem(any(), any(), any(), any(), any(), any(), any()) }
+
         val updateOwnership = ownershipService.get(ownershipId)!!
-        assertThat(updateOwnership.bestSellOrder).isEqualTo(bestSellByOwnership)
+        assertThat(updateOwnership.bestSellOrder).isEqualTo(bestSell)
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
             assertThat(ownershipEvents).hasSize(1)
@@ -132,16 +132,15 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         itemService.save(item)
 
         // If item already stored in Mongo, no HTTP calls should be executed,
-        // except fetching bestBid Order for item
-        val bestBid = randomLegacyOrderDto(takeItemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(takeItemId, bestBid)
-
+        // updated order should be taken from event
         val updatedOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(takeItemId))
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
-        // Ensure existing entity updated with enrich data
+        // Ensure existing entity updated order from event
+        verify(exactly = 0) { orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), any(), any(), any()) }
+
         val updatedMakeItem = itemService.get(takeItemId)!!
-        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(bestBid)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(updatedOrder)
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
         }
@@ -149,9 +148,10 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `take item updated - OpenSea order`() = runWithKafka {
-        // Starting with item already saved in Mongo without enrich data
-        val item = randomItem(randomPart())
-        val itemId = item.id
+        // Starting with item already saved in Mongo with cancelled OpenSea order
+        val itemId = randomItemId()
+        val current = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = current)
         itemService.save(item)
 
         // Fetching best bid order, which is OpenSeaOrder - and there is no Rarible best order
@@ -159,7 +159,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE)
 
-        val updatedOrder = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+        val updatedOrder = current.copy(hash = current.hash, cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Ensure item updated with OpenSea order
@@ -179,9 +179,10 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `take item updated - preferred Rarible Order`() = runWithKafka {
-        // Starting with item already saved in Mongo without enrich data
-        val item = randomItem(randomPart())
-        val itemId = item.id
+        // Starting with item already saved in Mongo with cancelled order
+        val itemId = randomItemId()
+        val current = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = current)
         itemService.save(item)
 
         // Fetching best bid order, which is OpenSeaOrder, but we also have Rarible bestBid
@@ -190,7 +191,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE, raribleBestBid)
 
-        val updatedOrder = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+        val updatedOrder = current.copy(cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Ensure item updated with Rarible order
@@ -211,8 +212,11 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
     @Test
     fun `make item and ownership deleted, no enrich data`() = runWithKafka {
         // Starting with item/ownership already saved in Mongo, both of them have bestSellOrder
-        val item = randomItem(randomPart()).copy(bestSellOrder = randomLegacyOrderDto())
-        val ownership = randomOwnership(item).copy(bestSellOrder = randomLegacyOrderDto(item.id))
+        val itemId = randomItemId()
+        val orderHash = Word.apply(randomWord())
+        val item =
+            randomItem(itemId, randomPart()).copy(bestSellOrder = randomLegacyOrderDto(itemId).copy(hash = orderHash))
+        val ownership = randomOwnership(item).copy(bestSellOrder = randomLegacyOrderDto(itemId).copy(hash = orderHash))
         ownershipService.save(ownership)
         itemService.save(item)
 
@@ -220,7 +224,9 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         orderControllerApiMock.mockGetSellOrdersByItem(item.id)
         orderControllerApiMock.mockGetSellOrdersByItem(ownership.id)
 
-        val updatedOrder = randomLegacyOrderDto(item.id, ownership.id.owner)
+        // Updated Order should be cancelled - in such case we will try to fetch actual best Order
+        val updatedOrder = randomLegacyOrderDto(item.id, ownership.id.owner).copy(hash = orderHash, cancelled = true)
+
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Both entities should be deleted
@@ -235,18 +241,21 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
     @Test
     fun `take item NOT deleted if some enrich data remains`() = runWithKafka {
         // Unlockable set to TRUE, so even we don't have bestBidOrder, we have to keep this entity in Mongo
-        val item = randomItem(randomPart()).copy(unlockable = true, bestBidOrder = randomLegacyOrderDto())
+        val itemId = randomItemId()
+        val current = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+        val item = randomItem(itemId, randomPart()).copy(unlockable = true, bestBidOrder = current)
         itemService.save(item)
 
-        // HTTP API returns NULL bestSellOrder
-        orderControllerApiMock.mockGetBidOrdersByItem(item.id)
+        // HTTP API returns NULL best bid order
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId)
 
-        val updatedOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(item.id))
+        val updatedOrder = current.copy(cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Unlockable is still TRUE, bestBid Order reset
         val update = itemService.get(item.id)!!
         assertThat(update.bestBidOrder).isNull()
+        assertThat(update.bestSellOrder).isNull()
         assertThat(update.unlockable).isTrue()
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
