@@ -127,6 +127,8 @@ class PendingTransactionService(
                         maker = owner,
                         taker = from,
                         side = OrderSide.LEFT,
+                        makeValue = null,
+                        takeValue = null,
                         makeUsd = null,
                         takeUsd = null,
                         makePriceUsd = null,

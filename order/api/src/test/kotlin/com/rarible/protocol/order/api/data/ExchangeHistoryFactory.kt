@@ -163,6 +163,8 @@ fun orderSideMatch(make: Asset, take: Asset): OrderSideMatch = OrderSideMatch(
     takeUsd = null,
     makePriceUsd = null,
     takePriceUsd = null,
+    makeValue = null,
+    takeValue = null,
     source = HistorySource.RARIBLE
 )
 
