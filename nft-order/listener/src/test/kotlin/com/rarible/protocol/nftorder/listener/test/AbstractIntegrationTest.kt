@@ -73,9 +73,12 @@ abstract class AbstractIntegrationTest {
             itemEvents = Collections.synchronizedList(ArrayList<KafkaMessage<NftOrderItemEventDto>>())
             itemJob = async { itemConsumer.receive().collect { itemEvents?.add(it) } }
 
-            val result = block()
-            ownershipJob?.cancel()
-            itemJob?.cancel()
+            val result = try {
+                block()
+            } finally {
+                ownershipJob?.cancel()
+                itemJob?.cancel()
+            }
             result
         }
 
