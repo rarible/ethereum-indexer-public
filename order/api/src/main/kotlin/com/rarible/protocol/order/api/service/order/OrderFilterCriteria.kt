@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.service.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
@@ -24,13 +25,14 @@ object OrderFilterCriteria {
             is OrderFilterBidByMakerDto -> bidByMaker(maker)
 
         }
+        val requestLimit = limit.limit()
         return Query(
             criteria
                 .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
                 .forPlatform(convert(platform))
-        ).limit(limit ?: 50).with(
+        ).limit(requestLimit).with(
             sort(this.sort)
         )
     }

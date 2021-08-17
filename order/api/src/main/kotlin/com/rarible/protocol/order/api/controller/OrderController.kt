@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.exceptions.InvalidParameterException
+import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -288,11 +289,5 @@ class OrderController(
 
     private fun convert(source: List<PartDto>): List<Part> {
         return source.map { PartConverter.convert(it) }
-    }
-
-    companion object {
-        private const val DEFAULT_SIZE = 50
-        private const val MAX_SIZE = 1000
-        private fun Int?.limit() = Integer.min(this ?: DEFAULT_SIZE, MAX_SIZE)
     }
 }
