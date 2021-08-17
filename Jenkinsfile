@@ -29,6 +29,14 @@ pipeline {
         }
       }
     }
+    stage('deploy') {
+      when {
+        anyOf { branch 'master'; branch 'release/*' }
+      }
+      steps {
+        deployToMaven('nexus-ci')
+      }
+    }
     stage('package and publish') {
       agent any
       when {

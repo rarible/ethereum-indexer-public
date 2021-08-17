@@ -12,6 +12,10 @@
     <artifactId>test-coverage</artifactId>
     <packaging>pom</packaging>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.rarible.protocol</groupId>

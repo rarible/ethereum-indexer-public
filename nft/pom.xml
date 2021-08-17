@@ -12,6 +12,10 @@
         <version>1.12.0</version>
     </parent>
 
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <!-- ============ Internal dependencies ============ -->
