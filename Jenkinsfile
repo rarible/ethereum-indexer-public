@@ -36,7 +36,7 @@ pipeline {
         beforeInput true
       }
       steps {
-        sh 'mvn clean package -DskipTests'
+        sh 'mvn clean package -U -DskipTests'
 
         script {
           env.BRANCH_NAME = "${env.GIT_BRANCH}"
