@@ -43,7 +43,7 @@ pipeline {
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
           env.VERSION = "${env.IMAGE_TAG}"
         }
-        deployToMaven('nexus-ci')
+        deployToMaven(env.CREDENTIALS_ID)
         publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
     }
