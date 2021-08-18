@@ -1,0 +1,9 @@
+rarible:
+  core:
+    nginx-expose:
+      server: ethereum-api-e2e.rarible.org
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty.http.client: DEBUG

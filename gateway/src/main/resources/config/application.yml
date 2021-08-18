@@ -1,0 +1,28 @@
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  application.name: protocol-gateway
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  aop:
+    proxy-target-class: false
+  main:
+    banner-mode: log
+    web-application-type: reactive
+  cloud:
+    gateway:
+      httpclient:
+        pool:
+          max-life-time: 800s
+          max-idle-time: 90s
+rarible:
+  core:
+    nginx-expose:
+      enabled: true
+      location: /v0.1

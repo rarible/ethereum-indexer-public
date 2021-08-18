@@ -4,7 +4,7 @@ info:
   version: v0.1
 
 paths:
-  "/protocol/v0.1/ethereum/transactions":
+  "/v0.1/transactions":
     post:
       tags:
         - gateway-controller

@@ -30,6 +30,9 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <spring-cloud-gateway.version>2.2.6.RELEASE</spring-cloud-gateway.version>
+        <mockserver-netty.version>5.11.2</mockserver-netty.version>
+        <mockserver.version>1.15.3</mockserver.version>
 
         <rarible-core.version>1.2-SNAPSHOT</rarible-core.version>
         <rarible-ethereum.version>1.0-SNAPSHOT</rarible-ethereum.version>
@@ -251,6 +254,7 @@
         <module>nft</module>
         <module>order</module>
         <module>nft-order</module>
+        <module>gateway</module>
         <module>test-coverage</module>
     </modules>
 </project>
