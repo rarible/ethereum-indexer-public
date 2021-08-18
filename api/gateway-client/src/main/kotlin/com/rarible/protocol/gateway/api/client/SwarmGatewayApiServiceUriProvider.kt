@@ -7,6 +7,6 @@ class SwarmGatewayApiServiceUriProvider(
 ) : GatewayApiServiceUriProvider {
 
     override fun getUri(blockchain: String): URI {
-        return URI.create(String.format("http://%s-protocol-gateway:8080", environment))
+        return URI.create(String.format("http://%s-%s-gateway:8080", environment, blockchain))
     }
 }

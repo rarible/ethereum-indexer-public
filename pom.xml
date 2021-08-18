@@ -95,7 +95,17 @@
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-unlockable</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-api-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-api-unlockable</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -146,6 +156,11 @@
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-model-nft-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-unlockable</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -255,6 +270,7 @@
         <module>order</module>
         <module>nft-order</module>
         <module>gateway</module>
+        <module>unlockable</module>
         <module>test-coverage</module>
     </modules>
 </project>

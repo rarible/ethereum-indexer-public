@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-unlockable</artifactId>
+    <packaging>pom</packaging>
+
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>rarible-protocol-ethereum-indexer</artifactId>
+        <version>1.13-SNAPSHOT</version>
+    </parent>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- ============ Internal dependencies ============ -->
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-unlockable-api</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-unlockable-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-unlockable-core-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-unlockable-core-test</artifactId>
+                <version>${project.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>api</module>
+        <module>core</module>
+        <module>core-test</module>
+        <module>core-common</module>
+    </modules>
+</project>

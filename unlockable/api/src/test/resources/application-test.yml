@@ -1,0 +1,30 @@
+spring:
+  application.name: unlockable-api
+  cloud:
+    service-registry.auto-registration.enabled: false
+    discovery.enabled: false
+    consul.config.enabled: false
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+
+logging:
+  logstash.tcp-socket.enabled: false
+  level.org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+
+application:
+  environment: test
+
+common:
+  blockchain: ETHEREUM
+
+rarible:
+  ethereum:
+    converter:
+      enabled: true
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}

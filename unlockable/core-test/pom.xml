@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>protocol-unlockable</artifactId>
+        <version>1.13-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-unlockable-core-test</artifactId>
+
+    <dependencies>
+        <!-- ============ Internal dependencies ============ -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-unlockable-core-common</artifactId>
+        </dependency>
+
+        <!-- =============== Protocol-API ================ -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-model-nft</artifactId>
+        </dependency>
+
+        <!-- ================== Other ===================== -->
+        <dependency>
+            <groupId>io.daonomic.scalether</groupId>
+            <artifactId>domain-test_${scala.major.version}</artifactId>
+            <version>${scalether.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>

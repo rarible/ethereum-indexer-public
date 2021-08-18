@@ -1,0 +1,33 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  application.name: protocol-unlockable-api
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+    default-property-inclusion: non_null
+  main:
+    banner-mode: log
+    web-application-type: reactive
+
+rarible:
+  ethereum:
+    converter:
+      enabled: true
+  core:
+    filter:
+      cors:
+        enabled: true
+    nginx-expose:
+      enabled: false
+      location: /template
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}

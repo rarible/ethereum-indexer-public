@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>protocol-unlockable</artifactId>
+        <groupId>com.rarible.protocol</groupId>
+        <version>1.13-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-unlockable-api</artifactId>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- ============ Internal dependencies ============ -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-unlockable-core</artifactId>
+        </dependency>
+
+        <!-- =============== Protocol-API ================ -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-api-unlockable</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-nft-starter</artifactId>
+        </dependency>
+
+        <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-telemetry-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-kafka</artifactId>
+        </dependency>
+
+        <!-- ================== Spring =================== -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
+        </dependency>
+
+        <!-- ================== Test ==================== -->
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-unlockable-core-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-unlockable</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-test-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test-autoconfigure</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mockk</groupId>
+            <artifactId>mockk</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

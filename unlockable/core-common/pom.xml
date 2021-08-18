@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.rarible.protocol</groupId>
+        <artifactId>protocol-unlockable</artifactId>
+        <version>1.13-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>protocol-unlockable-core-common</artifactId>
+
+    <dependencies>
+
+        <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-converters</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-common</artifactId>
+        </dependency>
+
+        <!-- ================== Test ===================== -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+</project>

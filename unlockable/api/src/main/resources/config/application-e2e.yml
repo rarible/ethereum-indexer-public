@@ -1,0 +1,4 @@
+rarible:
+  core:
+    nginx-expose:
+      server: api-e2e.rarible.com
