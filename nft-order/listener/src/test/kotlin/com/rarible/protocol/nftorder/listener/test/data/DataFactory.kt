@@ -20,10 +20,12 @@ fun randomOwnershipId(itemId: ItemId) = OwnershipId(itemId.token, itemId.tokenId
 fun randomOwnershipId() = OwnershipId(randomAddress(), randomEthUInt256(), randomAddress())
 
 fun randomItem() = randomItem(randomPart())
-fun randomItem(vararg creators: Part): Item {
+fun randomItem(itemId: ItemId) = randomItem(itemId, randomPart())
+fun randomItem(vararg creators: Part) = randomItem(randomItemId(), *creators)
+fun randomItem(itemId: ItemId, vararg creators: Part): Item {
     return Item(
-        token = randomAddress(),
-        tokenId = randomEthUInt256(),
+        token = itemId.token,
+        tokenId = itemId.tokenId,
         creators = creators.asList(),
         supply = randomEthUInt256(),
         lazySupply = randomEthUInt256(),
