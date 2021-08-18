@@ -24,6 +24,7 @@ object NftItemDtoToExtendedItemConverter : Converter<NftItemDto, ExtendedItem> {
             date = nftItem.date ?: nowMillis(),
             pending = ItemTransferDtoConverter.convert(nftItem.pending ?: emptyList()),
             // Default enrichment data, should be replaced out of this converter
+            sellers = 0,
             totalStock = BigInteger.ZERO,
             bestSellOrder = null,
             bestBidOrder = null,

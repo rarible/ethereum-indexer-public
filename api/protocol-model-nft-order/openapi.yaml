@@ -43,6 +43,7 @@ components:
         - date
         - pending
         - totalStock
+        - sellers
       properties:
         id:
           type: string
@@ -87,6 +88,8 @@ components:
           $ref: "#/components/schemas/Order"
         totalStock:
           $ref: "#/components/schemas/BigInteger"
+        sellers:
+          type: integer
 
     NftOrderDeletedItem:
       required:

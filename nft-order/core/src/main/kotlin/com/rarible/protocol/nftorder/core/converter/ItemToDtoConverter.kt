@@ -25,7 +25,8 @@ object ItemToDtoConverter : Converter<Item, NftOrderItemDto> {
                 null,
                 bestSellOrder,
                 bestBidOrder,
-                totalStock
+                totalStock,
+                sellers
             )
         }
     }

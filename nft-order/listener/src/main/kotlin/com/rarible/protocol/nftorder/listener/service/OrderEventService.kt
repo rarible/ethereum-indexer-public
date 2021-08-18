@@ -55,9 +55,9 @@ class OrderEventService(
         val bestBidOrder = takeItem?.let { async { fetchBestBidOrderForItem(takeItem, order) } }
 
         // Updating entities in local DB via event-services in order to emit related events
-        updateOwnership(fetchedOwnership?.entity, bestOwnershipSellOrder?.await())
         updateMakeItem(makeItem?.entity, bestSellOrder?.await())
         updateTakeItem(takeItem?.entity, bestBidOrder?.await())
+        updateOwnership(fetchedOwnership?.entity, bestOwnershipSellOrder?.await())
     }
 
     // If Ownership or Item just fetched, it means, it is already have actual enriched data,
@@ -128,6 +128,7 @@ class OrderEventService(
             )
 
             val enrichmentData = ItemEnrichmentData(
+                sellers = makeItem.sellers,
                 totalStock = makeItem.totalStock,
                 bestSellOrder = bestSellOrder,
                 bestBidOrder = makeItem.bestBidOrder,
@@ -146,6 +147,7 @@ class OrderEventService(
             )
 
             val enrichmentData = ItemEnrichmentData(
+                sellers = takeItem.sellers,
                 totalStock = takeItem.totalStock,
                 bestSellOrder = takeItem.bestSellOrder,
                 bestBidOrder = bestBidOrder,

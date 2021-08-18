@@ -26,7 +26,8 @@ object ExtendedItemToDtoConverter : Converter<ExtendedItem, NftOrderItemDto> {
                 meta,
                 bestSellOrder,
                 bestBidOrder,
-                totalStock
+                totalStock,
+                sellers
             )
         }
     }
