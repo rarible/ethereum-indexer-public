@@ -1,7 +1,7 @@
 rarible:
   core:
     nginx-expose:
-      server: ethereum-api-e2e.rarible.org
+      server: ${gateway.blockchain}-api-e2e.rarible.org
 
 logging:
   level:
