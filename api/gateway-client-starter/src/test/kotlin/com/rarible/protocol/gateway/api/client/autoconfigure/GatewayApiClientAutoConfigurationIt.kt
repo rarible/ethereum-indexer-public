@@ -49,7 +49,7 @@ class GatewayApiClientAutoConfigurationIt {
     @Test
     fun `test default client uri`() {
         val uri = gatewayApiServiceUriProvider.getUri("ethereum")
-        assertThat(uri.toString()).isEqualTo("http://test-protocol-gateway:8080")
+        assertThat(uri.toString()).isEqualTo("http://test-ethereum-gateway:8080")
     }
 
     @TestConfiguration
