@@ -19,6 +19,14 @@ fun OrderSideMatch.withMakeToken(token: Address): OrderSideMatch {
     }
 }
 
+fun OrderSideMatch.withTakeToken(token: Address): OrderSideMatch {
+    return when (val takeType = take.type) {
+        is Erc721AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
+        is Erc1155AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
+        else -> throw IllegalArgumentException("Unsupported take assert type ${takeType.javaClass}")
+    }
+}
+
 fun OrderCancel.withMakeToken(token: Address): OrderCancel {
     return when (val makeType = make?.type) {
         is Erc721AssetType -> copy(make = make?.copy(type = makeType.copy(token = token)))
@@ -63,6 +71,14 @@ fun OrderSideMatch.withMakeTokenId(tokenId: EthUInt256): OrderSideMatch {
     }
 }
 
+fun OrderSideMatch.withTakeTokenId(tokenId: EthUInt256): OrderSideMatch {
+    return when (val takeType = take.type) {
+        is Erc721AssetType -> copy(take = take.copy(type = takeType.copy(tokenId = tokenId)))
+        is Erc1155AssetType -> copy(take = take.copy(type = takeType.copy(tokenId = tokenId)))
+        else -> throw IllegalArgumentException("Unsupported take assert type ${takeType.javaClass}")
+    }
+}
+
 fun OrderCancel.withMakeTokenId(tokenId: EthUInt256): OrderCancel {
     return when (val makeType = make?.type) {
         is Erc721AssetType -> copy(make = make?.copy(type = makeType.copy(tokenId = tokenId)))
@@ -87,6 +103,10 @@ fun OrderSideMatch.withMakeNft(token: Address, tokenId: EthUInt256): OrderSideMa
     return withMakeToken(token).withMakeTokenId(tokenId)
 }
 
+fun OrderSideMatch.withTakeNft(token: Address, tokenId: EthUInt256): OrderSideMatch {
+    return withTakeToken(token).withTakeTokenId(tokenId)
+}
+
 fun OrderCancel.withMakeNft(token: Address, tokenId: EthUInt256): OrderCancel {
     return withMakeToken(token).withMakeTokenId(tokenId)
 }
@@ -109,9 +129,21 @@ fun orderErc721SellSideMatch(): OrderSideMatch {
     return orderSideMatch(make, take)
 }
 
+fun orderErc721BuySideMatch(): OrderSideMatch {
+    val make = createEthAsset()
+    val take = createErc721Asset()
+    return orderSideMatch(make, take)
+}
+
 fun orderErc1155SellSideMatch(): OrderSideMatch {
     val make = createErc1155Asset()
     val take = createEthAsset()
+    return orderSideMatch(make, take)
+}
+
+fun orderErc1155BuySideMatch(): OrderSideMatch {
+    val make = createEthAsset()
+    val take = createErc1155Asset()
     return orderSideMatch(make, take)
 }
 

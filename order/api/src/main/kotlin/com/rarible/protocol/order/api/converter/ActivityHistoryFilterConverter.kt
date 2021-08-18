@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.repository.exchange.ItemActivityExchangeH
 import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeHistoryFilter
 import org.springframework.stereotype.Component
 
+
 @Component
 class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
 
@@ -24,11 +25,12 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
             is OrderActivityFilterAllDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterAllDto.Types.MATCH -> listOf(
-                        ActivityExchangeHistoryFilter.AllSell(continuation),
+                        ActivityExchangeHistoryFilter.AllSell(continuation)
+                    )
+                    OrderActivityFilterAllDto.Types.BID -> listOf(
                         ActivityExchangeHistoryFilter.AllCanceledBid(continuation)
                     )
-                    OrderActivityFilterAllDto.Types.BID,
-                    OrderActivityFilterAllDto.Types.LIST -> emptyList<ActivityExchangeHistoryFilter>()
+                    OrderActivityFilterAllDto.Types.LIST -> emptyList()
                 }
             }
             is OrderActivityFilterByUserDto -> source.types.flatMap {
@@ -36,34 +38,37 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
                 when (it) {
                     OrderActivityFilterByUserDto.Types.SELL -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserSell(users, continuation),
-                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserSell(users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.BUY -> listOf(
                         UserActivityExchangeHistoryFilter.ByUserBuy(users, continuation)
                     )
+                    OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
+                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(users, continuation)
+                    )
                     OrderActivityFilterByUserDto.Types.LIST,
-                    OrderActivityFilterByUserDto.Types.MAKE_BID,
                     OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
                 }
             }
             is OrderActivityFilterByItemDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByItemDto.Types.MATCH -> listOf(
-                        ItemActivityExchangeHistoryFilter.ByItemSell(source.contract, EthUInt256.of(source.tokenId), continuation),
+                        ItemActivityExchangeHistoryFilter.ByItemSell(source.contract, EthUInt256.of(source.tokenId), continuation)
+                    )
+                    OrderActivityFilterByItemDto.Types.BID -> listOf(
                         ItemActivityExchangeHistoryFilter.ByItemCanceledBid(source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
-                    OrderActivityFilterByItemDto.Types.BID,
                     OrderActivityFilterByItemDto.Types.LIST -> emptyList()
                 }
             }
             is OrderActivityFilterByCollectionDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByCollectionDto.Types.MATCH -> listOf(
-                        CollectionActivityExchangeHistoryFilter.ByCollectionSell(source.contract, continuation),
+                        CollectionActivityExchangeHistoryFilter.ByCollectionSell(source.contract, continuation)
+                    )
+                    OrderActivityFilterByCollectionDto.Types.BID -> listOf(
                         CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(source.contract, continuation)
                     )
-                    OrderActivityFilterByCollectionDto.Types.BID,
                     OrderActivityFilterByCollectionDto.Types.LIST -> emptyList()
                 }
             }
