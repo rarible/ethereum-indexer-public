@@ -68,7 +68,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         val salt = Numeric.toBigInt(RandomUtils.nextBytes(32))
         listOf<Any>(
             salt, /* as big int */
-            "\"" + salt.toWord() + "\"", /* as hex string of length 64 */
+            //"\"" + salt.toWord() + "\"", /* as hex string of length 64 */
             "\"" + salt + "\"" /* as a decimal string */
         ).forEach { saltFormat ->
             testCreateOrderUsingPutRequest(EthUInt256(salt)) { orderForm ->
