@@ -103,7 +103,7 @@ class WertFt : AbstractOrderIt() {
             maker = realBuyer,
             amount = BigInteger.ONE,
             originFees = emptyList(),
-            salt = BigInteger.TEN.toWord()
+            salt = BigInteger.TEN
         )).awaitFirst()
         encodeClient.encodeOrder(inverted).awaitFirst()
         val prepared = orderClient.prepareOrderV2Transaction(

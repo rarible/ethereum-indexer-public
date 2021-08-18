@@ -138,7 +138,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             AssetConverter.convert(make),
             taker,
             AssetConverter.convert(take),
-            salt.toBigInteger(),
+            salt,
             start,
             end,
             OrderDataConverter.convert(data),

@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.converters.model
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
@@ -17,7 +16,7 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
                 make = AssetDtoConverter.convert(source.make),
                 taker = source.taker,
                 take = AssetDtoConverter.convert(source.take),
-                salt = source.salt.value.toWord(),
+                salt = source.salt.value,
                 signature = source.signature,
                 start = source.start,
                 end = source.end,
@@ -28,7 +27,7 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
                 make = AssetDtoConverter.convert(source.make),
                 taker = source.taker,
                 take = AssetDtoConverter.convert(source.take),
-                salt = source.salt.value.toWord(),
+                salt = source.salt.value,
                 signature = source.signature,
                 start = source.start,
                 end = source.end,
@@ -39,7 +38,7 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
                 make = AssetDtoConverter.convert(source.make),
                 taker = source.taker,
                 take = AssetDtoConverter.convert(source.take),
-                salt = source.salt.value.toWord(),
+                salt = source.salt.value,
                 signature = source.signature,
                 start = source.start,
                 end = source.end,

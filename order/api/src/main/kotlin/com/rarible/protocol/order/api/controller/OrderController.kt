@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
@@ -38,7 +39,7 @@ class OrderController(
         form: InvertOrderFormDto
     ): ResponseEntity<OrderFormDto> {
         val order = orderService.get(Word.apply(hash))
-        val inverted = orderInvertService.invert(order, form.maker, form.amount, form.salt, convert(form.originFees))
+        val inverted = orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
         return ResponseEntity.ok(conversionService.convert(inverted))
     }
 

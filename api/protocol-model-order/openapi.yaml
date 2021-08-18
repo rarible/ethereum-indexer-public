@@ -580,7 +580,7 @@ components:
         take:
           $ref: "#/components/schemas/Asset"
         salt:
-          $ref: "#/components/schemas/Word"
+          $ref: "#/components/schemas/BigInteger"
         start:
           type: integer
           format: int64
@@ -655,7 +655,7 @@ components:
         amount:
           "$ref": "#/components/schemas/BigInteger"
         salt:
-          "$ref": "#/components/schemas/Word"
+          "$ref": "#/components/schemas/BigInteger"
         originFees:
           type: array
           items:
