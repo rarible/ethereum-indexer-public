@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.OrderDto
 import java.math.BigInteger
 
 data class ItemEnrichmentData(
+    val sellers: Int,
     val totalStock: BigInteger,
     val bestBidOrder: OrderDto?,
     val bestSellOrder: OrderDto?,

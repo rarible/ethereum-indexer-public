@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component
 class OwnershipEventService(
     private val conversionService: ConversionService,
     private val ownershipService: OwnershipService,
+    private val itemEventService: ItemEventService,
     private val ownershipEventListeners: List<OwnershipEventListener>
 ) {
     private val logger = LoggerFactory.getLogger(OwnershipEventService::class.java)
@@ -38,6 +39,7 @@ class OwnershipEventService(
             deleteOwnership(rawOwnership.id)
         }
         notify(OwnershipEventUpdate(updated))
+        itemEventService.onOwnershipUpdated(rawOwnership.id)
     }
 
     suspend fun onOwnershipDeleted(nftOwnership: NftDeletedOwnershipDto) {
@@ -45,6 +47,7 @@ class OwnershipEventService(
         logger.info("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId)
         ownershipService.delete(ownershipId)
         notify(OwnershipEventDelete(ownershipId))
+        itemEventService.onOwnershipUpdated(ownershipId)
     }
 
     private suspend fun updateOwnership(existing: Ownership?, updated: Ownership, data: OwnershipEnrichmentData) {

@@ -2,6 +2,7 @@ package com.rarible.protocol.nftorder.core.repository
 
 import com.mongodb.client.result.DeleteResult
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
 import com.rarible.protocol.nftorder.core.model.OwnershipId
@@ -57,7 +58,7 @@ class OwnershipRepository(
         ).awaitFirstOrNull()
     }
 
-    suspend fun getTotalStock(itemId: ItemId): BigInteger {
+    suspend fun getItemSellStats(itemId: ItemId): ItemSellStats {
         val bestSellOrderField = Ownership::bestSellOrder.name
         val makeStockField = OrderDto::makeStock.name
         val query = Query(
@@ -71,10 +72,13 @@ class OwnershipRepository(
         query.fields().include("$bestSellOrderField.$makeStockField")
 
         // BigInteger stored as String, so we have to retrieve it and cast to Number manually
-        return template.find(query, Document::class.java, collection)
-            .map { BigInteger(it.get(bestSellOrderField, Document::class.java).getString(makeStockField)) }
-            .reduce { n1, n2 -> n1.plus(n2) }
-            .awaitFirstOrElse { BigInteger.ZERO }
+        val mapping = template.find(query, Document::class.java, collection)
+            // each record means 1 unique ownership
+            .map { 1 to BigInteger(it.get(bestSellOrderField, Document::class.java).getString(makeStockField)) }
+            .reduce { n1, n2 -> Pair(n1.first + n2.first, n1.second.plus(n2.second)) }
+            .awaitFirstOrElse { Pair(0, BigInteger.ZERO) }
+
+        return ItemSellStats(mapping.first, mapping.second)
     }
 
     suspend fun createIndices() = runBlocking {

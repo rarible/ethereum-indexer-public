@@ -82,6 +82,7 @@ class ItemService(
 
     suspend fun enrichItem(rawItem: Item, itemEnrichmentData: ItemEnrichmentData): Item {
         return rawItem.copy(
+            sellers = itemEnrichmentData.sellers,
             totalStock = itemEnrichmentData.totalStock,
             bestSellOrder = itemEnrichmentData.bestSellOrder,
             bestBidOrder = itemEnrichmentData.bestBidOrder,
@@ -90,25 +91,21 @@ class ItemService(
     }
 
     suspend fun getEnrichmentData(itemId: ItemId) = coroutineScope {
-        val totalStock = async { ownershipService.getOwnershipsTotalStock(itemId) }
-        val bestBidOrder = async { orderService.getBestBid(itemId) }
-        val bestSellOrder = async { orderService.getBestSell(itemId) }
+        val sellStatsFuture = async { ownershipService.getItemSellStats(itemId) }
+        val bestBidOrderFuture = async { orderService.getBestBid(itemId) }
+        val bestSellOrderFuture = async { orderService.getBestSell(itemId) }
         val unlockable = async { lockService.isUnlockable(itemId) }
 
+        val sellStats = sellStatsFuture.await()
+
         val result = ItemEnrichmentData(
-            totalStock = totalStock.await(),
-            bestBidOrder = bestBidOrder.await(),
-            bestSellOrder = bestSellOrder.await(),
+            sellers = sellStats.sellers,
+            totalStock = sellStats.totalStock,
+            bestBidOrder = bestBidOrderFuture.await(),
+            bestSellOrder = bestSellOrderFuture.await(),
             unlockable = unlockable.await()
         )
-        logger.debug(
-            "Enrichment data for Item [{}] fetched:" +
-                    " totalStock={}," +
-                    " bestBidOrder=[{}]," +
-                    " bestSellOrder=[{}]," +
-                    " unlockable={}",
-            itemId, result.totalStock, result.bestBidOrder?.hash, result.bestSellOrder?.hash, result.unlockable
-        )
+        logger.debug("Enrichment data for Item [{}] fetched: [{}]", itemId, result)
         result
     }
 }
