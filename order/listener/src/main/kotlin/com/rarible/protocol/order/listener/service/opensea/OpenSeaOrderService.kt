@@ -1,10 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.opensea.client.OpenSeaClient
-import com.rarible.opensea.client.model.OpenSeaOrder
-import com.rarible.opensea.client.model.OrdersRequest
-import com.rarible.opensea.client.model.SortBy
-import com.rarible.opensea.client.model.SortDirection
+import com.rarible.opensea.client.model.*
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -25,12 +22,22 @@ class OpenSeaOrderService(
                 limit = null,
                 side = null
             )
-            val result = openSeaClient.getOrders(request).ensureSuccess().orders
+            val result = getOrders(request)
 
             orders.addAll(result)
         } while (result.isNotEmpty() && orders.size <= MAX_OFFSET)
 
         return orders
+    }
+
+    private suspend fun getOrders(request: OrdersRequest): List<OpenSeaOrder> {
+        return when (val result = openSeaClient.getOrders(request)) {
+            is OperationResult.Success -> result.result.orders
+            is OperationResult.Fail -> when (result.error.code) {
+                OpenSeaErrorCode.TOO_MANY_REQUESTS -> emptyList()
+                else -> throw IllegalStateException("Operation finished with error ${result.error}")
+            }
+        }
     }
 
     companion object {
