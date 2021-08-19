@@ -22,10 +22,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
+import reactor.netty.resources.ConnectionProvider
 import reactor.netty.tcp.ProxyProvider
 import scalether.domain.Address
 import java.math.BigInteger
 import java.net.URI
+import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @Service
@@ -112,12 +114,22 @@ class OpenseaClient(
     }
 
     companion object {
+        val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(60)
         const val X_API_KEY = "X-API-KEY"
         val logger: Logger = LoggerFactory.getLogger(OpenseaClient::class.java)
 
         private fun createConnector(connectTimeoutMs: Int, readTimeoutMs: Int, proxyUrl: String, followRedirect: Boolean): ClientHttpConnector {
             logger.info("createConnector $connectTimeoutMs $readTimeoutMs $proxyUrl $followRedirect")
-            val tcpClient: reactor.netty.tcp.TcpClient = reactor.netty.tcp.TcpClient.create()
+
+            val provider = ConnectionProvider.builder("protocol-default-open_sea-connection-provider")
+                .maxConnections(200)
+                .pendingAcquireMaxCount(-1)
+                .maxIdleTime(DEFAULT_TIMEOUT)
+                .maxLifeTime(DEFAULT_TIMEOUT)
+                .lifo()
+                .build()
+
+            val tcpClient = reactor.netty.tcp.TcpClient.create(provider)
                 .option(io.netty.channel.ChannelOption.CONNECT_TIMEOUT_MILLIS, connectTimeoutMs)
                 .doOnConnected { conn: reactor.netty.Connection ->
                     conn.addHandlerLast(

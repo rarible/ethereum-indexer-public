@@ -5,7 +5,7 @@
     <artifactId>rarible-protocol-ethereum-indexer</artifactId>
     <groupId>com.rarible.protocol</groupId>
     <packaging>pom</packaging>
-    <version>1.12.3</version>
+    <version>1.12.4</version>
 
     <parent>
         <groupId>com.rarible</groupId>
@@ -93,6 +93,11 @@
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-api-order</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

@@ -3,10 +3,10 @@ package com.rarible.protocol.nft.api.service.item.meta
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.cache.CacheDescriptor
-import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.ItemId
@@ -36,9 +36,10 @@ class PropertiesCacheDescriptor(
     @Value("\${api.properties.cache-timeout}") private val cacheTimeout: Long
 ) : CacheDescriptor<ItemProperties> {
 
-    private val client = WebClient.builder()
-        .clientConnector(WebClientHelper.createConnector(10000, 10000, true))
-        .build()
+    private val client = WebClient.builder().apply {
+        DefaultProtocolWebClientCustomizer().customize(it)
+    }.build()
+
     private val mapper = ObjectMapper()
 
     override val collection: String = "cache_properties"
