@@ -71,19 +71,22 @@ class OpenSeaOrdersFetcherWorker(
         if (orderRepository.findById(order.hash) == null) {
             orderRepository.save(order)
         }
-        orderVersionRepository.save(OrderVersion(
-            hash = order.hash,
-            maker = order.maker,
-            taker = order.taker,
-            make = order.make,
-            take = order.take,
-            makePriceUsd = order.makePriceUsd,
-            takePriceUsd = order.takePriceUsd,
-            makeUsd = order.makeUsd,
-            takeUsd = order.takeUsd,
-            platform = Platform.OPEN_SEA
-        )).awaitFirst()
+        if (properties.loadOpenSeaOrderVersion) {
+            val version = orderVersionRepository.save(OrderVersion(
+                hash = order.hash,
+                maker = order.maker,
+                taker = order.taker,
+                make = order.make,
+                take = order.take,
+                makePriceUsd = order.makePriceUsd,
+                takePriceUsd = order.takePriceUsd,
+                makeUsd = order.makeUsd,
+                takeUsd = order.takeUsd,
+                platform = Platform.OPEN_SEA
+            )).awaitFirst()
 
+            orderVersionListener.onOrderVersion(version)
+        }
         logger.info("Save new openSea order ${order.hash}")
     }
 
