@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
-        <version>1.12.4</version>
+        <version>1.12.5</version>
     </parent>
 
     <properties>

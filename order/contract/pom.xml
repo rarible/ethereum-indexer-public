@@ -5,7 +5,7 @@
     <parent>
         <artifactId>protocol-order-indexer</artifactId>
         <groupId>com.rarible.protocol</groupId>
-        <version>1.12.4</version>
+        <version>1.12.5</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
