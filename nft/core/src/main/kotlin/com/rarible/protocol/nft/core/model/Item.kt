@@ -44,8 +44,8 @@ data class Item(
             if (parts.size < 2) {
                 throw IllegalArgumentException("Incorrect format of itemId: $id")
             }
-            val tokenId = EthUInt256.of(parts[1])
-            return ItemId(Address.apply(parts[0]), tokenId)
+            val tokenId = EthUInt256.of(parts[1].trim())
+            return ItemId(Address.apply(parts[0].trim()), tokenId)
         }
 
         fun empty(token: Address, tokenId: EthUInt256): Item {

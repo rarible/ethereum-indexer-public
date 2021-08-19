@@ -44,8 +44,8 @@ data class Ownership(
             if (parts.size < 3) {
                 throw IllegalArgumentException("Incorrect format of ownershipId: $id")
             }
-            val tokenId = EthUInt256.of(parts[1])
-            return OwnershipId(Address.apply(parts[0]), tokenId, Address.apply(parts[2]))
+            val tokenId = EthUInt256.of(parts[1].trim())
+            return OwnershipId(Address.apply(parts[0].trim()), tokenId, Address.apply(parts[2].trim()))
         }
 
         fun empty(token: Address, tokenId: EthUInt256, owner: Address): Ownership {
