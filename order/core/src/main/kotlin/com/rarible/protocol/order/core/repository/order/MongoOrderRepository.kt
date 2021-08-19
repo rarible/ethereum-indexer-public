@@ -11,7 +11,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
-import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
 import java.util.*
@@ -30,83 +29,9 @@ class MongoOrderRepository(
     }
 
     suspend fun createIndexes() {
-        // Sell orders
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-                .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // Sell orders by item
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-                .on("${Order::make.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}", Sort.Direction.ASC)
-                .on(Order::makePriceUsd.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // Sell orders by collection
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-                .on("${Order::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-                .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // Sell orders by maker
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-                .on(Order::maker.name, Sort.Direction.ASC)
-                .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        //Bids by item
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::take.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-                .on("${Order::take.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}", Sort.Direction.ASC)
-                .on(Order::takePriceUsd.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // Bids by maker
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-                .on(Order::maker.name, Sort.Direction.ASC)
-                .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // To get order by last update
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
-
-        // To get all actual alive orders updated recently
-        template.indexOps(COLLECTION).ensureIndex(
-            Index()
-                // orders with non-zero makeStock should be first
-                .on(Order::makeStock.name, Sort.Direction.DESC)
-                // recently updated orders should be first
-                .on(Order::lastUpdateAt.name, Sort.Direction.DESC)
-                // for queries with continuation
-                .on("_id", Sort.Direction.ASC)
-                .background()
-        ).awaitFirst()
+        OrderRepositoryIndexes.ALL_INDEXES.forEach { index ->
+            template.indexOps(OrderVersionRepository.COLLECTION).ensureIndex(index).awaitFirst()
+        }
     }
 
     override suspend fun save(order: Order, previousOrderVersion: Order?): Order {
