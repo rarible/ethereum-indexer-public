@@ -14,12 +14,13 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 class DefaultProtocolWebClientCustomizer : WebClientCustomizer {
+
     override fun customize(webClientBuilder: WebClient.Builder) {
         webClientBuilder.codecs { clientCodecConfigurer ->
             clientCodecConfigurer.defaultCodecs().maxInMemorySize(DEFAULT_MAX_BODY_SIZE)
         }
         val provider = ConnectionProvider.builder("protocol-default-connection-provider")
-            .maxConnections(50)
+            .maxConnections(200)
             .pendingAcquireMaxCount(-1)
             .maxIdleTime(DEFAULT_TIMEOUT)
             .maxLifeTime(DEFAULT_TIMEOUT)
@@ -48,7 +49,7 @@ class DefaultProtocolWebClientCustomizer : WebClientCustomizer {
 
     companion object {
         val DEFAULT_MAX_BODY_SIZE = DataSize.ofMegabytes(10).toBytes().toInt()
-        val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(60)
+        val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(30)
         val DEFAULT_TIMEOUT_MILLIS: Long = DEFAULT_TIMEOUT.toMillis()
     }
 }
