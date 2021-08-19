@@ -26,10 +26,10 @@ object OrderFilterCriteria {
         }
         return Query(
             criteria
+                .forPlatform(convert(platform))
                 .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
-                .forPlatform(convert(platform))
         ).limit(limit ?: 50).with(
             sort(this.sort)
         )
