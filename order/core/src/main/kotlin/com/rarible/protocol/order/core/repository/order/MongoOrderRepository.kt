@@ -24,13 +24,7 @@ class MongoOrderRepository(
     suspend fun dropIndexes() {
         dropIndexes(
             "make.type.nft_1_lastUpdateAt_1__id_1",
-            "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1",
-            "make.type.nft_1_createdAt_1__id_1",
-            "make.type.token_1_make.type.tokenId_1_makePriceUsd_1__id_1",
-            "make.type.nft_1_make.type.token_1_lastUpdateAt_1__id_1",
-            "make.type.nft_1_maker_1_lastUpdateAt_1__id_1",
-            "take.type.token_1_take.type.tokenId_1_takePriceUsd_1__id_1",
-            "take.type.nft_1_maker_1_lastUpdateAt_1__id_1"
+            "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1"
         )
     }
 
