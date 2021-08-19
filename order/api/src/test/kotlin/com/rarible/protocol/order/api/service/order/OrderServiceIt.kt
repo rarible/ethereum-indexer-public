@@ -173,6 +173,26 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     @Test
+    fun `get rarible orders by default`() = runBlocking<Unit> {
+        saveRandomOrderWithMakeBalance()
+        saveRandomOrderWithMakeBalance()
+        saveRandomOrderWithMakeBalance()
+
+        saveRandomOpenSeaOrderWithMakeBalance()
+        saveRandomOpenSeaOrderWithMakeBalance()
+        saveRandomOpenSeaOrderWithMakeBalance()
+
+        val pages = orderClient.getOrdersAll(null, null, null, Int.MAX_VALUE).awaitFirst()
+
+        assertThat(pages.continuation).isNull()
+        assertThat(pages.orders.size).isEqualTo(3)
+
+        pages.orders.forEach {
+            assertThat(it.platform).isEqualTo(PlatformDto.RARIBLE)
+        }
+    }
+
+    @Test
     fun `should change lastUpdateAt field`() = runBlocking<Unit> {
         val (privateKey, _, signer) = generateNewKeys()
 
