@@ -2,13 +2,14 @@ package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AssetDto
+import com.rarible.protocol.dto.Erc20AssetTypeDto
+import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.model.*
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.AddressFactory
-import java.math.BigDecimal
 import java.math.BigInteger
 
 fun createOrder() =
@@ -64,5 +65,6 @@ fun createOrderDto() =
         makePriceUsd = null,
         takePriceUsd = null,
         start = null,
-        end = null
+        end = null,
+        priceHistory = listOf()
     )

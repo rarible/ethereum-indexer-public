@@ -4,21 +4,22 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-import com.rarible.protocol.order.core.converters.model.OrderDataConverter
-import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
 import com.rarible.protocol.order.api.exceptions.LazyItemNotFoundException
 import com.rarible.protocol.order.api.exceptions.OrderNotFoundException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.api.service.nft.AssetMakeBalanceProvider
 import com.rarible.protocol.order.api.service.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
+import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderDataConverter
+import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
+import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import io.daonomic.rpc.domain.Word
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
+import java.util.*
 
 @Component
 class OrderService(
@@ -37,7 +39,8 @@ class OrderService(
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceUpdateService: PriceUpdateService,
     private val nftItemApiService: NftItemApiService,
-    private val orderVersionListener: OrderVersionListener
+    private val orderVersionListener: OrderVersionListener,
+    private val priceNormalizer: PriceNormalizer
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -49,7 +52,16 @@ class OrderService(
         val makeBalance = assetMakeBalanceProvider.getAssetStock(maker, make.type)
         val protocolCommission = protocolCommissionProvider.get()
         val feeSide = Order.getFeeSide(make.type, take.type)
-        val makeStock = Order.calculateMakeStock(make.value, take.value, EthUInt256.ZERO, data, makeBalance, protocolCommission, feeSide, false)
+        val makeStock = Order.calculateMakeStock(
+            make.value,
+            take.value,
+            EthUInt256.ZERO,
+            data,
+            makeBalance,
+            protocolCommission,
+            feeSide,
+            false
+        )
 
         return Order(
             maker = maker,
@@ -93,7 +105,9 @@ class OrderService(
                 template
             }
             val orderUsdValue = priceUpdateService.getAssetsUsdValue(order.make, order.take, nowMillis())
-            save(if (orderUsdValue != null) order.withOrderUsdValue(orderUsdValue) else order)
+            val updated = if (orderUsdValue != null) order.withOrderUsdValue(orderUsdValue) else order
+            val updatedWithPriceHistory = addPriceHistoryRecord(existing, updated)
+            save(updatedWithPriceHistory)
         }
         val orderVersion =  orderVersionRepository.save(OrderVersion(
             hash = saved.hash,
@@ -190,6 +204,28 @@ class OrderService(
         } else {
             return null
         }
+    }
+
+    private suspend fun addPriceHistoryRecord(current: Order?, updated: Order): Order {
+        if (current != null
+            && current.make == updated.make
+            && current.take == updated.take
+        ) {
+            return updated
+        }
+
+        val record = OrderPriceHistoryRecord(
+            date = nowMillis(),
+            makeValue = priceNormalizer.normalize(updated.make),
+            takeValue = priceNormalizer.normalize(updated.take)
+        )
+
+        val priceHistory = updated.priceHistory.toCollection(LinkedList())
+        priceHistory.addFirst(record)
+        if (priceHistory.size > 20) {
+            priceHistory.removeLast()
+        }
+        return updated.copy(priceHistory = priceHistory.toList())
     }
 }
 

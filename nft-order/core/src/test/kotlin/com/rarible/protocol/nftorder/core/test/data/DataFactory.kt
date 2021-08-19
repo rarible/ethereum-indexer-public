@@ -66,6 +66,7 @@ fun randomOrderDto(make: AssetDto, maker: Address, take: AssetDto): LegacyOrderD
         makePriceUsd = randomBigInt().toBigDecimal(),
         takePriceUsd = randomBigInt().toBigDecimal(),
         start = null,
-        end = null
+        end = null,
+        priceHistory = listOf()
     )
 }

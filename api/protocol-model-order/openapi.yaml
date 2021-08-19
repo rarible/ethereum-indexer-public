@@ -470,6 +470,7 @@ components:
         - createdAt
         - lastUpdateAt
         - hash
+        - priceHistory
       properties:
         maker:
           $ref: "#/components/schemas/Address"
@@ -513,6 +514,11 @@ components:
           $ref: "#/components/schemas/BigDecimal"
         takePriceUsd:
           $ref: "#/components/schemas/BigDecimal"
+        priceHistory:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderPriceHistoryRecord"
+
       discriminator:
         propertyName: type
         mapping:
@@ -562,6 +568,21 @@ components:
             - OPEN_SEA_V1
         data:
           $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    OrderPriceHistoryRecord:
+      type: object
+      required:
+        - date
+        - makeValue
+        - takeValue
+      properties:
+        date:
+          type: string
+          format: date-time
+        makeValue:
+          $ref: "#/components/schemas/BigDecimal"
+        takeValue:
+          $ref: "#/components/schemas/BigDecimal"
 
     OrderForm:
       type: object

@@ -4,12 +4,12 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
+import com.rarible.protocol.order.core.misc.zeroWord
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
-import com.rarible.protocol.order.core.misc.zeroWord
 import scala.Tuple10
 import scala.Tuple3
 import scala.Tuple4
@@ -53,6 +53,7 @@ data class Order(
     val takePriceUsd: BigDecimal? = null,
     val makeUsd: BigDecimal? = null,
     val takeUsd: BigDecimal? = null,
+    val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
     val platform: Platform = Platform.RARIBLE,
     val externalOrderExecutedOnRarible: Boolean? = null,
