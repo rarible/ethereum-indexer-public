@@ -91,7 +91,7 @@ class OpenSeaOrdersFetcherWorker(
     }
 
     private companion object {
-        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(2)
+        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(10)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
     }
 }
