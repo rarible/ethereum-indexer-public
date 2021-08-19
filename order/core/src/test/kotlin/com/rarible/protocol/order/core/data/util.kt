@@ -8,6 +8,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.AddressFactory
+import java.math.BigDecimal
 import java.math.BigInteger
 
 fun createOrder() =
@@ -28,6 +29,20 @@ fun createOrder() =
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis()
     )
+
+fun createVersionOrder() =
+    OrderVersion(
+        hash = Word.apply(ByteArray(32)),
+        maker = AddressFactory.create(),
+        taker = null,
+        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        createdAt = nowMillis(),
+        makePriceUsd = null,
+        takePriceUsd = null,
+        makeUsd = null,
+        takeUsd = null
+)
 
 fun createOrderDto() =
     RaribleV2OrderDto(
