@@ -2,7 +2,8 @@ package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import java.math.BigInteger
@@ -30,7 +31,8 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
                 start = source.start,
-                end = source.end
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OrderType.RARIBLE_V2 -> RaribleV2OrderDto(
                 maker = source.maker,
@@ -51,7 +53,8 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
                 start = source.start,
-                end = source.end
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderDto(
                 maker = source.maker,
@@ -72,7 +75,8 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
                 start = source.start,
-                end = source.end
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
         }
     }

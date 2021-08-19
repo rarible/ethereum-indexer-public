@@ -140,7 +140,8 @@ fun randomLegacyOrderDto(make: AssetDto, maker: Address, take: AssetDto): Legacy
         makePriceUsd = randomBigInt().toBigDecimal(),
         takePriceUsd = randomBigInt().toBigDecimal(),
         start = null,
-        end = null
+        end = null,
+        priceHistory = listOf()
     )
 }
 
@@ -171,7 +172,8 @@ fun randomOpenSeaV1OrderDto(make: AssetDto, maker: Address, take: AssetDto): Ope
         makePriceUsd = randomBigInt().toBigDecimal(),
         takePriceUsd = randomBigInt().toBigDecimal(),
         start = null,
-        end = null
+        end = null,
+        priceHistory = listOf()
     )
 }
 

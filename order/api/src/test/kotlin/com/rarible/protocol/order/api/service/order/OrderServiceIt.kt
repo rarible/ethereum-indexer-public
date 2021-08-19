@@ -94,9 +94,11 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(version.take.value)
             .isEqualTo(order.take.value)
 
-        coVerify { orotocolOrderPublisher.publish(withArg<OrderActivityDto> {
-            assertThat(it.id).isEqualTo(version.id.toString())
-        }) }
+        coVerify {
+            orotocolOrderPublisher.publish(withArg<OrderActivityDto> {
+                assertThat(it.id).isEqualTo(version.id.toString())
+            })
+        }
 
         val changed = order.copy(
             make = order.make.copy(value = EthUInt256.of(20)),
@@ -111,6 +113,78 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(orderVersionRepository.count().awaitFirst()).isEqualTo(2)
 
         coVerify(atLeast = 2) { orotocolOrderPublisher.publish(any<OrderActivityDto>()) }
+    }
+
+    @Test
+    fun `create order with price history`() = runBlocking<Unit> {
+        val (privateKey, _, signer) = generateNewKeys()
+
+        val order = createOrder(signer)
+        orderService.put(order.toForm(privateKey))
+        val saved = orderRepository.findById(order.hash)!!
+
+        assertThat(saved.priceHistory.size).isEqualTo(1)
+        val firstPriceRecord = saved.priceHistory[0]
+
+        assertThat(firstPriceRecord.makeValue.toBigInteger()).isEqualTo(order.make.value.value)
+        assertThat(firstPriceRecord.takeValue.toBigInteger()).isEqualTo(order.take.value.value)
+    }
+
+    @Test
+    fun `update order with price history - prices not changed`() = runBlocking<Unit> {
+        val (privateKey, _, signer) = generateNewKeys()
+
+        val order = createOrder(signer)
+        orderService.put(order.toForm(privateKey))
+        val saved = orderRepository.findById(order.hash)!!
+
+        assertThat(saved.priceHistory.size).isEqualTo(1)
+
+        orderService.put(saved.toForm(privateKey))
+        val updated = orderRepository.findById(order.hash)!!
+
+        // Prices are not changed, no new record should be added
+        assertThat(updated.priceHistory.size).isEqualTo(1)
+    }
+
+    @Test
+    fun `update order with price history - price changed`() = runBlocking<Unit> {
+        val (privateKey, _, signer) = generateNewKeys()
+
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)))
+        orderService.put(order.toForm(privateKey))
+        val saved = orderRepository.findById(order.hash)!!
+
+        assertThat(saved.priceHistory.size).isEqualTo(1)
+        val savedWithNewPrice = saved.copy(make = saved.make.copy(value = EthUInt256.of(200)))
+
+        orderService.put(savedWithNewPrice.toForm(privateKey))
+        val updated = orderRepository.findById(order.hash)!!
+
+        // Price changed, new record should be added to the price history
+        assertThat(updated.priceHistory.size).isEqualTo(2)
+    }
+
+    @Test
+    fun `update order with price history - history limit reached`() = runBlocking<Unit> {
+        val (privateKey, _, signer) = generateNewKeys()
+
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10)))
+        orderService.put(order.toForm(privateKey))
+
+        for (i in 1..25) {
+            val saved = orderRepository.findById(order.hash)!!
+            val updatedTakeAsset = saved.make.copy(value = EthUInt256.of(100 * i))
+            val savedWithNewPrice = saved.copy(make = updatedTakeAsset)
+            orderService.put(savedWithNewPrice.toForm(privateKey))
+        }
+
+        val updated = orderRepository.findById(order.hash)!!
+
+        // Checking old history records are removed
+        assertThat(updated.priceHistory.size).isEqualTo(20)
+        // Checking last update is on the top
+        assertThat(updated.priceHistory[0].makeValue.toLong()).isEqualTo(25 * 100)
     }
 
     @Test
@@ -260,7 +334,12 @@ class OrderServiceIt : AbstractOrderIt() {
 
         val makerErc20Contract = AddressFactory.create()
         val makerErc20Stock = EthUInt256.of(7)
-        val makerBalance = Erc20DecimalBalanceDto(makerErc20Contract, maker, makerErc20Stock.value, makerErc20Stock.value.toBigDecimal())
+        val makerBalance = Erc20DecimalBalanceDto(
+            makerErc20Contract,
+            maker,
+            makerErc20Stock.value,
+            makerErc20Stock.value.toBigDecimal()
+        )
 
         val order = createOrder(maker)
             .copy(
@@ -446,7 +525,8 @@ class OrderServiceIt : AbstractOrderIt() {
     fun `should return NFTs only orders`() = runBlocking<Unit> {
         val (privateKey, _, signer) = generateNewKeys()
         val erc20Order = createOrder(signer)
-        val erc721Order = createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
+        val erc721Order =
+            createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
 
         orderService.put(erc20Order.toForm(privateKey))
         orderService.put(erc721Order.toForm(privateKey))
@@ -460,9 +540,11 @@ class OrderServiceIt : AbstractOrderIt() {
     fun `should take origin into account`() = runBlocking<Unit> {
         val (privateKey, _, signer) = generateNewKeys()
         val origin = AddressFactory.create()
-        val erc721Order1 = createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
-            .copy(data = OrderRaribleV2DataV1(emptyList(), listOf(Part(origin, EthUInt256.TEN))))
-        val erc721Order2 = createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
+        val erc721Order1 =
+            createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
+                .copy(data = OrderRaribleV2DataV1(emptyList(), listOf(Part(origin, EthUInt256.TEN))))
+        val erc721Order2 =
+            createOrder(signer, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
 
         orderService.put(erc721Order1.toForm(privateKey))
         orderService.put(erc721Order2.toForm(privateKey))
@@ -477,8 +559,10 @@ class OrderServiceIt : AbstractOrderIt() {
         val (privateKey1, _, signer1) = generateNewKeys()
         val (privateKey2, _, signer2) = generateNewKeys()
         val erc20Order = createOrder(signer1)
-        val erc721Order1 = createOrder(signer1, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
-        val erc721Order2 = createOrder(signer2, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
+        val erc721Order1 =
+            createOrder(signer1, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
+        val erc721Order2 =
+            createOrder(signer2, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
 
         orderService.put(erc20Order.toForm(privateKey1))
         orderService.put(erc721Order1.toForm(privateKey1))
@@ -496,10 +580,14 @@ class OrderServiceIt : AbstractOrderIt() {
         val (privateKey2, _, signer2) = generateNewKeys()
 
         val erc20Order = createOrder(signer1)
-        val erc721Order1 = createOrder(signer1, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
-        val erc721Order2 = createOrder(signer2, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
-        val erc721Order3 = createOrder(signer2, Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
-        val erc721Order4 = createOrder(signer2, Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
+        val erc721Order1 =
+            createOrder(signer1, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1000)), EthUInt256.ONE))
+        val erc721Order2 =
+            createOrder(signer2, Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
+        val erc721Order3 =
+            createOrder(signer2, Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
+        val erc721Order4 =
+            createOrder(signer2, Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.of(1001)), EthUInt256.ONE))
 
         orderService.put(erc20Order.toForm(privateKey1))
         orderService.put(erc721Order1.toForm(privateKey1))
@@ -533,10 +621,12 @@ class OrderServiceIt : AbstractOrderIt() {
         val (privateKey2, _, signer2) = generateNewKeys()
         val erc20Order = createOrder(signer1)
         val collection1 = AddressFactory.create()
-        val erc721Order1 = createOrder(signer1, Asset(Erc721AssetType(collection1, EthUInt256.of(1000)), EthUInt256.ONE))
+        val erc721Order1 =
+            createOrder(signer1, Asset(Erc721AssetType(collection1, EthUInt256.of(1000)), EthUInt256.ONE))
 
         val collection2 = AddressFactory.create()
-        val erc1155Order2 = createOrder(signer2, Asset(Erc1155AssetType(collection2, EthUInt256.of(1001)), EthUInt256.ONE))
+        val erc1155Order2 =
+            createOrder(signer2, Asset(Erc1155AssetType(collection2, EthUInt256.of(1001)), EthUInt256.ONE))
 
         orderService.put(erc20Order.toForm(privateKey1))
         orderService.put(erc721Order1.toForm(privateKey1))
@@ -616,7 +706,8 @@ class OrderServiceIt : AbstractOrderIt() {
 
     private suspend fun saveRandomOpenSeaOrderWithMakeBalance(): Order {
         val (privateKey, _, signer) = generateNewKeys()
-        val order = createOpenSeaOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
+        val order =
+            createOpenSeaOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
         return orderRepository.save(order)
     }
 }
