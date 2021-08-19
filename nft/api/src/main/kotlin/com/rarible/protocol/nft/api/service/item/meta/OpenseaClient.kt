@@ -37,6 +37,7 @@ class OpenseaClient(
     @Value("\${api.opensea.read-timeout}") private val readTimeout: Int,
     @Value("\${api.opensea.connect-timeout}") private val connectTimeout: Int,
     @Value("\${api.opensea.cache-timeout}") private val cacheTimeout: Long,
+    @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Autowired(required = false) private val cacheService: CacheService?
 ) : CacheDescriptor<ItemProperties> {
@@ -93,6 +94,7 @@ class OpenseaClient(
                         attributes = it.path("traits").toProperties()
                     )
                 }
+                .timeout(Duration.ofMillis(requestTimeout))
                 .onErrorResume {
                     if (it is WebClientResponseException) {
                         logger.warn(marker, "Unable to fetch asset using opensea $token:$tokenId status: ${it.statusCode}")
@@ -114,7 +116,7 @@ class OpenseaClient(
     }
 
     companion object {
-        val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(60)
+        private val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(60)
         const val X_API_KEY = "X-API-KEY"
         val logger: Logger = LoggerFactory.getLogger(OpenseaClient::class.java)
 

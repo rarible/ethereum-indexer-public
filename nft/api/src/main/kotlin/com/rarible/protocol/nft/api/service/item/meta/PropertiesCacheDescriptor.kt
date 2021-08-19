@@ -26,6 +26,7 @@ import reactor.kotlin.core.publisher.switchIfEmpty
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
+import java.time.Duration
 
 @Component
 class PropertiesCacheDescriptor(
@@ -33,7 +34,8 @@ class PropertiesCacheDescriptor(
     private val tokenRepository: TokenRepository,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val ipfsService: IpfsService,
-    @Value("\${api.properties.cache-timeout}") private val cacheTimeout: Long
+    @Value("\${api.properties.cache-timeout}") private val cacheTimeout: Long,
+    @Value("\${api.properties.request-timeout}") private val requestTimeout: Long
 ) : CacheDescriptor<ItemProperties> {
 
     private val client = WebClient.builder().apply {
@@ -65,6 +67,7 @@ class PropertiesCacheDescriptor(
                         getByUri(uri)
                     }
                 }
+                .timeout(Duration.ofMillis(requestTimeout))
                 .onErrorResume {
                     logger.warn("Unable to get properties for $id", it)
                     Mono.empty()
@@ -73,7 +76,8 @@ class PropertiesCacheDescriptor(
     }
 
     fun getByUri(uri: String): Mono<ItemProperties> {
-        return client.get().uri(ipfsService.resolveRealUrl(uri))
+        return client.get()
+            .uri(ipfsService.resolveRealUrl(uri))
             .retrieve()
             .bodyToMono<String>()
             .map {
