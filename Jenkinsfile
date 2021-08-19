@@ -20,7 +20,7 @@ pipeline {
     stage('test') {
       agent any
       steps {
-        echo 'tests disabled'
+        sh 'mvn clean test -U'
       }
       post {
         always {
