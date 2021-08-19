@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import io.micrometer.core.instrument.MeterRegistry
@@ -25,12 +26,15 @@ class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderConverter: OpenSeaOrderConverter,
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository,
+    private val properties: OrderListenerProperties,
     private val orderVersionListener: OrderVersionListener,
     meterRegistry: MeterRegistry,
-    properties: DaemonWorkerProperties
-) : SequentialDaemonWorker(meterRegistry, properties, "open-sea-orders-fetcher-job") {
+    workerProperties: DaemonWorkerProperties
+) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
 
     override suspend fun handle() {
+        if (properties.loadOpenSeaOrders.not()) return
+
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
 
         val now = nowMillis().epochSecond

@@ -109,9 +109,11 @@ class OrderListenerConfiguration(
         orderRepository: OrderRepository,
         orderVersionRepository: OrderVersionRepository,
         orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry
+        meterRegistry: MeterRegistry,
+        properties: OrderListenerProperties
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
+            properties = properties,
             openSeaOrderService = openSeaOrderService,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
@@ -119,7 +121,7 @@ class OrderListenerConfiguration(
             orderVersionRepository = orderVersionRepository,
             orderVersionListener = orderVersionListener,
             meterRegistry = meterRegistry,
-            properties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2))
+            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2))
         ).apply { start() }
     }
 }

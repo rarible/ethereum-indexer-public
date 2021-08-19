@@ -28,7 +28,7 @@ class OpenSeaOrderService(
             val result = openSeaClient.getOrders(request).ensureSuccess().orders
 
             orders.addAll(result)
-        } while (result.isNotEmpty() || result.size >= MAX_OFFSET)
+        } while (result.isNotEmpty() && orders.size <= MAX_OFFSET)
 
         return orders
     }
