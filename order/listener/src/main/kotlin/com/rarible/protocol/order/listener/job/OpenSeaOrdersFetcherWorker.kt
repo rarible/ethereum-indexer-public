@@ -19,6 +19,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
 import java.time.Duration
 import java.time.Instant
+import kotlin.math.min
 
 class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderService: OpenSeaOrderService,
@@ -39,10 +40,10 @@ class OpenSeaOrdersFetcherWorker(
 
         val now = nowMillis().epochSecond
         val listedAfter = state.listedAfter
-        val listedBefore = state.listedAfter + MAX_LOAD_PERIOD.seconds
+        val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
 
         logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
-        val openSeaOrders = openSeaOrderService.getNextOrders(listedAfter = listedAfter, listedBefore = listedBefore)
+        val openSeaOrders = openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
 
         val ids = openSeaOrders.map { it.id }
         val minId = ids.min() ?: error("Can't be empty value")
@@ -94,7 +95,7 @@ class OpenSeaOrdersFetcherWorker(
     }
 
     private companion object {
-        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(5)
+        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(20)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
     }
 }
