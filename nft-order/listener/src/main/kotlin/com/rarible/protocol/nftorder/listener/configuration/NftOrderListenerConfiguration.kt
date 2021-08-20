@@ -105,7 +105,7 @@ class NftOrderListenerConfiguration(
         val env = eventProducerProperties.environment
         val blockchain = blockchain.value
 
-        val clientId = "${env}.${blockchain}.protocol-unlockable.lock"
+        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.item"
 
         return RaribleKafkaProducer(
             clientId = clientId,
@@ -121,7 +121,7 @@ class NftOrderListenerConfiguration(
         val env = eventProducerProperties.environment
         val blockchain = blockchain.value
 
-        val clientId = "${env}.${blockchain}.protocol-unlockable.lock"
+        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.ownership"
 
         return RaribleKafkaProducer(
             clientId = clientId,

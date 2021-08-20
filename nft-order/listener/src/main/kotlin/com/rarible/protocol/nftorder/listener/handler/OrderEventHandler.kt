@@ -14,7 +14,7 @@ class OrderEventHandler(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override suspend fun handleSafely(event: OrderEventDto) {
-        logger.debug("Received item event: type=${event::class.java.simpleName}")
+        logger.debug("Received Order event: type=${event::class.java.simpleName}")
         when (event) {
             is OrderUpdateEventDto -> {
                 orderEventService.updateOrder(event.order)
