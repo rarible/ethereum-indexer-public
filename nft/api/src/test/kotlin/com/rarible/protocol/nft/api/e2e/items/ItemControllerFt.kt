@@ -1,11 +1,9 @@
 package com.rarible.protocol.nft.api.e2e.items
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
-import com.rarible.protocol.dto.LazyErc1155Dto
-import com.rarible.protocol.dto.LazyErc721Dto
-import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -17,11 +15,13 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
@@ -36,6 +36,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
+
+    @Autowired
+    private lateinit var mapper : ObjectMapper
 
     companion object {
         @JvmStatic
@@ -86,6 +89,18 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(metaDto.attributes!![0].value).isEqualTo(itemProperties.attributes[0].value)
         assertThat(metaDto.attributes!![1].key).isEqualTo(itemProperties.attributes[1].key)
         assertThat(metaDto.attributes!![1].value).isEqualTo(itemProperties.attributes[1].value)
+    }
+
+    @Test
+    fun `should return bad request`() = runBlocking {
+        try {
+            val result = nftItemApiClient.getNftLazyItemById("-").awaitFirst()
+        } catch (ex : WebClientResponseException.BadRequest) {
+            val dto = mapper.readValue(ex.responseBodyAsString, NftIndexerApiErrorDto::class.java)
+            assertEquals(400, dto.status)
+            assertEquals(NftIndexerApiErrorDto.Code.BAD_REQUEST, dto.code)
+            assertEquals("Incorrect format of itemId: -", dto.message)
+        }
     }
 
     @Test
