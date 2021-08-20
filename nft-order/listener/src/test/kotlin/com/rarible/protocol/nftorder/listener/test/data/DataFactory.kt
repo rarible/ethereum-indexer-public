@@ -36,7 +36,8 @@ fun randomItem(itemId: ItemId, vararg creators: Part): Item {
         totalStock = BigInteger.ZERO,
         bestBidOrder = null,
         bestSellOrder = null,
-        unlockable = false
+        unlockable = false,
+        sellers = 0
     )
 }
 

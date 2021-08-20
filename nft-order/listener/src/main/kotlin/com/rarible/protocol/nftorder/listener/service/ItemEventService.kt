@@ -3,13 +3,16 @@ package com.rarible.protocol.nftorder.listener.service
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.nftorder.core.data.ItemEnrichmentData
+import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.event.ItemEvent
 import com.rarible.protocol.nftorder.core.event.ItemEventDelete
 import com.rarible.protocol.nftorder.core.event.ItemEventListener
 import com.rarible.protocol.nftorder.core.event.ItemEventUpdate
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
+import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.ItemService
+import com.rarible.protocol.nftorder.core.service.OwnershipService
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Component
 class ItemEventService(
     private val conversionService: ConversionService,
     private val itemService: ItemService,
+    private val ownershipService: OwnershipService,
     private val itemEventListeners: List<ItemEventListener>
 ) {
 
@@ -27,6 +31,31 @@ class ItemEventService(
         val rawItem = conversionService.convert<Item>(nftItem)
         val enrichmentData = itemService.getEnrichmentData(rawItem.id)
         onItemUpdated(rawItem, enrichmentData)
+    }
+
+    suspend fun onOwnershipUpdated(ownershipId: OwnershipId) {
+        val itemId = ItemId(ownershipId.token, ownershipId.tokenId)
+        val item = itemService.get(itemId)
+        if (item == null) {
+            logger.debug(
+                "Item [{}] not found in DB, skipping sell stats update on Ownership event: [{}]",
+                itemId, ownershipId
+            )
+            return
+        }
+
+        val sellStats = ownershipService.getItemSellStats(itemId)
+        if (item.sellers != sellStats.sellers && item.totalStock != sellStats.totalStock) {
+            val updatedItem = item.copy(sellers = sellStats.sellers, totalStock = sellStats.totalStock)
+            logger.info(
+                "Updating Item [{}] with new sell stats, was [{}] , now: [{}]",
+                itemId, ItemSellStats(item.sellers, item.totalStock), sellStats
+            )
+            itemService.save(updatedItem)
+            notify(ItemEventUpdate(updatedItem))
+        } else {
+            logger.debug("Sell stats of Item [{}] are the same as before Ownership event [{}], skipping update")
+        }
     }
 
     suspend fun onItemUpdated(rawItem: Item, data: ItemEnrichmentData) {

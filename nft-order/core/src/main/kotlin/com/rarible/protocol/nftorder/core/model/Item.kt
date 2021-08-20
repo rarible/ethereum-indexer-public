@@ -24,6 +24,7 @@ data class Item(
     val date: Instant,
     val pending: List<ItemTransfer> = emptyList(),
 
+    val sellers: Int = 0,
     val totalStock: BigInteger,
     val bestSellOrder: OrderDto?,
     val bestBidOrder: OrderDto?,
@@ -40,6 +41,7 @@ data class Item(
     var id: ItemId
         get() = _id
         set(_) {}
+
 }
 
 

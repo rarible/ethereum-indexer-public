@@ -32,6 +32,10 @@
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-api-nft</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-client-common</artifactId>
+        </dependency>
 
         <!-- =============== Rarible-core ================ -->
         <dependency>

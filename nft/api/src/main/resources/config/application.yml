@@ -50,7 +50,9 @@ api:
     read-timeout: 10000
     connect-timeout: 3000
     cache-timeout: 864000000
+    request-timeout: 20000
   properties:
     api-url: https://api.rarible.com/images
     cache-timeout: 864000000
+    request-timeout: 20000
     media-meta-timeout: 10000

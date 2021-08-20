@@ -28,10 +28,10 @@ object OrderFilterCriteria {
         val requestLimit = limit.limit()
         return Query(
             criteria
+                .forPlatform(convert(platform))
                 .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
-                .forPlatform(convert(platform))
         ).limit(requestLimit).with(
             sort(this.sort)
         )

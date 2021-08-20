@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nftorder.core.data.Fetched
+import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.data.OwnershipEnrichmentData
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
@@ -15,7 +16,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
-import java.math.BigInteger
 
 @Component
 class OwnershipService(
@@ -44,9 +44,9 @@ class OwnershipService(
         return ownershipRepository.findAll(ids)
     }
 
-    suspend fun getOwnershipsTotalStock(itemId: ItemId): BigInteger {
+    suspend fun getItemSellStats(itemId: ItemId): ItemSellStats {
         val start = System.currentTimeMillis()
-        val result = ownershipRepository.getTotalStock(itemId)
+        val result = ownershipRepository.getItemSellStats(itemId)
         logger.debug(
             "Query for totalStock executed for itemId [{}], returned [{}] time spent: {}ms",
             itemId, result, System.currentTimeMillis() - start

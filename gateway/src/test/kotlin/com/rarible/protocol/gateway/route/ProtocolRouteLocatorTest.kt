@@ -178,7 +178,8 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             unlockable = true,
             pending = emptyList(),
             date = nowMillis(),
-            meta = null
+            meta = null,
+            sellers = 0
         )
         mockNftServerClient
             .`when`(

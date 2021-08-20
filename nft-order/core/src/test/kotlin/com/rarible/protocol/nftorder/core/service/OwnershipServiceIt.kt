@@ -43,8 +43,9 @@ class OwnershipServiceIt {
         ownershipService.save(ownership5)
         ownershipService.save(ownership6)
 
-        val totalStock = ownershipService.getOwnershipsTotalStock(itemId)
+        val itemSellStats = ownershipService.getItemSellStats(itemId)
 
-        assertEquals(100, totalStock.toInt())
+        assertEquals(100, itemSellStats.totalStock.toInt())
+        assertEquals(3, itemSellStats.sellers)
     }
 }

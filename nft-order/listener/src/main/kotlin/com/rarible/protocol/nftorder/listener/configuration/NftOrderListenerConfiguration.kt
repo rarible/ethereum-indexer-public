@@ -3,7 +3,9 @@ package com.rarible.protocol.nftorder.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.task.EnableRaribleTask
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
@@ -15,11 +17,13 @@ import com.rarible.protocol.nftorder.listener.handler.OrderEventHandler
 import com.rarible.protocol.nftorder.listener.handler.OwnershipEventHandler
 import com.rarible.protocol.nftorder.listener.handler.UnlockableEventHandler
 import com.rarible.protocol.order.api.subscriber.OrderIndexerEventsConsumerFactory
+import com.rarible.protocol.order.api.subscriber.autoconfigure.OrderIndexerEventsSubscriberProperties
 import com.rarible.protocol.unlockable.api.subscriber.UnlockableEventsConsumerFactory
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import java.util.*
 
 @Configuration
 @EnableMongock
@@ -33,11 +37,12 @@ import org.springframework.context.annotation.Configuration
     ]
 )
 class NftOrderListenerConfiguration(
-    environmentInfo: ApplicationEnvironmentInfo,
+    private val environmentInfo: ApplicationEnvironmentInfo,
     private val listenerProperties: NftOrderListenerProperties,
     private val eventProducerProperties: NftOrderEventProducerProperties,
     private val meterRegistry: MeterRegistry,
-    private val blockchain: Blockchain
+    private val blockchain: Blockchain,
+    private val orderIndexerSubscriberProperties: OrderIndexerEventsSubscriberProperties
 ) {
     private val itemConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.item"
     private val ownershipConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.ownership"
@@ -92,7 +97,7 @@ class NftOrderListenerConfiguration(
         orderEventHandler: OrderEventHandler
     ): ConsumerWorker<OrderEventDto> {
         return ConsumerWorker(
-            consumer = orderIndexerEventsConsumerFactory.createOrderEventsConsumer(orderConsumerGroup),
+            consumer = createOrderEventsConsumer(orderConsumerGroup),
             properties = listenerProperties.monitoringWorker,
             eventHandler = orderEventHandler,
             meterRegistry = meterRegistry,
@@ -129,6 +134,19 @@ class NftOrderListenerConfiguration(
             valueClass = NftOrderOwnershipEventDto::class.java,
             defaultTopic = NftOrderOwnershipEventTopicProvider.getTopic(env, blockchain),
             bootstrapServers = eventProducerProperties.kafkaReplicaSet
+        )
+    }
+
+    // TODO remove when order-subscriber start to use .global topic by default
+    fun createOrderEventsConsumer(consumerGroup: String): RaribleKafkaConsumer<OrderEventDto> {
+        val clientIdPrefix = "${environmentInfo.name}.${blockchain.value}.${environmentInfo.name}.${UUID.randomUUID()}"
+        return RaribleKafkaConsumer(
+            clientId = "$clientIdPrefix.order-indexer-order-events-consumer",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = OrderEventDto::class.java,
+            consumerGroup = consumerGroup,
+            defaultTopic = OrderIndexerTopicProvider.getTopic(environmentInfo.name, blockchain.value) + ".global",
+            bootstrapServers = orderIndexerSubscriberProperties.brokerReplicaSet
         )
     }
 

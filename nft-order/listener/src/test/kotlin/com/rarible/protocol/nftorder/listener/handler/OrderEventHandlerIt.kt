@@ -89,7 +89,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         assertThat(ownership.bestSellOrder).isEqualTo(bestSellByOwnership)
 
         Wait.waitAssert {
-            assertThat(itemEvents).hasSize(2)
+            assertThat(itemEvents).hasSize(3)
             assertThat(ownershipEvents).hasSize(1)
         }
     }
@@ -118,8 +118,10 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
 
         val updateOwnership = ownershipService.get(ownershipId)!!
         assertThat(updateOwnership.bestSellOrder).isEqualTo(bestSell)
+        assertThat(updatedMakeItem.sellers).isEqualTo(1)
+        assertThat(updatedMakeItem.totalStock).isEqualTo(bestSell.makeStock)
         Wait.waitAssert {
-            assertThat(itemEvents).hasSize(1)
+            assertThat(itemEvents).hasSize(2)
             assertThat(ownershipEvents).hasSize(1)
         }
     }

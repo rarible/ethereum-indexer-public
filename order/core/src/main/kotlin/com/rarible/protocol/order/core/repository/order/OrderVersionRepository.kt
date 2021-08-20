@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepositoryIndexes.ALL_INDEXES
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -50,7 +49,7 @@ class OrderVersionRepository(
     }
 
     suspend fun createIndexes() {
-        ALL_INDEXES.forEach { index ->
+        OrderVersionRepositoryIndexes.ALL_INDEXES.forEach { index ->
             template.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
         }
     }

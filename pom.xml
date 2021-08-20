@@ -105,6 +105,11 @@
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-api-unlockable</artifactId>
                 <version>${project.version}</version>
             </dependency>
