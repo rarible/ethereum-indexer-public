@@ -18,13 +18,13 @@ class OpenSeaOrderService(
     private val loadOpenSeaPeriod = properties.loadOpenSeaPeriod.seconds
 
     suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> = coroutineScope {
-        val batches = (listedBefore - listedAfter - 1) / loadOpenSeaPeriod
+        val batches = (listedBefore - listedAfter) / loadOpenSeaPeriod
         assert(batches >= 0) { "OpenSea batch count must be positive" }
 
-        (0..batches).map {
+        (1..batches).map {
             async {
-                val nextListedAfter = listedAfter + (it * loadOpenSeaPeriod)
-                val nextListedBefore = min(listedAfter + ((it + 1) * loadOpenSeaPeriod), listedBefore)
+                val nextListedAfter = listedAfter + ((it -1) * loadOpenSeaPeriod)
+                val nextListedBefore = min(listedAfter + (it * loadOpenSeaPeriod), listedBefore)
                 getNextOrders(nextListedAfter, nextListedBefore)
             }
         }.awaitAll().flatten()

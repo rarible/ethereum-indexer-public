@@ -45,18 +45,17 @@ class OpenSeaOrdersFetcherWorker(
         logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
         val openSeaOrders = openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
 
-        val ids = openSeaOrders.map { it.id }
-        val minId = ids.min() ?: error("Can't be empty value")
-        val maxId = ids.max() ?: error("Can't be empty value")
-
-        val createdAts = openSeaOrders.map { it.createdAt }
-        val minCreatedAt = createdAts.min() ?: error("Can't be empty value")
-        val maxCreatedAt = createdAts.max() ?: error("Can't be empty value")
-
-        logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
-
         val nextListedAfter = if (openSeaOrders.isNotEmpty()) {
-            logger.info("[OpenSea] Start handle OpenSea orders")
+            val ids = openSeaOrders.map { it.id }
+            val minId = ids.min() ?: error("Can't be empty value")
+            val maxId = ids.max() ?: error("Can't be empty value")
+
+            val createdAts = openSeaOrders.map { it.createdAt }
+            val minCreatedAt = createdAts.min() ?: error("Can't be empty value")
+            val maxCreatedAt = createdAts.max() ?: error("Can't be empty value")
+
+            logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
+
             openSeaOrders
                 .mapNotNull { openSeaOrderConverter.convert(it) }
                 .forEach { save(it) }
@@ -95,7 +94,7 @@ class OpenSeaOrdersFetcherWorker(
     }
 
     private companion object {
-        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(20)
+        val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
     }
 }
