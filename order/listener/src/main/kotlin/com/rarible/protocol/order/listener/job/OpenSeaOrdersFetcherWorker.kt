@@ -15,6 +15,9 @@ import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
 import java.time.Duration
@@ -56,10 +59,17 @@ class OpenSeaOrdersFetcherWorker(
 
             logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
-            openSeaOrders
-                .mapNotNull { openSeaOrderConverter.convert(it) }
-                .forEach { save(it) }
-
+            coroutineScope {
+                openSeaOrders
+                    .chunked(properties.saveOpenSeaOrdersBatchSize)
+                    .map { chunk ->
+                        async {
+                            chunk
+                                .mapNotNull { openSeaOrderConverter.convert(it) }
+                                .forEach { save(it) }
+                        }
+                    }.awaitAll()
+            }
             logger.info("[OpenSea] All new OpenSea orders saved")
             maxCreatedAt.epochSecond
         } else {

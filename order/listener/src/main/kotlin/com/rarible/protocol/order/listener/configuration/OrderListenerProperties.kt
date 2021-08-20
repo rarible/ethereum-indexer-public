@@ -15,5 +15,6 @@ class OrderListenerProperties(
     val publishTaskDelayMs: Long = 1000L,
     val loadOpenSeaOrders: Boolean = true,
     val loadOpenSeaOrderVersion: Boolean = false,
-    val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1)
+    val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),
+    val saveOpenSeaOrdersBatchSize: Int = 200
 )
