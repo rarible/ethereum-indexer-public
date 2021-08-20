@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.controller.advice
 
 import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.nft.api.exceptions.IndexerApiException
+import com.rarible.protocol.nft.core.model.IncorrectItemFormat
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionFailedException
@@ -43,25 +44,23 @@ class ErrorsController {
     @ExceptionHandler(ConversionFailedException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     fun handlerConversionFailedException(ex: ConversionFailedException) = mono {
-        logWithNecessaryLevel(HttpStatus.BAD_REQUEST, ex, INDEXER_API_ERROR)
-
-        NftIndexerApiErrorDto(
-            status = HttpStatus.BAD_REQUEST.value(),
-            code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
-            message = ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
-        )
+        when (ex.cause) {
+            is IncorrectItemFormat -> {
+                logWithNecessaryLevel(HttpStatus.BAD_REQUEST, ex, INDEXER_API_ERROR)
+                NftIndexerApiErrorDto(
+                    status = HttpStatus.BAD_REQUEST.value(),
+                    code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
+                    message = ex.cause?.message ?: MISSING_MESSAGE
+                )
+            }
+            else -> logError(ex)
+        }
     }
 
     @ExceptionHandler(Throwable::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handlerException(ex: Throwable) = mono {
-        logger.error("System error while handling request", ex)
-
-        NftIndexerApiErrorDto(
-            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            code = NftIndexerApiErrorDto.Code.UNKNOWN,
-            message = ex.message ?: "Something went wrong"
-        )
+        logError(ex)
     }
 
     private fun logWithNecessaryLevel(status: HttpStatus, ex: Exception, message: String = "") {
@@ -70,6 +69,16 @@ class ErrorsController {
             status.is5xxServerError -> logger.error(message, ex)
             else -> logger.warn(message, ex)
         }
+    }
+
+    private fun logError(ex: Throwable) {
+        logger.error("System error while handling request", ex)
+
+        NftIndexerApiErrorDto(
+            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            code = NftIndexerApiErrorDto.Code.UNKNOWN,
+            message = ex.message ?: "Something went wrong"
+        )
     }
 
     companion object {

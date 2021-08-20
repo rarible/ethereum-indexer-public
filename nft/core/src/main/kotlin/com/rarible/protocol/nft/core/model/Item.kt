@@ -42,7 +42,7 @@ data class Item(
         fun parseId(id: String): ItemId {
             val parts = id.split(":")
             if (parts.size < 2) {
-                throw IllegalArgumentException("Incorrect format of itemId: $id")
+                throw IncorrectItemFormat("Incorrect format of itemId: $id")
             }
             val tokenId = EthUInt256.of(parts[1].trim())
             return ItemId(Address.apply(parts[0].trim()), tokenId)
