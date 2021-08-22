@@ -30,7 +30,8 @@ data class OrderIndexerProperties(
         val v1: Address,
         val v1Old: Address? = null,
         val v2: Address,
-        val openSeaV1: Address
+        val openSeaV1: Address,
+        var cryptoPunks: Address
     )
 
     data class TransferProxyAddresses(

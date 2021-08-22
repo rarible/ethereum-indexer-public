@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.protocol.contracts.exchange.crypto.punks.*
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
@@ -14,11 +15,21 @@ enum class ItemType(
             com.rarible.protocol.contracts.exchange.v1.BuyEvent.id()
         )
     ),
+    ON_CHAIN_ORDER(
+        topic = setOf(
+            PunkOfferedEvent.id(),
+            PunkBidEnteredEvent.id(),
+            PunkBoughtEvent.id(),
+            PunkTransferEvent.id()
+        )
+    ),
     ORDER_SIDE_MATCH(
         topic = setOf(
             MatchEvent.id(),
             MatchEventDeprecated.id(),
-            OrdersMatchedEvent.id()
+            OrdersMatchedEvent.id(),
+            PunkBoughtEvent.id(),
+            PunkTransferEvent.id()
         )
     ),
     CANCEL(
@@ -26,7 +37,9 @@ enum class ItemType(
             com.rarible.protocol.contracts.exchange.v1.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated.id(),
-            OrderCancelledEvent.id()
+            OrderCancelledEvent.id(),
+            PunkNoLongerForSaleEvent.id(),
+            PunkBidWithdrawnEvent.id()
         )
     ),
 }

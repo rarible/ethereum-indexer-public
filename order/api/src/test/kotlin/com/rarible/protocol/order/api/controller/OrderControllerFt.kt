@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.api.data.generateNewKeys
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
@@ -109,7 +110,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         val formDto = order.toForm(EIP712Domain("", "", BigInteger.ONE, AddressFactory.create()), privateKey)
 
         val orderDto = upsert(formDto)
-        assertThat(orderDto.make.value).isEqualTo(BigInteger.TEN)
+        assertThat((orderDto as RaribleV2OrderDto).make.value).isEqualTo(BigInteger.TEN)
         println(objectMapper.writeValueAsString(orderDto))
     }
 

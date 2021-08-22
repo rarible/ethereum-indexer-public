@@ -110,7 +110,7 @@ class ExchangeOrderMatchDescriptor(
 internal fun getOriginMaker(maker: Address, date: OrderData?): Address {
     return when (date) {
         is OrderRaribleV2DataV1 -> if (date.payouts.isSingleton) date.payouts.first().account else maker
-        is OrderDataLegacy, is OrderOpenSeaV1DataV1 -> maker
+        is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderCryptoPunksData -> maker
         null -> maker
     }
 }

@@ -73,6 +73,25 @@ object BidDtoConverter : Converter<CompositeBid, OrderBidDto> {
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderOpenSeaV1DataV1Dto,
                 makeBalance = BigInteger.ZERO
             )
+            OrderType.CRYPTO_PUNKS -> CryptoPunksOrderBidDto(
+                orderHash = source.order.hash,
+                status = BidStatusDtoConverter.convert(source.status),
+
+                make = AssetDtoConverter.convert(source.version.make),
+                take = AssetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+
+                fill = source.order.fill.value,
+                makeStock = source.order.makeStock.value,
+                cancelled = source.order.cancelled,
+                salt = Uint256Type.encode(source.order.salt.value),
+                signature = source.order.signature,
+                makeBalance = BigInteger.ZERO
+            )
         }
     }
 }

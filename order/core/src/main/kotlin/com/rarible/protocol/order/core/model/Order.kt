@@ -153,6 +153,9 @@ data class Order(
             feeSide: FeeSide,
             cancelled: Boolean
         ): EthUInt256 {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
+                return EthUInt256.ZERO
+            }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
             val fee = if (feeSide == FeeSide.MAKE) calculateFee(data, protocolCommission) else EthUInt256.ZERO
 
@@ -184,6 +187,7 @@ data class Order(
                 is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
+                is OrderCryptoPunksData -> EthUInt256.ZERO
             }
         }
 
@@ -219,6 +223,7 @@ data class Order(
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
+                OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("On-chain CryptoPunks orders are not hashable")
             }
         }
 
@@ -471,3 +476,14 @@ val AssetType.token: Address
             is EthAssetType -> Address.ZERO()
         }
     }
+
+/**
+ * All on-chain CryptoPunks orders have salt = 0.
+ * We can't have a better salt for them, because there is nothing like "nonce"
+ * in the CryptoPunksMarket contract.
+ * Order key hash for a CryptoPunk order is as usual: Order.hashKey(maker, make.type, take.type, salt = 0)
+ * So, to correctly handle orders from the same owner, we support order re-opening:
+ * OrderReduceService sorts the events by timestamp and resets 'cancelled' and 'fill' fields when
+ * an `OnChainOrder` event is met.
+ */
+val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO

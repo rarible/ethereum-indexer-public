@@ -81,6 +81,8 @@ object EthAssetType : AssetType(ETH, Binary.apply(), false) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ETH, Address.ZERO(), BigInteger.ZERO)
     @Suppress("USELESS_IS_CHECK")
     override fun equals(other: Any?) = this is EthAssetType // Workaround for RPN-879: deserialization leads to a new instance of the same class.
+    override fun hashCode() = "EthAssetType".hashCode()
+    override fun toString() = "EthAssetType"
 }
 
 data class Erc20AssetType(val token: Address) : AssetType(ERC20, AddressType.encode(token), false) {
@@ -193,7 +195,9 @@ data class Erc1155LazyAssetType(
 }
 
 data class CryptoPunksAssetType(val marketAddress: Address, val punkId: Int) : AssetType(
-    CRYPTO_PUNKS, Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))), true
+    type = CRYPTO_PUNKS,
+    data = Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))),
+    nft = true
 ) {
     companion object {
         fun apply(data: Binary) = run {

@@ -58,6 +58,7 @@ class ProtocolOrderPublisher(
         get() = when (this) {
             is LegacyOrderDto, is RaribleV2OrderDto -> Platform.RARIBLE
             is OpenSeaV1OrderDto -> Platform.OPEN_SEA
+            is CryptoPunkOrderDto -> Platform.CRYPTO_PUNKS
         }
 
     private val AssetTypeDto.itemId: String?
@@ -75,5 +76,6 @@ class ProtocolOrderPublisher(
         get() = when (this) {
             Platform.RARIBLE -> true
             Platform.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
+            Platform.CRYPTO_PUNKS -> false
         }
 }

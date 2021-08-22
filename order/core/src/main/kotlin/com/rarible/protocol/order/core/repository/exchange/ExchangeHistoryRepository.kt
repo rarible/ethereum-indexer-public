@@ -15,6 +15,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.query.*
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -73,6 +74,10 @@ class ExchangeHistoryRepository(
 
         val query = Query(criteria).with(LOG_SORT_ASC)
         return template.find(query, COLLECTION)
+    }
+
+    fun findAll(): Flux<LogEvent> {
+        return template.findAll(COLLECTION)
     }
 
     fun searchActivity(filter: ActivityExchangeHistoryFilter): Flux<LogEvent> {
@@ -156,7 +161,8 @@ class ExchangeHistoryRepository(
             .by(
                 "${LogEvent::data.name}.${OrderExchangeHistory::hash.name}",
                 LogEvent::blockNumber.name,
-                LogEvent::logIndex.name
+                LogEvent::logIndex.name,
+                LogEvent::minorLogIndex.name
             )
 
         val logger: Logger = LoggerFactory.getLogger(ExchangeHistoryRepository::class.java)

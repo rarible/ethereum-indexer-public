@@ -22,7 +22,7 @@ class TransferProxyService(
             is Erc20AssetType -> transferProxyAddresses.erc20TransferProxy
             is Erc721LazyAssetType -> transferProxyAddresses.erc721LazyTransferProxy
             is Erc1155LazyAssetType -> transferProxyAddresses.erc1155LazyTransferProxy
-            is CryptoPunksAssetType -> transferProxyAddresses.cryptoPunksTransferProxy
+            is CryptoPunksAssetType -> transferProxyAddresses.cryptoPunksTransferProxy // TODO[punk]: is it needed?
             is GenerativeArtAssetType -> null
             is EthAssetType -> null
         }

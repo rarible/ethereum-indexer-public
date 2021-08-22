@@ -9,7 +9,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component
 @Component
 class OrderUpdateService(
     private val orderRepository: OrderRepository,
-    private val assetBalanceProvider: AssetBalanceProvider,
+    private val assetMakeBalanceProvider: AssetMakeBalanceProvider,
     private val orderVersionRepository: OrderVersionRepository,
     private val orderReduceService: OrderReduceService,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
@@ -51,7 +51,7 @@ class OrderUpdateService(
      */
     suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
         val order = orderRepository.findById(hash) ?: return null
-        val makeBalance = knownMakeBalance ?: assetBalanceProvider.getAssetStock(order.maker, order.make.type) ?: EthUInt256.ZERO
+        val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order) ?: EthUInt256.ZERO
         val protocolCommission = protocolCommissionProvider.get()
         val withNewBalance = order.withMakeBalance(makeBalance, protocolCommission)
         val updated = if (order.makeStock == EthUInt256.ZERO && withNewBalance.makeStock != EthUInt256.ZERO) {

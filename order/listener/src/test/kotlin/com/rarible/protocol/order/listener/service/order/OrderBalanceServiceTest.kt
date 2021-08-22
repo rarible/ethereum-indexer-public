@@ -11,7 +11,7 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -39,11 +39,11 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
     private lateinit var orderBalanceService: OrderBalanceService
 
     @MockkBean
-    private lateinit var assetBalanceProvider: AssetBalanceProvider
+    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
     @BeforeEach
     fun setup() {
-        clearMocks(assetBalanceProvider)
+        clearMocks(assetMakeBalanceProvider)
     }
 
     @Test
@@ -74,7 +74,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             make = make,
             take = take
         )
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ONE
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ONE
 
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
@@ -123,7 +123,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val order4 = createOrderVersion().copy(
             make = make
         )
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ONE
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ONE
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
 

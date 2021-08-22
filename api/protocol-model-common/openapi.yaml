@@ -57,6 +57,7 @@ components:
           enum:
             - RARIBLE
             - OPEN_SEA
+            - CRYPTO_PUNKS
       oneOf:
         - $ref: "#/components/schemas/OrderActivityMatch"
         - $ref: "#/components/schemas/OrderActivityBid"

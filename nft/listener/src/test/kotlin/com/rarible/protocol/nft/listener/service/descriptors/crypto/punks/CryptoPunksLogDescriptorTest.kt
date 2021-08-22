@@ -89,6 +89,26 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         transferOrBuyPunkTest(false)
     }
 
+    @Test
+    fun acceptBidForPunk() = runBlocking {
+        val market = deployCryptoPunkMarket()
+
+        val (ownerAddress, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        val punkTokenId = EthUInt256(punkIndex)
+        market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100500.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        market.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess()
+
+        market.acceptBidForPunk(punkIndex, BigInteger.ZERO).withSender(ownerSender).execute().verifySuccess()
+
+        assertOwnership(market.address(), punkTokenId, bidderAddress, ownerAddress)
+    }
+
     private fun transferOrBuyPunkTest(transferOrBuy: Boolean) = runBlocking {
         val market = deployCryptoPunkMarket()
 

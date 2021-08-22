@@ -3,9 +3,7 @@ package com.rarible.protocol.order.listener.integration
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.dto.CurrencyRateDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
-import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
-import com.rarible.protocol.order.listener.data.createNftOwnershipDto
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
@@ -48,14 +46,6 @@ class TestPropertiesConfiguration {
     fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
         return mockk {
             every { getErc20Balance(any(), any()) } returns Mono.just(createErc20BalanceDto())
-        }
-    }
-
-    @Bean
-    @Primary
-    fun mockedNftOwnershipApi(): NftOwnershipControllerApi {
-        return mockk {
-            every { getNftOwnershipById(any()) } returns Mono.just(createNftOwnershipDto())
         }
     }
 

@@ -78,6 +78,28 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
+            OrderType.CRYPTO_PUNKS -> CryptoPunkOrderDto(
+                maker = source.maker,
+                make = AssetDtoConverter.convert(source.make),
+                taker = source.taker,
+                take = AssetDtoConverter.convert(source.take),
+                fill = source.fill.value,
+                makeStock = source.makeStock.value,
+                cancelled = source.cancelled,
+                start = source.start,
+                end = source.end,
+                salt = source.salt.value.toWord(),
+                signature = source.signature,
+                createdAt = source.createdAt,
+                lastUpdateAt = source.lastUpdateAt,
+                hash = source.hash,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                makeBalance = BigInteger.ZERO,
+                makePriceUsd = source.makePriceUsd,
+                takePriceUsd = source.takePriceUsd,
+                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
+            )
         }
     }
 }
