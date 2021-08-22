@@ -41,6 +41,7 @@ import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
 import scalether.transaction.*
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -121,6 +122,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         }
         return receipt
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     protected suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
         if (data is OrderExchangeHistory) {

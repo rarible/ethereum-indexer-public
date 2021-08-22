@@ -29,8 +29,12 @@ class OrderActivityConverter(
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
         val data = history.data as OrderExchangeHistory
 
-        return when {
-            data is OrderSideMatch -> {
+        if (data.maker == null || data.make == null || data.take == null) {
+            return null
+        }
+
+        return when (data) {
+            is OrderSideMatch -> {
                 val leftOrder = orderRepository.findById(data.hash)
                 val rightOrder = data.counterHash?.let { orderRepository.findById(it) }
                 OrderActivityMatchDto(
@@ -57,34 +61,60 @@ class OrderActivityConverter(
                     source = convert(data.source)
                 )
             }
-            data.maker == null || data.make == null || data.take == null -> null
-            data is OrderCancel && data.isBid() -> OrderActivityCancelBidDto(
-                id = history.id.toString(),
-                hash = data.hash,
-                maker = data.maker!!,
-                make = AssetTypeDtoConverter.convert(data.make!!.type),
-                take = AssetTypeDtoConverter.convert(data.take!!.type),
-                date = data.date,
-                transactionHash = transactionHash,
-                blockHash = blockHash,
-                blockNumber = blockNumber,
-                logIndex = logIndex,
-                source = convert(data.source)
-            )
-            data is OrderCancel -> OrderActivityCancelListDto(
-                id = history.id.toString(),
-                hash = data.hash,
-                maker = data.maker!!,
-                make = AssetTypeDtoConverter.convert(data.make!!.type),
-                take = AssetTypeDtoConverter.convert(data.take!!.type),
-                date = data.date,
-                transactionHash = transactionHash,
-                blockHash = blockHash,
-                blockNumber = blockNumber,
-                logIndex = logIndex,
-                source = convert(data.source)
-            )
-            else -> throw IllegalArgumentException("Unexpected history data type: ${data.javaClass}")
+            is OrderCancel -> if (data.isBid()) {
+                OrderActivityCancelBidDto(
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker!!,
+                    make = AssetTypeDtoConverter.convert(data.make!!.type),
+                    take = AssetTypeDtoConverter.convert(data.take!!.type),
+                    date = data.date,
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(data.source)
+                )
+            } else {
+                OrderActivityCancelListDto(
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker!!,
+                    make = AssetTypeDtoConverter.convert(data.make!!.type),
+                    take = AssetTypeDtoConverter.convert(data.take!!.type),
+                    date = data.date,
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(data.source)
+                )
+            }
+            is OrderNew -> if (data.isBid()) {
+                OrderActivityBidDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = AssetDtoConverter.convert(data.make),
+                    take = AssetDtoConverter.convert(data.take),
+                    price = nftPrice(data.make, data.take),
+                    source = convert(data.source),
+                    priceUsd = null // TODO[punk]: not sure.
+                )
+            } else {
+                OrderActivityListDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = AssetDtoConverter.convert(data.make),
+                    take = AssetDtoConverter.convert(data.take),
+                    price = nftPrice(data.take, data.make),
+                    source = convert(data.source),
+                    priceUsd = null // TODO[punk]: not sure.
+                )
+            }
         }
     }
 
@@ -99,7 +129,7 @@ class OrderActivityConverter(
                 take = AssetDtoConverter.convert(version.take),
                 price = price(version.make, version.take),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = OrderActivityDto.Source.RARIBLE
+                source = convert(version.platform)
             )
             else -> OrderActivityListDto(
                 date = version.createdAt,
@@ -110,16 +140,21 @@ class OrderActivityConverter(
                 take = AssetDtoConverter.convert(version.take),
                 price = price(version.take, version.make),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = OrderActivityDto.Source.RARIBLE
+                source = convert(version.platform)
             )
         }
     }
 
-    private fun convert(source: HistorySource): OrderActivityDto.Source {
-        return when (source) {
-            HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
-            HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
-        }
+    private fun convert(source: HistorySource): OrderActivityDto.Source = when (source) {
+        HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
+        HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
+        HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+    }
+
+    private fun convert(platform: Platform): OrderActivityDto.Source = when (platform) {
+        Platform.RARIBLE -> OrderActivityDto.Source.RARIBLE
+        Platform.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
+        Platform.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
     }
 
     private suspend fun nftPrice(left: Asset, right: Asset): BigDecimal {

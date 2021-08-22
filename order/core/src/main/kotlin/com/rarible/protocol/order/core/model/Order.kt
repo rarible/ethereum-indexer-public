@@ -196,7 +196,7 @@ data class Order(
             fill: EthUInt256,
             cancelled: Boolean
         ): Pair<EthUInt256, EthUInt256> {
-            return if (cancelled) {
+            return if (cancelled || makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
                 EthUInt256.ZERO to EthUInt256.ZERO
             } else {
                 val take = takeValue - fill
@@ -210,6 +210,7 @@ data class Order(
                 is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
+                is OrderCryptoPunksData -> EthUInt256.ZERO
             }
         }
 
@@ -218,6 +219,9 @@ data class Order(
             takeValue: EthUInt256,
             makeBalance: EthUInt256
         ): EthUInt256 {
+            if (takeValue == EthUInt256.ZERO || makeValue == EthUInt256.ZERO) {
+                return EthUInt256.ZERO
+            }
             val maxTake = makeBalance * takeValue / makeValue
             return makeValue * maxTake / takeValue
         }
@@ -239,8 +243,9 @@ data class Order(
         ): Word {
             return when (type) {
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
-                OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
+                OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make, take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
+                OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders must be created on-chain") // TODO[punk]: not sure about this.
             }
         }
 

@@ -6,10 +6,9 @@ import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
-import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.CommonSigner
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
@@ -71,6 +70,17 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             take = AssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderOpenSeaV1DataV1Dto,
+            start = null,
+            end = null,
+            signature = null
+        )
+        OrderType.CRYPTO_PUNKS -> CryptoPunksOrderFormDto(
+            maker = maker,
+            make = AssetDtoConverter.convert(make),
+            taker = null,
+            take = AssetDtoConverter.convert(take),
+            salt = salt.value,
+            data = OrderDataDtoConverter.convert(data) as OrderCryptoPunksDataDto,
             start = null,
             end = null,
             signature = null

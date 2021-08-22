@@ -7,4 +7,5 @@ val OrderFormDto.data: OrderDataDto
         is LegacyOrderFormDto -> data
         is RaribleV2OrderFormDto -> data
         is OpenSeaV1OrderFormDto -> data
+        is CryptoPunksOrderFormDto -> data
     }

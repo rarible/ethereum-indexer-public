@@ -12,6 +12,7 @@ object OrderTypeConverter : Converter<OrderFormDto, OrderType> {
             is LegacyOrderFormDto -> OrderType.RARIBLE_V1
             is RaribleV2OrderFormDto -> OrderType.RARIBLE_V2
             is OpenSeaV1OrderFormDto -> OrderType.OPEN_SEA_V1
+            is CryptoPunksOrderFormDto -> OrderType.CRYPTO_PUNKS
         }
     }
 }

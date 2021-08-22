@@ -3,9 +3,9 @@ package com.rarible.protocol.order.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PartConverter
@@ -53,6 +53,9 @@ class PrepareTxService(
             OrderType.OPEN_SEA_V1 -> {
                 prepareTxForOpenSeaV1(order, form)
             }
+            OrderType.CRYPTO_PUNKS -> {
+                prepareTxForCryptoPunk(order, form)
+            }
         }
     }
 
@@ -66,6 +69,9 @@ class PrepareTxService(
             }
             OrderType.OPEN_SEA_V1 -> {
                 prepareCancelTxForOpenSeaV1(order)
+            }
+            OrderType.CRYPTO_PUNKS -> {
+                prepareCancelTxForCryptoPunk(order)
             }
         }
     }
@@ -222,6 +228,16 @@ class PrepareTxService(
         )
     }
 
+    @Suppress("UNUSED_PARAMETER")
+    private fun prepareTxForCryptoPunk(
+        order: Order,
+        form: PrepareOrderTxFormDto
+    ): PrepareTxResponse {
+        @Suppress("UNREACHABLE_CODE")
+        error("RPN-831 (p.4): NOT IMPLEMENTED YET") //TODO[punk]: not sure about this.
+    }
+
+
     fun prepareCancelTxForOpenSeaV1(order: Order): PreparedTx {
         val data = order.data as OrderOpenSeaV1DataV1
         val signature = order.signature?.toSignatureData() ?: EMPTY_SIGNATURE
@@ -268,6 +284,11 @@ class PrepareTxService(
             exchangeContractAddresses.openSeaV1,
             inputData
         )
+    }
+
+    fun prepareCancelTxForCryptoPunk(order: Order): PreparedTx {
+        @Suppress("UNREACHABLE_CODE")
+        return TODO("RPN-831 (p.4): NOT IMPLEMENTED YET")
     }
 
     suspend fun prepareTxFor2Orders(

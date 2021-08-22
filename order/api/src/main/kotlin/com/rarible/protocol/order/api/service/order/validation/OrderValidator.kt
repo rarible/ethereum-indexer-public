@@ -24,6 +24,9 @@ class OrderValidator(
             OrderType.OPEN_SEA_V1 -> {
                 throw InvalidParameterException("Unsupported order type ${order.type}")
             }
+            OrderType.CRYPTO_PUNKS -> {
+                order.data is OrderCryptoPunksData
+            }
         }
         if (isValidOrderDataType.not()) {
             throw IncorrectOrderDataException("Order with type ${order.type} has invalid order data")

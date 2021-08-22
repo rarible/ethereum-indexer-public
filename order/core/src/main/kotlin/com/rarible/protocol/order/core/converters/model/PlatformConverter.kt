@@ -9,6 +9,7 @@ object PlatformConverter : Converter<PlatformDto, Platform> {
         return when (source ?: PlatformDto.RARIBLE) {
             PlatformDto.RARIBLE -> Platform.RARIBLE
             PlatformDto.OPEN_SEA -> Platform.OPEN_SEA
+            PlatformDto.CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
             PlatformDto.ALL -> null
         }
     }

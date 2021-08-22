@@ -24,6 +24,20 @@ enum class OrderSide {
     RIGHT
 }
 
+data class OrderNew(
+    val order: Order,
+    override val hash: Word = order.hash,
+    override val make: Asset = order.make,
+    override val take: Asset = order.take,
+    override val date: Instant = order.lastUpdateAt,
+    override val maker: Address = order.maker,
+    override val source: HistorySource = when (order.platform) { //TODO[punk]: not sure about what the HistorySource and Platform are.
+        Platform.RARIBLE -> HistorySource.RARIBLE
+        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
+        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
+    }
+) : OrderExchangeHistory(ItemType.NEW_ORDER)
+
 data class OrderSideMatch(
     override val hash: Word,
     val counterHash: Word? = null,

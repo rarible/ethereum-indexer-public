@@ -74,6 +74,7 @@ sealed class AssetType(
 
 object EthAssetType : AssetType(ETH, Binary.apply(), false) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ETH, Address.ZERO(), BigInteger.ZERO)
+    override fun equals(other: Any?) = other is EthAssetType
 }
 
 data class Erc20AssetType(val token: Address) : AssetType(ERC20, AddressType.encode(token), false) {
@@ -186,7 +187,9 @@ data class Erc1155LazyAssetType(
 }
 
 data class CryptoPunksAssetType(val marketAddress: Address, val punkId: Int) : AssetType(
-    CRYPTO_PUNKS, Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))), true
+    type = CRYPTO_PUNKS,
+    data = Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))),
+    nft = true
 ) {
     companion object {
         fun apply(data: Binary) = run {

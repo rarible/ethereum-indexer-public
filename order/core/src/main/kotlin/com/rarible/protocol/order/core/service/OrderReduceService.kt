@@ -5,14 +5,14 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
-import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,6 +27,7 @@ import java.time.Instant
 class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val orderRepository: OrderRepository,
+    private val orderVersionRepository: OrderVersionRepository,
     private val assetBalanceProvider: AssetBalanceProvider,
     private val protocolCommissionProvider: ProtocolCommissionProvider
 ) {
@@ -72,6 +73,7 @@ class OrderReduceService(
                     when (exchangeHistory) {
                         is OrderSideMatch -> state.addFill(exchangeHistory.fill, exchangeHistory.externalOrderExecutedOnRarible, exchangeHistory.date)
                         is OrderCancel -> state.cancel(exchangeHistory.date)
+                        is OrderNew -> state.withNewOrder(exchangeHistory.order)
                     }
                 }
                 else -> state
@@ -81,7 +83,7 @@ class OrderReduceService(
     }
 
     private fun updateOrderWithState(marker: Marker, hash: Word, currentState: OrderState) = mono {
-        val order = orderRepository.findById(hash)
+        val order = orderRepository.findById(hash) ?: currentState.newOrder?.let { saveOrder(it) }
         if (order != null) {
             if (order.fill != currentState.fill ||
                 order.cancelled != currentState.canceled ||
@@ -111,6 +113,23 @@ class OrderReduceService(
         }
     }
 
+    private suspend fun saveOrder(order: Order): Order {
+        val saved = orderRepository.save(order)
+        orderVersionRepository.save(OrderVersion(
+            hash = saved.hash,
+            maker = saved.maker,
+            taker = saved.taker,
+            make = saved.make,
+            take = saved.take,
+            makePriceUsd = saved.makePriceUsd,
+            takePriceUsd = saved.takePriceUsd,
+            makeUsd = saved.makeUsd,
+            takeUsd = saved.takeUsd,
+            platform = saved.platform
+        )).awaitFirst()
+        return saved
+    }
+
     private fun EventData.toExchangeHistory(): OrderExchangeHistory {
         return this as? OrderExchangeHistory ?: throw IllegalArgumentException("Unexpected exchange history type ${this::class}")
     }
@@ -120,7 +139,8 @@ class OrderReduceService(
         val canceled: Boolean,
         val pending: List<OrderExchangeHistory>,
         val externalOrderExecutedOnRarible: Boolean?,
-        val changeDate: Instant
+        val changeDate: Instant,
+        val newOrder: Order?
     ) {
         fun addPendingEvent(event: OrderExchangeHistory): OrderState {
             return copy(pending = pending + event)
@@ -145,14 +165,21 @@ class OrderReduceService(
             )
         }
 
+        fun withNewOrder(newOrder: Order): OrderState = copy(newOrder = newOrder)
+
         private fun getLatestChangeDate(changeDate: Instant): Instant {
             return if (changeDate > this.changeDate) changeDate else this.changeDate
         }
 
         companion object {
-            fun initial(): OrderState {
-                return OrderState(EthUInt256.ZERO, false, emptyList(), false, Instant.ofEpochMilli(0))
-            }
+            fun initial(): OrderState = OrderState(
+                fill = EthUInt256.ZERO,
+                canceled = false,
+                pending = emptyList(),
+                externalOrderExecutedOnRarible = null,
+                changeDate = Instant.ofEpochMilli(0),
+                newOrder = null
+            )
         }
     }
 

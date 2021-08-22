@@ -150,7 +150,8 @@ class ExchangeHistoryRepository(
             .by(
                 "${LogEvent::data.name}.${OrderExchangeHistory::hash.name}",
                 LogEvent::blockNumber.name,
-                LogEvent::logIndex.name
+                LogEvent::logIndex.name,
+                LogEvent::minorLogIndex.name
             )
 
         val logger: Logger = LoggerFactory.getLogger(ExchangeHistoryRepository::class.java)

@@ -3,20 +3,17 @@ package com.rarible.protocol.order.api.service.order
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
-import com.rarible.protocol.dto.LegacyOrderFormDto
-import com.rarible.protocol.dto.OpenSeaV1OrderFormDto
-import com.rarible.protocol.dto.OrderFormDto
-import com.rarible.protocol.dto.RaribleV2OrderFormDto
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-import com.rarible.protocol.order.core.converters.model.OrderDataConverter
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.validation.OrderSignatureValidator
+import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.Logger
@@ -123,6 +120,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             is LegacyOrderFormDto -> copy(signature = signature)
             is RaribleV2OrderFormDto -> copy(signature = signature)
             is OpenSeaV1OrderFormDto -> copy(signature = signature)
+            is CryptoPunksOrderFormDto -> copy(signature = signature)
         }
     }
 
@@ -132,6 +130,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             is LegacyOrderFormDto -> data
             is RaribleV2OrderFormDto -> data
             is OpenSeaV1OrderFormDto -> data
+            is CryptoPunksOrderFormDto -> data
         }
         val hash = Order.hash(
             maker,
@@ -148,6 +147,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             is LegacyOrderFormDto -> copy(signature = CommonSigner().hashToSign(hash).sign(privateKey))
             is RaribleV2OrderFormDto -> copy(signature = eip712Domain.hashToSign(hash).sign(privateKey))
             is OpenSeaV1OrderFormDto -> copy(signature = CommonSigner().openSeaHashToSign(hash).sign(privateKey))
+            is CryptoPunksOrderFormDto -> copy(signature = CommonSigner().ethSignHashToSign(hash).sign(privateKey))
         }
     }
 }

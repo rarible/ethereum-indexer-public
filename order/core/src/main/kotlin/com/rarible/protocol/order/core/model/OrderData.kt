@@ -56,6 +56,11 @@ data class OrderRaribleV2DataV1(
     }
 }
 
+data class OrderCryptoPunksData(val marketAddress: Address) : OrderData() {
+    override val version get() = OrderDataVersion.CRYPTO_PUNKS
+    override fun toEthereum(wrongEncode: Boolean): Binary = throw IllegalStateException("CryptoPunk order data must not be encoded") //TODO[punk]: not sure about this.
+}
+
 data class OrderOpenSeaV1DataV1(
     val exchange: Address,
     val makerRelayerFee: BigInteger,
@@ -82,7 +87,8 @@ data class OrderOpenSeaV1DataV1(
 enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
-    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1"))
+    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
+    CRYPTO_PUNKS(id("CRYPTO_PUNKS"))
 }
 
 data class Part(
