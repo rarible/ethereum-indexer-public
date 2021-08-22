@@ -12,8 +12,11 @@ import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.*
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.PriceNormalizer
+import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import io.daonomic.rpc.domain.Word
@@ -47,7 +50,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val orderVersionRepository = OrderVersionRepository(createReactiveMongoTemplate())
     private val priceUpdateService = mockk<PriceUpdateService>()
     private val exchangeHistoryRepository = ExchangeHistoryRepository(createReactiveMongoTemplate())
-    private val assetBalanceProvider = mockk<AssetBalanceProvider>()
+    private val assetMakeBalanceProvider = mockk<AssetMakeBalanceProvider>()
     private val priceNormalizer = mockk<PriceNormalizer>()
     private val protocolCommissionProvider = mockk<ProtocolCommissionProvider>()
     private val orderVersionListener = mockk<OrderVersionListener>()
@@ -55,7 +58,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         exchangeHistoryRepository = exchangeHistoryRepository,
         orderRepository = orderRepository,
         orderVersionRepository = orderVersionRepository,
-        assetBalanceProvider = assetBalanceProvider,
+        assetMakeBalanceProvider = assetMakeBalanceProvider,
         protocolCommissionProvider = protocolCommissionProvider,
         priceNormalizer = priceNormalizer,
         priceUpdateService = priceUpdateService
@@ -63,7 +66,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val orderUpdateService = OrderUpdateService(
         orderVersionRepository = orderVersionRepository,
         orderRepository = orderRepository,
-        assetBalanceProvider = assetBalanceProvider,
+        assetMakeBalanceProvider = assetMakeBalanceProvider,
         protocolCommissionProvider = protocolCommissionProvider,
         priceUpdateService = priceUpdateService,
         orderReduceService = orderReduceService,
@@ -81,7 +84,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     fun `should update only the active order and its version`() = runBlocking {
         coEvery { priceNormalizer.normalize(any()) } returns BigDecimal.ZERO to BigDecimal.ZERO
         coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.TEN
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
         coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
 
         val newMakeUsd = BigDecimal.valueOf(2)

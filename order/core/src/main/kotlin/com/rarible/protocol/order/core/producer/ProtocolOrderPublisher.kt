@@ -50,12 +50,19 @@ class ProtocolOrderPublisher(
     }
 
     private val OrderDto.key: String?
-        get() = make.assetType.itemId ?: take.assetType.itemId
+        get() = when (this) {
+            is RaribleV2OrderDto -> make.assetType.itemId ?: take.assetType.itemId
+            is OpenSeaV1OrderDto -> make.assetType.itemId ?: take.assetType.itemId
+            is LegacyOrderDto -> make.assetType.itemId ?: take.assetType.itemId
+            is CryptoPunkSellOrderDto -> punk.itemId
+            is CryptoPunkBidOrderDto -> punk.itemId
+        }
 
     private val OrderDto.platform: Platform
         get() = when (this) {
             is LegacyOrderDto, is RaribleV2OrderDto -> Platform.RARIBLE
             is OpenSeaV1OrderDto -> Platform.OPEN_SEA
+            is CryptoPunkBidOrderDto, is CryptoPunkSellOrderDto -> Platform.CRYPTO_PUNKS
         }
 
     private val AssetTypeDto.itemId: String?

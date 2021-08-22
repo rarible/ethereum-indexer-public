@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import java.time.Instant
@@ -16,19 +15,19 @@ abstract class CryptoPunkLogDescriptorBase(
     private val nftIndexerProperties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
-    abstract fun convertItemTransfer(log: Log, date: Instant): ItemTransfer
+    abstract fun convertItemTransfer(log: Log, date: Instant): Mono<ItemTransfer>
 
     override fun convert(log: Log, date: Instant): Mono<ItemTransfer> =
         tokenRegistrationService.getTokenStandard(log.address())
             .flatMap { standard ->
                 if (standard == TokenStandard.CRYPTO_PUNKS) {
-                    convertItemTransfer(log, date).toMono()
+                    convertItemTransfer(log, date)
                 } else {
                     Mono.empty()
                 }
             }
 
-    private val cryptoPunksContractAddress: Address get() = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
+    protected val cryptoPunksContractAddress: Address get() = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
 
     override fun getAddresses(): Mono<Collection<Address>> =
         Mono.just(listOf(cryptoPunksContractAddress))

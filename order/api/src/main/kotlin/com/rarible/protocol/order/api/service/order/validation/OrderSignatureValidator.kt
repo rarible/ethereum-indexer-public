@@ -21,7 +21,7 @@ class OrderSignatureValidator(
     suspend fun validate(order: OrderVersion) {
         val signature = order.signature ?: throw IncorrectSignatureException()
 
-        when (order.type) {
+        return when (order.type) {
             OrderType.RARIBLE_V1 -> {
                 logger.info("validating legacy order message: ${order.hash}, signature: $signature")
                 val legacyMessage = order.legacyMessage()
@@ -29,6 +29,7 @@ class OrderSignatureValidator(
                 if (order.maker != signer) {
                     throw IncorrectSignatureException()
                 }
+                Unit
             }
             OrderType.RARIBLE_V2 -> {
                 logger.info("validating v2 order message: ${order.hash}, signature: $signature, eip712Domain: $eip712Domain")
@@ -37,8 +38,10 @@ class OrderSignatureValidator(
                 if (erc1271SignService.isSigner(order.maker, hash, signature).not()) {
                     throw IncorrectSignatureException()
                 }
+                Unit
             }
             OrderType.OPEN_SEA_V1 -> Unit
+            OrderType.CRYPTO_PUNKS -> Unit
         }
     }
 

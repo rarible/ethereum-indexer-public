@@ -115,10 +115,12 @@ components:
           RARIBLE_V1: "#/components/schemas/LegacyOrderBid"
           RARIBLE_V2: "#/components/schemas/RaribleV2OrderBid"
           OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderBid"
+          CRYPTO_PUNKS: "#/components/schemas/CryptoPunksOrderBid"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderBid"
         - "$ref": "#/components/schemas/RaribleV2OrderBid"
         - "$ref": "#/components/schemas/OpenSeaV1OrderBid"
+        - "$ref": "#/components/schemas/CryptoPunksOrderBid"
 
     LegacyOrderBid:
       type: object
@@ -158,6 +160,16 @@ components:
             - OPEN_SEA_V1
         data:
           $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    CryptoPunksOrderBid:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - CRYPTO_PUNKS
 
     OrderBidStatus:
       type: string
@@ -269,9 +281,11 @@ components:
         mapping:
           CANCEL: "#/components/schemas/OrderCancel"
           ORDER_SIDE_MATCH: "#/components/schemas/OrderSideMatch"
+          NEW_ON_CHAIN_ORDER: "#/components/schemas/NewOnChainOrder"
       oneOf:
         - "$ref": "#/components/schemas/OrderCancel"
         - "$ref": "#/components/schemas/OrderSideMatch"
+        - "$ref": "#/components/schemas/NewOnChainOrder"
 
     ItemBuy:
       type: object
@@ -332,6 +346,16 @@ components:
         owner:
           $ref: "#/components/schemas/Address"
 
+    NewOnChainOrder:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum:
+            - ORDER_NEW
+
     OrderBidsPagination:
       type: object
       required:
@@ -352,10 +376,12 @@ components:
           RARIBLE_V2_DATA_V1: "#/components/schemas/OrderRaribleV2DataV1"
           LEGACY: "#/components/schemas/OrderDataLegacy"
           OPEN_SEA_V1_DATA_V1: "#/components/schemas/OrderOpenSeaV1DataV1"
+          EMPTY_DATA: "#/components/schemas/OrderEmptyData"
       oneOf:
         - "$ref": "#/components/schemas/OrderRaribleV2DataV1"
         - "$ref": "#/components/schemas/OrderDataLegacy"
         - "$ref": "#/components/schemas/OrderOpenSeaV1DataV1"
+        - "$ref": "#/components/schemas/OrderEmptyData"
 
     OrderRaribleV2DataV1:
       type: object
@@ -457,12 +483,20 @@ components:
         extra:
           $ref: "#/components/schemas/BigInteger"
 
+    OrderEmptyData:
+      type: object
+      required:
+        - dataType
+      properties:
+        dataType:
+          type: string
+          enum:
+            - EMPTY_DATA
+
     Order:
       type: object
       required:
         - maker
-        - make
-        - take
         - fill
         - makeStock
         - cancelled
@@ -476,10 +510,6 @@ components:
           $ref: "#/components/schemas/Address"
         taker:
           $ref: "#/components/schemas/Address"
-        make:
-          $ref: "#/components/schemas/Asset"
-        take:
-          $ref: "#/components/schemas/Asset"
         fill:
           $ref: "#/components/schemas/BigInteger"
         start:
@@ -525,21 +555,31 @@ components:
           RARIBLE_V1: "#/components/schemas/LegacyOrder"
           RARIBLE_V2: "#/components/schemas/RaribleV2Order"
           OPEN_SEA_V1: "#/components/schemas/OpenSeaV1Order"
+          CRYPTO_PUNK_SELL: "#/components/schemas/CryptoPunkSellOrder"
+          CRYPTO_PUNK_BID: "#/components/schemas/CryptoPunkBidOrder"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrder"
         - "$ref": "#/components/schemas/RaribleV2Order"
         - "$ref": "#/components/schemas/OpenSeaV1Order"
+        - "$ref": "#/components/schemas/CryptoPunkSellOrder"
+        - "$ref": "#/components/schemas/CryptoPunkBidOrder"
 
     LegacyOrder:
       type: object
       required:
         - type
         - data
+        - make
+        - take
       properties:
         type:
           type: string
           enum:
             - RARIBLE_V1
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
         data:
           $ref: "#/components/schemas/OrderDataLegacy"
 
@@ -548,11 +588,17 @@ components:
       required:
         - type
         - data
+        - make
+        - take
       properties:
         type:
           type: string
           enum:
             - RARIBLE_V2
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
         data:
           $ref: "#/components/schemas/OrderRaribleV2DataV1"
 
@@ -561,13 +607,51 @@ components:
       required:
         - type
         - data
+        - make
+        - take
       properties:
         type:
           type: string
           enum:
             - OPEN_SEA_V1
+        make:
+          $ref: "#/components/schemas/Asset"
+        take:
+          $ref: "#/components/schemas/Asset"
         data:
           $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
+
+    CryptoPunkSellOrder:
+      type: object
+      required:
+        - type
+        - punk
+        - punkPriceEth
+      properties:
+        type:
+          type: string
+          enum:
+            - CRYPTO_PUNK_SELL
+        punk:
+          $ref: "#/components/schemas/CryptoPunksAssetType"
+        punkPriceEth:
+          $ref: "#/components/schemas/BigInteger"
+
+    CryptoPunkBidOrder:
+      type: object
+      required:
+        - type
+        - punk
+        - punkPriceEth
+      properties:
+        type:
+          type: string
+          enum:
+            - CRYPTO_PUNK_BID
+        punk:
+          $ref: "#/components/schemas/CryptoPunksAssetType"
+        punkPriceEth:
+          $ref: "#/components/schemas/BigInteger"
 
     OrderPriceHistoryRecord:
       type: object
@@ -666,6 +750,7 @@ components:
         - ALL
         - RARIBLE
         - OPEN_SEA
+        - CRYPTO_PUNKS
 
     InvertOrderForm:
       type: object

@@ -3,7 +3,8 @@ package com.rarible.protocol.order.core.converters.model
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -44,6 +45,7 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
                 end = source.end,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto
             )
+            OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks order are created on-chain")
         }
     }
 }

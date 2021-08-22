@@ -14,6 +14,7 @@ import com.rarible.protocol.order.listener.misc.sign
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -119,6 +120,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 }
 
 fun OrderVersion.invert(maker: Address) = this.copy(
+    id = ObjectId(), // recreate ID.
     maker = maker,
     make = take,
     take = make,

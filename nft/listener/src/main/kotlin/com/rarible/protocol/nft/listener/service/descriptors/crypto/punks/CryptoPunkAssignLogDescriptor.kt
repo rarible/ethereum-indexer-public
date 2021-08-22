@@ -7,6 +7,8 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import java.time.Instant
@@ -19,7 +21,7 @@ class CryptoPunkAssignLogDescriptor(
 
     override val topic: Word = AssignEvent.id()
 
-    override fun convertItemTransfer(log: Log, date: Instant): ItemTransfer {
+    override fun convertItemTransfer(log: Log, date: Instant): Mono<ItemTransfer> {
         val event = AssignEvent.apply(log)
         return ItemTransfer(
             from = Address.ZERO(),
@@ -28,6 +30,6 @@ class CryptoPunkAssignLogDescriptor(
             tokenId = EthUInt256.of(event.punkIndex()),
             date = date,
             value = EthUInt256.of(1)
-        )
+        ).toMono()
     }
 }

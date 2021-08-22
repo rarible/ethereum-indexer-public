@@ -79,10 +79,18 @@ data class OrderOpenSeaV1DataV1(
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
+object OrderEmptyData : OrderData() {
+    override val version get() = OrderDataVersion.EMPTY
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+    override fun equals(other: Any?): Boolean = other is OrderEmptyData
+    override fun hashCode() = "OrderEmptyData".hashCode()
+}
+
 enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
-    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1"))
+    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
+    EMPTY
 }
 
 data class Part(

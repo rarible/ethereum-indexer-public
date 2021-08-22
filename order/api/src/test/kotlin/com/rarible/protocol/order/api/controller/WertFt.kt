@@ -15,7 +15,6 @@ import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.AbstractOrderIt
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
@@ -171,7 +170,13 @@ class WertFt : AbstractOrderIt() {
         setField(
             prepareTxService,
             "exchangeContractAddresses",
-            OrderIndexerProperties.ExchangeContractAddresses(v1.address(), null, v2.address(), AddressFactory.create())
+            OrderIndexerProperties.ExchangeContractAddresses(
+                v1 = v1.address(),
+                v1Old = null,
+                v2 = v2.address(),
+                openSeaV1 = AddressFactory.create(),
+                cryptoPunks = AddressFactory.create()
+            )
         )
         setField(
             prepareTxService,

@@ -29,8 +29,12 @@ class OrderActivityConverter(
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
         val data = history.data as OrderExchangeHistory
 
-        return when {
-            data is OrderSideMatch -> {
+        if (data.maker == null || data.make == null || data.take == null) {
+            return null
+        }
+
+        return when (data) {
+            is OrderSideMatch -> {
                 val leftOrder = orderRepository.findById(data.hash)
                 val rightOrder = data.counterHash?.let { orderRepository.findById(it) }
                 OrderActivityMatchDto(
@@ -57,34 +61,64 @@ class OrderActivityConverter(
                     source = convert(data.source)
                 )
             }
-            data.maker == null || data.make == null || data.take == null -> null
-            data is OrderCancel && data.isBid() -> OrderActivityCancelBidDto(
-                id = history.id.toString(),
-                hash = data.hash,
-                maker = data.maker!!,
-                make = AssetTypeDtoConverter.convert(data.make!!.type),
-                take = AssetTypeDtoConverter.convert(data.take!!.type),
-                date = data.date,
-                transactionHash = transactionHash,
-                blockHash = blockHash,
-                blockNumber = blockNumber,
-                logIndex = logIndex,
-                source = convert(data.source)
-            )
-            data is OrderCancel -> OrderActivityCancelListDto(
-                id = history.id.toString(),
-                hash = data.hash,
-                maker = data.maker!!,
-                make = AssetTypeDtoConverter.convert(data.make!!.type),
-                take = AssetTypeDtoConverter.convert(data.take!!.type),
-                date = data.date,
-                transactionHash = transactionHash,
-                blockHash = blockHash,
-                blockNumber = blockNumber,
-                logIndex = logIndex,
-                source = convert(data.source)
-            )
-            else -> throw IllegalArgumentException("Unexpected history data type: ${data.javaClass}")
+            is OrderCancel -> if (data.isBid()) {
+                OrderActivityCancelBidDto(
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker!!,
+                    make = AssetTypeDtoConverter.convert(data.make!!.type),
+                    take = AssetTypeDtoConverter.convert(data.take!!.type),
+                    date = data.date,
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(data.source)
+                )
+            } else {
+                OrderActivityCancelListDto(
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker!!,
+                    make = AssetTypeDtoConverter.convert(data.make!!.type),
+                    take = AssetTypeDtoConverter.convert(data.take!!.type),
+                    date = data.date,
+                    transactionHash = transactionHash,
+                    blockHash = blockHash,
+                    blockNumber = blockNumber,
+                    logIndex = logIndex,
+                    source = convert(data.source)
+                )
+            }
+            is NewOnChainOrder -> if (data.isBid()) {
+                OrderActivityBidDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = AssetDtoConverter.convert(data.make),
+                    take = AssetDtoConverter.convert(data.take),
+                    price = nftPrice(data.make, data.take),
+                    source = convert(data.source),
+                    priceUsd = null
+                )
+            } else if (data.order.taker != null) {
+                //TODO: Sell orders which are dedicated to only a concrete address (via "offer for sale to address" method call)
+                // are not supported by frontend, and thus the backend should return them.
+                null
+            } else  {
+                OrderActivityListDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = AssetDtoConverter.convert(data.make),
+                    take = AssetDtoConverter.convert(data.take),
+                    price = nftPrice(data.take, data.make),
+                    source = convert(data.source),
+                    priceUsd = null
+                )
+            }
         }
     }
 
@@ -119,6 +153,7 @@ class OrderActivityConverter(
         return when (source) {
             Platform.RARIBLE -> OrderActivityDto.Source.RARIBLE
             Platform.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
+            Platform.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
         }
     }
 
@@ -126,6 +161,7 @@ class OrderActivityConverter(
         return when (source) {
             HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
             HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
+            HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
         }
     }
 

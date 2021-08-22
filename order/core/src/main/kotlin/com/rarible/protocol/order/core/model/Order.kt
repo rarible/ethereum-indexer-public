@@ -153,6 +153,9 @@ data class Order(
             feeSide: FeeSide,
             cancelled: Boolean
         ): EthUInt256 {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
+                return EthUInt256.ZERO
+            }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
             val fee = if (feeSide == FeeSide.MAKE) calculateFee(data, protocolCommission) else EthUInt256.ZERO
 
@@ -184,6 +187,7 @@ data class Order(
                 is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
+                is OrderEmptyData -> EthUInt256.ZERO
             }
         }
 
@@ -219,6 +223,7 @@ data class Order(
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
+                OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("On-chain CryptoPunks orders are not hashable")
             }
         }
 

@@ -79,6 +79,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             end = end,
             signature = signature
         )
+        OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders are created on-chain")
     }
 }
 

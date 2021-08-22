@@ -10,9 +10,11 @@ import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -41,7 +43,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     private lateinit var orderVersionRepository: OrderVersionRepository
 
     @MockkBean
-    private lateinit var assetBalanceProvider: AssetBalanceProvider
+    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
     private val ownerToBalance = ConcurrentHashMap<Address, EthUInt256>()
 
     @BeforeEach
@@ -52,9 +54,10 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
 
     @BeforeEach
     fun mockBalances() {
-        clearMocks(assetBalanceProvider)
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } answers {
-            val owner = arg<Address>(0)
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
+            val order = arg<Order>(0)
+            val owner = order.maker
             ownerToBalance.getValue(owner)
         }
     }
