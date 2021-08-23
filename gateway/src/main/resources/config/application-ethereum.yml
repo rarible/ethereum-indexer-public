@@ -1,4 +1,2 @@
 gateway:
   blockchain: ethereum
-spring:
-  application.name: protocol-${gateway.blockchain}-gateway

@@ -1,4 +1,2 @@
 gateway:
   blockchain: polygon
-spring:
-  application.name: protocol-${gateway.blockchain}-gateway

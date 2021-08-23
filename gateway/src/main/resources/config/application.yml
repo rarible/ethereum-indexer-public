@@ -3,7 +3,7 @@ server:
   port: 8080
 
 spring:
-  application.name: protocol-gateway
+  application.name: protocol-${gateway.blockchain}-gateway
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
