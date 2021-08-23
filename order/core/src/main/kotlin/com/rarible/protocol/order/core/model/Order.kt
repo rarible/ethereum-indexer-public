@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
 import com.rarible.protocol.order.core.misc.zeroWord
+import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
@@ -23,7 +24,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 
-@Document("order")
+@Document(MongoOrderRepository.COLLECTION)
 data class Order(
     val maker: Address,
     val taker: Address?,
