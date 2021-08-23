@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.model
 
 import com.rarible.core.common.nowMillis
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -9,7 +10,7 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
 
-@Document(collection = "order_version")
+@Document(collection = OrderVersionRepository.COLLECTION)
 data class OrderVersion(
     val hash: Word,
     val maker: Address,
