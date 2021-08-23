@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
@@ -66,9 +67,8 @@ class ItemCreatorService(
 
     private fun fetchOpenseaCreator(tokenId: EthUInt256, itemId: ItemId): Mono<Address> {
         logger.info("fetchOpenseaCreator")
-        val creator = Address.apply(tokenId.value.toByteArray().copyOfRange(0, 20))
-        itemCreatorRepository.save(ItemCreator(itemId, creator))
-        return Mono.just(creator)
+        val creator = Address.apply(Uint256Type.encode(tokenId.value).bytes().copyOfRange(0, 20))
+        return itemCreatorRepository.save(ItemCreator(itemId, creator)).then(Mono.just(creator))
     }
 
     companion object {
