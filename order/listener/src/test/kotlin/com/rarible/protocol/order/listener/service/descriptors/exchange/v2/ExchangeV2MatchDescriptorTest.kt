@@ -34,41 +34,42 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
     fun convert() = runBlocking {
         setField(prepareTxService, "eip712Domain", eip712Domain)
 
-        val orderLeft = Order(
+        val orderLeftVersion = OrderVersion(
             maker = userSender1.from(),
             taker = null,
             make = Asset(Erc20AssetType(token1.address()), EthUInt256.TEN),
             take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE),
-            makeStock = EthUInt256.TEN,
             type = OrderType.RARIBLE_V2,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.TEN,
             start = null,
             end = null,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
         )
 
-        val orderRight = orderLeft.invert(userSender2.from()).copy(
-            data = OrderRaribleV2DataV1(
-                listOf(Part(userSender2.from(), EthUInt256.of(10000))),
-                listOf(Part(AddressFactory.create(), EthUInt256.of(0)))
+        val orderRightVersion = orderLeftVersion
+            .invert(userSender2.from()).copy(
+                data = OrderRaribleV2DataV1(
+                    listOf(Part(userSender2.from(), EthUInt256.of(10000))),
+                    listOf(Part(AddressFactory.create(), EthUInt256.of(0)))
+                )
             )
-        )
 
-        orderRepository.save(orderLeft)
-        orderRepository.save(orderRight)
+        orderUpdateService.save(orderLeftVersion)
+        orderUpdateService.save(orderRightVersion)
 
         token1.mint(userSender1.from(), TEN.pow(2)).execute().verifySuccess()
         token721.mint(userSender2.from(), ONE, "test").execute().verifySuccess()
 
-        val signature = eip712Domain.hashToSign(Order.hash(orderLeft)).sign(privateKey1)
+        val signature = eip712Domain.hashToSign(Order.hash(orderLeftVersion)).sign(privateKey1)
 
         val prepared = prepareTxService.prepareTransaction(
-            orderLeft.copy(signature = signature),
+            orderLeftVersion.copy(signature = signature).toOrderExactFields(),
             PrepareOrderTxFormDto(userSender2.from(), ONE, emptyList(), emptyList())
         )
         userSender2.sendTransaction(
@@ -98,13 +99,13 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(right?.fill).isEqualTo(EthUInt256.TEN)
 
             assertThat(left?.make)
-                .isEqualTo(orderLeft.make.copy(value = EthUInt256.TEN))
+                .isEqualTo(orderLeftVersion.make.copy(value = EthUInt256.TEN))
             assertThat(left?.take)
-                .isEqualTo(orderLeft.take.copy(value = EthUInt256.ONE))
+                .isEqualTo(orderLeftVersion.take.copy(value = EthUInt256.ONE))
             assertThat(right?.make)
-                .isEqualTo(orderRight.make.copy(value = EthUInt256.ONE))
+                .isEqualTo(orderRightVersion.make.copy(value = EthUInt256.ONE))
             assertThat(right?.take)
-                .isEqualTo(orderRight.take.copy(value = EthUInt256.TEN))
+                .isEqualTo(orderRightVersion.take.copy(value = EthUInt256.TEN))
 
             assertThat(left?.makeValue).isEqualTo(BigDecimal("0.000000000000000010"))
             assertThat(left?.takeValue).isEqualTo(BigDecimal(1))
@@ -112,12 +113,12 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left?.makeValue).isEqualTo(right?.takeValue)
             assertThat(left?.takeValue).isEqualTo(right?.makeValue)
 
-            checkActivityWasPublished(orderLeft, MatchEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), MatchEvent.id(), OrderActivityMatchDto::class.java)
         }
     }
 }
 
-fun Order.invert(maker: Address) = this.copy(
+fun OrderVersion.invert(maker: Address) = this.copy(
     maker = maker,
     make = take,
     take = make,

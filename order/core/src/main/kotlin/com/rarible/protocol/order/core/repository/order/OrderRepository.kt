@@ -9,6 +9,7 @@ import scalether.domain.Address
 import java.util.*
 
 interface OrderRepository {
+    // Do not call in code, use [OrderUpdateService.save(OrderVersion)] instead.
     suspend fun save(order: Order, previousOrderVersion: Order? = null): Order
 
     suspend fun findById(hash: Word): Order?

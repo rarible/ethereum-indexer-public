@@ -7,16 +7,17 @@ import com.rarible.protocol.dto.LegacyOrderFormDto
 import com.rarible.protocol.dto.OpenSeaV1OrderFormDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.RaribleV2OrderFormDto
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-import com.rarible.protocol.order.core.converters.model.OrderDataConverter
+import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.validation.OrderSignatureValidator
+import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.Logger
@@ -47,22 +48,10 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
 
-    fun createOrder(maker: Address, make: Asset) = Order(
+    fun createOrder(maker: Address, make: Asset) = createOrder(
         maker = maker,
         taker = null,
-        make = make,
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
-        makeStock = make.value,
-        type = OrderType.RARIBLE_V2,
-        fill = EthUInt256.ZERO,
-        cancelled = false,
-        salt = EthUInt256.TEN,
-        start = null,
-        end = null,
-        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
-        signature = null,
-        createdAt = nowMillis(),
-        lastUpdateAt = nowMillis()
+        make = make
     )
 
     fun createOpenSeaOrder(maker: Address, make: Asset) = Order(

@@ -13,8 +13,10 @@ import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import java.time.Duration
@@ -25,7 +27,8 @@ class ChangeLog00008RemoveInvalidOrders {
     @ChangeSet(id = "ChangeLog00008RemoveInvalidOrders.removeOrdersWithMakeValueZero", order = "1", author = "protocol")
     fun removeOrdersWithMakeValueZero(
         @NonLockGuarded orderRepository: OrderRepository,
-        @NonLockGuarded publisher: ProtocolOrderPublisher
+        @NonLockGuarded publisher: ProtocolOrderPublisher,
+        @NonLockGuarded template: ReactiveMongoTemplate
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
 
@@ -42,7 +45,7 @@ class ChangeLog00008RemoveInvalidOrders {
                 val order = orderRepository.findById(it.hash)
                 if (order != null) {
                     val canceledOrder = order.copy(cancelled = true)
-                    orderRepository.save(canceledOrder, order)
+                    template.save(canceledOrder).awaitFirst()
 
                     val updateEvent = OrderUpdateEventDto(
                         eventId = UUID.randomUUID().toString(),

@@ -3,29 +3,27 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.opensea.client.model.AssetSchema
-import com.rarible.protocol.order.core.model.*
 import com.rarible.opensea.client.model.OpenSeaOrder
-import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
-import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
-import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
-import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Instant
+import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
+import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
+import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
+import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
 
 @Component
 class OpenSeaOrderConverter(
-    private val priceUpdateService: PriceUpdateService,
-    private val assetBalanceProvider: AssetBalanceProvider
+    private val priceUpdateService: PriceUpdateService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): Order? {
+    suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): OrderVersion? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
         val r = clientOpenSeaOrder.r ?: return null
         val s = clientOpenSeaOrder.s ?: return null
@@ -33,10 +31,9 @@ class OpenSeaOrderConverter(
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
-        val makeStock = assetBalanceProvider.getAssetStock(maker, make.type)
         val usdPrice = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = Instant.now())
 
-        return Order(
+        return OrderVersion(
             maker = maker,
             taker = if (taker != Address.ZERO()) taker else null,
             make = make,
@@ -46,18 +43,19 @@ class OpenSeaOrderConverter(
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
             data = createData(clientOpenSeaOrder),
-            makeStock = makeStock ?: EthUInt256.ZERO,
-            cancelled = false,
-            fill = EthUInt256.ZERO,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis(),
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,
             takePriceUsd = usdPrice?.takePriceUsd,
             makeUsd = usdPrice?.makeUsd,
             takeUsd = usdPrice?.takeUsd,
             platform = Platform.OPEN_SEA
-        )
+        ).let {
+            // Recalculate OpenSea's specific hash.
+            it.copy(
+                hash = Order.hash(it)
+            )
+        }
     }
 
     private fun joinSignaturePart(r: Word, s: Word, v: Byte): Binary {

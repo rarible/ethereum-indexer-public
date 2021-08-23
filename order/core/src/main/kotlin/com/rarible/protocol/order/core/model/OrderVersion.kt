@@ -14,7 +14,6 @@ import java.time.Instant
 
 @Document(collection = OrderVersionRepository.COLLECTION)
 data class OrderVersion(
-    val hash: Word,
     val maker: Address,
     val taker: Address?,
     val make: Asset,
@@ -30,13 +29,13 @@ data class OrderVersion(
     // TODO: Default values here are needed only before the 1st migration ChangeLog00011AddAllFieldsFromOrderToOrderVersion is run
     // to read the old OrderVersions from the database. After that we should remove the default values.
     val type: OrderType = OrderType.RARIBLE_V2,
-    val fill: EthUInt256 = EthUInt256.ZERO,
-    val makeStock: EthUInt256 = EthUInt256.ZERO,
     val salt: EthUInt256 = EthUInt256.ZERO,
     val start: Long? = null,
     val end: Long? = null,
     val data: OrderData = OrderRaribleV2DataV1(emptyList(), emptyList()),
-    val signature: Binary? = null
+    val signature: Binary? = null,
+
+    val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value)
 ) {
     fun isBid(): Boolean = take.type.nft
 
@@ -49,4 +48,29 @@ data class OrderVersion(
         )
     }
 }
+
+fun OrderVersion.toOrderExactFields() = Order(
+    maker = maker,
+    taker = taker,
+    make = make,
+    take = take,
+    type = type,
+    fill = EthUInt256.ZERO,
+    cancelled = false,
+    makeStock = take.value,
+    salt = salt,
+    start = start,
+    end = end,
+    data = data,
+    signature = signature,
+    createdAt = createdAt,
+    lastUpdateAt = createdAt,
+    pending = emptyList(),
+    makePriceUsd = null,
+    takePriceUsd = null,
+    makeUsd = null,
+    takeUsd = null,
+    priceHistory = emptyList(),
+    platform = platform
+)
 

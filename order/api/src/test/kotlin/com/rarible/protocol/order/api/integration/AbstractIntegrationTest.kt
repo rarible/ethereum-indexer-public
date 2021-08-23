@@ -1,14 +1,23 @@
 package com.rarible.protocol.order.api.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.client.NoopWebClientCustomizer
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.api.client.*
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
@@ -20,6 +29,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
+import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
 import scalether.transaction.MonoSigningTransactionSender
@@ -55,6 +65,15 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     @Autowired
     protected lateinit var orderRepository: OrderRepository
 
+    @Autowired
+    protected lateinit var orderUpdateService: OrderUpdateService
+
+    @Autowired
+    protected lateinit var orderReduceService: OrderReduceService
+
+    @Autowired
+    protected lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
+
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()
     }
@@ -87,6 +106,31 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
             "traces: ${result.result().get()}"
         }
         return receipt
+    }
+
+    protected suspend fun cancelOrder(orderHash: Word) {
+        exchangeHistoryRepository.save(
+            LogEvent(
+                data = OrderCancel(
+                    hash = orderHash,
+                    date = nowMillis(),
+
+                    // Do not matter.
+                    maker = null,
+                    make = null,
+                    take = null,
+                    source = HistorySource.RARIBLE
+                ),
+                address = Address.ZERO(),
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                index = 0,
+                logIndex = 0,
+                minorLogIndex = 0
+            )
+        ).awaitFirst()
+        orderReduceService.updateOrder(orderHash)
     }
 
     protected lateinit var orderClient: OrderControllerApi

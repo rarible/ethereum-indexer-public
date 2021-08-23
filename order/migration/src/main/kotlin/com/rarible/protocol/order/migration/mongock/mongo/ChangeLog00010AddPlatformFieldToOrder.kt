@@ -32,11 +32,11 @@ class ChangeLog00010AddPlatformFieldToOrder {
         orderRepository.findAll().collect { order ->
             try {
                 try {
-                    orderRepository.save(order.copy(platform = Platform.RARIBLE))
+                    template.save(order.copy(platform = Platform.RARIBLE)).awaitFirst()
                 } catch (_: OptimisticLockingFailureException) {
                     optimisticLock {
                         orderRepository.findById(order.hash)
-                            ?.let { orderRepository.save(it.copy(platform = Platform.RARIBLE)) }
+                            ?.let { template.save(it.copy(platform = Platform.RARIBLE)).awaitFirst() }
                     }
                 }
                 orderVersionRepository.findAllByHash(order.hash).collect { version ->

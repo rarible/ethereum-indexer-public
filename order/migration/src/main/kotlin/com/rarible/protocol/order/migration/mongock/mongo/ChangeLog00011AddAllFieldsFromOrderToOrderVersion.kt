@@ -4,7 +4,6 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.changock.migration.api.annotations.NonLockGuarded
@@ -33,14 +32,12 @@ class ChangeLog00011AddAllFieldsFromOrderToOrderVersion {
         orderRepository.findAll().collect { order ->
             fun OrderVersion.addOrderFields() = copy(
                 type = order.type,
-                fill = order.fill,
-                makeStock = order.makeStock,
                 salt = order.salt,
                 start = order.start,
                 end = order.end,
                 data = order.data,
                 signature = order.signature,
-                platform = Platform.RARIBLE
+                platform = order.platform
             )
 
             try {

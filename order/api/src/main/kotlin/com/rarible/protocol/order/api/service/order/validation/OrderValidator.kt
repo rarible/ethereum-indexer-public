@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
-import com.rarible.protocol.order.api.exceptions.InvalidParameterException
 import com.rarible.protocol.order.api.exceptions.OrderUpdateError
 import com.rarible.protocol.order.api.exceptions.OrderUpdateErrorReason
 import com.rarible.protocol.order.core.model.*
@@ -13,32 +12,26 @@ class OrderValidator(
     private val orderSignatureValidator: OrderSignatureValidator,
     private val lazyAssetValidator: LazyAssetValidator
 ) {
-    suspend fun validateOrder(order: Order) {
-        val isValidOrderDataType = when (order.type) {
-            OrderType.RARIBLE_V1 -> {
-                order.data is OrderDataLegacy
-            }
-            OrderType.RARIBLE_V2 -> {
-                order.data is OrderRaribleV2DataV1
-            }
-            OrderType.OPEN_SEA_V1 -> {
-                throw InvalidParameterException("Unsupported order type ${order.type}")
-            }
+    suspend fun validateOrderVersion(orderVersion: OrderVersion) {
+        val isValidOrderDataType = when (orderVersion.type) {
+            OrderType.RARIBLE_V1 -> orderVersion.data is OrderDataLegacy
+            OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2DataV1
+            OrderType.OPEN_SEA_V1 -> false
         }
         if (isValidOrderDataType.not()) {
-            throw IncorrectOrderDataException("Order with type ${order.type} has invalid order data")
+            throw IncorrectOrderDataException("Order with type ${orderVersion.type} has invalid order data")
         }
 
-        orderSignatureValidator.validate(order)
+        orderSignatureValidator.validate(orderVersion)
 
-        order.make.type.takeIf { it.isLazy }
+        orderVersion.make.type.takeIf { it.isLazy }
             ?.let { lazyAssetValidator.validate(it, "make") }
 
-        order.take.type.takeIf { it.isLazy }
+        orderVersion.take.type.takeIf { it.isLazy }
             ?.let { lazyAssetValidator.validate(it, "take") }
     }
 
-    fun validate(existing: Order, update: Order) {
+    fun validate(existing: Order, update: OrderVersion) {
         if (existing.cancelled) {
             throw OrderUpdateError(OrderUpdateErrorReason.CANCELLED)
         }

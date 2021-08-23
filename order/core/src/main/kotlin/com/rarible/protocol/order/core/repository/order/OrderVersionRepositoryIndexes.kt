@@ -69,8 +69,9 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val HASH_DEFINITION: Index = Index()
+    val HASH_AND_ID_DEFINITION: Index = Index()
         .on(OrderVersion::hash.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(
@@ -83,6 +84,6 @@ internal object OrderVersionRepositoryIndexes {
         ITEM_LIST_DEFINITION,
         ITEM_BID_DEFINITION,
         ITEM_TAKE_PRICE_BID_DEFINITION,
-        HASH_DEFINITION
+        HASH_AND_ID_DEFINITION
     )
 }
