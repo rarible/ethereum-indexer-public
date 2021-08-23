@@ -134,15 +134,16 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 .isEqualTo(signedSellOrder.make)
             assertThat(left?.take)
                 .isEqualTo(signedSellOrder.take)
+            assertThat(left?.externalOrderExecutedOnRarible).isTrue()
 
             assertThat(right?.make)
                 .isEqualTo(signedSellOrder.take)
             assertThat(right?.take)
                 .isEqualTo(signedSellOrder.make)
+            assertThat(right?.externalOrderExecutedOnRarible).isTrue()
 
             val filledOrder = orderRepository.findById(signedSellOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.TEN)
-            assertThat(filledOrder?.externalOrderExecutedOnRarible).isEqualTo(true)
 
             checkActivityWasPublished(signedSellOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
         }
@@ -250,15 +251,16 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 .isEqualTo(signedBuyOrder.make)
             assertThat(left?.take)
                 .isEqualTo(signedBuyOrder.take)
+            assertThat(left?.externalOrderExecutedOnRarible).isTrue()
 
             assertThat(right?.make)
                 .isEqualTo(signedBuyOrder.take)
             assertThat(right?.take)
                 .isEqualTo(signedBuyOrder.make)
+            assertThat(right?.externalOrderExecutedOnRarible).isTrue()
 
             val filledOrder = orderRepository.findById(signedBuyOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.ONE)
-            assertThat(filledOrder?.externalOrderExecutedOnRarible).isEqualTo(true)
 
             checkActivityWasPublished(signedBuyOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
         }

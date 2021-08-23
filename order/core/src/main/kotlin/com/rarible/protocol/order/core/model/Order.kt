@@ -56,7 +56,6 @@ data class Order(
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
     val platform: Platform = Platform.RARIBLE,
-    val externalOrderExecutedOnRarible: Boolean? = null,
 
     @Id
     val hash: Word = hashKey(maker, make.type, take.type, salt.value),
@@ -124,7 +123,6 @@ data class Order(
         makeBalance: EthUInt256,
         protocolCommission: EthUInt256,
         cancelled: Boolean,
-        externalOrderExecutedOnRarible: Boolean?,
         pending: List<OrderExchangeHistory>,
         changeDate: Instant
     ): Order {
@@ -141,7 +139,6 @@ data class Order(
                 getFeeSide(make.type, take.type),
                 cancelled
             ),
-            externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
             pending = pending,
             lastUpdateAt = getLatestLastUpdateAt(changeDate)
         )

@@ -63,7 +63,6 @@ class OrderTest {
                 EthUInt256.TEN,
                 EthUInt256.ZERO,
                 true,
-                null,
                 emptyList(),
                 nowMillis()
             ).makeStock
@@ -94,7 +93,6 @@ class OrderTest {
                 EthUInt256.TEN,
                 EthUInt256.ZERO,
                 false,
-                null,
                 emptyList(),
                 nowMillis()
             ).makeStock
@@ -110,7 +108,6 @@ class OrderTest {
                 EthUInt256.TEN,
                 EthUInt256.ZERO,
                 false,
-                null,
                 emptyList(),
                 nowMillis()
             ).makeStock
@@ -128,7 +125,6 @@ class OrderTest {
                 EthUInt256.TEN,
                 EthUInt256.ZERO,
                 false,
-                null,
                 emptyList(),
                 updateAt
             ).lastUpdateAt
@@ -146,7 +142,6 @@ class OrderTest {
                 EthUInt256.TEN,
                 EthUInt256.ZERO,
                 false,
-                null,
                 emptyList(),
                 updateAt
             ).lastUpdateAt
