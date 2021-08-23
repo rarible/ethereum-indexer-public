@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.KNOWN_ORIGIN_TOKEN
 import com.rarible.protocol.nft.core.repository.ItemCreatorRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -18,9 +19,13 @@ import java.math.BigInteger
 @Service
 class ItemCreatorService(
     sender: MonoTransactionSender,
-    private val itemCreatorRepository: ItemCreatorRepository
+    private val itemCreatorRepository: ItemCreatorRepository,
+    @Value("\${common.openseaLazyMintAddress}") private val openseaLazyMint: String
 ) {
+
     private val knownOrigin = KnownOrigin(KNOWN_ORIGIN_TOKEN, sender)
+    private val openseaAddress = Address.apply(openseaLazyMint)
+    private val fetchingCollections = listOf(KNOWN_ORIGIN_TOKEN, openseaAddress)
 
     fun getCreator(itemId: ItemId): Mono<Address> {
         val (token, tokenId) = itemId
@@ -31,10 +36,10 @@ class ItemCreatorService(
             .findById(itemId)
             .map { it.creator }
             .switchIfEmpty {
-                if (token == KNOWN_ORIGIN_TOKEN) {
-                    fetchKnownOriginArtist(tokenId, itemId)
-                } else {
-                    Mono.empty()
+                when (token) {
+                    KNOWN_ORIGIN_TOKEN -> fetchKnownOriginArtist(tokenId, itemId)
+                    openseaAddress -> fetchOpenseaCreator(tokenId, itemId)
+                    else -> Mono.empty()
                 }
             }
     }
@@ -59,8 +64,14 @@ class ItemCreatorService(
             }
     }
 
+    private fun fetchOpenseaCreator(tokenId: EthUInt256, itemId: ItemId): Mono<Address> {
+        logger.info("fetchOpenseaCreator")
+        val creator = Address.apply(tokenId.value.toByteArray().copyOfRange(0, 20))
+        itemCreatorRepository.save(ItemCreator(itemId, creator))
+        return Mono.just(creator)
+    }
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(ItemCreatorService::class.java)
-        private val fetchingCollections = listOf(KNOWN_ORIGIN_TOKEN)
     }
 }

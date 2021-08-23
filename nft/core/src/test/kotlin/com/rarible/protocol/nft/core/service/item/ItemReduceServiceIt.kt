@@ -68,6 +68,40 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should get creator from tokenId for opensea tokenId`() = runBlocking {
+        val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
+
+        tokenRepository.save(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        ).awaitFirst()
+
+        val owner = AddressFactory.create()
+        // https://opensea.io/assets/0x495f947276749ce646f68ac8c248420045cb7b5e/43635738831738903259797022654371755363838740687517624872331458295230642520065
+        // https://ethereum-api.rarible.org/v0.1/nft/items/0x495f947276749ce646f68ac8c248420045cb7b5e:43635738831738903259797022654371755363838740687517624872331458295230642520065
+        val tokenId = EthUInt256.of("43635738831738903259797022654371755363838740687517624872331458295230642520065")
+        val creator = Address.apply("0x6078f3f4a50eec358790bdfae15b351647e9cbb4")
+
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer)
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+
+        assertThat(item.creators).isEqualTo(listOf(Part.fullPart(creator)))
+        assertThat(item.supply).isEqualTo(EthUInt256.ONE)
+
+        checkItemEventWasPublished(token, tokenId, NftItemUpdateEventDto::class.java)
+    }
+
+    @Test
     fun mintItemViaPending() = runBlocking {
         val token = AddressFactory.create()
 
