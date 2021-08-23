@@ -1,17 +1,13 @@
 package com.rarible.protocol.nft.listener.service.item
 
-import com.rarible.contracts.erc1155.TransferBatchEvent
-import com.rarible.contracts.erc1155.TransferSingleEvent
-import com.rarible.contracts.erc721.TransferEvent
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
-import com.rarible.protocol.contracts.royalties.RoyaltiesSetEvent
-import com.rarible.protocol.contracts.royalties.SecondarySaleFeesEvent
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -30,15 +26,8 @@ class ItemReduceTaskHandler(
     override val type: String
         get() = ITEM_REDUCE
 
-    override suspend fun isAbleToRun(param: String): Boolean {
-        return verifyAllCompleted(
-            TransferEvent.id(),
-            TransferSingleEvent.id(),
-            TransferBatchEvent.id(),
-            SecondarySaleFeesEvent.id(),
-            RoyaltiesSetEvent.id()
-        )
-    }
+    override suspend fun isAbleToRun(param: String): Boolean =
+        verifyAllCompleted(ItemType.TRANSFER.topic + ItemType.ROYALTY.topic)
 
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
         return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) })
@@ -50,7 +39,7 @@ class ItemReduceTaskHandler(
             .asFlow()
     }
 
-    private suspend fun verifyAllCompleted(vararg topics: Word): Boolean {
+    private suspend fun verifyAllCompleted(topics: Iterable<Word>): Boolean {
         for (topic in topics) {
             val task = findTask(topic)
             if (task?.lastStatus != TaskStatus.COMPLETED) {

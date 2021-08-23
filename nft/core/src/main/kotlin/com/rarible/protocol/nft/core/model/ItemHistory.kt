@@ -8,15 +8,25 @@ import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.contracts.creators.CreatorsEvent
 import com.rarible.protocol.contracts.royalties.RoyaltiesSetEvent
 import com.rarible.protocol.contracts.royalties.SecondarySaleFeesEvent
+import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
+import com.rarible.protocol.contracts.test.crypto.punks.PunkTransferEvent
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import scalether.domain.Address
 import java.time.Instant
+import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent as PunkAssignEvent
 
 enum class ItemType(val topic: Set<Word>) {
-    TRANSFER(setOf(TransferEvent.id(), TransferSingleEvent.id(), TransferBatchEvent.id())),
+    TRANSFER(setOf(
+        TransferEvent.id(),
+        TransferSingleEvent.id(),
+        TransferBatchEvent.id(),
+        PunkAssignEvent.id(),
+        PunkTransferEvent.id(),
+        PunkBoughtEvent.id()
+    )),
     ROYALTY(setOf(SecondarySaleFeesEvent.id(), RoyaltiesSetEvent.id())),
     CREATORS(setOf(CreatorsEvent.id())),
     LAZY_MINT(setOf())
