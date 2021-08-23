@@ -70,7 +70,7 @@ class OrderReduceService(
                 }
                 LogEventStatus.CONFIRMED -> {
                     when (exchangeHistory) {
-                        is OrderSideMatch -> state.addFill(exchangeHistory.fill, exchangeHistory.externalOrderExecutedOnRarible, exchangeHistory.date)
+                        is OrderSideMatch -> state.addFill(exchangeHistory.fill, exchangeHistory.date)
                         is OrderCancel -> state.cancel(exchangeHistory.date)
                     }
                 }
@@ -85,8 +85,7 @@ class OrderReduceService(
         if (order != null) {
             if (order.fill != currentState.fill ||
                 order.cancelled != currentState.canceled ||
-                order.pending != currentState.pending ||
-                order.externalOrderExecutedOnRarible != currentState.externalOrderExecutedOnRarible
+                order.pending != currentState.pending
             ) {
                 val makeBalance = assetBalanceProvider.getAssetStock(order.maker, order.make.type) ?: EthUInt256.ZERO
 
@@ -95,7 +94,6 @@ class OrderReduceService(
                     makeBalance = makeBalance,
                     protocolCommission = protocolCommissionProvider.get(),
                     cancelled = currentState.canceled,
-                    externalOrderExecutedOnRarible = currentState.externalOrderExecutedOnRarible,
                     pending = currentState.pending,
                     changeDate = currentState.changeDate
                 )
@@ -119,7 +117,6 @@ class OrderReduceService(
         val fill: EthUInt256,
         val canceled: Boolean,
         val pending: List<OrderExchangeHistory>,
-        val externalOrderExecutedOnRarible: Boolean?,
         val changeDate: Instant
     ) {
         fun addPendingEvent(event: OrderExchangeHistory): OrderState {
@@ -128,12 +125,10 @@ class OrderReduceService(
 
         fun addFill(
             otherFill: EthUInt256,
-            externalOrderExecuted: Boolean?,
             stateChangeDate: Instant
         ): OrderState {
             return copy(
                 fill = fill.plus(otherFill),
-                externalOrderExecutedOnRarible = externalOrderExecuted,
                 changeDate = getLatestChangeDate(stateChangeDate)
             )
         }
@@ -151,7 +146,7 @@ class OrderReduceService(
 
         companion object {
             fun initial(): OrderState {
-                return OrderState(EthUInt256.ZERO, false, emptyList(), false, Instant.ofEpochMilli(0))
+                return OrderState(EthUInt256.ZERO, false, emptyList(), Instant.ofEpochMilli(0))
             }
         }
     }
