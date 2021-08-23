@@ -1,8 +1,10 @@
 package com.rarible.protocol.nftorder.listener.service
 
 import com.rarible.core.common.convert
+import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.dto.NftDeletedOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.data.OwnershipEnrichmentData
 import com.rarible.protocol.nftorder.core.event.OwnershipEvent
 import com.rarible.protocol.nftorder.core.event.OwnershipEventDelete
@@ -20,7 +22,8 @@ class OwnershipEventService(
     private val conversionService: ConversionService,
     private val ownershipService: OwnershipService,
     private val itemEventService: ItemEventService,
-    private val ownershipEventListeners: List<OwnershipEventListener>
+    private val ownershipEventListeners: List<OwnershipEventListener>,
+    private val bestOrderService: BestOrderService
 ) {
     private val logger = LoggerFactory.getLogger(OwnershipEventService::class.java)
 
@@ -32,20 +35,38 @@ class OwnershipEventService(
 
     suspend fun onOwnershipUpdated(rawOwnership: Ownership, data: OwnershipEnrichmentData) {
         val updated = ownershipService.enrichOwnership(rawOwnership, data)
-        val existing = ownershipService.get(updated.id)
-        if (data.isNotEmpty()) {
-            updateOwnership(existing, updated, data)
-        } else if (existing != null) {
-            deleteOwnership(rawOwnership.id)
+        optimisticLock {
+            val existing = ownershipService.get(updated.id)
+            if (data.isNotEmpty()) {
+                updateOwnership(existing, updated, data)
+            } else if (existing != null) {
+                deleteOwnership(rawOwnership.id)
+            }
         }
         notify(OwnershipEventUpdate(updated))
         itemEventService.onOwnershipUpdated(rawOwnership.id)
     }
 
+    suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) {
+        val ownership = optimisticLock {
+            val fetchedItem = ownershipService.getOrFetchOwnershipById(ownershipId)
+            val ownership = fetchedItem.entity
+            val updated = ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
+            if (OwnershipEnrichmentData.isNotEmpty(updated)) {
+                ownershipService.save(updated)
+            } else if (!fetchedItem.isFetched) {
+                deleteOwnership(ownershipId)
+            }
+            updated
+        }
+        notify(OwnershipEventUpdate(ownership))
+        itemEventService.onOwnershipUpdated(ownershipId)
+    }
+
     suspend fun onOwnershipDeleted(nftOwnership: NftDeletedOwnershipDto) {
         val ownershipId = OwnershipId.parseId(nftOwnership.id)
         logger.info("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId)
-        ownershipService.delete(ownershipId)
+        deleteOwnership(ownershipId)
         notify(OwnershipEventDelete(ownershipId))
         itemEventService.onOwnershipUpdated(ownershipId)
     }
