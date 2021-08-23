@@ -109,7 +109,7 @@ class OrderService(
             val updatedWithPriceHistory = addPriceHistoryRecord(existing, updated)
             save(updatedWithPriceHistory)
         }
-        val orderVersion =  orderVersionRepository.save(OrderVersion(
+        val orderVersion = orderVersionRepository.save(OrderVersion(
             hash = saved.hash,
             make = saved.make,
             maker = saved.maker,
@@ -119,7 +119,15 @@ class OrderService(
             takePriceUsd = saved.takePriceUsd,
             takeUsd = saved.takeUsd,
             makeUsd = saved.makeUsd,
-            platform = Platform.RARIBLE
+            platform = saved.platform,
+            type = saved.type,
+            fill = saved.fill,
+            makeStock = saved.makeStock,
+            salt = saved.salt,
+            start = saved.start,
+            end = saved.end,
+            data = saved.data,
+            signature = saved.signature
         )).awaitFirst()
 
         orderVersionListener.onOrderVersion(orderVersion)

@@ -1,10 +1,7 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc1155AssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
@@ -100,5 +97,14 @@ fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
     makeUsd = (1..100).random().toBigDecimal(),
     takeUsd = (1..100).random().toBigDecimal(),
     make = make,
-    take = take
+    take = take,
+    platform = Platform.RARIBLE,
+    type = OrderType.RARIBLE_V2,
+    fill = EthUInt256.ZERO,
+    makeStock = take.value,
+    salt = EthUInt256.TEN,
+    start = null,
+    end = null,
+    data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+    signature = null
 )
