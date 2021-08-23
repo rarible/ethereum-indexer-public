@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -30,7 +31,8 @@ class ItemReduceService(
     private val lazyHistoryRepository: LazyNftItemHistoryRepository,
     private val itemCreatorService: ItemCreatorService,
     private val eventListenerListener: ReduceEventListenerListener,
-    private val skipTokens: ReduceSkipTokens
+    private val skipTokens: ReduceSkipTokens,
+    private val royaltyService: RoyaltyService
 ) {
     fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
@@ -92,6 +94,7 @@ class ItemReduceService(
     private fun updateOneItem(marker: Marker, initial: Item, byItem: Flux<HistoryLog>): Mono<Void> =
         byItem
             .reduce(initial, emptyMap(), this::itemReducer, this::ownershipsReducer)
+            .flatMap { royalty(it) }
             .flatMap { (item, ownerships) ->
                 if (item.token != Address.ZERO()) {
                     val fixed = fixOwnerships(ownerships.values)
@@ -113,6 +116,17 @@ class ItemReduceService(
                     Mono.empty()
                 }
             }
+
+    private fun <A : Item, B> royalty(pair: Pair<A, B>): Mono<Pair<Item, B>> {
+        val item = pair.first
+        if (item.royalties.isEmpty()) {
+            return royaltyService.getRoyalty(item.token, item.tokenId.value).flatMap { royalty ->
+                Mono.just(Pair(item.copy(royalties = royalty), pair.second))
+            }
+        } else {
+            return Mono.just(pair)
+        }
+    }
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
         return ownerships
