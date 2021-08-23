@@ -3,9 +3,9 @@ package com.rarible.protocol.order.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PartConverter
@@ -115,8 +115,11 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
-        val orderRight = order.invert(form.maker, form.amount)
-            .copy(data = OrderRaribleV2DataV1(emptyList(), form.originFees.map { Part(it.account, EthUInt256.of(it.value.toLong())) }))
+        val data = OrderRaribleV2DataV1(
+            payouts = emptyList(),
+            originFees = form.originFees.map { Part(it.account, EthUInt256.of(it.value.toLong())) }
+        )
+        val orderRight = order.invert(form.maker, form.amount).copy(data = data)
         return prepareTxFor2Orders(order, orderRight)
     }
 

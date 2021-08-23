@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TransactionTraceProviderFactory
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
@@ -107,6 +108,7 @@ class OrderListenerConfiguration(
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         orderRepository: OrderRepository,
+        orderReduceService: OrderReduceService,
         orderVersionRepository: OrderVersionRepository,
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
@@ -118,6 +120,7 @@ class OrderListenerConfiguration(
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             orderRepository = orderRepository,
+            orderReduceService = orderReduceService,
             orderVersionRepository = orderVersionRepository,
             orderVersionListener = orderVersionListener,
             meterRegistry = meterRegistry,

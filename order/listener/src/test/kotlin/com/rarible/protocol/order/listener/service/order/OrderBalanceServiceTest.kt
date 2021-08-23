@@ -16,6 +16,7 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 
 @IntegrationTest
+@FlowPreview
 @Import(OrderBalanceServiceTest.TestContractService::class)
 internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
 

@@ -6,7 +6,9 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType

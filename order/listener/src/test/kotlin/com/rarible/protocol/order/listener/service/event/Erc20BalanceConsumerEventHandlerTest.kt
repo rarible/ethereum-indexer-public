@@ -6,7 +6,10 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.Erc20BalanceDto
+import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType

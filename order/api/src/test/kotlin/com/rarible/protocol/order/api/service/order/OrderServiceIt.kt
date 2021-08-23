@@ -725,7 +725,7 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     private suspend fun saveRandomOpenSeaOrderWithMakeBalance(): Order {
-        val (privateKey, _, signer) = generateNewKeys()
+        val (_, _, signer) = generateNewKeys()
         val order =
             createOpenSeaOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
         return orderRepository.save(order)

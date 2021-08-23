@@ -5,10 +5,10 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderBidStatusDto
 import com.rarible.protocol.dto.PlatformDto
-import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion

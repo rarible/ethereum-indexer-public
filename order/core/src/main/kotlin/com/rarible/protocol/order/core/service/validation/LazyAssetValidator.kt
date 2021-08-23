@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.service.order.validation
+package com.rarible.protocol.order.core.service.validation
 
 import com.rarible.core.common.convert
 import com.rarible.ethereum.nft.model.LazyNft
@@ -6,7 +6,6 @@ import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.order.api.exceptions.InvalidLazyAssetException
 import com.rarible.protocol.order.core.model.AssetType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.core.convert.ConversionService
@@ -20,6 +19,7 @@ class LazyAssetValidator(
     private val nftCollectionClient: NftCollectionControllerApi,
     private val conversionService: ConversionService
 ) {
+    @Throws(InvalidLazyAssetException::class)
     suspend fun validate(lazyAssetType: AssetType, side: String) {
         val lazyNft = conversionService.convert<LazyNft>(lazyAssetType)
 
@@ -45,4 +45,6 @@ class LazyAssetValidator(
         }
         throw InvalidLazyAssetException(errorMessage)
     }
+
+    class InvalidLazyAssetException(message: String) : RuntimeException(message)
 }

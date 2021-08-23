@@ -6,7 +6,6 @@ import com.rarible.protocol.order.core.data.createOrder
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
-import java.time.Duration
 
 class OrderTest {
     private val order = createOrder()
@@ -58,13 +57,12 @@ class OrderTest {
     @Test
     fun `stock is 0 when cancelled`() {
         Assertions.assertThat(
-            order.withFillAndCancelledAndPendingAndChangeDate(
-                order.fill,
-                EthUInt256.TEN,
-                EthUInt256.ZERO,
-                true,
-                emptyList(),
-                nowMillis()
+            order.copy(
+                cancelled = true,
+                lastUpdateAt = nowMillis()
+            ).withMakeBalance(
+                makeBalance = EthUInt256.TEN,
+                protocolCommission = EthUInt256.ZERO
             ).makeStock
         )
             .isEqualTo(EthUInt256.ZERO)
@@ -88,13 +86,12 @@ class OrderTest {
     @Test
     fun `stock is less when order is partially filled`() {
         Assertions.assertThat(
-            order.withFillAndCancelledAndPendingAndChangeDate(
-                EthUInt256.of(3),
-                EthUInt256.TEN,
-                EthUInt256.ZERO,
-                false,
-                emptyList(),
-                nowMillis()
+            order.copy(
+                fill = EthUInt256.of(3),
+                lastUpdateAt = nowMillis()
+            ).withMakeBalance(
+                makeBalance = EthUInt256.TEN,
+                protocolCommission = EthUInt256.ZERO
             ).makeStock
         )
             .isEqualTo(EthUInt256.of(4))
@@ -103,50 +100,15 @@ class OrderTest {
     @Test
     fun `stock is 0 when order is filled`() {
         Assertions.assertThat(
-            order.withFillAndCancelledAndPendingAndChangeDate(
-                EthUInt256.of(5),
-                EthUInt256.TEN,
-                EthUInt256.ZERO,
-                false,
-                emptyList(),
-                nowMillis()
+            order.copy(
+                fill = EthUInt256.of(5),
+                lastUpdateAt = nowMillis()
+            ).withMakeBalance(
+                makeBalance = EthUInt256.TEN,
+                protocolCommission = EthUInt256.ZERO
             ).makeStock
         )
             .isEqualTo(EthUInt256.ZERO)
-    }
-
-    @Test
-    fun `should change lastUpdateAt`() {
-        val updateAt = nowMillis() + Duration.ofHours(10)
-
-        Assertions.assertThat(
-            order.withFillAndCancelledAndPendingAndChangeDate(
-                EthUInt256.of(5),
-                EthUInt256.TEN,
-                EthUInt256.ZERO,
-                false,
-                emptyList(),
-                updateAt
-            ).lastUpdateAt
-        )
-            .isEqualTo(updateAt)
-    }
-
-    @Test
-    fun `should not change lastUpdateAt if value from past`() {
-        val updateAt = nowMillis() - Duration.ofHours(10)
-
-        Assertions.assertThat(
-            order.withFillAndCancelledAndPendingAndChangeDate(
-                EthUInt256.of(5),
-                EthUInt256.TEN,
-                EthUInt256.ZERO,
-                false,
-                emptyList(),
-                updateAt
-            ).lastUpdateAt
-        )
-            .isNotEqualTo(updateAt)
     }
 
     @Test
@@ -170,7 +132,10 @@ class OrderTest {
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(4)),
                 data = OrderRaribleV2DataV1(
                     payouts = emptyList(),
-                    originFees = listOf(Part(AddressFactory.create(), EthUInt256.of(1500)), Part(AddressFactory.create(), EthUInt256.of(1500)))
+                    originFees = listOf(
+                        Part(AddressFactory.create(), EthUInt256.of(1500)),
+                        Part(AddressFactory.create(), EthUInt256.of(1500))
+                    )
                 )
             )
 
@@ -187,7 +152,10 @@ class OrderTest {
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(4)),
                 data = OrderRaribleV2DataV1(
                     payouts = emptyList(),
-                    originFees = listOf(Part(AddressFactory.create(), EthUInt256.of(1500)), Part(AddressFactory.create(), EthUInt256.of(1500)))
+                    originFees = listOf(
+                        Part(AddressFactory.create(), EthUInt256.of(1500)),
+                        Part(AddressFactory.create(), EthUInt256.of(1500))
+                    )
                 )
             )
 

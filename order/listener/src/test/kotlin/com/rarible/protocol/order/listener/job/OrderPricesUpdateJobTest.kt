@@ -6,8 +6,10 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrder
@@ -39,10 +41,21 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val orderRepository = MongoOrderRepository(createReactiveMongoTemplate())
     private val orderVersionRepository = OrderVersionRepository(createReactiveMongoTemplate())
     private val priceUpdateService = mockk<PriceUpdateService>()
-
+    private val orderReduceService = OrderReduceService(
+        exchangeHistoryRepository = ExchangeHistoryRepository(createReactiveMongoTemplate()),
+        orderRepository = orderRepository,
+        orderVersionRepository = mockk(),
+        assetBalanceProvider = mockk(),
+        protocolCommissionProvider = mockk(),
+        priceNormalizer = mockk(),
+        priceUpdateService = mockk(),
+        orderValidator = mockk(),
+        orderVersionListener = mockk()
+    )
     private val orderPricesUpdateJob = OrderPricesUpdateJob(
         properties = OrderListenerProperties(priceUpdateEnabled = true),
         priceUpdateService = priceUpdateService,
+        orderReduceService = orderReduceService,
         orderVersionRepository = orderVersionRepository,
         reactiveMongoTemplate = createReactiveMongoTemplate()
     )

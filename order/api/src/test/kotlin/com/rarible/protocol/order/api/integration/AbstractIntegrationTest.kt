@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.api.client.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.service.OrderReduceService
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
@@ -54,6 +55,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var orderRepository: OrderRepository
+
+    @Autowired
+    protected lateinit var orderReduceService: OrderReduceService
 
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()
