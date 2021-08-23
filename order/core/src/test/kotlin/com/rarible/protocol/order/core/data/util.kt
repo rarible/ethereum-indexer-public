@@ -42,7 +42,16 @@ fun createVersionOrder() =
         makePriceUsd = null,
         takePriceUsd = null,
         makeUsd = null,
-        takeUsd = null
+        takeUsd = null,
+        platform = Platform.RARIBLE,
+        type = OrderType.RARIBLE_V2,
+        fill = EthUInt256.ZERO,
+        makeStock = EthUInt256.of(5),
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        signature = null
 )
 
 fun createOrderDto() =

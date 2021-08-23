@@ -7,7 +7,6 @@ import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -104,7 +103,15 @@ class OpenSeaOrdersFetcherWorker(
                 takePriceUsd = order.takePriceUsd,
                 makeUsd = order.makeUsd,
                 takeUsd = order.takeUsd,
-                platform = Platform.OPEN_SEA
+                platform = order.platform,
+                type = order.type,
+                fill = order.fill,
+                makeStock = order.makeStock,
+                salt = order.salt,
+                start = order.start,
+                end = order.end,
+                data = order.data,
+                signature = order.signature
             )).awaitFirst()
 
             orderVersionListener.onOrderVersion(version)
