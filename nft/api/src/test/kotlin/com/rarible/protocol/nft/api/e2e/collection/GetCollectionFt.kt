@@ -35,9 +35,26 @@ class GetCollectionFt : SpringContainerBaseTest() {
         assertThat(collectionDto.owner).isEqualTo(token.owner)
         assertThat(collectionDto.name).isEqualTo(token.name)
         assertThat(collectionDto.symbol).isEqualTo(token.symbol)
+        assertThat(collectionDto.supportsLazyMint).isFalse()
         assertThat(collectionDto.features).containsExactlyInAnyOrder(
             NftCollectionDto.Features.APPROVE_FOR_ALL,
             NftCollectionDto.Features.BURN
+        )
+    }
+
+    @Test
+    fun `should get item by id with set supportsLazyMint flag`() = runBlocking<Unit> {
+        val token = createToken().copy(
+            standard = TokenStandard.ERC721,
+            features = setOf(TokenFeature.MINT_AND_TRANSFER)
+        )
+        tokenRepository.save(token).awaitFirst()
+
+        val collectionDto = nftCollectionApiClient.getNftCollectionById(token.id.hex()).awaitFirst()
+
+        assertThat(collectionDto.supportsLazyMint).isTrue()
+        assertThat(collectionDto.features).containsExactlyInAnyOrder(
+            NftCollectionDto.Features.MINT_AND_TRANSFER
         )
     }
 

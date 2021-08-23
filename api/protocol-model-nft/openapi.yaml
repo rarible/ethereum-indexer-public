@@ -25,6 +25,7 @@ components:
         - id
         - name
         - type
+        - supportsLazyMint
       type: object
       properties:
         id:
@@ -52,6 +53,9 @@ components:
               - MINT_WITH_ADDRESS
               - SECONDARY_SALE_FEES
               - MINT_AND_TRANSFER
+        supportsLazyMint:
+          type: boolean
+
     NftCollections:
       required:
         - total
