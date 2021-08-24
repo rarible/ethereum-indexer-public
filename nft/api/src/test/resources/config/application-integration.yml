@@ -1,2 +1,3 @@
 common:
   kafka-replica-set: ${kafka.hosts}
+  openseaLazyMintAddress: "0000000000000000000000000000000000000000"
