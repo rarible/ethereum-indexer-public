@@ -2,13 +2,13 @@ package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.KnownOrigin.KnownOrigin
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemCreator
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.KNOWN_ORIGIN_TOKEN
 import com.rarible.protocol.nft.core.repository.ItemCreatorRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -21,11 +21,11 @@ import java.math.BigInteger
 class ItemCreatorService(
     sender: MonoTransactionSender,
     private val itemCreatorRepository: ItemCreatorRepository,
-    @Value("\${common.openseaLazyMintAddress}") private val openseaLazyMint: String
+    private val properties: NftIndexerProperties
 ) {
 
     private val knownOrigin = KnownOrigin(KNOWN_ORIGIN_TOKEN, sender)
-    private val openseaAddress = Address.apply(openseaLazyMint)
+    private val openseaAddress = Address.apply(properties.openseaLazyMintAddress)
     private val fetchingCollections = listOf(KNOWN_ORIGIN_TOKEN, openseaAddress)
 
     fun getCreator(itemId: ItemId): Mono<Address> {
