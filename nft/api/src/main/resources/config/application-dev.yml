@@ -5,3 +5,4 @@ logging:
     org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
 common:
   cryptoPunksContractAddress: "0x8Dcd3a0aea22925590Dbba0f13cCbA87b238c766"
+  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
