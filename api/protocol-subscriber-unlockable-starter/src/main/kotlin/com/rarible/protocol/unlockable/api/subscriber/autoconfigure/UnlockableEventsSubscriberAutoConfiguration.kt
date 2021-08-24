@@ -16,7 +16,6 @@ class UnlockableEventsSubscriberAutoConfiguration(
     fun unlockableEventsConsumerFactory(): UnlockableEventsConsumerFactory {
         return UnlockableEventsConsumerFactory(
             brokerReplicaSet = properties.brokerReplicaSet,
-            blockchain = properties.blockchain,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name
         )

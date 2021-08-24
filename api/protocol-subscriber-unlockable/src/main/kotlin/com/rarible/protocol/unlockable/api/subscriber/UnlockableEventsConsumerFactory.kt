@@ -9,20 +9,21 @@ import java.util.*
 
 class UnlockableEventsConsumerFactory(
     private val brokerReplicaSet: String,
-    private val blockchain: Blockchain,
-    host: String,
+    private val host: String,
     private val environment: String
 ) {
-    private val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
-
-    fun createUnlockableEventsConsumer(consumerGroup: String): RaribleKafkaConsumer<UnlockableEventDto> {
+    fun createUnlockableEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<UnlockableEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.lock-event-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.lock-event-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = UnlockableEventDto::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = UnlockableTopicProvider.getTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
+    }
+
+    private fun createClientIdPrefix(blockchain: Blockchain): String {
+        return "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
     }
 }

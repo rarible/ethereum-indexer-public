@@ -7,19 +7,20 @@ import java.util.*
 
 class Erc20IndexerEventsConsumerFactory(
     private val brokerReplicaSet: String,
-    private val blockchain: Blockchain,
-    host: String,
+    private val host: String,
     private val environment: String
 ) {
-    private val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
-
-    fun createErc20BalanceEventsConsumer(consumerGroup: String): Erc20KafkaConsumerArguments<Erc20BalanceEventDto> {
+    fun createErc20BalanceEventsConsumer(consumerGroup: String, blockchain: Blockchain): Erc20KafkaConsumerArguments<Erc20BalanceEventDto> {
         return Erc20KafkaConsumerArguments(
-            clientId = "$clientIdPrefix.erc20-indexer-balance-events-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.erc20-indexer-balance-events-consumer",
             valueDeserializerClass = Erc20EventDtoDeserializer::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = Erc20BalanceEventTopicProvider.getTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
+    }
+
+    private fun createClientIdPrefix(blockchain: Blockchain): String {
+        return "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
     }
 }

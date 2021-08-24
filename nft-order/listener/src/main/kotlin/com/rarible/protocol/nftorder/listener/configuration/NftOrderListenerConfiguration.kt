@@ -55,7 +55,10 @@ class NftOrderListenerConfiguration(
         itemEventHandler: ItemEventHandler
     ): ConsumerWorker<NftItemEventDto> {
         return ConsumerWorker(
-            consumer = nftIndexerEventsConsumerFactory.createItemEventsConsumer(itemConsumerGroup),
+            consumer = nftIndexerEventsConsumerFactory.createItemEventsConsumer(
+                itemConsumerGroup,
+                blockchain
+            ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = itemEventHandler,
             meterRegistry = meterRegistry,
@@ -69,7 +72,10 @@ class NftOrderListenerConfiguration(
         ownershipEventHandler: OwnershipEventHandler
     ): ConsumerWorker<NftOwnershipEventDto> {
         return ConsumerWorker(
-            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(ownershipConsumerGroup),
+            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
+                ownershipConsumerGroup,
+                blockchain
+            ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = ownershipEventHandler,
             meterRegistry = meterRegistry,
@@ -83,7 +89,10 @@ class NftOrderListenerConfiguration(
         unlockableEventHandler: UnlockableEventHandler
     ): ConsumerWorker<UnlockableEventDto> {
         return ConsumerWorker(
-            consumer = unlockableEventsConsumerFactory.createUnlockableEventsConsumer(unlockableConsumerGroup),
+            consumer = unlockableEventsConsumerFactory.createUnlockableEventsConsumer(
+                unlockableConsumerGroup,
+                blockchain
+            ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = unlockableEventHandler,
             meterRegistry = meterRegistry,

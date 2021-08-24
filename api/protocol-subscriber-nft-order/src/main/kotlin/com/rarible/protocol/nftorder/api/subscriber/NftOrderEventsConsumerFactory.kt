@@ -8,15 +8,12 @@ import java.util.*
 
 class NftOrderEventsConsumerFactory(
     private val brokerReplicaSet: String,
-    private val blockchain: Blockchain,
-    host: String,
+    private val host: String,
     private val environment: String
 ) {
-    private val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
-
-    fun createNftOrderActivityConsumer(consumerGroup: String): RaribleKafkaConsumer<ActivityDto> {
+    fun createNftOrderActivityConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<ActivityDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.nft-order-activity-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.nft-order-activity-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = ActivityDto::class.java,
             consumerGroup = consumerGroup,
@@ -25,9 +22,9 @@ class NftOrderEventsConsumerFactory(
         )
     }
 
-    fun createNftOrderItemConsumer(consumerGroup: String): RaribleKafkaConsumer<NftOrderItemEventDto> {
+    fun createNftOrderItemConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftOrderItemEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.nft-order-item-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.nft-order-item-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = NftOrderItemEventDto::class.java,
             consumerGroup = consumerGroup,
@@ -36,14 +33,18 @@ class NftOrderEventsConsumerFactory(
         )
     }
 
-    fun createNftOrderOwnershipConsumer(consumerGroup: String): RaribleKafkaConsumer<NftOrderOwnershipEventDto> {
+    fun createNftOrderOwnershipConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftOrderOwnershipEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.nft-order-ownership-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.nft-order-ownership-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = NftOrderOwnershipEventDto::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = NftOrderOwnershipEventTopicProvider.getTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
+    }
+
+    private fun createClientIdPrefix(blockchain: Blockchain): String {
+        return "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
     }
 }

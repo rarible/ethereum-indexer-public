@@ -11,15 +11,12 @@ import java.util.*
 
 class NftIndexerEventsConsumerFactory(
     private val brokerReplicaSet: String,
-    private val blockchain: Blockchain,
-    host: String,
+    private val host: String,
     private val environment: String
 ) {
-    private val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
-
-    fun createItemEventsConsumer(consumerGroup: String): RaribleKafkaConsumer<NftItemEventDto> {
+    fun createItemEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftItemEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.nft-indexer-item-events-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.nft-indexer-item-events-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = NftItemEventDto::class.java,
             consumerGroup = consumerGroup,
@@ -28,14 +25,18 @@ class NftIndexerEventsConsumerFactory(
         )
     }
 
-    fun createOwnershipEventsConsumer(consumerGroup: String): RaribleKafkaConsumer<NftOwnershipEventDto> {
+    fun createOwnershipEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftOwnershipEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.nft-indexer-ownership-events-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.nft-indexer-ownership-events-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = NftOwnershipEventDto::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = NftOwnershipEventTopicProvider.getTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
+    }
+
+    private fun createClientIdPrefix(blockchain: Blockchain): String {
+        return "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
     }
 }

@@ -16,7 +16,6 @@ class OrderIndexerEventsSubscriberAutoConfiguration(
     fun orderIndexerEventsConsumerFactory(): OrderIndexerEventsConsumerFactory {
         return OrderIndexerEventsConsumerFactory(
             brokerReplicaSet = properties.brokerReplicaSet,
-            blockchain = properties.blockchain,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name
         )

@@ -66,7 +66,10 @@ class OrderListenerConfiguration(
 
     @Bean
     fun erc20BalanceChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<Erc20BalanceEventDto> {
-        val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(erc20BalanceConsumerGroup)
+        val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
+            consumerGroup = erc20BalanceConsumerGroup,
+            blockchain = blockchain()
+        )
         return ConsumerWorker(
             consumer = RaribleKafkaConsumer(args.clientId, args.consumerGroup, args.valueDeserializerClass, args.defaultTopic, args.bootstrapServers, args.offsetResetStrategy),
             properties = listenerProperties.monitoringWorker,
@@ -78,7 +81,10 @@ class OrderListenerConfiguration(
     @Bean
     fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<NftOwnershipEventDto> {
         return ConsumerWorker(
-            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(ownershipBalanceConsumerGroup),
+            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
+                ownershipBalanceConsumerGroup,
+                blockchain = blockchain()
+            ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
             meterRegistry = meterRegistry
