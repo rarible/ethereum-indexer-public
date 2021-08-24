@@ -1,2 +1,4 @@
 common:
   kafka-replica-set: ${kafka.hosts}
+  cryptoPunksContractAddress: 0x0000000000000000000000000000000000000000
+
