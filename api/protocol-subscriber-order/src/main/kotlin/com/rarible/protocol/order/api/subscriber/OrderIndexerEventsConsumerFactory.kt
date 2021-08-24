@@ -9,20 +9,21 @@ import java.util.*
 
 class OrderIndexerEventsConsumerFactory(
     private val brokerReplicaSet: String,
-    private val blockchain: Blockchain,
-    host: String,
+    private val host: String,
     private val environment: String
 ) {
-    private val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
-
-    fun createOrderEventsConsumer(consumerGroup: String): RaribleKafkaConsumer<OrderEventDto> {
+    fun createOrderEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<OrderEventDto> {
         return RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.order-indexer-order-events-consumer",
+            clientId = "${createClientIdPrefix(blockchain)}.order-indexer-order-events-consumer",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = OrderEventDto::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = OrderIndexerTopicProvider.getTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
+    }
+
+    private fun createClientIdPrefix(blockchain: Blockchain): String {
+        return "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
     }
 }

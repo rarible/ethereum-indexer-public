@@ -16,7 +16,6 @@ class Erc20IndexerEventsSubscriberAutoConfiguration(
     fun erc20IndexerEventsConsumerFactory(): Erc20IndexerEventsConsumerFactory {
         return Erc20IndexerEventsConsumerFactory(
             brokerReplicaSet = properties.brokerReplicaSet,
-            blockchain = properties.blockchain,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name
         )

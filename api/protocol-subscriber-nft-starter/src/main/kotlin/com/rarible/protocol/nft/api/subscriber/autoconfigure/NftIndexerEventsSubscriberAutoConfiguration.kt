@@ -16,7 +16,6 @@ class NftIndexerEventsSubscriberAutoConfiguration(
     fun nftIndexerEventsConsumerFactory(): NftIndexerEventsConsumerFactory {
         return NftIndexerEventsConsumerFactory(
             brokerReplicaSet = properties.brokerReplicaSet,
-            blockchain = properties.blockchain,
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name
         )
