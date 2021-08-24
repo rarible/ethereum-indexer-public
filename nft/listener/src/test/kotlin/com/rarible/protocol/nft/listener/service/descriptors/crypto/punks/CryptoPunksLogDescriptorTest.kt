@@ -114,7 +114,7 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
             market.offerPunkForSale(punkIndex, minPrice).withSender(sellerSender).execute().verifySuccess()
 
             // 2. Buy the punk.
-            val buyPrice = minPrice.multiply(BigInteger.TWO)
+            val buyPrice = minPrice.multiply(BigInteger.valueOf(2))
             market.buyPunk(punkIndex).withSender(buyerSender).withValue(buyPrice).execute().verifySuccess()
 
             // 3. Seller withdraws money from the contract.

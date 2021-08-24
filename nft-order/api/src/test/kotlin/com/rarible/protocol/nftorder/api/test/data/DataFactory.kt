@@ -217,6 +217,7 @@ fun randomNftCollectionDto(id: Address): NftCollectionDto {
         owner = randomAddress(),
         name = randomString(),
         symbol = randomString(),
-        features = listOf(NftCollectionDto.Features.MINT_WITH_ADDRESS, NftCollectionDto.Features.APPROVE_FOR_ALL)
+        features = listOf(NftCollectionDto.Features.MINT_WITH_ADDRESS, NftCollectionDto.Features.APPROVE_FOR_ALL),
+        supportsLazyMint = true
     )
 }

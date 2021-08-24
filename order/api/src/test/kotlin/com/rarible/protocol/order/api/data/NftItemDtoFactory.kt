@@ -49,6 +49,7 @@ fun createNftCollectionDto(id: Address): NftCollectionDto {
         features = listOf(NftCollectionDto.Features.MINT_AND_TRANSFER),
         name = "TEST",
         symbol = null,
-        owner = null
+        owner = null,
+        supportsLazyMint = true
     )
 }
