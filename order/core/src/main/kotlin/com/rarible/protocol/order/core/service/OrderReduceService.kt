@@ -60,8 +60,7 @@ class OrderReduceService(
                 it.switchOnFirst { firstSignal, updates ->
                     val firstUpdate = firstSignal.get()
                     if (firstUpdate != null) {
-                        val currentHash = firstUpdate.orderHash
-                        updateOrder(currentHash, updates)
+                        updateOrder(updates)
                     } else {
                         Mono.empty()
                     }
@@ -81,7 +80,7 @@ class OrderReduceService(
         }
     }
 
-    private fun updateOrder(orderHash: Word, updates: Flux<OrderUpdate>): Mono<Order> = mono {
+    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
         val order = updates.asFlow().fold(emptyOrder) { order, update ->
             when (update) {
                 is OrderUpdate.ByOrderVersion -> order.updateWith(update.orderVersion)
@@ -111,36 +110,24 @@ class OrderReduceService(
         }
     }
 
-    private fun Order.updateWith(orderVersion: OrderVersion): Order = copy(
+    private suspend fun Order.updateWith(orderVersion: OrderVersion): Order = copy(
         make = orderVersion.make,
         take = orderVersion.take,
         signature = orderVersion.signature,
-        lastUpdateAt = orderVersion.createdAt
+        lastUpdateAt = orderVersion.createdAt,
+        priceHistory = getUpdatedPriceHistoryRecords(this, orderVersion)
     )
 
-    private fun OrderVersion.toNewOrder() = toOrderExactFields().copy(
-        priceHistory = listOf(createNotNormalizedPriceHistoryRecord(make, take, createdAt))
-    )
-
-    /**
-     * Create a record that will be later processed by [priceNormalizer].
-     */
-    private fun createNotNormalizedPriceHistoryRecord(
-        make: Asset,
-        take: Asset,
-        date: Instant
-    ) = OrderPriceHistoryRecord(date, make.value.value.toBigDecimal(), take.value.value.toBigDecimal())
-
-    private suspend fun Order.withNormalizedPriceHistoryRecords(): Order {
-        val normalizedPriceHistories =
-            priceHistory.sortedBy { it.date }.takeLast(Order.MAX_PRICE_HISTORIES).map { record ->
-                OrderPriceHistoryRecord(
-                    record.date,
-                    priceNormalizer.normalize(Asset(make.type, EthUInt256(record.makeValue.toBigInteger()))),
-                    priceNormalizer.normalize(Asset(take.type, EthUInt256(record.takeValue.toBigInteger())))
-                )
-            }
-        return copy(priceHistory = normalizedPriceHistories)
+    private suspend fun getUpdatedPriceHistoryRecords(previous: Order, orderVersion: OrderVersion): List<OrderPriceHistoryRecord> {
+        if (previous.make == orderVersion.make && previous.take == orderVersion.take) {
+            return previous.priceHistory
+        }
+        val newRecord = OrderPriceHistoryRecord(
+            orderVersion.createdAt,
+            priceNormalizer.normalize(orderVersion.make),
+            priceNormalizer.normalize(orderVersion.take)
+        )
+        return (previous.priceHistory + listOf(newRecord)).sortedByDescending { it.date }.take(Order.MAX_PRICE_HISTORIES)
     }
 
     private suspend fun Order.withUpdatedMakeStock(knownMakeBalance: EthUInt256? = null): Order {
@@ -155,7 +142,6 @@ class OrderReduceService(
 
     private suspend fun updateOrderWithState(order0: Order): Order {
         val order = order0
-            .withNormalizedPriceHistoryRecords()
             .withUpdatedMakeStock()
             .withNewPrice()
         val version = orderRepository.findById(order.hash)?.version
