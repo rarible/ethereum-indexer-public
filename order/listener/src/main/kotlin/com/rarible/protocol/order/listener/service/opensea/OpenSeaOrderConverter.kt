@@ -45,7 +45,7 @@ class OpenSeaOrderConverter(
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
             data = createData(clientOpenSeaOrder),
-            makeStock = makeStock ?: EthUInt256.ZERO,
+            makeStock = makeStock ?: EthUInt256.ZERO, //TODO[discuss]: it it correct? Shouldn't it be [Order.withMakeBalance]?
             createdAt = nowMillis(),
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,
