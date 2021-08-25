@@ -86,6 +86,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to staging") {
@@ -105,6 +106,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to prod") {
