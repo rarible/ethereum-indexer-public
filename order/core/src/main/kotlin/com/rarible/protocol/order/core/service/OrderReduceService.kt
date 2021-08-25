@@ -68,8 +68,7 @@ class OrderReduceService(
     }
 
     suspend fun updateOrderMakeStock(orderHash: Word, knownMakeBalance: EthUInt256? = null): Order {
-        update(orderHash = orderHash)
-        val order = orderRepository.findById(orderHash) ?: throw OrderNotFoundException(orderHash)
+        val order = update(orderHash = orderHash).awaitSingle()
         val withMakeStock = order.withUpdatedMakeStock(knownMakeBalance)
         val updated = if (order.makeStock == EthUInt256.ZERO && withMakeStock.makeStock != EthUInt256.ZERO) {
             priceUpdateService.updateOrderPrice(withMakeStock, Instant.now())
@@ -202,8 +201,6 @@ class OrderReduceService(
         })
         saved
     }
-
-    class OrderNotFoundException(orderHash: Word) : RuntimeException("Order is not found for hash #$orderHash")
 
     class OrderUpdateError(val reason: OrderUpdateErrorReason) : RuntimeException("Order can't be updated: $reason") {
         enum class OrderUpdateErrorReason {
