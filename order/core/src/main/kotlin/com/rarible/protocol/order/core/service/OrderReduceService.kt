@@ -1,8 +1,6 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.core.common.fromOptional
 import com.rarible.core.common.nowMillis
-import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -14,6 +12,8 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -21,8 +21,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 import java.time.Instant
-import java.util.*
 
 @Component
 class OrderReduceService(
@@ -48,19 +48,25 @@ class OrderReduceService(
         return saved
     }
 
-    fun update(
-        orderHash: Word? = null,
-        fromOrderHash: Word? = null,
-        newOrderVersion: OrderVersion? = null
-    ): Flux<Order> {
-        return LoggingUtils.withMarkerFlux { marker ->
-            logger.info(marker, "update hash=$orderHash fromHash=$fromOrderHash")
-            Flux.concat(
-                orderVersionRepository.findAllByHash(orderHash, fromOrderHash).map { OrderUpdate.ByOrderVersion(it) },
-                Mono.justOrEmpty<OrderVersion>(newOrderVersion).map { OrderUpdate.ByOrderVersion(it) },
-                exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash).map { OrderUpdate.ByLogEvent(it) }
-            ).windowUntilChanged { it.orderHash }.concatMap { updateOrder(it) }
-        }
+    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
+        logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
+        return Flux.mergeOrdered(
+            compareBy<OrderUpdate, Word>(wordComparator) { it.orderHash },
+            orderVersionRepository.findAllByHash(orderHash, fromOrderHash).map { OrderUpdate.ByOrderVersion(it) },
+            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash).map { OrderUpdate.ByLogEvent(it) }
+        )
+            .windowUntilChanged { it.orderHash }
+            .concatMap {
+                it.switchOnFirst { firstSignal, updates ->
+                    val firstUpdate = firstSignal.get()
+                    if (firstUpdate != null) {
+                        val currentHash = firstUpdate.orderHash
+                        updateOrder(currentHash, updates)
+                    } else {
+                        Mono.empty()
+                    }
+                }
+            }
     }
 
     private sealed class OrderUpdate {
@@ -75,20 +81,17 @@ class OrderReduceService(
         }
     }
 
-    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> {
-        return updates.reduce<Optional<Order>>(Optional.empty()) { order, update ->
+    private fun updateOrder(orderHash: Word, updates: Flux<OrderUpdate>): Mono<Order> = mono {
+        val order = updates.asFlow().fold(emptyOrder) { order, update ->
             when (update) {
-                is OrderUpdate.ByOrderVersion -> Optional.of(
-                    if (order.isPresent) {
-                        order.get().updateWith(update.orderVersion)
-                    } else {
-                        update.orderVersion.toNewOrder()
-                    }
+                is OrderUpdate.ByOrderVersion -> order.updateWith(update.orderVersion)
+                is OrderUpdate.ByLogEvent -> order.updateWith(
+                    update.logEvent.status,
+                    update.logEvent.data.toExchangeHistory()
                 )
-                is OrderUpdate.ByLogEvent ->
-                    order.map { it.updateWith(update.logEvent.status, update.logEvent.data.toExchangeHistory()) }
             }
-        }.fromOptional().flatMap { updateOrderWithState(it) }
+        }
+        updateOrderWithState(order)
     }
 
     private fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
@@ -108,15 +111,12 @@ class OrderReduceService(
         }
     }
 
-    private fun Order.updateWith(orderVersion: OrderVersion): Order {
-        validateUpdate(this, orderVersion)
-        return copy(
-            make = orderVersion.make,
-            take = orderVersion.take,
-            signature = orderVersion.signature,
-            lastUpdateAt = orderVersion.createdAt
-        )
-    }
+    private fun Order.updateWith(orderVersion: OrderVersion): Order = copy(
+        make = orderVersion.make,
+        take = orderVersion.take,
+        signature = orderVersion.signature,
+        lastUpdateAt = orderVersion.createdAt
+    )
 
     private fun OrderVersion.toNewOrder() = toOrderExactFields().copy(
         priceHistory = listOf(createNotNormalizedPriceHistoryRecord(make, take, createdAt))
@@ -153,7 +153,7 @@ class OrderReduceService(
         return if (orderUsdValue != null) withOrderUsdValue(orderUsdValue) else this
     }
 
-    private fun updateOrderWithState(order0: Order): Mono<Order> = mono {
+    private suspend fun updateOrderWithState(order0: Order): Order {
         val order = order0
             .withNormalizedPriceHistoryRecords()
             .withUpdatedMakeStock()
@@ -167,49 +167,49 @@ class OrderReduceService(
             append("fill=${saved.fill}, ")
             append("cancelled=${saved.cancelled}")
         })
-        saved
-    }
-
-    class OrderUpdateError(val reason: OrderUpdateErrorReason) : RuntimeException("Order can't be updated: $reason") {
-        enum class OrderUpdateErrorReason {
-            CANCELLED,
-            INVALID_UPDATE,
-            MAKE_VALUE_ERROR,
-            TAKE_VALUE_ERROR
-        }
+        return saved
     }
 
     companion object {
+        private val emptyOrder = Order(
+            maker = Address.ZERO(),
+            taker = Address.ZERO(),
+            make = Asset(EthAssetType, EthUInt256.ZERO),
+            take = Asset(EthAssetType, EthUInt256.ZERO),
+            type = OrderType.RARIBLE_V2,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            makeStock = EthUInt256.ZERO,
+            salt = EthUInt256.ZERO,
+            start = null,
+            end = null,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            signature = null,
+            createdAt = Instant.EPOCH,
+            lastUpdateAt = Instant.EPOCH,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null,
+            priceHistory = emptyList(),
+            platform = Platform.RARIBLE
+        )
+
+        private val wordComparator = Comparator<Word> r@{ w1, w2 ->
+            val w1Bytes = w1.bytes()
+            val w2Bytes = w2.bytes()
+            for (i in 0 until minOf(w1Bytes.size, w2Bytes.size)) {
+                if (w1Bytes[i] != w2Bytes[i]) {
+                    return@r w1Bytes[i].compareTo(w2Bytes[i])
+                }
+            }
+            return@r w1Bytes.size.compareTo(w2Bytes.size)
+        }
+
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
 
         fun EventData.toExchangeHistory(): OrderExchangeHistory =
             requireNotNull(this as? OrderExchangeHistory) { "Unexpected exchange history type ${this::class}" }
-
-        @Throws(OrderUpdateError::class)
-        fun validateUpdate(existing: Order, update: OrderVersion) {
-            if (existing.cancelled) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.CANCELLED)
-            }
-            if (existing.data != update.data) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-            }
-            if (existing.start != update.start) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-            }
-            if (existing.end != update.end) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-            }
-            if (existing.taker != update.taker) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-            }
-            if (update.make.value < existing.make.value) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.MAKE_VALUE_ERROR)
-            }
-
-            val newMaxTake = update.make.value * existing.take.value / existing.make.value
-            if (newMaxTake < update.take.value) {
-                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.TAKE_VALUE_ERROR)
-            }
-        }
     }
 }

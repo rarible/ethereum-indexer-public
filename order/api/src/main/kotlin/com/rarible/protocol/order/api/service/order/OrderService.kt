@@ -2,7 +2,9 @@ package com.rarible.protocol.order.api.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.exceptions.*
+import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
+import com.rarible.protocol.order.api.exceptions.LazyItemNotFoundException
+import com.rarible.protocol.order.api.exceptions.OrderNotFoundException
 import com.rarible.protocol.order.api.misc.data
 import com.rarible.protocol.order.api.service.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
@@ -59,11 +61,11 @@ class OrderService(
     suspend fun put(form: OrderFormDto): Order {
         val orderVersion = convertFormToVersion(form)
         orderValidator.validateOrderVersion(orderVersion)
-        return try {
-            orderVersionService.addOrderVersion(orderVersion)
-        } catch (e: Exception) {
-            throw e.toApiException()
+        val existingOrder = orderRepository.findById(orderVersion.hash)
+        if (existingOrder != null) {
+            orderValidator.validate(existingOrder, orderVersion)
         }
+        return orderVersionService.addOrderVersion(orderVersion)
     }
 
     suspend fun get(hash: Word): Order {
@@ -71,11 +73,7 @@ class OrderService(
             ?: throw OrderNotFoundException(hash)
     }
 
-    suspend fun updateMakeStock(hash: Word): Order = try {
-        orderReduceService.updateOrderMakeStock(hash)
-    } catch (e: Exception) {
-        throw e.toApiException()
-    }
+    suspend fun updateMakeStock(hash: Word): Order = orderReduceService.updateOrderMakeStock(hash)
 
     suspend fun findOrders(filter: OrderFilterDto, size: Int, continuation: String? = null): List<Order> {
         return orderRepository.search(filter.toCriteria(continuation, size))
@@ -133,18 +131,6 @@ class OrderService(
         } else {
             return null
         }
-    }
-
-    private fun Exception.toApiException(): Exception = when (this) {
-        is OrderReduceService.OrderUpdateError -> OrderUpdateError(
-            when (this.reason) {
-                OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.CANCELLED -> OrderUpdateErrorReason.CANCELLED
-                OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE -> OrderUpdateErrorReason.INVALID_UPDATE
-                OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.MAKE_VALUE_ERROR -> OrderUpdateErrorReason.MAKE_VALUE_ERROR
-                OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.TAKE_VALUE_ERROR -> OrderUpdateErrorReason.TAKE_VALUE_ERROR
-            }
-        )
-        else -> this
     }
 }
 
