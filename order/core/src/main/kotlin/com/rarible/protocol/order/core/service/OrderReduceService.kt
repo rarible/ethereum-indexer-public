@@ -42,9 +42,6 @@ class OrderReduceService(
     private val orderVersionListener: OrderVersionListener
 ) {
 
-    suspend fun saveOrder(order: Order, previousOrder: Order? = null): Order =
-        orderRepository.save(order, previousOrder)
-
     @Throws(
         OrderUpdateError::class,
         OrderValidator.IncorrectOrderDataException::class,
