@@ -102,9 +102,7 @@ class OrderVersionRepository(
             fromHash != null -> OrderVersion::hash gt fromHash
             else -> Criteria()
         }
-        val query = Query(criteria)
-            .with(HASH_SORT_ASC)
-            .withHint(OrderVersionRepositoryIndexes.HASH_AND_ID_DEFINITION.indexKeys)
+        val query = Query(criteria).with(HASH_SORT_ASC)
         return template.find(query, COLLECTION)
     }
 
