@@ -197,3 +197,16 @@ fun randomOrderOpenSeaV1DataV1Dto(): OrderOpenSeaV1DataV1Dto {
         extra = randomBigInt()
     )
 }
+
+fun randomOwnershipDeleteEvent(ownershipId: OwnershipId): NftOwnershipDeleteEventDto {
+    return NftOwnershipDeleteEventDto(
+        randomString(),
+        ownershipId.stringValue,
+        NftDeletedOwnershipDto(
+            ownershipId.stringValue,
+            ownershipId.token,
+            ownershipId.tokenId.value,
+            ownershipId.owner
+        )
+    )
+}

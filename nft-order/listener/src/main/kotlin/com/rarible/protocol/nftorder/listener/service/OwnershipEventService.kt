@@ -30,15 +30,11 @@ class OwnershipEventService(
     suspend fun onOwnershipUpdated(nftOwnership: NftOwnershipDto) {
         val rawOwnership = conversionService.convert<Ownership>(nftOwnership)
         val enrichmentData = ownershipService.getEnrichmentData(rawOwnership.id)
-        onOwnershipUpdated(rawOwnership, enrichmentData)
-    }
-
-    suspend fun onOwnershipUpdated(rawOwnership: Ownership, data: OwnershipEnrichmentData) {
-        val updated = ownershipService.enrichOwnership(rawOwnership, data)
+        val updated = ownershipService.enrichOwnership(rawOwnership, enrichmentData)
         optimisticLock {
             val existing = ownershipService.get(updated.id)
-            if (data.isNotEmpty()) {
-                updateOwnership(existing, updated, data)
+            if (enrichmentData.isNotEmpty()) {
+                updateOwnership(existing, updated, enrichmentData)
             } else if (existing != null) {
                 deleteOwnership(rawOwnership.id)
             }
@@ -47,28 +43,34 @@ class OwnershipEventService(
         itemEventService.onOwnershipUpdated(rawOwnership.id)
     }
 
-    suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) {
-        val ownership = optimisticLock {
-            val fetchedItem = ownershipService.getOrFetchOwnershipById(ownershipId)
-            val ownership = fetchedItem.entity
-            val updated = ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
-            if (OwnershipEnrichmentData.isNotEmpty(updated)) {
-                ownershipService.save(updated)
-            } else if (!fetchedItem.isFetched) {
-                deleteOwnership(ownershipId)
+    suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) = optimisticLock {
+        val fetchedItem = ownershipService.getOrFetchOwnershipById(ownershipId)
+        val ownership = fetchedItem.entity
+        val updated = ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
+        if (OwnershipEnrichmentData.isNotEmpty(updated)) {
+            // If order is completely the same - do nothing
+            if (updated.bestSellOrder != ownership.bestSellOrder) {
+                val saved = ownershipService.save(updated)
+                notify(OwnershipEventUpdate(saved))
+                itemEventService.onOwnershipUpdated(ownershipId)
             }
-            updated
+        } else if (!fetchedItem.isFetched) {
+            logger.info("Deleting Ownership [{}] without related bestSellOrder", ownershipId)
+            deleteOwnership(ownershipId)
+            notify(OwnershipEventUpdate(updated))
+            itemEventService.onOwnershipUpdated(ownershipId)
         }
-        notify(OwnershipEventUpdate(ownership))
-        itemEventService.onOwnershipUpdated(ownershipId)
     }
 
     suspend fun onOwnershipDeleted(nftOwnership: NftDeletedOwnershipDto) {
         val ownershipId = OwnershipId.parseId(nftOwnership.id)
-        logger.info("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId)
-        deleteOwnership(ownershipId)
+        logger.debug("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId)
+        val deleted = deleteOwnership(ownershipId)
         notify(OwnershipEventDelete(ownershipId))
-        itemEventService.onOwnershipUpdated(ownershipId)
+        if (deleted) {
+            logger.info("Ownership [{}] deleted, recalculating sellStats for related Item", ownershipId)
+            itemEventService.onOwnershipUpdated(ownershipId)
+        }
     }
 
     private suspend fun updateOwnership(existing: Ownership?, updated: Ownership, data: OwnershipEnrichmentData) {
@@ -86,11 +88,9 @@ class OwnershipEventService(
         ownershipService.save(updated)
     }
 
-    private suspend fun deleteOwnership(ownershipId: OwnershipId) {
+    private suspend fun deleteOwnership(ownershipId: OwnershipId): Boolean {
         val result = ownershipService.delete(ownershipId)
-        if (result != null && result.deletedCount > 0) {
-            logger.info("Deleted Ownership [{}] without related bestSellOrder", ownershipId)
-        }
+        return result != null && result.deletedCount > 0
     }
 
     private suspend fun notify(event: OwnershipEvent) {
