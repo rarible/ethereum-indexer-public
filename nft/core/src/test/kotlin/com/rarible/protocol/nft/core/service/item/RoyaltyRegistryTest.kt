@@ -140,11 +140,7 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
         assertEquals(royalty1._1, item.royalties.get(0).account)
         assertEquals(royalty1._2.toInt(), item.royalties.get(0).value)
 
-        // check royalty in the cache
+        // check royalty cache size
         assertEquals(1, royaltyRepository.count().awaitFirst())
-        val royaltyPE = royaltyRepository.findByTokenAndId(token, tokenId.value).awaitFirstOrNull()
-        assertNotNull(royaltyPE)
-        assertEquals(royalty1._1, royaltyPE?.royalty?.get(0)?.account)
-        assertEquals(royalty1._2.toInt(), royaltyPE?.royalty?.get(0)?.value)
     }
 }
