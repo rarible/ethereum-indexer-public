@@ -78,9 +78,13 @@ class OrderReduceService(
     private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> {
         return updates.reduce<Optional<Order>>(Optional.empty()) { order, update ->
             when (update) {
-                is OrderUpdate.ByOrderVersion ->
-                    order.map { it.updateWith(update.orderVersion) }
-                        .or { Optional.of(update.orderVersion.toNewOrder()) }
+                is OrderUpdate.ByOrderVersion -> Optional.of(
+                    if (order.isPresent) {
+                        order.get().updateWith(update.orderVersion)
+                    } else {
+                        update.orderVersion.toNewOrder()
+                    }
+                )
                 is OrderUpdate.ByLogEvent ->
                     order.map { it.updateWith(update.logEvent.status, update.logEvent.data.toExchangeHistory()) }
             }
