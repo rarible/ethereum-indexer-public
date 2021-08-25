@@ -41,7 +41,7 @@ class OpenSeaOrderService(
                 sortBy = SortBy.CREATED_DATE,
                 sortDirection = SortDirection.ASC,
                 limit = null,
-                side = null
+                side = OrderSide.SELL
             )
             val result = getOrders(request)
 
