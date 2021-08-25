@@ -16,6 +16,7 @@ class OpenSeaOrderService(
     properties: OrderListenerProperties
 ) {
     private val loadOpenSeaPeriod = properties.loadOpenSeaPeriod.seconds
+    private val loadOpenSeaOrderSide = convert(properties.openSeaOrderSide)
 
     suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> = coroutineScope {
         val batches = (listedBefore - listedAfter) / loadOpenSeaPeriod
@@ -40,8 +41,8 @@ class OpenSeaOrderService(
                 offset = orders.size,
                 sortBy = SortBy.CREATED_DATE,
                 sortDirection = SortDirection.ASC,
-                limit = null,
-                side = OrderSide.SELL
+                side = loadOpenSeaOrderSide,
+                limit = null
             )
             val result = getOrders(request)
 
@@ -62,6 +63,14 @@ class OpenSeaOrderService(
             }
         }
         throw IllegalStateException("Can't fetch OpenSea orders, number of attempts exceeded, last error: $lastError")
+    }
+
+    private fun convert(side: OrderListenerProperties.OrderSide?): OrderSide? {
+        return when (side ?: OrderListenerProperties.OrderSide.ALL) {
+            OrderListenerProperties.OrderSide.SELL -> OrderSide.SELL
+            OrderListenerProperties.OrderSide.BID -> OrderSide.BUY
+            OrderListenerProperties.OrderSide.ALL -> null
+        }
     }
 
     companion object {
