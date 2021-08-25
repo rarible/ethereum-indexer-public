@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderVersionService
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -66,6 +67,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     protected lateinit var orderReduceService: OrderReduceService
+
+    @Autowired
+    protected lateinit var orderVersionService: OrderVersionService
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum

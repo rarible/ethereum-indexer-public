@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderVersionService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -22,6 +23,7 @@ import java.math.BigInteger
 class OrderService(
     private val orderRepository: OrderRepository,
     private val orderReduceService: OrderReduceService,
+    private val orderVersionService: OrderVersionService,
     private val nftItemApiService: NftItemApiService,
     private val orderValidator: OrderValidator
 ) {
@@ -58,7 +60,7 @@ class OrderService(
         val orderVersion = convertFormToVersion(form)
         orderValidator.validateOrderVersion(orderVersion)
         return try {
-            orderReduceService.addOrderVersion(orderVersion)
+            orderVersionService.addOrderVersion(orderVersion)
         } catch (e: Exception) {
             throw e.toApiException()
         }

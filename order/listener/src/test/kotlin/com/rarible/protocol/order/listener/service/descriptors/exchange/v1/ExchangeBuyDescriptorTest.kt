@@ -90,7 +90,17 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
         val proxy = TransferProxy.deployAndWait(owner, poller).block()!!
         val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(owner, poller).block()!!
         val erc20Proxy = ERC20TransferProxy.deployAndWait(owner, poller).block()!!
-        val sale = ExchangeV1.deployAndWait(owner, poller, proxy.address(), proxyForDeprecated.address(), erc20Proxy.address(), state.address(), Address.ZERO(), beneficiary, buyerFeeSigner.from()).block()!!
+        val sale = ExchangeV1.deployAndWait(
+            owner,
+            poller,
+            proxy.address(),
+            proxyForDeprecated.address(),
+            erc20Proxy.address(),
+            state.address(),
+            Address.ZERO(),
+            beneficiary,
+            buyerFeeSigner.from()
+        ).block()!!
 
         state.addOperator(sale.address())
             .execute().verifySuccess()
@@ -136,7 +146,7 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             )
         }
 
-        val orderLeft = orderReduceService.addOrderVersion(orderVersionLeft)
+        val orderLeft = orderVersionService.addOrderVersion(orderVersionLeft)
 
         val buyerFee = 500
 

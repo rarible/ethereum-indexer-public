@@ -33,7 +33,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should calculate order for existed order`() = runBlocking<Unit> {
         val order = createOrderVersion()
-        orderReduceService.addOrderVersion(order)
+        orderVersionService.addOrderVersion(order)
 
         val sideMatchDate1 = nowMillis() + Duration.ofHours(2)
         val sideMatchDate2 = nowMillis() + Duration.ofHours(1)
@@ -98,7 +98,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val orderVersion = createOrderVersion()
         val orderCreatedAt = orderVersion.createdAt
 
-        orderReduceService.addOrderVersion(orderVersion)
+        orderVersionService.addOrderVersion(orderVersion)
 
         prepareStorage(
             OrderCancel(

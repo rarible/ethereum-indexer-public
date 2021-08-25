@@ -48,8 +48,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         assetBalanceProvider = mockk(),
         protocolCommissionProvider = mockk(),
         priceNormalizer = mockk(),
-        priceUpdateService = mockk(),
-        orderVersionListener = mockk()
+        priceUpdateService = mockk()
     )
     private val orderPricesUpdateJob = OrderPricesUpdateJob(
         properties = OrderListenerProperties(priceUpdateEnabled = true),

@@ -3,13 +3,11 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderVersionService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
@@ -27,11 +25,9 @@ class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderService: OpenSeaOrderService,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val openSeaOrderConverter: OpenSeaOrderConverter,
-    private val orderRepository: OrderRepository,
-    private val orderReduceService: OrderReduceService,
     private val orderVersionRepository: OrderVersionRepository,
+    private val orderVersionService: OrderVersionService,
     private val properties: OrderListenerProperties,
-    private val orderVersionListener: OrderVersionListener,
     meterRegistry: MeterRegistry,
     workerProperties: DaemonWorkerProperties
 ) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
@@ -83,7 +79,7 @@ class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         // TODO[discuss]: this check is not atomic.
         if (orderVersionRepository.findAllByHash(orderVersion.hash).count() == 0) {
-            orderReduceService.addOrderVersion(orderVersion)
+            orderVersionService.addOrderVersion(orderVersion)
         }
         logger.info("Saved new OpenSea order ${orderVersion.hash}")
     }

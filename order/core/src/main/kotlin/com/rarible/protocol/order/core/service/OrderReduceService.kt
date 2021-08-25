@@ -7,7 +7,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -15,7 +14,6 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -34,25 +32,8 @@ class OrderReduceService(
     private val assetBalanceProvider: AssetBalanceProvider,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
-    private val priceUpdateService: PriceUpdateService,
-    private val orderVersionListener: OrderVersionListener
+    private val priceUpdateService: PriceUpdateService
 ) {
-
-    @Throws(OrderUpdateError::class)
-    suspend fun addOrderVersion(orderVersion: OrderVersion): Order {
-        // Try to update the Order state with the new [orderVersion]. Do not yet add the version to the OrderVersionRepository.
-        // If the [orderVersion] leads to an invalid update, this function will fail at [orderValidator.validate].
-        val order = update(orderHash = orderVersion.hash, newOrderVersion = orderVersion).awaitSingle()
-        /*
-        TODO: this is not 100% correct to insert the order version now,
-              because there might have been other new versions added,
-              making our [orderVersion] to be not valid anymore.
-              Probably we need transactional insertion here.
-         */
-        orderVersionRepository.save(orderVersion).awaitFirst()
-        orderVersionListener.onOrderVersion(orderVersion)
-        return order
-    }
 
     suspend fun updateOrderMakeStock(orderHash: Word, knownMakeBalance: EthUInt256? = null): Order {
         val order = update(orderHash = orderHash).awaitSingle()
