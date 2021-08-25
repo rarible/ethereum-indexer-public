@@ -60,31 +60,5 @@ class OrderValidator(
         }
     }
 
-    fun validate(existing: Order, update: Order) {
-        if (existing.cancelled) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.CANCELLED)
-        }
-        if (existing.data != update.data) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-        }
-        if (existing.start != update.start) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-        }
-        if (existing.end != update.end) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-        }
-        if (existing.taker != update.taker) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
-        }
-        if (update.make.value < existing.make.value) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.MAKE_VALUE_ERROR)
-        }
-
-        val newMaxTake = update.make.value * existing.take.value / existing.make.value
-        if (newMaxTake < update.take.value) {
-            throw OrderReduceService.OrderUpdateError(OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.TAKE_VALUE_ERROR)
-        }
-    }
-
     class IncorrectOrderDataException(message: String) : RuntimeException(message)
 }
