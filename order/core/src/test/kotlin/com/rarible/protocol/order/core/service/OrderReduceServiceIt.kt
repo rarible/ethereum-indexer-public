@@ -13,7 +13,7 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -85,9 +85,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 source = HistorySource.RARIBLE
             )
         )
-        orderReduceService.update(orderHash = order.hash).awaitFirstOrNull()
-
-        val updatedOrder = orderRepository.findById(order.hash)
+        val updatedOrder = orderReduceService.update(orderHash = order.hash).awaitSingle()
 
         assertThat(updatedOrder?.fill).isEqualTo(EthUInt256.of(3))
         assertThat(updatedOrder?.cancelled).isEqualTo(true)
@@ -97,11 +95,10 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `should not change order lastUpdateAt if reduce past events`() = runBlocking<Unit> {
-        val orderLastUpdateAt = nowMillis()
-        val orderVersion = createOrderVersion(eip712Domain).copy(createdAt = orderLastUpdateAt)
-        orderReduceService.addOrderVersion(orderVersion)
+        val orderVersion = createOrderVersion(eip712Domain)
+        val orderCreatedAt = orderVersion.createdAt
 
-        val cancelDate = nowMillis() - Duration.ofHours(1)
+        orderReduceService.addOrderVersion(orderVersion)
 
         prepareStorage(
             OrderCancel(
@@ -109,7 +106,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 maker = orderVersion.maker,
                 make = orderVersion.make,
                 take = orderVersion.take,
-                date = cancelDate,
+                date = orderVersion.createdAt - Duration.ofHours(1),
                 source = HistorySource.RARIBLE
             )
         )
@@ -117,7 +114,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
 
         val updatedOrder = orderRepository.findById(orderVersion.hash)
         assertThat(updatedOrder?.cancelled).isEqualTo(true)
-        assertThat(updatedOrder?.lastUpdateAt).isEqualTo(orderLastUpdateAt)
+        assertThat(updatedOrder?.lastUpdateAt).isEqualTo(orderCreatedAt)
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {

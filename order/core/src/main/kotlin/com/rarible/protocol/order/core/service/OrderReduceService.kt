@@ -84,8 +84,7 @@ class OrderReduceService(
     ): Flux<Order> {
         return LoggingUtils.withMarkerFlux { marker ->
             logger.info(marker, "update hash=$orderHash fromHash=$fromOrderHash")
-            Flux.mergeOrdered(
-                compareBy<OrderUpdate, Word>(wordComparator) { it.orderHash }.thenBy { it.date },
+            Flux.concat(
                 orderVersionRepository.findAllByHash(orderHash, fromOrderHash).map { OrderUpdate.ByOrderVersion(it) },
                 Mono.justOrEmpty<OrderVersion>(newOrderVersion).map { OrderUpdate.ByOrderVersion(it) },
                 exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash).map { OrderUpdate.ByLogEvent(it) }
@@ -95,16 +94,13 @@ class OrderReduceService(
 
     private sealed class OrderUpdate {
         abstract val orderHash: Word
-        abstract val date: Instant
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
-            override val date get() = orderVersion.createdAt
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
-            override val date get() = logEvent.data.toExchangeHistory().date
         }
     }
 
@@ -188,7 +184,8 @@ class OrderReduceService(
             .withNormalizedPriceHistoryRecords()
             .withUpdatedMakeStock()
             .withNewPrice()
-        val saved = orderRepository.save(order)
+        val version = orderRepository.findById(order.hash)?.version
+        val saved = orderRepository.save(order.copy(version = version))
         logger.info(buildString {
             append("Updated order: ")
             append("hash=${saved.hash}, ")
@@ -210,17 +207,6 @@ class OrderReduceService(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
-
-        private val wordComparator = Comparator<Word> r@{ w1, w2 ->
-            val w1Bytes = w1.bytes()
-            val w2Bytes = w2.bytes()
-            for (i in 0 until minOf(w1Bytes.size, w2Bytes.size)) {
-                if (w1Bytes[i] != w2Bytes[i]) {
-                    return@r w1Bytes[i].compareTo(w2Bytes[i])
-                }
-            }
-            return@r w1Bytes.size.compareTo(w2Bytes.size)
-        }
 
         fun EventData.toExchangeHistory(): OrderExchangeHistory =
             requireNotNull(this as? OrderExchangeHistory) { "Unexpected exchange history type ${this::class}" }
