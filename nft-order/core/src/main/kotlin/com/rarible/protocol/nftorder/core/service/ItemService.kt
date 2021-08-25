@@ -49,6 +49,15 @@ class ItemService(
         return itemRepository.findAll(ids)
     }
 
+    suspend fun getOrFetchEnrichedItemById(itemId: ItemId): Fetched<Item> {
+        val item = get(itemId)
+        return if (item != null) {
+            Fetched(item, false)
+        } else {
+            Fetched(fetchEnrichedItem(itemId), true)
+        }
+    }
+
     suspend fun getOrFetchItemById(itemId: ItemId): Fetched<Item> {
         val item = get(itemId)
         return if (item != null) {
@@ -64,13 +73,23 @@ class ItemService(
             .awaitFirst()
     }
 
-    private suspend fun fetchItem(itemId: ItemId): Item {
-        logger.debug("Item [{}] not found in DB, fetching from NFT-Indexer", itemId)
-        val nftItemDto = nftItemControllerApi
-            .getNftItemById(itemId.decimalStringValue, null)
-            .awaitFirstOrNull()!!
+    private suspend fun fetchEnrichedItem(itemId: ItemId): Item {
+        val nftItemDto = fetchItemFromIndexer(itemId)
         logger.debug("Item [{}] fetched, gathering enrichment data", itemId)
         return enrichDto(nftItemDto)
+    }
+
+    private suspend fun fetchItem(itemId: ItemId): Item {
+        val nftItemDto = fetchItemFromIndexer(itemId)
+        logger.debug("Item [{}] fetched", itemId)
+        return conversionService.convert<Item>(nftItemDto)
+    }
+
+    private suspend fun fetchItemFromIndexer(itemId: ItemId): NftItemDto {
+        logger.debug("Item [{}] not found in DB, fetching from NFT-Indexer", itemId)
+        return nftItemControllerApi
+            .getNftItemById(itemId.decimalStringValue, null)
+            .awaitFirstOrNull()!!
     }
 
     suspend fun enrichDto(nftItem: NftItemDto): Item {

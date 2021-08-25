@@ -34,6 +34,7 @@ protocol:
       blockchain: ${common.blockchain}
 
 listener:
+  orderConsumerCount: 5
   job:
     reconciliation:
       order:

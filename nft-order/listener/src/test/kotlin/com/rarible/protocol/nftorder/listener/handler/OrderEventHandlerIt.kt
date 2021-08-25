@@ -4,9 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
-import com.rarible.protocol.dto.OrderDto
-import com.rarible.protocol.dto.OrderUpdateEventDto
-import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
@@ -17,6 +15,7 @@ import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import java.math.BigInteger
 
 @IntegrationTest
 class OrderEventHandlerIt : AbstractIntegrationTest() {
@@ -46,25 +45,10 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         val nftTakeItemDto = randomNftItemDto(takeItemId)
         val nftOwnership = randomNftOwnershipDto(nftMakeItemDto)
 
-        val bestSell = randomLegacyOrderDto(makeItemId)
-        val bestBid = randomLegacyOrderDto(takeItemId)
-        val bestSellByOwnership = randomLegacyOrderDto(makeItemId, ownershipId.owner)
-
-        // Since we don't have any data in Mongo, we need to fetch entities and enrichment data via HTTP API
+        // Since we don't have any data in Mongo, we need to fetch entities without enrichment data via HTTP API
         nftItemControllerApiMock.mockGetNftItemById(makeItemId, nftMakeItemDto)
         nftItemControllerApiMock.mockGetNftItemById(takeItemId, nftTakeItemDto)
         nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftOwnership)
-
-        // Unlockable responses mocks
-        lockControllerApiMock.mockIsUnlockable(makeItemId, true)
-        lockControllerApiMock.mockIsUnlockable(takeItemId, false)
-
-        // For make-item there is no bestBid Order, and for take-item there is no bestSell Order
-        orderControllerApiMock.mockGetSellOrdersByItem(makeItemId, bestSell)
-        orderControllerApiMock.mockGetBidOrdersByItem(makeItemId)
-        orderControllerApiMock.mockGetSellOrdersByItem(takeItemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(takeItemId, bestBid)
-        orderControllerApiMock.mockGetSellOrdersByItem(ownershipId, bestSellByOwnership)
 
         val updatedOrder =
             randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
@@ -74,23 +58,55 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         // Ensure all three entities are stored in Mongo and has fields equivalent to DTO's fields
         val makeItem = itemService.get(makeItemId)!!
         assertItemAndDtoEquals(makeItem, nftMakeItemDto)
-        assertThat(makeItem.unlockable).isTrue()
-        assertThat(makeItem.bestSellOrder).isEqualTo(bestSell)
+        assertThat(makeItem.unlockable).isFalse()
+        assertThat(makeItem.bestSellOrder).isEqualTo(updatedOrder)
         assertThat(makeItem.bestBidOrder).isNull()
 
         val takeItem = itemService.get(takeItemId)!!
         assertItemAndDtoEquals(takeItem, nftTakeItemDto)
         assertThat(takeItem.unlockable).isFalse()
         assertThat(takeItem.bestSellOrder).isNull()
-        assertThat(takeItem.bestBidOrder).isEqualTo(bestBid)
+        assertThat(takeItem.bestBidOrder).isEqualTo(updatedOrder)
 
         val ownership = ownershipService.get(ownershipId)!!
         assertOwnershipAndNftDtoEquals(ownership, nftOwnership)
-        assertThat(ownership.bestSellOrder).isEqualTo(bestSellByOwnership)
+        assertThat(ownership.bestSellOrder).isEqualTo(updatedOrder)
 
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(3)
             assertThat(ownershipEvents).hasSize(1)
+        }
+    }
+
+    @Test
+    fun `take item fetched but not created`() = runWithKafka {
+        // Some random data, make-Item linked with Ownership
+        val makeItemId = randomItemId()
+        val takeItemId = randomItemId()
+        val ownershipId = randomOwnershipId(makeItemId)
+
+        val nftTakeItemDto = randomNftItemDto(takeItemId)
+
+        // For EthAssetTypeDto we are skipping update, so only takeItem should be requested
+        nftItemControllerApiMock.mockGetNftItemById(takeItemId, nftTakeItemDto)
+
+        val updatedOrder = randomLegacyOrderDto(
+            AssetDto(EthAssetTypeDto(), BigInteger.ONE),
+            ownershipId.owner,
+            randomAssetErc1155(takeItemId)
+        ).copy(cancelled = true)
+
+        orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
+
+        // This item should not be created since order is cancelled and there is no any other enrich data
+        assertThat(itemService.get(takeItemId)).isNull()
+
+        assertThat(itemService.get(makeItemId)).isNull()
+        assertThat(ownershipService.get(ownershipId)).isNull()
+
+        // But we still need to send actual data about take Item to the Kafka
+        Wait.waitAssert {
+            assertThat(itemEvents).hasSize(1)
         }
     }
 

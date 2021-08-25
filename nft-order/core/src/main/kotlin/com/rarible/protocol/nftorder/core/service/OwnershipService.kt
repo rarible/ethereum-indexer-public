@@ -54,6 +54,15 @@ class OwnershipService(
         return result
     }
 
+    suspend fun getOrFetchEnrichedOwnershipById(ownershipId: OwnershipId): Fetched<Ownership> {
+        val ownership = get(ownershipId)
+        return if (ownership != null) {
+            Fetched(ownership, false)
+        } else {
+            Fetched(fetchEnrichedOwnership(ownershipId), true)
+        }
+    }
+
     suspend fun getOrFetchOwnershipById(ownershipId: OwnershipId): Fetched<Ownership> {
         val ownership = get(ownershipId)
         return if (ownership != null) {
@@ -63,12 +72,20 @@ class OwnershipService(
         }
     }
 
-    private suspend fun fetchOwnership(ownershipId: OwnershipId): Ownership {
+    private suspend fun fetchEnrichedOwnership(ownershipId: OwnershipId): Ownership {
         val nftOwnershipDto = nftOwnershipControllerApi
             .getNftOwnershipById(ownershipId.stringValue)
             .awaitFirstOrNull()!!
 
         return enrichDto(nftOwnershipDto)
+    }
+
+    private suspend fun fetchOwnership(ownershipId: OwnershipId): Ownership {
+        val nftOwnershipDto = nftOwnershipControllerApi
+            .getNftOwnershipById(ownershipId.stringValue)
+            .awaitFirstOrNull()!!
+
+        return conversionService.convert(nftOwnershipDto)
     }
 
     suspend fun enrichDto(nftOwnership: NftOwnershipDto): Ownership {

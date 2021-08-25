@@ -20,7 +20,7 @@ pipeline {
     stage('test') {
       agent any
       steps {
-        sh 'mvn clean test -U'
+         sh 'mvn clean test -U'
       }
       post {
         always {

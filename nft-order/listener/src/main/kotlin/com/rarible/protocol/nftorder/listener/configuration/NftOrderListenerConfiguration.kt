@@ -20,6 +20,7 @@ import com.rarible.protocol.order.api.subscriber.OrderIndexerEventsConsumerFacto
 import com.rarible.protocol.order.api.subscriber.autoconfigure.OrderIndexerEventsSubscriberProperties
 import com.rarible.protocol.unlockable.api.subscriber.UnlockableEventsConsumerFactory
 import io.micrometer.core.instrument.MeterRegistry
+import org.slf4j.LoggerFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -48,6 +49,8 @@ class NftOrderListenerConfiguration(
     private val ownershipConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.ownership"
     private val unlockableConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.unlockable"
     private val orderConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.order"
+
+    private val logger = LoggerFactory.getLogger(NftOrderListenerConfiguration::class.java)
 
     @Bean
     fun itemChangeWorker(
@@ -104,14 +107,21 @@ class NftOrderListenerConfiguration(
     fun orderChangeWorker(
         orderIndexerEventsConsumerFactory: OrderIndexerEventsConsumerFactory,
         orderEventHandler: OrderEventHandler
-    ): ConsumerWorker<OrderEventDto> {
-        return ConsumerWorker(
-            consumer = createOrderEventsConsumer(orderConsumerGroup),
-            properties = listenerProperties.monitoringWorker,
-            eventHandler = orderEventHandler,
-            meterRegistry = meterRegistry,
-            workerName = "orderEventDto"
+    ): BatchedConsumerWorker<OrderEventDto> {
+        logger.info(
+            "Creating batch of Order event consumers, number of consumers: {}",
+            listenerProperties.orderConsumerCount
         )
+        val consumers = (1..listenerProperties.orderConsumerCount).map {
+            ConsumerWorker(
+                consumer = createOrderEventsConsumer(orderConsumerGroup),
+                properties = listenerProperties.monitoringWorker,
+                eventHandler = orderEventHandler,
+                meterRegistry = meterRegistry,
+                workerName = "orderEventDto.$it"
+            )
+        }
+        return BatchedConsumerWorker(consumers)
     }
 
     @Bean
