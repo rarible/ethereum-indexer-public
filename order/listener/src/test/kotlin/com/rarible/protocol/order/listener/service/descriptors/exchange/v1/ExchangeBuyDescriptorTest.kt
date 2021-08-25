@@ -120,7 +120,6 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             taker = null,
             make = Asset(Erc1155AssetType(token.address(), EthUInt256.of(tokenId)), EthUInt256.TEN),
             take = Asset(Erc20AssetType(buyToken.address()), EthUInt256.of(5)),
-            makeStock = EthUInt256.TEN,
             type = OrderType.RARIBLE_V1,
             salt = EthUInt256.of(salt),
             start = null,

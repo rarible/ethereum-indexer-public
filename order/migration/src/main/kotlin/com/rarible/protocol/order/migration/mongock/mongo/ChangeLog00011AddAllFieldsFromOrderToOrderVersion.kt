@@ -32,7 +32,6 @@ class ChangeLog00011AddAllFieldsFromOrderToOrderVersion {
         orderRepository.findAll().collect { order ->
             fun OrderVersion.addOrderFields() = copy(
                 type = order.type,
-                makeStock = order.makeStock,
                 salt = order.salt,
                 start = order.start,
                 end = order.end,

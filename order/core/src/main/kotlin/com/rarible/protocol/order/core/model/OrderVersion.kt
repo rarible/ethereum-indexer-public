@@ -29,7 +29,6 @@ data class OrderVersion(
     // TODO: Default values here are needed only before the 1st migration ChangeLog00011AddAllFieldsFromOrderToOrderVersion is run
     // to read the old OrderVersions from the database. After that we should remove the default values.
     val type: OrderType = OrderType.RARIBLE_V2,
-    val makeStock: EthUInt256 = EthUInt256.ZERO,
     val salt: EthUInt256 = EthUInt256.ZERO,
     val start: Long? = null,
     val end: Long? = null,
@@ -58,7 +57,7 @@ fun OrderVersion.toOrderExactFields() = Order(
     type = type,
     fill = EthUInt256.ZERO,
     cancelled = false,
-    makeStock = makeStock,
+    makeStock = take.value, // TODO[discuss]: correct?
     salt = salt,
     start = start,
     end = end,

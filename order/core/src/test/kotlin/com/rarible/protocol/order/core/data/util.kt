@@ -53,7 +53,6 @@ fun createOrderVersion(eip712Domain: EIP712Domain): OrderVersion {
         takeUsd = null,
         platform = Platform.RARIBLE,
         type = OrderType.RARIBLE_V2,
-        makeStock = EthUInt256.of(5),
         salt = EthUInt256.TEN,
         start = null,
         end = null,

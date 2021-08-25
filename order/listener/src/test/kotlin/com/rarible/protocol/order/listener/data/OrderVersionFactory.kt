@@ -23,7 +23,6 @@ fun createOrderVersion(): OrderVersion {
         createdAt = nowMillis(),
         platform = Platform.RARIBLE,
         type = OrderType.RARIBLE_V2,
-        makeStock = take.value,
         salt = EthUInt256.TEN,
         start = null,
         end = null,

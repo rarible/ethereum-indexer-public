@@ -6,7 +6,6 @@ import com.rarible.opensea.client.model.AssetSchema
 import com.rarible.opensea.client.model.OpenSeaOrder
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -19,8 +18,7 @@ import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
 
 @Component
 class OpenSeaOrderConverter(
-    private val priceUpdateService: PriceUpdateService,
-    private val assetBalanceProvider: AssetBalanceProvider
+    private val priceUpdateService: PriceUpdateService
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -32,7 +30,6 @@ class OpenSeaOrderConverter(
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
-        val makeStock = assetBalanceProvider.getAssetStock(maker, make.type)
         val usdPrice = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = Instant.now())
 
         return OrderVersion(
@@ -45,7 +42,6 @@ class OpenSeaOrderConverter(
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
             data = createData(clientOpenSeaOrder),
-            makeStock = makeStock ?: EthUInt256.ZERO, //TODO[discuss]: it it correct? Shouldn't it be [Order.withMakeBalance]?
             createdAt = nowMillis(),
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,

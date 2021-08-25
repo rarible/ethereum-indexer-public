@@ -45,7 +45,6 @@ class OrderService(
             start = form.start,
             end = form.end,
             data = data,
-            makeStock = EthUInt256.ZERO,
             signature = form.signature,
             platform = Platform.RARIBLE,
             hash = hash,

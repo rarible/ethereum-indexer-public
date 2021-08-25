@@ -138,7 +138,6 @@ class OrderReduceService(
         return copy(
             make = orderVersion.make,
             take = orderVersion.take,
-            makeStock = orderVersion.makeStock,
             signature = orderVersion.signature,
             lastUpdateAt = orderVersion.createdAt
         )
