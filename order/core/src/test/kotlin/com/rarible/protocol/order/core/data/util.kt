@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
@@ -39,10 +39,9 @@ fun createOrder() =
         lastUpdateAt = nowMillis()
     )
 
-fun createOrderVersion(eip712Domain: EIP712Domain): OrderVersion {
-    val (privateKey, _, maker) = generateNewKeys()
+fun createOrderVersion(): OrderVersion {
     return OrderVersion(
-        maker = maker,
+        maker = randomAddress(),
         taker = null,
         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
         take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
@@ -58,9 +57,7 @@ fun createOrderVersion(eip712Domain: EIP712Domain): OrderVersion {
         end = null,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
-    ).let {
-        it.copy(signature = eip712Domain.hashToSign(Order.hash(it)).sign(privateKey))
-    }
+    )
 }
 
 fun createOrderDto() =

@@ -1,7 +1,8 @@
-package com.rarible.protocol.order.core.service.validation
+package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.order.api.exceptions.IncorrectSignatureException
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
 import com.rarible.protocol.order.core.model.OrderType
@@ -17,7 +18,6 @@ class OrderSignatureValidator(
     private val legacySigner: CommonSigner,
     private val erc1271SignService: ERC1271SignService
 ) {
-    @Throws(IncorrectSignatureException::class)
     suspend fun validate(orderVersion: OrderVersion) {
         val signature = orderVersion.signature ?: throw IncorrectSignatureException()
 
@@ -41,8 +41,6 @@ class OrderSignatureValidator(
             OrderType.OPEN_SEA_V1 -> Unit
         }
     }
-
-    class IncorrectSignatureException : RuntimeException("Incorrect signature")
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(OrderSignatureValidator::class.java)

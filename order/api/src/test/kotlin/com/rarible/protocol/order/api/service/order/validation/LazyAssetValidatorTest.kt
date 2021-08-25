@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.service
+package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.nft.model.LazyNft
@@ -7,9 +7,9 @@ import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
+import com.rarible.protocol.order.api.exceptions.InvalidLazyAssetException
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.service.validation.LazyAssetValidator
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -88,7 +88,7 @@ internal class LazyAssetValidatorTest {
         every { nftCollectionApi.getNftCollectionById(eq(tokenId.hex())) } returns Mono.just(collection)
         coEvery { delegate.validate(eq(lazyNft)) } returns invalidResult
 
-        assertThrows<LazyAssetValidator.InvalidLazyAssetException> {
+        assertThrows<InvalidLazyAssetException> {
             runBlocking {
                 lazyAssetValidator.validate(lazyAsset, "take")
             }
@@ -113,7 +113,7 @@ internal class LazyAssetValidatorTest {
         every { lazyNft.creators } returns listOf(Part(AddressFactory.create(), 10))
         every { nftCollectionApi.getNftCollectionById(eq(token.hex())) } returns Mono.just(collection)
 
-        assertThrows<LazyAssetValidator.InvalidLazyAssetException> {
+        assertThrows<InvalidLazyAssetException> {
             runBlocking {
                 lazyAssetValidator.validate(lazyAsset, "take")
             }

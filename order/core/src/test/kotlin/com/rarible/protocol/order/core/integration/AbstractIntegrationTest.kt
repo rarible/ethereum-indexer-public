@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.integration
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -51,9 +50,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var priceNormalizer: PriceNormalizer
-
-    @Autowired
-    protected lateinit var eip712Domain: EIP712Domain
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()

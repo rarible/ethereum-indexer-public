@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.exceptions.*
 import com.rarible.protocol.order.api.misc.data
 import com.rarible.protocol.order.api.service.order.OrderFilterCriteria.toCriteria
+import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
@@ -12,9 +13,6 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
-import com.rarible.protocol.order.core.service.validation.LazyAssetValidator
-import com.rarible.protocol.order.core.service.validation.OrderSignatureValidator
-import com.rarible.protocol.order.core.service.validation.OrderValidator
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -24,7 +22,8 @@ import java.math.BigInteger
 class OrderService(
     private val orderRepository: OrderRepository,
     private val orderReduceService: OrderReduceService,
-    private val nftItemApiService: NftItemApiService
+    private val nftItemApiService: NftItemApiService,
+    private val orderValidator: OrderValidator
 ) {
 
     suspend fun convertForm(form: OrderFormDto): Order = convertFormToVersion(form).toOrderExactFields()
@@ -57,6 +56,7 @@ class OrderService(
 
     suspend fun put(form: OrderFormDto): Order {
         val orderVersion = convertFormToVersion(form)
+        orderValidator.validateOrderVersion(orderVersion)
         return try {
             orderReduceService.addOrderVersion(orderVersion)
         } catch (e: Exception) {
@@ -142,9 +142,6 @@ class OrderService(
                 OrderReduceService.OrderUpdateError.OrderUpdateErrorReason.TAKE_VALUE_ERROR -> OrderUpdateErrorReason.TAKE_VALUE_ERROR
             }
         )
-        is OrderValidator.IncorrectOrderDataException -> IncorrectOrderDataException(message ?: "")
-        is OrderSignatureValidator.IncorrectSignatureException -> IncorrectSignatureException(message ?: "")
-        is LazyAssetValidator.InvalidLazyAssetException -> InvalidLazyAssetException(message ?: "")
         else -> this
     }
 }

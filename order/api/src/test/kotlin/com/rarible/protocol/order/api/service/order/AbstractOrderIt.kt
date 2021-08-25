@@ -12,13 +12,13 @@ import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.misc.setField
+import com.rarible.protocol.order.api.service.order.validation.OrderSignatureValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
-import com.rarible.protocol.order.core.service.validation.OrderSignatureValidator
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

@@ -14,9 +14,6 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
-import com.rarible.protocol.order.core.service.validation.LazyAssetValidator
-import com.rarible.protocol.order.core.service.validation.OrderSignatureValidator
-import com.rarible.protocol.order.core.service.validation.OrderValidator
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
@@ -38,18 +35,11 @@ class OrderReduceService(
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
-    private val orderValidator: OrderValidator,
     private val orderVersionListener: OrderVersionListener
 ) {
 
-    @Throws(
-        OrderUpdateError::class,
-        OrderValidator.IncorrectOrderDataException::class,
-        OrderSignatureValidator.IncorrectSignatureException::class,
-        LazyAssetValidator.InvalidLazyAssetException::class
-    )
+    @Throws(OrderUpdateError::class)
     suspend fun addOrderVersion(orderVersion: OrderVersion): Order {
-        orderValidator.validate(orderVersion)
         // Try to update the Order state with the new [orderVersion]. Do not yet add the version to the OrderVersionRepository.
         // If the [orderVersion] leads to an invalid update, this function will fail at [orderValidator.validate].
         val order = update(orderHash = orderVersion.hash, newOrderVersion = orderVersion).awaitSingle()
@@ -134,7 +124,7 @@ class OrderReduceService(
     }
 
     private fun Order.updateWith(orderVersion: OrderVersion): Order {
-        orderValidator.validate(this, orderVersion)
+        validateUpdate(this, orderVersion)
         return copy(
             make = orderVersion.make,
             take = orderVersion.take,
@@ -209,5 +199,32 @@ class OrderReduceService(
 
         fun EventData.toExchangeHistory(): OrderExchangeHistory =
             requireNotNull(this as? OrderExchangeHistory) { "Unexpected exchange history type ${this::class}" }
+
+        @Throws(OrderUpdateError::class)
+        fun validateUpdate(existing: Order, update: OrderVersion) {
+            if (existing.cancelled) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.CANCELLED)
+            }
+            if (existing.data != update.data) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
+            }
+            if (existing.start != update.start) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
+            }
+            if (existing.end != update.end) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
+            }
+            if (existing.taker != update.taker) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.INVALID_UPDATE)
+            }
+            if (update.make.value < existing.make.value) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.MAKE_VALUE_ERROR)
+            }
+
+            val newMaxTake = update.make.value * existing.take.value / existing.make.value
+            if (newMaxTake < update.take.value) {
+                throw OrderUpdateError(OrderUpdateError.OrderUpdateErrorReason.TAKE_VALUE_ERROR)
+            }
+        }
     }
 }
