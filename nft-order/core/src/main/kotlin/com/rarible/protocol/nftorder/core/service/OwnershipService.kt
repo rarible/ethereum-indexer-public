@@ -6,7 +6,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.data.ItemSellStats
-import com.rarible.protocol.nftorder.core.data.OwnershipEnrichmentData
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
 import com.rarible.protocol.nftorder.core.model.OwnershipId
@@ -21,9 +20,9 @@ import org.springframework.stereotype.Component
 class OwnershipService(
     private val conversionService: ConversionService,
     private val nftOwnershipControllerApi: NftOwnershipControllerApi,
-    private val ownershipRepository: OwnershipRepository,
-    private val orderService: OrderService
+    private val ownershipRepository: OwnershipRepository
 ) {
+
     private val logger = LoggerFactory.getLogger(OwnershipService::class.java)
 
     suspend fun get(ownershipId: OwnershipId): Ownership? {
@@ -56,11 +55,11 @@ class OwnershipService(
         return if (ownership != null) {
             Fetched(ownership, false)
         } else {
-            Fetched(fetchOwnershipDto(ownershipId), true)
+            Fetched(fetchOwnership(ownershipId), true)
         }
     }
 
-    private suspend fun fetchOwnershipDto(ownershipId: OwnershipId): Ownership {
+    private suspend fun fetchOwnership(ownershipId: OwnershipId): Ownership {
         val now = nowMillis()
         val nftOwnershipDto = nftOwnershipControllerApi
             .getNftOwnershipById(ownershipId.stringValue)
@@ -70,15 +69,4 @@ class OwnershipService(
         return conversionService.convert(nftOwnershipDto)
     }
 
-    suspend fun enrichOwnership(rawOwnership: Ownership, enrichmentData: OwnershipEnrichmentData): Ownership {
-        return rawOwnership.copy(
-            bestSellOrder = enrichmentData.bestSellOrder
-        )
-    }
-
-    suspend fun getEnrichmentData(ownershipId: OwnershipId): OwnershipEnrichmentData {
-        return OwnershipEnrichmentData(
-            bestSellOrder = orderService.getBestSell(ownershipId)
-        )
-    }
 }

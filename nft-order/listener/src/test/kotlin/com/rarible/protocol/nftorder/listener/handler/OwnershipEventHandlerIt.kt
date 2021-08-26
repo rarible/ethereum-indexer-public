@@ -23,20 +23,18 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     private lateinit var ownershipService: OwnershipService
 
     @Test
-    fun `update event - ownership fetched and stored`() = runWithKafka {
+    fun `update event - ownership doesn't exist`() = runWithKafka {
         val itemId = randomItemId()
         val ownershipId = randomOwnershipId(itemId)
-        val bestSell = randomLegacyOrderDto(itemId)
-
-        orderControllerApiMock.mockGetSellOrdersByItem(ownershipId, bestSell)
 
         val ownershipDto = randomNftOwnershipDto(ownershipId)
         ownershipEventHandler.handle(createOwnershipUpdateEvent(ownershipDto))
 
-        val created = ownershipService.get(ownershipId)!!
+        val created = ownershipService.get(ownershipId)
+        // Ownership should not be updated since it wasn't in DB before update
+        assertThat(created).isNull()
 
-        assertOwnershipAndNftDtoEquals(created, ownershipDto)
-        assertThat(created.bestSellOrder).isEqualTo(bestSell)
+        // But there should be single Ownership event "as is"
         Wait.waitAssert {
             assertThat(ownershipEvents).hasSize(1)
             assertUpdateOwnershipEvent(ownershipId, ownershipEvents!![0])
@@ -46,60 +44,22 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     @Test
     fun `update event - existing ownership updated`() = runWithKafka {
         val itemId = randomItemId()
-        val ownership = ownershipService.save(randomOwnership(itemId))
         val bestSell = randomLegacyOrderDto(itemId)
+        val ownership = randomOwnership(itemId).copy(bestSellOrder = bestSell)
 
-        // Despite we already have stored enrichment data, we refreshing it on update
-        orderControllerApiMock.mockGetSellOrdersByItem(ownership.id, bestSell)
+        ownershipService.save(ownership)
 
         val ownershipDto = randomNftOwnershipDto(ownership.id)
         ownershipEventHandler.handle(createOwnershipUpdateEvent(ownershipDto))
 
         val updated = ownershipService.get(ownership.id)!!
 
-        // Entity should be completely replaced by update data
+        // Entity should be completely replaced by update data, except enrich data - it should be the same
         assertOwnershipAndNftDtoEquals(updated, ownershipDto)
         assertThat(updated.bestSellOrder).isEqualTo(bestSell)
         Wait.waitAssert {
             assertThat(ownershipEvents).hasSize(1)
             assertUpdateOwnershipEvent(ownership.id, ownershipEvents!![0])
-        }
-    }
-
-    @Test
-    fun `update event - existing ownership deleted, no enrich data`() = runWithKafka {
-        val itemId = randomItemId()
-        val ownership = ownershipService.save(randomOwnership(itemId))
-        assertThat(ownershipService.get(ownership.id)).isNotNull()
-
-        // No enrichment data fetched
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-
-        val ownershipDto = randomNftOwnershipDto(ownership.id)
-        ownershipEventHandler.handle(createOwnershipUpdateEvent(ownershipDto))
-
-        // Entity removed due to absence of enrichment data
-        assertThat(ownershipService.get(ownership.id)).isNull()
-        Wait.waitAssert {
-            assertThat(ownershipEvents).hasSize(1)
-            assertUpdateOwnershipEvent(ownership.id, ownershipEvents!![0])
-        }
-    }
-
-    @Test
-    fun `update event - update skipped, no enrich data`() = runWithKafka<Unit> {
-        val itemId = randomItemId()
-        val ownershipId = randomOwnershipId(itemId)
-
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-
-        val ownershipDto = randomNftOwnershipDto(ownershipId)
-        ownershipEventHandler.handle(createOwnershipUpdateEvent(ownershipDto))
-
-        assertThat(ownershipService.get(ownershipId)).isNull()
-        Wait.waitAssert {
-            assertThat(ownershipEvents).hasSize(1)
-            assertUpdateOwnershipEvent(ownershipId, ownershipEvents!![0])
         }
     }
 
