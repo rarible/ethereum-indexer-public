@@ -23,25 +23,17 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
     private lateinit var itemService: ItemService
 
     @Test
-    fun `update event - item fetched and stored`() = runWithKafka {
+    fun `update event - item doesn't exist`() = runWithKafka {
         val itemId = randomItemId()
-        val bestSell = randomLegacyOrderDto(itemId)
-        val bestBid = randomLegacyOrderDto(itemId)
-
-        // Enrichment requests
-        lockControllerApiMock.mockIsUnlockable(itemId, true)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId, bestSell)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, bestBid)
-
         val nftItemDto = randomNftItemDto(itemId)
+
         itemEventHandler.handle(createItemUpdateEvent(nftItemDto))
 
-        val created = itemService.get(itemId)!!
+        val created = itemService.get(itemId)
 
-        assertItemAndDtoEquals(created, nftItemDto)
-        assertThat(created.unlockable).isTrue()
-        assertThat(created.bestSellOrder).isEqualTo(bestSell)
-        assertThat(created.bestBidOrder).isEqualTo(bestBid)
+        // Item should not be updated since it wasn't in DB before update
+        assertThat(created).isNull()
+        // But there should be single Item event "as is"
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
             assertUpdateItemEvent(itemId, itemEvents!![0])
@@ -50,69 +42,23 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
 
     @Test
     fun `update event - existing item updated`() = runWithKafka {
-        val item = itemService.save(randomItem())
-        val itemId = item.id
+        val itemId = randomItemId()
         val bestSell = randomLegacyOrderDto(itemId)
         val bestBid = randomLegacyOrderDto(itemId)
 
-        // Despite we already have stored enrichment data, we refreshing it on update
-        lockControllerApiMock.mockIsUnlockable(itemId, false)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId, bestSell)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, bestBid)
+        val item = randomItem(itemId).copy(bestSellOrder = bestSell, bestBidOrder = bestBid, unlockable = true)
+        itemService.save(item)
 
         val nftItemDto = randomNftItemDto(itemId)
         itemEventHandler.handle(createItemUpdateEvent(nftItemDto))
 
         val created = itemService.get(itemId)!!
 
-        // Entity should be completely replaced by update data
+        // Entity should be completely replaced by update data, except enrich data - it should be the same
         assertItemAndDtoEquals(created, nftItemDto)
-        assertThat(created.unlockable).isFalse()
+        assertThat(created.unlockable).isTrue()
         assertThat(created.bestSellOrder).isEqualTo(bestSell)
         assertThat(created.bestBidOrder).isEqualTo(bestBid)
-        Wait.waitAssert {
-            assertThat(itemEvents).hasSize(1)
-            assertUpdateItemEvent(itemId, itemEvents!![0])
-        }
-    }
-
-    @Test
-    fun `update event - existing item deleted, no enrich data`() = runWithKafka {
-        val item = itemService.save(randomItem())
-        assertThat(itemService.get(item.id)).isNotNull()
-
-        // No enrichment data fetched
-        lockControllerApiMock.mockIsUnlockable(item.id, false)
-        orderControllerApiMock.mockGetSellOrdersByItem(item.id)
-        orderControllerApiMock.mockGetBidOrdersByItem(item.id)
-        orderControllerApiMock.mockGetSellOrdersByItem(item.id)
-
-        val nftItemDto = randomNftItemDto(item.id)
-        itemEventHandler.handle(createItemUpdateEvent(nftItemDto))
-
-        // Entity removed due to absence of enrichment data
-        assertThat(itemService.get(item.id)).isNull()
-        Wait.waitAssert {
-            assertThat(itemEvents).hasSize(1)
-            assertUpdateItemEvent(item.id, itemEvents!![0])
-        }
-    }
-
-    @Test
-    fun `update event - update skipped, no enrich data`() = runWithKafka<Unit> {
-        val itemId = randomItemId()
-
-        // No enrichment data fetched
-        lockControllerApiMock.mockIsUnlockable(itemId, false)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-
-        val nftItemDto = randomNftItemDto(itemId)
-        itemEventHandler.handle(createItemUpdateEvent(nftItemDto))
-
-        // Entity not created due to absence of enrichment data
-        assertThat(itemService.get(itemId)).isNull()
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
             assertUpdateItemEvent(itemId, itemEvents!![0])

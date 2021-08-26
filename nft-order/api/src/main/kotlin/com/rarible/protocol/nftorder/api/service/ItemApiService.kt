@@ -25,7 +25,7 @@ class ItemApiService(
 
     suspend fun getItemById(itemId: ItemId, includeMeta: Boolean?): NftOrderItemDto = coroutineScope {
         logger.debug("Get item: [{}], includeMeta={}", itemId, includeMeta)
-        val item = itemService.getOrFetchEnrichedItemById(itemId).entity
+        val item = itemService.getOrFetchItemById(itemId).entity
         val meta = if (includeMeta == true) itemService.fetchItemMetaById(itemId) else null
         conversionService.convert<NftOrderItemDto>(ExtendedItem(item, meta))
     }

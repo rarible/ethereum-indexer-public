@@ -7,7 +7,9 @@ import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
+import com.rarible.protocol.nftorder.listener.test.data.assertItemAndDtoEquals
 import com.rarible.protocol.nftorder.listener.test.data.randomItem
+import com.rarible.protocol.nftorder.listener.test.data.randomNftItemDto
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,6 +23,26 @@ internal class UnlockableEventHandlerIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var unlockableEventHandler: UnlockableEventHandler
+
+    @Test
+    fun `lock created event - item create`() = runWithKafka {
+        val item = randomItem()
+
+        val nftItemDto = randomNftItemDto(item.id)
+
+        // Since we don't have any data in Mongo, we need to fetch entities without enrichment data via HTTP API
+        nftItemControllerApiMock.mockGetNftItemById(item.id, nftItemDto)
+
+        unlockableEventHandler.handle(createUnlockableLockCreatedEvent(item.id))
+
+        val updatedItem = itemService.get(item.id)!!
+
+        assertItemAndDtoEquals(updatedItem, nftItemDto)
+        assertThat(updatedItem.unlockable).isTrue()
+        Wait.waitAssert {
+            assertThat(itemEvents).hasSize(1)
+        }
+    }
 
     @Test
     fun `lock created event - item updated`() = runWithKafka {

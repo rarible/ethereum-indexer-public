@@ -4,7 +4,7 @@ import com.rarible.core.common.convert
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftOrderItemDto
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
-import com.rarible.protocol.nftorder.core.service.ItemService
+import com.rarible.protocol.nftorder.core.model.Item
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component
 @Component
 class LazyMintApiService(
     private val nftLazyMintControllerApi: NftLazyMintControllerApi,
-    private val itemService: ItemService,
     private val conversionService: ConversionService
 ) {
 
@@ -25,7 +24,8 @@ class LazyMintApiService(
             lazyNftDto.contract, lazyNftDto.tokenId, lazyNftDto.uri
         )
         val nftItem = nftLazyMintControllerApi.mintNftAsset(lazyNftDto).awaitFirst()
-        val item = itemService.enrichDto(nftItem)
-        return conversionService.convert(item)
+        // TODO should be add here enrich data? I guess we should not
+        val rawItem = conversionService.convert<Item>(nftItem)
+        return conversionService.convert(rawItem)
     }
 }
