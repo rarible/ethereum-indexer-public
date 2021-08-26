@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.test.royalties.RoyaltiesRegistry
+import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
@@ -89,7 +89,7 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
 
         // check royalty in the cache
         assertEquals(1, royaltyRepository.count().awaitFirst())
-        val royaltyPE = royaltyRepository.findByTokenAndId(token, tokenId.value).awaitFirstOrNull()
+        val royaltyPE = royaltyRepository.findByTokenAndId(token, tokenId).awaitFirstOrNull()
         assertNotNull(royaltyPE)
         assertEquals(royalty1._1, royaltyPE?.royalty?.get(0)?.account)
         assertEquals(royalty1._2.toInt(), royaltyPE?.royalty?.get(0)?.value)
@@ -105,7 +105,7 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
         val parts = listOf(Part(royalty1._1, royalty1._2.intValueExact()))
         val record = Royalty(
             address = token,
-            tokenId = tokenId.value,
+            tokenId = tokenId,
             royalty = parts
         )
         royaltyRepository.save(record).awaitFirst()

@@ -58,6 +58,12 @@
                             <packageName>com.rarible.protocol.contracts.external.yinsure</packageName>
                             <type>MONO</type>
                         </contract>
+                        <!--IRoyaltiesProvider-->
+                        <contract>
+                            <truffle>src/main/abi/external/IRoyaltiesProvider.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.external.royalties</packageName>
+                            <type>MONO</type>
+                        </contract>
                         <!--ERC-20-->
                         <contract>
                             <truffle>src/main/truffle/erc20/proxy/ERC20TransferProxy.json</truffle>
@@ -174,14 +180,8 @@
                         </contract>
                         <!--RoyaltiesRegistry-->
                         <contract>
-                            <truffle>src/main/truffle/royalties/test/RoyaltiesRegistry.json</truffle>
-                            <packageName>com.rarible.protocol.contracts.test.royalties</packageName>
-                            <type>MONO</type>
-                        </contract>
-                        <!--IRoyaltiesProvider-->
-                        <contract>
-                            <truffle>src/main/truffle/royalties/test/IRoyaltiesProvider.json</truffle>
-                            <packageName>com.rarible.protocol.contracts.test.royalties</packageName>
+                            <truffle>src/main/truffle/royalties/RoyaltiesRegistry.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.royalties</packageName>
                             <type>MONO</type>
                         </contract>
                     </contracts>

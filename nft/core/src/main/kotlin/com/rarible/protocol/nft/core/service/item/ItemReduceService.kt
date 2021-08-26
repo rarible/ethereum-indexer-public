@@ -121,7 +121,7 @@ class ItemReduceService(
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = pair.first
         if (item.royalties.isEmpty()) {
-            val royalty = royaltyService.getRoyalty(item.token, item.tokenId.value)
+            val royalty = royaltyService.getRoyalty(item.token, item.tokenId)
             Pair(item.copy(royalties = royalty), pair.second)
         } else {
             pair
