@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.listener.service
 
 import com.rarible.core.common.convert
+import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.OrderDto
@@ -15,6 +16,7 @@ import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
+import com.rarible.protocol.nftorder.core.util.spent
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
@@ -60,15 +62,11 @@ class ItemEventService(
     suspend fun onItemUpdated(nftItem: NftItemDto) {
         val rawItem = conversionService.convert<Item>(nftItem)
         val enrichmentData = itemService.getEnrichmentData(rawItem.id)
-        onItemUpdated(rawItem, enrichmentData)
-    }
-
-    suspend fun onItemUpdated(rawItem: Item, data: ItemEnrichmentData) {
-        val updated = itemService.enrichItem(rawItem, data)
+        val updated = itemService.enrichItem(rawItem, enrichmentData)
         optimisticLock {
             val existing = itemService.get(updated.id)
-            if (data.isNotEmpty()) {
-                updateItem(existing, updated, data)
+            if (enrichmentData.isNotEmpty()) {
+                updateItem(existing, updated, enrichmentData)
             } else if (existing != null) {
                 deleteItem(updated.id)
             }
@@ -104,33 +102,36 @@ class ItemEventService(
     }
 
     private suspend fun updateItem(existing: Item?, updated: Item, data: ItemEnrichmentData) {
+        val now = nowMillis()
         if (existing == null) {
-            logger.info(
-                "Inserting Item [{}] with enrichment data: " +
-                        "totalStock = [{}], bestSellOrder = [{}], bestBidOrder = [{}], unlockable = [{}]",
-                updated.id, data.totalStock, data.bestSellOrder?.hash, data.bestBidOrder?.hash, data.unlockable
-            )
             itemService.save(updated)
         } else {
-            logger.info(
-                "Updating Item [{}] with enrichment data: " +
-                        "totalStock = [{}], bestSellOrder = [{}], bestBidOrder = [{}], unlockable = [{}]",
-                updated.id, data.totalStock, data.bestSellOrder?.hash, data.bestBidOrder?.hash, data.unlockable
-            )
             itemService.save(updated.copy(version = existing.version))
         }
+        val operation = if (existing == null) "Inserted" else "Updated"
+        logger.info(
+            "{} Item [{}] with data: totalStock = {}, sellers = {}, bestSellOrder = [{}], bestBidOrder = [{}], unlockable = [{}] ({}ms)",
+            operation,
+            updated.id,
+            data.totalStock,
+            data.sellers,
+            data.bestSellOrder?.hash,
+            data.bestBidOrder?.hash,
+            data.unlockable,
+            spent(now)
+        )
     }
 
     private suspend fun deleteItem(itemId: ItemId) {
-        val result = itemService.delete(itemId)
-        if (result != null && result.deletedCount > 0) {
-            logger.info("Deleted Item [{}] without enrichment data", itemId)
-        }
+        itemService.delete(itemId)
+        logger.info("Deleted Item [{}] without enrichment data", itemId)
     }
 
     suspend fun onItemDeleted(itemId: ItemId) {
-        logger.info("Deleting Item [{}] since it was removed from NFT-Indexer", itemId)
-        itemService.delete(itemId)
+        val result = itemService.delete(itemId)
+        if (result != null && result.deletedCount > 0) {
+            logger.info("Deleted Item [{}] since it removed from NFT-Indexer", itemId)
+        }
         notify(ItemEventDelete(itemId))
     }
 
