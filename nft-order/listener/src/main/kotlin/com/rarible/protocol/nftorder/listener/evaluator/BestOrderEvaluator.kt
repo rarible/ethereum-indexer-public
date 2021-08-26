@@ -52,7 +52,7 @@ class BestOrderEvaluator(
     private fun setBestOrder(updated: OrderDto): OrderDto {
         logger.info(
             "Updated {} Order [{}] is alive, current Order for {} [{}] is null - using updated Order",
-            name, updated, type, id
+            name, updated.hash, type, id
         )
         return updated
     }
@@ -61,7 +61,7 @@ class BestOrderEvaluator(
     private fun updateBestOrder(updated: OrderDto): OrderDto {
         logger.info(
             "Updated {} Order [{}] is the same as current for {} [{}] - using updated Order",
-            name, updated, type, id
+            name, updated.hash, type, id
         )
         return updated
     }
@@ -80,8 +80,8 @@ class BestOrderEvaluator(
         }
 
         logger.info(
-            "Evaluated {} for {} [{}] (current = [{}], updated = [{}]): hash = [{}]",
-            name, type, id, current, updated, current.hash
+            "Evaluated {} for {} [{}] (current = [{}], updated = [{}])",
+            name, type, id, current.hash, updated.hash
         )
         return bestOrder
     }
@@ -90,7 +90,7 @@ class BestOrderEvaluator(
     private fun skipDeadOrder(updated: OrderDto): OrderDto? {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is null - nothing to update",
-            name, updated, type, id
+            name, updated.hash, type, id
         )
         return null
     }
@@ -99,11 +99,11 @@ class BestOrderEvaluator(
     private suspend fun refetchDeadOrder(updated: OrderDto): OrderDto? {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is the same - dropping it",
-            name, updated, type, id
+            name, updated.hash, type, id
         )
         // It means, current best Order is not alive, we have to fetch actual best Order
         val fetched = provider.fetch()
-        logger.info("Fetched {} for {} [{}] : [{}]", name, type, id, fetched)
+        logger.info("Fetched {} for {} [{}] : [{}]", name, type, id, fetched?.hash)
         return fetched
     }
 
@@ -111,7 +111,7 @@ class BestOrderEvaluator(
     private fun ignoreDeadOrder(current: OrderDto, updated: OrderDto): OrderDto {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is [{}] - nothing to update",
-            name, updated, type, id, current
+            name, updated.hash, type, id, current.hash
         )
         return current
     }

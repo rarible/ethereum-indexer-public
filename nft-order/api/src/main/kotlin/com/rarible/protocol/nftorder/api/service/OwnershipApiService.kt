@@ -25,7 +25,7 @@ class OwnershipApiService(
 
     suspend fun getOwnershipById(id: OwnershipId): NftOrderOwnershipDto {
         logger.debug("Get Ownership: [{}]", id)
-        val ownership = ownershipService.getOrFetchEnrichedOwnershipById(id).entity
+        val ownership = ownershipService.getOrFetchOwnershipById(id).entity
         return conversionService.convert(ownership)
     }
 
