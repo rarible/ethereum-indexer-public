@@ -109,7 +109,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
         assertThat(ownershipService.get(ownership.id)).isNotNull()
 
         // No enrichment data fetched
-        ownershipEventHandler.handle(createOwnershipDeleteEvent(ownership.id))
+        ownershipEventHandler.handle(randomOwnershipDeleteEvent(ownership.id))
 
         // Entity not created due to absence of enrichment data
         assertThat(ownershipService.get(ownership.id)).isNull()
@@ -123,7 +123,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     fun `delete event - ownership doesn't exist`() = runWithKafka {
         val ownershipId = randomOwnershipId()
 
-        ownershipEventHandler.handle(createOwnershipDeleteEvent(ownershipId))
+        ownershipEventHandler.handle(randomOwnershipDeleteEvent(ownershipId))
 
         assertThat(ownershipService.get(ownershipId)).isNull()
         Wait.waitAssert {
@@ -134,7 +134,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
 
     private fun assertDeleteOwnershipEvent(ownershipId: OwnershipId, message: KafkaMessage<NftOrderOwnershipEventDto>) {
         val event = message.value
-        assertThat(event is NftOrderOwnershipEventDto)
+        assertThat(event is NftOrderOwnershipDeleteEventDto)
         assertThat(event.ownershipId).isEqualTo(ownershipId.decimalStringValue)
     }
 
@@ -149,19 +149,6 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
             randomString(),
             nftOwnership.id,
             nftOwnership
-        )
-    }
-
-    private fun createOwnershipDeleteEvent(ownershipId: OwnershipId): NftOwnershipDeleteEventDto {
-        return NftOwnershipDeleteEventDto(
-            randomString(),
-            ownershipId.stringValue,
-            NftDeletedOwnershipDto(
-                ownershipId.stringValue,
-                ownershipId.token,
-                ownershipId.tokenId.value,
-                ownershipId.owner
-            )
         )
     }
 }
