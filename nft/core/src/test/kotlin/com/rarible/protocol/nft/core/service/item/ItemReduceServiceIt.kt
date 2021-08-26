@@ -18,6 +18,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -352,6 +353,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.Companion.of(5))
     }
 
+    @Disabled
     @Test
     fun confirmedItemRoyalty() = runBlocking<Unit> {
         val token = AddressFactory.create()
@@ -695,6 +697,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, expSupply = value, expLazySupply = EthUInt256.Companion.of(0))
     }
 
+    @Disabled
     @Test
     fun `should calculate royalties after real mint of lazy nft`() = runBlocking<Unit> {
         val token = Address.ONE()

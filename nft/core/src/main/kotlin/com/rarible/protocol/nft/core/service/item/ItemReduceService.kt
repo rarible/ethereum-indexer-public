@@ -35,6 +35,9 @@ class ItemReduceService(
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService
 ) {
+
+    private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
+
     fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
             if (logs.isNotEmpty()) {
@@ -205,8 +208,8 @@ class ItemReduceService(
                         }
                     }
                     is ItemRoyalty -> {
-                        // remove
-                        item.copy(royalties = event.royalties)
+                        logger.info("Ignoring ItemRoyalty event")
+                        item
                     }
                     is ItemLazyMint -> {
                         item.copy(royalties = event.royalties, creators = event.creators, creatorsFinal = true)
