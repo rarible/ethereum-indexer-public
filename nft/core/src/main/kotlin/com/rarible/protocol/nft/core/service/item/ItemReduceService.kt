@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
@@ -117,14 +118,13 @@ class ItemReduceService(
                 }
             }
 
-    private fun <A : Item, B> royalty(pair: Pair<A, B>): Mono<Pair<Item, B>> {
+    private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = pair.first
         if (item.royalties.isEmpty()) {
-            return royaltyService.getRoyalty(item.token, item.tokenId.value).flatMap { royalty ->
-                Mono.just(Pair(item.copy(royalties = royalty), pair.second))
-            }
+            val royalty = royaltyService.getRoyalty(item.token, item.tokenId.value)
+            Pair(item.copy(royalties = royalty), pair.second)
         } else {
-            return Mono.just(pair)
+            pair
         }
     }
 
@@ -205,6 +205,7 @@ class ItemReduceService(
                         }
                     }
                     is ItemRoyalty -> {
+                        // remove
                         item.copy(royalties = event.royalties)
                     }
                     is ItemLazyMint -> {

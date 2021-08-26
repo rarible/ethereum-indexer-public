@@ -5,9 +5,9 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
@@ -19,22 +19,22 @@ class RoyaltyService(
     private val royaltyRepository: RoyaltyRepository
 ) {
 
-    fun getRoyalty(address: Address, tokenId: BigInteger): Mono<List<Part>> {
-        return royaltyRepository.findByTokenAndId(address, tokenId).map { it.royalty }
-            .switchIfEmpty {
+    suspend fun getRoyalty(address: Address, tokenId: BigInteger): List<Part> {
+        var record = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
+        return when {
+            record != null -> record.royalty
+            else -> {
                 val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
-                provider.getRoyalties(address, tokenId).call()
-                    .map { royalty -> royalty.map { Part(it._1, it._2.intValueExact()) }.toList() }
-                    .flatMap { parts ->
-                        royaltyRepository.save(
-                            Royalty(
-                                address = address,
-                                tokenId = tokenId,
-                                royalty = parts
-                            )
-                        )
-                    }
-                    .flatMap { Mono.just(it.royalty) }
+                val answer = provider.getRoyalties(address, tokenId).call().awaitSingle()
+                val royalty = answer.map { Part(it._1, it._2.intValueExact()) }.toList()
+                royaltyRepository.save(
+                    Royalty(
+                        address = address,
+                        tokenId = tokenId,
+                        royalty = royalty
+                    )
+                ).awaitSingle().royalty
             }
+        }
     }
 }
