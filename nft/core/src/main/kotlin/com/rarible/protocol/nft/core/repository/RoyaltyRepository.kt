@@ -9,7 +9,6 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import java.math.BigInteger
 
 
 class RoyaltyRepository(
@@ -21,10 +20,12 @@ class RoyaltyRepository(
     }
 
     fun findByTokenAndId(address: Address, tokenId: EthUInt256): Mono<Royalty> {
-        val query = Query().apply {
-            addCriteria(Criteria.where("address").isEqualTo(address))
-            addCriteria(Criteria.where("tokenId").isEqualTo(tokenId))
-        }
+        val query = Query(
+            Criteria().andOperator(
+                Royalty::address isEqualTo address,
+                Royalty::tokenId isEqualTo tokenId
+            )
+        )
         return mongo.findOne<Royalty>(query, Royalty::class.java)
     }
 
