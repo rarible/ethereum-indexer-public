@@ -13,7 +13,7 @@
     </parent>
 
     <properties>
-        <opensea-client-starter.version>0.11.0</opensea-client-starter.version>
+        <opensea-client-starter.version>0.12.0</opensea-client-starter.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
