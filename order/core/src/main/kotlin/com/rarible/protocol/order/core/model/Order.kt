@@ -59,10 +59,7 @@ data class Order(
     val platform: Platform = Platform.RARIBLE,
 
     @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value),
-
-    @Version
-    val version: Long? = null
+    val hash: Word = hashKey(maker, make.type, take.type, salt.value)
 ) {
     fun forV1Tx() = run {
         assert(type == OrderType.RARIBLE_V1)

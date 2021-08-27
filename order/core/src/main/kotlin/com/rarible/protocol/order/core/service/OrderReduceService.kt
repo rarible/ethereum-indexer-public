@@ -38,6 +38,7 @@ class OrderReduceService(
 
     suspend fun updateOrder(orderHash: Word): Order = update(orderHash = orderHash).awaitSingle()
 
+    // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
@@ -121,10 +122,7 @@ class OrderReduceService(
             fill = accumulator.fill,
             cancelled = accumulator.cancelled,
             makeStock = accumulator.makeStock,
-            pending = accumulator.pending,
-
-            // Preserve the Mongo optimistic version.
-            version = accumulator.version
+            pending = accumulator.pending
         )
 
     private suspend fun getUpdatedPriceHistoryRecords(
@@ -153,12 +151,10 @@ class OrderReduceService(
     }
 
     private suspend fun updateOrderWithState(orderStub: Order): Order {
-        val previousOrder = orderRepository.findById(orderStub.hash)
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
-            .copy(version = previousOrder?.version)
-        val saved = orderRepository.save(order, previousOrder)
+        val saved = orderRepository.save(order)
         logger.info(buildString {
             append("Updated order: ")
             append("hash=${saved.hash}, ")

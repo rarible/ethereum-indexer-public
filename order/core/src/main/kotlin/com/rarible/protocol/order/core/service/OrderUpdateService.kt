@@ -49,8 +49,8 @@ class OrderUpdateService(
     /**
      * Updates the order's make stock and prices without calling the OrderReduceService.
      */
-    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? = optimisticLock {
-        val order = orderRepository.findById(hash) ?: return@optimisticLock null
+    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
+        val order = orderRepository.findById(hash) ?: return null
         val makeBalance = knownMakeBalance ?: assetBalanceProvider.getAssetStock(order.maker, order.make.type) ?: EthUInt256.ZERO
         val protocolCommission = protocolCommissionProvider.get()
         val withNewBalance = order.withMakeBalance(makeBalance, protocolCommission)
@@ -60,6 +60,6 @@ class OrderUpdateService(
             withNewBalance
         }
         logger.info("Updated order ${updated.hash}, makeStock=${updated.makeStock}, makeBalance=$makeBalance")
-        return@optimisticLock orderRepository.save(updated)
+        return orderRepository.save(updated)
     }
 }
