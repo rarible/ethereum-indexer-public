@@ -15,6 +15,9 @@ import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
+/**
+ * Service responsible for inserting or updating order state (see [save]).
+ */
 @Component
 class OrderUpdateService(
     private val orderRepository: OrderRepository,
@@ -27,6 +30,15 @@ class OrderUpdateService(
 ) {
     private val logger = LoggerFactory.getLogger(OrderUpdateService::class.java)
 
+    /**
+     * Inserts a new order or updates an existing order with data from the [orderVersion].
+     * Orders are identified by [OrderVersion.hash].
+     *
+     * [orderVersion] **must be** a valid order update having the same values for significant fields
+     * (`data`, `start`, `end`, etc).
+     * **Validation is not part of this function**. So make sure the source of order version updates is trustworthy.
+     * On API level validation is performed in `OrderValidator.validate(existing: Order, update: OrderVersion)`.
+     */
     suspend fun save(orderVersion: OrderVersion): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
         val order = optimisticLock { orderReduceService.updateOrder(orderVersion.hash) }
