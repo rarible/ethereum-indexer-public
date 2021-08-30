@@ -6,6 +6,7 @@ import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.lang.Long.min
 import java.time.Instant
@@ -15,6 +16,7 @@ class OpenSeaOrderService(
     private val openSeaClient: OpenSeaClient,
     properties: OrderListenerProperties
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
     private val loadOpenSeaPeriod = properties.loadOpenSeaPeriod.seconds
     private val loadOpenSeaOrderSide = convert(properties.openSeaOrderSide)
 
@@ -44,7 +46,7 @@ class OpenSeaOrderService(
                 side = loadOpenSeaOrderSide,
                 limit = null
             )
-            val result = getOrders(request)
+            val result = getOrdersWithLogIfException(request)
 
             orders.addAll(result)
         } while (result.isNotEmpty() && orders.size <= MAX_OFFSET)
@@ -63,6 +65,15 @@ class OpenSeaOrderService(
             }
         }
         throw IllegalStateException("Can't fetch OpenSea orders, number of attempts exceeded, last error: $lastError")
+    }
+
+    private suspend fun getOrdersWithLogIfException(request: OrdersRequest): List<OpenSeaOrder> {
+        return try {
+            getOrders(request)
+        } catch (ex: Exception) {
+            logger.error("Exception while get OpenSea orders with request: listedAfter=${request.listedAfter}, listedBefore=${request.listedBefore}, offset=${request.offset}, side=${request.side}")
+            throw ex
+        }
     }
 
     private fun convert(side: OrderListenerProperties.OrderSide?): OrderSide? {
