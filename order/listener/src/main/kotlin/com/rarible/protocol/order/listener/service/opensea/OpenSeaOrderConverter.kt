@@ -12,6 +12,7 @@ import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -59,7 +60,7 @@ class OpenSeaOrderConverter(
         )
     }
 
-    private fun joinSignaturePart(r: Binary, s: Binary, v: Byte): Binary {
+    private fun joinSignaturePart(r: Word, s: Word, v: Byte): Binary {
         return r.add(s).add(byteArrayOf(v))
     }
 
