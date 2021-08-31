@@ -38,6 +38,14 @@ class OpenSeaOrdersFetcherWorker(
 ) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
 
     override suspend fun handle() {
+        try {
+            handleSafely()
+        } catch (ex: AssertionError) {
+            throw IllegalStateException(ex)
+        }
+    }
+
+    private suspend fun handleSafely() {
         if (properties.loadOpenSeaOrders.not()) return
 
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
