@@ -1,6 +1,5 @@
 package com.rarible.protocol.gateway.route
 
-import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.gateway.configuration.GatewayProperties
 import com.rarible.protocol.gateway.service.cluster.UriProvider
 import org.springframework.cloud.gateway.route.Route
@@ -36,10 +35,11 @@ class ProtocolRouteLocator(
         route("nft-indexer-api-v1-get-post") {
             path(
                 "/v0.1/nft/items/*/meta",
+                "/v0.1/nft/items/*/resetMeta",
                 "/v0.1/nft/items/*/lazy",
                 "/v0.1/nft/mints",
                 "/v0.1/nft/collections/**"
-            ).and(method(HttpMethod.GET, HttpMethod.POST))
+            ).and(method(HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE))
 
             filters {
                 rewritePath(
