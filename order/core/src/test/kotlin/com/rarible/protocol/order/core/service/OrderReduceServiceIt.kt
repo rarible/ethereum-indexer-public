@@ -127,7 +127,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             exchangeHistoryRepository.save(
                 LogEvent(
                     data = history, address = AddressFactory.create(), topic = word(), transactionHash = word(),
-                    from = null, nonce = null, status = LogEventStatus.CONFIRMED, blockNumber = 1,
+                    status = LogEventStatus.CONFIRMED, blockNumber = 1,
                     logIndex = 0, minorLogIndex = index, index = 0
                 )
             ).awaitFirst()
