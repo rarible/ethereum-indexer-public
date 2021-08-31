@@ -12,10 +12,8 @@ object LogEventDtoConverter : Converter<LogEvent, LogEventDto> {
         return LogEventDto(
             transactionHash = source.transactionHash,
             status = convert(source.status),
-            from = source.from ?: error("From must be defined"),
             address = source.address,
-            topic = source.topic,
-            nonce = source.nonce ?: error("Nonce must be defined")
+            topic = source.topic
         )
     }
 

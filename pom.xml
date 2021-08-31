@@ -32,7 +32,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <rarible-core.version>1.2-SNAPSHOT</rarible-core.version>
-        <rarible-ethereum.version>1.0-SNAPSHOT</rarible-ethereum.version>
+        <rarible-ethereum.version>1.1-SNAPSHOT</rarible-ethereum.version>
         <dev-jna.version>5.7.0</dev-jna.version>
 
         <!-- ============== Plugin versions ============== -->

@@ -109,8 +109,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                     address = token,
                     topic = WordFactory.create(),
                     transactionHash = transactionHash,
-                    from = null,
-                    nonce = null,
                     status = status,
                     index = 0,
                     logIndex = logIndex,

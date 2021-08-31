@@ -97,7 +97,6 @@ fun createLogEvent(data: EventData) = LogEvent(
     address = createAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
     transactionHash = Word.apply(RandomUtils.nextBytes(32)),
-    from = createAddress(),
     index = RandomUtils.nextInt(),
     minorLogIndex = 0,
     status = LogEventStatus.CONFIRMED

@@ -139,12 +139,11 @@ fun orderErc721BidCancel(): OrderCancel {
     return orderCancel(make, take)
 }
 
-fun createLogEvent(data: OrderExchangeHistory, from: Address? = null) = LogEvent(
+fun createLogEvent(data: OrderExchangeHistory) = LogEvent(
     data = data,
     address = createAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
     transactionHash = Word.apply(RandomUtils.nextBytes(32)),
-    from = from,
     index = RandomUtils.nextInt(),
     minorLogIndex = 0,
     status = LogEventStatus.CONFIRMED
