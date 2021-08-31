@@ -40,6 +40,19 @@ class ItemPropertyRepository(
             .map { it.getString(PROPERTIES_FILED) }
     }
 
+    fun get(itemId: ItemId): Mono<String> {
+        val query = Query().apply {
+            addCriteria(Criteria.where("_id").isEqualTo(itemId.stringValue))
+        }
+        return mongo
+            .findOne<Document>(query, COLLECTION)
+            .map { it.getString(PROPERTIES_FILED) }
+    }
+
+    fun count(): Mono<Long> {
+        return mongo.count(Query(), COLLECTION)
+    }
+
     private companion object {
         const val COLLECTION = "item_properties"
         const val PROPERTIES_FILED = "properties"
