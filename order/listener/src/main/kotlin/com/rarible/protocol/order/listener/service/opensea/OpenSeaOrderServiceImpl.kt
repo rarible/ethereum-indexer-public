@@ -71,7 +71,7 @@ class OpenSeaOrderServiceImpl(
         return try {
             getOrders(request)
         } catch (ex: Exception) {
-            logger.error("Exception while get OpenSea orders with request: listedAfter=${request.listedAfter.epochSecond}, listedBefore=${request.listedBefore.epochSecond}, offset=${request.offset}, side=${request.side}, ex=${ex.javaClass.simpleName}")
+            logger.error("Exception while get OpenSea orders with request: listedAfter=${request.listedAfter?.epochSecond}, listedBefore=${request.listedBefore?.epochSecond}, offset=${request.offset}, side=${request.side}, ex=${ex.javaClass.simpleName}")
             throw ex
         }
     }
