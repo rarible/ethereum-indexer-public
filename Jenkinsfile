@@ -21,6 +21,7 @@ pipeline {
       agent any
       steps {
 //          sh 'mvn clean test -U'
+         sh 'echo no test'
       }
       post {
         always {
@@ -44,7 +45,7 @@ pipeline {
           env.VERSION = "${env.IMAGE_TAG}"
         }
         dir("api") {
-//         	deployToMaven(env.CREDENTIALS_ID)
+        	deployToMaven(env.CREDENTIALS_ID)
         }
         publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
