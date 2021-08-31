@@ -20,6 +20,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
+import org.springframework.boot.actuate.health.Health
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
@@ -106,5 +107,9 @@ class OpenSeaOrdersFetcherWorker(
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
+    }
+
+    override fun health(): Health {
+        return Health.up().build()
     }
 }
