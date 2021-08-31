@@ -20,7 +20,7 @@ pipeline {
     stage('test') {
       agent any
       steps {
-         sh 'mvn clean test -U'
+//          sh 'mvn clean test -U'
       }
       post {
         always {
@@ -36,7 +36,7 @@ pipeline {
         beforeInput true
       }
       steps {
-        sh 'mvn clean package -DskipTests'
+        sh 'mvn clean package -U -DskipTests'
 
         script {
           env.BRANCH_NAME = "${env.GIT_BRANCH}"
@@ -44,7 +44,7 @@ pipeline {
           env.VERSION = "${env.IMAGE_TAG}"
         }
         dir("api") {
-        	deployToMaven(env.CREDENTIALS_ID)
+//         	deployToMaven(env.CREDENTIALS_ID)
         }
         publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
