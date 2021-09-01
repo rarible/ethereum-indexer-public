@@ -18,6 +18,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -32,6 +33,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     lateinit var nftOrderItemControllerApi: NftOrderItemControllerApi
 
     @Test
+    @Disabled
     fun `get item by id - not synced`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId, randomPartDto())
