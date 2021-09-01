@@ -127,7 +127,7 @@ class OrderListenerConfiguration(
             orderVersionRepository = orderVersionRepository,
             orderVersionListener = orderVersionListener,
             meterRegistry = meterRegistry,
-            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2))
+            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
         ).apply { start() }
     }
 }
