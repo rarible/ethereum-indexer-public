@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.repository.exchange.misc
 
+import com.mongodb.ReadPreference
 import org.bson.Document
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
@@ -22,7 +23,10 @@ fun <T> ReactiveMongoTemplate.aggregateWithHint(aggregation: Aggregation, collec
     Assert.isTrue(!options.isExplain, "Cannot use explain option with streaming!")
 
     return mongoDatabase.flatMapMany {  mongoDatabase ->
-        val cursor = mongoDatabase.getCollection(collectionName).aggregate(pipeline, Document::class.java).allowDiskUse(options.isAllowDiskUse)
+        val cursor = mongoDatabase.getCollection(collectionName)
+            .withReadPreference(ReadPreference.secondary())
+            .aggregate(pipeline, Document::class.java).allowDiskUse(options.isAllowDiskUse)
+
         hint?.let { cursor.hint(it) }
         Flux.from(cursor).map { converter.read(outputType, it) }
     }
