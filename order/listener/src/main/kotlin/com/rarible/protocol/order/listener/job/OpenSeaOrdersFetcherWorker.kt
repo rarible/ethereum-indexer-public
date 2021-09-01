@@ -20,6 +20,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
+import org.springframework.boot.actuate.health.Health
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
@@ -37,6 +38,14 @@ class OpenSeaOrdersFetcherWorker(
 ) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
 
     override suspend fun handle() {
+        try {
+            handleSafely()
+        } catch (ex: AssertionError) {
+            throw IllegalStateException(ex)
+        }
+    }
+
+    private suspend fun handleSafely() {
         if (properties.loadOpenSeaOrders.not()) return
 
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
@@ -106,5 +115,9 @@ class OpenSeaOrdersFetcherWorker(
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
+    }
+
+    override fun health(): Health {
+        return Health.up().build()
     }
 }
