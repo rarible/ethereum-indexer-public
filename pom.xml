@@ -5,7 +5,7 @@
     <artifactId>rarible-protocol-ethereum-indexer</artifactId>
     <groupId>com.rarible.protocol</groupId>
     <packaging>pom</packaging>
-    <version>1.14-SNAPSHOT</version>
+    <version>${revision}</version>
 
     <parent>
         <groupId>com.rarible</groupId>
@@ -25,6 +25,7 @@
     </distributionManagement>
 
     <properties>
+        <revision>1.14-SNAPSHOT</revision>
         <nexus.maven.public>http://nexus.rarible.int/repository/maven-public</nexus.maven.public>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -248,6 +249,10 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>

@@ -4,12 +4,11 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>protocol-order-indexer</artifactId>
     <packaging>pom</packaging>
-    <version>1.14-SNAPSHOT</version>
 
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
-        <version>1.14-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <properties>
