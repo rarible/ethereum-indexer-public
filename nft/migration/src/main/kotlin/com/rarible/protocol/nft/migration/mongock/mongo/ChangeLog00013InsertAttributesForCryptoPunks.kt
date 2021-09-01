@@ -44,7 +44,7 @@ class ChangeLog00013InsertAttributesForCryptoPunks {
                     "accessories" to extra[4].split("/").map { it.trim() }
                 )
                 val itemId = ItemId(Address.apply(nftIndexerProperties.cryptoPunksContractAddress), id)
-                repository.save(itemId, mapper.writeValueAsString(props)).awaitSingle()
+                repository.save(itemId, mapper.writeValueAsString(mapOf("attributes" to props))).awaitSingle()
             }
             logger.info("Finished with $file")
         }
