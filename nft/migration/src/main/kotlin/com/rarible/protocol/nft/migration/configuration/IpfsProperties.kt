@@ -7,5 +7,6 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConfigurationProperties("ipfs")
 data class IpfsProperties(
     val uploadProxy: String,
-    val gateway: String
+    val gateway: String,
+    val cryptoPunksImagesUrl: String
 )

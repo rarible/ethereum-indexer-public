@@ -45,13 +45,14 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
 
         val punk = "2, Human, Female, Light, 1, Wild Hair"
         insertAttributes.savePunk(punk, itemPropertyRepository, mapper, nftIndexerProperties)
-        uploaderSvg.upload("2.svg", itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
+        val bs = javaClass.getResourceAsStream("/data/cryptopunks/2.svg").readBytes()
+        uploaderSvg.upload("2.svg", bs, itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
 
         assertEquals(1, itemPropertyRepository.count().awaitSingle())
 
         val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
         assertEquals("CryptoPunk #2", itemProps?.name)
-        assertEquals("https://rarible.mypinata.cloud/ipfs/QmezgTfa7f3x4BkcSbDqUa8iuX5AFK1oiBnpFrJD5MwzE8", itemProps?.image)
+        assertEquals("https://rarible.mypinata.cloud/ipfs/QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS", itemProps?.image)
         assertThat(itemProps?.attributes).contains(ItemAttribute("type", "Human"))
         assertThat(itemProps?.attributes).contains(ItemAttribute("gender", "Female"))
         assertThat(itemProps?.attributes).contains(ItemAttribute("skin tone", "Light"))

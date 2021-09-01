@@ -36,3 +36,4 @@ common:
 ipfs:
   upload_proxy: "https://pinata.rarible.com/upload"
   gateway: "https://rarible.mypinata.cloud/ipfs"
+  cryptoPunksImagesUrl: "https://rarible.mypinata.cloud/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"

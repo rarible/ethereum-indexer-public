@@ -10,22 +10,25 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import com.rarible.protocol.nft.migration.configuration.IpfsProperties
 import io.changock.migration.api.annotations.NonLockGuarded
+import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.http.*
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
-import org.springframework.web.client.RestTemplate
+import org.springframework.web.reactive.function.BodyInserters
+import org.springframework.web.reactive.function.client.WebClient
+import reactor.core.publisher.Mono
+import reactor.netty.http.client.HttpClient
 import scalether.domain.Address
-import java.io.InputStreamReader
+import java.io.InputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
 
 @ChangeLog(order = "00014")
 class ChangeLog00014UploadSvgsForCryptoPunks {
-
-    val rest = RestTemplate()
 
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
     fun create(
@@ -34,19 +37,57 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties,
         @NonLockGuarded ipfsProperties: IpfsProperties
     ) = runBlocking<Unit> {
-        val names = InputStreamReader(javaClass.getResourceAsStream(path)).readLines()
-        logger.info("Found: ${names.size} images")
-        names.forEach { upload(it, repository, mapper, nftIndexerProperties, ipfsProperties) }
+        val zipResponse = archive(ipfsProperties.cryptoPunksImagesUrl).awaitSingle()
+        zipResponse.use { zipStream ->
+            ZipInputStream(zipStream).use { unzipStream ->
+                var entry: ZipEntry?
+                var counter = 0
+                var futures = mutableListOf<Deferred<*>>()
+                while (unzipStream.nextEntry.also { entry = it } != null) {
+                    entry?.takeIf { !it.isDirectory }?.let {
+                        counter++
+                        logger.info("Uploading... ${it.name}")
+                        futures.add(async(Dispatchers.IO) {
+                            upload(
+                                it.name,
+                                unzipStream.readBytes(),
+                                repository,
+                                mapper,
+                                nftIndexerProperties,
+                                ipfsProperties
+                            )
+                        })
+                        delay(betweenRequest)
+                        if (counter % ratelimit == 0) {
+                            futures.awaitAll()
+                            futures.clear()
+                            logger.info("Uploaded $counter images")
+                        }
+                    }
+                }
+                futures.awaitAll()
+            }
+        }
         logger.info("Uploaded CryptoPunks svgs")
     }
 
-    suspend fun upload(file: String,
-               repository: ItemPropertyRepository,
-               mapper: ObjectMapper,
-               nftIndexerProperties: NftIndexerProperties,
-               ipfsProperties: IpfsProperties) {
-        val content = javaClass.getResourceAsStream("${path}/$file").readBytes()
-        val response = postFile(file, content, ipfsProperties.uploadProxy)
+    fun archive(url: String): Mono<InputStream> {
+        return HttpClient.create()
+            .baseUrl(url)
+            .get()
+            .responseContent()
+            .aggregate()
+            .asInputStream()
+    }
+
+    suspend fun upload(
+        file: String, someByteArray: ByteArray,
+        repository: ItemPropertyRepository,
+        mapper: ObjectMapper,
+        nftIndexerProperties: NftIndexerProperties,
+        ipfsProperties: IpfsProperties
+    ) {
+        val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
 
         val number = file.filter { it.isDigit() }.toInt()
         val id = EthUInt256.of(number)
@@ -59,12 +100,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
     }
 
-    fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.MULTIPART_FORM_DATA
-        // to cheat the proxy
-        headers.set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:91.0) Gecko/20100101 Firefox/91.0")
-
+    suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {
         val fileMap: MultiValueMap<String, String> = LinkedMultiValueMap()
         val contentDisposition: ContentDisposition = ContentDisposition
             .builder("form-data")
@@ -76,12 +112,21 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         val fileEntity = HttpEntity(someByteArray, fileMap)
         val body: MultiValueMap<String, Any> = LinkedMultiValueMap()
         body.add("file", fileEntity)
-        val requestEntity = HttpEntity(body, headers)
-        return rest.exchange(url, HttpMethod.POST, requestEntity, Map::class.java).body
+
+        val response = webClient.post()
+            .uri(url)
+            .contentType(MediaType.MULTIPART_FORM_DATA)
+            .body(BodyInserters.fromMultipartData(body))
+            .retrieve()
+            .bodyToMono(Map::class.java)
+        return response.awaitSingle()
     }
 
     companion object {
-        val path = "/data/cryptopunks/images"
+        var webClient = WebClient.create()
+        val ratelimit = 120
+        val timeframe = 60_000L
+        val betweenRequest = timeframe / ratelimit
         val logger: Logger = LoggerFactory.getLogger(ChangeLog00014UploadSvgsForCryptoPunks::class.java)
     }
 }
