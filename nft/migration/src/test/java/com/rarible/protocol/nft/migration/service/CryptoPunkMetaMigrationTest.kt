@@ -42,7 +42,7 @@ class CryptoPunkMetaMigrationTest : AbstractIntegrationTest() {
         val itemId = ItemId(token, EthUInt256.of(tokenId))
         assertEquals(10000, itemPropertyRepository.count().awaitSingle())
         val props = mapper.readValue(itemPropertyRepository.get(itemId).awaitFirstOrNull(), Map::class.java)
-        assertEquals("Human", props.get("type"))
+        assertEquals("Human", (props.get("attributes") as Map<String, *>).get("type"))
 
         val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
         assertThat(itemProps?.attributes).contains(ItemAttribute("type", "Human"))

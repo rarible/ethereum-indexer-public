@@ -95,7 +95,7 @@ class ItemPropertiesService(
                     // we still get images from opensea
                     val itemProperties = getPropertiesFromOpensea(token, tokenId).awaitSingle()
 
-                    val attributes = cryptoPunksProperties(token, tokenId)
+                    val attributes = cryptoPunksAttributes(token, tokenId)
                     itemProperties.copy(attributes = attributes)
                 }
             }
@@ -120,9 +120,9 @@ class ItemPropertiesService(
         }
     }
 
-    suspend fun cryptoPunksProperties(token: Address, tokenId: BigInteger): List<ItemAttribute> {
+    suspend fun cryptoPunksAttributes(token: Address, tokenId: BigInteger): List<ItemAttribute> {
         val str = itemPropertiesRepository.get(ItemId(token, EthUInt256.of(tokenId))).awaitSingle()
-        val attributes = mapper.readValue(str, Map::class.java)
+        val attributes = mapper.readValue(str, Map::class.java).get("attributes") as Map<String, *>
         var list = mutableListOf<ItemAttribute>()
         for ((k, v) in attributes) {
             if (v is List<*>) {
