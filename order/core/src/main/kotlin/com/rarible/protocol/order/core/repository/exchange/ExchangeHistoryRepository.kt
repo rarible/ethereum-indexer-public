@@ -123,9 +123,9 @@ class ExchangeHistoryRepository(
     ): Flux<AggregatedData> {
         val match = Aggregation.match(
             (LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft  isEqualTo true)
+                .and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .and(LogEvent::data / OrderExchangeHistory::date).gt(startDate).lt(endDate)
                 .and(LogEvent::status).inValues(LogEventStatus.PENDING, LogEventStatus.CONFIRMED)
-                .and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .run { source?.let { and(LogEvent::data / OrderExchangeHistory::source).isEqualTo(it) } ?: this }
         )
         val group = Aggregation
