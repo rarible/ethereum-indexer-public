@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.api.service.item.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
@@ -91,13 +92,7 @@ class ItemPropertiesService(
                     }
             }
             cryptoPunksAddress -> {
-                mono {
-                    // we still get images from opensea
-                    val itemProperties = getPropertiesFromOpensea(token, tokenId).awaitSingle()
-
-                    val attributes = cryptoPunksAttributes(token, tokenId)
-                    itemProperties.copy(attributes = attributes)
-                }
+                mono { cryptoPunkProps(token, tokenId) }
             }
             else -> {
                 getPropertiesFromOpensea(token, tokenId)
@@ -120,18 +115,25 @@ class ItemPropertiesService(
         }
     }
 
-    suspend fun cryptoPunksAttributes(token: Address, tokenId: BigInteger): List<ItemAttribute> {
+    suspend fun cryptoPunkProps(token: Address, tokenId: BigInteger): ItemProperties {
         val str = itemPropertiesRepository.get(ItemId(token, EthUInt256.of(tokenId))).awaitSingle()
-        val attributes = mapper.readValue(str, Map::class.java).get("attributes") as Map<String, *>
-        var list = mutableListOf<ItemAttribute>()
-        for ((k, v) in attributes) {
+        val props: Map<String, *> = mapper.readValue(str)
+        var attributes = mutableListOf<ItemAttribute>()
+        for ((k, v) in props.get("attributes") as Map<String, *>) {
             if (v is List<*>) {
-                v.forEach { list.add(ItemAttribute("accessory", it.toString())) }
+                v.forEach { attributes.add(ItemAttribute("accessory", it.toString())) }
             } else {
-                list.add(ItemAttribute(k.toString(), v.toString()))
+                attributes.add(ItemAttribute(k, v.toString()))
             }
         }
-        return list
+        return ItemProperties(
+            name = props.get("name").toString(),
+            description = null,
+            image = props.get("image").toString(),
+            imagePreview = null,
+            imageBig = null,
+            attributes = attributes
+        )
     }
 
     fun resetProperties(token: Address, tokenId: BigInteger): Mono<Void> =

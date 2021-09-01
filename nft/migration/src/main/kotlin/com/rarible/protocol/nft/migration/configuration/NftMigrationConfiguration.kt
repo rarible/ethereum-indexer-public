@@ -6,12 +6,14 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.migration.model.SpringDataMongodb
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @EnableMongock
 @Configuration
 @EnableScaletherMongoConversions
+@EnableConfigurationProperties(IpfsProperties::class)
 @EnableRaribleMongo
 class NftMigrationConfiguration {
     @Bean

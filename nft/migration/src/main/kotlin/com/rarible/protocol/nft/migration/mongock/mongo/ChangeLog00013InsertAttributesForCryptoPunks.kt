@@ -34,21 +34,26 @@ class ChangeLog00013InsertAttributesForCryptoPunks {
             logger.info("Reading $file")
             val punks = resource2Lines(file)
             punks.drop(1).filter { it.trim().isNotEmpty() }.forEach { punk ->
-                val id = EthUInt256.of(punk.split(",")[0].toLong())
-                val extra = punk.split(",").drop(1).map { it.trim() }
-                val props = mapOf(
-                    "type" to extra[0],
-                    "gender" to extra[1],
-                    "skin tone" to extra[2],
-                    "count" to extra[3],
-                    "accessories" to extra[4].split("/").map { it.trim() }
-                )
-                val itemId = ItemId(Address.apply(nftIndexerProperties.cryptoPunksContractAddress), id)
-                repository.save(itemId, mapper.writeValueAsString(mapOf("attributes" to props))).awaitSingle()
+                savePunk(punk, repository, mapper, nftIndexerProperties)
             }
             logger.info("Finished with $file")
         }
         logger.info("Inserting attributes for CryptoPunks")
+    }
+
+    suspend fun savePunk(punk: String, repository: ItemPropertyRepository,
+                         mapper: ObjectMapper, nftIndexerProperties: NftIndexerProperties) {
+        val id = EthUInt256.of(punk.split(",")[0].toLong())
+        val extra = punk.split(",").drop(1).map { it.trim() }
+        val props = mapOf(
+            "type" to extra[0],
+            "gender" to extra[1],
+            "skin tone" to extra[2],
+            "count" to extra[3],
+            "accessories" to extra[4].split("/").map { it.trim() }
+        )
+        val itemId = ItemId(Address.apply(nftIndexerProperties.cryptoPunksContractAddress), id)
+        repository.save(itemId, mapper.writeValueAsString(mapOf("attributes" to props))).awaitSingle()
     }
 
     fun resource2Lines(path: String): List<String> = javaClass.getResourceAsStream(path).use {
