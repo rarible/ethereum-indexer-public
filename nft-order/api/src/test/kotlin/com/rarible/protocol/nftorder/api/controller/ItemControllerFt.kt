@@ -35,21 +35,16 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     fun `get item by id - not synced`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId, randomPartDto())
-        val bestSell = randomOrderDto(itemId)
-        val bestBid = randomOrderDto(itemId)
 
         nftItemControllerApiMock.mockGetNftItemById(itemId, nftItem)
-        lockControllerApiMock.mockIsUnlockable(itemId, true)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId, bestSell)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, bestBid)
 
         val result = nftOrderItemControllerApi
             .getNftOrderItemById(itemId.decimalStringValue, null)
             .awaitFirst()!!
 
-        assertThat(result.bestSellOrder).isEqualTo(bestSell)
-        assertThat(result.bestBidOrder).isEqualTo(bestBid)
-        assertThat(result.unlockable).isEqualTo(true)
+        assertThat(result.bestSellOrder).isNull()
+        assertThat(result.bestBidOrder).isNull()
+        assertThat(result.unlockable).isEqualTo(false)
         assertThat(result.meta).isNull()
         assertItemDtoAndNftDtoEquals(result, nftItem)
     }
