@@ -12,12 +12,6 @@
     <artifactId>protocol-unlockable-core</artifactId>
 
     <dependencies>
-        <!-- ============ Internal dependencies ============ -->
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-unlockable-core-common</artifactId>
-        </dependency>
-
         <!-- =============== Protocol-API ================ -->
         <dependency>
             <groupId>com.rarible.protocol</groupId>
@@ -36,6 +30,10 @@
         <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-application</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-converters</artifactId>
         </dependency>
 
 

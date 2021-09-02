@@ -12,10 +12,20 @@
     <artifactId>protocol-unlockable-core-test</artifactId>
 
     <dependencies>
+        <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-common</artifactId>
+        </dependency>
+
         <!-- ============ Internal dependencies ============ -->
         <dependency>
             <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-unlockable-core-common</artifactId>
+            <artifactId>protocol-unlockable-core</artifactId>
         </dependency>
 
         <!-- =============== Protocol-API ================ -->

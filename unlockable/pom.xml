@@ -30,11 +30,6 @@
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-unlockable-core-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-unlockable-core-test</artifactId>
                 <version>${project.version}</version>
                 <scope>test</scope>
@@ -47,6 +42,5 @@
         <module>api</module>
         <module>core</module>
         <module>core-test</module>
-        <module>core-common</module>
     </modules>
 </project>
