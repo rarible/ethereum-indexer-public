@@ -49,10 +49,6 @@ class ItemPropertyRepository(
             .map { it.getString(PROPERTIES_FILED) }
     }
 
-    fun count(): Mono<Long> {
-        return mongo.count(Query(), COLLECTION)
-    }
-
     private companion object {
         const val COLLECTION = "item_properties"
         const val PROPERTIES_FILED = "properties"

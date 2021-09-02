@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -48,7 +49,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         val bs = javaClass.getResourceAsStream("/data/cryptopunks/2.svg").readBytes()
         uploaderSvg.upload("2.svg", bs, itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
 
-        assertEquals(1, itemPropertyRepository.count().awaitSingle())
+        assertEquals(1, mongo.count(Query(), "item_properties").awaitSingle())
 
         val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
         assertEquals("CryptoPunk #2", itemProps?.name)
@@ -67,6 +68,6 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
     fun `should upload all svg images`() = runBlocking {
         insertAttributes.create(itemPropertyRepository, mapper, nftIndexerProperties)
         uploaderSvg.create(itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
-        assertEquals(10000, itemPropertyRepository.count().awaitSingle())
+        assertEquals(10000, mongo.count(Query(), "item_properties").awaitSingle())
     }
 }

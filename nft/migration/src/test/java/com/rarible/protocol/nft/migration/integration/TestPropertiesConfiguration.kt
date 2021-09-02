@@ -10,7 +10,6 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
-import org.mockito.Mockito.mock
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -69,12 +68,12 @@ class TestPropertiesConfiguration {
 
     @Bean
     fun transactionSender() : MonoTransactionSender {
-        return mock(MonoTransactionSender::class.java)
+        return mockk()
     }
 
     @Bean
     fun lockService(): LockService {
-        return mock(LockService::class.java)
+        return mockk()
     }
 
     @Bean

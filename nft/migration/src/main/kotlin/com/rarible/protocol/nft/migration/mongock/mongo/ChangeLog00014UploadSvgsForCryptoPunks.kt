@@ -47,10 +47,11 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                     entry?.takeIf { !it.isDirectory }?.let {
                         counter++
                         logger.info("Uploading... ${it.name}")
+                        val content = unzipStream.readBytes()
                         futures.add(async(Dispatchers.IO) {
                             upload(
                                 it.name,
-                                unzipStream.readBytes(),
+                                content,
                                 repository,
                                 mapper,
                                 nftIndexerProperties,

@@ -16,6 +16,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -40,7 +41,7 @@ class CryptoPunkMetaMigrationTest : AbstractIntegrationTest() {
         insertAttributes.create(itemPropertyRepository, mapper, nftIndexerProperties)
 
         val itemId = ItemId(token, EthUInt256.of(tokenId))
-        assertEquals(10000, itemPropertyRepository.count().awaitSingle())
+        assertEquals(10000, mongo.count(Query(), "item_properties").awaitSingle())
         val props = mapper.readValue(itemPropertyRepository.get(itemId).awaitFirstOrNull(), Map::class.java)
         assertEquals("Human", (props.get("attributes") as Map<String, *>).get("type"))
 
