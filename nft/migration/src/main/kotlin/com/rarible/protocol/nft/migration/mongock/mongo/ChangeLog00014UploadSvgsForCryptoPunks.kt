@@ -61,7 +61,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                         if (counter % ratelimit == 0) {
                             futures.awaitAll()
                             futures.clear()
-                            logger.info("Uploaded $counter images")
+                            logger.info("Uploaded: $counter images")
                         }
                     }
                 }
@@ -124,7 +124,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
 
     companion object {
         var webClient = WebClient.create()
-        val ratelimit = 120
+        val ratelimit = 100
         val timeframe = 60_000L
         val betweenRequest = timeframe / ratelimit
         val logger: Logger = LoggerFactory.getLogger(ChangeLog00014UploadSvgsForCryptoPunks::class.java)
