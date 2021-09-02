@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.service.order.SideMatchTransactionProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -22,7 +23,8 @@ import scalether.domain.response.Log
 class ExchangeOrderMatchDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val priceUpdateService: PriceUpdateService,
-    private val prizeNormalizer: PriceNormalizer
+    private val prizeNormalizer: PriceNormalizer,
+    private val sideMatchTransactionProvider: SideMatchTransactionProvider
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val exchangeContract = exchangeContractAddresses.v2
@@ -52,6 +54,8 @@ class ExchangeOrderMatchDescriptor(
         val rightTake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
+        val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
+
         return listOf(
             OrderSideMatch(
                 hash = leftHash,
@@ -68,7 +72,8 @@ class ExchangeOrderMatchDescriptor(
                 takeValue = prizeNormalizer.normalize(leftTake),
                 makePriceUsd = lestUsdValue?.makePriceUsd,
                 takePriceUsd = lestUsdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                data = transactionOrders?.left?.data
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -85,7 +90,8 @@ class ExchangeOrderMatchDescriptor(
                 takeValue = prizeNormalizer.normalize(rightTake),
                 makePriceUsd = rightUsdValue?.makePriceUsd,
                 takePriceUsd = rightUsdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                data = transactionOrders?.right?.data
             )
         )
     }

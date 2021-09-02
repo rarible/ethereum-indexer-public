@@ -31,13 +31,28 @@ class RaribleExchangeV2OrderParser {
     private fun convert(version: Binary, data: Binary): OrderData {
         return when (version) {
             OrderDataVersion.RARIBLE_V2_DATA_V1.ethDataType -> {
-                val decoded = Tuples.orderDataV1Type().decode(data, 0)
+                val (payouts, originFees) = when {
+                    data.slice(0, 32) ==  ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
+                        val decoded = Tuples.orderDataV1Type().decode(data, 0)
+                        decoded.value()._1().map { it.toPart() } to decoded.value()._2().map { it.toPart() }
+                    }
+                    data.slice(0, 32) ==  WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
+                        val decodedWrong = Tuples.wrongOrderDataV1Type().decode(data, 0)
+                        decodedWrong.value()._1().map { it.toPart() } to decodedWrong.value()._2().map { it.toPart() }
+                    }
+                    else -> throw IllegalArgumentException("Unsupported data encode (data=$data)")
+                }
                 OrderRaribleV2DataV1(
-                    payouts = decoded.value()._1().map { it.toPart() },
-                    originFees = decoded.value()._1().map { it.toPart() }
+                    payouts = payouts,
+                    originFees = originFees
                 )
             }
             else -> throw IllegalArgumentException("Unsupported order data version $version")
         }
+    }
+
+    private companion object {
+        val WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000040")
+        val ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000020")
     }
 }

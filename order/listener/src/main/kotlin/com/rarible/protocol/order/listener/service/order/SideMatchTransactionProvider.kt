@@ -14,7 +14,7 @@ class SideMatchTransactionProvider(
     properties: OrderIndexerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val raribleContract = properties.exchangeContractAddresses.v2
+    private val exchangeContract = properties.exchangeContractAddresses.v2
 
     suspend fun getMatchedOrdersByTransactionHash(transactionHash: Word): RaribleMatchedOrders? {
         return getTransactionTrace(transactionHash) { raribleOrderParser.parseMatchedOrders(it) }
@@ -23,7 +23,7 @@ class SideMatchTransactionProvider(
     private suspend fun <T> getTransactionTrace(transactionHash: Word, converter: (input: String) -> T): T? {
         val simpleTrace = traceProvider.getTransactionTrace(transactionHash)
 
-        if (simpleTrace == null || simpleTrace.to != raribleContract) {
+        if (simpleTrace == null || simpleTrace.to != exchangeContract) {
             logger.info("Empty trace (simpleTrace=$simpleTrace) or not Rarible contract ${simpleTrace?.to}")
             return null
         }
