@@ -22,9 +22,10 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val exchangeContractAddresses: ExchangeContractAddresses,
     @NestedConfigurationProperty
-    val transferProxyAddresses: TransferProxyAddresses
+    val transferProxyAddresses: TransferProxyAddresses,
+    @NestedConfigurationProperty
+    val publish: PublishProperties = PublishProperties()
 ) {
-
     data class ExchangeContractAddresses(
         val v1: Address,
         val v1Old: Address? = null,
@@ -39,4 +40,7 @@ data class OrderIndexerProperties(
         val erc1155LazyTransferProxy: Address
     )
 
+    data class PublishProperties(
+        val publishOpenSeaOrdersToCommonTopic: Boolean = false
+    )
 }
