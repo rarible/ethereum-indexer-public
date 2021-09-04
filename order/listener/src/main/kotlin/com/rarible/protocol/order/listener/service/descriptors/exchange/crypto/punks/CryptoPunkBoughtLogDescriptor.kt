@@ -196,7 +196,8 @@ class CryptoPunkBoughtLogDescriptor(
         }
         /*
            Workaround https://github.com/larvalabs/cryptopunks/issues/19.
-           We have to find "Transfer" event from the same transaction in order to extract correct value for "toAddress".
+           We have to find "Transfer" event going before "PunkBought"
+           from the same function in order to extract correct value for "toAddress".
         */
         val filter = LogFilter
             .apply(TopicFilter.simple(TransferEvent.id()))
@@ -208,7 +209,11 @@ class CryptoPunkBoughtLogDescriptor(
             logger.warn("Unable to get logs for block $blockHash", e)
             return Address.ZERO()
         }
-        return logs.find { it.topics().head() == TransferEvent.id() }
+        return logs.find {
+            it.topics().head() == TransferEvent.id()
+                    && it.transactionHash() == punkBoughtEvent.log().transactionHash()
+                    && it.logIndex() == punkBoughtEvent.log().logIndex().minus(BigInteger.ONE)
+        }
             ?.let { TransferEvent.apply(it) }
             ?.to()
             ?: punkBoughtEvent.toAddress()

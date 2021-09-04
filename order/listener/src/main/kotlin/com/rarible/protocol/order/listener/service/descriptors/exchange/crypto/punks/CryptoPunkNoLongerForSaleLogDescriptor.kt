@@ -1,25 +1,32 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import scalether.core.MonoEthereum
 import scalether.domain.Address
+import scalether.domain.request.LogFilter
+import scalether.domain.request.TopicFilter
 import scalether.domain.response.Log
+import java.math.BigInteger
 import java.time.Instant
 
 @Service
 class CryptoPunkNoLongerForSaleLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceProvider: TransactionTraceProvider
-) : ItemExchangeHistoryLogEventDescriptor<OrderCancel> {
+    private val traceProvider: TransactionTraceProvider,
+    private val ethereum: MonoEthereum
+) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -27,22 +34,19 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
 
     override val topic: Word = PunkNoLongerForSaleEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderCancel> {
+    override suspend fun convert(log: Log, date: Instant): List<OrderExchangeHistory> {
+        if (shouldIgnoreThisLog(log)) {
+            return emptyList()
+        }
         val noLongerForSaleEvent = PunkNoLongerForSaleEvent.apply(log)
         val punkIndex = EthUInt256(noLongerForSaleEvent.punkIndex())
+        // TODO[punk]: we need to use another way of determining "from" = owner address, because this function might have been called from inside another contract.
         val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
         if (transactionTrace == null) {
             logger.info(
                 "Transaction trace is not available for ${log.transactionHash()} " +
                         "for sell cancellation of punk #${punkIndex.value}"
             )
-            return emptyList()
-        }
-        if (!transactionTrace.input.startsWith(CryptoPunksMarket.punkNoLongerForSaleSignature().id().prefixed())) {
-            /*
-            We must ignore 'PunkNoLongerForSale' event if it was emitted during 'buyPunk' or 'transfer' function,
-            because the order is actually filled, not cancelled.
-             */
             return emptyList()
         }
         val ownerAddress = transactionTrace.from
@@ -63,5 +67,29 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
                 source = HistorySource.CRYPTO_PUNKS
             )
         )
+    }
+
+    /**
+     * We must ignore 'PunkNoLongerForSale' event if it was emitted during 'buyPunk' or 'transfer' function,
+     * because the order is actually filled, not cancelled.
+     *
+     * To determine this, we try to find the subsequent 'Transfer' event (for 'transfer' function)
+     * or 'PunkBought' event (for 'buyPunk' function).
+     */
+    private suspend fun shouldIgnoreThisLog(log: Log): Boolean {
+        val filter = LogFilter
+            .apply(TopicFilter.or(TransferEvent.id(), PunkBoughtEvent.id()))
+            .address(exchangeContractAddresses.cryptoPunks)
+            .blockHash(log.blockHash())
+        val blockLogs = try {
+            ethereum.ethGetLogsJava(filter).awaitSingle()
+        } catch (e: Exception) {
+            logger.warn("Unable to get logs for block ${log.blockHash()}", e)
+            return true
+        }
+        return blockLogs.any { blockLog ->
+            blockLog.transactionHash() == log.transactionHash()
+                    && blockLog.logIndex() == log.logIndex().plus(BigInteger.ONE)
+        }
     }
 }

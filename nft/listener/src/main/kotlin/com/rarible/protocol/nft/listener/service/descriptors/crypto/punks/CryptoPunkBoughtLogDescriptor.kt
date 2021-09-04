@@ -16,6 +16,7 @@ import scalether.domain.Address
 import scalether.domain.request.LogFilter
 import scalether.domain.request.TopicFilter
 import scalether.domain.response.Log
+import java.math.BigInteger
 import java.time.Instant
 
 @Service
@@ -36,7 +37,8 @@ class CryptoPunkBoughtLogDescriptor(
         } else {
             /*
                 Workaround https://github.com/larvalabs/cryptopunks/issues/19.
-                We have to find "Transfer" event from the same transaction in order to extract correct value for "toAddress".
+                We have to find "Transfer" event going before "PunkBought"
+                from the same function in order to extract correct value for "toAddress".
              */
             val filter = LogFilter
                 .apply(TopicFilter.simple(TransferEvent.id()))
@@ -45,7 +47,11 @@ class CryptoPunkBoughtLogDescriptor(
             ethereum.ethGetLogsJava(filter)
                 .doOnError { logger.warn("Unable to get logs for block ${log.blockHash()}", it) }
                 .map { logs ->
-                    logs.find { it.topics().head() == TransferEvent.id() }
+                    logs.find {
+                        it.topics().head() == TransferEvent.id()
+                                && it.transactionHash() == log.transactionHash()
+                                && it.logIndex() == log.logIndex().minus(BigInteger.ONE)
+                    }
                         ?.let { TransferEvent.apply(it) }
                         ?.to()
                         ?: event.toAddress()
