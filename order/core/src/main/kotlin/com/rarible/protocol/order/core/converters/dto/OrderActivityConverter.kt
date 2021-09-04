@@ -103,8 +103,8 @@ class OrderActivityConverter(
                     priceUsd = null
                 )
             } else if (data.order.taker != null) {
-                //TODO: Sell orders which are dedicated to only a concrete address (via "offer for sale to address" method call)
-                // are not supported by frontend, and thus the backend should return them.
+                //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
+                // are not supported by frontend, and thus the backend should not return them.
                 null
             } else  {
                 OrderActivityListDto(
