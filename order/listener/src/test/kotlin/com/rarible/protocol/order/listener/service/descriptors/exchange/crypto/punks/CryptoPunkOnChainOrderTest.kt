@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import scalether.domain.request.Transaction
 import java.math.BigInteger
+import java.time.Duration
 
 @IntegrationTest
 @FlowPreview
@@ -26,18 +27,16 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `transfer crypto punk`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
         val (newOwnerAddress, _) = newSender()
 
-        val transferTimestamp = market.transferPunk(newOwnerAddress, punkIndex).withSender(sellerSender)
+        val transferTimestamp = cryptoPunksMarket.transferPunk(newOwnerAddress, punkIndex).withSender(sellerSender)
             .execute().verifySuccess().getTimestamp()
 
-        val marketAddress = market.address()
+        val marketAddress = cryptoPunksMarket.address()
         val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, punkIndex.toInt())
         val make = Asset(cryptoPunksAssetType, EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256.ZERO /* Price = 0 */)
@@ -128,17 +127,15 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `buy crypto punk which is on sale`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
         val punkPrice = BigInteger.valueOf(100500)
-        val listOrderTimestamp = market.offerPunkForSale(punkIndex, punkPrice)
+        val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(market.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
@@ -190,7 +187,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             PrepareOrderTxFormDto(buyerAddress, BigInteger.ONE, emptyList(), emptyList())
         )
         assertEquals(take, preparedBuyTx.asset)
-        assertEquals(market.address(), preparedBuyTx.transaction.to)
+        assertEquals(cryptoPunksMarket.address(), preparedBuyTx.transaction.to)
         val buyTimestamp = buyerSender.sendTransaction(
             Transaction(
                 preparedBuyTx.transaction.to,
@@ -242,8 +239,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(expectedBuyOrder, buyOrder)
         }
 
-        market.withdraw().withSender(sellerSender).execute().verifySuccess()
-        assertEquals(buyerAddress, market.punkIndexToAddress(punkIndex).awaitSingle())
+        cryptoPunksMarket.withdraw().withSender(sellerSender).execute().verifySuccess()
+        assertEquals(buyerAddress, cryptoPunksMarket.punkIndexToAddress(punkIndex).awaitSingle())
         assertEquals(punkPrice, getEthBalance(sellerAddress))
         assertEquals(BigInteger.ZERO, getEthBalance(buyerAddress))
 
@@ -290,18 +287,16 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `cancel sell order for a crypto punk`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
         val punkPrice = BigInteger.valueOf(100500)
-        market.offerPunkForSale(punkIndex, punkPrice).withSender(sellerSender).execute().verifySuccess()
+        cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice).withSender(sellerSender).execute().verifySuccess()
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
 
         val preparedCancelTx = prepareTxService.prepareCancelTransaction(listOrder)
-        assertEquals(market.address(), preparedCancelTx.to)
+        assertEquals(cryptoPunksMarket.address(), preparedCancelTx.to)
         sellerSender.sendTransaction(
             Transaction(
                 preparedCancelTx.to,
@@ -332,22 +327,20 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `accept bid for a crypto punk`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (ownerAddress, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
         val (bidderAddress, bidderSender) = newSender()
         val bidPrice = 100500.toBigInteger()
         depositInitialBalance(bidderAddress, bidPrice)
-        val bidTimestamp = market.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+        val bidTimestamp = cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
             .execute().verifySuccess().getTimestamp()
 
         val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
 
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
-        val bidTake = Asset(CryptoPunksAssetType(market.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
         val expectedBidOrder = Order(
             maker = bidderAddress,
             taker = null,
@@ -390,7 +383,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             PrepareOrderTxFormDto(ownerAddress, BigInteger.ONE, emptyList(), emptyList())
         )
         assertEquals(bidTake, preparedAcceptBidTx.asset)
-        assertEquals(market.address(), preparedAcceptBidTx.transaction.to)
+        assertEquals(cryptoPunksMarket.address(), preparedAcceptBidTx.transaction.to)
         val acceptBidTimestamp = ownerSender.sendTransaction(
             Transaction(
                 preparedAcceptBidTx.transaction.to,
@@ -442,8 +435,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(expectedSellOrder, sellOrder)
         }
 
-        market.withdraw().withSender(ownerSender).execute().verifySuccess()
-        assertEquals(bidderAddress, market.punkIndexToAddress(punkIndex).awaitSingle())
+        cryptoPunksMarket.withdraw().withSender(ownerSender).execute().verifySuccess()
+        assertEquals(bidderAddress, cryptoPunksMarket.punkIndexToAddress(punkIndex).awaitSingle())
         assertEquals(bidPrice, getEthBalance(ownerAddress))
         assertEquals(BigInteger.ZERO, getEthBalance(bidderAddress))
 
@@ -487,21 +480,19 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `cancel bid for a crypto punk`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (_, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
         val (bidderAddress, bidderSender) = newSender()
         val bidPrice = 100500.toBigInteger()
         depositInitialBalance(bidderAddress, bidPrice)
-        market.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+        cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
             .execute().verifySuccess()
         val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
 
         val preparedCancelTx = prepareTxService.prepareCancelTransaction(bidOrder)
-        assertEquals(market.address(), preparedCancelTx.to)
+        assertEquals(cryptoPunksMarket.address(), preparedCancelTx.to)
         bidderSender.sendTransaction(
             Transaction(
                 preparedCancelTx.to,
@@ -532,19 +523,17 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `crypto punk listed for sale to a specific address`() = runBlocking {
-        val market = deployCryptoPunkMarket()
-
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
-        market.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
         val (grantedAddress, _) = newSender()
 
         val punkPrice = BigInteger.valueOf(100500)
-        val listOrderTimestamp = market.offerPunkForSaleToAddress(punkIndex, punkPrice, grantedAddress)
+        val listOrderTimestamp = cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, punkPrice, grantedAddress)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(market.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
@@ -579,84 +568,105 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         // but currently, such activities are ignored because frontend does not support "for-specific-address" sale orders.
     }
 
+    @Test
+    internal fun `sell order cancelled because punk was transferred`() = runBlocking {
+        val (_, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val punkPrice = BigInteger.valueOf(100500)
+        cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val listOrder = Wait.waitFor(timeout = Duration.ofMinutes(5)) { orderRepository.findActive().singleOrNull() }!!
+        assertEquals(EthUInt256.ONE, listOrder.makeStock)
+        val (buyerAddress) = newSender()
+
+        cryptoPunksMarket.transferPunk(buyerAddress, punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        Wait.waitAssert(timeout = Duration.ofMinutes(5)) {
+            val order = orderRepository.findById(listOrder.hash)
+            assertNotNull(order)
+            assertEquals(EthUInt256.ZERO, order!!.makeStock)
+
+            // TODO[punk]: this check does not work, because CryptoPunkNoLongerForSaleLogDescriptor
+            //  ignores 'punkNoLongerForSale' method call happened during the 'buyPunk' and 'transferPunk' functions.
+            // assertTrue(order.cancelled)
+        }
+    }
+
     @Nested
     inner class OrderReopenedTest {
         @Test
         fun `sell order re-opened`() = runBlocking {
-            val market = deployCryptoPunkMarket()
-
             val (_, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
-            market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
             val punkPrice = BigInteger.valueOf(100500)
 
             // List the punk for sale.
-            market.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
             val sellOrder = Wait.waitFor { orderRepository.findActive().single() }
 
             // Cancel the list order.
-            market.punkNoLongerForSale(punkIndex).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.punkNoLongerForSale(punkIndex).withSender(ownerSender).execute().verifySuccess()
             Wait.waitAssert { assertTrue(orderRepository.findById(sellOrder.hash)!!.cancelled) }
 
             // List the punk for sale again => order is re-opened (cancelled = false).
-            market.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
             Wait.waitAssert { assertFalse(orderRepository.findById(sellOrder.hash)!!.cancelled) }
         }
 
         @Test
         fun `bid order re-opened`() = runBlocking {
-            val market = deployCryptoPunkMarket()
-
             val (_, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
-            market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
             val (bidderAddress, bidderSender) = newSender()
             val bidPrice = BigInteger.valueOf(100500)
             depositInitialBalance(bidderAddress, bidPrice)
 
             // Bid the punk.
-            market.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice).execute().verifySuccess()
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice).execute().verifySuccess()
             val bidOrder = Wait.waitFor { orderRepository.findActive().single() }
 
             // Cancel the bid order.
-            market.withdrawBidForPunk(punkIndex).withSender(bidderSender).execute().verifySuccess()
+            cryptoPunksMarket.withdrawBidForPunk(punkIndex).withSender(bidderSender).execute().verifySuccess()
             Wait.waitAssert { assertTrue(orderRepository.findById(bidOrder.hash)!!.cancelled) }
 
             // Bid the punk again => order is re-opened (cancelled = false).
-            market.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice).execute().verifySuccess()
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice).execute().verifySuccess()
             Wait.waitAssert { assertFalse(orderRepository.findById(bidOrder.hash)!!.cancelled) }
         }
 
         @Test
         fun `punk sold then bought by the same user and put on sale again`() = runBlocking {
-            val market = deployCryptoPunkMarket()
-
             val (ownerAddress, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
-            market.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
             val punkPrice = BigInteger.valueOf(100500)
 
             // List the punk for sale.
-            market.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice).withSender(ownerSender).execute().verifySuccess()
 
             // Sell the punk.
             val (buyerAddress, buyerSender) = newSender()
             depositInitialBalance(buyerAddress, punkPrice)
-            market.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
-            market.withdraw().withSender(ownerSender).execute().verifySuccess()
+            cryptoPunksMarket.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
+            cryptoPunksMarket.withdraw().withSender(ownerSender).execute().verifySuccess()
 
             // Bid the punk back.
-            market.enterBidForPunk(punkIndex).withSender(ownerSender).withValue(punkPrice).execute().verifySuccess()
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(ownerSender).withValue(punkPrice).execute().verifySuccess()
 
             // The new owner accepts the bid.
-            market.acceptBidForPunk(punkIndex, punkPrice).withSender(buyerSender).execute().verifySuccess()
+            cryptoPunksMarket.acceptBidForPunk(punkIndex, punkPrice).withSender(buyerSender).execute().verifySuccess()
 
             // List the punk for sale again with higher price.
             val newPrice = punkPrice.multiply(BigInteger.TWO)
-            val listOrderTimestamp = market.offerPunkForSale(punkIndex, newPrice).withSender(ownerSender)
+            val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, newPrice).withSender(ownerSender)
                 .execute().verifySuccess().getTimestamp()
             Wait.waitAssert {
                 val activeOrders = orderRepository.findActive().toList()
@@ -665,7 +675,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertEquals(listOrderTimestamp, sellOrder.createdAt)
                 assertFalse(sellOrder.cancelled)
                 assertEquals(ownerAddress, sellOrder.maker)
-                assertEquals(Asset(CryptoPunksAssetType(market.address(), punkIndex.toInt()), EthUInt256.ONE), sellOrder.make)
+                assertEquals(Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE), sellOrder.make)
                 assertNull(sellOrder.taker)
                 assertEquals(Asset(EthAssetType, EthUInt256(newPrice)), sellOrder.take)
             }

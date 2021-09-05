@@ -12,13 +12,15 @@ import org.springframework.stereotype.Component
 class AssetMakeBalanceProvider(
     private val delegate: AssetBalanceProvider
 ) {
-    suspend fun getMakeBalance(order: Order): EthUInt256 {
-        val makeBalance = delegate.getAssetStock(order.maker, order.make.type) ?: EthUInt256.ZERO
+    suspend fun getMakeBalance(order: Order): EthUInt256 =
+        handleCryptoPunksOrder(order)
+            ?: delegate.getAssetStock(order.maker, order.make.type)
+            ?: EthUInt256.ZERO
+
+    private fun handleCryptoPunksOrder(order: Order): EthUInt256? {
         /*
             Handle the balance of CryptoPunk's bids separately.
-            'make' ETC balance is at least as "order.make" and
-            it is stored in the CryptoPunks contract (see 'punkBids' contract field).
-            This is because the bidder was able to make the bid order.
+            The ETH 'make' balance is stored in the CryptoPunksMarket contract, not in the punk owner's address.
             We must set the correct 'make' here to make sure that the bid order is considered "active" by OrderRepository.
          */
         if (order.type == OrderType.CRYPTO_PUNKS
@@ -27,7 +29,6 @@ class AssetMakeBalanceProvider(
         ) {
             return order.make.value
         }
-         //TODO[punk]: make stock of CryptoPunk SELL order must be updated: ask punks contract whether the seller gave access to our proxy to buy the punk.
-        return makeBalance
+        return null
     }
 }

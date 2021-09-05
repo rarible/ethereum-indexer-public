@@ -7,7 +7,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.crypto.punks.AssetMatcherPunk
-import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferProxy
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.*
@@ -22,6 +21,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -37,13 +37,13 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
     private lateinit var exchangeV2: ExchangeV2
     private lateinit var eip712Domain: EIP712Domain
-    private lateinit var cryptoPunksMarket: CryptoPunksMarket
     private lateinit var punkTransferProxy: PunkTransferProxy
     private lateinit var assetMatcherPunk: AssetMatcherPunk
     private lateinit var wethContract: TestERC20
     private lateinit var erc20TransferProxy: ERC20TransferProxy
 
-    private suspend fun initialize() {
+    @BeforeEach
+    private fun initialize() = runBlocking {
         wethContract = TestERC20.deployAndWait(sender, poller, "WETH", "WETH").awaitSingle()
         erc20TransferProxy = ERC20TransferProxy.deployAndWait(sender, poller).awaitSingle()
 
@@ -74,14 +74,11 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         assetMatcherPunk = AssetMatcherPunk.deployAndWait(sender, poller).awaitFirst()
         exchangeV2.setAssetMatcher(AssetType.CRYPTO_PUNKS.bytes(), assetMatcherPunk.address())
             .execute().verifySuccess()
-
-        cryptoPunksMarket = deployCryptoPunkMarket()
+        Unit
     }
 
     @Test
     fun `sell crypto punk via ExchangeV2`() = runBlocking {
-        initialize()
-
         val (sellerAddress, sellerSender, sellerPrivateKey) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -216,8 +213,6 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
     @Test
     fun `buy crypto punk via ExchangeV2`() = runBlocking {
-        initialize()
-
         val (ownerAddress, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
