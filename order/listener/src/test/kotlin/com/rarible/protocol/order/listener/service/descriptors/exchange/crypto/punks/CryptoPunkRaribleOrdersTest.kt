@@ -311,12 +311,6 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         Wait.waitAssert {
             val allHistories = exchangeHistoryRepository.findAll().collectList().awaitSingle()
                 .map { it.data as OrderExchangeHistory }
-            println("HISTORIES")
-            allHistories.forEach { h ->
-//                println("${h.javaClass.name} ${h.hash} (${h.maker} -> ${(h as? OrderSideMatch)?.taker}) (make=${h.make}, take=${h.take}): $h")
-                println(h)
-            }
-
             assertEquals(10, allHistories.size)
 
             val raribleItems =
