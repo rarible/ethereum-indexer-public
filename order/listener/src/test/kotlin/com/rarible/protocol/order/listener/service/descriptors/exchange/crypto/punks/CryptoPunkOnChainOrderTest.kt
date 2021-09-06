@@ -113,13 +113,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     right.asset.assetType is EthAssetTypeDto &&
                     right.asset.value == EthUInt256.ZERO.value &&
 
-                    /*
-                    TODO[punk]: discuss. By the time the OrderActivityMatchSideDto is constructed, the corresponding order
-                    produced by PunkTransfer event is not yet inserted to the repository.
-                    See `OrderActivityConverter.convertHistory`
-                     */
-                    left.type == null &&
-                    right.type == null
+                    left.type == OrderActivityMatchSideDto.Type.SELL &&
+                    right.type == OrderActivityMatchSideDto.Type.BID
         }
     }
 
@@ -274,12 +269,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     && this.right.hash == Order.hashKey(buyerAddress, take.type, make.type, listOrder.salt.value)
                     && this.right.maker == buyerAddress
 
-                    /*
-                    TODO[punk]: discuss. By the time the OrderActivityMatchSideDto is constructed, the corresponding order
-                    produced by PunkBought event is not yet inserted to the repository.
-                    See `OrderActivityConverter.convertHistory`
-                     */
-                    && right.type == null
+                    && left.type == OrderActivityMatchSideDto.Type.SELL
+                    && right.type == OrderActivityMatchSideDto.Type.BID
         }
     }
 

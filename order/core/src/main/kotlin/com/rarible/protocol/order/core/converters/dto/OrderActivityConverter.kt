@@ -4,17 +4,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
 @Component
-class OrderActivityConverter(
-    private val priceNormalizer: PriceNormalizer,
-    private val orderRepository: OrderRepository
-) {
+class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
     suspend fun convert(ar: ActivityResult): OrderActivityDto? {
         return when (ar) {
             is ActivityResult.History -> convertHistory(ar.value)
@@ -35,8 +31,6 @@ class OrderActivityConverter(
 
         return when (data) {
             is OrderSideMatch -> {
-                val leftOrder = orderRepository.findById(data.hash)
-                val rightOrder = data.counterHash?.let { orderRepository.findById(it) }
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = data.date,
@@ -44,13 +38,21 @@ class OrderActivityConverter(
                         maker = data.maker,
                         asset = AssetDtoConverter.convert(data.make),
                         hash = data.hash,
-                        type = leftOrder?.orderType
+                        type = if (data.take.type.nft) {
+                            OrderActivityMatchSideDto.Type.BID
+                        } else {
+                            OrderActivityMatchSideDto.Type.SELL
+                        }
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = data.taker,
                         asset = AssetDtoConverter.convert(data.take),
                         hash = data.counterHash ?: Word.apply(ByteArray(32)),
-                        type = rightOrder?.orderType
+                        type = if (data.make.type.nft) {
+                            OrderActivityMatchSideDto.Type.BID
+                        } else {
+                            OrderActivityMatchSideDto.Type.SELL
+                        }
                     ),
                     price = nftPrice(data.take, data.make),
                     priceUsd = data.takePriceUsd ?: data.makePriceUsd,
@@ -185,9 +187,3 @@ class OrderActivityConverter(
         const val DEFAULT_LOG_INDEX: Int = 0
     }
 }
-
-private val Order.orderType: OrderActivityMatchSideDto.Type
-    get() = if (this.take.type.nft)
-        OrderActivityMatchSideDto.Type.BID
-    else
-        OrderActivityMatchSideDto.Type.SELL
