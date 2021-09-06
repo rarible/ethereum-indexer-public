@@ -41,9 +41,8 @@ class CryptoPunkBoughtLogDescriptor(
         val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, punkBoughtEvent.punkIndex().toInt())
         val sellerAddress = punkBoughtEvent.fromAddress()
         val buyerAddress = getBuyerAddress(punkBoughtEvent, log.blockHash())
-        val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
-        val calledFunctionSignature = getCalledFunctionSignature(log, transactionTrace)
-        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transactionTrace)
+        val calledFunctionSignature = getCalledFunctionSignature(punkBoughtEvent)
+        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature)
         val sellOrderHash = Order.hashKey(
             maker = sellerAddress,
             makeAssetType = cryptoPunksAssetType,
@@ -151,28 +150,19 @@ class CryptoPunkBoughtLogDescriptor(
         )
     }
 
-    private fun getCalledFunctionSignature(log: Log, transactionTrace: SimpleTraceResult?): String {
-        if (transactionTrace == null) {
-            logger.warn("Unable to get transaction trace for ${log.transactionHash()}")
-            // Fallback: use bug https://github.com/larvalabs/cryptopunks/issues/19 to determine the called signature.
-            val punkBoughtEvent = PunkBoughtEvent.apply(log)
-            return if (punkBoughtEvent.value() == BigInteger.ZERO) {
-                CryptoPunksMarket.acceptBidForPunkSignature().name()
-            } else {
-                CryptoPunksMarket.buyPunkSignature().name()
-            }
-        }
-        return if (transactionTrace.input.startsWith(CryptoPunksMarket.acceptBidForPunkSignature().id().prefixed())) {
+    private fun getCalledFunctionSignature(punkBoughtEvent: PunkBoughtEvent): String {
+        // Use bug https://github.com/larvalabs/cryptopunks/issues/19 to determine the called function.
+        // If "toAddress" = 0, this is "acceptBidForPunk", otherwise this is "buyPunk".
+        return if (punkBoughtEvent.toAddress() == Address.ZERO()) {
             CryptoPunksMarket.acceptBidForPunkSignature().name()
         } else {
             CryptoPunksMarket.buyPunkSignature().name()
         }
     }
 
-    private fun getPunkPrice(
+    private suspend fun getPunkPrice(
         punkBoughtEvent: PunkBoughtEvent,
-        calledFunctionSignature: String,
-        transactionTrace: SimpleTraceResult?
+        calledFunctionSignature: String
     ): BigInteger {
         if (punkBoughtEvent.value() != BigInteger.ZERO) {
             return punkBoughtEvent.value()
@@ -182,6 +172,7 @@ class CryptoPunkBoughtLogDescriptor(
         // We consider that "minPrice" == "bid.value". Of course this may not be true:
         // 1) Seller might have set "minPrice = 0" when he saw the punk bid, which he was ready to accept.
         // 2) There might have been another bid with bigger "bid.value" appeared before the "acceptBidForPunk" transaction was accepted.
+        val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
         if (transactionTrace == null || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
             return BigInteger.ZERO
         }
