@@ -145,8 +145,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(5, allOrders.size)
 
             // There are 4 on-chain orders for CryptoPunks:
-            // 2 for sell/buy between the punk owner and proxy
-            // 2 for sell/buy between the proxy and the new owner
+            // 2 for sale/buy between the punk owner and proxy
+            // 2 for sale/buy between the proxy and the new owner
             assertEquals(4, allOrders.filter { it.type == OrderType.CRYPTO_PUNKS }.size)
 
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
@@ -156,12 +156,12 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         /*
             We must observe the following 10 histories:
-            - 1 SELL ON-CHAIN-ORDER for "allow to buy punk for 0ETH SELLER -> PROXY"
+            - 1 SELL ON-CHAIN-ORDER for "allow buying punk for 0ETH SELLER -> PROXY"
             - 3 ON-CHAIN-ORDERS for "buyPunk" SELLER -> PROXY
               - 1 BUY ORDER 0ETH SELLER -> PROXY
               - 1 SIDE MATCH 0ETH SELLER -> PROXY
               - 1 SIDE MATCH 0ETH PROXY -> SELLER
-            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to SELLER
+            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to BUYER
               - 1 SELL ORDER 0ETH PROXY -> BUYER
               - 1 BUY ORDER 0ETH BUYER -> PROXY
               - 1 SIDE MATCH 0ETH PROXY -> BUYER
@@ -283,8 +283,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(5, allOrders.size)
 
             // There are 4 on-chain orders for CryptoPunks:
-            // 2 for sell/buy between the punk owner and proxy
-            // 2 for sell/buy between the proxy and the new owner
+            // 2 for sale/buy between the punk owner and proxy
+            // 2 for sale/buy between the proxy and the new owner
             assertEquals(4, allOrders.filter { it.type == OrderType.CRYPTO_PUNKS }.size)
 
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
@@ -294,12 +294,12 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         /*
             We must observe the following 10 histories:
-            - 1 SELL ON-CHAIN-ORDER for "allow to buy punk for 0ETH SELLER -> PROXY"
+            - 1 SELL ON-CHAIN-ORDER for "allow buying punk for 0ETH SELLER -> PROXY"
             - 3 ON-CHAIN-ORDERS for "buyPunk" SELLER -> PROXY
               - 1 BUY ORDER 0ETH SELLER -> PROXY
               - 1 SIDE MATCH 0ETH SELLER -> PROXY
               - 1 SIDE MATCH 0ETH PROXY -> SELLER
-            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to SELLER
+            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to BUYER
               - 1 SELL ORDER 0ETH PROXY -> BUYER
               - 1 BUY ORDER 0ETH BUYER -> PROXY
               - 1 SIDE MATCH 0ETH PROXY -> BUYER
