@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
-import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
@@ -40,7 +39,6 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
         }
         val noLongerForSaleEvent = PunkNoLongerForSaleEvent.apply(log)
         val punkIndex = EthUInt256(noLongerForSaleEvent.punkIndex())
-        // TODO[punk]: we need to use another way of determining "from" = owner address, because this function might have been called from inside another contract.
         val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
         if (transactionTrace == null) {
             logger.info(
@@ -70,15 +68,12 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
     }
 
     /**
-     * We must ignore 'PunkNoLongerForSale' event if it was emitted during 'buyPunk' or 'transfer' function,
-     * because the order is actually filled, not cancelled.
-     *
-     * To determine this, we try to find the subsequent 'Transfer' event (for 'transfer' function)
-     * or 'PunkBought' event (for 'buyPunk' function).
+     * We must ignore 'PunkNoLongerForSale' event if it was emitted during 'buyPunk' function,
+     * because the order is actually filled, not cancelled. To determine this, we try to find the subsequent 'PunkBought' event.
      */
     private suspend fun shouldIgnoreThisLog(log: Log): Boolean {
         val filter = LogFilter
-            .apply(TopicFilter.or(TransferEvent.id(), PunkBoughtEvent.id()))
+            .apply(TopicFilter.or(PunkBoughtEvent.id()))
             .address(exchangeContractAddresses.cryptoPunks)
             .blockHash(log.blockHash())
         val blockLogs = try {

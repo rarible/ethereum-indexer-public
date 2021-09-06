@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import scalether.domain.request.Transaction
 import java.math.BigInteger
-import java.time.Duration
 
 @IntegrationTest
 @FlowPreview
@@ -568,33 +567,6 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         // but currently, such activities are ignored because frontend does not support "for-specific-address" sale orders.
     }
 
-    @Test
-    internal fun `sell order cancelled because punk was transferred`() = runBlocking {
-        val (_, sellerSender) = newSender()
-        val punkIndex = 42.toBigInteger()
-        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
-
-        val punkPrice = BigInteger.valueOf(100500)
-        cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
-            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
-
-        val listOrder = Wait.waitFor(timeout = Duration.ofMinutes(5)) { orderRepository.findActive().singleOrNull() }!!
-        assertEquals(EthUInt256.ONE, listOrder.makeStock)
-        val (buyerAddress) = newSender()
-
-        cryptoPunksMarket.transferPunk(buyerAddress, punkIndex).withSender(sellerSender).execute().verifySuccess()
-
-        Wait.waitAssert(timeout = Duration.ofMinutes(5)) {
-            val order = orderRepository.findById(listOrder.hash)
-            assertNotNull(order)
-            assertEquals(EthUInt256.ZERO, order!!.makeStock)
-
-            // TODO[punk]: this check does not work, because CryptoPunkNoLongerForSaleLogDescriptor
-            //  ignores 'punkNoLongerForSale' method call happened during the 'buyPunk' and 'transferPunk' functions.
-            // assertTrue(order.cancelled)
-        }
-    }
-
     @Nested
     inner class OrderReopenedTest {
         @Test
@@ -678,6 +650,36 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertEquals(Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE), sellOrder.make)
                 assertNull(sellOrder.taker)
                 assertEquals(Asset(EthAssetType, EthUInt256(newPrice)), sellOrder.take)
+            }
+        }
+
+        @Test
+        internal fun `sell order closed and reopened with zero take value for punk transferring`() = runBlocking {
+            val (_, sellerSender) = newSender()
+            val punkIndex = 42.toBigInteger()
+            cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+            val punkPrice = BigInteger.valueOf(100500)
+            cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
+                .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+            val sellOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+            assertEquals(EthUInt256.ONE, sellOrder.makeStock)
+            assertNull(sellOrder.taker)
+
+            val (anotherAddress) = newSender()
+            cryptoPunksMarket.transferPunk(anotherAddress, punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+            Wait.waitAssert {
+                val order = orderRepository.findById(sellOrder.hash)
+                assertNotNull(order)
+                assertEquals(EthUInt256.ZERO, order!!.makeStock)
+
+                // Order cancelled by 'punkNoLongerForSale' function called during the 'transferPunk' execution,
+                // then the order is re-opened for transferring to another owner with take.value = 0.
+                assertFalse(order.cancelled)
+                assertEquals(anotherAddress, order.taker)
+                assertEquals(EthUInt256.ZERO, order.take.value)
             }
         }
     }
