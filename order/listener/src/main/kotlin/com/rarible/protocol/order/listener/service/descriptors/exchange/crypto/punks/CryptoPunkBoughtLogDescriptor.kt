@@ -41,8 +41,9 @@ class CryptoPunkBoughtLogDescriptor(
         val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, punkBoughtEvent.punkIndex().toInt())
         val sellerAddress = punkBoughtEvent.fromAddress()
         val buyerAddress = getBuyerAddress(punkBoughtEvent, log.blockHash())
-        val punkPrice = getPunkPrice(punkBoughtEvent)
-        val calledFunctionSignature = getCalledFunctionSignature(log)
+        val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
+        val calledFunctionSignature = getCalledFunctionSignature(log, transactionTrace)
+        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transactionTrace)
         val sellOrderHash = Order.hashKey(
             maker = sellerAddress,
             makeAssetType = cryptoPunksAssetType,
@@ -150,8 +151,7 @@ class CryptoPunkBoughtLogDescriptor(
         )
     }
 
-    private suspend fun getCalledFunctionSignature(log: Log): String {
-        val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
+    private fun getCalledFunctionSignature(log: Log, transactionTrace: SimpleTraceResult?): String {
         if (transactionTrace == null) {
             logger.warn("Unable to get transaction trace for ${log.transactionHash()}")
             // Fallback: use bug https://github.com/larvalabs/cryptopunks/issues/19 to determine the called signature.
@@ -169,19 +169,21 @@ class CryptoPunkBoughtLogDescriptor(
         }
     }
 
-    private suspend fun getPunkPrice(punkBoughtEvent: PunkBoughtEvent): BigInteger {
+    private fun getPunkPrice(
+        punkBoughtEvent: PunkBoughtEvent,
+        calledFunctionSignature: String,
+        transactionTrace: SimpleTraceResult?
+    ): BigInteger {
         if (punkBoughtEvent.value() != BigInteger.ZERO) {
             return punkBoughtEvent.value()
         }
-        // Because of https://github.com/larvalabs/cryptopunks/issues/19 we cannot extract the correct "value",
-        // which is a buy price. Thus, we try to guess the value from the "minPrice" parameter passed to transaction.
+        // Because of https://github.com/larvalabs/cryptopunks/issues/19 we cannot extract the correct "bid.value" for "acceptBidForPunk" function.
+        // Thus, we try to guess the value from the "minPrice" parameter passed to transaction.
         // We consider that "minPrice" == "bid.value". Of course this may not be true:
         // 1) Seller might have set "minPrice = 0" when he saw the punk bid, which he was ready to accept.
         // 2) There might have been another bid with bigger "bid.value" appeared before the "acceptBidForPunk" transaction was accepted.
-        val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
-        if (transactionTrace == null) {
-            logger.warn("Unable to get transaction trace for ${punkBoughtEvent.log().transactionHash()}")
-            return punkBoughtEvent.value()
+        if (transactionTrace == null || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
+            return BigInteger.ZERO
         }
         val decodedInput = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(
             Binary.apply(transactionTrace.input),
