@@ -162,7 +162,7 @@ class ExchangeHistoryRepository(
                 "${LogEvent::data.name}.${OrderExchangeHistory::hash.name}",
                 LogEvent::blockNumber.name,
                 LogEvent::logIndex.name,
-                LogEvent::minorLogIndex.name //TODO[punk]: discuss: do we need to add index for this sorting?
+                LogEvent::minorLogIndex.name
             )
 
         val logger: Logger = LoggerFactory.getLogger(ExchangeHistoryRepository::class.java)
