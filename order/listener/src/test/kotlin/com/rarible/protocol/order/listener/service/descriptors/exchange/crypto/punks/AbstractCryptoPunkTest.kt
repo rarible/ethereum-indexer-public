@@ -23,6 +23,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -57,6 +58,13 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
 
     protected lateinit var cryptoPunksMarket: CryptoPunksMarket
+
+    private lateinit var lastActivityEventInstant: Instant
+
+    @BeforeEach
+    fun updateLastActivitiyEventInstant() {
+        lastActivityEventInstant = nowMillis()
+    }
 
     @BeforeEach
     fun initializeCryptoPunksMarket() = runBlocking {
@@ -108,7 +116,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     protected suspend fun checkPublishedActivities(assertBlock: (List<ActivityDto>) -> Unit) = coroutineScope {
         val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
         val job = async {
-            consumer.receive().collect { activities.add(it.value) }
+            consumer.receive().filter { it.value.date > lastActivityEventInstant }.collect { activities.add(it.value) }
         }
         Wait.waitAssert {
             assertBlock(activities)
