@@ -94,7 +94,6 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(2, orderRepository.findAll().count())
             val makeOrder = orderRepository.findById(expectedMakeOrder.hash)
             val takeOrder = orderRepository.findById(expectedTakeOrder.hash)
-            // Note that the 'version' of the 'expectedMakeOrder' hasn't changed because its 'fill' was 0 and became 0.
             assertEquals(expectedMakeOrder, makeOrder)
             assertEquals(expectedTakeOrder, takeOrder)
         }
