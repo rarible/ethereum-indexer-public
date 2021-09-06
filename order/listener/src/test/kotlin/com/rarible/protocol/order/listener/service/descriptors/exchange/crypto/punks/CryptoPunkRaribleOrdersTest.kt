@@ -21,6 +21,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -196,18 +197,53 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(sellMake, right.take)
         }
 
-        checkActivityWasPublished {
-            val assetDto = AssetDto(
-                CryptoPunksAssetTypeDto(
-                    cryptoPunksMarket.address(),
-                    punkIndex.toInt()
-                ), BigInteger.ONE
+        /*
+            We must observe the following 6 published activities:
+            - 2 Rarible activities
+              - 1 Rarible List from SELLER
+              - 1 Rarible Match for SELLER <-> BUYER
+            - 4 on-chain activities
+              - 1 Bid + 1 Match for SELLER <-> PROXY
+              - 1 Bid + 1 Match for PROXY <-> BUYER
+         */
+        checkPublishedActivities { activities ->
+            val leftAsset = AssetDto(
+                CryptoPunksAssetTypeDto(cryptoPunksMarket.address(), punkIndex.toInt()), BigInteger.ONE
             )
-            this is OrderActivityMatchDto
-                    && this.source == OrderActivityDto.Source.RARIBLE
-                    && this.left.hash == sellOrder.hash
-                    && this.left.maker == sellerAddress
-                    && this.left.asset == assetDto
+            val rightHash = Order.hashKey(
+                buyerAddress,
+                EthAssetType,
+                CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()),
+                CRYPTO_PUNKS_SALT.value
+            )
+            assertTrue(
+                activities.any {
+                    it is OrderActivityMatchDto
+                            && it.source == OrderActivityDto.Source.RARIBLE
+                            && it.left.hash == sellOrder.hash
+                            && it.left.maker == sellerAddress
+                            && it.left.asset == leftAsset
+
+                            && it.right.hash == rightHash
+                            && it.right.maker == buyerAddress
+                            && it.right.asset.assetType is EthAssetTypeDto
+                            && it.right.asset.value == punkPrice
+                }
+            )
+
+            assertEquals(6, activities.size)
+            assertEquals(1, activities.count {
+                it is OrderActivityListDto && it.source == OrderActivityDto.Source.RARIBLE
+            })
+            assertEquals(1, activities.count {
+                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.RARIBLE
+            })
+            assertEquals(2, activities.count {
+                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
+            })
+            assertEquals(2, activities.count {
+                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
+            })
         }
     }
 
@@ -336,20 +372,46 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(bidMake.value, right.fill)
         }
 
-        checkActivityWasPublished {
+        /*
+            We must observe the following 6 published activities:
+            - 2 Rarible activities
+              - 1 Rarible Bid from BUYER
+              - 1 Rarible Match for BUYER <-> SELLER
+            - 4 on-chain activities
+              - 1 Bid + 1 Match for SELLER <-> PROXY
+              - 1 Bid + 1 Match for PROXY <-> BUYER
+         */
+        checkPublishedActivities { activities ->
             val assetDto = AssetDto(
                 CryptoPunksAssetTypeDto(
                     cryptoPunksMarket.address(),
                     punkIndex.toInt()
                 ), BigInteger.ONE
             )
-            this is OrderActivityMatchDto
-                    && this.source == OrderActivityDto.Source.RARIBLE
-                    && this.left.hash == bidOrder.hash
-                    && this.left.maker == bidderAddress
-                    && this.left.asset.assetType is Erc20AssetTypeDto
+            assertTrue(activities.any {
+                it is OrderActivityMatchDto
+                        && it.source == OrderActivityDto.Source.RARIBLE
+                        && it.left.hash == bidOrder.hash
+                        && it.left.maker == bidderAddress
+                        && it.left.asset.assetType is Erc20AssetTypeDto
 
-                    && this.right.asset == assetDto
+                        && it.right.asset == assetDto
+                        && it.right.maker == ownerAddress
+            })
+
+            assertEquals(6, activities.size)
+            assertEquals(1, activities.count {
+                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.RARIBLE
+            })
+            assertEquals(1, activities.count {
+                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.RARIBLE
+            })
+            assertEquals(2, activities.count {
+                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
+            })
+            assertEquals(2, activities.count {
+                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
+            })
         }
     }
 }

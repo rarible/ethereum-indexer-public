@@ -19,6 +19,7 @@ import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Binary
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
@@ -43,6 +44,7 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.*
 
+@FlowPreview
 abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
     @Autowired
@@ -96,15 +98,20 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         Unit
     }
 
-    protected suspend fun checkActivityWasPublished(predicate: ActivityDto.() -> Boolean) = coroutineScope {
+    protected suspend fun checkActivityWasPublished(predicate: ActivityDto.() -> Boolean) =
+        checkPublishedActivities { activities ->
+            Assertions.assertTrue(activities.any(predicate)) {
+                "Searched-for activity is not found in\n" + activities.joinToString("\n")
+            }
+        }
+
+    protected suspend fun checkPublishedActivities(assertBlock: (List<ActivityDto>) -> Unit) = coroutineScope {
         val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
         val job = async {
             consumer.receive().collect { activities.add(it.value) }
         }
         Wait.waitAssert {
-            Assertions.assertTrue(activities.any(predicate)) {
-                "Searched-for activity is not found in\n" + activities.joinToString("\n")
-            }
+            assertBlock(activities)
         }
         job.cancel()
     }
