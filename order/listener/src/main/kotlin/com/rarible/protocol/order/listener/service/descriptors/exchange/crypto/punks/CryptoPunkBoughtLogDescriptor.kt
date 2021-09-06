@@ -164,7 +164,7 @@ class CryptoPunkBoughtLogDescriptor(
         punkBoughtEvent: PunkBoughtEvent,
         calledFunctionSignature: String
     ): BigInteger {
-        if (punkBoughtEvent.value() != BigInteger.ZERO) {
+        if (punkBoughtEvent.value() != BigInteger.ZERO || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
             return punkBoughtEvent.value()
         }
         // Because of https://github.com/larvalabs/cryptopunks/issues/19 we cannot extract the correct "bid.value" for "acceptBidForPunk" function.
@@ -173,7 +173,8 @@ class CryptoPunkBoughtLogDescriptor(
         // 1) Seller might have set "minPrice = 0" when he saw the punk bid, which he was ready to accept.
         // 2) There might have been another bid with bigger "bid.value" appeared before the "acceptBidForPunk" transaction was accepted.
         val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
-        if (transactionTrace == null || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
+        if (transactionTrace == null) {
+            logger.warn("Unable to get transaction trace for ${punkBoughtEvent.log().transactionHash()}")
             return BigInteger.ZERO
         }
         val decodedInput = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(
