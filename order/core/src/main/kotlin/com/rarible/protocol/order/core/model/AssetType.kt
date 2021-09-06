@@ -189,9 +189,6 @@ data class Erc1155LazyAssetType(
     }
 }
 
-//TODO[punk]: not sure.
-val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO
-
 data class CryptoPunksAssetType(val marketAddress: Address, val punkId: Int) : AssetType(
     type = CRYPTO_PUNKS,
     data = Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))),

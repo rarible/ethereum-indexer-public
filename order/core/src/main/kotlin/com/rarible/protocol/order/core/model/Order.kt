@@ -475,3 +475,14 @@ val AssetType.token: Address
             is EthAssetType -> Address.ZERO()
         }
     }
+
+/**
+ * All on-chain CryptoPunks orders have salt = 0.
+ * We can't have a better salt for them, because there is nothing like "nonce"
+ * in the CryptoPunksMarket contract.
+ * Order key hash for a CryptoPunk order is as usual: Order.hashKey(maker, make.type, take.type, salt = 0)
+ * So, to correctly handle orders from the same owner, we support order re-opening:
+ * OrderReduceService sorts the events by timestamp and resets 'cancelled' and 'fill' fields when
+ * a `NewOnChainOrder` event is met.
+ */
+val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO
