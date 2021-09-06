@@ -13,7 +13,7 @@ import org.springframework.boot.runApplication
 @SpringBootApplication
 class NftOrderListenerApplication(
     private val itemChangeWorker: ConsumerWorker<NftItemEventDto>,
-    private val ownershipChangeWorker: ConsumerWorker<NftOwnershipEventDto>,
+    private val ownershipChangeWorker: BatchedConsumerWorker<NftOwnershipEventDto>,
     private val unlockableChangeWorker: ConsumerWorker<UnlockableEventDto>,
     private val orderChangeWorker: BatchedConsumerWorker<OrderEventDto>
 ) : CommandLineRunner {

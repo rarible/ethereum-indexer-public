@@ -35,6 +35,7 @@ protocol:
 
 listener:
   orderConsumerCount: 5
+  ownershipConsumerCount: 2
   job:
     reconciliation:
       order:
