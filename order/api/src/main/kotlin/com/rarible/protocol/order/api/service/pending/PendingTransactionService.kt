@@ -50,8 +50,6 @@ class PendingTransactionService(
                     address = to,
                     topic = topic,
                     transactionHash = hash,
-                    from = from,
-                    nonce = nonce,
                     status = LogEventStatus.PENDING,
                     index = 0,
                     minorLogIndex = 0

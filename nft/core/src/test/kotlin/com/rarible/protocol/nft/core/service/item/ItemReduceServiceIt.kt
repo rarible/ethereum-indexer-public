@@ -165,7 +165,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        nftItemHistoryRepository.save(LogEvent(data = transfer, address = AddressFactory.create(), topic = WordFactory.create(), transactionHash = WordFactory.create(), from = null, nonce = null, status = LogEventStatus.DROPPED, index = 0, minorLogIndex = 0)).awaitFirst()
+        nftItemHistoryRepository.save(LogEvent(data = transfer, address = AddressFactory.create(), topic = WordFactory.create(), transactionHash = WordFactory.create(), status = LogEventStatus.DROPPED, index = 0, minorLogIndex = 0)).awaitFirst()
         val id = OwnershipId(token, tokenId, owner)
         ownershipRepository.save(
             Ownership(
@@ -242,8 +242,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             address = AddressFactory.create(),
             topic = WordFactory.create(),
             transactionHash = WordFactory.create(),
-            from = null,
-            nonce = null,
             status = LogEventStatus.PENDING,
             index = 0,
             minorLogIndex = 0

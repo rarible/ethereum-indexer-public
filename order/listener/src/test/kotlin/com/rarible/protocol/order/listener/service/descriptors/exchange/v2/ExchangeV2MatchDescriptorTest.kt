@@ -46,7 +46,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             salt = EthUInt256.TEN,
             start = null,
             end = null,
-            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            data = OrderRaribleV2DataV1(emptyList(), listOf(Part(userSender2.from(), EthUInt256.ONE))),
             signature = null,
             createdAt = nowMillis(),
             lastUpdateAt = nowMillis()
@@ -95,7 +95,9 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             val right = map[OrderSide.RIGHT]
 
             assertThat(left?.fill).isEqualTo(EthUInt256.ONE)
+            assertThat(left?.data).isEqualTo(orderLeft.data)
             assertThat(right?.fill).isEqualTo(EthUInt256.TEN)
+            assertThat(right?.data).isEqualTo(OrderRaribleV2DataV1(emptyList(), emptyList()))
 
             assertThat(left?.make)
                 .isEqualTo(orderLeft.make.copy(value = EthUInt256.TEN))

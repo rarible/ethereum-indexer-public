@@ -190,9 +190,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         with(eventLogs.single()) {
             assertThat(transactionHash).isEqualTo(tx.hash())
-            assertThat(from).isEqualTo(tx.from())
             assertThat(address).isEqualTo(if (isCollection) tx.creates() else tx.to())
-            assertThat(nonce).isEqualTo(tx.nonce().longValueExact())
             assertThat(status).isEqualTo(LogEventDto.Status.PENDING)
         }
     }

@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
+import com.rarible.protocol.order.listener.service.order.SideMatchTransactionProvider
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,6 +37,8 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     private lateinit var exchV2CancelDescriptor: ExchangeV2CancelDescriptor
     @Autowired
     private lateinit var exchangeOrderMatchDescriptor: ExchangeOrderMatchDescriptor
+    @Autowired
+    private lateinit var sideMatchTransactionProvider: SideMatchTransactionProvider
 
     @BeforeEach
     fun before() {
@@ -82,6 +85,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
 
         setField(exchV2CancelDescriptor, "exchangeContract", exchange.address())
         setField(exchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
+        setField(sideMatchTransactionProvider, "exchangeContract", exchange.address())
 
         eip712Domain = EIP712Domain(
             name = "Exchange",

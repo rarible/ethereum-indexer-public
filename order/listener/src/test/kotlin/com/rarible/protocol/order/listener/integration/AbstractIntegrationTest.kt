@@ -124,7 +124,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     protected suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
         if (data is OrderExchangeHistory) {
-            val log = exchangeHistoryRepository.save(LogEvent(data = data, address = token, topic = WordFactory.create(), transactionHash = transactionHash, from = null, nonce = null, status = status, index = 0, logIndex = logIndex, minorLogIndex = 0)).awaitFirst()
+            val log = exchangeHistoryRepository.save(LogEvent(data = data, address = token, topic = WordFactory.create(), transactionHash = transactionHash, status = status, index = 0, logIndex = logIndex, minorLogIndex = 0)).awaitFirst()
             return log.data as T
         }
         throw IllegalArgumentException("Unsupported history type")

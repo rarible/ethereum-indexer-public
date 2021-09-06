@@ -3,13 +3,15 @@ package com.rarible.protocol.order.core.producer
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Platform
 
 class ProtocolOrderPublisher(
     private val orderActivityProducer: RaribleKafkaProducer<ActivityDto>,
     private val orderEventProducer: RaribleKafkaProducer<OrderEventDto>,
-    private val globalOrderEventProducer: RaribleKafkaProducer<OrderEventDto>
+    private val globalOrderEventProducer: RaribleKafkaProducer<OrderEventDto>,
+    private val publishProperties: PublishProperties
 ) {
     private val orderActivityHeaders = mapOf("protocol.order.activity.version" to OrderIndexerTopicProvider.VERSION)
     private val orderEventHeaders = mapOf("protocol.order.event.version" to OrderIndexerTopicProvider.VERSION)
@@ -27,7 +29,7 @@ class ProtocolOrderPublisher(
         )
         globalOrderEventProducer.send(message).ensureSuccess()
 
-        if (platform == Platform.RARIBLE) {
+        if (platform.needPublish) {
             orderEventProducer.send(message).ensureSuccess()
         }
     }
@@ -66,5 +68,11 @@ class ProtocolOrderPublisher(
             is Erc721LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
             is EthAssetTypeDto, is Erc20AssetTypeDto -> null
             is FlowAssetTypeDto -> throw UnsupportedOperationException("Unsupported assert type ${this.javaClass}")
+        }
+
+    private val Platform.needPublish: Boolean
+        get() = when (this) {
+            Platform.RARIBLE -> true
+            Platform.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
         }
 }

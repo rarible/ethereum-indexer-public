@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.service.order.SideMatchTransactionProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -27,7 +28,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val orderRepository: OrderRepository,
     private val priceUpdateService: PriceUpdateService,
-    private val prizeNormalizer: PriceNormalizer
+    private val prizeNormalizer: PriceNormalizer,
+    private val sideMatchTransactionProvider: SideMatchTransactionProvider
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val exchangeContract = exchangeContractAddresses.v2
@@ -56,6 +58,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val rightTake = Asset(leftOrder.make.type, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
+        val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
+
         return listOf(
             OrderSideMatch(
                 hash = leftHash,
@@ -72,7 +76,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 takeValue = prizeNormalizer.normalize(leftTake),
                 makePriceUsd = lestUsdValue?.makePriceUsd,
                 takePriceUsd = lestUsdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                data = transactionOrders?.left?.data
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -89,7 +94,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 takeValue = prizeNormalizer.normalize(rightTake),
                 makePriceUsd = rightUsdValue?.makePriceUsd,
                 takePriceUsd = rightUsdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                data = transactionOrders?.right?.data
             )
         )
     }

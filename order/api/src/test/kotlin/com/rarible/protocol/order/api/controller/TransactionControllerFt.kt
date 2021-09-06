@@ -187,9 +187,7 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
         with(transactions.single()) {
             assertThat(transactionHash).isEqualTo(tx.hash())
-            assertThat(from).isEqualTo(tx.from())
             assertThat(address).isEqualTo(tx.to())
-            assertThat(nonce).isEqualTo(tx.nonce().longValueExact())
             assertThat(status).isEqualTo(LogEventDto.Status.PENDING)
         }
     }
