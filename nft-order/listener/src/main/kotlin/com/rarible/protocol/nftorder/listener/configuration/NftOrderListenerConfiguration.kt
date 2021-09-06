@@ -73,17 +73,24 @@ class NftOrderListenerConfiguration(
     fun ownershipChangeWorker(
         nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
         ownershipEventHandler: OwnershipEventHandler
-    ): ConsumerWorker<NftOwnershipEventDto> {
-        return ConsumerWorker(
-            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
-                ownershipConsumerGroup,
-                blockchain
-            ),
-            properties = listenerProperties.monitoringWorker,
-            eventHandler = ownershipEventHandler,
-            meterRegistry = meterRegistry,
-            workerName = "ownershipEventDto"
+    ): BatchedConsumerWorker<NftOwnershipEventDto> {
+        logger.info(
+            "Creating batch of Ownership event consumers, number of consumers: {}",
+            listenerProperties.ownershipConsumerCount
         )
+        val consumers = (1..listenerProperties.ownershipConsumerCount).map {
+            ConsumerWorker(
+                consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
+                    ownershipConsumerGroup,
+                    blockchain
+                ),
+                properties = listenerProperties.monitoringWorker,
+                eventHandler = ownershipEventHandler,
+                meterRegistry = meterRegistry,
+                workerName = "ownershipEventDto.$it"
+            )
+        }
+        return BatchedConsumerWorker(consumers)
     }
 
     @Bean
