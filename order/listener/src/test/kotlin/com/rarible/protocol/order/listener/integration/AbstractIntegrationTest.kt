@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
@@ -12,6 +13,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.HistorySource
@@ -25,6 +27,8 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -41,6 +45,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
 import scalether.core.MonoParity
 import scalether.domain.Address
@@ -85,6 +90,10 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
+    @MockkBean
+    private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
+    protected var nftOwnershipAnswers: suspend (Triple<Address, EthUInt256, Address>) -> EthUInt256? = { null }
+
     protected lateinit var parity: MonoParity
 
     protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
@@ -101,6 +110,37 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
+    }
+
+    @BeforeEach
+    fun setUpMocks() {
+        clearMocks(nftOwnershipControllerApi)
+
+        // Override NFT ownership service to correctly reflect ownership of CryptoPunks.
+        // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
+        coEvery { nftOwnershipControllerApi.getNftOwnershipById(any()) } coAnswers r@{
+            val ownershipId = arg<String>(0)
+            val (tokenStr, tokenIdStr, ownerStr) = ownershipId.split(":")
+
+            val token = Address.apply(tokenStr)
+            val tokenId = EthUInt256.of(tokenIdStr)
+            val owner = Address.apply(ownerStr)
+
+            val answer = nftOwnershipAnswers(Triple(token, tokenId, owner))
+                ?: EthUInt256.ONE
+
+            NftOwnershipDto(
+                id = ownershipId,
+                contract = token,
+                tokenId = tokenId.value,
+                owner = owner,
+                creators = emptyList(),
+                value = answer.value,
+                lazyValue = BigInteger.ZERO,
+                date = nowMillis(),
+                pending = emptyList()
+            ).toMono()
+        }
     }
 
     @PostConstruct
