@@ -143,7 +143,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val allOrders = orderRepository.findAll().toList()
-            assertEquals(5, allOrders.size)
+            assertEquals(5, allOrders.size) {
+                allOrders.joinToString(separator = "\n") { it.toString() }
+            }
 
             // There are 4 on-chain orders for CryptoPunks:
             // 2 for sale/buy between the punk owner and proxy
@@ -174,7 +176,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         Wait.waitAssert {
             val allHistories = exchangeHistoryRepository.findAll().collectList().awaitSingle()
                 .map { it.data as OrderExchangeHistory }
-            assertEquals(10, allHistories.size)
+            assertEquals(10, allHistories.size) {
+                allHistories.joinToString(separator = "\n") { it.toString() }
+            }
 
             val raribleItems =
                 allHistories.filter { it.source == HistorySource.RARIBLE }.filterIsInstance<OrderSideMatch>()
@@ -231,7 +235,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                 }
             )
 
-            assertEquals(6, activities.size)
+            assertEquals(6, activities.size) {
+                activities.joinToString(separator = "\n") { it.toString() }
+            }
             assertEquals(1, activities.count {
                 it is OrderActivityListDto && it.source == OrderActivityDto.Source.RARIBLE
             })
@@ -316,7 +322,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val allOrders = orderRepository.findAll().toList()
-            assertEquals(5, allOrders.size)
+            assertEquals(5, allOrders.size) {
+                allOrders.joinToString(separator = "\n") { it.toString() }
+            }
 
             // There are 4 on-chain orders for CryptoPunks:
             // 2 for sale/buy between the punk owner and proxy
@@ -347,7 +355,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         Wait.waitAssert {
             val allHistories = exchangeHistoryRepository.findAll().collectList().awaitSingle()
                 .map { it.data as OrderExchangeHistory }
-            assertEquals(10, allHistories.size)
+            assertEquals(10, allHistories.size) {
+                allHistories.joinToString(separator = "\n") { it.toString() }
+            }
 
             val raribleItems =
                 allHistories.filter { it.source == HistorySource.RARIBLE }.filterIsInstance<OrderSideMatch>()
@@ -399,7 +409,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                         && it.right.maker == ownerAddress
             })
 
-            assertEquals(6, activities.size)
+            assertEquals(6, activities.size) {
+                activities.joinToString(separator = "\n") { it.toString() }
+            }
             assertEquals(1, activities.count {
                 it is OrderActivityBidDto && it.source == OrderActivityDto.Source.RARIBLE
             })

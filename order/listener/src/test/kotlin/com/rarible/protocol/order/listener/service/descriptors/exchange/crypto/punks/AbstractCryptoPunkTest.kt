@@ -21,7 +21,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
@@ -59,11 +59,11 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
     protected lateinit var cryptoPunksMarket: CryptoPunksMarket
 
-    private lateinit var lastActivityEventInstant: Instant
+    private lateinit var lastKafkaInstant: Instant
 
     @BeforeEach
-    fun updateLastActivitiyEventInstant() {
-        lastActivityEventInstant = nowMillis()
+    fun clearKafkaQueue() {
+        lastKafkaInstant = nowMillis()
     }
 
     @BeforeEach
@@ -106,22 +106,25 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         Unit
     }
 
-    protected suspend fun checkActivityWasPublished(predicate: ActivityDto.() -> Boolean) =
+    protected fun checkActivityWasPublished(predicate: ActivityDto.() -> Boolean) =
         checkPublishedActivities { activities ->
             Assertions.assertTrue(activities.any(predicate)) {
                 "Searched-for activity is not found in\n" + activities.joinToString("\n")
             }
         }
 
-    protected suspend fun checkPublishedActivities(assertBlock: (List<ActivityDto>) -> Unit) = coroutineScope {
+    protected fun checkPublishedActivities(assertBlock: suspend (List<ActivityDto>) -> Unit) = runBlocking {
         val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
         val job = async {
-            consumer.receive().filter { it.value.date > lastActivityEventInstant }.collect { activities.add(it.value) }
+            consumer.receive().filter { it.value.date >= lastKafkaInstant }.collect { activities.add(it.value) }
         }
-        Wait.waitAssert {
-            assertBlock(activities)
+        try {
+            Wait.waitAssert {
+                assertBlock(activities)
+            }
+        } finally {
+            job.cancelAndJoin()
         }
-        job.cancel()
     }
 
     protected fun depositInitialBalance(to: Address, amount: BigInteger) {

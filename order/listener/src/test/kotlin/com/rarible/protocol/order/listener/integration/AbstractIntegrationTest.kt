@@ -27,6 +27,7 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
@@ -200,28 +201,31 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 .receive()
                 .collect { events.add(it) }
         }
-        Wait.waitAssert {
-            assertThat(events)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies {
-                    val event = it.firstOrNull { event -> event.value.id == logEvent.id.toString() }
-                    val activity = event?.value
-                    assertThat(activity?.javaClass).isEqualTo(activityType)
+        try {
+            Wait.waitAssert {
+                assertThat(events)
+                    .hasSizeGreaterThanOrEqualTo(1)
+                    .satisfies {
+                        val event = it.firstOrNull { event -> event.value.id == logEvent.id.toString() }
+                        val activity = event?.value
+                        assertThat(activity?.javaClass).isEqualTo(activityType)
 
-                    when (activity) {
-                        is OrderActivityMatchDto -> {
-                            assertThat(activity.left.hash).isEqualTo(orderLeft.hash)
+                        when (activity) {
+                            is OrderActivityMatchDto -> {
+                                assertThat(activity.left.hash).isEqualTo(orderLeft.hash)
+                            }
+                            is OrderActivityCancelBidDto -> {
+                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
+                            }
+                            is OrderActivityCancelListDto -> {
+                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
+                            }
+                            else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
                         }
-                        is  OrderActivityCancelBidDto -> {
-                            assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                        }
-                        is  OrderActivityCancelListDto -> {
-                            assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                        }
-                        else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
                     }
-                }
+            }
+        } finally {
+            job.cancelAndJoin()
         }
-        job.cancel()
     }
 }
