@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import java.time.Instant
 
 @Service
 class WyvernExchangeOrderCancelDescriptor(
@@ -33,17 +34,17 @@ class WyvernExchangeOrderCancelDescriptor(
     override val topic: Word = OrderCancelledEvent.id()
 
     override fun convert(log: Log, timestamp: Long): Publisher<OrderCancel> {
-        return mono { convert(log) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log): List<OrderCancel> {
+    private suspend fun convert(log: Log, date: Instant): List<OrderCancel> {
         val transactionHash =  log.transactionHash()
         logger.info("Got OrderCancel event, tx=$transactionHash")
 
         val order = openSeaOrderProvider.getCancelOrderByTransactionHash(transactionHash)
 
         return if (order != null) {
-            openSeaOrderEventConverter.convert(order)
+            openSeaOrderEventConverter.convert(order, date)
         } else {
             emptyList()
         }

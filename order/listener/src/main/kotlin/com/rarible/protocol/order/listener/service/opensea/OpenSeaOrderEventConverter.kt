@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.lang.IllegalArgumentException
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import kotlin.experimental.and
 import kotlin.experimental.or
@@ -22,7 +23,7 @@ class OpenSeaOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer
 ) {
-    suspend fun convert(openSeaOrders: OpenSeaMatchedOrders, price: BigInteger): List<OrderSideMatch> {
+    suspend fun convert(openSeaOrders: OpenSeaMatchedOrders, price: BigInteger, date: Instant): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
         val buyOrder = openSeaOrders.buyOrder
         val buyOrderSide = getBuyOrderSide(openSeaOrders)
@@ -69,7 +70,8 @@ class OpenSeaOrderEventConverter(
                 makePriceUsd = buyUsdValue?.makePriceUsd,
                 takePriceUsd = buyUsdValue?.takePriceUsd,
                 source = HistorySource.OPEN_SEA,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                date = date
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -86,13 +88,14 @@ class OpenSeaOrderEventConverter(
                 takeValue = prizeNormalizer.normalize(paymentAsset),
                 makePriceUsd = sellUsdValue?.makePriceUsd,
                 takePriceUsd = sellUsdValue?.takePriceUsd,
-                source = HistorySource.OPEN_SEA,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                date = date,
+                source = HistorySource.OPEN_SEA
             )
         )
     }
 
-    suspend fun convert(order: OpenSeaTransactionOrder): List<OrderCancel> {
+    suspend fun convert(order: OpenSeaTransactionOrder, date: Instant): List<OrderCancel> {
         val transfer = encodeTransfer(order.callData) ?: return emptyList()
         val nftAsset = createNftAsset(order.target, transfer.tokenId, transfer.value, transfer.type)
         val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
@@ -106,6 +109,7 @@ class OpenSeaOrderEventConverter(
                 make = make.copy(value = EthUInt256.ZERO),
                 take = take.copy(value = EthUInt256.ZERO),
                 maker = order.maker,
+                date = date,
                 source = HistorySource.OPEN_SEA
             )
         )

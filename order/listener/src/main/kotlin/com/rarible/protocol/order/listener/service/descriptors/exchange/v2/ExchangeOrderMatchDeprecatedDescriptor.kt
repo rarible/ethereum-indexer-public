@@ -22,6 +22,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import java.time.Instant
 
 @Service
 class ExchangeOrderMatchDeprecatedDescriptor(
@@ -40,10 +41,10 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     override val topic: Word = MatchEventDeprecated.id()
 
     override fun convert(log: Log, timestamp: Long): Publisher<OrderSideMatch> {
-        return mono { convert(log) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
         val event = MatchEventDeprecated.apply(log)
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())
@@ -77,6 +78,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 makePriceUsd = lestUsdValue?.makePriceUsd,
                 takePriceUsd = lestUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
+                date = date,
                 data = transactionOrders?.left?.data
             ),
             OrderSideMatch(
@@ -95,6 +97,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 makePriceUsd = rightUsdValue?.makePriceUsd,
                 takePriceUsd = rightUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
+                date = date,
                 data = transactionOrders?.right?.data
             )
         )
