@@ -187,7 +187,7 @@ data class Order(
                 is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
-                is OrderEmptyData -> EthUInt256.ZERO
+                is OrderCryptoPunksData -> EthUInt256.ZERO
             }
         }
 

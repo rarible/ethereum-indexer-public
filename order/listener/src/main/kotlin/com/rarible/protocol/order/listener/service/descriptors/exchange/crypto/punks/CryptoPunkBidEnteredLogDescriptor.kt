@@ -38,7 +38,7 @@ class CryptoPunkBidEnteredLogDescriptor(
                     salt = CRYPTO_PUNKS_SALT,
                     start = null,
                     end = null,
-                    data = OrderEmptyData,
+                    data = OrderCryptoPunksData,
                     signature = null,
                     createdAt = date,
                     platform = Platform.CRYPTO_PUNKS,

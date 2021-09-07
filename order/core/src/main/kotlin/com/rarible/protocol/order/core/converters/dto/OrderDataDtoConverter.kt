@@ -12,7 +12,7 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderRaribleV2DataV1 -> RaribleV2DataV1DtoConverter.convert(source)
             is OrderDataLegacy -> RaribleLegacyDataDtoConverter.convert(source)
             is OrderOpenSeaV1DataV1 -> OpenSeaV1DataV1DtoConverter.convert(source)
-            is OrderEmptyData -> OrderEmptyDataDtoConverter.convert(source)
+            is OrderCryptoPunksData -> OrderCryptoPunksDataDtoConverter.convert(source)
         }
     }
 }

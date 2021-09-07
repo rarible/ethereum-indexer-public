@@ -376,12 +376,12 @@ components:
           RARIBLE_V2_DATA_V1: "#/components/schemas/OrderRaribleV2DataV1"
           LEGACY: "#/components/schemas/OrderDataLegacy"
           OPEN_SEA_V1_DATA_V1: "#/components/schemas/OrderOpenSeaV1DataV1"
-          EMPTY_DATA: "#/components/schemas/OrderEmptyData"
+          CRYPTO_PUNKS_DATA: "#/components/schemas/OrderCryptoPunksData"
       oneOf:
         - "$ref": "#/components/schemas/OrderRaribleV2DataV1"
         - "$ref": "#/components/schemas/OrderDataLegacy"
         - "$ref": "#/components/schemas/OrderOpenSeaV1DataV1"
-        - "$ref": "#/components/schemas/OrderEmptyData"
+        - "$ref": "#/components/schemas/OrderCryptoPunksData"
 
     OrderRaribleV2DataV1:
       type: object
@@ -483,7 +483,7 @@ components:
         extra:
           $ref: "#/components/schemas/BigInteger"
 
-    OrderEmptyData:
+    OrderCryptoPunksData:
       type: object
       required:
         - dataType
@@ -491,7 +491,7 @@ components:
         dataType:
           type: string
           enum:
-            - EMPTY_DATA
+            - CRYPTO_PUNKS_DATA
 
     Order:
       type: object
