@@ -33,7 +33,7 @@ object LazyAssetTypeToLazyNftConverter : Converter<AssetType, LazyNft> {
                     royalties = source.royalties.map { convert(it) }
                 )
             }
-            is Erc1155AssetType, is Erc20AssetType, is Erc721AssetType, EthAssetType -> {
+            is Erc1155AssetType, is Erc20AssetType, is Erc721AssetType, is GenerativeArtAssetType, EthAssetType -> {
                 throw IllegalArgumentException("Assert $source is not lazy to convert to lazy nft")
             }
         }

@@ -39,6 +39,7 @@ class OrderEventService(
             is Erc1155AssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
             is Erc721LazyAssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
             is Erc1155LazyAssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
+            is GenerativeArtAssetTypeDto -> null
             is EthAssetTypeDto -> null
             is FlowAssetTypeDto -> null
             is Erc20AssetTypeDto -> null

@@ -29,6 +29,9 @@ class AssetBalanceProvider(
             is Erc721LazyAssetType -> {
                 EthUInt256.ONE
             }
+            is GenerativeArtAssetType -> {
+                EthUInt256.of(Long.MAX_VALUE)
+            }
             is Erc1155LazyAssetType -> {
                 type.supply
             }
