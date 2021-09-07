@@ -73,7 +73,7 @@ class PropertiesCacheDescriptor(
                         uri.startsWith("http") -> getByUri(uri)
                         uri.isNotEmpty() -> getFromBase64(uri)
                         else -> {
-                            logger.warn(marker, "unable to get metadata for $id")
+                            logger.warn(marker, "unable to get metadata for $id: token URI is empty")
                             Mono.empty()
                         }
                     }
@@ -89,7 +89,7 @@ class PropertiesCacheDescriptor(
     fun getFromBase64(uri: String): Mono<ItemProperties> {
         val str = String(Base64.getMimeDecoder().decode(uri.toByteArray()))
         return mono {
-            logger.info("Got properties from base64")
+            logger.info("Decoding properties from base64")
             parse(str)
         }
     }
