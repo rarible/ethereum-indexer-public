@@ -18,7 +18,7 @@ import java.time.Instant
 class CryptoPunkOfferedLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceProvider: TransactionTraceProvider
-) : ItemExchangeHistoryLogEventDescriptor<NewOnChainOrder> {
+) : ItemExchangeHistoryLogEventDescriptor<OnChainOrder> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -26,7 +26,7 @@ class CryptoPunkOfferedLogDescriptor(
 
     override val topic: Word = PunkOfferedEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<NewOnChainOrder> {
+    override suspend fun convert(log: Log, date: Instant): List<OnChainOrder> {
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
 /*
@@ -57,7 +57,7 @@ class CryptoPunkOfferedLogDescriptor(
         val take = Asset(EthAssetType, EthUInt256(minPrice))
         val sellOrderHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
         return listOf(
-            NewOnChainOrder(
+            OnChainOrder(
                 OrderVersion(
                     hash = sellOrderHash,
                     maker = sellerAddress,

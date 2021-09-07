@@ -34,7 +34,7 @@ class OnExchangeLogEventListener(
         }
         val result = if (
             (source.data as? OrderSideMatch)?.side == OrderSide.LEFT
-            || source.data is NewOnChainOrder
+            || source.data is OnChainOrder
             || source.data is OrderCancel
         ) {
             ActivityResult.History(source)

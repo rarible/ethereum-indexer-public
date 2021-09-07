@@ -92,7 +92,7 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     source = convert(data.source)
                 )
             }
-            is NewOnChainOrder -> if (data.isBid()) {
+            is OnChainOrder -> if (data.isBid()) {
                 OrderActivityBidDto(
                     date = data.date,
                     id = history.id.toString(),

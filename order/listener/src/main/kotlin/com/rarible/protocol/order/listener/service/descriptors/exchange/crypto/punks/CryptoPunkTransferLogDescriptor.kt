@@ -67,8 +67,8 @@ class CryptoPunkTransferLogDescriptor(
             takeUsd = null
         )
         return listOf(
-            NewOnChainOrder(makeOrder),
-            NewOnChainOrder(takeOrder),
+            OnChainOrder(makeOrder),
+            OnChainOrder(takeOrder),
             OrderSideMatch(
                 hash = makeOrder.hash,
                 counterHash = takeOrder.hash,

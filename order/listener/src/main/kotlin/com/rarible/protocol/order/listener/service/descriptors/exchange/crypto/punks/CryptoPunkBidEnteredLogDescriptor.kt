@@ -28,7 +28,7 @@ class CryptoPunkBidEnteredLogDescriptor(
         val bidderAddress = punkBidEnteredEvent.fromAddress()
         val marketAddress = log.address()
         return listOf(
-            NewOnChainOrder(
+            OnChainOrder(
                 OrderVersion(
                     maker = bidderAddress,
                     taker = null,

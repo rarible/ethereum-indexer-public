@@ -95,7 +95,7 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date)
                 )
                 // On-chain orders can be re-opened, so we must start from the empty state again, even if there were previous events.
-                is NewOnChainOrder -> updateWith(emptyOrder, orderExchangeHistory.order)
+                is OnChainOrder -> updateWith(emptyOrder, orderExchangeHistory.order)
             }
             else -> this
         }

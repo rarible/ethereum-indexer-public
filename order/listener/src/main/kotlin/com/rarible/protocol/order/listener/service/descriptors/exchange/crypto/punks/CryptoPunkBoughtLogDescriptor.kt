@@ -61,7 +61,7 @@ class CryptoPunkBoughtLogDescriptor(
             // 'buyPunk' function was called
             // => there was a SELL order already available on-chain
             // => we need to add only the BUY order
-            NewOnChainOrder(
+            OnChainOrder(
                 OrderVersion(
                     hash = buyOrderHash,
                     maker = buyerAddress,
@@ -87,7 +87,7 @@ class CryptoPunkBoughtLogDescriptor(
             // 'acceptBidForPunk' function was called
             // => there was a BUY (BID) order already available on-chain
             // => we need to add only the SELL order
-            NewOnChainOrder(
+            OnChainOrder(
                 OrderVersion(
                     hash = sellOrderHash,
                     maker = sellerAddress,

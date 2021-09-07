@@ -240,7 +240,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
             Assertions.assertThat(items).hasSize(3)
-            Assertions.assertThat(items.filter { it.data is NewOnChainOrder }).hasSize(1)
+            Assertions.assertThat(items.filter { it.data is OnChainOrder }).hasSize(1)
             Assertions.assertThat(items.filter { it.data is OrderSideMatch }).hasSize(2)
 
             val sides = items.filter { it.data is OrderSideMatch }
@@ -432,7 +432,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
             Assertions.assertThat(items).hasSize(3)
-            Assertions.assertThat(items.filter { it.data is NewOnChainOrder }).hasSize(1)
+            Assertions.assertThat(items.filter { it.data is OnChainOrder }).hasSize(1)
             Assertions.assertThat(items.filter { it.data is OrderSideMatch }).hasSize(2)
 
             val sides = items.filter { it.data is OrderSideMatch }

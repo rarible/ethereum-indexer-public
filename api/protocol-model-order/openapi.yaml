@@ -281,11 +281,11 @@ components:
         mapping:
           CANCEL: "#/components/schemas/OrderCancel"
           ORDER_SIDE_MATCH: "#/components/schemas/OrderSideMatch"
-          NEW_ON_CHAIN_ORDER: "#/components/schemas/NewOnChainOrder"
+          ON_CHAIN_ORDER: "#/components/schemas/OnChainOrder"
       oneOf:
         - "$ref": "#/components/schemas/OrderCancel"
         - "$ref": "#/components/schemas/OrderSideMatch"
-        - "$ref": "#/components/schemas/NewOnChainOrder"
+        - "$ref": "#/components/schemas/OnChainOrder"
 
     ItemBuy:
       type: object
@@ -346,7 +346,7 @@ components:
         owner:
           $ref: "#/components/schemas/Address"
 
-    NewOnChainOrder:
+    OnChainOrder:
       type: object
       required:
         - type

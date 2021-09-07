@@ -15,7 +15,7 @@ enum class ItemType(
             com.rarible.protocol.contracts.exchange.v1.BuyEvent.id()
         )
     ),
-    NEW_ON_CHAIN_ORDER(
+    ON_CHAIN_ORDER(
         topic = setOf(
             PunkOfferedEvent.id(),
             PunkBidEnteredEvent.id(),

@@ -32,7 +32,7 @@ object OrderExchangeHistoryDtoConverter : Converter<OrderExchangeHistory, OrderE
                 maker = source.maker,
                 owner = source.maker
             )
-            is NewOnChainOrder -> NewOnChainOrderDto(
+            is OnChainOrder -> OnChainOrderDto(
                 hash = source.hash,
                 make = AssetDtoConverter.convert(source.make),
                 take = AssetDtoConverter.convert(source.take),
