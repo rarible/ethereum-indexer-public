@@ -35,7 +35,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Duration
-import java.util.*
 
 @Component
 class PropertiesCacheDescriptor(
@@ -87,7 +86,7 @@ class PropertiesCacheDescriptor(
     }
 
     fun getFromBase64(uri: String): Mono<ItemProperties> {
-        val str = String(Base64.getMimeDecoder().decode(uri.toByteArray()))
+        val str = base64ToString(uri)
         return mono {
             logger.info("Decoding properties from base64")
             parse(str)

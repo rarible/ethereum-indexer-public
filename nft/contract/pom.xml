@@ -64,6 +64,12 @@
                             <packageName>com.rarible.protocol.contracts.external.royalties</packageName>
                             <type>MONO</type>
                         </contract>
+                        <!--Loot-->
+                        <contract>
+                            <abi>src/main/abi/external/LootMeta.json</abi>
+                            <packageName>com.rarible.protocol.contracts.external.loot</packageName>
+                            <type>MONO</type>
+                        </contract>
                         <!--ERC-20-->
                         <contract>
                             <truffle>src/main/truffle/erc20/proxy/ERC20TransferProxy.json</truffle>
@@ -176,12 +182,6 @@
                         <contract>
                             <truffle>src/main/truffle/cryptoPunks/test/CryptoPunksMarket.json</truffle>
                             <packageName>com.rarible.protocol.contracts.test.crypto.punks</packageName>
-                            <type>MONO</type>
-                        </contract>
-                        <!--RoyaltiesRegistry-->
-                        <contract>
-                            <truffle>src/main/truffle/royalties/RoyaltiesRegistry.json</truffle>
-                            <packageName>com.rarible.protocol.contracts.royalties</packageName>
                             <type>MONO</type>
                         </contract>
                     </contracts>

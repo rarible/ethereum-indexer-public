@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -7,6 +9,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
@@ -14,6 +17,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -29,6 +33,7 @@ import java.time.temporal.ChronoUnit
 @Tag("manual")
 @Disabled
 class ItemPropertiesServiceTest {
+    private val mapper = ObjectMapper().registerKotlinModule()
     private val tokenRepository = mockk<TokenRepository>()
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
     private val temporaryItemPropertiesRepository = mockk<TemporaryItemPropertiesRepository>()
@@ -37,6 +42,7 @@ class ItemPropertiesServiceTest {
     private val propertiesCacheDescriptor = PropertiesCacheDescriptor(sender, tokenRepository, lazyNftItemHistoryRepository, ipfsService, 86400, 20000)
     private val kittiesCacheDescriptor = KittiesCacheDescriptor(86400)
     private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "", "")
+    private val lootCacheDescriptor = LootCacheDescriptor(86400, sender, mapper)
     private val yInsureCacheDescriptor = YInsureCacheDescriptor(sender, "0x181aea6936b407514ebfc0754a37704eb8d98f91", 86400, "0x1776651F58a17a50098d31ba3C3cD259C1903f7A", "http://localhost:8080")
     private val hegicCacheDescriptor = HegicCacheDescriptor(sender, "0xcb9ebae59738d9dadc423adbde66c018777455a4", 86400, "http://localhost:8080")
     private val hashmasksCacheDescriptor = HashmasksCacheDescriptor(sender, "0xc2c747e0f7004f9e8817db2ca4997657a7746928", 86400)
@@ -44,6 +50,7 @@ class ItemPropertiesServiceTest {
     private val testing = ItemPropertiesService(
         propertiesCacheDescriptor,
         kittiesCacheDescriptor,
+        lootCacheDescriptor,
         yInsureCacheDescriptor,
         hegicCacheDescriptor,
         hashmasksCacheDescriptor,
@@ -80,6 +87,24 @@ class ItemPropertiesServiceTest {
         assertEquals("https://img.cn.cryptokitties.co/0x06012c8cf97bead5deae237070f9587f8e7a266d/1001.svg", props.image)
         assertEquals(props.attributes[0].key, "colorprimary")
         assertEquals(props.attributes[0].value, "shadowgrey")
+    }
+
+    @Test
+    fun lootProperties() {
+        val props = lootCacheDescriptor.get("${ItemPropertiesService.LOOT_ADDRESS}:10").block()!!
+        assertEquals("Bag #10", props.name)
+        assertEquals("Loot is randomized adventurer gear generated and stored on chain. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.",
+            props.description
+        )
+        assertEquals(8, props.attributes.size)
+        assertThat(props.attributes).contains(ItemAttribute("chest", "Robe"))
+        assertThat(props.attributes).contains(ItemAttribute("foot", "Holy Greaves"))
+        assertThat(props.attributes).contains(ItemAttribute("ring", "Platinum Ring"))
+        assertThat(props.attributes).contains(ItemAttribute("weapon", "Maul"))
+        assertThat(props.attributes).contains(ItemAttribute("waist", "Studded Leather Belt"))
+        assertThat(props.attributes).contains(ItemAttribute("hand", "Wool Gloves"))
+        assertThat(props.attributes).contains(ItemAttribute("head", "Divine Hood"))
+        assertThat(props.attributes).contains(ItemAttribute("neck", "\"Havoc Sun\" Amulet of Reflection"))
     }
 
     @Test
