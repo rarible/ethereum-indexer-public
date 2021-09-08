@@ -14,15 +14,9 @@ class OrderEventService(
 ) {
 
     suspend fun updateOrder(order: OrderDto) = coroutineScope {
-        val (makeAssetType, takeAssetType) = when (order) {
-            is RaribleV2OrderDto -> order.make.assetType to order.take.assetType
-            is OpenSeaV1OrderDto -> order.make.assetType to order.take.assetType
-            is LegacyOrderDto -> order.make.assetType to order.take.assetType
-            is CryptoPunkBidOrderDto -> EthAssetTypeDto() to order.punk
-            is CryptoPunkSellOrderDto -> order.punk to EthAssetTypeDto()
-        }
-        val makeItemId = toItemId(makeAssetType)
-        val takeItemId = toItemId(takeAssetType)
+
+        val makeItemId = toItemId(order.make.assetType)
+        val takeItemId = toItemId(order.take.assetType)
 
         val mFuture = makeItemId?.let { async { itemEventService.onItemBestSellOrderUpdated(makeItemId, order) } }
         val tFuture = takeItemId?.let { async { itemEventService.onItemBestBidOrderUpdated(takeItemId, order) } }

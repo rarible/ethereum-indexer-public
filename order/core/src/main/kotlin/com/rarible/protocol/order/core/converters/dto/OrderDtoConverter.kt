@@ -2,7 +2,6 @@ package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.core.convert.converter.Converter
@@ -79,52 +78,28 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
-            OrderType.CRYPTO_PUNKS -> if (source.make.type is CryptoPunksAssetType) {
-                CryptoPunkSellOrderDto(
-                    maker = source.maker,
-                    punk = AssetTypeDtoConverter.convert(source.make.type) as CryptoPunksAssetTypeDto,
-                    taker = source.taker,
-                    punkPriceEth = source.take.value.value,
-                    fill = source.fill.value,
-                    makeStock = source.makeStock.value,
-                    cancelled = source.cancelled,
-                    start = source.start,
-                    end = source.end,
-                    salt = source.salt.value.toWord(),
-                    signature = source.signature,
-                    createdAt = source.createdAt,
-                    lastUpdateAt = source.lastUpdateAt,
-                    hash = source.hash,
-                    priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
-                    makeBalance = BigInteger.ZERO,
-                    makePriceUsd = source.makePriceUsd,
-                    takePriceUsd = source.takePriceUsd,
-                    pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) }
-                )
-            } else {
-                check(source.take.type is CryptoPunksAssetType)
-                CryptoPunkBidOrderDto(
-                    maker = source.maker,
-                    punk = AssetTypeDtoConverter.convert(source.take.type) as CryptoPunksAssetTypeDto,
-                    taker = source.taker,
-                    punkPriceEth = source.make.value.value,
-                    fill = source.fill.value,
-                    makeStock = source.makeStock.value,
-                    cancelled = source.cancelled,
-                    start = source.start,
-                    end = source.end,
-                    salt = source.salt.value.toWord(),
-                    signature = source.signature,
-                    createdAt = source.createdAt,
-                    lastUpdateAt = source.lastUpdateAt,
-                    hash = source.hash,
-                    priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
-                    makeBalance = BigInteger.ZERO,
-                    makePriceUsd = source.makePriceUsd,
-                    takePriceUsd = source.takePriceUsd,
-                    pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) }
-                )
-            }
+            OrderType.CRYPTO_PUNKS -> CryptoPunkOrderDto(
+                maker = source.maker,
+                make = AssetDtoConverter.convert(source.make),
+                taker = source.taker,
+                take = AssetDtoConverter.convert(source.take),
+                fill = source.fill.value,
+                makeStock = source.makeStock.value,
+                cancelled = source.cancelled,
+                start = source.start,
+                end = source.end,
+                salt = source.salt.value.toWord(),
+                signature = source.signature,
+                createdAt = source.createdAt,
+                lastUpdateAt = source.lastUpdateAt,
+                hash = source.hash,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
+                makeBalance = BigInteger.ZERO,
+                makePriceUsd = source.makePriceUsd,
+                takePriceUsd = source.takePriceUsd,
+                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
+            )
         }
     }
 }

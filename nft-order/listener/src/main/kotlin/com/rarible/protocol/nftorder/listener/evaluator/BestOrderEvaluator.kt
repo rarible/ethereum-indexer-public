@@ -1,10 +1,9 @@
 package com.rarible.protocol.nftorder.listener.evaluator
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.data.RaribleOrderChecker
 import com.rarible.protocol.nftorder.listener.service.BestOrderService
 import org.slf4j.LoggerFactory
-import java.math.BigInteger
 
 class BestOrderEvaluator(
     private val comparator: BestOrderComparator,
@@ -122,17 +121,7 @@ class BestOrderEvaluator(
     }
 
     private fun isAlive(order: OrderDto): Boolean {
-        if (order.cancelled) {
-            return false
-        }
-        val takeValue = when (order) {
-            is RaribleV2OrderDto -> order.take.value
-            is OpenSeaV1OrderDto -> order.take.value
-            is LegacyOrderDto -> order.take.value
-            is CryptoPunkBidOrderDto -> BigInteger.ONE      // take = 1 punk
-            is CryptoPunkSellOrderDto -> order.punkPriceEth // take = punk price in ETH
-        }
-        return takeValue != order.fill
+        return order.take.value != order.fill && !order.cancelled
     }
 
 }
