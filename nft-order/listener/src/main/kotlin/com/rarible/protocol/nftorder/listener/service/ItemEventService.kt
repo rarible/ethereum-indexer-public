@@ -100,19 +100,21 @@ class ItemEventService(
     }
 
     private suspend fun updateOrder(itemId: ItemId, orderUpdateAction: suspend (item: Item) -> Item) {
-        val item = optimisticLock {
+        optimisticLock {
             val fetchedItem = itemService.getOrFetchItemById(itemId)
             val item = fetchedItem.entity
             val updated = orderUpdateAction(item)
-            if (EnrichmentDataVerifier.isItemNotEmpty(updated)) {
-                itemService.save(updated)
-            } else if (!fetchedItem.isFetched) {
-                itemService.delete(itemId)
-                logger.info("Deleted Item [{}] without enrichment data", itemId)
+            if (item != updated) {
+                if (EnrichmentDataVerifier.isItemNotEmpty(updated)) {
+                    itemService.save(updated)
+                    notify(ItemEventUpdate(updated))
+                } else if (!fetchedItem.isFetched) {
+                    itemService.delete(itemId)
+                    logger.info("Deleted Item [{}] without enrichment data", itemId)
+                    notify(ItemEventUpdate(updated))
+                }
             }
-            updated
         }
-        notify(ItemEventUpdate(item))
     }
 
     private suspend fun updateItem(existing: Item, updated: Item): Item {

@@ -104,9 +104,9 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         assertThat(itemService.get(makeItemId)).isNull()
         assertThat(ownershipService.get(ownershipId)).isNull()
 
-        // But we still need to send actual data about take Item to the Kafka
+        // Nothing changed for item, so we should send nothing
         Wait.waitAssert {
-            assertThat(itemEvents).hasSize(1)
+            assertThat(itemEvents).hasSize(0)
         }
     }
 
@@ -161,6 +161,28 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         assertThat(updatedMakeItem.bestBidOrder).isEqualTo(updatedOrder)
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
+        }
+    }
+
+    @Test
+    fun `take item update skipped - nothing changed`() = runWithKafka {
+        // Starting with item already saved in Mongo without enrich data
+        val item = randomItem(randomPart())
+        val takeItemId = item.id
+        val existingOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(takeItemId))
+        val exist = itemService.save(item.copy(bestBidOrder = existingOrder))
+
+        // Order should not be replaced since it cancelled, so item should not be updated
+        val updatedOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(takeItemId))
+        orderEventHandler.handle(createOrderUpdateEvent(updatedOrder.copy(cancelled = true)))
+
+        val updatedMakeItem = itemService.get(takeItemId)!!
+
+        // Version of item should be the same since item wasn't updated
+        assertThat(updatedMakeItem.version).isEqualTo(exist.version)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(existingOrder)
+        Wait.waitAssert {
+            assertThat(itemEvents).hasSize(0)
         }
     }
 

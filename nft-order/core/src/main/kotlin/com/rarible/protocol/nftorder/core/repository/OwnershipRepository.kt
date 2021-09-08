@@ -47,15 +47,8 @@ class OwnershipRepository(
     }
 
     suspend fun delete(ownershipId: OwnershipId): DeleteResult? {
-        return template.remove(
-            Query(
-                Criteria().andOperator(
-                    Ownership::contract isEqualTo ownershipId.token,
-                    Ownership::tokenId isEqualTo ownershipId.tokenId,
-                    Ownership::owner isEqualTo ownershipId.owner
-                )
-            ), Ownership::class.java
-        ).awaitFirstOrNull()
+        val criteria = Criteria("_id").isEqualTo(ownershipId)
+        return template.remove(Query(criteria), collection).awaitFirstOrNull()
     }
 
     suspend fun getItemSellStats(itemId: ItemId): ItemSellStats {

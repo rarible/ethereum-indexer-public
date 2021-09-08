@@ -10,5 +10,6 @@ internal const val RARIBLE_PROTOCOL_LISTENER = "listener"
 @ConfigurationProperties(RARIBLE_PROTOCOL_LISTENER)
 class NftOrderListenerProperties(
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
-    val orderConsumerCount: Int = 4
+    val orderConsumerCount: Int = 4,
+    val ownershipConsumerCount: Int = 2
 )

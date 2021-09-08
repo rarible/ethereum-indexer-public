@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import java.time.Instant
 
 @Service
 class WyvernExchangeOrderMatchDescriptor(
@@ -33,10 +34,10 @@ class WyvernExchangeOrderMatchDescriptor(
     override val topic: Word = OrdersMatchedEvent.id()
 
     override fun convert(log: Log, timestamp: Long): Publisher<OrderSideMatch> {
-        return mono { convert(log) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
         val transactionHash =  log.transactionHash()
         logger.info("Got OrdersMatchedEvent, tx=$transactionHash")
 
@@ -44,7 +45,7 @@ class WyvernExchangeOrderMatchDescriptor(
 
         return if (orders != null) {
             val event = OrdersMatchedEvent.apply(log)
-            openSeaOrdersSideMatcher.convert(orders, event.price())
+            openSeaOrdersSideMatcher.convert(orders, event.price(), date)
         } else {
             emptyList()
         }

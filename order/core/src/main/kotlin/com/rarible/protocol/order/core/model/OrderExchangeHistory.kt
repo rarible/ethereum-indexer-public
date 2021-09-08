@@ -41,7 +41,8 @@ data class OrderSideMatch(
     val takeValue : BigDecimal?,
     override val date: Instant = nowMillis(),
     override val source: HistorySource = HistorySource.RARIBLE,
-    val externalOrderExecutedOnRarible: Boolean? = null
+    val externalOrderExecutedOnRarible: Boolean? = null,
+    val data: OrderData? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
 
 data class OrderCancel(
