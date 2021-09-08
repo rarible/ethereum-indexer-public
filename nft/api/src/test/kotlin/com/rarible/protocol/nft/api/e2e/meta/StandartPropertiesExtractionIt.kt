@@ -17,6 +17,7 @@ import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions
@@ -89,7 +90,7 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
 
-        val contract = MintableToken.deployAndWait(userSender, poller, "TEST", "TST", userSender.from(), argv.contractURI, argv.contractURI).block()!!
+        val contract = MintableToken.deployAndWait(userSender, poller, "TEST", "TST", userSender.from(), argv.contractURI, argv.contractURI).awaitSingle()
         val nonce = SignUtils.sign(privateKey, tokenId, contract.address())
         tokenRepository.save(Token(contract.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
