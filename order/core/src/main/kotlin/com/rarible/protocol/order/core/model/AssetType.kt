@@ -47,6 +47,7 @@ sealed class AssetType(
         val ERC721_LAZY = id("ERC721_LAZY")
         val ERC1155 = id("ERC1155")
         val ERC1155_LAZY = id("ERC1155_LAZY")
+        val GEN_ART = id("GEN_ART")
 
         val AssetType.isLazy: Boolean
             get() = this.type == ERC1155_LAZY || this.type == ERC721_LAZY
@@ -71,6 +72,10 @@ sealed class AssetType(
     }
 }
 
+data class GenerativeArtAssetType(val token: Address) : AssetType(GEN_ART, AddressType.encode(token), false) {
+    constructor(data: Binary) : this(AddressType.decode(data, 0).value())
+}
+
 object EthAssetType : AssetType(ETH, Binary.apply(), false) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ETH, Address.ZERO(), BigInteger.ZERO)
 }
@@ -78,7 +83,7 @@ object EthAssetType : AssetType(ETH, Binary.apply(), false) {
 data class Erc20AssetType(val token: Address) : AssetType(ERC20, AddressType.encode(token), false) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ERC20, token, BigInteger.ZERO)
 
-    constructor(data: Binary): this(AddressType.decode(data, 0).value())
+    constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
 data class Erc721AssetType(val token: Address, val tokenId: EthUInt256) : AssetType(
@@ -199,13 +204,14 @@ enum class LegacyAssetTypeClass(val value: BigInteger, val nft: Boolean) {
 data class LegacyAssetType(val clazz: LegacyAssetTypeClass, val token: Address, val tokenId: BigInteger)
 
 fun Tuple2<ByteArray, ByteArray>.toAssetType() =
-    when(val type = Binary(_1())) {
+    when (val type = Binary(_1())) {
         AssetType.ETH -> EthAssetType
         AssetType.ERC20 -> Erc20AssetType(Binary(_2()))
         AssetType.ERC721 -> Erc721AssetType.apply(Binary(_2()))
         AssetType.ERC1155 -> Erc1155AssetType.apply(Binary(_2()))
         AssetType.ERC721_LAZY -> Erc721LazyAssetType.apply(Binary(_2()))
         AssetType.ERC1155_LAZY -> Erc1155LazyAssetType.apply(Binary(_2()))
+        AssetType.GEN_ART -> GenerativeArtAssetType(Binary(_2()))
         else -> throw IllegalArgumentException("asset type not supported: $type")
     }
 
