@@ -31,6 +31,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
+import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
@@ -87,10 +88,8 @@ class PropertiesCacheDescriptor(
 
     fun getFromBase64(uri: String): Mono<ItemProperties> {
         val str = base64ToString(uri)
-        return mono {
-            logger.info("Decoding properties from base64")
-            parse(str)
-        }
+        logger.info("Decoding properties from base64: $str")
+        return parse(str).toMono()
     }
 
     fun getByUri(uri: String): Mono<ItemProperties> {
@@ -104,7 +103,7 @@ class PropertiesCacheDescriptor(
             }
     }
 
-    fun parse(body: String): ItemProperties {
+    private fun parse(body: String): ItemProperties {
         val node = mapper.readTree(body) as ObjectNode
 
         return ItemProperties(

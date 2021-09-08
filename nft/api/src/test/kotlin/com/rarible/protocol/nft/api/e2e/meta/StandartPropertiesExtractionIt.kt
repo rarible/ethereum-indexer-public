@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.e2e.meta
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.dto.NftItemMetaDto
@@ -15,6 +16,7 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaCacheDescriptor
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
+import io.mockk.every
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -28,10 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.mockito.Mockito
-import org.mockito.kotlin.isA
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -43,7 +42,6 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 import java.util.stream.Stream
-
 
 @Tag("manual")
 @End2EndTest
@@ -57,7 +55,6 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
 
     @MockBean
     private lateinit var openSeaCacheDescriptor: OpenSeaCacheDescriptor
-
 
     companion object {
         @JvmStatic
@@ -91,14 +88,14 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
         )
 
         val contract = MintableToken.deployAndWait(userSender, poller, "TEST", "TST", userSender.from(), argv.contractURI, argv.contractURI).awaitSingle()
-        val nonce = SignUtils.sign(privateKey, tokenId, contract.address())
+        val signature = SignUtils.sign(privateKey, tokenId, contract.address())
         tokenRepository.save(Token(contract.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
-        contract.mint(BigInteger.valueOf(nonce.value), nonce.v.toEth(), nonce.r.bytes(), nonce.s.bytes(), emptyArray(), argv.tokenURI).execute().verifySuccess()
+        contract.mint(BigInteger.valueOf(signature.value), signature.v.toEth(), signature.r.bytes(), signature.s.bytes(), emptyArray(), argv.tokenURI).execute().verifySuccess()
 
         val itemId = ItemId(
             contract.address(),
-            EthUInt256.of(nonce.value)
+            EthUInt256.of(signature.value)
         )
         val itemDto = itemService.getMeta(itemId)
         assertEquals(argv.data.name, itemDto.name)
@@ -107,6 +104,8 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
 
         // no images with diff resolutions
         assertEquals(argv.data.image?.url?.get("ORIGINAL"), itemDto.image?.url?.get("ORIGINAL"))
+        // uncomment after RPN-889
+//        assertEquals(argv.data.image?.meta?.get("PREVIEW"), itemDto.image?.meta?.get("PREVIEW"))
     }
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
