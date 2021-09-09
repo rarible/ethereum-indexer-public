@@ -33,7 +33,9 @@ class ChangeLog00003UpdateOrderPriceHistory() {
         collectionClass: Class<*>
     ) {
 
-        val criteria = Criteria.where("$orderField.priceHistory").exists(false)
+        val criteria = Criteria
+            .where(orderField).exists(true)
+            .and("$orderField.priceHistory").exists(false)
 
         val update = Update()
             .set("$orderField.priceHistory", emptyList<OrderPriceHistoryRecordDto>())
