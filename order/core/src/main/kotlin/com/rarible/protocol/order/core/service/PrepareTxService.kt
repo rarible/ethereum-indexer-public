@@ -245,10 +245,12 @@ class PrepareTxService(
             check(order.take.type is CryptoPunksAssetType)
             CryptoPunksMarket.acceptBidForPunkSignature().encode(Tuple2(order.take.type.punkId.toBigInteger(), order.make.value.value))
         }
+        // Hack: add platform ID to the encoded transaction input data.
+        val withPlatform = encoded.add(Platform.CRYPTO_PUNKS.id)
         return PrepareTxResponse(
             null,
             order.take, //TODO[punk]: is it correct?
-            PreparedTx(exchangeContractAddresses.cryptoPunks, encoded)
+            PreparedTx(exchangeContractAddresses.cryptoPunks, withPlatform)
         )
     }
 

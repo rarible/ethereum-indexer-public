@@ -42,7 +42,9 @@ class CryptoPunkBoughtLogDescriptor(
         val sellerAddress = punkBoughtEvent.fromAddress()
         val buyerAddress = getBuyerAddress(punkBoughtEvent, log.blockHash())
         val calledFunctionSignature = getCalledFunctionSignature(punkBoughtEvent)
-        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature)
+        val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
+        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transactionTrace)
+        val externalOrderExecutedOnRarible = isExternalOrderExecutedOnRarible(transactionTrace)
         val sellOrderHash = Order.hashKey(
             maker = sellerAddress,
             makeAssetType = cryptoPunksAssetType,
@@ -127,7 +129,8 @@ class CryptoPunkBoughtLogDescriptor(
                 takePriceUsd = null,
                 makeValue = null,
                 takeValue = null,
-                source = HistorySource.CRYPTO_PUNKS
+                source = HistorySource.CRYPTO_PUNKS,
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
             ),
             OrderSideMatch(
                 hash = buyOrderHash,
@@ -145,9 +148,15 @@ class CryptoPunkBoughtLogDescriptor(
                 takePriceUsd = null,
                 makeValue = null,
                 takeValue = null,
-                source = HistorySource.CRYPTO_PUNKS
+                source = HistorySource.CRYPTO_PUNKS,
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
             )
         )
+    }
+
+    private fun isExternalOrderExecutedOnRarible(transactionTrace: SimpleTraceResult?): Boolean {
+        transactionTrace ?: return false
+        return transactionTrace.input.endsWith(Platform.CRYPTO_PUNKS.id.hex())
     }
 
     private fun getCalledFunctionSignature(punkBoughtEvent: PunkBoughtEvent): String {
@@ -160,9 +169,10 @@ class CryptoPunkBoughtLogDescriptor(
         }
     }
 
-    private suspend fun getPunkPrice(
+    private fun getPunkPrice(
         punkBoughtEvent: PunkBoughtEvent,
-        calledFunctionSignature: String
+        calledFunctionSignature: String,
+        transactionTrace: SimpleTraceResult?
     ): BigInteger {
         if (punkBoughtEvent.value() != BigInteger.ZERO || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
             return punkBoughtEvent.value()
@@ -172,7 +182,6 @@ class CryptoPunkBoughtLogDescriptor(
         // We consider that "minPrice" == "bid.value". Of course this may not be true:
         // 1) Seller might have set "minPrice = 0" when he saw the punk bid, which he was ready to accept.
         // 2) There might have been another bid with bigger "bid.value" appeared before the "acceptBidForPunk" transaction was accepted.
-        val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
         if (transactionTrace == null) {
             logger.warn("Unable to get transaction trace for ${punkBoughtEvent.log().transactionHash()}")
             return BigInteger.ZERO
