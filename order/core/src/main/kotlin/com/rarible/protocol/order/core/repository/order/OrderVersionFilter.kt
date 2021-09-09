@@ -5,6 +5,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
@@ -13,7 +14,7 @@ abstract class OrderVersionFilter {
     internal abstract fun getCriteria(): Criteria
 
     internal open val hint: Document? = null
-    internal open val sort: Sort? = null
+    internal abstract val sort: Sort
     open val limit: Int? = null
 
     protected companion object {

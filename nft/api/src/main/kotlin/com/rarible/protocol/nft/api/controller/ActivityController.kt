@@ -6,6 +6,7 @@ import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.nft.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.api.service.activity.NftActivityService
+import com.rarible.protocol.nft.core.repository.history.ActivitySort
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -20,15 +21,17 @@ class ActivityController(
     override suspend fun getNftActivities(
         request: NftActivityFilterDto,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: String?
     ): ResponseEntity<NftActivitiesDto> {
         val requestSize = size.limit()
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
-        val historyFilters = historyFilterConverter.convert(request, continuationDto)
+        val activitySort = ActivitySort.fromString(sort)
+        val historyFilters = historyFilterConverter.convert(activitySort, request, continuationDto)
         logger.info("Filters: ${historyFilters.joinToString { it.javaClass.simpleName }}")
 
         val result = nftActivityService
-            .search(historyFilters, requestSize)
+            .search(historyFilters, activitySort, requestSize)
             .mapNotNull { NftActivityConverter.convert(it.value) }
 
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {

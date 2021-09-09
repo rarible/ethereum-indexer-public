@@ -118,9 +118,7 @@ class NftItemHistoryRepository(
         if (hint != null) {
             query.withHint(hint)
         }
-        if (sort != null) {
-            query.with(sort)
-        }
+        query.with(sort.sort)
         return mongo.find(query, LogEvent::class.java, COLLECTION)
     }
 

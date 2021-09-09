@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilt
 import com.rarible.protocol.order.core.repository.order.CollectionActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.ItemActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.UserActivityOrderVersionFilter
+import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -21,6 +22,7 @@ class ActivityVersionFilterConverter(
 
     suspend fun convert(
         source: OrderActivityFilterDto,
+        sort: OrderActivitySort,
         activityContinuation: ActivityContinuationDto?
     ): List<ActivityOrderVersionFilter> = coroutineScope {
         val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }
@@ -28,24 +30,18 @@ class ActivityVersionFilterConverter(
         when (source) {
             is OrderActivityFilterAllDto -> source.types.mapNotNull {
                 when (it) {
-                    OrderActivityFilterAllDto.Types.LIST -> ActivityOrderVersionFilter.AllList(continuation)
-                    OrderActivityFilterAllDto.Types.BID -> ActivityOrderVersionFilter.AllBid(continuation)
+                    OrderActivityFilterAllDto.Types.LIST -> ActivityOrderVersionFilter.AllList(sort, continuation)
+                    OrderActivityFilterAllDto.Types.BID -> ActivityOrderVersionFilter.AllBid(sort, continuation)
                     OrderActivityFilterAllDto.Types.MATCH -> null
                 }
             }
             is OrderActivityFilterByUserDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByUserDto.Types.LIST -> listOf(
-                        UserActivityOrderVersionFilter.ByUserList(
-                            source.users,
-                            continuation
-                        )
+                        UserActivityOrderVersionFilter.ByUserList(sort, source.users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityOrderVersionFilter.ByUserMakeBid(
-                            source.users,
-                            continuation
-                        )
+                        UserActivityOrderVersionFilter.ByUserMakeBid(sort, source.users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.GET_BID -> {
                         logger.info("Get bids for ${source.users.size}} users")
@@ -57,6 +53,7 @@ class ActivityVersionFilterConverter(
                             .distinct()
                             .map { item ->
                                 ItemActivityOrderVersionFilter.ByItemBid(
+                                    sort,
                                     item.contract,
                                     item.tokenId,
                                     continuation
@@ -70,11 +67,13 @@ class ActivityVersionFilterConverter(
             is OrderActivityFilterByItemDto -> source.types.mapNotNull {
                 when (it) {
                     OrderActivityFilterByItemDto.Types.LIST -> ItemActivityOrderVersionFilter.ByItemList(
+                        sort,
                         source.contract,
                         EthUInt256.of(source.tokenId),
                         continuation
                     )
                     OrderActivityFilterByItemDto.Types.BID -> ItemActivityOrderVersionFilter.ByItemBid(
+                        sort,
                         source.contract,
                         EthUInt256.of(source.tokenId),
                         continuation
@@ -85,10 +84,12 @@ class ActivityVersionFilterConverter(
             is OrderActivityFilterByCollectionDto -> source.types.mapNotNull {
                 when (it) {
                     OrderActivityFilterByCollectionDto.Types.LIST -> CollectionActivityOrderVersionFilter.ByCollectionList(
+                        sort,
                         source.contract,
                         continuation
                     )
                     OrderActivityFilterByCollectionDto.Types.BID -> CollectionActivityOrderVersionFilter.ByCollectionBid(
+                        sort,
                         source.contract,
                         continuation
                     )

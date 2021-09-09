@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHisto
 import com.rarible.protocol.order.core.repository.exchange.CollectionActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.ItemActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeHistoryFilter
+import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import org.springframework.stereotype.Component
 
 
@@ -17,6 +18,7 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
 
     fun convert(
         source: OrderActivityFilterDto,
+        sort: OrderActivitySort,
         activityContinuation: ActivityContinuationDto?
     ): List<ActivityExchangeHistoryFilter> {
         val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }
@@ -25,10 +27,10 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
             is OrderActivityFilterAllDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterAllDto.Types.MATCH -> listOf(
-                        ActivityExchangeHistoryFilter.AllSell(continuation)
+                        ActivityExchangeHistoryFilter.AllSell(sort, continuation)
                     )
                     OrderActivityFilterAllDto.Types.BID -> listOf(
-                        ActivityExchangeHistoryFilter.AllCanceledBid(continuation)
+                        ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
                     )
                     OrderActivityFilterAllDto.Types.LIST -> emptyList()
                 }
@@ -38,13 +40,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
                 when (it) {
                     OrderActivityFilterByUserDto.Types.SELL -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserSell(users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserSell(sort, users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.BUY -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserBuy(users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.LIST,
                     OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
@@ -53,10 +55,10 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
             is OrderActivityFilterByItemDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByItemDto.Types.MATCH -> listOf(
-                        ItemActivityExchangeHistoryFilter.ByItemSell(source.contract, EthUInt256.of(source.tokenId), continuation)
+                        ItemActivityExchangeHistoryFilter.ByItemSell(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
                     OrderActivityFilterByItemDto.Types.BID -> listOf(
-                        ItemActivityExchangeHistoryFilter.ByItemCanceledBid(source.contract, EthUInt256.of(source.tokenId), continuation)
+                        ItemActivityExchangeHistoryFilter.ByItemCanceledBid(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
                     OrderActivityFilterByItemDto.Types.LIST -> emptyList()
                 }
@@ -64,10 +66,10 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
             is OrderActivityFilterByCollectionDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByCollectionDto.Types.MATCH -> listOf(
-                        CollectionActivityExchangeHistoryFilter.ByCollectionSell(source.contract, continuation)
+                        CollectionActivityExchangeHistoryFilter.ByCollectionSell(sort, source.contract, continuation)
                     )
                     OrderActivityFilterByCollectionDto.Types.BID -> listOf(
-                        CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(source.contract, continuation)
+                        CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(sort, source.contract, continuation)
                     )
                     OrderActivityFilterByCollectionDto.Types.LIST -> emptyList()
                 }

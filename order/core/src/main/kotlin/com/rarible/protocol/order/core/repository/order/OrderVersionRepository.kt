@@ -69,9 +69,7 @@ class OrderVersionRepository(
         if (hint != null) {
             query.withHint(hint)
         }
-        if (sort != null) {
-            query.with(sort)
-        }
+        query.with(sort)
         if (limit != null) {
             query.limit(limit)
         }

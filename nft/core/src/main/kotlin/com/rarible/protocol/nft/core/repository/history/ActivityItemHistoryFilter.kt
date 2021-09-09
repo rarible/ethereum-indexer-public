@@ -20,98 +20,103 @@ sealed class ActivityItemHistoryFilter {
         val statusKey = LogEvent::status
         val ownerKey = LogEvent::data / ItemTransfer::owner
         val fromKey = LogEvent::data / ItemTransfer::from
-
-        val activitySort: Sort = Sort.by(
-            Sort.Order.desc("${LogEvent::data.name}.${ItemHistory::date.name}"),
-            Sort.Order.desc("_id")
-        )
     }
 
     internal abstract fun getCriteria(): Criteria
-
-    internal open val sort: Sort? = activitySort
+    internal abstract val sort: ActivitySort
     internal open val hint: Document? = null
 
-    class AllBurn(private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+    class AllBurn(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
-                .and(ownerKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class AllMint(private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+    class AllMint(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
-                .and(fromKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(fromKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class AllTransfer(private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+    class AllTransfer(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_TYPE_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(fromKey).ne(Address.ZERO())
-                .and(ownerKey).ne(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).ne(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    protected infix fun Criteria.scrollTo(continuation: Continuation?): Criteria =
+    protected fun Criteria.scrollTo(sort: ActivitySort, continuation: Continuation?): Criteria =
         if (continuation == null) {
             this
-        } else {
-            this.orOperator(
-                LogEvent::data / ItemHistory::date lt continuation.afterDate,
-                (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").lt(continuation.afterId)
-            )
+        } else when (sort) {
+            ActivitySort.LATEST_FIRST ->
+                this.orOperator(
+                    LogEvent::data / ItemHistory::date lt continuation.afterDate,
+                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").lt(continuation.afterId)
+                )
+            ActivitySort.EARLIEST_FIRST ->
+                this.orOperator(
+                    LogEvent::data / ItemHistory::date gt continuation.afterDate,
+                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").gt(continuation.afterId)
+                )
         }
 }
 
 sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
-    class ByUserMint(private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserMint(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val userMintCriteria = if (users.isSingleton) ownerKey isEqualTo users.single() else ownerKey inValues users
-            return AllMint(null).getCriteria().andOperator(userMintCriteria) scrollTo continuation
+            return AllMint(sort, null).getCriteria().andOperator(userMintCriteria).scrollTo(sort, continuation)
         }
     }
 
-    class ByUserBurn(private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserBurn(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val userBurnCriteria = if (users.isSingleton) fromKey isEqualTo users.single() else fromKey inValues users
-            return AllBurn(null).getCriteria().andOperator(userBurnCriteria) scrollTo continuation
+            return AllBurn(sort,null).getCriteria().andOperator(userBurnCriteria).scrollTo(sort, continuation)
         }
     }
 
-    class ByUserTransferFrom(private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserTransferFrom(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(fromKey).isEqualTo(users.single()) else and(fromKey).inValues(users) }
-                .and(ownerKey).ne(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).ne(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserTransferTo(private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserTransferTo(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(ownerKey).isEqualTo(users.single()) else and(ownerKey).inValues(users) }
-                .and(fromKey).ne(Address.ZERO()) scrollTo continuation
+                .and(fromKey).ne(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 }
@@ -121,31 +126,34 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
 
     override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_DEFINITION.indexKeys
 
-    class ByCollectionBurn(contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+    class ByCollectionBurn(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
-                .and(ownerKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByCollectionMint(contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+    class ByCollectionMint(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
-                .and(fromKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(fromKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByCollectionTransfer(contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+    class ByCollectionTransfer(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(fromKey).ne(Address.ZERO())
-                .and(ownerKey).ne(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).ne(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 }
@@ -155,34 +163,56 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
 
     override val hint: Document = NftItemHistoryRepositoryIndexes.BY_ITEM_DEFINITION.indexKeys
 
-    class ByItemBurn(contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
+    class ByItemBurn(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)
-                .and(ownerKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByItemMint(contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
+    class ByItemMint(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)
-                .and(fromKey).isEqualTo(Address.ZERO()) scrollTo continuation
+                .and(fromKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByItemTransfer(contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
+    class ByItemTransfer(override val sort: ActivitySort, contract: Address, tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityItemHistoryFilter(contract, tokenId) {
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(collectionKey).isEqualTo(contract)
                 .and(tokenIdKey).isEqualTo(tokenId)
                 .and(fromKey).ne(Address.ZERO())
-                .and(ownerKey).ne(Address.ZERO()) scrollTo continuation
+                .and(ownerKey).ne(Address.ZERO())
+                .scrollTo(sort, continuation)
         }
+    }
+}
+
+enum class ActivitySort(val sort: Sort) {
+    LATEST_FIRST(
+        Sort.by(
+            Sort.Order.desc("${LogEvent::data.name}.${ItemHistory::date.name}"),
+            Sort.Order.desc("_id")
+        )
+    ),
+    EARLIEST_FIRST(
+        Sort.by(
+            Sort.Order.asc("${LogEvent::data.name}.${ItemHistory::date.name}"),
+            Sort.Order.asc("_id")
+        )
+    );
+
+    companion object {
+        fun fromString(value: String?) = if (value == EARLIEST_FIRST.name) EARLIEST_FIRST else LATEST_FIRST
     }
 }

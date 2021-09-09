@@ -4,45 +4,57 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Continuation
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.inValues
-import org.springframework.data.mongodb.core.query.isEqualTo
-import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
 
 sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
-    override val sort = Sort.by(
-        Sort.Order.desc(OrderVersion::createdAt.name),
-        Sort.Order.desc("_id")
-    )
 
-    class AllList(private val continuation: Continuation?) : ActivityOrderVersionFilter() {
+    abstract val activitySort: OrderActivitySort
+    override val sort: Sort
+        get() = when(activitySort) {
+            OrderActivitySort.LATEST_FIRST -> Sort.by(
+                Sort.Order.desc(OrderVersion::createdAt.name),
+                Sort.Order.desc("_id")
+            )
+            OrderActivitySort.EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc(OrderVersion::createdAt.name),
+                Sort.Order.asc("_id")
+            )
+        }
+
+    class AllList(override val activitySort: OrderActivitySort, private val continuation: Continuation?) : ActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.ALL_LIST_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return makeNftKey isEqualTo true scrollTo continuation
+            return (makeNftKey isEqualTo true).scrollTo(activitySort, continuation)
         }
     }
 
-    class AllBid(private val continuation: Continuation?) : ActivityOrderVersionFilter() {
+    class AllBid(override val activitySort: OrderActivitySort, private val continuation: Continuation?) : ActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return takeNftKey isEqualTo true scrollTo continuation
+            return (takeNftKey isEqualTo true).scrollTo(activitySort, continuation)
         }
     }
 
-    protected infix fun Criteria.scrollTo(continuation: Continuation?): Criteria {
+    protected fun Criteria.scrollTo(sort: OrderActivitySort, continuation: Continuation?): Criteria {
         return if (continuation == null) {
             this
-        } else {
-            this.orOperator(
-                OrderVersion::createdAt lt continuation.afterDate,
-                (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
-            )
+        } else when (sort) {
+            OrderActivitySort.LATEST_FIRST ->
+                this.orOperator(
+                    OrderVersion::createdAt lt continuation.afterDate,
+                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
+                )
+            OrderActivitySort.EARLIEST_FIRST ->
+                this.orOperator(
+                    OrderVersion::createdAt gt continuation.afterDate,
+                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
+                )
         }
     }
 }
@@ -50,67 +62,77 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
 sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrderVersionFilter() {
     protected val makerCriteria = if (users.isSingleton) OrderVersion::maker isEqualTo users.single() else OrderVersion::maker inValues users
 
-    class ByUserMakeBid(users: List<Address>, private val continuation: Continuation? = null) : UserActivityOrderVersionFilter(users) {
+    class ByUserMakeBid(override val activitySort: OrderActivitySort, users: List<Address>, private val continuation: Continuation? = null) : UserActivityOrderVersionFilter(users) {
         override val hint: Document =
             if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
             else OrderVersionRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return AllBid(null).getCriteria().andOperator(makerCriteria) scrollTo continuation
+            return AllBid(activitySort,null).getCriteria()
+                .andOperator(makerCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 
-    class ByUserList(users: List<Address>, val continuation: Continuation?) : UserActivityOrderVersionFilter(users) {
+    class ByUserList(override val activitySort: OrderActivitySort, users: List<Address>, val continuation: Continuation?) : UserActivityOrderVersionFilter(users) {
         override val hint: Document =
             if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_LIST_DEFINITION.indexKeys
             else OrderVersionRepositoryIndexes.ALL_LIST_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return AllList(null).getCriteria().andOperator(makerCriteria) scrollTo continuation
+            return AllList(activitySort,null).getCriteria()
+                .andOperator(makerCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 }
 
 sealed class CollectionActivityOrderVersionFilter : ActivityOrderVersionFilter() {
 
-    data class ByCollectionList(private val contract: Address, private val continuation: Continuation? = null) : CollectionActivityOrderVersionFilter() {
+    data class ByCollectionList(override val activitySort: OrderActivitySort, private val contract: Address, private val continuation: Continuation? = null) : CollectionActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.COLLECTION_LIST_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val makeNftContractCriteria = makeNftContractKey isEqualTo contract
-            return AllList(null).getCriteria().andOperator(makeNftContractCriteria) scrollTo continuation
+            return AllList(activitySort,null).getCriteria()
+                .andOperator(makeNftContractCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 
-    data class ByCollectionBid(private val contract: Address, private val continuation: Continuation? = null) : CollectionActivityOrderVersionFilter() {
+    data class ByCollectionBid(override val activitySort: OrderActivitySort, private val contract: Address, private val continuation: Continuation? = null) : CollectionActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.COLLECTION_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val takeNftContractCriteria = takeNftContractKey isEqualTo contract
-            return AllBid(null).getCriteria().andOperator(takeNftContractCriteria) scrollTo continuation
+            return AllBid(activitySort,null).getCriteria()
+                .andOperator(takeNftContractCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 }
 
 sealed class ItemActivityOrderVersionFilter : CollectionActivityOrderVersionFilter() {
 
-    data class ByItemList(private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation? = null) : ItemActivityOrderVersionFilter() {
+    data class ByItemList(override val activitySort: OrderActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation? = null) : ItemActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.ITEM_LIST_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val makeNftContractCriteria = makeNftContractKey isEqualTo contract
             val makeNftTokenIdCriteria = makeNftTokenIdKey isEqualTo tokenId
-            return Criteria().andOperator(makeNftContractCriteria, makeNftTokenIdCriteria) scrollTo continuation
+            return Criteria().andOperator(makeNftContractCriteria, makeNftTokenIdCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 
-    data class ByItemBid(private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation? = null) : ItemActivityOrderVersionFilter() {
+    data class ByItemBid(override val activitySort: OrderActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation? = null) : ItemActivityOrderVersionFilter() {
         override val hint: Document = OrderVersionRepositoryIndexes.ITEM_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val takeNftContractCriteria = takeNftContractKey isEqualTo contract
             val takeNftTokenIdCriteria = takeNftTokenIdKey isEqualTo tokenId
-            return Criteria().andOperator(takeNftContractCriteria, takeNftTokenIdCriteria) scrollTo continuation
+            return Criteria().andOperator(takeNftContractCriteria, takeNftTokenIdCriteria)
+                .scrollTo(activitySort, continuation)
         }
     }
 }

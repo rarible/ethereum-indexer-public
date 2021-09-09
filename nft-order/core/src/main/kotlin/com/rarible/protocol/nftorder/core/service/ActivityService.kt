@@ -24,14 +24,15 @@ class ActivityService(
     suspend fun getOrderActivities(
         filter: ActivityFilterDto,
         continuation: String?,
-        size: Int
+        size: Int,
+        sort: String?
     ): OrderActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToOrderDtoConverter.convert(filter)
         return if (convertedFilter == null) {
             EMPTY_ORDER_ACTIVITIES
         } else {
-            orderActivityControllerApi.getOrderActivities(convertedFilter, continuation, size)
+            orderActivityControllerApi.getOrderActivities(convertedFilter, continuation, size, sort)
                 .awaitFirst()
         }
     }
@@ -39,14 +40,15 @@ class ActivityService(
     suspend fun getNftActivities(
         filter: ActivityFilterDto,
         continuation: String?,
-        size: Int
+        size: Int,
+        sort: String?
     ): NftActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToNftDto.convert(filter)
         return if (convertedFilter == null) {
             EMPTY_NFT_ACTIVITIES
         } else {
-            nftActivityControllerApi.getNftActivities(convertedFilter, continuation, size)
+            nftActivityControllerApi.getNftActivities(convertedFilter, continuation, size, sort)
                 .awaitFirst()
         }
     }

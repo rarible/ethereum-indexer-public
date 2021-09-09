@@ -15,12 +15,13 @@ class ActivityController(
     override suspend fun getNftOrderAllActivities(
         type: List<String>,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: String?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterAllDto(
             LinkedHashSet(type).map { ActivityFilterAllDto.Types.valueOf(it) }
         )
-        val result = activityApiService.getActivities(filter, continuation, size)
+        val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
@@ -29,14 +30,15 @@ class ActivityController(
         contract: String,
         tokenId: String,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: String?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByItemDto(
             Address.apply(contract),
             BigInteger(tokenId),
             LinkedHashSet(type).map { ActivityFilterByItemDto.Types.valueOf(it) }
         )
-        val result = activityApiService.getActivities(filter, continuation, size)
+        val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
@@ -44,13 +46,14 @@ class ActivityController(
         type: List<String>,
         collection: String,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: String?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByCollectionDto(
             Address.apply(collection),
             LinkedHashSet(type).map { ActivityFilterByCollectionDto.Types.valueOf(it) }
         )
-        val result = activityApiService.getActivities(filter, continuation, size)
+        val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
@@ -58,13 +61,14 @@ class ActivityController(
         type: List<String>,
         user: List<Address>,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: String?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByUserDto(
             user,
             LinkedHashSet(type).map { ActivityFilterByUserDto.Types.valueOf(it) }
         )
-        val result = activityApiService.getActivities(filter, continuation, size)
+        val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 }

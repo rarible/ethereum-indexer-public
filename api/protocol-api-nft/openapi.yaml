@@ -75,6 +75,12 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [LATEST_FIRST, EARLIEST_FIRST]
       requestBody:
         content:
           application/json:
