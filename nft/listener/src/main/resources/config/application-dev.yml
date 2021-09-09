@@ -1,3 +1,4 @@
 ethereumBlockReindexEnabled: true
 common:
   cryptoPunksContractAddress: "0x8Dcd3a0aea22925590Dbba0f13cCbA87b238c766"
+  royaltyRegistryAddress: "0x1747757768Ff4AA61390B1ed3AA019141605717B"

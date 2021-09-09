@@ -1,2 +1,3 @@
 common:
   cryptoPunksContractAddress: "0x8Dcd3a0aea22925590Dbba0f13cCbA87b238c766"
+  royaltyRegistryAddress: "0xdA8e7D4cF7BA4D5912a68c1e40d3D89828fA6EE8"

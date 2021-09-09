@@ -12,5 +12,6 @@ data class NftIndexerProperties(
     val kafkaReplicaSet: String,
     val blockchain: Blockchain,
     var cryptoPunksContractAddress: String,
-    var openseaLazyMintAddress: String
+    var openseaLazyMintAddress: String,
+    var royaltyRegistryAddress: String
 )

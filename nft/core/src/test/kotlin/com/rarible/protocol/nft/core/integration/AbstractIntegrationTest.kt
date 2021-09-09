@@ -22,14 +22,20 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
+import reactor.core.publisher.Mono
+import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import scalether.domain.response.TransactionReceipt
+import scalether.transaction.MonoTransactionPoller
 import java.util.*
 
 @FlowPreview
@@ -46,9 +52,15 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     protected lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
     @Autowired
+    protected lateinit var nftIndexerProperties: NftIndexerProperties
+    @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
     @Autowired
     private lateinit var properties: NftIndexerProperties
+    @Autowired
+    protected lateinit var ethereum: MonoEthereum
+    @Autowired
+    protected lateinit var poller: MonoTransactionPoller
 
     private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
 
@@ -173,5 +185,17 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                 }
         }
         job.cancel()
+    }
+
+    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
+        val receipt = waitReceipt()
+        Assertions.assertTrue(receipt.success())
+        return receipt
+    }
+
+    protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
+        val value = this.awaitFirstOrNull()
+        require(value != null) { "txHash is null" }
+        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 }
