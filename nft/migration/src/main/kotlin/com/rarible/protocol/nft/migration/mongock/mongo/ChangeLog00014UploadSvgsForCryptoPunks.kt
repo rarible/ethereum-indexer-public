@@ -1,27 +1,24 @@
 package com.rarible.protocol.nft.migration.mongock.mongo
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import com.rarible.protocol.nft.migration.configuration.IpfsProperties
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.*
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.http.*
+import org.springframework.http.ContentDisposition
+import org.springframework.http.HttpEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.util.MultiValueMap
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
-import scalether.domain.Address
 import java.io.InputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -32,9 +29,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
     fun create(
-        repository: ItemPropertyRepository,
-        mapper: ObjectMapper,
-        @NonLockGuarded nftIndexerProperties: NftIndexerProperties,
+        cryptoPunksMetaService: CryptoPunksMetaService,
         @NonLockGuarded ipfsProperties: IpfsProperties
     ) = runBlocking<Unit> {
         val zipResponse = archive(ipfsProperties.cryptoPunksImagesUrl).awaitSingle()
@@ -52,9 +47,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                             upload(
                                 it.name,
                                 content,
-                                repository,
-                                mapper,
-                                nftIndexerProperties,
+                                cryptoPunksMetaService,
                                 ipfsProperties
                             )
                         })
@@ -83,21 +76,14 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
 
     suspend fun upload(
         file: String, someByteArray: ByteArray,
-        repository: ItemPropertyRepository,
-        mapper: ObjectMapper,
-        nftIndexerProperties: NftIndexerProperties,
+        cryptoPunksMetaService: CryptoPunksMetaService,
         ipfsProperties: IpfsProperties
     ) {
         val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
-
-        val number = file.filter { it.isDigit() }.toInt()
-        val id = EthUInt256.of(number)
-        val itemId = ItemId(Address.apply(nftIndexerProperties.cryptoPunksContractAddress), id)
-        val str = repository.get(itemId).awaitSingle()
-        val props: MutableMap<String, Any?> = mapper.readValue(str)
-        props.put("name", "CryptoPunk #$number")
-        props.put("image", "${ipfsProperties.gateway}/${response.get("IpfsHash")}")
-        repository.save(itemId, mapper.writeValueAsString(props)).awaitSingle()
+        val id = file.filter { it.isDigit() }.toBigInteger()
+        var punk = cryptoPunksMetaService.get(id).awaitSingle()
+        punk = punk.copy(image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}")
+        cryptoPunksMetaService.save(punk)
         logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
     }
 

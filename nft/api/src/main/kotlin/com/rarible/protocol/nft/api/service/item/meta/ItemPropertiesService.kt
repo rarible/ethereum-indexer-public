@@ -1,20 +1,13 @@
 package com.rarible.protocol.nft.api.service.item.meta
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
-import kotlinx.coroutines.reactive.awaitSingle
-import kotlinx.coroutines.reactor.mono
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,11 +27,10 @@ class ItemPropertiesService(
     private val hegicCacheDescriptor: HegicCacheDescriptor,
     private val hashmasksCacheDescriptor: HashmasksCacheDescriptor,
     private val waifusionCacheDescriptor: WaifusionCacheDescriptor,
+    private val cryptoPunksMetaService: CryptoPunksMetaService,
     private val openseaClient: OpenseaClient,
     private val ipfsService: IpfsService,
     private val temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository,
-    private val itemPropertiesRepository: ItemPropertyRepository,
-    private val mapper: ObjectMapper,
     private val properties: NftIndexerProperties,
     @Value("\${api.yinsure.address}") yInsureAddress: String,
     @Value("\${api.hegic.address}") hegicAddress: String,
@@ -91,9 +83,7 @@ class ItemPropertiesService(
                         it.copy(image = it.image?.let { url -> ipfsService.resolveIpfsUrl(url) })
                     }
             }
-            cryptoPunksAddress -> {
-                mono { cryptoPunkProps(token, tokenId) }
-            }
+            cryptoPunksAddress -> cryptoPunkProps(tokenId)
             else -> {
                 getPropertiesFromOpensea(token, tokenId)
                     .switchIfEmpty {
@@ -115,25 +105,17 @@ class ItemPropertiesService(
         }
     }
 
-    suspend fun cryptoPunkProps(token: Address, tokenId: BigInteger): ItemProperties {
-        val str = itemPropertiesRepository.get(ItemId(token, EthUInt256.of(tokenId))).awaitSingle()
-        val props: Map<String, *> = mapper.readValue(str)
-        var attributes = mutableListOf<ItemAttribute>()
-        for ((k, v) in props.get("attributes") as Map<String, *>) {
-            if (v is List<*>) {
-                v.forEach { attributes.add(ItemAttribute("accessory", it.toString())) }
-            } else {
-                attributes.add(ItemAttribute(k, v.toString()))
-            }
+    fun cryptoPunkProps(tokenId: BigInteger): Mono<ItemProperties?> {
+        return cryptoPunksMetaService.get(tokenId).map {
+            ItemProperties(
+                name = "CryptoPunk #$tokenId",
+                description = null,
+                image = it.image,
+                imagePreview = null,
+                imageBig = null,
+                attributes = it.attributes
+            )
         }
-        return ItemProperties(
-            name = props.get("name").toString(),
-            description = null,
-            image = props.get("image").toString(),
-            imagePreview = null,
-            imageBig = null,
-            attributes = attributes
-        )
     }
 
     fun resetProperties(token: Address, tokenId: BigInteger): Mono<Void> =

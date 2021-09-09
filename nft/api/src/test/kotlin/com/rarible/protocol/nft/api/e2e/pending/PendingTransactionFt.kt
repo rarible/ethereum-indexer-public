@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.e2e.pending
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
@@ -266,9 +265,8 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 hashmasksAddress = Address.FOUR().toString(),
                 waifusionAddress = Address.FOUR().toString(),
                 cacheService = null,
-                itemPropertiesRepository = itemPropertyRepository,
                 properties = nftIndexerProperties,
-                mapper = ObjectMapper()
+                cryptoPunksMetaService = mockk()
             )
         }
     }

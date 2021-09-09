@@ -1,11 +1,9 @@
 package com.rarible.protocol.nft.migration.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
+import com.rarible.protocol.nft.core.repository.CryptoPunksRepository
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
 import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00013InsertAttributesForCryptoPunks
@@ -26,24 +24,23 @@ class CryptoPunkMetaMigrationTest : AbstractIntegrationTest() {
     private val insertAttributes = ChangeLog00013InsertAttributesForCryptoPunks()
 
     @Autowired
-    private lateinit var itemPropertyRepository: ItemPropertyRepository
-
-    @Autowired
-    private lateinit var mapper: ObjectMapper
-
-    @Autowired
     private lateinit var itemPropertiesService: ItemPropertiesService
+
+    @Autowired
+    private lateinit var cryptoPunksRepository: CryptoPunksRepository
+
+    @Autowired
+    private lateinit var cryptoPunksMetaService: CryptoPunksMetaService
 
     @Test
     fun `should get attributes after migration`() = runBlocking {
         val token = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         val tokenId = BigInteger.valueOf(2L)
-        insertAttributes.create(itemPropertyRepository, mapper, nftIndexerProperties)
+        insertAttributes.create(cryptoPunksMetaService)
 
-        val itemId = ItemId(token, EthUInt256.of(tokenId))
-        assertEquals(10000, mongo.count(Query(), "item_properties").awaitSingle())
-        val props = mapper.readValue(itemPropertyRepository.get(itemId).awaitFirstOrNull(), Map::class.java)
-        assertEquals("Human", (props.get("attributes") as Map<String, *>).get("type"))
+        assertEquals(10000, mongo.count(Query(), "cryptopunks_meta").awaitSingle())
+        val props = cryptoPunksRepository.findById(tokenId).awaitSingle()
+        assertEquals("Human", props.attributes.first { it.key.equals("type") }.value)
 
         val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
         assertThat(itemProps?.attributes).contains(ItemAttribute("type", "Human"))

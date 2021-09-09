@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.service.item.meta
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -11,7 +10,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
@@ -20,14 +18,11 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.mock
-import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.math.BigInteger
-import java.time.Clock
 import java.time.temporal.ChronoUnit
 
 @Tag("manual")
@@ -39,7 +34,6 @@ class ItemPropertiesServiceTest {
     private val ipfsService = IpfsService(IpfsService.IPFS_NEW_URL)
     private val propertiesCacheDescriptor = PropertiesCacheDescriptor(sender, tokenRepository, lazyNftItemHistoryRepository, ipfsService, 86400, 20000)
     private val kittiesCacheDescriptor = KittiesCacheDescriptor(86400)
-    private val itemPropertyRepository = ItemPropertyRepository(mock(ReactiveMongoOperations::class.java), Clock.systemUTC())
     private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "")
     private val yInsureCacheDescriptor = YInsureCacheDescriptor(sender, "0x181aea6936b407514ebfc0754a37704eb8d98f91", 86400, "0x1776651F58a17a50098d31ba3C3cD259C1903f7A", "http://localhost:8080")
     private val hegicCacheDescriptor = HegicCacheDescriptor(sender, "0xcb9ebae59738d9dadc423adbde66c018777455a4", 86400, "http://localhost:8080")
@@ -52,11 +46,10 @@ class ItemPropertiesServiceTest {
         hegicCacheDescriptor,
         hashmasksCacheDescriptor,
         waifusionCacheDescriptor,
+        mockk(),
         OpenseaClient("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
         ipfsService,
         temporaryItemPropertiesRepository,
-        itemPropertyRepository,
-        ObjectMapper(),
         properties,
         "0x181aea6936b407514ebfc0754a37704eb8d98f91",
         "0xcb9ebae59738d9dadc423adbde66c018777455a4",

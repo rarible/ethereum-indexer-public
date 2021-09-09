@@ -1,13 +1,12 @@
 package com.rarible.protocol.nft.migration.integration
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.lock.LockService
 import com.rarible.protocol.nft.api.service.item.meta.*
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,10 +22,7 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 class TestPropertiesConfiguration {
 
     @Autowired
-    protected lateinit var mapper: ObjectMapper
-
-    @Autowired
-    protected lateinit var itemPropertyRepository: ItemPropertyRepository
+    protected lateinit var cryptoPunksMetaService: CryptoPunksMetaService
 
     @Autowired
     protected lateinit var properties: NftIndexerProperties
@@ -52,11 +48,10 @@ class TestPropertiesConfiguration {
             hegicCacheDescriptor,
             hashmasksCacheDescriptor,
             waifusionCacheDescriptor,
+            cryptoPunksMetaService,
             OpenseaClient("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
             ipfsService,
             temporaryItemPropertiesRepository,
-            itemPropertyRepository,
-            mapper,
             properties,
             "0x181aea6936b407514ebfc0754a37704eb8d98f91",
             "0xcb9ebae59738d9dadc423adbde66c018777455a4",

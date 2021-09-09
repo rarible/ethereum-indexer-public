@@ -1,9 +1,8 @@
 package com.rarible.protocol.nft.migration.service
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.protocol.nft.api.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import com.rarible.protocol.nft.migration.configuration.IpfsProperties
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
@@ -28,13 +27,10 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
     private val uploaderSvg = ChangeLog00014UploadSvgsForCryptoPunks()
 
     @Autowired
-    private lateinit var itemPropertyRepository: ItemPropertyRepository
-
-    @Autowired
-    private lateinit var mapper: ObjectMapper
-
-    @Autowired
     private lateinit var itemPropertiesService: ItemPropertiesService
+
+    @Autowired
+    private lateinit var cryptoPunksMetaService: CryptoPunksMetaService
 
     @Autowired
     private lateinit var ipfsProperties: IpfsProperties
@@ -45,11 +41,11 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         val tokenId = BigInteger.valueOf(2L)
 
         val punk = "2, Human, Female, Light, 1, Wild Hair"
-        insertAttributes.savePunk(punk, itemPropertyRepository, mapper, nftIndexerProperties)
+        insertAttributes.savePunk(punk, cryptoPunksMetaService)
         val bs = javaClass.getResourceAsStream("/data/cryptopunks/2.svg").readBytes()
-        uploaderSvg.upload("2.svg", bs, itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
+        uploaderSvg.upload("2.svg", bs, cryptoPunksMetaService, ipfsProperties)
 
-        assertEquals(1, mongo.count(Query(), "item_properties").awaitSingle())
+        assertEquals(1, mongo.count(Query(), "cryptopunks_meta").awaitSingle())
 
         val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
         assertEquals("CryptoPunk #2", itemProps?.name)
@@ -66,8 +62,8 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
     @Disabled
     @Test
     fun `should upload all svg images`() = runBlocking {
-        insertAttributes.create(itemPropertyRepository, mapper, nftIndexerProperties)
-        uploaderSvg.create(itemPropertyRepository, mapper, nftIndexerProperties, ipfsProperties)
+        insertAttributes.create(cryptoPunksMetaService)
+        uploaderSvg.create(cryptoPunksMetaService, ipfsProperties)
         assertEquals(10000, mongo.count(Query(), "item_properties").awaitSingle())
     }
 }
