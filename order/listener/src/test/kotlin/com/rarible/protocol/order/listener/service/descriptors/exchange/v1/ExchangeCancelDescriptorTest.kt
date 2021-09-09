@@ -92,24 +92,24 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
         token.setApprovalForAll(proxy.address(), true)
             .execute().verifySuccess()
 
-        val orderLeft = Order(
+        val orderLeftVersion = OrderVersion(
             maker = sender.from(),
             taker = null,
             make = Asset(Erc1155AssetType(token.address(), EthUInt256.of(tokenId)), EthUInt256.TEN),
             take = Asset(Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId)), EthUInt256.ONE),
-            makeStock = EthUInt256.TEN,
             type = OrderType.RARIBLE_V2,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.of(salt),
             start = null,
             end = null,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
         )
-        orderRepository.save(orderLeft)
+        orderUpdateService.save(orderLeftVersion)
 
         val orderKey = Tuple4(sender.from(), salt, Tuple3(token.address(), tokenId, ERC1155.value), Tuple3(buyToken.address(), buyTokenId, ERC1155.value))
 
@@ -125,7 +125,7 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
 
             val cancel = items.single().data as OrderCancel
 
-            val order = orderRepository.findById(orderLeft.hash)
+            val order = orderRepository.findById(orderLeftVersion.hash)
             assertThat(order?.cancelled).isEqualTo(true)
 
             val failMessage = "result: $cancel"
@@ -142,7 +142,7 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
             val completed = state.getCompleted(orderKey).awaitFirst()
             assertThat(completed?.toString()).isEqualTo("115792089237316195423570985008687907853269984665640564039457584007913129639935")
 
-            checkActivityWasPublished(orderLeft, CancelEvent.id(), OrderActivityCancelBidDto::class.java)
+            checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), CancelEvent.id(), OrderActivityCancelBidDto::class.java)
         }
     }
 }

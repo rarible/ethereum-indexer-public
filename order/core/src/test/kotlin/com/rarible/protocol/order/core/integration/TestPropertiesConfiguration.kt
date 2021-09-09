@@ -6,6 +6,7 @@ import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.dto.CurrencyRateDto
+import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
@@ -38,6 +39,7 @@ class TestPropertiesConfiguration {
     fun mockOrderPublisher(): ProtocolOrderPublisher {
         return mockk {
             coEvery { publish(any<OrderEventDto>()) } returns Unit
+            coEvery { publish(any<OrderActivityDto>()) } returns Unit
         }
     }
 

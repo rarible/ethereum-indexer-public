@@ -3,7 +3,7 @@ package com.rarible.protocol.order.migration.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.core.common.optimisticLock
-import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.changock.migration.api.annotations.NonLockGuarded
@@ -15,38 +15,40 @@ import org.slf4j.LoggerFactory
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
-@ChangeLog(order = "000010")
-class ChangeLog00010AddPlatformFieldToOrder {
+@ChangeLog(order = "000011")
+class ChangeLog00011AddAllFieldsFromOrderToOrderVersion {
 
-    @ChangeSet(id = "ChangeLog00009AddPlatformFieldToOrder.addPlatformFieldToOrder", order = "1", author = "protocol")
-    fun removeOrdersWithMakeValueZero(
+    @ChangeSet(id = "ChangeLog00011AddAllFieldsFromOrderToOrderVersion.addAllFieldsFromOrderToOrderVersion", order = "1", author = "protocol")
+    fun addAllFieldsFromOrderToOrderVersion(
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded orderVersionRepository: OrderVersionRepository
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
         val orderRepository = MongoOrderRepository(template)
 
-        logger.info("--- Start add order platform value")
+        logger.info("--- Start adding all fields from Order to OrderVersion")
         var counter = 0L
 
         orderRepository.findAll().collect { order ->
+            fun OrderVersion.addOrderFields() = copy(
+                type = order.type,
+                salt = order.salt,
+                start = order.start,
+                end = order.end,
+                data = order.data,
+                signature = order.signature,
+                platform = order.platform
+            )
+
             try {
-                try {
-                    template.save(order.copy(platform = Platform.RARIBLE)).awaitFirst()
-                } catch (_: OptimisticLockingFailureException) {
-                    optimisticLock {
-                        orderRepository.findById(order.hash)
-                            ?.let { template.save(it.copy(platform = Platform.RARIBLE)).awaitFirst() }
-                    }
-                }
                 orderVersionRepository.findAllByHash(order.hash).collect { version ->
                     try {
-                        orderVersionRepository.save(version.copy(platform = Platform.RARIBLE)).awaitFirst()
+                        orderVersionRepository.save(version.addOrderFields()).awaitFirst()
                     } catch (_: OptimisticLockingFailureException) {
                         optimisticLock {
                             orderVersionRepository.findById(version.id).awaitFirstOrNull()
                                 ?.let {
-                                    orderVersionRepository.save(it.copy(platform = Platform.RARIBLE))
+                                    orderVersionRepository.save(it.addOrderFields()).awaitFirst()
                                 }
                         }
                     }
@@ -59,6 +61,6 @@ class ChangeLog00010AddPlatformFieldToOrder {
                 logger.error("Can't fix order ${order.hash}")
             }
         }
-        logger.info("--- All $counter orders were updated")
+        logger.info("--- All $counter order versions were updated")
     }
 }

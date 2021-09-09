@@ -54,9 +54,6 @@ class TransactionControllerFt : AbstractIntegrationTest() {
     @Autowired
     lateinit var pendingTransactionService: PendingTransactionService
 
-    @Autowired
-    lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
-
     companion object {
         lateinit var userSender: MonoSigningTransactionSender
         lateinit var sender: MonoSigningTransactionSender
@@ -136,7 +133,7 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             buyToken.address(),
             EthUInt256.of(buyTokenId)
         )
-        val order = Order(
+        val orderVersion = OrderVersion(
             maker = sender.from(),
             taker = AddressFactory.create(),
             make = Asset(
@@ -148,32 +145,32 @@ class TransactionControllerFt : AbstractIntegrationTest() {
                 value = EthUInt256.TEN
             ),
             type = OrderType.RARIBLE_V1,
-            fill = EthUInt256.TEN,
-            cancelled = false,
-            makeStock = EthUInt256.TEN,
             salt = EthUInt256.of(salt),
             data = OrderDataLegacy(0),
             start = null,
             end = null,
             signature = null,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
         )
 
         setField(pendingTransactionService, "exchangeContracts", hashSetOf(sale.address()))
 
-        orderRepository.save(order)
+        orderUpdateService.save(orderVersion)
 
         coEvery { assetTypeService.toAssetType(eq(makeAssetType.token), eq(makeAssetType.tokenId)) } returns makeAssetType
         coEvery { assetTypeService.toAssetType(eq(takeAssetType.token), eq(takeAssetType.tokenId)) } returns takeAssetType
 
         processTransaction(receipt)
 
-        val history = exchangeHistoryRepository.findLogEvents(order.hash, null).collectList().awaitFirst()
+        val history = exchangeHistoryRepository.findLogEvents(orderVersion.hash, null).collectList().awaitFirst()
         assertThat(history).hasSize(1)
         assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
 
-        val savedOrder = orderRepository.findById(order.hash)
+        val savedOrder = orderRepository.findById(orderVersion.hash)
         assertThat(savedOrder?.pending).hasSize(1)
         assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderCancel::class.java)
     }

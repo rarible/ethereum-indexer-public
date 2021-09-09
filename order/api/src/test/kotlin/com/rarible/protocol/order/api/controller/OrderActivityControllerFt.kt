@@ -40,9 +40,6 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var orderVersionRepository: OrderVersionRepository
 
-    @Autowired
-    private lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
-
     @BeforeEach
     override fun setupDatabase() = runBlocking {
         super.setupDatabase()

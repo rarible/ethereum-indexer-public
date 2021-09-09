@@ -2,16 +2,12 @@ package com.rarible.protocol.order.listener.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.OrderVersion
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.core.model.*
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 
 fun createOrderVersion(): OrderVersion {
     return OrderVersion(
-        hash = Word.apply(ByteArray(32)),
         maker = AddressFactory.create(),
         taker = AddressFactory.create(),
         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
@@ -23,6 +19,13 @@ fun createOrderVersion(): OrderVersion {
         takePriceUsd = (1..100L).random().toBigDecimal(),
         makeUsd = (1..100L).random().toBigDecimal(),
         takeUsd = (1..100L).random().toBigDecimal(),
-        createdAt = nowMillis()
+        createdAt = nowMillis(),
+        platform = Platform.RARIBLE,
+        type = OrderType.RARIBLE_V2,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        signature = null
     )
 }

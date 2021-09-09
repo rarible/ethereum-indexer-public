@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
 import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.service.TransferProxyService
 import io.daonomic.rpc.domain.Binary
 import org.springframework.http.ResponseEntity
@@ -41,7 +42,7 @@ class EncodeController(
     }
 
     override suspend fun encodeOrder(form: OrderFormDto): ResponseEntity<EncodedOrderDto> {
-        val order = orderService.convertForm(form)
+        val order = orderService.convertFormToVersion(form).toOrderExactFields()
         val signMessage = when (order.type) {
             OrderType.RARIBLE_V1 -> {
                 TextSignMessageDto(message = order.legacyMessage())

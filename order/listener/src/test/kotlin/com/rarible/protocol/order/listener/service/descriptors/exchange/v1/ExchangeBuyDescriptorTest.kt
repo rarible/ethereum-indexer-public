@@ -11,7 +11,9 @@ import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.OrderActivityMatchDto
+import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
@@ -88,7 +90,17 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
         val proxy = TransferProxy.deployAndWait(owner, poller).block()!!
         val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(owner, poller).block()!!
         val erc20Proxy = ERC20TransferProxy.deployAndWait(owner, poller).block()!!
-        val sale = ExchangeV1.deployAndWait(owner, poller, proxy.address(), proxyForDeprecated.address(), erc20Proxy.address(), state.address(), Address.ZERO(), beneficiary, buyerFeeSigner.from()).block()!!
+        val sale = ExchangeV1.deployAndWait(
+            owner,
+            poller,
+            proxy.address(),
+            proxyForDeprecated.address(),
+            erc20Proxy.address(),
+            state.address(),
+            Address.ZERO(),
+            beneficiary,
+            buyerFeeSigner.from()
+        ).block()!!
 
         state.addOperator(sale.address())
             .execute().verifySuccess()
@@ -113,33 +125,36 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
         val buyerHas = 20.toBigInteger()
         buyToken.mint(buyer.from(), buyerHas).withSender(buyer).execute().verifySuccess()
 
-        val orderLeft = Order(
+        val orderVersionLeft = OrderVersion(
             maker = owner.from(),
             taker = null,
             make = Asset(Erc1155AssetType(token.address(), EthUInt256.of(tokenId)), EthUInt256.TEN),
             take = Asset(Erc20AssetType(buyToken.address()), EthUInt256.of(5)),
-            makeStock = EthUInt256.TEN,
             type = OrderType.RARIBLE_V1,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.of(salt),
             start = null,
             end = null,
             data = OrderDataLegacy(fee = 0),
-            signature = null,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
-        )
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null,
+            signature = null
+        ).let {
+            it.copy(
+                signature = SignUtils.sign(privateKey, it.legacyMessage()).toBinary()
+            )
+        }
 
-        orderRepository.save(orderLeft)
+        val orderLeft = orderUpdateService.save(orderVersionLeft)
 
         val buyerFee = 500
 
-        val signature = SignUtils.sign(privateKey, orderLeft.legacyMessage())
         val amount = 2.toBigInteger()
 
         val prepared = prepareTxService.prepareTransaction(
-            orderLeft.copy(signature = signature.toBinary()),
+            orderLeft,
             PrepareOrderTxFormDto(
                 buyer.from(), amount, emptyList(), listOf(
                     PartDto(Address.ZERO(), buyerFee)

@@ -32,7 +32,7 @@ class AssetBalanceProvider(
             is Erc1155LazyAssetType -> {
                 type.supply
             }
-            EthAssetType -> {
+            is EthAssetType -> {
                 EthUInt256.ZERO
             }
         }

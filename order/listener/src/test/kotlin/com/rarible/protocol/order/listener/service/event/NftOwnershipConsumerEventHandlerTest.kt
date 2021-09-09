@@ -6,12 +6,14 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.listener.data.createNftOwnershipDto
-import com.rarible.protocol.order.listener.data.createOrder
+import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.async
@@ -35,25 +37,27 @@ internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() 
             clientId = "ownership",
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = NftOwnershipEventDto::class.java,
-            defaultTopic = NftOwnershipEventTopicProvider.getTopic(application.name, orderIndexerProperties.blockchain.value),
+            defaultTopic = NftOwnershipEventTopicProvider.getTopic(
+                application.name,
+                orderIndexerProperties.blockchain.value
+            ),
             bootstrapServers = orderIndexerProperties.kafkaReplicaSet
         )
 
         val collection = AddressFactory.create()
         val toneId = EthUInt256.TEN
-        val order = createOrder().copy(
+        val orderVersion = createOrderVersion().copy(
             make = Asset(Erc1155AssetType(collection, toneId), EthUInt256.TEN),
-            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-            makeStock = EthUInt256.ZERO
+            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
         )
-        orderRepository.save(order)
+        orderUpdateService.save(orderVersion)
 
         val event = NftOwnershipUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             ownershipId = UUID.randomUUID().toString(),
-            ownership =  createNftOwnershipDto().copy(
+            ownership = createNftOwnershipDto().copy(
                 id = UUID.randomUUID().toString(),
-                owner = order.maker,
+                owner = orderVersion.maker,
                 contract = collection,
                 tokenId = toneId.value,
                 value = EthUInt256.of(3).value
@@ -74,7 +78,7 @@ internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() 
         }
 
         Wait.waitAssert(Duration.ofSeconds(10)) {
-            val updatedOrder = orderRepository.findById(order.hash)
+            val updatedOrder = orderRepository.findById(orderVersion.hash)
             Assertions.assertThat(updatedOrder?.makeStock).isEqualTo(EthUInt256.of(3))
         }
         sendJob.cancel()

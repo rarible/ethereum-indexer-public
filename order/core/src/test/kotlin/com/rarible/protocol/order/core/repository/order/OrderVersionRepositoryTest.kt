@@ -4,11 +4,8 @@ import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
-import com.rarible.protocol.order.core.converters.model.PlatformConverter
-import com.rarible.protocol.order.core.data.createOrder
-import com.rarible.protocol.order.core.data.createVersionOrder
+import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
@@ -49,13 +46,13 @@ internal class OrderVersionRepositoryTest {
         val tokenId = EthUInt256.TEN
         val take = Asset(Erc721AssetType(contract, tokenId), EthUInt256.ONE)
 
-        val version1 = createVersionOrder()
+        val version1 = createOrderVersion()
             .copy(takePriceUsd = BigDecimal.valueOf(1), take = take)
-        val version2 = createVersionOrder()
+        val version2 = createOrderVersion()
             .copy(takePriceUsd = null, take = take)
-        val version3 = createVersionOrder()
+        val version3 = createOrderVersion()
             .copy(takePriceUsd = BigDecimal.valueOf(2), take = take)
-        val version4 = createVersionOrder()
+        val version4 = createOrderVersion()
             .copy(takePriceUsd = null, take = take)
 
         save(version1, version2, version3, version4)

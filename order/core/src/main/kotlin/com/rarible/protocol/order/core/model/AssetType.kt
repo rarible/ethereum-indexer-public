@@ -73,6 +73,8 @@ sealed class AssetType(
 
 object EthAssetType : AssetType(ETH, Binary.apply(), false) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ETH, Address.ZERO(), BigInteger.ZERO)
+    @Suppress("USELESS_IS_CHECK")
+    override fun equals(other: Any?) = this is EthAssetType // Workaround for RPN-879: deserialization leads to a new instance of the same class.
 }
 
 data class Erc20AssetType(val token: Address) : AssetType(ERC20, AddressType.encode(token), false) {

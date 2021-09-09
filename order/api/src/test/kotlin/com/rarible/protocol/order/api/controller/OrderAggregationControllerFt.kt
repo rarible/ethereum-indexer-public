@@ -18,9 +18,6 @@ import java.time.Duration
 
 @IntegrationTest
 class OrderAggregationControllerFt : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
-
     @BeforeEach
     override fun setupDatabase() = runBlocking<Unit> {
         super.setupDatabase()

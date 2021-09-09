@@ -1,20 +1,27 @@
 package com.rarible.protocol.order.listener.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.ext.KafkaTestExtension.Companion.kafkaContainer
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.toWord
+import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -66,6 +73,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     protected lateinit var orderReduceService: OrderReduceService
+
+    @Autowired
+    protected lateinit var orderUpdateService: OrderUpdateService
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum
@@ -140,6 +150,39 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
             bootstrapServers = kafkaContainer.kafkaBoostrapServers(),
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
+    }
+
+    protected suspend fun cancelOrder(
+        orderHash: Word,
+        contractAddress: Address = Address.ZERO(),
+        topic: Word = 0.toBigInteger().toWord()
+    ): Order {
+        exchangeHistoryRepository.save(
+            LogEvent(
+                data = OrderCancel(
+                    hash = orderHash,
+                    date = nowMillis(),
+
+                    // Do not matter.
+                    maker = null,
+                    make = null,
+                    take = null,
+                    source = HistorySource.RARIBLE
+                ),
+                address = contractAddress,
+                topic = topic,
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                index = 0,
+                logIndex = 0,
+                minorLogIndex = 0
+            )
+        ).awaitFirst()
+        return orderReduceService.updateOrder(orderHash)
+    }
+
+    protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {
+        orderUpdateService.updateMakeStock(orderHash, knownMakeBalance = makeBalance)
     }
 
     protected suspend fun checkActivityWasPublished(orderLeft: Order, topic: Word, activityType: Class<out OrderActivityDto>) = coroutineScope {

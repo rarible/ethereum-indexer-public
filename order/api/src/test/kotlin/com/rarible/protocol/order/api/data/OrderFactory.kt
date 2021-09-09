@@ -6,10 +6,10 @@ import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
-import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
+import com.rarible.protocol.order.core.service.CommonSigner
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
@@ -20,13 +20,17 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 
-fun createOrder(): Order {
+fun createOrder(
+    maker: Address = AddressFactory.create(),
+    taker: Address? = AddressFactory.create(),
+    make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+): Order {
     return Order(
-        maker = AddressFactory.create(),
-        taker = AddressFactory.create(),
-        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        maker = maker,
+        taker = taker,
+        make = make,
         take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
-        makeStock = EthUInt256.TEN,
+        makeStock = make.value,
         type = OrderType.RARIBLE_V2,
         fill = EthUInt256.ZERO,
         cancelled = false,
@@ -45,35 +49,35 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
         OrderType.RARIBLE_V2 -> RaribleV2OrderFormDto(
             maker = maker,
             make = AssetDtoConverter.convert(make),
-            taker = null,
+            taker = taker,
             take = AssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataV1Dto,
-            start = null,
-            end = null,
+            start = start,
+            end = end,
             signature = eip712Domain.hashToSign(Order.hash(this)).sign(privateKey)
         )
         OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
             maker = maker,
             make = AssetDtoConverter.convert(make),
-            taker = null,
+            taker = taker,
             take = AssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderDataLegacyDto,
-            start = null,
-            end = null,
-            signature = CommonSigner().hashToSign(Order.legacyMessage(maker, make, take, salt.value, data)).sign(privateKey)
+            start = start,
+            end = end,
+            signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
         OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderFormDto(
             maker = maker,
             make = AssetDtoConverter.convert(make),
-            taker = null,
+            taker = taker,
             take = AssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderOpenSeaV1DataV1Dto,
-            start = null,
-            end = null,
-            signature = null
+            start = start,
+            end = end,
+            signature = signature
         )
     }
 }

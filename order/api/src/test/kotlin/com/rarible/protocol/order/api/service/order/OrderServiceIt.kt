@@ -48,7 +48,7 @@ class OrderServiceIt : AbstractOrderIt() {
     private lateinit var orderVersionRepository: OrderVersionRepository
 
     @Autowired
-    private lateinit var orotocolOrderPublisher: ProtocolOrderPublisher
+    private lateinit var protocolOrderPublisher: ProtocolOrderPublisher
 
     @BeforeEach
     fun beforeEach() {
@@ -95,7 +95,7 @@ class OrderServiceIt : AbstractOrderIt() {
             .isEqualTo(order.take.value)
 
         coVerify {
-            orotocolOrderPublisher.publish(withArg<OrderActivityDto> {
+            protocolOrderPublisher.publish(withArg<OrderActivityDto> {
                 assertThat(it.id).isEqualTo(version.id.toString())
             })
         }
@@ -112,7 +112,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         assertThat(orderVersionRepository.count().awaitFirst()).isEqualTo(2)
 
-        coVerify(atLeast = 2) { orotocolOrderPublisher.publish(any<OrderActivityDto>()) }
+        coVerify(atLeast = 2) { protocolOrderPublisher.publish(any<OrderActivityDto>()) }
     }
 
     @Test
@@ -725,7 +725,7 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     private suspend fun saveRandomOpenSeaOrderWithMakeBalance(): Order {
-        val (privateKey, _, signer) = generateNewKeys()
+        val (_, _, signer) = generateNewKeys()
         val order =
             createOpenSeaOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
         return orderRepository.save(order)

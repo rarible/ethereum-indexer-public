@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
 import com.rarible.protocol.order.core.misc.zeroWord
+import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
@@ -23,7 +24,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 
-@Document("order")
+@Document(MongoOrderRepository.COLLECTION)
 data class Order(
     val maker: Address,
     val taker: Address?,
@@ -56,13 +57,9 @@ data class Order(
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
     val platform: Platform = Platform.RARIBLE,
-    val externalOrderExecutedOnRarible: Boolean? = null,
 
     @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value),
-
-    @Version
-    val version: Long? = null
+    val hash: Word = hashKey(maker, make.type, take.type, salt.value)
 ) {
     fun forV1Tx() = run {
         assert(type == OrderType.RARIBLE_V1)
@@ -89,18 +86,23 @@ data class Order(
         data.toEthereum(wrongDataEncode).bytes()
     )
 
-    //fun hash(): Word = hash(this)
-
-    fun withMakeBalance(makeBalance: EthUInt256, protocolCommission: EthUInt256): Order {
-        return copy(makeStock = calculateMakeStock(
-            make.value,
-            take.value,
-            fill, data,
-            makeBalance,
-            protocolCommission,
-            getFeeSide(make.type, take.type),
-            cancelled
-        ))
+    fun withMakeBalance(
+        makeBalance: EthUInt256,
+        protocolCommission: EthUInt256,
+        zeroWhenCancelled: Boolean = true
+    ): Order {
+        return copy(
+            makeStock = calculateMakeStock(
+                makeValue = make.value,
+                takeValue = take.value,
+                fill = fill,
+                data = data,
+                makeBalance = makeBalance,
+                protocolCommission = protocolCommission,
+                cancelled = zeroWhenCancelled && cancelled,
+                feeSide = getFeeSide(make.type, take.type)
+            )
+        )
     }
 
     fun withNewValues(
@@ -115,35 +117,7 @@ data class Order(
             take = this.take.copy(value = take),
             makeStock = makeStock,
             signature = signature,
-            lastUpdateAt = getLatestLastUpdateAt(updateAt)
-        )
-    }
-
-    fun withFillAndCancelledAndPendingAndChangeDate(
-        fill: EthUInt256,
-        makeBalance: EthUInt256,
-        protocolCommission: EthUInt256,
-        cancelled: Boolean,
-        externalOrderExecutedOnRarible: Boolean?,
-        pending: List<OrderExchangeHistory>,
-        changeDate: Instant
-    ): Order {
-        return copy(
-            fill = fill,
-            cancelled = cancelled,
-            makeStock = calculateMakeStock(
-                make.value,
-                take.value,
-                fill,
-                data,
-                makeBalance,
-                protocolCommission,
-                getFeeSide(make.type, take.type),
-                cancelled
-            ),
-            externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
-            pending = pending,
-            lastUpdateAt = getLatestLastUpdateAt(changeDate)
+            lastUpdateAt = maxOf(lastUpdateAt, updateAt)
         )
     }
 
@@ -164,12 +138,13 @@ data class Order(
         return copy(makePriceUsd = price)
     }
 
-    private fun getLatestLastUpdateAt(lastUpdateAt: Instant): Instant {
-        return if (lastUpdateAt > this.lastUpdateAt) lastUpdateAt else this.lastUpdateAt
-    }
-
     companion object {
-        fun calculateMakeStock(
+        /**
+         * Maximum size of [priceHistory]
+         */
+        const val MAX_PRICE_HISTORIES = 20
+
+        private fun calculateMakeStock(
             makeValue: EthUInt256,
             takeValue: EthUInt256,
             fill: EthUInt256,
@@ -226,6 +201,10 @@ data class Order(
             hash(maker, make, taker, take, salt.value, start, end, data, type)
         }
 
+        fun hash(orderVersion: OrderVersion): Word = with(orderVersion) {
+            hash(maker, make, taker, take, salt.value, start, end, data, type)
+        }
+
         fun hash(
             maker: Address,
             make: Asset,
@@ -248,7 +227,11 @@ data class Order(
             return legacyMessage(maker, make, take, salt.value, data)
         }
 
-        fun legacyMessage(maker: Address, make: Asset, take: Asset, salt: BigInteger, data: OrderData): String {
+        fun OrderVersion.legacyMessage(): String {
+            return legacyMessage(maker, make, take, salt.value, data)
+        }
+
+        private fun legacyMessage(maker: Address, make: Asset, take: Asset, salt: BigInteger, data: OrderData): String {
             val legacyMakeAsset = make.type.toLegacy() ?: error("Unsupported make asset ${make.type} by legacy contract")
             val legacyTakeAsset = take.type.toLegacy() ?: error("Unsupported take asset ${take.type} by legacy contract")
             val legacyData = (data as? OrderDataLegacy) ?: error("Unsupported data for legacy contract")
@@ -443,7 +426,7 @@ data class Order(
     }
 }
 
-fun Order.invert(maker: Address, amount: BigInteger, newSalt: Word = zeroWord()) = run {
+fun Order.invert(maker: Address, amount: BigInteger, newSalt: Word = zeroWord()): Order = run {
     val (makeValue, takeValue) = calculateAmounts(make.value.value, take.value.value, amount, isBid())
     this.copy(
         maker = maker,
@@ -452,7 +435,13 @@ fun Order.invert(maker: Address, amount: BigInteger, newSalt: Word = zeroWord())
         take = make,
         hash = Order.hashKey(maker, take.type, make.type, salt.value),
         salt = EthUInt256.of(newSalt)
-    ).withNewValues(EthUInt256(makeValue), EthUInt256(takeValue), EthUInt256.ZERO, null, nowMillis())
+    ).withNewValues(
+        make = EthUInt256(makeValue),
+        take = EthUInt256(takeValue),
+        makeStock = EthUInt256.ZERO,
+        signature = null,
+        updateAt = nowMillis()
+    )
 }
 
 fun Order.isBid() = take.type.nft

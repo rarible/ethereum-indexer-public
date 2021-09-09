@@ -34,7 +34,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
     private lateinit var commonSigner: CommonSigner
 
     @Test
-    fun `should execute sell order`() = runBlocking<Unit>  {
+    fun `should execute sell order`() = runBlocking {
         val sellMaker = userSender1.from()
         val buyMaker = userSender2.from()
         val target = token721.address()
@@ -54,15 +54,12 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         )
         val sellCallData = callDataEncoder.encodeTransferCallData(sellTransfer)
 
-        val sellOrder = Order(
+        val sellOrderVersion = OrderVersion(
             maker = sellMaker,
             taker = null,
             make = Asset(Erc721AssetType(target, tokenId), EthUInt256.ONE),
             take = Asset(Erc20AssetType(paymentToken), EthUInt256.TEN),
-            makeStock = EthUInt256.ONE,
             type = OrderType.OPEN_SEA_V1,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.TEN,
             start = nowMillis().epochSecond - 10,
             end = null,
@@ -84,17 +81,21 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO
             ),
+            platform = Platform.OPEN_SEA,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
-        )
-        val hash = Order.hash(sellOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
-        logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
+        ).let {
+            val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
+            val hashToSign = commonSigner.openSeaHashToSign(hash)
+            logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
+            val signature = hashToSign.sign(privateKey1)
+            it.copy(signature = signature, hash = hash)
+        }
 
-        val signature = hashToSign.sign(privateKey1)
-
-        val signedSellOrder = sellOrder.copy(signature = signature, hash = hash)
-        orderRepository.save(signedSellOrder)
+        val sellOrder = orderUpdateService.save(sellOrderVersion)
 
         val form = PrepareOrderTxFormDto(
             maker = buyMaker,
@@ -102,7 +103,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             originFees = emptyList(),
             payouts = emptyList()
         )
-        val response = prepareTxService.prepareTransaction(signedSellOrder, form)
+        val response = prepareTxService.prepareTransaction(sellOrder, form)
 
         userSender2.sendTransaction(
             Transaction(
@@ -131,25 +132,26 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             assertThat(right?.fill).isEqualTo(EthUInt256.ONE)
 
             assertThat(left?.make)
-                .isEqualTo(signedSellOrder.make)
+                .isEqualTo(sellOrder.make)
             assertThat(left?.take)
-                .isEqualTo(signedSellOrder.take)
+                .isEqualTo(sellOrder.take)
+            assertThat(left?.externalOrderExecutedOnRarible).isTrue()
 
             assertThat(right?.make)
-                .isEqualTo(signedSellOrder.take)
+                .isEqualTo(sellOrder.take)
             assertThat(right?.take)
-                .isEqualTo(signedSellOrder.make)
+                .isEqualTo(sellOrder.make)
+            assertThat(right?.externalOrderExecutedOnRarible).isTrue()
 
-            val filledOrder = orderRepository.findById(signedSellOrder.hash)
+            val filledOrder = orderRepository.findById(sellOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.TEN)
-            assertThat(filledOrder?.externalOrderExecutedOnRarible).isEqualTo(true)
 
-            checkActivityWasPublished(signedSellOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished(sellOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
         }
     }
 
     @Test
-    fun `should execute buy order`() = runBlocking<Unit>  {
+    fun `should execute buy order`() = runBlocking {
         val sellMaker = userSender1.from()
         val buyMaker = userSender2.from()
         val target = token721.address()
@@ -170,15 +172,12 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         )
         val buyCallData = callDataEncoder.encodeTransferCallData(buyTransfer)
 
-        val buyOrder = Order(
+        val buyOrderVersion = OrderVersion(
             maker = sellMaker,
             taker = null,
             make = Asset(Erc20AssetType(paymentToken), EthUInt256.TEN),
             take = Asset(Erc721AssetType(target, tokenId), EthUInt256.ONE),
-            makeStock = EthUInt256.TEN,
             type = OrderType.OPEN_SEA_V1,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.TEN,
             start = nowMillis().epochSecond - 10,
             end = null,
@@ -194,23 +193,26 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 side = OpenSeaOrderSide.BUY,
                 saleKind = OpenSeaOrderSaleKind.FIXED_PRICE,
                 howToCall = OpenSeaOrderHowToCall.CALL,
-                callData =buyCallData.callData,
+                callData = buyCallData.callData,
                 replacementPattern = buyCallData.replacementPattern,
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO
             ),
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
-        )
-        val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
-        logger.info("Buy order hash: $hash, hash to sing: $hashToSign")
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
+        ).let {
+            val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
+            val hashToSign = commonSigner.openSeaHashToSign(hash)
+            logger.info("Buy order hash: $hash, hash to sing: $hashToSign")
+            val signature = hashToSign.sign(privateKey1)
+            it.copy(signature = signature, hash = hash)
+        }
 
-        val signature = hashToSign.sign(privateKey1)
-
-        val signedBuyOrder = buyOrder.copy(signature = signature, hash = hash)
-        orderRepository.save(signedBuyOrder)
+        val buyOrder = orderUpdateService.save(buyOrderVersion)
 
         val form = PrepareOrderTxFormDto(
             maker = sellMaker,
@@ -218,7 +220,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             originFees = emptyList(),
             payouts = emptyList()
         )
-        val response = prepareTxService.prepareTransaction(signedBuyOrder, form)
+        val response = prepareTxService.prepareTransaction(buyOrder, form)
 
         userSender1.sendTransaction(
             Transaction(
@@ -247,20 +249,21 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             assertThat(right?.fill).isEqualTo(EthUInt256.TEN)
 
             assertThat(left?.make)
-                .isEqualTo(signedBuyOrder.make)
+                .isEqualTo(buyOrder.make)
             assertThat(left?.take)
-                .isEqualTo(signedBuyOrder.take)
+                .isEqualTo(buyOrder.take)
+            assertThat(left?.externalOrderExecutedOnRarible).isTrue()
 
             assertThat(right?.make)
-                .isEqualTo(signedBuyOrder.take)
+                .isEqualTo(buyOrder.take)
             assertThat(right?.take)
-                .isEqualTo(signedBuyOrder.make)
+                .isEqualTo(buyOrder.make)
+            assertThat(right?.externalOrderExecutedOnRarible).isTrue()
 
-            val filledOrder = orderRepository.findById(signedBuyOrder.hash)
+            val filledOrder = orderRepository.findById(buyOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.ONE)
-            assertThat(filledOrder?.externalOrderExecutedOnRarible).isEqualTo(true)
 
-            checkActivityWasPublished(signedBuyOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished(buyOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
         }
     }
 }

@@ -17,25 +17,25 @@ class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
 
     @Test
     fun convert() = runBlocking {
-        val order = Order(
+        val orderVersion = OrderVersion(
             maker = userSender1.from(),
             taker = null,
             make = Asset(Erc20AssetType(token1.address()), EthUInt256.TEN),
             take = Asset(Erc20AssetType(token2.address()), EthUInt256.ONE),
-            makeStock = EthUInt256.TEN,
             type = OrderType.RARIBLE_V2,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.TEN,
             start = null,
             end = null,
             data = OrderRaribleV2DataV1(emptyList(), emptyList()),
             signature = null,
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis(),
-            version = null
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
         )
-        orderRepository.save(order)
+        orderUpdateService.save(orderVersion)
+        val order = orderVersion.toOrderExactFields()
 
         exchange.cancel(order.forTx()).withSender(userSender1).execute().verifySuccess()
 
