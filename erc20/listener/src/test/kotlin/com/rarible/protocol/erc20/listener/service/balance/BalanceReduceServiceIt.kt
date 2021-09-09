@@ -147,7 +147,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             historyRepository.save(
                 LogEvent(
                     data = history, address = token, topic = word(), transactionHash = word(),
-                    from = null, nonce = null, status = LogEventStatus.CONFIRMED, blockNumber = 1,
+                    status = LogEventStatus.CONFIRMED, blockNumber = 1,
                     logIndex = 0, minorLogIndex = index, index = 0
                 )
             ).awaitFirst()

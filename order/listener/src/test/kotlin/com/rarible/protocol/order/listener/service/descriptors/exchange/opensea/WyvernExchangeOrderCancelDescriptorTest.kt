@@ -33,7 +33,7 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
     private lateinit var commonSigner: CommonSigner
 
     @Test
-    fun `should cancel sell order`() = runBlocking<Unit> {
+    fun `should cancel sell order`() = runBlocking {
         val sellMaker = userSender1.from()
         val target = token721.address()
         val tokenId = EthUInt256.ONE
@@ -49,15 +49,12 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
         )
         val sellCallData = callDataEncoder.encodeTransferCallData(sellTransfer)
 
-        val sellOrder = Order(
+        val sellOrderVersion = OrderVersion(
             maker = sellMaker,
             taker = null,
             make = Asset(Erc721AssetType(target, tokenId), EthUInt256.ONE),
             take = Asset(Erc20AssetType(paymentToken), EthUInt256.TEN),
-            makeStock = EthUInt256.ONE,
             type = OrderType.OPEN_SEA_V1,
-            fill = EthUInt256.ZERO,
-            cancelled = false,
             salt = EthUInt256.TEN,
             start = nowMillis().epochSecond - 10,
             end = null,
@@ -80,18 +77,21 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
                 extra = BigInteger.ZERO
             ),
             createdAt = nowMillis(),
-            lastUpdateAt = nowMillis()
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makeUsd = null,
+            takeUsd = null
         )
-        val hash = Order.hash(sellOrder)
+        val hash = Order.hash(sellOrderVersion)
         val hashToSign = commonSigner.openSeaHashToSign(hash)
         logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
 
         val signature = hashToSign.sign(privateKey1)
 
-        val signedSellOrder = sellOrder.copy(signature = signature, hash = hash)
-        orderRepository.save(signedSellOrder)
+        val signedSellOrderVersion = sellOrderVersion.copy(signature = signature, hash = hash)
+        val sellOrder = orderUpdateService.save(signedSellOrderVersion)
 
-        val response = prepareTxService.prepareCancelTransaction(signedSellOrder)
+        val response = prepareTxService.prepareCancelTransaction(sellOrder)
 
         userSender1.sendTransaction(
             Transaction(
@@ -110,12 +110,12 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
             assertThat(items).hasSize(1)
 
             val event = items.first().data as OrderCancel
-            assertThat(event.hash).isEqualTo(signedSellOrder.hash)
+            assertThat(event.hash).isEqualTo(sellOrder.hash)
 
-            val canceledOrder = orderRepository.findById(signedSellOrder.hash)
+            val canceledOrder = orderRepository.findById(sellOrder.hash)
             assertThat(canceledOrder?.cancelled).isTrue()
 
-            checkActivityWasPublished(signedSellOrder, OrderCancelledEvent.id(), OrderActivityCancelListDto::class.java)
+            checkActivityWasPublished(sellOrder, OrderCancelledEvent.id(), OrderActivityCancelListDto::class.java)
         }
     }
 }

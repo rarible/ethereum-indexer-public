@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.core.repository
 
+import com.mongodb.client.result.DeleteResult
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import kotlinx.coroutines.reactive.awaitFirst
@@ -12,7 +13,6 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
-
 
 @Component
 class ItemRepository(
@@ -27,24 +27,14 @@ class ItemRepository(
     }
 
     suspend fun findAll(ids: List<ItemId>): List<Item> {
-        return template.find<Item>(
-            Query(
-                Item::id inValues ids
-            ),
-            COLLECTION
-        ).collectList().awaitFirst()
+        val criteria = Criteria("_id").inValues(ids)
+        return template.find<Item>(Query(criteria), COLLECTION).collectList().awaitFirst()
     }
 
-    suspend fun delete(itemId: ItemId) =
-        template.remove(
-            Query(
-                Criteria().andOperator(
-                    Item::token isEqualTo itemId.token,
-                    Item::tokenId isEqualTo itemId.tokenId
-                )
-            ),
-            COLLECTION
-        ).awaitFirstOrNull()
+    suspend fun delete(itemId: ItemId): DeleteResult? {
+        val criteria = Criteria("_id").isEqualTo(itemId)
+        return template.remove(Query(criteria), COLLECTION).awaitFirstOrNull()
+    }
 
     companion object {
         const val COLLECTION = "item"

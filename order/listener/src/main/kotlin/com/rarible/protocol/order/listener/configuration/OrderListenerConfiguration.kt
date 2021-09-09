@@ -18,7 +18,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TransactionTraceProviderFactory
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
@@ -113,7 +113,7 @@ class OrderListenerConfiguration(
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         orderRepository: OrderRepository,
-        orderVersionRepository: OrderVersionRepository,
+        orderUpdateService: OrderUpdateService,
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
         properties: OrderListenerProperties
@@ -124,10 +124,9 @@ class OrderListenerConfiguration(
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             orderRepository = orderRepository,
-            orderVersionRepository = orderVersionRepository,
-            orderVersionListener = orderVersionListener,
+            orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
-            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2))
+            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
         ).apply { start() }
     }
 }

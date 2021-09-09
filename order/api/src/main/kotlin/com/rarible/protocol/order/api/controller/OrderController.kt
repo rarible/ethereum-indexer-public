@@ -49,7 +49,7 @@ class OrderController(
         form: OrderFormDto
     ): ResponseEntity<PrepareOrderTxResponseDto> {
         val order = orderService.get(Word.apply(hash))
-        val orderRight = orderService.convertForm(form)
+        val orderRight = orderService.convertFormToVersion(form).toOrderExactFields()
         val result = with(prepareTxService.prepareTxFor2Orders(order, orderRight)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,

@@ -18,7 +18,7 @@ class NotifiableOrderRepositoryDecorator(
     override suspend fun save(order: Order, previousOrderVersion: Order?): Order {
         val saved = delegate.save(order, previousOrderVersion)
 
-        if (saved != order) {
+        if (saved != previousOrderVersion) {
             val updateEvent = OrderUpdateEventDto(
                 eventId = UUID.randomUUID().toString(),
                 orderId = saved.hash.toString(),

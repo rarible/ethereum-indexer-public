@@ -13,11 +13,8 @@ object TransactionDtoConverter : Converter<LogEvent, LogEventDto> {
             transactionHash = source.transactionHash,
             status = convert(source.status),
             address = source.address,
-            from = source.from,
-            topic = source.topic,
-            nonce = source.nonce
+            topic = source.topic
         )
-
     }
 
     private fun convert(source: LogEventStatus): LogEventDto.Status {

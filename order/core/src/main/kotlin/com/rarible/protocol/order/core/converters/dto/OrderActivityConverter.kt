@@ -99,7 +99,7 @@ class OrderActivityConverter(
                 take = AssetDtoConverter.convert(version.take),
                 price = price(version.make, version.take),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = OrderActivityDto.Source.RARIBLE
+                source = convert(version.platform)
             )
             else -> OrderActivityListDto(
                 date = version.createdAt,
@@ -110,8 +110,15 @@ class OrderActivityConverter(
                 take = AssetDtoConverter.convert(version.take),
                 price = price(version.take, version.make),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = OrderActivityDto.Source.RARIBLE
+                source = convert(version.platform)
             )
+        }
+    }
+
+    private fun convert(source: Platform): OrderActivityDto.Source {
+        return when (source) {
+            Platform.RARIBLE -> OrderActivityDto.Source.RARIBLE
+            Platform.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
         }
     }
 

@@ -43,11 +43,11 @@ class ChangeLog00006FixOrderUsdValues {
 
                 if (usdValue != null) {
                     try {
-                        orderRepository.save(order.withOrderUsdValue(usdValue))
+                        template.save(order.withOrderUsdValue(usdValue)).awaitFirst()
                     } catch (_: OptimisticLockingFailureException) {
                         optimisticLock {
                             orderRepository.findById(order.hash)
-                                ?.let { orderRepository.save(it.withOrderUsdValue(usdValue)) }
+                                ?.let { template.save(it.withOrderUsdValue(usdValue)).awaitFirst() }
                         }
                     }
 

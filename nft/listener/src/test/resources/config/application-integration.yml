@@ -23,6 +23,6 @@ eventTopic: ${rarible.common.jms-eventTopic}
 
 common:
   kafka-replica-set: ${kafka.hosts}
-  cryptoPunksContractAddress: 0x0000000000000000000000000000000000000000
-  openseaLazyMintAddress: "0000000000000000000000000000000000000000"
+  openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
+  cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"

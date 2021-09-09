@@ -9,11 +9,14 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -32,7 +35,8 @@ class OrderVersionRepository(
             "take.type.nft_1_maker_-1_createdAt_-1_id_-1",
             "take.type.nft_1_take.type.token_1_createdAt_-1_id_-1",
             "take.type.token_1_take.type.tokenId_1_createdAt_-1_id_-1",
-            "take.type.token_1_take.type.tokenId_1_createdAt_1_takePriceUsd_1__id_1"
+            "take.type.token_1_take.type.tokenId_1_createdAt_1_takePriceUsd_1__id_1",
+            "hash_1"
         )
     }
 
@@ -90,9 +94,16 @@ class OrderVersionRepository(
         return template.findAll(COLLECTION)
     }
 
-    fun findAllByHash(hash: Word): Flow<OrderVersion> {
-        val criteria = OrderVersion::hash isEqualTo hash
-        return template.find<OrderVersion>(Query.query(criteria)).asFlow()
+    fun findAllByHash(hash: Word): Flow<OrderVersion> = findAllByHash(hash, null).asFlow()
+
+    fun findAllByHash(hash: Word?, fromHash: Word?): Flux<OrderVersion> {
+        val criteria = when {
+            hash != null -> OrderVersion::hash isEqualTo hash
+            fromHash != null -> OrderVersion::hash gt fromHash
+            else -> Criteria()
+        }
+        val query = Query(criteria).with(HASH_SORT_ASC)
+        return template.find(query, COLLECTION)
     }
 
     fun findById(id: ObjectId): Mono<OrderVersion> {
@@ -102,5 +113,7 @@ class OrderVersionRepository(
     companion object {
         const val COLLECTION = "order_version"
         val logger: Logger = LoggerFactory.getLogger(OrderVersionRepository::class.java)
+
+        val HASH_SORT_ASC: Sort = Sort.by(OrderVersion::hash.name, "_id")
     }
 }

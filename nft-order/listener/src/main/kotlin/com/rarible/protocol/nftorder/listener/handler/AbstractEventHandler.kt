@@ -20,7 +20,7 @@ abstract class AbstractEventHandler<T> : ConsumerEventHandler<T> {
         } catch (ex: WebClientResponseException) {
             logger.error(
                 "Unable to handle event [{}], unhandled Protocol-API exception with status [{}]" +
-                        " and error message: ", event, ex.statusCode.value(), ex.message
+                        " and error message: {}", event, ex.statusCode.value(), ex.message
             )
         } catch (ex: Exception) {
             logger.error("Unexpected exception during handling event [{}]", event, ex)

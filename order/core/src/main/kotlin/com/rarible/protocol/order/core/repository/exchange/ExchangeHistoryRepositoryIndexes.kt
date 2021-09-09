@@ -67,6 +67,12 @@ object ExchangeHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val AGGREGATION_DEFINITION: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::type.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::date.name}", Sort.Direction.ASC)
+        .background()
+
     private val HASH_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${OrderExchangeHistory::hash.name}", Sort.Direction.ASC)
         .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
@@ -84,6 +90,7 @@ object ExchangeHistoryRepositoryIndexes {
         MAKER_BID_DEFINITION,
         ITEM_BID_DEFINITION,
         COLLECTION_BID_DEFINITION,
+        AGGREGATION_DEFINITION,
         HASH_DEFINITION
     )
 }

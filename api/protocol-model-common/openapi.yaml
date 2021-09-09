@@ -900,13 +900,8 @@ components:
             - INACTIVE
         address:
           $ref: "#/components/schemas/Address"
-        from:
-          $ref: "#/components/schemas/Address"
         topic:
           $ref: "#/components/schemas/Word"
-        nonce:
-          type: integer
-          format: int64
 
     Word:
       type: string

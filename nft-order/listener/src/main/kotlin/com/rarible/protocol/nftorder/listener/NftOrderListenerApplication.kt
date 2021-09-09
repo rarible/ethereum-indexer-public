@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.dto.UnlockableEventDto
+import com.rarible.protocol.nftorder.listener.configuration.BatchedConsumerWorker
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -12,9 +13,9 @@ import org.springframework.boot.runApplication
 @SpringBootApplication
 class NftOrderListenerApplication(
     private val itemChangeWorker: ConsumerWorker<NftItemEventDto>,
-    private val ownershipChangeWorker: ConsumerWorker<NftOwnershipEventDto>,
+    private val ownershipChangeWorker: BatchedConsumerWorker<NftOwnershipEventDto>,
     private val unlockableChangeWorker: ConsumerWorker<UnlockableEventDto>,
-    private val orderChangeWorker: ConsumerWorker<OrderEventDto>
+    private val orderChangeWorker: BatchedConsumerWorker<OrderEventDto>
 ) : CommandLineRunner {
     override fun run(vararg args: String?) {
         itemChangeWorker.start()

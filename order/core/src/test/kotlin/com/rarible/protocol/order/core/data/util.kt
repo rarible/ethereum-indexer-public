@@ -1,14 +1,22 @@
 package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.*
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import org.apache.commons.lang3.RandomUtils
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 
@@ -31,10 +39,9 @@ fun createOrder() =
         lastUpdateAt = nowMillis()
     )
 
-fun createVersionOrder() =
-    OrderVersion(
-        hash = Word.apply(ByteArray(32)),
-        maker = AddressFactory.create(),
+fun createOrderVersion(): OrderVersion {
+    return OrderVersion(
+        maker = randomAddress(),
         taker = null,
         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
         take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
@@ -42,8 +49,16 @@ fun createVersionOrder() =
         makePriceUsd = null,
         takePriceUsd = null,
         makeUsd = null,
-        takeUsd = null
-)
+        takeUsd = null,
+        platform = Platform.RARIBLE,
+        type = OrderType.RARIBLE_V2,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        signature = null
+    )
+}
 
 fun createOrderDto() =
     RaribleV2OrderDto(

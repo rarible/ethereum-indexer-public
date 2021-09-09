@@ -157,8 +157,6 @@ class TransferHistoryRepositoryIt {
             address = history.token,
             topic = word(),
             transactionHash = word(),
-            from = null,
-            nonce = null,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 1,
             logIndex = 0,

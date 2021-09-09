@@ -37,16 +37,15 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
         val itemId = randomItemId()
         val ownershipId = randomOwnershipId(itemId)
         val nftOwnership = randomNftOwnershipDto(ownershipId)
-        val orderDto = randomOrderDto(itemId, ownershipId.owner)
 
         nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftOwnership)
-        orderControllerApiMock.mockGetSellOrdersByItem(ownershipId, orderDto)
 
         val result = nftOrderOwnershipControllerApi
             .getNftOrderOwnershipById(ownershipId.decimalStringValue)
             .awaitFirst()!!
 
-        assertThat(result.bestSellOrder).isEqualTo(orderDto)
+        // If we don't have Ownership in DB it means there is no enrich data, so we just return Ownership from indexer
+        assertThat(result.bestSellOrder).isEqualTo(null)
         assertOwnershipDtoAndNftDtoEquals(result, nftOwnership)
     }
 

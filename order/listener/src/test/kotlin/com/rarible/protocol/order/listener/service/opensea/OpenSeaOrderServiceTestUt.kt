@@ -17,7 +17,7 @@ internal class OpenSeaOrderServiceTestUt {
     private val openSeaClient: OpenSeaClient = mockk()
     private val properties =  OrderListenerProperties(loadOpenSeaPeriod = Duration.ofSeconds(1))
 
-    private val openSeaOrderService = OpenSeaOrderService(openSeaClient, properties)
+    private val openSeaOrderService = OpenSeaOrderServiceImpl(openSeaClient, properties)
 
     @Test
     fun `should load batch correctly`() = runBlocking<Unit> {

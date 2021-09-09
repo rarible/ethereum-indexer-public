@@ -3,14 +3,11 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
-import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
-import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
@@ -18,8 +15,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.time.delay
+import org.springframework.boot.actuate.health.Health
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
@@ -29,14 +26,21 @@ class OpenSeaOrdersFetcherWorker(
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val openSeaOrderConverter: OpenSeaOrderConverter,
     private val orderRepository: OrderRepository,
-    private val orderVersionRepository: OrderVersionRepository,
+    private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties,
-    private val orderVersionListener: OrderVersionListener,
     meterRegistry: MeterRegistry,
     workerProperties: DaemonWorkerProperties
 ) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
 
     override suspend fun handle() {
+        try {
+            handleSafely()
+        } catch (ex: AssertionError) {
+            throw IllegalStateException(ex)
+        }
+    }
+
+    private suspend fun handleSafely() {
         if (properties.loadOpenSeaOrders.not()) return
 
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
@@ -46,7 +50,8 @@ class OpenSeaOrdersFetcherWorker(
         val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
 
         logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
-        val openSeaOrders = openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
+        val openSeaOrders =
+            openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
 
         val nextListedAfter = if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }
@@ -66,7 +71,7 @@ class OpenSeaOrdersFetcherWorker(
                         async {
                             chunk
                                 .mapNotNull { openSeaOrderConverter.convert(it) }
-                                .forEach { save(it) }
+                                .forEach { saveOrder(it) }
                         }
                     }.awaitAll()
             }
@@ -80,31 +85,19 @@ class OpenSeaOrdersFetcherWorker(
         openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter + 1))
     }
 
-    private suspend fun save(order: Order) {
-        if (orderRepository.findById(order.hash) == null) {
-            orderRepository.save(order)
+    private suspend fun saveOrder(orderVersion: OrderVersion) {
+        if (orderRepository.findById(orderVersion.hash) == null) {
+            orderUpdateService.save(orderVersion)
         }
-        if (properties.loadOpenSeaOrderVersion) {
-            val version = orderVersionRepository.save(OrderVersion(
-                hash = order.hash,
-                maker = order.maker,
-                taker = order.taker,
-                make = order.make,
-                take = order.take,
-                makePriceUsd = order.makePriceUsd,
-                takePriceUsd = order.takePriceUsd,
-                makeUsd = order.makeUsd,
-                takeUsd = order.takeUsd,
-                platform = Platform.OPEN_SEA
-            )).awaitFirst()
-
-            orderVersionListener.onOrderVersion(version)
-        }
-        logger.info("Save new openSea order ${order.hash}")
+        logger.info("Saved new OpenSea order ${orderVersion.hash}")
     }
 
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
+    }
+
+    override fun health(): Health {
+        return Health.up().build()
     }
 }

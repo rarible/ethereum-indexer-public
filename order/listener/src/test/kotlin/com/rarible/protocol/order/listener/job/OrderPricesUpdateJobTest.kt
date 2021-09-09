@@ -1,17 +1,22 @@
 package com.rarible.protocol.order.listener.job
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.containers.MongodbReactiveBaseTest
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderUsdValue
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.event.OrderVersionListener
+import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.service.*
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
-import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
+import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
@@ -21,6 +26,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Query
+import scalether.domain.Address
+import scalether.domain.AddressFactory
 import java.math.BigDecimal
 
 internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
@@ -39,80 +46,97 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val orderRepository = MongoOrderRepository(createReactiveMongoTemplate())
     private val orderVersionRepository = OrderVersionRepository(createReactiveMongoTemplate())
     private val priceUpdateService = mockk<PriceUpdateService>()
-
+    private val exchangeHistoryRepository = ExchangeHistoryRepository(createReactiveMongoTemplate())
+    private val assetBalanceProvider = mockk<AssetBalanceProvider>()
+    private val priceNormalizer = mockk<PriceNormalizer>()
+    private val protocolCommissionProvider = mockk<ProtocolCommissionProvider>()
+    private val orderVersionListener = mockk<OrderVersionListener>()
+    private val orderReduceService = OrderReduceService(
+        exchangeHistoryRepository = exchangeHistoryRepository,
+        orderRepository = orderRepository,
+        orderVersionRepository = orderVersionRepository,
+        assetBalanceProvider = assetBalanceProvider,
+        protocolCommissionProvider = protocolCommissionProvider,
+        priceNormalizer = priceNormalizer,
+        priceUpdateService = priceUpdateService
+    )
+    private val orderUpdateService = OrderUpdateService(
+        orderVersionRepository = orderVersionRepository,
+        orderRepository = orderRepository,
+        assetBalanceProvider = assetBalanceProvider,
+        protocolCommissionProvider = protocolCommissionProvider,
+        priceUpdateService = priceUpdateService,
+        orderReduceService = orderReduceService,
+        orderVersionListener = orderVersionListener
+    )
     private val orderPricesUpdateJob = OrderPricesUpdateJob(
         properties = OrderListenerProperties(priceUpdateEnabled = true),
         priceUpdateService = priceUpdateService,
+        orderReduceService = orderReduceService,
         orderVersionRepository = orderVersionRepository,
         reactiveMongoTemplate = createReactiveMongoTemplate()
     )
 
     @Test
-    fun `should update order and all versions`() = runBlocking<Unit> {
-        val newMakePriceUsd1 = BigDecimal.valueOf(1)
-        val newMakeUsd1 = BigDecimal.valueOf(2)
-        val newTakePriceUsd1 = BigDecimal.valueOf(3)
-        val newTakeUsd1 = BigDecimal.valueOf(6)
+    fun `should update only the active order and its version`() = runBlocking {
+        coEvery { priceNormalizer.normalize(any()) } returns BigDecimal.ZERO to BigDecimal.ZERO
+        coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.TEN
+        coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
 
-        val order1 = createOrder().copy(cancelled = false, makeStock = EthUInt256.TEN)
-        val orderVersion1 = createOrderVersion().copy(hash = order1.hash, make = order1.make, take = order1.take)
-        val orderVersion2 = createOrderVersion().copy(hash = order1.hash, make = order1.make, take = order1.take)
-
-        val order2 = createOrder().copy(cancelled = false, makeStock = EthUInt256.TEN)
-        val orderVersion3 = createOrderVersion().copy(hash = order2.hash, make = order2.make, take = order2.take)
-        val orderVersion4 = createOrderVersion().copy(hash = order2.hash, make = order2.make, take = order2.take)
-
-        val order3 = createOrder().copy(cancelled = true)
-        val order4 = createOrder().copy(makeStock = EthUInt256.ZERO)
-
-        save(order1, order2, order3, order4)
-        save(orderVersion1, orderVersion2, orderVersion3, orderVersion4)
+        val newMakeUsd = BigDecimal.valueOf(2)
+        val newTakePriceUsd = BigDecimal.valueOf(3)
+        val order1Make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val order2Make = Asset(EthAssetType, EthUInt256.TEN)
 
         coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), any()) } answers {
             when (arg<Asset>(0)) {
-                order1.make -> OrderUsdValue.BidOrder(makeUsd = newMakeUsd1, takePriceUsd = newTakePriceUsd1)
-                order2.make -> OrderUsdValue.SellOrder(takeUsd = newTakeUsd1, makePriceUsd = newMakePriceUsd1)
-                else -> throw IllegalArgumentException("Unexpected order make type")
+                order1Make -> OrderUsdValue.BidOrder(makeUsd = newMakeUsd, takePriceUsd = newTakePriceUsd)
+                else -> error("Order 2 must not be updated!")
             }
         }
+
+        val order1 = orderUpdateService.save(createOrderVersion().copy(make = order1Make))
+        val order2 = orderUpdateService.save(createOrderVersion().copy(make = order2Make))
+        cancelOrder(order2.hash)
+
         orderPricesUpdateJob.updateOrdersPrices()
 
         val updatedOrder1 = orderRepository.findById(order1.hash)
-        assertThat(updatedOrder1?.makeUsd).isEqualTo(newMakeUsd1)
-        assertThat(updatedOrder1?.takePriceUsd).isEqualTo(newTakePriceUsd1)
+        assertThat(updatedOrder1?.makeUsd).isEqualTo(newMakeUsd)
+        assertThat(updatedOrder1?.takePriceUsd).isEqualTo(newTakePriceUsd)
         assertThat(updatedOrder1?.takeUsd).isNull()
         assertThat(updatedOrder1?.makePriceUsd).isNull()
 
-        val updatedOrder2 = orderRepository.findById(order2.hash)
-        assertThat(updatedOrder2?.makeUsd).isNull()
-        assertThat(updatedOrder2?.takePriceUsd).isNull()
-        assertThat(updatedOrder2?.takeUsd).isEqualTo(newTakeUsd1)
-        assertThat(updatedOrder2?.makePriceUsd).isEqualTo(newMakePriceUsd1)
-
-        val updatedOrderVersions1 = orderVersionRepository.findAllByHash(order1.hash).toList()
-        assertThat(updatedOrderVersions1).hasSize(2)
-        updatedOrderVersions1.forEach {
-            assertThat(it.makeUsd).isEqualTo(newMakeUsd1)
-            assertThat(it.takePriceUsd).isEqualTo(newTakePriceUsd1)
-            assertThat(it.takeUsd).isNull()
-            assertThat(it.makePriceUsd).isNull()
-        }
-
-        val updatedOrderVersions2 = orderVersionRepository.findAllByHash(order2.hash).toList()
-        assertThat(updatedOrderVersions2).hasSize(2)
-        updatedOrderVersions2.forEach {
-            assertThat(it.makeUsd).isNull()
-            assertThat(it.takePriceUsd).isNull()
-            assertThat(it.takeUsd).isEqualTo(newTakeUsd1)
-            assertThat(it.makePriceUsd).isEqualTo(newMakePriceUsd1)
-        }
+        val updatedOrderVersion1 = orderVersionRepository.findAllByHash(order1.hash).toList().single()
+        assertThat(updatedOrderVersion1.makeUsd).isEqualTo(newMakeUsd)
+        assertThat(updatedOrderVersion1.takePriceUsd).isEqualTo(newTakePriceUsd)
+        assertThat(updatedOrderVersion1.takeUsd).isNull()
+        assertThat(updatedOrderVersion1.makePriceUsd).isNull()
     }
 
-    private suspend fun save(vararg order: Order) {
-        order.forEach { orderRepository.save(it) }
-    }
+    private suspend fun cancelOrder(orderHash: Word) {
+        exchangeHistoryRepository.save(
+            LogEvent(
+                data = OrderCancel(
+                    hash = orderHash,
+                    date = nowMillis(),
 
-    private suspend fun save(vararg orderVersion: OrderVersion) {
-        orderVersion.forEach { orderVersionRepository.save(it).awaitFirst() }
+                    // Do not matter.
+                    maker = null,
+                    make = null,
+                    take = null,
+                    source = HistorySource.RARIBLE
+                ),
+                address = Address.ZERO(),
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                index = 0,
+                logIndex = 0,
+                minorLogIndex = 0
+            )
+        ).awaitFirst()
+        orderReduceService.updateOrder(orderHash)
     }
 }

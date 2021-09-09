@@ -1,11 +1,13 @@
 package com.rarible.protocol.nftorder.core.service
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrdersPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nftorder.core.data.RaribleOrderChecker
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
+import com.rarible.protocol.nftorder.core.util.spent
 import com.rarible.protocol.order.api.client.OrderControllerApi
 import kotlinx.coroutines.reactive.awaitFirstOrDefault
 import org.slf4j.LoggerFactory
@@ -20,8 +22,8 @@ class OrderService(
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
 
     suspend fun getBestSell(itemId: ItemId): OrderDto? {
-        logger.info("Fetching best sell order for Item [{}]", itemId)
-        return withPreferredRariblePlatform { platform ->
+        val now = nowMillis()
+        val result = withPreferredRariblePlatform { platform ->
             orderControllerApi.getSellOrdersByItem(
                 itemId.token.hex(),
                 itemId.tokenId.value.toString(),
@@ -32,11 +34,13 @@ class OrderService(
                 1
             )
         }
+        logger.info("Fetched best sell Order for Item [{}]: [{}] ({}ms)", itemId, result?.hash, spent(now))
+        return result
     }
 
     suspend fun getBestSell(id: OwnershipId): OrderDto? {
-        logger.info("Fetching best sell order for Ownership [{}]", id)
-        return withPreferredRariblePlatform { platform ->
+        val now = nowMillis()
+        val result = withPreferredRariblePlatform { platform ->
             orderControllerApi.getSellOrdersByItem(
                 id.token.hex(),
                 id.tokenId.value.toString(),
@@ -47,11 +51,13 @@ class OrderService(
                 1
             )
         }
+        logger.info("Fetched best sell Order for Ownership [{}]: [{}] ({}ms)", id, result?.hash, spent(now))
+        return result
     }
 
     suspend fun getBestBid(itemId: ItemId): OrderDto? {
-        logger.info("Fetching best bid order for Item [{}]", itemId)
-        return withPreferredRariblePlatform { platform ->
+        val now = nowMillis()
+        val result = withPreferredRariblePlatform { platform ->
             orderControllerApi.getOrderBidsByItem(
                 itemId.token.hex(),
                 itemId.tokenId.value.toString(),
@@ -62,6 +68,8 @@ class OrderService(
                 1
             )
         }
+        logger.info("Fetching best bid Order for Item [{}]: [{}] ({}ms)", itemId, result?.hash, spent(now))
+        return result
     }
 
     private suspend fun withPreferredRariblePlatform(

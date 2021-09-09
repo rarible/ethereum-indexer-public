@@ -2,17 +2,14 @@ package com.rarible.protocol.nftorder.core.service
 
 import com.mongodb.client.result.DeleteResult
 import com.rarible.core.common.convert
-import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.NftItemDto
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nftorder.core.data.Fetched
-import com.rarible.protocol.nftorder.core.data.ItemEnrichmentData
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.repository.ItemRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import com.rarible.protocol.nftorder.core.util.spent
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -21,9 +18,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class ItemService(
-    private val ownershipService: OwnershipService,
-    private val orderService: OrderService,
-    private val lockService: LockService,
     private val conversionService: ConversionService,
     private val nftItemControllerApi: NftItemControllerApi,
     private val itemRepository: ItemRepository
@@ -40,8 +34,9 @@ class ItemService(
     }
 
     suspend fun delete(itemId: ItemId): DeleteResult? {
+        val now = nowMillis()
         val result = itemRepository.delete(itemId)
-        logger.debug("Deleting Item [{}], deleted: {}", itemId, result?.deletedCount)
+        logger.info("Deleting Item [{}], deleted: {} ({}ms)", itemId, result?.deletedCount, spent(now))
         return result
     }
 
@@ -65,47 +60,12 @@ class ItemService(
     }
 
     private suspend fun fetchItem(itemId: ItemId): Item {
-        logger.debug("Item [{}] not found in DB, fetching from NFT-Indexer", itemId)
+        val now = nowMillis()
         val nftItemDto = nftItemControllerApi
             .getNftItemById(itemId.decimalStringValue, null)
             .awaitFirstOrNull()!!
-        logger.debug("Item [{}] fetched, gathering enrichment data", itemId)
-        return enrichDto(nftItemDto)
-    }
 
-    suspend fun enrichDto(nftItem: NftItemDto): Item {
-        val itemId = ItemId(nftItem.contract, EthUInt256(nftItem.tokenId))
-        val enrichmentData = getEnrichmentData(itemId)
-        val rawItem = conversionService.convert<Item>(nftItem)
-        return enrichItem(rawItem, enrichmentData)
-    }
-
-    suspend fun enrichItem(rawItem: Item, itemEnrichmentData: ItemEnrichmentData): Item {
-        return rawItem.copy(
-            sellers = itemEnrichmentData.sellers,
-            totalStock = itemEnrichmentData.totalStock,
-            bestSellOrder = itemEnrichmentData.bestSellOrder,
-            bestBidOrder = itemEnrichmentData.bestBidOrder,
-            unlockable = itemEnrichmentData.unlockable
-        )
-    }
-
-    suspend fun getEnrichmentData(itemId: ItemId) = coroutineScope {
-        val sellStatsFuture = async { ownershipService.getItemSellStats(itemId) }
-        val bestBidOrderFuture = async { orderService.getBestBid(itemId) }
-        val bestSellOrderFuture = async { orderService.getBestSell(itemId) }
-        val unlockable = async { lockService.isUnlockable(itemId) }
-
-        val sellStats = sellStatsFuture.await()
-
-        val result = ItemEnrichmentData(
-            sellers = sellStats.sellers,
-            totalStock = sellStats.totalStock,
-            bestBidOrder = bestBidOrderFuture.await(),
-            bestSellOrder = bestSellOrderFuture.await(),
-            unlockable = unlockable.await()
-        )
-        logger.debug("Enrichment data for Item [{}] fetched: [{}]", itemId, result)
-        result
+        logger.info("Fetched Item by Id [{}] ({}ms)", itemId, spent(now))
+        return conversionService.convert<Item>(nftItemDto)
     }
 }

@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
@@ -41,6 +42,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var orderReduceService: OrderReduceService
+
+    @Autowired
+    protected lateinit var orderUpdateService: OrderUpdateService
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum
@@ -109,8 +113,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                     address = token,
                     topic = WordFactory.create(),
                     transactionHash = transactionHash,
-                    from = null,
-                    nonce = null,
                     status = status,
                     index = 0,
                     logIndex = logIndex,

@@ -6,6 +6,7 @@ import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PartConverter
@@ -116,7 +117,7 @@ class PrepareTxService(
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
         val orderRight = order.invert(form.maker, form.amount)
-            .copy(data = OrderRaribleV2DataV1(emptyList(), form.originFees.map { Part(it.account, EthUInt256.of(it.value.toLong())) }))
+            .copy(data = OrderRaribleV2DataV1(form.payouts.toPartList(), form.originFees.toPartList()))
         return prepareTxFor2Orders(order, orderRight)
     }
 
@@ -124,6 +125,9 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
+        if (form.payouts.isNotEmpty() && form.payouts != listOf(PartDto(form.maker, 10000))) {
+            throw IllegalArgumentException("payouts not supported by OpenSea orders")
+        }
         val bytes = ByteArray(32)
         ThreadLocalRandom.current().nextBytes(bytes)
         val newSalt = Word.apply(bytes)
@@ -331,3 +335,4 @@ class PrepareTxService(
 }
 
 private fun Binary.fixSignatureV(): Binary = toSignatureData().fixV().toBinary()
+private fun List<PartDto>.toPartList() = map { Part(it.account, EthUInt256.of(it.value.toLong())) }

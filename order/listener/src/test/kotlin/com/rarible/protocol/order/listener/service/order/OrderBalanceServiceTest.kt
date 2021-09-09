@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
@@ -10,14 +11,18 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.listener.data.createOrder
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
@@ -26,12 +31,20 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 
 @IntegrationTest
+@FlowPreview
 @Import(OrderBalanceServiceTest.TestContractService::class)
 internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
 
+    @MockkBean
+    private lateinit var assetBalanceProvider: AssetBalanceProvider
+
+    @BeforeEach
+    fun setup() {
+        clearMocks(assetBalanceProvider)
+    }
 
     @Test
     fun `should update all not canceled balance orders`() = runBlocking<Unit> {
@@ -41,33 +54,30 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
 
-        val order1 = createOrder().copy(
+        val order1 = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
-            take = take,
-            cancelled = false
+            take = take
         )
-        val order2 = createOrder().copy(
+        val order2 = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
-            take = take,
-            cancelled = false
+            take = take
         )
-        val order3 = createOrder().copy(
+        val order3 = createOrderVersion().copy(
             maker = targetMaker,
             make = make,
-            take = take,
-            makeStock = EthUInt256.ONE,
-            cancelled = true
+            take = take
         )
-        val order4 = createOrder().copy(
+        val order4 = createOrderVersion().copy(
             maker = AddressFactory.create(),
             make = make,
-            take = take,
-            makeStock = EthUInt256.ONE,
-            cancelled = false
+            take = take
         )
-        listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ONE
+
+        listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
+        cancelOrder(order3.hash)
 
         val updatedBalance = mockk<Erc20BalanceDto> {
             every { owner } returns targetMaker
@@ -95,31 +105,27 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
         val maker = AddressFactory.create()
 
-        val order1 = createOrder().copy(
+        val order1 = createOrderVersion().copy(
             maker = maker,
             make = make,
-            take = take,
-            cancelled = false
+            take = take
         )
-        val order2 = createOrder().copy(
+        val order2 = createOrderVersion().copy(
             maker = maker,
             make = make,
-            take = take,
-            cancelled = false
+            take = take
         )
-        val order3 = createOrder().copy(
+        val order3 = createOrderVersion().copy(
             maker = maker,
             make = make,
-            take = take,
-            makeStock = EthUInt256.ONE,
-            cancelled = true
+            take = take
         )
-        val order4 = createOrder().copy(
-            make = make,
-            makeStock = EthUInt256.ONE,
-            cancelled = false
+        val order4 = createOrderVersion().copy(
+            make = make
         )
-        listOf(order1, order2, order3, order4).forEach { orderRepository.save(it) }
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ONE
+        listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
+        cancelOrder(order3.hash)
 
         val updatedOwnership = mockk<NftOwnershipDto> {
             every { owner } returns maker

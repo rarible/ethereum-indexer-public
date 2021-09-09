@@ -5,6 +5,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
+import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -122,9 +123,9 @@ class ExchangeHistoryRepository(
     ): Flux<AggregatedData> {
         val match = Aggregation.match(
             (LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft  isEqualTo true)
+                .and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .and(LogEvent::data / OrderExchangeHistory::date).gt(startDate).lt(endDate)
                 .and(LogEvent::status).inValues(LogEventStatus.PENDING, LogEventStatus.CONFIRMED)
-                .and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
                 .run { source?.let { and(LogEvent::data / OrderExchangeHistory::source).isEqualTo(it) } ?: this }
         )
         val group = Aggregation
@@ -135,7 +136,12 @@ class ExchangeHistoryRepository(
         val sort = Aggregation.sort(Sort.by(Sort.Direction.DESC, AggregatedData::sum.name))
         val aggregation = Aggregation.newAggregation(match, group, sort)
 
-        return template.aggregate(aggregation, COLLECTION, AggregatedData::class.java)
+        return template.aggregateWithHint(
+            aggregation,
+            COLLECTION,
+            AggregatedData::class.java,
+            ExchangeHistoryRepositoryIndexes.AGGREGATION_DEFINITION.indexKeys
+        )
     }
 
     companion object {

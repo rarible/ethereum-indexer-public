@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
-        <version>1.13-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -98,10 +98,28 @@
                 <executions>
                     <execution>
                         <id>report-aggregate</id>
-                        <phase>verify</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>report-aggregate</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>merge-results</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>merge</goal>
+                        </goals>
+                        <configuration>
+                            <fileSets>
+                                <fileSet>
+                                    <directory>${project.basedir}/..</directory>
+                                    <includes>
+                                        <include>**/target/jacoco.exec</include>
+                                    </includes>
+                                </fileSet>
+                            </fileSets>
+                            <destFile>${project.build.directory}/jacoco-aggregate.exec</destFile>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

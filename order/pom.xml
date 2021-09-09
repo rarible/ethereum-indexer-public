@@ -4,16 +4,15 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>protocol-order-indexer</artifactId>
     <packaging>pom</packaging>
-    <version>1.13-SNAPSHOT</version>
 
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>rarible-protocol-ethereum-indexer</artifactId>
-        <version>1.13-SNAPSHOT</version>
+        <version>${revision}</version>
     </parent>
 
     <properties>
-        <opensea-client-starter.version>0.11.0</opensea-client-starter.version>
+        <opensea-client-starter.version>0.14.0</opensea-client-starter.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 

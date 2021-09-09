@@ -1,18 +1,20 @@
 package com.rarible.protocol.order.api.controller
 
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderBidStatusDto
 import com.rarible.protocol.dto.PlatformDto
-import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.model.BidStatus
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -29,6 +31,7 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
+import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -37,10 +40,23 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var orderVersionRepository: OrderVersionRepository
 
+    @MockkBean
+    private lateinit var assetBalanceProvider: AssetBalanceProvider
+    private val ownerToBalance = ConcurrentHashMap<Address, EthUInt256>()
+
     @BeforeEach
     override fun setupDatabase() = runBlocking {
         super.setupDatabase()
         orderVersionRepository.createIndexes()
+    }
+
+    @BeforeEach
+    fun mockBalances() {
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } answers {
+            val owner = arg<Address>(0)
+            ownerToBalance.getValue(owner)
+        }
     }
 
     internal companion object {
@@ -103,11 +119,8 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         otherVersions: List<OrderVersion>,
         params: BidByItemParams
     ) = runBlocking {
-        saveVersion(*orderVersionBids.map { it.orderVersion }.shuffled().toTypedArray())
-        saveVersion(*otherVersions.shuffled().toTypedArray())
-
-        orderVersionBids.forEach { saveOrder(createOrder().copy(hash = it.orderVersion.hash), it.status) }
-        otherVersions.forEach { saveOrder(createOrder().copy(hash = it.hash)) }
+        saveOrders(orderVersionBids)
+        saveOrders(otherVersions.map { OrderVersionBid(it, BidStatus.ACTIVE) })
 
         val versions = orderBidsClient.getBidsByItem(
             params.token.hex(),
@@ -145,7 +158,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 null,
                 null,
-               3
+                3
             ).awaitFirst()
 
             assertThat(versions.items).hasSize(3)
@@ -194,7 +207,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         }
 
         private suspend fun prepareDatabase(token: Address, tokenId: EthUInt256) {
-            listOf(
+            val orderVersionBids = listOf(
                 OrderVersionBid(
                     createErc721BidOrderVersion()
                         .withTakePriceUsd(BigDecimal.valueOf(20))
@@ -251,10 +264,8 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                         .withCreatedAt(now + Duration.ofMinutes(1)),
                     BidStatus.CANCELLED
                 )
-            ).forEach { orderVersionBid ->
-                saveVersion(orderVersionBid.orderVersion)
-                saveOrder(createOrder().copy(hash = orderVersionBid.orderVersion.hash), orderVersionBid.status)
-            }
+            )
+            saveOrders(orderVersionBids)
         }
     }
 
@@ -264,17 +275,17 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         assertThat(orderVersionDto.createdAt).isEqualTo(versionBid.orderVersion.createdAt)
     }
 
-    private suspend fun saveVersion(vararg version: OrderVersion) {
-        version.forEach { orderVersionRepository.save(it).awaitFirst() }
-    }
-
-    private suspend fun saveOrder(order: Order, status: BidStatus = BidStatus.HISTORICAL) {
-        val updatedOrder = when (status) {
-            BidStatus.CANCELLED -> order.copy(cancelled = true)
-            BidStatus.INACTIVE -> order.copy(makeStock = EthUInt256.ZERO)
-            else -> order.copy(cancelled = false, makeStock = EthUInt256.TEN)
+    private suspend fun saveOrders(version: List<OrderVersionBid>) {
+        for ((orderVersion, status) in version) {
+            ownerToBalance[orderVersion.maker] = when (status) {
+                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
+                else -> EthUInt256.ZERO
+            }
+            if (status == BidStatus.CANCELLED) {
+                cancelOrder(orderVersion.hash)
+            }
+            orderUpdateService.save(orderVersion)
         }
-        orderRepository.save(updatedOrder)
     }
 
     data class OrderVersionBid(
