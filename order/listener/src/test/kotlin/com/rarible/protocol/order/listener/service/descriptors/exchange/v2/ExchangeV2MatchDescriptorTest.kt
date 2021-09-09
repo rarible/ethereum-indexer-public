@@ -96,7 +96,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             val right = map[OrderSide.RIGHT]
 
             assertThat(left?.fill).isEqualTo(EthUInt256.ONE)
-            assertThat(left?.data).isEqualTo(orderLeft.data)
+            assertThat(left?.data).isEqualTo(orderLeftVersion.data)
             assertThat(right?.fill).isEqualTo(EthUInt256.TEN)
             assertThat(right?.data).isEqualTo(OrderRaribleV2DataV1(emptyList(), emptyList()))
 
