@@ -15,6 +15,7 @@ class PriceNormalizer(
             is Erc1155AssetType -> 0
             is Erc1155LazyAssetType -> 0
             is Erc20AssetType -> (contractService.get(assetType.token) as Erc20Token).decimals ?: 0
+            is GenerativeArtAssetType -> 0
             is Erc721AssetType -> 0
             is Erc721LazyAssetType -> 0
             is EthAssetType -> 18

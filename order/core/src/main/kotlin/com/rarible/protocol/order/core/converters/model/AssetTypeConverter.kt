@@ -14,6 +14,9 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
     override fun convert(source: AssetTypeDto): AssetType {
         return when (source) {
             is EthAssetTypeDto -> EthAssetType
+            is GenerativeArtAssetTypeDto -> GenerativeArtAssetType(
+                token = source.contract
+            )
             is Erc20AssetTypeDto -> Erc20AssetType(Address.apply(source.contract))
             is Erc721AssetTypeDto ->
                 Erc721AssetType(Address.apply(source.contract), EthUInt256(source.tokenId))
