@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -56,6 +57,8 @@ class ExchangeOrderMatchDescriptor(
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
         val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
+        val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
+        val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
 
         return listOf(
             OrderSideMatch(
@@ -65,8 +68,8 @@ class ExchangeOrderMatchDescriptor(
                 fill = EthUInt256(event.newLeftFill()),
                 make = leftMake,
                 take = leftTake,
-                maker = event.leftMaker(),
-                taker = event.rightMaker(),
+                maker = leftMaker,
+                taker = rightMaker,
                 makeUsd = lestUsdValue?.makeUsd,
                 takeUsd = lestUsdValue?.takeUsd,
                 makeValue = prizeNormalizer.normalize(leftMake),
@@ -84,8 +87,8 @@ class ExchangeOrderMatchDescriptor(
                 fill = EthUInt256(event.newRightFill()),
                 make = rightMake,
                 take = rightTake,
-                maker = event.rightMaker(),
-                taker = event.leftMaker(),
+                maker = rightMaker,
+                taker = leftMaker,
                 makeUsd = rightUsdValue?.makeUsd,
                 takeUsd = rightUsdValue?.takeUsd,
                 makeValue = prizeNormalizer.normalize(rightMake),
@@ -101,5 +104,13 @@ class ExchangeOrderMatchDescriptor(
 
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(listOf(exchangeContract))
+    }
+}
+
+internal fun getOriginMaker(maker: Address, date: OrderData?): Address {
+    return when (date) {
+        is OrderRaribleV2DataV1 -> if (date.payouts.isSingleton) date.payouts.first().account else maker
+        is OrderDataLegacy, is OrderOpenSeaV1DataV1 -> maker
+        null -> maker
     }
 }
