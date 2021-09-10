@@ -1,11 +1,14 @@
 package com.rarible.protocol.nftorder.listener.service
 
+import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import org.springframework.web.reactive.function.client.WebClientResponseException
 
 @Component
 class OrderEventService(
@@ -13,18 +16,22 @@ class OrderEventService(
     private val ownershipEventService: OwnershipEventService
 ) {
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun updateOrder(order: OrderDto) = coroutineScope {
 
         val makeItemId = toItemId(order.make.assetType)
         val takeItemId = toItemId(order.take.assetType)
 
-        val mFuture = makeItemId?.let { async { itemEventService.onItemBestSellOrderUpdated(makeItemId, order) } }
-        val tFuture = takeItemId?.let { async { itemEventService.onItemBestBidOrderUpdated(takeItemId, order) } }
+        val mFuture = makeItemId?.let {
+            async { ignoreApi404 { itemEventService.onItemBestSellOrderUpdated(makeItemId, order) } }
+        }
+        val tFuture = takeItemId?.let {
+            async { ignoreApi404 { itemEventService.onItemBestBidOrderUpdated(takeItemId, order) } }
+        }
         val oFuture = makeItemId?.let {
-            async {
-                val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
-                ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order)
-            }
+            val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
+            async { ignoreApi404 { ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order) } }
         }
 
         mFuture?.await()
@@ -43,6 +50,25 @@ class OrderEventService(
             is EthAssetTypeDto -> null
             is FlowAssetTypeDto -> null
             is Erc20AssetTypeDto -> null
+        }
+    }
+
+    private suspend fun ignoreApi404(call: suspend () -> Unit) {
+        try {
+            call()
+        } catch (ex: ProtocolApiResponseException) {
+            val errorData = ex.responseObject
+            if (errorData is NftIndexerApiErrorDto && errorData.status == 404) {
+                logger.warn("Received NOT_FOUND code from client, details: {}, message: {}", errorData, ex.message)
+            } else {
+                throw ex
+            }
+        } catch (ex: WebClientResponseException) {
+            if (ex.statusCode.value() == 404) {
+                logger.warn("Received unhandled NOT_FOUND code from client, message: {}", ex.message)
+            } else {
+                throw ex
+            }
         }
     }
 
