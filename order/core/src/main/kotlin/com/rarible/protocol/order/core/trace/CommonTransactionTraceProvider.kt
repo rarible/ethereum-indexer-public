@@ -29,6 +29,7 @@ class CommonTransactionTraceProvider(
             Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
         ).awaitFirst()
 
+        logger.info("Fetching trace for tc=$transactionHash")
         return result.result()
             .map { mapper.treeToValue(it, Array<Trace>::class.java) }
             .map { convert(it) }

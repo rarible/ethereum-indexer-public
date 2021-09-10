@@ -24,7 +24,8 @@ class TransactionTraceProviderFactory(
                 else OpenEthereumTransactionTraceProvider(ethereum)
             }
             NodeType.GETH, NodeType.UNKNOWN -> {
-                GethTransactionTraceProvider(ethereum)
+                if (featureFlags.useCommonTransactionTraceProvider) CommonTransactionTraceProvider(ethereum)
+                else GethTransactionTraceProvider(ethereum)
             }
         }
     }
