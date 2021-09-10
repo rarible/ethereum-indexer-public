@@ -87,7 +87,7 @@ class PropertiesCacheDescriptor(
     }
 
     fun getFromBase64(uri: String): Mono<ItemProperties> {
-        val str = base64ToString(uri)
+        val str = base64MimeToString(uri)
         logger.info("Decoding properties from base64: $str")
         return parse(str).toMono()
     }

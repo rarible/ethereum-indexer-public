@@ -22,12 +22,13 @@ import scalether.transaction.MonoTransactionSender
 class LootCacheDescriptor(
     @Value("\${api.loot.cache-timeout}") private val cacheTimeout: Long,
     val sender: MonoTransactionSender,
-    val mapper: ObjectMapper
+    val mapper: ObjectMapper,
+    val ipfsService: IpfsService
 ) : CacheDescriptor<ItemProperties> {
 
     val contract = LootMeta(ItemPropertiesService.LOOT_ADDRESS, sender)
 
-    override val collection: String = "cache_properties"
+    override val collection: String = "cache_loot"
 
     override fun getMaxAge(value: ItemProperties?): Long =
         if (value == null) {
@@ -51,12 +52,17 @@ class LootCacheDescriptor(
                 contract.getRing(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("ring", it)) }
                 contract.getWaist(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("waist", it)) }
                 contract.getWeapon(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("weapon", it)) }
-                val node = mapper.readTree(base64ToString(contract.tokenURI(tokenId).call().awaitSingle())) as ObjectNode
+                val node = mapper.readTree(base64MimeToString(contract.tokenURI(tokenId).call().awaitSingle())) as ObjectNode
+                val imageUrl = node.getText("image")?.let {
+                    val hash = ipfsService.upload("image.svg", base64MimeToBytes(it))
+                    "ipfs://ipfs/${hash}"
+                } ?: ""
                 ItemProperties(
                     name = node.getText("name")  ?: DEFAULT_TITLE,
                     description = node.getText("description"),
-                    image = "",
+                    image = imageUrl,
                     imagePreview = null,
+                    animationUrl = imageUrl,
                     imageBig = null,
                     attributes = attrs
                 )

@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.api.configuration.IpfsProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -38,9 +39,11 @@ class ItemPropertiesServiceTest {
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
     private val temporaryItemPropertiesRepository = mockk<TemporaryItemPropertiesRepository>()
     private val sender = ReadOnlyMonoTransactionSender(MonoEthereum(WebClientTransport("https://dark-solitary-resonance.quiknode.pro/c0b7c629520de6c3d39261f6417084d71c3f8791/", MonoEthereum.mapper(), 10000, 10000)), Address.ZERO())
-    private val ipfsService = IpfsService(IpfsService.IPFS_NEW_URL)
+    private val ipfsProps = IpfsProperties("https://pinata.rarible.com/upload", "https://rarible.mypinata.cloud/ipfs")
+    private val ipfsService = IpfsService(IpfsService.IPFS_NEW_URL, ipfsProps)
     private val propertiesCacheDescriptor = PropertiesCacheDescriptor(sender, tokenRepository, lazyNftItemHistoryRepository, ipfsService, 86400, 20000)
     private val kittiesCacheDescriptor = KittiesCacheDescriptor(86400)
+    private val lootCacheDescriptor = LootCacheDescriptor(86400, sender, mapper, ipfsService)
     private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "", "")
     private val lootCacheDescriptor = LootCacheDescriptor(86400, sender, mapper)
     private val yInsureCacheDescriptor = YInsureCacheDescriptor(sender, "0x181aea6936b407514ebfc0754a37704eb8d98f91", 86400, "0x1776651F58a17a50098d31ba3C3cD259C1903f7A", "http://localhost:8080")
@@ -105,6 +108,8 @@ class ItemPropertiesServiceTest {
         assertThat(props.attributes).contains(ItemAttribute("hand", "Wool Gloves"))
         assertThat(props.attributes).contains(ItemAttribute("head", "Divine Hood"))
         assertThat(props.attributes).contains(ItemAttribute("neck", "\"Havoc Sun\" Amulet of Reflection"))
+        assertEquals("ipfs://ipfs/QmaA5x5Hj9gQRaTLbpVzv3ruvSjF2T9FMLkPqtCQzXYJbU", props.image)
+        assertEquals("ipfs://ipfs/QmaA5x5Hj9gQRaTLbpVzv3ruvSjF2T9FMLkPqtCQzXYJbU", props.animationUrl)
     }
 
     @Test

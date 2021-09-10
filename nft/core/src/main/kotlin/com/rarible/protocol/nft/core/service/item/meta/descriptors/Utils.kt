@@ -13,6 +13,13 @@ fun JsonNode.toProperties(): List<ItemAttribute> {
     }
 }
 
-fun base64ToString(data: String): String {
-    return String(Base64.getMimeDecoder().decode(data.removePrefix("data:application/json;base64,").toByteArray()))
+fun base64MimeToString(data: String): String {
+    return String(base64MimeToBytes(data))
+}
+
+fun base64MimeToBytes(data: String): ByteArray {
+    return Base64.getMimeDecoder().decode(data
+        .removePrefix("data:application/json;base64,")
+        .removePrefix("data:image/svg+xml;base64,")
+        .toByteArray())
 }
