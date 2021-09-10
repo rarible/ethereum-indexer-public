@@ -11,9 +11,9 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -142,5 +142,17 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
 
         // check royalty cache size
         assertEquals(1, royaltyRepository.count().awaitFirst())
+    }
+
+    // restoring address after tests
+    private lateinit var royaltyRegistryAddress: String
+
+    @BeforeEach
+    fun remember() {
+        royaltyRegistryAddress = nftIndexerProperties.royaltyRegistryAddress
+    }
+    @AfterEach
+    fun cleanup() {
+        nftIndexerProperties.royaltyRegistryAddress = royaltyRegistryAddress
     }
 }
