@@ -49,7 +49,7 @@ class CommonTransactionTraceProvider(
                 from = trace.action.from,
                 to = trace.action.to,
                 input = trace.action.input,
-                output = trace.result.output
+                output = trace.result?.output ?: "0x"
             )
         }
     }
