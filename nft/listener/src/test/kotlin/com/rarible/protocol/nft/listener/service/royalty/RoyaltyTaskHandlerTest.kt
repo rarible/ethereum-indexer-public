@@ -14,8 +14,10 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
@@ -92,6 +94,18 @@ class RoyaltyTaskHandlerTest : AbstractIntegrationTest() {
             account = AddressFactory.create(),
             value = ThreadLocalRandom.current().nextInt(1, 10000)
         )
+    }
+
+    // restoring address after tests
+    private lateinit var royaltyRegistryAddress: String
+
+    @BeforeEach
+    fun remember() {
+        royaltyRegistryAddress = nftIndexerProperties.royaltyRegistryAddress
+    }
+    @AfterEach
+    fun cleanup() {
+        nftIndexerProperties.royaltyRegistryAddress = royaltyRegistryAddress
     }
 }
 
