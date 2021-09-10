@@ -13,7 +13,7 @@ abstract class OrderVersionFilter {
     internal abstract fun getCriteria(): Criteria
 
     internal open val hint: Document? = null
-    internal open val sort: Sort? = null
+    internal abstract val sort: Sort
     open val limit: Int? = null
 
     protected companion object {

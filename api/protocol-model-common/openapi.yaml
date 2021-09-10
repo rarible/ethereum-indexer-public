@@ -311,6 +311,12 @@ components:
         afterId:
           type: string
 
+    ActivitySort:
+      type: string
+      enum:
+        - LATEST_FIRST
+        - EARLIEST_FIRST
+
     ActivityFilter:
       type: object
       oneOf:

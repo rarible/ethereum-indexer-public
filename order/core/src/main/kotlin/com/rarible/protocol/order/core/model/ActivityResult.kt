@@ -19,7 +19,13 @@ sealed class ActivityResult {
     }
 
     companion object {
-        fun comparator(): Comparator<ActivityResult> = compareByDescending(ActivityResult::getDate)
+        private val COMPARATOR = compareByDescending(ActivityResult::getDate)
             .then(compareByDescending(ActivityResult::getId))
+
+        fun comparator(sort: ActivitySort): Comparator<ActivityResult> =
+            when(sort) {
+                ActivitySort.LATEST_FIRST -> COMPARATOR
+                ActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
+            }
     }
 }

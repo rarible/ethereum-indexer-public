@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.core.service
 
 import com.rarible.protocol.dto.ActivityFilterDto
+import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.NftActivitiesDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
@@ -24,14 +25,15 @@ class ActivityService(
     suspend fun getOrderActivities(
         filter: ActivityFilterDto,
         continuation: String?,
-        size: Int
+        size: Int,
+        sort: ActivitySortDto?
     ): OrderActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToOrderDtoConverter.convert(filter)
         return if (convertedFilter == null) {
             EMPTY_ORDER_ACTIVITIES
         } else {
-            orderActivityControllerApi.getOrderActivities(convertedFilter, continuation, size)
+            orderActivityControllerApi.getOrderActivities(convertedFilter, continuation, size, sort)
                 .awaitFirst()
         }
     }
@@ -39,14 +41,15 @@ class ActivityService(
     suspend fun getNftActivities(
         filter: ActivityFilterDto,
         continuation: String?,
-        size: Int
+        size: Int,
+        sort: ActivitySortDto?
     ): NftActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToNftDto.convert(filter)
         return if (convertedFilter == null) {
             EMPTY_NFT_ACTIVITIES
         } else {
-            nftActivityControllerApi.getNftActivities(convertedFilter, continuation, size)
+            nftActivityControllerApi.getNftActivities(convertedFilter, continuation, size, sort)
                 .awaitFirst()
         }
     }

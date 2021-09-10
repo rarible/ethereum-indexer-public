@@ -75,6 +75,11 @@ paths:
           schema:
             type: integer
             format: int32
+        - name: sort
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/ActivitySort"
       requestBody:
         content:
           application/json:
