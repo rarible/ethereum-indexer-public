@@ -25,11 +25,13 @@ class CommonTransactionTraceProvider(
     }
 
     override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
+        logger.info("Fetching trace for tx=$transactionHash")
+
         val result = ethereum.executeRaw(
             Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
         ).awaitFirst()
 
-        logger.info("Fetching trace for tc=$transactionHash")
+        logger.info("Got trace for tx=$transactionHash, result=$result")
         return result.result()
             .map { mapper.treeToValue(it, Array<Trace>::class.java) }
             .map { convert(it) }
