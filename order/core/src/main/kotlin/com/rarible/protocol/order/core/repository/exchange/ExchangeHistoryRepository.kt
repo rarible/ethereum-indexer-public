@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
+import com.rarible.protocol.order.core.model.ActivitySort
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -85,8 +86,20 @@ class ExchangeHistoryRepository(
         if (hint != null) {
             query.withHint(hint)
         }
-        return template.find(query.with(ACTIVITY_SORT), LogEvent::class.java, COLLECTION)
+        return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
     }
+
+    private fun ActivitySort.toMongo() =
+        when(this) {
+            ActivitySort.LATEST_FIRST -> Sort.by(
+                Sort.Order.desc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
+                Sort.Order.desc(OrderVersion::id.name)
+            )
+            ActivitySort.EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
+                Sort.Order.asc(OrderVersion::id.name)
+            )
+        }
 
     fun getMakerNftSellAggregation(startDate: Date, endDate: Date, source: HistorySource?): Flux<AggregatedData> {
         return getNftPurchaseAggregation(
@@ -146,11 +159,6 @@ class ExchangeHistoryRepository(
 
     companion object {
         const val COLLECTION = "exchange_history"
-
-        val ACTIVITY_SORT: Sort = Sort.by(
-            Sort.Order.desc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
-            Sort.Order.desc(OrderVersion::id.name)
-        )
 
         val LOG_SORT_ASC: Sort = Sort
             .by(

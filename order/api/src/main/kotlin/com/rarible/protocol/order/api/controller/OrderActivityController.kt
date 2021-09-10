@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
@@ -8,6 +9,8 @@ import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
 import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
+import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
+import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -22,15 +25,17 @@ class OrderActivityController(
     override suspend fun getOrderActivities(
         filter: OrderActivityFilterDto,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        sort: ActivitySortDto?
     ): ResponseEntity<OrderActivitiesDto> {
         val requestSize = size.limit()
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
-        val historyFilters = historyFilterConverter.convert(filter, continuationDto)
-        val versionFilters = versionFilterConverter.convert(filter, continuationDto)
+        val activitySort = sort?.let { ActivitySortConverter.convert(sort) } ?: ActivitySort.LATEST_FIRST
+        val historyFilters = historyFilterConverter.convert(filter, activitySort, continuationDto)
+        val versionFilters = versionFilterConverter.convert(filter, activitySort, continuationDto)
 
         val result = orderActivityService
-            .search(historyFilters, versionFilters, requestSize)
+            .search(historyFilters, versionFilters, activitySort, requestSize)
             .mapNotNull { orderActivityConverter.convert(it) }
 
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {

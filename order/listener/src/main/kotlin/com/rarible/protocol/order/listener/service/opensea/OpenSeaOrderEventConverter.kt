@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.lang.IllegalArgumentException
@@ -23,6 +24,8 @@ class OpenSeaOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer
 ) {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     suspend fun convert(openSeaOrders: OpenSeaMatchedOrders, price: BigInteger, date: Instant): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
         val buyOrder = openSeaOrders.buyOrder
@@ -196,7 +199,10 @@ class OpenSeaOrderEventConverter(
             Binary.apply("68f0bcaa") -> {
                 null // TODO: Need support
             }
-            else -> throw IllegalArgumentException("Unsupported call data: $callData")
+            else -> {
+                logger.warn("Unsupported OpenSea order call data: $callData")
+                null
+            }
         }
     }
 

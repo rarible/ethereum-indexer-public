@@ -67,7 +67,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/currency{originalPath}</template>
+                                <template>/v0.1/currency{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                         <dependency>
@@ -76,7 +76,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/erc20{originalPath}</template>
+                                <template>/v0.1/erc20{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                         <dependency>
@@ -85,7 +85,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/nft{originalPath}</template>
+                                <template>/v0.1/nft{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                         <dependency>
@@ -94,7 +94,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/order{originalPath}</template>
+                                <template>/v0.1/order{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                         <dependency>
@@ -103,7 +103,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/unlockable{originalPath}</template>
+                                <template>/v0.1/unlockable{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                         <dependency>
@@ -112,7 +112,7 @@
                             <pathProcessor>
                                 <apiPathReplacement></apiPathReplacement>
                                 <apiPathReplacementRegex>/v0.1</apiPathReplacementRegex>
-                                <template>/protocol/v0.1/ethereum/nft-order{originalPath}</template>
+                                <template>/v0.1/nft-order{originalPath}</template>
                             </pathProcessor>
                         </dependency>
                     </dependencies>

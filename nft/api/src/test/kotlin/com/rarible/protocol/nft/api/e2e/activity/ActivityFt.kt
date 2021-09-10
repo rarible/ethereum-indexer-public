@@ -7,6 +7,7 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.*
+import com.rarible.protocol.nft.core.repository.history.ActivitySort
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -26,7 +27,7 @@ class ActivityFt : SpringContainerBaseTest() {
     private lateinit var historyRepository: NftItemHistoryRepository
 
     @BeforeEach
-    override fun setupDatabase() = runBlocking<Unit> {
+    override fun setupDatabase() = runBlocking {
         super.setupDatabase()
         historyRepository.createIndexes()
         historyRepository.dropIndexes()
@@ -36,7 +37,7 @@ class ActivityFt : SpringContainerBaseTest() {
         private val now = nowMillis()
 
         @JvmStatic
-        fun allFilter() = Stream.of(
+        private fun allFilter() = Stream.of(
             Arguments.of(
                 listOf(
                     createItemMint().withTransferDate(now + Duration.ofMinutes(4)),
@@ -46,7 +47,20 @@ class ActivityFt : SpringContainerBaseTest() {
                     createItemMint().withTransferDate(now + Duration.ofMinutes(0))
                 ),
                 listOf(createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT))
+                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT)),
+                ActivitySortDto.LATEST_FIRST
+            ),
+            Arguments.of(
+                listOf(
+                    createItemMint().withTransferDate(now + Duration.ofMinutes(0)),
+                    createItemMint().withTransferDate(now + Duration.ofMinutes(1)),
+                    createItemMint().withTransferDate(now + Duration.ofMinutes(2)),
+                    createItemMint().withTransferDate(now + Duration.ofMinutes(3)),
+                    createItemMint().withTransferDate(now + Duration.ofMinutes(4))
+                ),
+                listOf(createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
+                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT)),
+                ActivitySortDto.EARLIEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -57,7 +71,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     createItemBurn().withTransferDate(now + Duration.ofMinutes(0))
                 ),
                 listOf(createItemMint(), createItemMint(), createItemTransfer(), createItemTransfer()),
-                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.BURN))
+                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.BURN)),
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -68,7 +83,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     createItemTransfer().withTransferDate(now + Duration.ofMinutes(0))
                 ),
                 listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn()),
-                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.TRANSFER))
+                NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.TRANSFER)),
+                ActivitySortDto.LATEST_FIRST
             ),
             run {
                 val owner = AddressFactory.create()
@@ -91,7 +107,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.MINT))
+                    NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.MINT)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -115,7 +132,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.BURN))
+                    NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.BURN)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -139,7 +157,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.TRANSFER_FROM))
+                    NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.TRANSFER_FROM)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -163,7 +182,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO))
+                    NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -194,7 +214,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.MINT))
+                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.MINT)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -225,7 +246,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.BURN))
+                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.BURN)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -256,7 +278,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.TRANSFER))
+                    NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.TRANSFER)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -281,7 +304,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.MINT))
+                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.MINT)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -306,7 +330,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.BURN))
+                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.BURN)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -331,7 +356,8 @@ class ActivityFt : SpringContainerBaseTest() {
                             .withTransferDate(now + Duration.ofMinutes(0))
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
-                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.TRANSFER))
+                    NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.TRANSFER)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             }
         )
@@ -342,9 +368,10 @@ class ActivityFt : SpringContainerBaseTest() {
     fun `should get all for several requests`(
         logs: List<LogEvent>,
         otherTypes: List<LogEvent>,
-        filter: NftActivityFilterDto
+        filter: NftActivityFilterDto,
+        sort: ActivitySortDto
     ) = runBlocking {
-        
+
         save(*logs.shuffled().toTypedArray())
         save(*otherTypes.toTypedArray())
 
@@ -352,7 +379,7 @@ class ActivityFt : SpringContainerBaseTest() {
 
         var continuation: String? = null
         do {
-            val activities = nftActivityApiClient.getNftActivities(filter, continuation, 2).awaitFirst()
+            val activities = nftActivityApiClient.getNftActivities(filter, continuation, 2, sort).awaitFirst()
             assertThat(activities.items).hasSizeLessThanOrEqualTo(2)
 
             allActivities.addAll(activities.items)
@@ -372,13 +399,14 @@ class ActivityFt : SpringContainerBaseTest() {
     fun `should get all for single requests`(
         logs: List<LogEvent>,
         otherTypes: List<LogEvent>,
-        filter: NftActivityFilterDto
+        filter: NftActivityFilterDto,
+        sort: ActivitySortDto
     ) = runBlocking {
 
         save(*logs.shuffled().toTypedArray())
         save(*otherTypes.toTypedArray())
 
-        val activities = nftActivityApiClient.getNftActivities(filter, null, null).awaitFirst()
+        val activities = nftActivityApiClient.getNftActivities(filter, null, null, sort).awaitFirst()
 
         assertThat(activities.items).hasSize(logs.size)
 
