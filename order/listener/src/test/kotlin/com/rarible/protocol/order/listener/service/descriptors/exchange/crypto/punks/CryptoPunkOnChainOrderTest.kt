@@ -6,7 +6,6 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
@@ -91,7 +90,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             priceHistory = createPriceHistory(transferTimestamp, take, make)
         )
         Wait.waitAssert {
-            assertEquals(2, orderRepository.findAll().count())
+            val orders = orderRepository.findAll().toList()
+            assertEquals(2, orders.size) { orders.joinToString("\n") { it.toString() } }
             val makeOrder = orderRepository.findById(expectedMakeOrder.hash)
             val takeOrder = orderRepository.findById(expectedTakeOrder.hash)
             assertEquals(expectedMakeOrder, makeOrder)
@@ -441,7 +441,6 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 .map { it.data as OrderSideMatch }
                 .associateBy { it.side }
 
-            // TODO[punk]: discuss: LEFT order is always SELL order, even though the BID order was created earlier. Is it OK?
             val left = sides.getValue(OrderSide.LEFT)
             val right = sides.getValue(OrderSide.RIGHT)
 

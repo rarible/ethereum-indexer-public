@@ -17,6 +17,7 @@ import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -81,6 +82,6 @@ internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() 
             val updatedOrder = orderRepository.findById(orderVersion.hash)
             Assertions.assertThat(updatedOrder?.makeStock).isEqualTo(EthUInt256.of(3))
         }
-        sendJob.cancel()
+        sendJob.cancelAndJoin()
     }
 }

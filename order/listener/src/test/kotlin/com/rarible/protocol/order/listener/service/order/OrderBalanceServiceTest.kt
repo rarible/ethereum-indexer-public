@@ -1,8 +1,5 @@
 package com.rarible.protocol.order.listener.service.order
 
-import com.ninjasquad.springmockk.MockkBean
-import com.rarible.core.contract.model.Erc20Token
-import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
@@ -11,40 +8,24 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import io.mockk.clearMocks
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import scalether.domain.Address
 import scalether.domain.AddressFactory
 
 @IntegrationTest
 @FlowPreview
-@Import(OrderBalanceServiceTest.TestContractService::class)
 internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
-
-    @MockkBean
-    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
-
-    @BeforeEach
-    fun setup() {
-        clearMocks(assetMakeBalanceProvider)
-    }
 
     @Test
     fun `should update all not canceled balance orders`() = runBlocking<Unit> {
@@ -74,7 +55,6 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             make = make,
             take = take
         )
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ONE
 
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
@@ -123,7 +103,6 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val order4 = createOrderVersion().copy(
             make = make
         )
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ONE
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
 
@@ -143,15 +122,5 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
         assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
         assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-    }
-
-    internal class TestContractService {
-        @Bean
-        fun mockkContractService(): ContractService {
-            val service = mockk<ContractService>()
-            coEvery { service.get(any()) } returns Erc20Token(Address.FOUR(), "Test", "Test", 18)
-
-            return service
-        }
     }
 }

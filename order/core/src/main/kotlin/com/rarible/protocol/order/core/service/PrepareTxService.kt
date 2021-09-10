@@ -234,7 +234,7 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
-        check(form.amount == BigInteger.ONE) //TODO[punk]: is it correct?
+        check(form.amount == BigInteger.ONE)
         val encoded = if (order.make.type is CryptoPunksAssetType) {
             check(order.take.type is EthAssetType)
             // order = sell order, form = buy order.
@@ -249,7 +249,7 @@ class PrepareTxService(
         val withPlatform = encoded.add(Platform.CRYPTO_PUNKS.id)
         return PrepareTxResponse(
             null,
-            order.take, //TODO[punk]: is it correct?
+            order.take,
             PreparedTx(exchangeContractAddresses.cryptoPunks, withPlatform)
         )
     }

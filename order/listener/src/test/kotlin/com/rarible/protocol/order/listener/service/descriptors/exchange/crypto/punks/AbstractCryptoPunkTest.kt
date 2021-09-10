@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.service.PrepareTxService
@@ -60,14 +61,15 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     fun initializeCryptoPunksMarket() = runBlocking {
         cryptoPunksMarket = deployCryptoPunkMarket()
 
-        // Override NFT ownership service to correctly reflect ownership of CryptoPunks.
+        // Override asset make balance service to correctly reflect ownership of CryptoPunks.
         // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
-        nftOwnershipAnswers = r@{ (token, tokenId, owner) ->
-            if (token != cryptoPunksMarket.address()) {
+        assetMakeBalanceAnswers = r@ { order ->
+            val assetType = order.make.type as? CryptoPunksAssetType ?: return@r null
+            if (assetType.marketAddress != cryptoPunksMarket.address()) {
                 return@r null
             }
-            val realOwner = cryptoPunksMarket.punkIndexToAddress(tokenId.value).awaitSingle()
-            if (owner == realOwner) EthUInt256.ONE else EthUInt256.ZERO
+            val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.punkId.toBigInteger()).awaitSingle()
+            if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO
         }
     }
 

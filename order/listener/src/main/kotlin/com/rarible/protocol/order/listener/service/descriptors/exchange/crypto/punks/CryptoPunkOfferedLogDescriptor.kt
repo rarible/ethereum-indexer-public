@@ -30,7 +30,6 @@ class CryptoPunkOfferedLogDescriptor(
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
 /*
-        TODO[punk]: re-think this.
         We do not ignore SELL orders specific to a concrete buyer, because we want to track the whole CryptoPunks order history.
 
         if (grantedBuyer != Address.ZERO()) {

@@ -354,7 +354,7 @@ components:
         type:
           type: string
           enum:
-            - ORDER_NEW
+            - ON_CHAIN_ORDER
 
     OrderBidsPagination:
       type: object

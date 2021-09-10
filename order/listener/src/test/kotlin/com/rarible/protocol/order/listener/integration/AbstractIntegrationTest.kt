@@ -13,17 +13,14 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -45,7 +42,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
 import scalether.core.MonoParity
 import scalether.domain.Address
@@ -91,8 +87,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var poller: MonoTransactionPoller
 
     @MockkBean
-    private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
-    protected var nftOwnershipAnswers: suspend (Triple<Address, EthUInt256, Address>) -> EthUInt256? = { null }
+    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+    protected var assetMakeBalanceAnswers: suspend (Order) -> EthUInt256? = { null }
 
     protected lateinit var parity: MonoParity
 
@@ -106,6 +102,11 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @BeforeEach
     fun cleanDatabase() {
+        //TODO: previous tests (when running the whole package) might not have finished before the next test starts.
+        // Such activities might insert the old order right after cleaning the database here.
+        // We need a proper way of ending activities in the tests.
+        Thread.sleep(300)
+
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
@@ -114,32 +115,14 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @BeforeEach
     fun setUpMocks() {
-        clearMocks(nftOwnershipControllerApi)
-
-        // Override NFT ownership service to correctly reflect ownership of CryptoPunks.
-        // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
-        coEvery { nftOwnershipControllerApi.getNftOwnershipById(any()) } coAnswers r@{
-            val ownershipId = arg<String>(0)
-            val (tokenStr, tokenIdStr, ownerStr) = ownershipId.split(":")
-
-            val token = Address.apply(tokenStr)
-            val tokenId = EthUInt256.of(tokenIdStr)
-            val owner = Address.apply(ownerStr)
-
-            val answer = nftOwnershipAnswers(Triple(token, tokenId, owner))
-                ?: EthUInt256.ONE
-
-            NftOwnershipDto(
-                id = ownershipId,
-                contract = token,
-                tokenId = tokenId.value,
-                owner = owner,
-                creators = emptyList(),
-                value = answer.value,
-                lazyValue = BigInteger.ZERO,
-                date = nowMillis(),
-                pending = emptyList()
-            ).toMono()
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
+            val order = arg<Order>(0)
+            assetMakeBalanceAnswers.invoke(order)?.let { return@r it }
+            if (order.make.type is EthAssetType) {
+                return@r order.make.value
+            }
+            EthUInt256.ONE
         }
     }
 
