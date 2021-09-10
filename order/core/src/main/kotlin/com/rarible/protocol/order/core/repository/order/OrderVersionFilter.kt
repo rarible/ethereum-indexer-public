@@ -5,7 +5,6 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria

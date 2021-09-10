@@ -16,7 +16,7 @@ class ActivityController(
         type: List<String>,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterAllDto(
             LinkedHashSet(type).map { ActivityFilterAllDto.Types.valueOf(it) }
@@ -31,7 +31,7 @@ class ActivityController(
         tokenId: String,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByItemDto(
             Address.apply(contract),
@@ -47,7 +47,7 @@ class ActivityController(
         collection: String,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByCollectionDto(
             Address.apply(collection),
@@ -62,7 +62,7 @@ class ActivityController(
         user: List<Address>,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
         val filter = ActivityFilterByUserDto(
             user,

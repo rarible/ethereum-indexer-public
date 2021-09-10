@@ -5,7 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.model.ActivitySort
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -17,11 +17,11 @@ sealed class ActivityExchangeHistoryFilter {
     }
 
     internal abstract fun getCriteria(): Criteria
-    
-    internal open val hint: Document? = null
-    internal abstract val sort: OrderActivitySort
 
-    class AllSell(override val sort: OrderActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+    internal open val hint: Document? = null
+    internal abstract val sort: ActivitySort
+
+    class AllSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -29,7 +29,7 @@ sealed class ActivityExchangeHistoryFilter {
         }
     }
 
-    class AllCanceledBid(override val sort: OrderActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+    class AllCanceledBid(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -44,17 +44,17 @@ sealed class ActivityExchangeHistoryFilter {
             this
         }
 
-    protected fun Criteria.scrollTo(sort: OrderActivitySort, continuation: Continuation?): Criteria =
+    protected fun Criteria.scrollTo(sort: ActivitySort, continuation: Continuation?): Criteria =
         if (continuation == null) {
             this
         } else when (sort) {
-            OrderActivitySort.LATEST_FIRST ->
+            ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date lt continuation.afterDate,
                     (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id")
                         .lt(continuation.afterId)
                 )
-            OrderActivitySort.EARLIEST_FIRST ->
+            ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date gt continuation.afterDate,
                     (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id")
@@ -72,7 +72,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
     protected val makerCriteria = if (users.isSingleton) makerKey isEqualTo users.single() else makerKey inValues users
     protected val takerCriteria = if (users.isSingleton) takerKey isEqualTo users.single() else takerKey inValues users
 
-    class ByUserSell(override val sort: OrderActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    class ByUserSell(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
@@ -83,7 +83,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         }
     }
 
-    class ByUserCanceledBid(override val sort: OrderActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    class ByUserCanceledBid(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
@@ -94,7 +94,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         }
     }
 
-    class ByUserBuy(override val sort: OrderActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    class ByUserBuy(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.TAKER_SELL_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
@@ -112,7 +112,7 @@ sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFi
         val takeNftContractKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / Erc721AssetType::token
     }
 
-    data class ByCollectionSell(override val sort: OrderActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
+    data class ByCollectionSell(override val sort: ActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.COLLECTION_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -122,7 +122,7 @@ sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFi
         }
     }
 
-    data class ByCollectionCanceledBid(override val sort: OrderActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
+    data class ByCollectionCanceledBid(override val sort: ActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.COLLECTION_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -139,7 +139,7 @@ sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHisto
         val takeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / Erc721AssetType::tokenId
     }
 
-    data class ByItemSell(override val sort: OrderActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {
+    data class ByItemSell(override val sort: ActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -150,7 +150,7 @@ sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHisto
         }
     }
 
-    data class ByItemCanceledBid(override val sort: OrderActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {
+    data class ByItemCanceledBid(override val sort: ActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ITEM_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {

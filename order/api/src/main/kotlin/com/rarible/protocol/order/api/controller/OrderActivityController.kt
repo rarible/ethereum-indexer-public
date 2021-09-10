@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
@@ -8,7 +9,8 @@ import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
 import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
+import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -24,11 +26,11 @@ class OrderActivityController(
         filter: OrderActivityFilterDto,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ResponseEntity<OrderActivitiesDto> {
         val requestSize = size.limit()
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
-        val activitySort = OrderActivitySort.fromString(sort)
+        val activitySort = sort?.let { ActivitySortConverter.convert(sort) } ?: ActivitySort.LATEST_FIRST
         val historyFilters = historyFilterConverter.convert(filter, activitySort, continuationDto)
         val versionFilters = versionFilterConverter.convert(filter, activitySort, continuationDto)
 

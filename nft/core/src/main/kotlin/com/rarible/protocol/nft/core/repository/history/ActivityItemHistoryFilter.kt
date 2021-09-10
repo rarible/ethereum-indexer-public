@@ -211,8 +211,4 @@ enum class ActivitySort(val sort: Sort) {
             Sort.Order.asc("_id")
         )
     );
-
-    companion object {
-        fun fromString(value: String?) = if (value == EARLIEST_FIRST.name) EARLIEST_FIRST else LATEST_FIRST
-    }
 }

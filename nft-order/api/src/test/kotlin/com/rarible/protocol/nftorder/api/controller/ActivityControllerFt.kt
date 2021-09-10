@@ -46,7 +46,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
     fun `should aggregate all activities from nft and orders`() = runBlocking<Unit> {
         val filterContinuation = UUID.randomUUID().toString()
         val filterSize = 8
-        val sort = "LATEST_FIRST"
+        val sort = ActivitySortDto.LATEST_FIRST
 
         val types = listOf(
             ActivityFilterAllDto.Types.TRANSFER,
@@ -123,7 +123,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
     fun `should aggregate by item activities from nft and orders`() = runBlocking<Unit> {
         val filterContinuation = UUID.randomUUID().toString()
         val filterSize = 8
-        val sort = "LATEST_FIRST"
+        val sort = ActivitySortDto.LATEST_FIRST
 
         val token = Address.FOUR()
         val tokenId = (1..1000).random().toBigInteger()
@@ -208,7 +208,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
     fun `should aggregate by collection activities from nft and orders`() = runBlocking<Unit> {
         val filterContinuation = UUID.randomUUID().toString()
         val filterSize = 8
-        val sort = "LATEST_FIRST"
+        val sort = ActivitySortDto.LATEST_FIRST
 
         val token = Address.FOUR()
 
@@ -290,7 +290,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
     fun `should aggregate by user activities from nft and orders`() = runBlocking<Unit> {
         val filterContinuation = UUID.randomUUID().toString()
         val filterSize = 8
-        val sort = "LATEST_FIRST"
+        val sort = ActivitySortDto.LATEST_FIRST
 
         val user = listOf(Address.FOUR(), Address.ONE())
 

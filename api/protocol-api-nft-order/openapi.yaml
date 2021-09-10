@@ -477,8 +477,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            enum: [LATEST_FIRST, EARLIEST_FIRST]
+            "$ref": "#/components/schemas/ActivitySort"
       responses:
         '200':
           description: OK
@@ -543,8 +542,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            enum: [LATEST_FIRST, EARLIEST_FIRST]
+            "$ref": "#/components/schemas/ActivitySort"
       responses:
         '200':
           description: OK
@@ -604,8 +602,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            enum: [LATEST_FIRST, EARLIEST_FIRST]
+            "$ref": "#/components/schemas/ActivitySort"
       responses:
         '200':
           description: OK
@@ -660,8 +657,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            enum: [LATEST_FIRST, EARLIEST_FIRST]
+            "$ref": "#/components/schemas/ActivitySort"
       responses:
         '200':
           description: OK

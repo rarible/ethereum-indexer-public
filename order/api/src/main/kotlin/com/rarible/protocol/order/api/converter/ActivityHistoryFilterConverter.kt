@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHisto
 import com.rarible.protocol.order.core.repository.exchange.CollectionActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.ItemActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeHistoryFilter
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.stereotype.Component
 
 
@@ -18,7 +18,7 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
 
     fun convert(
         source: OrderActivityFilterDto,
-        sort: OrderActivitySort,
+        sort: ActivitySort,
         activityContinuation: ActivityContinuationDto?
     ): List<ActivityExchangeHistoryFilter> {
         val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }

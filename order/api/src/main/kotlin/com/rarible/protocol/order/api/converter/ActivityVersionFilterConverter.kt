@@ -7,7 +7,7 @@ import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilt
 import com.rarible.protocol.order.core.repository.order.CollectionActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.ItemActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.UserActivityOrderVersionFilter
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.model.ActivitySort
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -22,7 +22,7 @@ class ActivityVersionFilterConverter(
 
     suspend fun convert(
         source: OrderActivityFilterDto,
-        sort: OrderActivitySort,
+        sort: ActivitySort,
         activityContinuation: ActivityContinuationDto?
     ): List<ActivityOrderVersionFilter> = coroutineScope {
         val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }

@@ -48,7 +48,7 @@ class ActivityFt : SpringContainerBaseTest() {
                 ),
                 listOf(createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                 NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT)),
-                ActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -60,7 +60,7 @@ class ActivityFt : SpringContainerBaseTest() {
                 ),
                 listOf(createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                 NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT)),
-                ActivitySort.EARLIEST_FIRST
+                ActivitySortDto.EARLIEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -72,7 +72,7 @@ class ActivityFt : SpringContainerBaseTest() {
                 ),
                 listOf(createItemMint(), createItemMint(), createItemTransfer(), createItemTransfer()),
                 NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.BURN)),
-                ActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -84,7 +84,7 @@ class ActivityFt : SpringContainerBaseTest() {
                 ),
                 listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn()),
                 NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.TRANSFER)),
-                ActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             run {
                 val owner = AddressFactory.create()
@@ -108,7 +108,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.MINT)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -133,7 +133,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.BURN)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -158,7 +158,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.TRANSFER_FROM)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -183,7 +183,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -215,7 +215,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.MINT)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -247,7 +247,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.BURN)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -279,7 +279,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByItemDto(token, tokenId.value, listOf(NftActivityFilterByItemDto.Types.TRANSFER)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -305,7 +305,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.MINT)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -331,7 +331,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.BURN)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -357,7 +357,7 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.TRANSFER)),
-                    ActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             }
         )
@@ -369,9 +369,9 @@ class ActivityFt : SpringContainerBaseTest() {
         logs: List<LogEvent>,
         otherTypes: List<LogEvent>,
         filter: NftActivityFilterDto,
-        sort: ActivitySort
+        sort: ActivitySortDto
     ) = runBlocking {
-        
+
         save(*logs.shuffled().toTypedArray())
         save(*otherTypes.toTypedArray())
 
@@ -379,7 +379,7 @@ class ActivityFt : SpringContainerBaseTest() {
 
         var continuation: String? = null
         do {
-            val activities = nftActivityApiClient.getNftActivities(filter, continuation, 2, sort.name).awaitFirst()
+            val activities = nftActivityApiClient.getNftActivities(filter, continuation, 2, sort).awaitFirst()
             assertThat(activities.items).hasSizeLessThanOrEqualTo(2)
 
             allActivities.addAll(activities.items)
@@ -400,13 +400,13 @@ class ActivityFt : SpringContainerBaseTest() {
         logs: List<LogEvent>,
         otherTypes: List<LogEvent>,
         filter: NftActivityFilterDto,
-        sort: ActivitySort
+        sort: ActivitySortDto
     ) = runBlocking {
 
         save(*logs.shuffled().toTypedArray())
         save(*otherTypes.toTypedArray())
 
-        val activities = nftActivityApiClient.getNftActivities(filter, null, null, sort.name).awaitFirst()
+        val activities = nftActivityApiClient.getNftActivities(filter, null, null, sort).awaitFirst()
 
         assertThat(activities.items).hasSize(logs.size)
 

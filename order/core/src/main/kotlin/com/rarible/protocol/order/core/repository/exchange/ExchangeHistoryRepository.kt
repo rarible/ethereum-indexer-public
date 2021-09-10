@@ -6,7 +6,7 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.model.ActivitySort
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -89,13 +89,13 @@ class ExchangeHistoryRepository(
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
     }
 
-    private fun OrderActivitySort.toMongo() =
+    private fun ActivitySort.toMongo() =
         when(this) {
-            OrderActivitySort.LATEST_FIRST -> Sort.by(
+            ActivitySort.LATEST_FIRST -> Sort.by(
                 Sort.Order.desc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
                 Sort.Order.desc(OrderVersion::id.name)
             )
-            OrderActivitySort.EARLIEST_FIRST -> Sort.by(
+            ActivitySort.EARLIEST_FIRST -> Sort.by(
                 Sort.Order.asc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
                 Sort.Order.asc(OrderVersion::id.name)
             )

@@ -5,7 +5,7 @@ import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHisto
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
+import com.rarible.protocol.order.core.model.ActivitySort
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -18,7 +18,7 @@ class OrderActivityService(
     suspend fun search(
         historyFilters: List<ActivityExchangeHistoryFilter>,
         versionFilters: List<ActivityOrderVersionFilter>,
-        sort: OrderActivitySort,
+        sort: ActivitySort,
         size: Int
     ): List<ActivityResult> {
         val histories = historyFilters.map { filter ->

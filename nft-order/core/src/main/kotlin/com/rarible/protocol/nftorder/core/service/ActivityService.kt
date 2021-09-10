@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.core.service
 
 import com.rarible.protocol.dto.ActivityFilterDto
+import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.NftActivitiesDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
@@ -25,7 +26,7 @@ class ActivityService(
         filter: ActivityFilterDto,
         continuation: String?,
         size: Int,
-        sort: String?
+        sort: ActivitySortDto?
     ): OrderActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToOrderDtoConverter.convert(filter)
@@ -41,7 +42,7 @@ class ActivityService(
         filter: ActivityFilterDto,
         continuation: String?,
         size: Int,
-        sort: String?
+        sort: ActivitySortDto?
     ): NftActivitiesDto {
 
         val convertedFilter = ActivityFilterDtoToNftDto.convert(filter)

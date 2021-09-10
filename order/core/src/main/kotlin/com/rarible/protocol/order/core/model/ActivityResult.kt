@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.model
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import org.bson.types.ObjectId
 import java.time.Instant
 
@@ -23,10 +22,10 @@ sealed class ActivityResult {
         private val COMPARATOR = compareByDescending(ActivityResult::getDate)
             .then(compareByDescending(ActivityResult::getId))
 
-        fun comparator(sort: OrderActivitySort): Comparator<ActivityResult> =
+        fun comparator(sort: ActivitySort): Comparator<ActivityResult> =
             when(sort) {
-                OrderActivitySort.LATEST_FIRST -> COMPARATOR
-                OrderActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
+                ActivitySort.LATEST_FIRST -> COMPARATOR
+                ActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
             }
     }
 }

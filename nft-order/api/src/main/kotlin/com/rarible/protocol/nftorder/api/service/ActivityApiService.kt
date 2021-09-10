@@ -3,6 +3,7 @@ package com.rarible.protocol.nftorder.api.service
 import com.rarible.protocol.dto.ActivitiesDto
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityFilterDto
+import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.nftorder.core.service.ActivityService
 import kotlinx.coroutines.async
@@ -10,12 +11,12 @@ import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.lang.Integer.min
+import java.util.Comparator
 
 @Component
 class ActivityApiService(
     private val activityService: ActivityService
 ) {
-
     private val logger = LoggerFactory.getLogger(ActivityApiService::class.java)
 
     private companion object {
@@ -23,8 +24,8 @@ class ActivityApiService(
         private val ACTIVITY_COMPARATOR = compareByDescending(ActivityDto::date)
             .then(compareByDescending(ActivityDto::id))
 
-        fun getComparator(sort: String?) =
-            if (sort == "EARLIEST_FIRST") {
+        fun getComparator(sort: ActivitySortDto?): Comparator<ActivityDto> =
+            if (sort == ActivitySortDto.EARLIEST_FIRST) {
                 ACTIVITY_COMPARATOR.reversed()
             } else {
                 ACTIVITY_COMPARATOR
@@ -35,7 +36,7 @@ class ActivityApiService(
         filter: ActivityFilterDto,
         continuation: String?,
         size: Int?,
-        sort: String?
+        sort: ActivitySortDto?
     ): ActivitiesDto = coroutineScope {
         logger.debug(
             "Searching for Activities with params: filter=[{}], continuation={}, size={}",

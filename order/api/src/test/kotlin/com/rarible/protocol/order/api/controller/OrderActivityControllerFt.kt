@@ -15,7 +15,6 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.repository.sort.OrderActivitySort
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -77,7 +76,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     createErc721ListOrderVersion(), createErc1155ListOrderVersion(), createErc721ListOrderVersion()
                 ),
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
-                OrderActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -90,7 +89,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     createErc721ListOrderVersion(), createErc1155ListOrderVersion(), createErc721ListOrderVersion()
                 ),
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
-                OrderActivitySort.EARLIEST_FIRST
+                ActivitySortDto.EARLIEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -103,7 +102,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     createErc721BidOrderVersion(), createErc1155BidOrderVersion(), createErc721BidOrderVersion()
                 ),
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.LIST)),
-                OrderActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -123,7 +122,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         OrderActivityFilterAllDto.Types.LIST
                     )
                 ),
-                OrderActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             run {
                 val maker = AddressFactory.create()
@@ -145,7 +144,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.MAKE_BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -167,7 +166,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(taker1, taker2),
                         listOf(OrderActivityFilterByUserDto.Types.GET_BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -196,7 +195,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.LIST)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -227,7 +226,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(maker1, maker2),
                         listOf(OrderActivityFilterByUserDto.Types.LIST, OrderActivityFilterByUserDto.Types.MAKE_BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -258,7 +257,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         tokenId.value,
                         listOf(OrderActivityFilterByItemDto.Types.BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -289,7 +288,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         tokenId.value,
                         listOf(OrderActivityFilterByItemDto.Types.LIST)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -318,7 +317,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         token,
                         listOf(OrderActivityFilterByCollectionDto.Types.BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -347,7 +346,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         token,
                         listOf(OrderActivityFilterByCollectionDto.Types.LIST)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             }
         )
@@ -369,7 +368,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                 ),
                 listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.MATCH)),
-                OrderActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             Arguments.of(
                 listOf(
@@ -386,7 +385,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                 ),
                 listOf(createErc1155ListOrderVersion()),
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
-                OrderActivitySort.LATEST_FIRST
+                ActivitySortDto.LATEST_FIRST
             ),
             run {
                 val maker = AddressFactory.create()
@@ -437,7 +436,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByUserDto(listOf(maker), listOf(OrderActivityFilterByUserDto.Types.SELL)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -489,7 +488,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc1155ListOrderVersion()),
                     OrderActivityFilterByUserDto(listOf(maker), listOf(OrderActivityFilterByUserDto.Types.MAKE_BID)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -546,7 +545,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(maker1, maker2),
                         listOf(OrderActivityFilterByUserDto.Types.SELL)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -603,7 +602,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         listOf(maker1, maker2),
                         listOf(OrderActivityFilterByUserDto.Types.MAKE_BID)
                     ),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -651,7 +650,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.MATCH)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -698,7 +697,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.BID)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -725,7 +724,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.MATCH)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -753,7 +752,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.MATCH)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -800,7 +799,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.MATCH)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
@@ -847,7 +846,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.BID)),
-                    OrderActivitySort.LATEST_FIRST
+                    ActivitySortDto.LATEST_FIRST
                 )
             }
         )
@@ -859,7 +858,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         orderVersions: List<OrderVersion>,
         otherTypes: List<OrderVersion>,
         filter: OrderActivityFilterDto,
-        sort: OrderActivitySort
+        sort: ActivitySortDto
     ) = runBlocking {
         saveVersion(*orderVersions.shuffled().toTypedArray())
         saveVersion(*otherTypes.shuffled().toTypedArray())
@@ -869,7 +868,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
 
         var continuation: String? = null
         do {
-            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, sort.name).awaitFirst()
+            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, sort).awaitFirst()
             assertThat(activities.items).hasSizeLessThanOrEqualTo(2)
 
             allActivities.addAll(activities.items)
@@ -889,14 +888,14 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         orderVersions: List<OrderVersion>,
         otherTypes: List<OrderVersion>,
         filter: OrderActivityFilterDto,
-        sort: OrderActivitySort
+        sort: ActivitySortDto
     ) = runBlocking {
         saveVersion(*orderVersions.shuffled().toTypedArray())
         saveVersion(*otherTypes.shuffled().toTypedArray())
         prepareNftClient(filter, orderVersions)
 
         Wait.waitAssert {
-            val activities = orderActivityClient.getOrderActivities(filter, null, null, null).awaitFirst()
+            val activities = orderActivityClient.getOrderActivities(filter, null, null, sort).awaitFirst()
 
             assertThat(activities.items).hasSize(orderVersions.size)
 
@@ -922,7 +921,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
 
         var continuation: String? = null
         do {
-            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, "LATEST_FIRST").awaitFirst()
+            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, ActivitySortDto.LATEST_FIRST).awaitFirst()
             assertThat(activities.items).hasSizeLessThanOrEqualTo(2)
 
             allActivities.addAll(activities.items)
