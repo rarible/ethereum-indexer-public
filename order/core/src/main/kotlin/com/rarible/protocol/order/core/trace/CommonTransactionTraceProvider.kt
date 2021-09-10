@@ -31,7 +31,6 @@ class CommonTransactionTraceProvider(
             Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
         ).awaitFirst()
 
-        logger.info("Got trace for tx=$transactionHash, result=$result")
         return result.result()
             .map { mapper.treeToValue(it, Array<Trace>::class.java) }
             .map { convert(it) }
@@ -57,7 +56,7 @@ class CommonTransactionTraceProvider(
 
     data class Trace(
         val action: Action,
-        val result: Result
+        val result: Result?
     ) {
         data class Action(
             val callType: String,
