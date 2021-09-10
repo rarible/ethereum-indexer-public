@@ -24,7 +24,9 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val transferProxyAddresses: TransferProxyAddresses,
     @NestedConfigurationProperty
-    val publish: PublishProperties = PublishProperties()
+    val publish: PublishProperties = PublishProperties(),
+    @NestedConfigurationProperty
+    val featureFlags: FeatureFlags = FeatureFlags()
 ) {
     data class ExchangeContractAddresses(
         val v1: Address,
@@ -42,5 +44,9 @@ data class OrderIndexerProperties(
 
     data class PublishProperties(
         val publishOpenSeaOrdersToCommonTopic: Boolean = false
+    )
+
+    data class FeatureFlags(
+        val useCommonTransactionTraceProvider: Boolean = true
     )
 }

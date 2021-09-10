@@ -470,7 +470,6 @@ components:
         - createdAt
         - lastUpdateAt
         - hash
-        - priceHistory
       properties:
         maker:
           $ref: "#/components/schemas/Address"
@@ -516,6 +515,7 @@ components:
           $ref: "#/components/schemas/BigDecimal"
         priceHistory:
           type: array
+          default: [ ]
           items:
             $ref: "#/components/schemas/OrderPriceHistoryRecord"
 
