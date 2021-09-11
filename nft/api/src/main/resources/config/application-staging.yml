@@ -1,5 +1,4 @@
 api:
   chain-id: 4
 common:
-  cryptoPunksContractAddress: "0x8Dcd3a0aea22925590Dbba0f13cCbA87b238c766"
   openseaLazyMintAddress: "0x88b48f654c30e99bc2e4a1559b4dcf1ad93fa656"

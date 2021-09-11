@@ -43,8 +43,6 @@ protocol:
 common:
   eip712-domain-name: Exchange
   eip712-domain-version: 2
-  exchange-contract-addresses:
-    crypto-punks: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
 
 listener:
   priceUpdateScheduleRate: PT12H # 12 hours to ms

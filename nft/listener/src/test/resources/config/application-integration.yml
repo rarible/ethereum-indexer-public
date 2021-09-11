@@ -11,7 +11,6 @@ rarible:
       exchange-contract-addresses:
         v1: "0000000000000000000000000000000000000000"
         v2: "0000000000000000000000000000000000000000"
-        crypto-punks: "0000000000000000000000000000000000000000"
 
 mongoUrls: ${rarible.common.mongoUrls}
 mongoDatabase: ${rarible.common.mongoDatabase}

@@ -1,4 +1,2 @@
 common:
   chain-id: 4
-  exchange-contract-addresses:
-    crypto-punks: "0x8Dcd3a0aea22925590Dbba0f13cCbA87b238c766"
