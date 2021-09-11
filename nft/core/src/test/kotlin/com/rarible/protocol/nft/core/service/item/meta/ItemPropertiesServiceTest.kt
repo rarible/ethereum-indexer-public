@@ -113,6 +113,24 @@ class ItemPropertiesServiceTest {
     }
 
     @Test
+    fun uniswapProperties() {
+        val props = propertiesCacheDescriptor.get("0xc36442b4a4522e871399cd717abdd847ab11fe88:51561").block()!!
+        assertEquals("Uniswap - 0.3% - MATIC/WETH - 1555.6<>1603.0", props.name)
+        assertEquals("""This NFT represents a liquidity position in a Uniswap V3 MATIC-WETH pool. The owner of this NFT can modify or redeem the position.
+
+Pool Address: 0x290a6a7460b308ee3f19023d2d00de604bcf5b42
+MATIC Address: 0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0
+WETH Address: 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+Fee Tier: 0.3%
+Token ID: 51561
+
+⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.
+""".trim(), props.description?.trim())
+        assertEquals("ipfs://ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx", props.image)
+        assertEquals("ipfs://ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx", props.animationUrl)
+    }
+
+    @Test
     fun getCustomProperties() {
         val props = testing.getProperties(Address.apply("0x9b1aa69fe9fca10aa41250bba054aabd92aba5b6"), BigInteger.valueOf(116L)).block()!!
         assertEquals(props.name, "↜Warrior↝ 6/20")

@@ -55,7 +55,7 @@ class LootCacheDescriptor(
                 val node = mapper.readTree(base64MimeToString(contract.tokenURI(tokenId).call().awaitSingle())) as ObjectNode
                 val imageUrl = node.getText("image")?.let {
                     val hash = ipfsService.upload("image.svg", base64MimeToBytes(it))
-                    "ipfs://ipfs/${hash}"
+                    ipfsService.url(hash)
                 } ?: ""
                 ItemProperties(
                     name = node.getText("name")  ?: DEFAULT_TITLE,

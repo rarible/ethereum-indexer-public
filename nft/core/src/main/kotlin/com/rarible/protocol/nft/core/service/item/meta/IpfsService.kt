@@ -38,6 +38,8 @@ class IpfsService(
         }
     }
 
+    fun url(hash: String): String = "ipfs://ipfs/${hash}"
+
     suspend fun upload(file: String, someByteArray: ByteArray): String {
         val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
         logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
