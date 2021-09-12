@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.dto.ActivityDto
@@ -13,7 +12,6 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -22,20 +20,9 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
-import scalether.domain.Address
-import scalether.domain.request.Transaction
-import scalether.transaction.MonoGasPriceProvider
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
-import java.math.BigInteger
 import java.time.Instant
 import java.util.*
 
@@ -63,7 +50,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
         // Override asset make balance service to correctly reflect ownership of CryptoPunks.
         // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
-        assetMakeBalanceAnswers = r@ { order ->
+        assetMakeBalanceAnswers = r@{ order ->
             val assetType = order.make.type as? CryptoPunksAssetType ?: return@r null
             if (assetType.marketAddress != cryptoPunksMarket.address()) {
                 return@r null
@@ -94,51 +81,12 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         }
     }
 
-    protected fun depositInitialBalance(to: Address, amount: BigInteger) {
-        val coinBaseWalletPrivateKey =
-            BigInteger(Numeric.hexStringToByteArray("00120de4b1518cf1f16dc1b02f6b4a8ac29e870174cb1d8575f578480930250a"))
-        val (coinBaseAddress, coinBaseSender) = newSender(coinBaseWalletPrivateKey)
-        coinBaseSender.sendTransaction(
-            Transaction(
-                to,
-                coinBaseAddress,
-                BigInteger.valueOf(8000000),
-                BigInteger.ZERO,
-                amount,
-                Binary(ByteArray(1)),
-                null
-            )
-        ).verifySuccess()
-    }
-
-    protected suspend fun getEthBalance(account: Address): BigInteger =
-        ethereum.ethGetBalance(account, "latest").awaitFirst()
-
     protected suspend fun deployCryptoPunkMarket(): CryptoPunksMarket {
         val (_, creatorSender) = newSender()
         val market = CryptoPunksMarket.deployAndWait(creatorSender, poller).awaitFirst()
         market.allInitialOwnersAssigned().execute().awaitFirst()
         exchangeContractAddresses.cryptoPunks = market.address()
         return market
-    }
-
-    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
-        val (privateKey, _, address) = generateNewKeys(privateKey0)
-        val sender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
-        return Triple(address, sender, privateKey)
-    }
-
-    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
-        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
-        val publicKey = Sign.publicKeyFromPrivate(privateKey)
-        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
-        return NewKeys(privateKey, publicKey, signer)
     }
 
     protected fun createPriceHistory(time: Instant, make: Asset, take: Asset) =

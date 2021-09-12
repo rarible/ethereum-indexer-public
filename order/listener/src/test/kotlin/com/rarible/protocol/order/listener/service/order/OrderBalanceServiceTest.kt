@@ -72,8 +72,8 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
         assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
         assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.TEN)
+        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.TEN)
     }
 
     @Test
@@ -120,7 +120,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
         assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
         assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.TEN)
+        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.TEN)
     }
 }

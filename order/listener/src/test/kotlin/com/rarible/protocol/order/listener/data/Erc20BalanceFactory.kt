@@ -9,7 +9,7 @@ fun createErc20BalanceDto(): Erc20DecimalBalanceDto {
     return Erc20DecimalBalanceDto(
         owner = AddressFactory.create(),
         contract = AddressFactory.create(),
-        balance = BigInteger.ONE,
-        decimalBalance = BigDecimal.ONE
+        balance = BigInteger.TEN,
+        decimalBalance = BigDecimal.TEN
     )
 }
