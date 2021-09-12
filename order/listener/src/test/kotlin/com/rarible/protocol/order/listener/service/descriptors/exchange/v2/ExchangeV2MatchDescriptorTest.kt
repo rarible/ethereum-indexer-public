@@ -125,13 +125,16 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         val leftPayout = AddressFactory.create()
         val rightPayout = AddressFactory.create()
 
-        val orderLeftVersion = OrderVersion(
+        val orderLeft = Order(
             maker = userSender1.from(),
             taker = null,
             make = Asset(Erc20AssetType(token1.address()), EthUInt256.TEN),
             take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE),
             type = OrderType.RARIBLE_V2,
             salt = EthUInt256.TEN,
+            makeStock = EthUInt256.TEN,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
             start = null,
             end = null,
             data = OrderRaribleV2DataV1(payouts = listOf(Part(leftPayout, EthUInt256.of(10000))), originFees = listOf(Part(userSender2.from(), EthUInt256.ONE))),
@@ -140,17 +143,18 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             makePriceUsd = null,
             takePriceUsd = null,
             makeUsd = null,
-            takeUsd = null
+            takeUsd = null,
+            lastUpdateAt = nowMillis()
         )
-        orderUpdateService.save(orderLeftVersion)
+        orderRepository.save(orderLeft)
 
         token1.mint(userSender1.from(), TEN.pow(2)).execute().verifySuccess()
         token721.mint(userSender2.from(), ONE, "test").execute().verifySuccess()
 
-        val signature = eip712Domain.hashToSign(Order.hash(orderLeftVersion)).sign(privateKey1)
+        val signature = eip712Domain.hashToSign(Order.hash(orderLeft)).sign(privateKey1)
 
         val prepared = prepareTxService.prepareTransaction(
-            orderLeftVersion.copy(signature = signature).toOrderExactFields(),
+            orderLeft.copy(signature = signature),
             PrepareOrderTxFormDto(
                 maker = userSender2.from(),
                 amount = ONE,
@@ -181,7 +185,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             val left = map[OrderSide.LEFT]
             val right = map[OrderSide.RIGHT]
 
-            assertThat(left?.data).isEqualTo(orderLeftVersion.data)
+            assertThat(left?.data).isEqualTo(orderLeft.data)
             assertThat(right?.data).isEqualTo(OrderRaribleV2DataV1(listOf(Part(rightPayout, EthUInt256.of(10000))), emptyList()))
 
             assertThat(left?.maker).isEqualTo(leftPayout)
