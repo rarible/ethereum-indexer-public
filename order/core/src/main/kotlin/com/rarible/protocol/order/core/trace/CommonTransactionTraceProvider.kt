@@ -59,7 +59,7 @@ class CommonTransactionTraceProvider(
         val result: Result?
     ) {
         data class Action(
-            val callType: String,
+            val callType: String?,
             val from: Address,
             val to: Address,
             val input: String
