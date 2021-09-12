@@ -19,8 +19,7 @@ enum class ItemType(
         topic = setOf(
             PunkOfferedEvent.id(),
             PunkBidEnteredEvent.id(),
-            PunkBoughtEvent.id(),
-            PunkTransferEvent.id()
+            PunkBoughtEvent.id()
         )
     ),
     ORDER_SIDE_MATCH(
@@ -28,8 +27,7 @@ enum class ItemType(
             MatchEvent.id(),
             MatchEventDeprecated.id(),
             OrdersMatchedEvent.id(),
-            PunkBoughtEvent.id(),
-            PunkTransferEvent.id()
+            PunkBoughtEvent.id()
         )
     ),
     CANCEL(

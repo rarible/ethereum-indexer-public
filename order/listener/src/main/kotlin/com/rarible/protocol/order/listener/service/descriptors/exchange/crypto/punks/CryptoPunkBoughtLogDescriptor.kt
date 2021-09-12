@@ -25,6 +25,7 @@ import java.time.Instant
 @Service
 class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum,
     private val traceProvider: TransactionTraceProvider
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
@@ -40,7 +41,12 @@ class CryptoPunkBoughtLogDescriptor(
         val marketAddress = log.address()
         val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, punkBoughtEvent.punkIndex().toInt())
         val sellerAddress = punkBoughtEvent.fromAddress()
-        val buyerAddress = getBuyerAddress(punkBoughtEvent, log.blockHash())
+        val buyerAddress = getBuyerAddress(punkBoughtEvent)
+        if (buyerAddress == transferProxyAddresses.cryptoPunksTransferProxy) {
+            // We ignore "buy for 0ETH" from the owner to the transfer proxy events,
+            // because this is the Exchange contract's implementation detail.
+            return emptyList()
+        }
         val calledFunctionSignature = getCalledFunctionSignature(punkBoughtEvent)
         val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
         val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transactionTrace)
@@ -193,7 +199,7 @@ class CryptoPunkBoughtLogDescriptor(
         return decodedInput.value()._2 // "minPrice" parameter.
     }
 
-    private suspend fun getBuyerAddress(punkBoughtEvent: PunkBoughtEvent, blockHash: Word): Address {
+    private suspend fun getBuyerAddress(punkBoughtEvent: PunkBoughtEvent): Address {
         if (punkBoughtEvent.toAddress() != Address.ZERO()) {
             return punkBoughtEvent.toAddress()
         }
@@ -205,11 +211,11 @@ class CryptoPunkBoughtLogDescriptor(
         val filter = LogFilter
             .apply(TopicFilter.simple(TransferEvent.id()))
             .address(exchangeContractAddresses.cryptoPunks)
-            .blockHash(blockHash)
+            .blockHash(punkBoughtEvent.log().blockHash())
         val logs = try {
             ethereum.ethGetLogsJava(filter).awaitSingle()
         } catch (e: Exception) {
-            logger.warn("Unable to get logs for block $blockHash", e)
+            logger.warn("Unable to get logs for block ${punkBoughtEvent.log().blockHash()}", e)
             return Address.ZERO()
         }
         return logs.find {

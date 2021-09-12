@@ -10,6 +10,7 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.AssetMatcherPunk
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferProxy
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
@@ -35,6 +36,9 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
     @Autowired
     private lateinit var exchangeOrderMatchDescriptor: ExchangeOrderMatchDescriptor
+
+    @Autowired
+    private lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
 
     private lateinit var exchangeV2: ExchangeV2
     private lateinit var eip712Domain: EIP712Domain
@@ -69,6 +73,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         setField(exchangeOrderMatchDescriptor, "exchangeContract", exchangeV2.address())
 
         punkTransferProxy = PunkTransferProxy.deployAndWait(sender, poller).awaitFirst()
+        transferProxyAddresses.cryptoPunksTransferProxy = punkTransferProxy.address()
         exchangeV2.setTransferProxy(AssetType.CRYPTO_PUNKS.bytes(), punkTransferProxy.address())
             .execute().verifySuccess()
 
@@ -143,113 +148,79 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val allOrders = orderRepository.findAll().toList()
-            assertEquals(5, allOrders.size) {
+            assertEquals(1, allOrders.size) {
                 allOrders.joinToString(separator = "\n") { it.toString() }
             }
-
-            // There are 4 on-chain orders for CryptoPunks:
-            // 2 for sale/buy between the punk owner and proxy
-            // 2 for sale/buy between the proxy and the new owner
-            assertEquals(4, allOrders.filter { it.type == OrderType.CRYPTO_PUNKS }.size)
-
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
             val sellOrderFilled = allOrders.single { it.type == OrderType.RARIBLE_V2 }
             assertEquals(EthUInt256(punkPrice), sellOrderFilled.fill)
+            assertEquals(sellOrder.hash, sellOrderFilled.hash)
         }
 
-        /*
-            We must observe the following 10 histories:
-            - 1 SELL ON-CHAIN-ORDER for "allow buying punk for 0ETH SELLER -> PROXY"
-            - 3 ON-CHAIN-ORDERS for "buyPunk" SELLER -> PROXY
-              - 1 BUY ORDER 0ETH SELLER -> PROXY
-              - 1 SIDE MATCH 0ETH SELLER -> PROXY
-              - 1 SIDE MATCH 0ETH PROXY -> SELLER
-            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to BUYER
-              - 1 SELL ORDER 0ETH PROXY -> BUYER
-              - 1 BUY ORDER 0ETH BUYER -> PROXY
-              - 1 SIDE MATCH 0ETH PROXY -> BUYER
-              - 1 SIDE MATCH 0ETH BUYER -> PROXY
-            - 2 RARIBLE ORDERS
-              - 1 SIDE MATCH 1PUNK SELLER -> BUYER
-              - 1 SIDE MATCH 99ETH BUYER -> SELLER
-         */
+        val buyOrderHash = Order.hashKey(buyerAddress, sellTake.type, sellMake.type, BigInteger.ZERO)
         Wait.waitAssert {
             val allHistories = exchangeHistoryRepository.findAll().collectList().awaitSingle()
                 .map { it.data as OrderExchangeHistory }
-            assertEquals(10, allHistories.size) {
+            assertEquals(2, allHistories.size) {
                 allHistories.joinToString(separator = "\n") { it.toString() }
             }
 
-            val raribleItems =
-                allHistories.filter { it.source == HistorySource.RARIBLE }.filterIsInstance<OrderSideMatch>()
+            val raribleItems = allHistories.filter { it.source == HistorySource.RARIBLE }
+                .filterIsInstance<OrderSideMatch>()
             assertEquals(2, raribleItems.size)
-            assertEquals(8, allHistories.filter { it.source == HistorySource.CRYPTO_PUNKS }.size)
 
             val sides = raribleItems.associateBy { it.side }
 
             val left = sides.getValue(OrderSide.LEFT)
             val right = sides.getValue(OrderSide.RIGHT)
 
+            assertEquals(sellOrder.hash, left.hash)
+            assertEquals(buyOrderHash, left.counterHash)
             assertEquals(sellerAddress, left.maker)
             assertEquals(buyerAddress, left.taker)
             assertEquals(sellMake, left.make)
             assertEquals(sellTake, left.take)
 
+            assertEquals(buyOrderHash, right.hash)
+            assertEquals(sellOrder.hash, right.counterHash)
             assertEquals(buyerAddress, right.maker)
             assertEquals(sellerAddress, right.taker)
             assertEquals(sellTake, right.make)
             assertEquals(sellMake, right.take)
         }
 
-        /*
-            We must observe the following 6 published activities:
-            - 2 Rarible activities
-              - 1 Rarible List from SELLER
-              - 1 Rarible Match for SELLER <-> BUYER
-            - 4 on-chain activities
-              - 1 Bid + 1 Match for SELLER <-> PROXY
-              - 1 Bid + 1 Match for PROXY <-> BUYER
-         */
         checkPublishedActivities { activities ->
-            val leftAsset = AssetDto(
-                CryptoPunksAssetTypeDto(cryptoPunksMarket.address(), punkIndex.toInt()), BigInteger.ONE
-            )
-            val rightHash = Order.hashKey(
-                buyerAddress,
-                EthAssetType,
-                CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()),
-                CRYPTO_PUNKS_SALT.value
-            )
-            assertTrue(
-                activities.any {
-                    it is OrderActivityMatchDto
-                            && it.source == OrderActivityDto.Source.RARIBLE
-                            && it.left.hash == sellOrder.hash
-                            && it.left.maker == sellerAddress
-                            && it.left.asset == leftAsset
-
-                            && it.right.hash == rightHash
-                            && it.right.maker == buyerAddress
-                            && it.right.asset.assetType is EthAssetTypeDto
-                            && it.right.asset.value == punkPrice
-                }
-            )
-
-            assertEquals(6, activities.size) {
-                activities.joinToString(separator = "\n") { it.toString() }
+            assertEquals(2, activities.size) {
+                activities.joinToString("\n") { it.toString() }
             }
-            assertEquals(1, activities.count {
-                it is OrderActivityListDto && it.source == OrderActivityDto.Source.RARIBLE
-            })
-            assertEquals(1, activities.count {
-                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.RARIBLE
-            })
-            assertEquals(2, activities.count {
-                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
-            })
-            assertEquals(2, activities.count {
-                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
-            })
+
+            val (listActivity, matchActivity) = activities
+            run {
+                assertTrue(listActivity is OrderActivityListDto)
+                listActivity as OrderActivityListDto
+                assertEquals(sellOrder.hash, listActivity.hash)
+                assertEquals(OrderActivityDto.Source.RARIBLE, listActivity.source)
+            }
+
+            run {
+                assertTrue(matchActivity is OrderActivityMatchDto)
+                matchActivity as OrderActivityMatchDto
+                assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
+                assertEquals(sellOrder.hash, matchActivity.left.hash)
+                assertEquals(sellerAddress, matchActivity.left.maker)
+                assertEquals(
+                    AssetDto(
+                        CryptoPunksAssetTypeDto(
+                            cryptoPunksMarket.address(),
+                            punkIndex.toInt()
+                        ), BigInteger.ONE
+                    ), matchActivity.left.asset
+                )
+                assertEquals(buyOrderHash, matchActivity.right.hash)
+                assertEquals(buyerAddress, matchActivity.right.maker)
+                assertTrue(matchActivity.right.asset.assetType is EthAssetTypeDto)
+                assertEquals(punkPrice, matchActivity.right.asset.value)
+            }
         }
     }
 
@@ -322,47 +293,25 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val allOrders = orderRepository.findAll().toList()
-            assertEquals(5, allOrders.size) {
+            assertEquals(1, allOrders.size) {
                 allOrders.joinToString(separator = "\n") { it.toString() }
             }
-
-            // There are 4 on-chain orders for CryptoPunks:
-            // 2 for sale/buy between the punk owner and proxy
-            // 2 for sale/buy between the proxy and the new owner
-            assertEquals(4, allOrders.filter { it.type == OrderType.CRYPTO_PUNKS }.size)
-
             assertEquals(1, allOrders.filter { it.type == OrderType.RARIBLE_V2 }.size)
             val bidOrderFilled = allOrders.single { it.type == OrderType.RARIBLE_V2 }
             assertEquals(EthUInt256.ONE, bidOrderFilled.fill)
+            assertEquals(bidOrder.hash, bidOrderFilled.hash)
         }
 
-        /*
-            We must observe the following 10 histories:
-            - 1 SELL ON-CHAIN-ORDER for "allow buying punk for 0ETH SELLER -> PROXY"
-            - 3 ON-CHAIN-ORDERS for "buyPunk" SELLER -> PROXY
-              - 1 BUY ORDER 0ETH SELLER -> PROXY
-              - 1 SIDE MATCH 0ETH SELLER -> PROXY
-              - 1 SIDE MATCH 0ETH PROXY -> SELLER
-            - 4 ON-CHAIN-ORDERS for "transferPunk" from PROXY to BUYER
-              - 1 SELL ORDER 0ETH PROXY -> BUYER
-              - 1 BUY ORDER 0ETH BUYER -> PROXY
-              - 1 SIDE MATCH 0ETH PROXY -> BUYER
-              - 1 SIDE MATCH 0ETH BUYER -> PROXY
-            - 2 RARIBLE ORDERS
-              - 1 SIDE MATCH 1PUNK SELLER -> BUYER
-              - 1 SIDE MATCH 100500 WETH BUYER -> SELLER
-         */
         Wait.waitAssert {
             val allHistories = exchangeHistoryRepository.findAll().collectList().awaitSingle()
                 .map { it.data as OrderExchangeHistory }
-            assertEquals(10, allHistories.size) {
+            assertEquals(2, allHistories.size) {
                 allHistories.joinToString(separator = "\n") { it.toString() }
             }
 
             val raribleItems =
                 allHistories.filter { it.source == HistorySource.RARIBLE }.filterIsInstance<OrderSideMatch>()
             assertEquals(2, raribleItems.size)
-            assertEquals(8, allHistories.filter { it.source == HistorySource.CRYPTO_PUNKS }.size)
 
             val sides = raribleItems.associateBy { it.side }
 
@@ -382,48 +331,35 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(bidMake.value, right.fill)
         }
 
-        /*
-            We must observe the following 6 published activities:
-            - 2 Rarible activities
-              - 1 Rarible Bid from BUYER
-              - 1 Rarible Match for BUYER <-> SELLER
-            - 4 on-chain activities
-              - 1 Bid + 1 Match for SELLER <-> PROXY
-              - 1 Bid + 1 Match for PROXY <-> BUYER
-         */
         checkPublishedActivities { activities ->
-            val assetDto = AssetDto(
-                CryptoPunksAssetTypeDto(
-                    cryptoPunksMarket.address(),
-                    punkIndex.toInt()
-                ), BigInteger.ONE
-            )
-            assertTrue(activities.any {
-                it is OrderActivityMatchDto
-                        && it.source == OrderActivityDto.Source.RARIBLE
-                        && it.left.hash == bidOrder.hash
-                        && it.left.maker == bidderAddress
-                        && it.left.asset.assetType is Erc20AssetTypeDto
-
-                        && it.right.asset == assetDto
-                        && it.right.maker == ownerAddress
-            })
-
-            assertEquals(6, activities.size) {
+            assertEquals(2, activities.size) {
                 activities.joinToString(separator = "\n") { it.toString() }
             }
-            assertEquals(1, activities.count {
-                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.RARIBLE
-            })
-            assertEquals(1, activities.count {
-                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.RARIBLE
-            })
-            assertEquals(2, activities.count {
-                it is OrderActivityBidDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
-            })
-            assertEquals(2, activities.count {
-                it is OrderActivityMatchDto && it.source == OrderActivityDto.Source.CRYPTO_PUNKS
-            })
+            val (bidActivity, matchActivity) = activities
+            run {
+                assertTrue(bidActivity is OrderActivityBidDto)
+                bidActivity as OrderActivityBidDto
+                assertEquals(bidOrder.hash, bidActivity.hash)
+            }
+
+            run {
+                assertTrue(matchActivity is OrderActivityMatchDto)
+                matchActivity as OrderActivityMatchDto
+                assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
+                assertEquals(bidOrder.hash, matchActivity.left.hash)
+                assertEquals(bidderAddress, matchActivity.left.maker)
+                assertTrue(matchActivity.left.asset.assetType is Erc20AssetTypeDto)
+
+                assertEquals(
+                    AssetDto(
+                        CryptoPunksAssetTypeDto(
+                            cryptoPunksMarket.address(),
+                            punkIndex.toInt()
+                        ), BigInteger.ONE
+                    ), matchActivity.right.asset
+                )
+                assertEquals(ownerAddress, matchActivity.right.maker)
+            }
         }
     }
 }

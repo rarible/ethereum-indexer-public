@@ -39,7 +39,7 @@ data class OrderIndexerProperties(
         val erc20TransferProxy: Address,
         val erc721LazyTransferProxy: Address,
         val erc1155LazyTransferProxy: Address,
-        val cryptoPunksTransferProxy: Address
+        var cryptoPunksTransferProxy: Address
     )
 
     data class PublishProperties(

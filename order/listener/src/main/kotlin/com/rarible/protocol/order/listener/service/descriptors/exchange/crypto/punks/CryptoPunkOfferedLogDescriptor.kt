@@ -17,6 +17,7 @@ import java.time.Instant
 @Service
 class CryptoPunkOfferedLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val traceProvider: TransactionTraceProvider
 ) : ItemExchangeHistoryLogEventDescriptor<OnChainOrder> {
 
@@ -29,6 +30,11 @@ class CryptoPunkOfferedLogDescriptor(
     override suspend fun convert(log: Log, date: Instant): List<OnChainOrder> {
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
+        if (grantedBuyer == transferProxyAddresses.cryptoPunksTransferProxy) {
+            // We ignore "grant buy for 0ETH" from the owner to the transfer proxy,
+            // because this is the Exchange contract's implementation detail.
+            return emptyList()
+        }
 /*
         We do not ignore SELL orders specific to a concrete buyer, because we want to track the whole CryptoPunks order history.
 
