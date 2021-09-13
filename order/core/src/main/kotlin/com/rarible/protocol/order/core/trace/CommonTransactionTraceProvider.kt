@@ -47,13 +47,26 @@ class CommonTransactionTraceProvider(
 
     private fun convert(source: Array<Trace>): SimpleTraceResult? {
         return source.firstOrNull()?.let { trace ->
-            SimpleTraceResult(
-                type = trace.action.callType,
-                from = trace.action.from,
-                to = trace.action.to,
-                input = trace.action.input,
-                output = trace.result?.output ?: "0x"
-            )
+            val action = trace.action
+            if (action.callType != null) {
+                val type = action.callType
+                val from = action.from ?: throw IllegalArgumentException("From can't be null")
+                val to = action.to ?: throw IllegalArgumentException("To can't be null")
+                val input = action.input ?: throw IllegalArgumentException("Input can't be null")
+                val output = trace.result?.output ?: "0x"
+
+                SimpleTraceResult(
+                    type = type,
+                    from = from,
+                    to = to,
+                    input = input,
+                    output = output
+                )
+            } else if (trace.action.address != null) {
+                null
+            } else {
+                throw IllegalArgumentException("Unsupported trace type $trace")
+            }
         }
     }
 
@@ -63,9 +76,12 @@ class CommonTransactionTraceProvider(
     ) {
         data class Action(
             val callType: String?,
-            val from: Address,
-            val to: Address,
-            val input: String
+            val from: Address?,
+            val to: Address?,
+            val input: String?,
+            val address: Address?,
+            val balance: String?,
+            val refundAddress: Address?
         )
 
         data class Result(
