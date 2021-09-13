@@ -3,9 +3,11 @@ package com.rarible.protocol.nft.api.service.item.meta
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
+import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,9 +27,11 @@ class ItemPropertiesService(
     private val hegicCacheDescriptor: HegicCacheDescriptor,
     private val hashmasksCacheDescriptor: HashmasksCacheDescriptor,
     private val waifusionCacheDescriptor: WaifusionCacheDescriptor,
+    private val cryptoPunksMetaService: CryptoPunksMetaService,
     private val openseaClient: OpenseaClient,
     private val ipfsService: IpfsService,
     private val temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository,
+    private val properties: NftIndexerProperties,
     @Value("\${api.yinsure.address}") yInsureAddress: String,
     @Value("\${api.hegic.address}") hegicAddress: String,
     @Value("\${api.hashmasks.address}") hashmasksAddress: String,
@@ -38,6 +42,7 @@ class ItemPropertiesService(
     private val hegicAddress = Address.apply(hegicAddress)
     private val hashmasksAddress = Address.apply(hashmasksAddress)
     private val waifusionAddress = Address.apply(waifusionAddress)
+    private val cryptoPunksAddress = Address.apply(properties.cryptoPunksContractAddress)
 
     //todo нужно принимать не строки
     fun saveTemporaryProperties(id: String, uri: String): Mono<Void> {
@@ -78,6 +83,7 @@ class ItemPropertiesService(
                         it.copy(image = it.image?.let { url -> ipfsService.resolveIpfsUrl(url) })
                     }
             }
+            cryptoPunksAddress -> cryptoPunkProps(tokenId)
             else -> {
                 getPropertiesFromOpensea(token, tokenId)
                     .switchIfEmpty {
@@ -96,6 +102,19 @@ class ItemPropertiesService(
                         animationUrl = it.animationUrl?.let { url -> ipfsService.resolveIpfsUrl(url) }
                     )
                 }
+        }
+    }
+
+    fun cryptoPunkProps(tokenId: BigInteger): Mono<ItemProperties?> {
+        return cryptoPunksMetaService.get(tokenId).map {
+            ItemProperties(
+                name = "CryptoPunk #$tokenId",
+                description = null,
+                image = it.image,
+                imagePreview = null,
+                imageBig = null,
+                attributes = it.attributes
+            )
         }
     }
 

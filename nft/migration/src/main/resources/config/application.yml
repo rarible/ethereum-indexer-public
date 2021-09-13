@@ -29,3 +29,11 @@ rarible:
 mongock:
   change-logs-scan-package:
     - com.rarible.protocol.nft.migration.mongock.mongo
+
+common:
+  cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
+
+ipfs:
+  upload_proxy: "https://pinata.rarible.com/upload"
+  gateway: "https://rarible.mypinata.cloud/ipfs"
+  cryptoPunksImagesUrl: "https://rarible.mypinata.cloud/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"

@@ -14,11 +14,13 @@ import com.rarible.protocol.nft.api.misc.SignUtils
 import com.rarible.protocol.nft.api.service.item.meta.IpfsService
 import com.rarible.protocol.nft.api.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.api.service.item.meta.PropertiesCacheDescriptor
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
+import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -235,6 +237,12 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             return mockk()
         }
 
+        @Autowired
+        private lateinit var itemPropertyRepository: ItemPropertyRepository
+
+        @Autowired
+        private lateinit var nftIndexerProperties: NftIndexerProperties
+
         @Bean
         @Primary
         fun mockItemPropertiesService(
@@ -256,7 +264,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 hegicAddress = Address.FOUR().toString(),
                 hashmasksAddress = Address.FOUR().toString(),
                 waifusionAddress = Address.FOUR().toString(),
-                cacheService = null
+                cacheService = null,
+                properties = nftIndexerProperties,
+                cryptoPunksMetaService = mockk()
             )
         }
     }
