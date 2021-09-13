@@ -25,21 +25,24 @@ class CommonTransactionTraceProvider(
     }
 
     override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
-        logger.info("Fetching trace for tx=$transactionHash")
+        try {
+            val result = ethereum.executeRaw(
+                Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
+            ).awaitFirst()
 
-        val result = ethereum.executeRaw(
-            Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
-        ).awaitFirst()
-
-        return result.result()
-            .map { mapper.treeToValue(it, Array<Trace>::class.java) }
-            .map { convert(it) }
-            .getOrElse {
-                if (result.error().isEmpty.not()) {
-                    logger.error("Can't fetch trace: {}", result.error().get())
+            return result.result()
+                .map { mapper.treeToValue(it, Array<Trace>::class.java) }
+                .map { convert(it) }
+                .getOrElse {
+                    if (result.error().isEmpty.not()) {
+                        logger.error("Can't fetch trace: {}", result.error().get())
+                    }
+                    null
                 }
-                null
-            }
+        } catch (ex: Throwable) {
+            logger.error("Can't fetch trace by hash $transactionHash")
+            throw ex
+        }
     }
 
     private fun convert(source: Array<Trace>): SimpleTraceResult? {
