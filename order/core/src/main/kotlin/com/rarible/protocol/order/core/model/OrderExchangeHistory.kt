@@ -53,3 +53,17 @@ data class OrderCancel(
     override val date: Instant = nowMillis(),
     override val source: HistorySource = HistorySource.RARIBLE
 ) : OrderExchangeHistory(type = ItemType.CANCEL)
+
+data class OnChainOrder(
+    val order: OrderVersion,
+    override val hash: Word = order.hash,
+    override val make: Asset = order.make,
+    override val take: Asset = order.take,
+    override val date: Instant = order.createdAt,
+    override val maker: Address = order.maker,
+    override val source: HistorySource = when (order.platform) {
+        Platform.RARIBLE -> HistorySource.RARIBLE
+        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
+        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
+    }
+) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)

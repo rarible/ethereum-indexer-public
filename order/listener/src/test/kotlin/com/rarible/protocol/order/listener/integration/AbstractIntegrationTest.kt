@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
@@ -14,19 +15,20 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
@@ -48,6 +50,7 @@ import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
 import scalether.transaction.*
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -83,6 +86,10 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
+    @MockkBean
+    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+    protected var assetMakeBalanceAnswers: suspend (Order) -> EthUInt256? = { null }
+
     protected lateinit var parity: MonoParity
 
     protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
@@ -95,10 +102,28 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @BeforeEach
     fun cleanDatabase() {
+        //TODO: previous tests (when running the whole package) might not have finished before the next test starts.
+        // Such activities might insert the old order right after cleaning the database here.
+        // We need a proper way of ending activities in the tests.
+        Thread.sleep(300)
+
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
+    }
+
+    @BeforeEach
+    fun setUpMocks() {
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
+            val order = arg<Order>(0)
+            assetMakeBalanceAnswers.invoke(order)?.let { return@r it }
+            if (order.make.type is EthAssetType) {
+                return@r order.make.value
+            }
+            EthUInt256.ONE
+        }
     }
 
     @PostConstruct
@@ -131,6 +156,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         }
         return receipt
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     protected suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
         if (data is OrderExchangeHistory) {
@@ -196,28 +224,31 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 .receive()
                 .collect { events.add(it) }
         }
-        Wait.waitAssert {
-            assertThat(events)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies {
-                    val event = it.firstOrNull { event -> event.value.id == logEvent.id.toString() }
-                    val activity = event?.value
-                    assertThat(activity?.javaClass).isEqualTo(activityType)
+        try {
+            Wait.waitAssert {
+                assertThat(events)
+                    .hasSizeGreaterThanOrEqualTo(1)
+                    .satisfies {
+                        val event = it.firstOrNull { event -> event.value.id == logEvent.id.toString() }
+                        val activity = event?.value
+                        assertThat(activity?.javaClass).isEqualTo(activityType)
 
-                    when (activity) {
-                        is OrderActivityMatchDto -> {
-                            assertThat(activity.left.hash).isEqualTo(orderLeft.hash)
+                        when (activity) {
+                            is OrderActivityMatchDto -> {
+                                assertThat(activity.left.hash).isEqualTo(orderLeft.hash)
+                            }
+                            is OrderActivityCancelBidDto -> {
+                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
+                            }
+                            is OrderActivityCancelListDto -> {
+                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
+                            }
+                            else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
                         }
-                        is  OrderActivityCancelBidDto -> {
-                            assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                        }
-                        is  OrderActivityCancelListDto -> {
-                            assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                        }
-                        else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
                     }
-                }
+            }
+        } finally {
+            job.cancelAndJoin()
         }
-        job.cancel()
     }
 }

@@ -57,6 +57,7 @@ components:
           enum:
             - RARIBLE
             - OPEN_SEA
+            - CRYPTO_PUNKS
       oneOf:
         - $ref: "#/components/schemas/OrderActivityMatch"
         - $ref: "#/components/schemas/OrderActivityBid"
@@ -699,6 +700,7 @@ components:
           ERC1155: "#/components/schemas/Erc1155AssetType"
           ERC721_LAZY: "#/components/schemas/Erc721LazyAssetType"
           ERC1155_LAZY: "#/components/schemas/Erc1155LazyAssetType"
+          CRYPTO_PUNKS: "#/components/schemas/CryptoPunksAssetType"
           GEN_ART: "#/components/schemas/GenerativeArtAssetType"
       oneOf:
         - $ref: "#/components/schemas/EthAssetType"
@@ -708,6 +710,7 @@ components:
         - $ref: "#/components/schemas/Erc1155AssetType"
         - $ref: "#/components/schemas/Erc721LazyAssetType"
         - $ref: "#/components/schemas/Erc1155LazyAssetType"
+        - $ref: "#/components/schemas/CryptoPunksAssetType"
         - $ref: "#/components/schemas/GenerativeArtAssetType"
 
     EthAssetType:
@@ -858,6 +861,22 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Binary"
+
+    CryptoPunksAssetType:
+      required:
+        - assetClass
+        - contract
+        - punkId
+      type: object
+      properties:
+        assetClass:
+          type: string
+          enum:
+            - "CRYPTO_PUNKS"
+        contract:
+          $ref: "#/components/schemas/Address"
+        punkId:
+          type: integer
 
     Asset:
       type: object

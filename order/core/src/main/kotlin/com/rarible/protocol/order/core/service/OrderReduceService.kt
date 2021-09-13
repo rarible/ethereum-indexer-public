@@ -11,7 +11,7 @@ import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
@@ -30,7 +30,7 @@ class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository,
-    private val assetBalanceProvider: AssetBalanceProvider,
+    private val assetMakeBalanceProvider: AssetMakeBalanceProvider,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService
@@ -63,7 +63,9 @@ class OrderReduceService(
     }
 
     private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
+        var lastSeenUpdate: OrderUpdate? = null
         val orderStub = updates.asFlow().fold(emptyOrder) { order, update ->
+            lastSeenUpdate = update
             when (update) {
                 is OrderUpdate.ByOrderVersion -> updateWith(order, update.orderVersion)
                 is OrderUpdate.ByLogEvent -> order.updateWith(
@@ -73,13 +75,14 @@ class OrderReduceService(
             }
         }
         if (orderStub.hash == EMPTY_ORDER_HASH) {
-            logger.info("Order has not been reduced. Apparently there are no OrderVersions for this order")
+            logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced. " +
+                    "Apparently there are no OrderVersions for this order, but only LogEvents.")
             return@mono emptyOrder
         }
         updateOrderWithState(orderStub)
     }
 
-    private fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
+    private suspend fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
         return when (logEventStatus) {
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
@@ -91,6 +94,8 @@ class OrderReduceService(
                     cancelled = true,
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date)
                 )
+                // On-chain orders can be re-opened, so we must start from the empty state again, even if there were previous events.
+                is OnChainOrder -> updateWith(emptyOrder, orderExchangeHistory.order)
             }
             else -> this
         }
@@ -140,8 +145,8 @@ class OrderReduceService(
         return (listOf(newRecord) + previous.priceHistory).take(Order.MAX_PRICE_HISTORIES)
     }
 
-    private suspend fun Order.withUpdatedMakeStock(knownMakeBalance: EthUInt256? = null): Order {
-        val makeBalance = knownMakeBalance ?: assetBalanceProvider.getAssetStock(maker, make.type) ?: EthUInt256.ZERO
+    private suspend fun Order.withUpdatedMakeStock(): Order {
+        val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
         return withMakeBalance(makeBalance, protocolCommissionProvider.get(), zeroWhenCancelled = false)
     }
 

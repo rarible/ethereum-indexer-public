@@ -1,13 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.OrderCancelDto
-import com.rarible.protocol.dto.OrderExchangeHistoryDto
-import com.rarible.protocol.dto.OrderSideDto
-import com.rarible.protocol.dto.OrderSideMatchDto
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
-import com.rarible.protocol.order.core.model.OrderSide
-import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.model.*
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -37,6 +31,13 @@ object OrderExchangeHistoryDtoConverter : Converter<OrderExchangeHistory, OrderE
                 date = source.date,
                 maker = source.maker,
                 owner = source.maker
+            )
+            is OnChainOrder -> OnChainOrderDto(
+                hash = source.hash,
+                make = AssetDtoConverter.convert(source.make),
+                take = AssetDtoConverter.convert(source.take),
+                date = source.date,
+                maker = source.maker
             )
         }
     }

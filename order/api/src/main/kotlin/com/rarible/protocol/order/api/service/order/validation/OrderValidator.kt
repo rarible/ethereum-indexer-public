@@ -17,6 +17,7 @@ class OrderValidator(
             OrderType.RARIBLE_V1 -> orderVersion.data is OrderDataLegacy
             OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2DataV1
             OrderType.OPEN_SEA_V1 -> false
+            OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
         }
         if (isValidOrderDataType.not()) {
             throw IncorrectOrderDataException("Order with type ${orderVersion.type} has invalid order data")

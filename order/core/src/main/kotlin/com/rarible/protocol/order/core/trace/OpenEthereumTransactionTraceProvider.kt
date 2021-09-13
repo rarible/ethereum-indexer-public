@@ -48,7 +48,8 @@ class OpenEthereumTransactionTraceProvider(
                 from = trace.action.from,
                 to = trace.action.to,
                 input = trace.action.input,
-                output = trace.result.output
+                output = trace.result.output,
+                valueHexString = trace.action.value
             )
         }
     }
@@ -64,7 +65,8 @@ class OpenEthereumTransactionTraceProvider(
                 val callType: String,
                 val from: Address,
                 val to: Address,
-                val input: String
+                val input: String,
+                val value: String
             )
 
             data class Result(

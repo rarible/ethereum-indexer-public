@@ -34,6 +34,7 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 staticExtraData = source.staticExtraData,
                 extra = source.extra
             )
+            is OrderCryptoPunksDataDto -> OrderCryptoPunksData
         }
     }
 

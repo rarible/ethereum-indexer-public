@@ -58,6 +58,7 @@ class ProtocolOrderPublisher(
         get() = when (this) {
             is LegacyOrderDto, is RaribleV2OrderDto -> Platform.RARIBLE
             is OpenSeaV1OrderDto -> Platform.OPEN_SEA
+            is CryptoPunkOrderDto -> Platform.CRYPTO_PUNKS
         }
 
     private val AssetTypeDto.itemId: String?
@@ -66,6 +67,7 @@ class ProtocolOrderPublisher(
             is Erc1155AssetTypeDto -> ItemId(contract, tokenId).toString()
             is Erc1155LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
             is Erc721LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
+            is CryptoPunksAssetTypeDto -> ItemId(contract, punkId.toBigInteger()).toString()
             is EthAssetTypeDto, is Erc20AssetTypeDto, is GenerativeArtAssetTypeDto -> null
             is FlowAssetTypeDto -> throw UnsupportedOperationException("Unsupported assert type ${this.javaClass}")
         }
@@ -74,5 +76,6 @@ class ProtocolOrderPublisher(
         get() = when (this) {
             Platform.RARIBLE -> true
             Platform.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
+            Platform.CRYPTO_PUNKS -> false
         }
 }

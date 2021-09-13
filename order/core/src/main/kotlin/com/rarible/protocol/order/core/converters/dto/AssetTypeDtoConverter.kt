@@ -41,6 +41,10 @@ object AssetTypeDtoConverter : Converter<AssetType, AssetTypeDto> {
                 royalties = source.royalties.map { PartDto(it.account, it.value.value.intValueExact()) },
                 signatures = source.signatures
             )
+            is CryptoPunksAssetType -> CryptoPunksAssetTypeDto(
+                contract = source.marketAddress,
+                punkId = source.punkId
+            )
         }
     }
 }

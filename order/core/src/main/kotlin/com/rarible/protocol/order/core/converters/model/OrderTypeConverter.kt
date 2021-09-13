@@ -1,6 +1,9 @@
 package com.rarible.protocol.order.core.converters.model
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LegacyOrderFormDto
+import com.rarible.protocol.dto.OpenSeaV1OrderFormDto
+import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.RaribleV2OrderFormDto
 import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component

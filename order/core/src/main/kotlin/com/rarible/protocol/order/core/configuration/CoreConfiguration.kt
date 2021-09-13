@@ -5,15 +5,9 @@ import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
-import com.rarible.protocol.contracts.exchange.v1.BuyEvent
-import com.rarible.protocol.contracts.exchange.v1.CancelEvent
-import com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
-import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
+import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.trace.TracePackage
@@ -55,18 +49,8 @@ class CoreConfiguration {
     }
 
     @Bean
-    fun logEventService(mongo: ReactiveMongoOperations) =
-        LogEventService(
-            mapOf(
-                BuyEvent.id() to ExchangeHistoryRepository.COLLECTION,
-                CancelEvent.id() to ExchangeHistoryRepository.COLLECTION,
-                MatchEventDeprecated.id() to ExchangeHistoryRepository.COLLECTION,
-                MatchEvent.id() to ExchangeHistoryRepository.COLLECTION,
-                com.rarible.protocol.contracts.exchange.v2.events.CancelEvent.id() to ExchangeHistoryRepository.COLLECTION,
-                CancelEventDeprecated.id() to ExchangeHistoryRepository.COLLECTION,
-                OrdersMatchedEvent.id() to ExchangeHistoryRepository.COLLECTION,
-                OrderCancelledEvent.id() to ExchangeHistoryRepository.COLLECTION
-            ),
-            mongo
-        )
+    fun logEventService(mongo: ReactiveMongoOperations): LogEventService = LogEventService(
+        ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION },
+        mongo
+    )
 }

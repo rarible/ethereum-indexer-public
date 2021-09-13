@@ -3,9 +3,10 @@ package com.rarible.protocol.order.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -22,10 +23,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
-import scala.Tuple11
-import scala.Tuple12
-import scala.Tuple4
-import scala.Tuple6
+import scala.*
 import scalether.domain.Address
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
@@ -54,6 +52,9 @@ class PrepareTxService(
             OrderType.OPEN_SEA_V1 -> {
                 prepareTxForOpenSeaV1(order, form)
             }
+            OrderType.CRYPTO_PUNKS -> {
+                prepareTxForCryptoPunk(order, form)
+            }
         }
     }
 
@@ -67,6 +68,9 @@ class PrepareTxService(
             }
             OrderType.OPEN_SEA_V1 -> {
                 prepareCancelTxForOpenSeaV1(order)
+            }
+            OrderType.CRYPTO_PUNKS -> {
+                prepareCancelTxForCryptoPunk(order)
             }
         }
     }
@@ -226,6 +230,31 @@ class PrepareTxService(
         )
     }
 
+    private fun prepareTxForCryptoPunk(
+        order: Order,
+        form: PrepareOrderTxFormDto
+    ): PrepareTxResponse {
+        check(form.amount == BigInteger.ONE)
+        val encoded = if (order.make.type is CryptoPunksAssetType) {
+            check(order.take.type is EthAssetType)
+            // order = sell order, form = buy order.
+            CryptoPunksMarket.buyPunkSignature().encode(order.make.type.punkId.toBigInteger())
+        } else {
+            // order = bid order, form = accept bid (sell) order.
+            check(order.make.type is EthAssetType)
+            check(order.take.type is CryptoPunksAssetType)
+            CryptoPunksMarket.acceptBidForPunkSignature().encode(Tuple2(order.take.type.punkId.toBigInteger(), order.make.value.value))
+        }
+        // Hack: add platform ID to the encoded transaction input data.
+        val withPlatform = encoded.add(Platform.CRYPTO_PUNKS.id)
+        return PrepareTxResponse(
+            null,
+            order.take,
+            PreparedTx(exchangeContractAddresses.cryptoPunks, withPlatform)
+        )
+    }
+
+
     fun prepareCancelTxForOpenSeaV1(order: Order): PreparedTx {
         val data = order.data as OrderOpenSeaV1DataV1
         val signature = order.signature?.toSignatureData() ?: EMPTY_SIGNATURE
@@ -272,6 +301,20 @@ class PrepareTxService(
             exchangeContractAddresses.openSeaV1,
             inputData
         )
+    }
+
+    private fun prepareCancelTxForCryptoPunk(order: Order): PreparedTx {
+        val encoded = if (order.make.type is CryptoPunksAssetType) {
+            check(order.take.type is EthAssetType)
+            // order = sell order
+            CryptoPunksMarket.punkNoLongerForSaleSignature().encode(order.make.type.punkId.toBigInteger())
+        } else {
+            // order = bid order
+            check(order.make.type is EthAssetType)
+            check(order.take.type is CryptoPunksAssetType)
+            CryptoPunksMarket.withdrawBidForPunkSignature().encode(order.take.type.punkId.toBigInteger())
+        }
+        return PreparedTx(exchangeContractAddresses.cryptoPunks, encoded)
     }
 
     suspend fun prepareTxFor2Orders(

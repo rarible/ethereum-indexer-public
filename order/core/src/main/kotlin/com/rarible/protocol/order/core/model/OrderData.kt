@@ -79,10 +79,21 @@ data class OrderOpenSeaV1DataV1(
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
+object OrderCryptoPunksData : OrderData() {
+    @get:Transient
+    override val version get() = OrderDataVersion.CRYPTO_PUNKS
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    // We need these to easily compare JSON-deserialized objects.
+    override fun equals(other: Any?): Boolean = other is OrderCryptoPunksData
+    override fun hashCode() = "OrderCryptoPunksData".hashCode()
+}
+
 enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
-    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1"))
+    OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
+    CRYPTO_PUNKS
 }
 
 data class Part(
