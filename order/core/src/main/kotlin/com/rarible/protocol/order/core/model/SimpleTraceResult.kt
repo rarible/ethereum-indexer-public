@@ -7,7 +7,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 data class SimpleTraceResult(
-    val type: String,
+    val type: String?,
     val from: Address,
     val to: Address,
     val input: String,

@@ -564,7 +564,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             cryptoPunksMarket.acceptBidForPunk(punkIndex, punkPrice).withSender(buyerSender).execute().verifySuccess()
 
             // List the punk for sale again with higher price.
-            val newPrice = punkPrice.multiply(BigInteger.TWO)
+            val newPrice = punkPrice.multiply(BigInteger.valueOf(2))
             val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, newPrice).withSender(ownerSender)
                 .execute().verifySuccess().getTimestamp()
             Wait.waitAssert {

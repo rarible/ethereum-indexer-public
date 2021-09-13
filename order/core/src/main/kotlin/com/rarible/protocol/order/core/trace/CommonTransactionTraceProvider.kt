@@ -25,43 +25,66 @@ class CommonTransactionTraceProvider(
     }
 
     override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
-        val result = ethereum.executeRaw(
-            Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
-        ).awaitFirst()
+        try {
+            val result = ethereum.executeRaw(
+                Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
+            ).awaitFirst()
 
-        logger.info("Fetching trace for tc=$transactionHash")
-        return result.result()
-            .map { mapper.treeToValue(it, Array<Trace>::class.java) }
-            .map { convert(it) }
-            .getOrElse {
-                if (result.error().isEmpty.not()) {
-                    logger.error("Can't fetch trace: {}", result.error().get())
+            return result.result()
+                .map { mapper.treeToValue(it, Array<Trace>::class.java) }
+                .map { convert(it) }
+                .getOrElse {
+                    if (result.error().isEmpty.not()) {
+                        logger.error("Can't fetch trace: {}", result.error().get())
+                    }
+                    null
                 }
-                null
-            }
+        } catch (ex: Throwable) {
+            logger.error("Can't fetch trace by hash $transactionHash")
+            throw ex
+        }
     }
 
     private fun convert(source: Array<Trace>): SimpleTraceResult? {
         return source.firstOrNull()?.let { trace ->
-            SimpleTraceResult(
-                type = trace.action.callType,
-                from = trace.action.from,
-                to = trace.action.to,
-                input = trace.action.input,
-                output = trace.result.output
-            )
+            val action = trace.action
+            if (action.callType != null) {
+                val type = action.callType
+                val from = action.from ?: throw IllegalArgumentException("From can't be null")
+                val to = action.to ?: throw IllegalArgumentException("To can't be null")
+                val input = action.input ?: throw IllegalArgumentException("Input can't be null")
+                val valueHexString = action.value ?: throw IllegalArgumentException("Value can't be null")
+                val output = trace.result?.output ?: "0x"
+
+                SimpleTraceResult(
+                    type = type,
+                    from = from,
+                    to = to,
+                    input = input,
+                    output = output,
+                    valueHexString = valueHexString
+                )
+            } else if (trace.action.address != null) {
+                null
+            } else {
+                throw IllegalArgumentException("Unsupported trace type $trace")
+            }
         }
     }
 
     data class Trace(
         val action: Action,
-        val result: Result
+        val result: Result?
     ) {
         data class Action(
-            val callType: String,
-            val from: Address,
-            val to: Address,
-            val input: String
+            val callType: String?,
+            val from: Address?,
+            val to: Address?,
+            val input: String?,
+            val value: String?,
+            val address: Address?,
+            val balance: String?,
+            val refundAddress: Address?
         )
 
         data class Result(
