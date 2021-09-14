@@ -18,7 +18,7 @@ object OrderFilterCriteria {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
-            is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_MAKE_STOCK_DEFINITION.indexKeys
+            is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
             is OrderFilterSellDto -> sell().withNoHint()
             is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker).withNoHint()
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()

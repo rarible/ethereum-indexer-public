@@ -97,11 +97,16 @@ object OrderRepositoryIndexes {
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .background()
 
+    val BY_LAST_UPDATE_AND_ID_DEFINITION = Index()
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val BY_MAKE_STOCK_DEFINITION = Index()
         // orders with non-zero makeStock should be first
-        .on(Order::makeStock.name, Sort.Direction.DESC)
+        .on(Order::makeStock.name, Sort.Direction.ASC)
         // recently updated orders should be first
-        .on(Order::lastUpdateAt.name, Sort.Direction.DESC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         // for queries with continuation
         .on("_id", Sort.Direction.ASC)
         .background()
@@ -126,6 +131,7 @@ object OrderRepositoryIndexes {
         BIDS_BY_MAKER_PLATFORM_DEFINITION,
 
         BY_LAST_UPDATE_DEFINITION,
-        BY_MAKE_STOCK_DEFINITION
+        BY_MAKE_STOCK_DEFINITION,
+        BY_LAST_UPDATE_AND_ID_DEFINITION
     )
 }
