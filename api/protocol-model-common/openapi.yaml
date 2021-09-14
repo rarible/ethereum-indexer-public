@@ -694,7 +694,6 @@ components:
         propertyName: assetClass
         mapping:
           ETH: "#/components/schemas/EthAssetType"
-          FLOW: "#/components/schemas/FlowAssetType"
           ERC20: "#/components/schemas/Erc20AssetType"
           ERC721: "#/components/schemas/Erc721AssetType"
           ERC1155: "#/components/schemas/Erc1155AssetType"
@@ -704,7 +703,6 @@ components:
           GEN_ART: "#/components/schemas/GenerativeArtAssetType"
       oneOf:
         - $ref: "#/components/schemas/EthAssetType"
-        - $ref: "#/components/schemas/FlowAssetType"
         - $ref: "#/components/schemas/Erc20AssetType"
         - $ref: "#/components/schemas/Erc721AssetType"
         - $ref: "#/components/schemas/Erc1155AssetType"
@@ -735,16 +733,6 @@ components:
             - "GEN_ART"
         contract:
           $ref: "#/components/schemas/Address"
-
-    FlowAssetType:
-      type: object
-      required:
-        - assetClass
-      properties:
-        assetClass:
-          type: string
-          enum:
-            - "FLOW"
 
     Erc20AssetType:
       required:
