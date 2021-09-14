@@ -9,6 +9,8 @@ import scalether.domain.Address
 import java.util.*
 
 interface OrderRepository {
+    suspend fun createIndexes()
+
     suspend fun save(order: Order, previousOrderVersion: Order? = null): Order
 
     suspend fun findById(hash: Word): Order?

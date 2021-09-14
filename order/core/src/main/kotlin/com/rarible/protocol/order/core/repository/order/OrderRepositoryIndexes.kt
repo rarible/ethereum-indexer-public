@@ -4,8 +4,7 @@ import com.rarible.protocol.order.core.model.*
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 
-internal object OrderRepositoryIndexes {
-
+object OrderRepositoryIndexes {
     private val SELL_ORDERS_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::createdAt.name, Sort.Direction.ASC)
@@ -98,7 +97,7 @@ internal object OrderRepositoryIndexes {
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .background()
 
-    private val BY_MAKE_STOCK_DEFINITION = Index()
+    val BY_MAKE_STOCK_DEFINITION = Index()
         // orders with non-zero makeStock should be first
         .on(Order::makeStock.name, Sort.Direction.DESC)
         // recently updated orders should be first

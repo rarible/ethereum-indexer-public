@@ -28,9 +28,9 @@ class MongoOrderRepository(
         )
     }
 
-    suspend fun createIndexes() {
+    override suspend fun createIndexes() {
         OrderRepositoryIndexes.ALL_INDEXES.forEach { index ->
-            template.indexOps(OrderVersionRepository.COLLECTION).ensureIndex(index).awaitFirst()
+            template.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
         }
     }
 
