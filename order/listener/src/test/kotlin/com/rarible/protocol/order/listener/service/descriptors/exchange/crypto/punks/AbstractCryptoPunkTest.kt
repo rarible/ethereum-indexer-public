@@ -17,6 +17,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -35,6 +36,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 import java.time.Instant
+import java.time.temporal.ChronoField
 import java.util.*
 
 @FlowPreview
@@ -48,12 +50,14 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
     protected lateinit var cryptoPunksMarket: CryptoPunksMarket
 
+    private lateinit var lastKafkaInstant: Instant
+
     @BeforeEach
     fun clearKafkaQueue() {
-        // Wait for a while to clean up the Kafka queue.
-        // TODO: invent a better way of cleaning up Kafka (use a testing library?)
-        Thread.sleep(400)
-        checkPublishedActivities { }
+        // TODO: invent a better way of cleaning up the Kafka queue [RPN-1019].
+        // Note! Here we should trim the time to seconds precious because the activities events will be created
+        // with time taken from blockchain (it is in seconds).
+        lastKafkaInstant = Instant.now().with(ChronoField.NANO_OF_SECOND, 0)
     }
 
     @BeforeEach
@@ -82,7 +86,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     protected fun checkPublishedActivities(assertBlock: suspend (List<ActivityDto>) -> Unit) = runBlocking {
         val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
         val job = async {
-            consumer.receive().collect { activities.add(it.value) }
+            consumer.receive().filter { it.value.date >= lastKafkaInstant }.collect { activities.add(it.value) }
         }
         try {
             Wait.waitAssert {
