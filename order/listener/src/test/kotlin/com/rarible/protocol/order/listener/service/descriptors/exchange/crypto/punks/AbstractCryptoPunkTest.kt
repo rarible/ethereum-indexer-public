@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
@@ -18,7 +17,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -50,11 +48,12 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
     protected lateinit var cryptoPunksMarket: CryptoPunksMarket
 
-    private lateinit var lastKafkaInstant: Instant
-
     @BeforeEach
     fun clearKafkaQueue() {
-        lastKafkaInstant = nowMillis()
+        // Wait for a while to clean up the Kafka queue.
+        // TODO: invent a better way of cleaning up Kafka (use a testing library?)
+        Thread.sleep(400)
+        checkPublishedActivities { }
     }
 
     @BeforeEach
@@ -83,7 +82,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     protected fun checkPublishedActivities(assertBlock: suspend (List<ActivityDto>) -> Unit) = runBlocking {
         val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
         val job = async {
-            consumer.receive().filter { it.value.date >= lastKafkaInstant }.collect { activities.add(it.value) }
+            consumer.receive().collect { activities.add(it.value) }
         }
         try {
             Wait.waitAssert {
