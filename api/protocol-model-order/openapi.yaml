@@ -561,7 +561,7 @@ components:
           RARIBLE_V1: "#/components/schemas/LegacyOrder"
           RARIBLE_V2: "#/components/schemas/RaribleV2Order"
           OPEN_SEA_V1: "#/components/schemas/OpenSeaV1Order"
-          CRYPTO_PUNK: "#/components/schemas/OpenSeaV1Order"
+          CRYPTO_PUNK: "#/components/schemas/CryptoPunkOrder"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrder"
         - "$ref": "#/components/schemas/RaribleV2Order"
