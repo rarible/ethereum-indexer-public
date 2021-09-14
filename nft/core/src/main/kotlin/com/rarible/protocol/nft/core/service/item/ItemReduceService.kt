@@ -6,7 +6,6 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.listener.log.domain.LogEventStatus.CONFIRMED
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -198,7 +197,7 @@ class ItemReduceService(
     private fun itemReducer(item: Item, log: HistoryLog): Item {
         val (event, status) = log
         return when (status.status) {
-            CONFIRMED -> {
+            LogEventStatus.CONFIRMED -> {
                 when (event) {
                     is ItemTransfer -> {
                         when {
@@ -304,7 +303,7 @@ class ItemReduceService(
                     address = Address.ZERO(),
                     topic = WORD_ZERO,
                     transactionHash = WORD_ZERO,
-                    status = CONFIRMED,
+                    status = LogEventStatus.CONFIRMED,
                     blockNumber = -1,
                     logIndex = -1,
                     index = 0,

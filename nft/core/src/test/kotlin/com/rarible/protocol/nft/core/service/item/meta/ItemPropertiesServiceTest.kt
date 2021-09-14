@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
@@ -47,7 +48,7 @@ class ItemPropertiesServiceTest {
         hashmasksCacheDescriptor,
         waifusionCacheDescriptor,
         mockk(),
-        OpenseaClient("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
+        OpenSeaCacheDescriptor("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
         ipfsService,
         temporaryItemPropertiesRepository,
         properties,

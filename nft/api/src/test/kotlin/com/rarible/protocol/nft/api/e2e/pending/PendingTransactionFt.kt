@@ -11,9 +11,6 @@ import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.misc.SignUtils
-import com.rarible.protocol.nft.api.service.item.meta.IpfsService
-import com.rarible.protocol.nft.api.service.item.meta.ItemPropertiesService
-import com.rarible.protocol.nft.api.service.item.meta.PropertiesCacheDescriptor
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.model.Item
@@ -21,6 +18,9 @@ import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepositor
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesCacheDescriptor
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -255,7 +255,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 hegicCacheDescriptor = mockk(),
                 hashmasksCacheDescriptor = mockk(),
                 waifusionCacheDescriptor = mockk(),
-                openseaClient = mockk(),
+                openSeaCacheDescriptor = mockk(),
                 yInsureAddress = Address.FOUR().toString(),
                 hegicAddress = Address.FOUR().toString(),
                 hashmasksAddress = Address.FOUR().toString(),

@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,10 +29,10 @@ class ItemPropertiesService(
     private val hashmasksCacheDescriptor: HashmasksCacheDescriptor,
     private val waifusionCacheDescriptor: WaifusionCacheDescriptor,
     private val cryptoPunksMetaService: CryptoPunksMetaService,
-    private val openseaClient: OpenseaClient,
+    private val openSeaCacheDescriptor: OpenSeaCacheDescriptor,
     private val ipfsService: IpfsService,
     private val temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository,
-    private val properties: NftIndexerProperties,
+    properties: NftIndexerProperties,
     @Value("\${api.yinsure.address}") yInsureAddress: String,
     @Value("\${api.hegic.address}") hegicAddress: String,
     @Value("\${api.hashmasks.address}") hashmasksAddress: String,
@@ -56,6 +57,7 @@ class ItemPropertiesService(
             }
     }
 
+    @Suppress("ReactiveStreamsUnusedPublisher")
     fun getProperties(token: Address, tokenId: BigInteger): Mono<ItemProperties> {
         return when (token) {
             yInsureAddress -> {
@@ -67,7 +69,7 @@ class ItemPropertiesService(
             hashmasksAddress -> {
                 getExternalItemProperties(tokenId, hashmasksCacheDescriptor)
                     .flatMap { itemProperties ->
-                        openseaClient.fetchAsset(token, tokenId)
+                        openSeaCacheDescriptor.fetchAsset(token, tokenId)
                             .map {
                                 itemProperties.copy(
                                     image = it.image?.let { url -> ipfsService.resolveIpfsUrl(url) },
@@ -118,6 +120,7 @@ class ItemPropertiesService(
         }
     }
 
+    @Suppress("ReactiveStreamsUnusedPublisher")
     fun resetProperties(token: Address, tokenId: BigInteger): Mono<Void> =
         listOf(
             when (token) {
@@ -128,13 +131,13 @@ class ItemPropertiesService(
                 CRYPTO_KITTIES -> resetCryptoKittiesProperties(tokenId)
                 else -> Mono.empty<Void>()
             },
-            openseaClient.resetAsset(token, tokenId),
+            openSeaCacheDescriptor.resetAsset(token, tokenId),
             temporaryItemPropertiesRepository.deleteById("$token:$tokenId"),
             resetStandardProperties(token, tokenId)
         ).map { it.onErrorResume { Mono.empty() } }.whenComplete()
 
     private fun getPropertiesFromOpensea(token: Address, tokenId: BigInteger): Mono<ItemProperties> {
-        return openseaClient.fetchAsset(token, tokenId)
+        return openSeaCacheDescriptor.fetchAsset(token, tokenId)
             .map {
                 it.copy(
                     image = it.image?.let { url -> ipfsService.resolveIpfsUrl(url) },

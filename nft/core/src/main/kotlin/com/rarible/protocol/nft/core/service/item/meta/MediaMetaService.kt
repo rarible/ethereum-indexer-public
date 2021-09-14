@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
@@ -118,24 +118,24 @@ class MediaMetaService(
         }.blockingToMono()
     }
 
+    private fun get(ins: InputStream): Triple<Int, Int, IIOMetadata> {
+        return ImageIO.createImageInputStream(ins).use { iis ->
+            val readers = ImageIO.getImageReaders(iis)
+            if (readers.hasNext()) {
+                val r = readers.next()
+                r.setInput(iis, true)
+                try {
+                    Triple(r.getWidth(0), r.getHeight(0), r.getImageMetadata(0))
+                } finally {
+                    r.dispose()
+                }
+            } else {
+                throw IOException("reader not found")
+            }
+        }
+    }
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(MediaMetaService::class.java)
-    }
-}
-
-private fun get(ins: InputStream): Triple<Int, Int, IIOMetadata> {
-    return ImageIO.createImageInputStream(ins).use { iis ->
-        val readers = ImageIO.getImageReaders(iis)
-        if (readers.hasNext()) {
-            val r = readers.next()
-            r.setInput(iis, true)
-            try {
-                Triple(r.getWidth(0), r.getHeight(0), r.getImageMetadata(0))
-            } finally {
-                r.dispose()
-            }
-        } else {
-            throw IOException("reader not found")
-        }
     }
 }

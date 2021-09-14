@@ -1,8 +1,7 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.cache.CacheDescriptor
-import com.rarible.protocol.contracts.external.hashmasks.Hashmasks
-import com.rarible.protocol.nft.api.service.item.meta.ExternalContracts.HASHMASKS
+import com.rarible.protocol.contracts.external.waifus.Waifus
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import org.apache.commons.lang3.time.DateUtils
@@ -13,13 +12,15 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-class HashmasksCacheDescriptor(
+class WaifusionCacheDescriptor(
     sender: MonoTransactionSender,
-    @Value("\${api.hashmasks.address}") hashmasksAddress: String,
-    @Value("\${api.hashmasks.cache-timeout}") private val cacheTimeout: Long
+    @Value("\${api.waifusion.address}") waifusionAddress: String,
+    @Value("\${api.waifusion.cache-timeout}") private val cacheTimeout: Long,
+    @Value("\${api.waifusion.ipfs-url-prefix}") private val waifusionIpfsUrlPrefix: String
 ) : CacheDescriptor<ItemProperties> {
-    private val hashmasks = Hashmasks(Address.apply(hashmasksAddress), sender)
-    final val token = HASHMASKS
+
+    private val waifusion = Waifus(Address.apply(waifusionAddress), sender)
+    final val token = "waifusion"
     override val collection: String = "cache_$token"
 
     override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
@@ -29,10 +30,10 @@ class HashmasksCacheDescriptor(
     }
 
     override fun get(id: String): Mono<ItemProperties> {
-        return hashmasks.tokenNameByIndex(id.toBigInteger()).call()
+        return waifusion.tokenNameByIndex(id.toBigInteger()).call()
             .flatMap { tuple ->
-                val name = if (tuple.isNullOrEmpty()) "Hashmask #$id" else tuple
-                hashmasks.ownerOf(id.toBigInteger()).call()
+                val name = if (tuple.isNullOrEmpty()) "Waifu #$id" else tuple
+                waifusion.ownerOf(id.toBigInteger()).call()
                     .map { ownerAddress ->
                         val attributes = listOf(
                             ItemAttribute("token", token),
@@ -40,9 +41,9 @@ class HashmasksCacheDescriptor(
                         )
                         ItemProperties(
                             name = name,
-                            description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
+                            description = "Waifusion is a digital Waifu collection. There are 16,384 guaranteed-unique Waifusion NFTs. They’re just like you; a beautiful work of art, but 2-D and therefore, superior, Anon-kun.",
+                            image = "$waifusionIpfsUrlPrefix/$id.png",
                             attributes = attributes,
-                            image = null,
                             imagePreview = null,
                             imageBig = null,
                             animationUrl = null

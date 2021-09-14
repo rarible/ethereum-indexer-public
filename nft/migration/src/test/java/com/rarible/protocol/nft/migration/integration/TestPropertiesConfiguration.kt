@@ -1,12 +1,14 @@
 package com.rarible.protocol.nft.migration.integration
 
 import com.rarible.core.lock.LockService
-import com.rarible.protocol.nft.api.service.item.meta.*
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
+import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
 import org.springframework.beans.factory.annotation.Autowired
@@ -49,7 +51,7 @@ class TestPropertiesConfiguration {
             hashmasksCacheDescriptor,
             waifusionCacheDescriptor,
             cryptoPunksMetaService,
-            OpenseaClient("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
+            OpenSeaCacheDescriptor("https://api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null),
             ipfsService,
             temporaryItemPropertiesRepository,
             properties,

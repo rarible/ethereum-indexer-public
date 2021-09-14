@@ -1,8 +1,7 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.hegic.Hegic
-import com.rarible.protocol.nft.api.service.item.meta.ExternalContracts.HEGIC
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import org.apache.commons.lang3.time.DateUtils
@@ -23,7 +22,7 @@ class HegicCacheDescriptor(
     @Value("\${api.properties.api-url}") private val apiUrl: String
 ) : CacheDescriptor<ItemProperties> {
     private val hegic = Hegic(Address.apply(hegicAddress), sender)
-    final val token = HEGIC
+    final val token = "hegic"
     override val collection: String = "cache_$token"
 
     override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
@@ -56,7 +55,7 @@ class HegicCacheDescriptor(
                 val expirationDateUTCText = formatterUTC.format(expirationDate)
                 hegic.getOptionCostETH(period, amount, strike, optionType).call()
                     .map {
-                       val ethCost = String.format(Locale.ENGLISH, "%,d", it.divide(BigInteger.TEN.pow(16)).toLong())
+                        val ethCost = String.format(Locale.ENGLISH, "%,d", it.divide(BigInteger.TEN.pow(16)).toLong())
                         val attributes = listOf(
                             ItemAttribute("token", token),
                             ItemAttribute("state", tuple._1().toString()),

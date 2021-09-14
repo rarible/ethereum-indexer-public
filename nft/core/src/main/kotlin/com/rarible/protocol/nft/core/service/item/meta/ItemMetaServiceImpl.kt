@@ -1,9 +1,11 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
+import com.rarible.protocol.nft.core.model.ItemProperties
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.jboss.logging.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
@@ -14,7 +16,7 @@ class ItemMetaServiceImpl(
     private val contentMetaService: ContentMetaService
 ) : ItemMetaService {
 
-    private val logger = Logger.getLogger(this::class.java)
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     override suspend fun getItemMetadata(itemId: ItemId): ItemMeta {
         return itemPropertiesService.getProperties(itemId.token, itemId.tokenId.value)

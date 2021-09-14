@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service

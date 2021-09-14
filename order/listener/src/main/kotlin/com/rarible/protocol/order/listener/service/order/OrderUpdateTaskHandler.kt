@@ -8,7 +8,7 @@ import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.time.delay
-import org.jboss.logging.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.util.*
@@ -19,7 +19,7 @@ class OrderUpdateTaskHandler(
     private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties
 ) : TaskHandler<Long> {
-    private val logger = Logger.getLogger(javaClass)
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     override val type: String
         get() = ORDER_UPDATE
