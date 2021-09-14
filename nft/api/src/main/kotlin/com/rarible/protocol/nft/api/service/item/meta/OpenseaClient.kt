@@ -85,7 +85,7 @@ class OpenseaClient(
                 .bodyToMono<ObjectNode>()
                 .map {
                     ItemProperties(
-                        name = it.getText("name") ?: "Untitled",
+                        name = it.getText("name") ?: "#$tokenId",
                         description = it.getText("description"),
                         image = it.getText("image_original_url") ?: it.getText("image_url"),
                         imagePreview = it.getText("image_preview_url"),

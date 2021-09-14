@@ -145,6 +145,13 @@ class ItemPropertiesServiceTest {
 
     @Test
     @Disabled
+    internal fun boredApeYachtClub() {
+        val properties = testing.getProperties(Address.apply("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"), BigInteger.valueOf(9786)).block()!!
+        assertEquals("#9786", properties.name)
+    }
+
+    @Test
+    @Disabled
     fun goldenStellaWithAnimationUrl() {
         val props = testing.getProperties(Address.apply("0xdb7e971d39367b20bcf4df5ae2da0fa4261bf0e8"), 426.toBigInteger()).block()!!
         assertEquals(props.name, "Golden Stella [Batch 1]")
