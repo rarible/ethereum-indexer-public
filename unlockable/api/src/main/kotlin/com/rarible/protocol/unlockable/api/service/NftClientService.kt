@@ -18,7 +18,7 @@ class NftClientService(
 ) {
 
     suspend fun getItem(id: String): NftItemDto? {
-        return nftItemControllerApi.getNftItemById(id, false).awaitFirstOrNull()
+        return nftItemControllerApi.getNftItemById(id).awaitFirstOrNull()
     }
 
     suspend fun hasItem(contract: Address, tokenId: BigInteger, signerAddress: Address): Boolean {

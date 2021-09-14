@@ -275,12 +275,6 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
-        - name: includeMeta
-          in: query
-          description: "Include NFT item metadata"
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           description: OK
@@ -317,11 +311,6 @@ paths:
           schema:
             type: integer
             format: int32
-        - name: includeMeta
-          in: query
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -352,11 +341,6 @@ paths:
           schema:
             type: integer
             format: int32
-        - name: includeMeta
-          in: query
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -387,11 +371,6 @@ paths:
           schema:
             type: integer
             format: int32
-        - name: includeMeta
-          in: query
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -444,12 +423,6 @@ paths:
             type: integer
             format: int64
           example: 1631782725
-        - name: includeMeta
-          in: query
-          description: "Include NFT item metadata"
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"

@@ -11,6 +11,7 @@ import com.rarible.protocol.nftorder.core.event.ItemEvent
 import com.rarible.protocol.nftorder.core.event.ItemEventDelete
 import com.rarible.protocol.nftorder.core.event.ItemEventListener
 import com.rarible.protocol.nftorder.core.event.ItemEventUpdate
+import com.rarible.protocol.nftorder.core.model.ExtendedItem
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
@@ -53,7 +54,7 @@ class ItemEventService(
                         itemId, currentSellStats, refreshedSellStats
                     )
                     itemService.save(updatedItem)
-                    notify(ItemEventUpdate(updatedItem))
+                    notify(ItemEventUpdate(updatedItem.extendWithMeta()))
                 } else {
                     logger.debug(
                         "Sell stats of Item [{}] are the same as before Ownership event [{}], skipping update",
@@ -79,10 +80,10 @@ class ItemEventService(
                     unlockable = existing.unlockable
                 )
                 val saved = updateItem(existing, updated)
-                notify(ItemEventUpdate(saved))
+                notify(ItemEventUpdate(ExtendedItem(saved, nftItem.meta)))
             } else {
                 // Otherwise, we just proxy original event
-                notify(ItemEventUpdate(received))
+                notify(ItemEventUpdate(ExtendedItem(received, nftItem.meta)))
             }
         }
     }
@@ -107,11 +108,11 @@ class ItemEventService(
             if (item != updated) {
                 if (EnrichmentDataVerifier.isItemNotEmpty(updated)) {
                     itemService.save(updated)
-                    notify(ItemEventUpdate(updated))
+                    notify(ItemEventUpdate(updated.extendWithMeta()))
                 } else if (!fetchedItem.isFetched) {
                     itemService.delete(itemId)
                     logger.info("Deleted Item [{}] without enrichment data", itemId)
-                    notify(ItemEventUpdate(updated))
+                    notify(ItemEventUpdate(updated.extendWithMeta()))
                 }
             }
         }
@@ -150,8 +151,11 @@ class ItemEventService(
         logger.info("Updating Item [{}] marked as Unlockable", itemId)
         val item = itemService.getOrFetchItemById(itemId).entity.copy(unlockable = true)
         itemService.save(item)
-        notify(ItemEventUpdate(item))
+        notify(ItemEventUpdate(item.extendWithMeta()))
     }
+
+    // NOTE! This method may be slow, we need to monitor it and maybe off load metadata fetching to dedicated workers.
+    private suspend fun Item.extendWithMeta() = ExtendedItem(this, itemService.fetchItemMetaById(id))
 
     private suspend fun notify(event: ItemEvent) {
         itemEventListeners.forEach { it.onEvent(event) }

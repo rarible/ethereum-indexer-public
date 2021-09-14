@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.configuration
 
+import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -13,5 +14,7 @@ data class NftIndexerProperties(
     val blockchain: Blockchain,
     var cryptoPunksContractAddress: String,
     var openseaLazyMintAddress: String,
-    var royaltyRegistryAddress: String
+    var royaltyRegistryAddress: String,
+    val nftItemMetaExtenderWorkersCount: Int = 4,
+    val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties()
 )

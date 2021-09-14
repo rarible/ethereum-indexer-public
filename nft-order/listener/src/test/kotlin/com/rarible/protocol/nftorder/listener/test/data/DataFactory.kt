@@ -41,6 +41,13 @@ fun randomItem(itemId: ItemId, vararg creators: Part): Item {
     )
 }
 
+fun randomNftItemMeta() = NftItemMetaDto(
+    name = randomString(),
+    description = randomString(),
+    attributes = listOf(NftItemAttributeDto(randomString(), randomString())),
+    image = null,
+    animation = null
+)
 fun randomNftItemDto(itemId: ItemId, vararg creators: PartDto): NftItemDto {
     return NftItemDto(
         id = itemId.decimalStringValue,
@@ -54,7 +61,7 @@ fun randomNftItemDto(itemId: ItemId, vararg creators: PartDto): NftItemDto {
         owners = emptyList(),
         pending = emptyList(),
         deleted = false,
-        meta = null
+        meta = randomNftItemMeta()
     )
 }
 

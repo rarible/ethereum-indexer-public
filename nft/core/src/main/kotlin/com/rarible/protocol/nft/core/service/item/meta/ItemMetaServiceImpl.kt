@@ -25,11 +25,11 @@ class ItemMetaServiceImpl(
             }
             .onErrorResume {
                 logger.warn("Unable to load item properties for $itemId: $it")
-                Mono.just(FAKE_PROPS)
+                Mono.just(ItemProperties.EMPTY)
             }
             .switchIfEmpty {
                 logger.warn("properties not found for $itemId")
-                Mono.just(FAKE_PROPS)
+                Mono.just(ItemProperties.EMPTY)
             }
             .flatMap { properties ->
                 contentMetaService.getByProperties(properties)
@@ -77,6 +77,5 @@ class ItemMetaServiceImpl(
 
     companion object {
         val ANIMATION_EXPANSIONS = setOf(".mov", ".mp4")
-        val FAKE_PROPS = ItemProperties(name = "Untitled", description = null, image = null, imagePreview = null, imageBig = null, attributes = listOf())
     }
 }

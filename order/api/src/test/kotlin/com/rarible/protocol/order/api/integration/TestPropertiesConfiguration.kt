@@ -61,7 +61,7 @@ class TestPropertiesConfiguration {
     @Primary
     fun mockedNftItemApi(): NftItemControllerApi {
         return mockk {
-            every { getNftItemById(any(), any()) } returns Mono.just(createNftItemDto())
+            every { getNftItemById(any()) } returns Mono.just(createNftItemDto())
         }
     }
 

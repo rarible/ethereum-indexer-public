@@ -66,13 +66,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
         val tokenId = BigInteger.TEN
         val id = "$collection:$tokenId"
 
-        val itemMetaDto = NftItemMetaDto(
-            name = "Test",
-            description = null,
-            attributes = null,
-            image = null,
-            animation = null
-        )
+        val itemMetaDto = createItemMeta()
 
         mockNftServerClient
             .`when`(
@@ -88,6 +82,16 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
 
         val result = nftItemApi.getNftItemMetaById(id).awaitFirst()
         assertThat(result).isEqualTo(itemMetaDto)
+    }
+
+    private fun createItemMeta(): NftItemMetaDto {
+        return NftItemMetaDto(
+            name = "Test",
+            description = null,
+            attributes = null,
+            image = null,
+            animation = null
+        )
     }
 
     @Test
@@ -142,7 +146,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             deleted = false,
             pending = emptyList(),
             date = null,
-            meta = null
+            meta = createItemMeta()
         )
         mockNftServerClient
             .`when`(
@@ -178,7 +182,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             unlockable = true,
             pending = emptyList(),
             date = nowMillis(),
-            meta = null,
+            meta = createItemMeta(),
             sellers = 0
         )
         mockNftServerClient
@@ -193,7 +197,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
                     .withBody(mapper.writeValueAsBytes(itemDto))
             )
 
-        val result = nftItemApi.getNftItemById(itemDto.id, false).awaitFirst()
+        val result = nftItemApi.getNftItemById(itemDto.id).awaitFirst()
         assertThat(result).isEqualTo(itemDto)
     }
 

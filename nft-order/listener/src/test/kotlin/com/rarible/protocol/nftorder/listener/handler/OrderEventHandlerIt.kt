@@ -7,7 +7,6 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import io.daonomic.rpc.domain.Word
@@ -18,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigInteger
 
 @IntegrationTest
-class OrderEventHandlerIt : AbstractIntegrationTest() {
+class OrderEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     lateinit var orderEventHandler: OrderEventHandler

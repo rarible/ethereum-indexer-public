@@ -6,7 +6,6 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.OwnershipService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
+internal class OwnershipEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     private lateinit var ownershipEventHandler: OwnershipEventHandler

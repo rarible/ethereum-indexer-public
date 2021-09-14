@@ -14,8 +14,8 @@ class ItemController(
     private val itemApiService: ItemApiService
 ) : NftOrderItemControllerApi {
 
-    override suspend fun getNftOrderItemById(itemId: String, includeMeta: Boolean?): ResponseEntity<NftOrderItemDto> {
-        val result = itemApiService.getItemById(ItemId.parseId(itemId), includeMeta)
+    override suspend fun getNftOrderItemById(itemId: String): ResponseEntity<NftOrderItemDto> {
+        val result = itemApiService.getItemById(ItemId.parseId(itemId))
         return ResponseEntity.ok(result)
     }
 
@@ -24,41 +24,36 @@ class ItemController(
         size: Int?,
         showDeleted: Boolean?,
         lastUpdatedFrom: Long?,
-        lastUpdatedTo: Long?,
-        includeMeta: Boolean?
+        lastUpdatedTo: Long?
     ): ResponseEntity<NftOrderItemsPageDto> {
-        val result =
-            itemApiService.getAllItems(continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo, includeMeta)
+        val result = itemApiService.getAllItems(continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderItemsByOwner(
         owner: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftOrderItemsPageDto> {
-        val result = itemApiService.getItemsByOwner(owner, continuation, size, includeMeta)
+        val result = itemApiService.getItemsByOwner(owner, continuation, size)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderItemsByCreator(
         creator: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftOrderItemsPageDto> {
-        val result = itemApiService.getItemsByCreator(creator, continuation, size, includeMeta)
+        val result = itemApiService.getItemsByCreator(creator, continuation, size)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderItemsByCollection(
         collection: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftOrderItemsPageDto> {
-        val result = itemApiService.getItemsByCollection(collection, continuation, size, includeMeta)
+        val result = itemApiService.getItemsByCollection(collection, continuation, size)
         return ResponseEntity.ok(result)
     }
 

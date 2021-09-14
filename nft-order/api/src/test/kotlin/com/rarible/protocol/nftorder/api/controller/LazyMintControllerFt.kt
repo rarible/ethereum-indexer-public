@@ -10,7 +10,6 @@ import com.rarible.protocol.nftorder.listener.test.mock.data.randomNftItemDto
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -21,8 +20,7 @@ internal class LazyMintControllerFt : AbstractFunctionalTest() {
     private lateinit var nftOrderLazyMintControllerApi: NftOrderLazyMintControllerApi
 
     @Test
-    @Disabled
-    fun `mint asset`() = runBlocking<Unit> {
+    fun `mint asset`() = runBlocking {
         val itemId = randomItemId()
         val lazyNft = randomLazyErc721Dto(itemId)
         val nftItemDto = randomNftItemDto(itemId)

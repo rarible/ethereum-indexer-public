@@ -4,7 +4,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -27,9 +26,6 @@ class ContentMetaServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var itemMetaService: ItemMetaService
-
-    @Autowired
-    private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
 
     @Test
     fun testFetchCachedMeta() = runBlocking<Unit> {

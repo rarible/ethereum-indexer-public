@@ -109,13 +109,13 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val item = createItem()
         itemRepository.save(item).awaitFirst()
 
-        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue, null).awaitFirst()
+        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst()
         assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
         assertThat(itemDto.contract).isEqualTo(item.token)
         assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
         assertThat(itemDto.supply).isEqualTo(item.supply.value)
         assertThat(itemDto.owners).isEqualTo(item.owners)
-        assertThat(itemDto.meta).isNull()
+        assertThat(itemDto.meta).isNotNull
 
         assertThat(itemDto.creators.size).isEqualTo(item.creators.size)
         itemDto.creators.forEachIndexed { index, partDto ->
@@ -128,7 +128,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             assertThat(royaltyDto.value).isEqualTo(item.royalties[index].value)
         }
 
-        val list = nftItemApiClient.getNftItemsByOwner(item.owners.first().hex(), null, null, null).awaitFirst()
+        val list = nftItemApiClient.getNftItemsByOwner(item.owners.first().hex(), null, null).awaitFirst()
         assertThat(list.items)
             .hasSize(1)
         assertThat(list.items.firstOrNull())
@@ -141,17 +141,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should get item with meta`() = runBlocking<Unit> {
-        val item = createItem()
-        itemRepository.save(item).awaitFirst()
-
-        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue, true).awaitFirst()
-        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
-        assertThat(itemDto.meta).isNotNull
-    }
-
-    @Test
-    fun `should get all items by owner`() = runBlocking<Unit> {
+    fun `should get all items by owner`() = runBlocking {
         val owner = AddressFactory.create()
         val item1 = createItem().copy(owners = listOf(owner))
         val item2 = createItem().copy(owners = listOf(owner, AddressFactory.create()))
@@ -173,7 +163,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val allItems = mutableListOf<NftItemDto>()
         var continuation: String? = null
         do {
-            val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), continuation, 2, false).awaitFirst()
+            val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), continuation, 2).awaitFirst()
             assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(2)
 
             allItems.addAll(itemsDto.items)
@@ -190,7 +180,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             item5.id.decimalStringValue
         )
         allItems.forEach {
-            assertThat(it.meta).isNull()
+            assertThat(it.meta).isNotNull
         }
     }
 
@@ -201,14 +191,14 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
         listOf(item1).forEach { itemRepository.save(it).awaitFirst() }
 
-        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 2, false).awaitFirst()
+        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 2).awaitFirst()
 
         assertNull(itemsDto.continuation)
         assertThat(itemsDto.items).hasSize(1)
     }
 
     @Test
-    fun `should get all items with meta`() = runBlocking<Unit> {
+    fun `should get all items with meta`() = runBlocking {
         val owner = AddressFactory.create()
         val item1 = createItem().copy(owners = listOf(owner))
         val item2 = createItem().copy(owners = listOf(owner))
@@ -224,7 +214,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             item5
         ).forEach { itemRepository.save(it).awaitFirst() }
 
-        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 10, true).awaitFirst()
+        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 10).awaitFirst()
 
         assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(5)
 

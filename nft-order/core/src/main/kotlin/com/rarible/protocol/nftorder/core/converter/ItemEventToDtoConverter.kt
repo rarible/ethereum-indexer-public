@@ -17,8 +17,8 @@ object ItemEventToDtoConverter : Converter<ItemEvent, NftOrderItemEventDto> {
         return when (source) {
             is ItemEventUpdate -> NftOrderItemUpdateEventDto(
                 source.id,
-                source.item.id.decimalStringValue,
-                ItemToDtoConverter.convert(source.item)
+                source.item.item.id.decimalStringValue,
+                ExtendedItemToDtoConverter.convert(source.item)
             )
             is ItemEventDelete -> {
                 NftOrderItemDeleteEventDto(
@@ -33,5 +33,4 @@ object ItemEventToDtoConverter : Converter<ItemEvent, NftOrderItemEventDto> {
             }
         }
     }
-
 }

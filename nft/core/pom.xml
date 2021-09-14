@@ -52,6 +52,10 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-daemon</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-application</artifactId>
         </dependency>
         <dependency>

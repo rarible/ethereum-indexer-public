@@ -16,7 +16,7 @@ class NftAssetService(
         val nftAsserts = mutableListOf<Item>()
 
         do {
-            val items = nftItemApi.getNftItemsByOwner(owner.hex(), continuation, null, null).awaitFirst()
+            val items = nftItemApi.getNftItemsByOwner(owner.hex(), continuation, null).awaitFirst()
 
             nftAsserts.addAll(items.items.map { item ->
                 Item(
