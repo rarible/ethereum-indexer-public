@@ -8,7 +8,6 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import org.springframework.context.annotation.Bean
@@ -54,11 +53,6 @@ class RepositoryConfiguration(
     @Bean
     fun clock(): Clock {
         return Clock.systemUTC()
-    }
-
-    @Bean
-    fun itemPropertyRepository(clock: Clock): ItemPropertyRepository {
-        return ItemPropertyRepository(mongo, clock)
     }
 
     @Bean

@@ -20,7 +20,6 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
-import com.rarible.protocol.nft.core.repository.item.ItemPropertyRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -236,9 +235,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         fun mockIpfsService(): IpfsService {
             return mockk()
         }
-
-        @Autowired
-        private lateinit var itemPropertyRepository: ItemPropertyRepository
 
         @Autowired
         private lateinit var nftIndexerProperties: NftIndexerProperties
