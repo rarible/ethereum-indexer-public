@@ -43,7 +43,6 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
                 marketAddress = source.contract,
                 punkId = source.punkId
             )
-            is FlowAssetTypeDto -> throw IllegalArgumentException("Unsupported assert type ${source.javaClass} ")
         }
     }
 }

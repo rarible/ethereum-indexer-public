@@ -49,7 +49,6 @@ class OrderEventService(
             is CryptoPunksAssetTypeDto -> ItemId.of(assetType.contract, assetType.punkId.toBigInteger())
             is GenerativeArtAssetTypeDto -> null
             is EthAssetTypeDto -> null
-            is FlowAssetTypeDto -> null
             is Erc20AssetTypeDto -> null
         }
     }
