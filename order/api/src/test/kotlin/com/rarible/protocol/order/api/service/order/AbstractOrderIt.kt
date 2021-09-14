@@ -48,6 +48,11 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
 
+    fun orderCryptoPunksData(maker: Address) = orderCryptoPunksData(
+        maker,
+        Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    )
+
     fun createOrder(maker: Address, make: Asset) = createOrder(
         maker = maker,
         taker = null,
@@ -87,6 +92,25 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis(),
         platform = Platform.OPEN_SEA
+    )
+
+    fun orderCryptoPunksData(maker: Address, make: Asset) = Order(
+        maker = maker,
+        taker = null,
+        make = make,
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        makeStock = make.value,
+        type = OrderType.CRYPTO_PUNKS,
+        fill = EthUInt256.ZERO,
+        cancelled = false,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderCryptoPunksData,
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        platform = Platform.CRYPTO_PUNKS
     )
 
     @PostConstruct
