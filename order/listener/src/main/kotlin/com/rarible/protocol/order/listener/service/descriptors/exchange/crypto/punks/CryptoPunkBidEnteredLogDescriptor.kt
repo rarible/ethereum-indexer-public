@@ -33,7 +33,7 @@ class CryptoPunkBidEnteredLogDescriptor(
                     maker = bidderAddress,
                     taker = null,
                     make = Asset(EthAssetType, EthUInt256(bidPrice)),
-                    take = Asset(CryptoPunksAssetType(marketAddress, punkIndex.toInt()), EthUInt256.ONE),
+                    take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256.of(punkIndex)), EthUInt256.ONE),
                     type = OrderType.CRYPTO_PUNKS,
                     salt = CRYPTO_PUNKS_SALT,
                     start = null,

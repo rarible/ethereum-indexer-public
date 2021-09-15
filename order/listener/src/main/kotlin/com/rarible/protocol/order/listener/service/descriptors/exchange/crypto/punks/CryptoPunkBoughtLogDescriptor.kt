@@ -39,7 +39,7 @@ class CryptoPunkBoughtLogDescriptor(
     override suspend fun convert(log: Log, date: Instant): List<OrderExchangeHistory> {
         val punkBoughtEvent = PunkBoughtEvent.apply(log)
         val marketAddress = log.address()
-        val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, punkBoughtEvent.punkIndex().toInt())
+        val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkBoughtEvent.punkIndex()))
         val sellerAddress = punkBoughtEvent.fromAddress()
         val buyerAddress = getBuyerAddress(punkBoughtEvent)
         if (buyerAddress == transferProxyAddresses.cryptoPunksTransferProxy) {

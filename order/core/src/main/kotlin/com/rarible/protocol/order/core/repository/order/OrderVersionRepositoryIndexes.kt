@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
@@ -35,36 +35,36 @@ internal object OrderVersionRepositoryIndexes {
         .background()
 
     val COLLECTION_BID_DEFINITION: Index = Index()
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::nft.name}", Sort.Direction.ASC)
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
     val COLLECTION_LIST_DEFINITION: Index = Index()
-        .on("${OrderVersion::make.name}.${Asset::type.name}.${Erc721AssetType::nft.name}", Sort.Direction.ASC)
-        .on("${OrderVersion::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
     val ITEM_LIST_DEFINITION: Index = Index()
-        .on("${OrderVersion::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-        .on("${OrderVersion::make.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
     val ITEM_BID_DEFINITION: Index = Index()
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
     private val ITEM_TAKE_PRICE_BID_DEFINITION: Index = Index()
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::token.name}", Sort.Direction.ASC)
-        .on("${OrderVersion::take.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(OrderVersion::takePriceUsd.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()

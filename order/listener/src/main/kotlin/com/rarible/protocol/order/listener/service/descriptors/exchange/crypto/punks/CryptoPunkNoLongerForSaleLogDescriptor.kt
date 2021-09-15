@@ -51,7 +51,7 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
         val marketAddress = log.address()
         val orderHash = Order.hashKey(
             maker = ownerAddress,
-            makeAssetType = CryptoPunksAssetType(marketAddress, punkIndex.value.toInt()),
+            makeAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)),
             takeAssetType = EthAssetType,
             salt = CRYPTO_PUNKS_SALT.value
         )
@@ -59,7 +59,7 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
             OrderCancel(
                 hash = orderHash,
                 maker = ownerAddress,
-                make = Asset(CryptoPunksAssetType(marketAddress, punkIndex.value.toInt()), EthUInt256.ONE),
+                make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE),
                 take = Asset(EthAssetType, EthUInt256.ZERO),
                 date = date,
                 source = HistorySource.CRYPTO_PUNKS

@@ -68,10 +68,10 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
         assetMakeBalanceAnswers = r@ { order ->
             val assetType = order.make.type as? CryptoPunksAssetType ?: return@r null
-            if (assetType.marketAddress != cryptoPunksMarket.address()) {
+            if (assetType.token != cryptoPunksMarket.address()) {
                 return@r null
             }
-            val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.punkId.toBigInteger()).awaitSingle()
+            val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.tokenId.value).awaitSingle()
             if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO
         }
     }

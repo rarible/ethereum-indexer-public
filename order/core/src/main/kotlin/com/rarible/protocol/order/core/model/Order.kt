@@ -472,7 +472,7 @@ val AssetType.token: Address
             is Erc20AssetType -> token
             is Erc721LazyAssetType -> token
             is GenerativeArtAssetType, is EthAssetType -> Address.ZERO()
-            is CryptoPunksAssetType -> marketAddress
+            is CryptoPunksAssetType -> token
             is EthAssetType -> Address.ZERO()
         }
     }

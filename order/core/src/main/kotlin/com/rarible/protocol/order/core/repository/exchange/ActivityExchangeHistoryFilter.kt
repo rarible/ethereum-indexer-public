@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.model.ActivitySort
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -108,8 +107,8 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
 
 sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFilter() {
     protected companion object {
-        val makeNftContractKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / Erc721AssetType::token
-        val takeNftContractKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / Erc721AssetType::token
+        val makeNftContractKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
+        val takeNftContractKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::token
     }
 
     data class ByCollectionSell(override val sort: ActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
@@ -135,8 +134,8 @@ sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFi
 
 sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHistoryFilter() {
     protected companion object {
-        val makeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / Erc721AssetType::tokenId
-        val takeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / Erc721AssetType::tokenId
+        val makeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::tokenId
+        val takeNftTokenIdKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::tokenId
     }
 
     data class ByItemSell(override val sort: ActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {

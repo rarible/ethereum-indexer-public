@@ -73,6 +73,18 @@ sealed class AssetType(
     }
 }
 
+/**
+ * Base class for NFT-like AssetType-s (ERC721, ERC1155, etc).
+ */
+sealed class NftAssetType(
+    type: Binary,
+    data: Binary,
+    nft: Boolean
+) : AssetType(type, data, nft) {
+    abstract val token: Address
+    abstract val tokenId: EthUInt256
+}
+
 data class GenerativeArtAssetType(val token: Address) : AssetType(GEN_ART, AddressType.encode(token), false) {
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
@@ -91,7 +103,7 @@ data class Erc20AssetType(val token: Address) : AssetType(ERC20, AddressType.enc
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
-data class Erc721AssetType(val token: Address, val tokenId: EthUInt256) : AssetType(
+data class Erc721AssetType(override val token: Address, override val tokenId: EthUInt256) : NftAssetType(
     ERC721, Tuples.addressUintType().encode(Tuple2(token, tokenId.value)), true
 ) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ERC721, token, tokenId.value)
@@ -104,7 +116,7 @@ data class Erc721AssetType(val token: Address, val tokenId: EthUInt256) : AssetT
     }
 }
 
-data class Erc1155AssetType(val token: Address, val tokenId: EthUInt256) : AssetType(
+data class Erc1155AssetType(override val token: Address, override val tokenId: EthUInt256) : NftAssetType(
     ERC1155, Tuples.addressUintType().encode(Tuple2(token, tokenId.value)), true
 ) {
     override fun toLegacy() = LegacyAssetType(LegacyAssetTypeClass.ERC1155, token, tokenId.value)
@@ -118,13 +130,13 @@ data class Erc1155AssetType(val token: Address, val tokenId: EthUInt256) : Asset
 }
 
 data class Erc721LazyAssetType(
-    val token: Address,
-    val tokenId: EthUInt256,
+    override val token: Address,
+    override val tokenId: EthUInt256,
     val uri: String,
     val creators: List<Part>,
     val royalties: List<Part>,
     val signatures: List<Binary>
-) : AssetType(
+) : NftAssetType(
     type = ERC721_LAZY,
     data = Tuples.lazy721Type().encode(Tuple2(
         token,
@@ -155,14 +167,14 @@ data class Erc721LazyAssetType(
 }
 
 data class Erc1155LazyAssetType(
-    val token: Address,
-    val tokenId: EthUInt256,
+    override val token: Address,
+    override val tokenId: EthUInt256,
     val uri: String,
     val supply: EthUInt256,
     val creators: List<Part>,
     val royalties: List<Part>,
     val signatures: List<Binary>
-) : AssetType(
+) : NftAssetType(
     type = ERC1155_LAZY,
     data = Tuples.lazy1155Type().encode(Tuple2(
         token,
@@ -194,15 +206,18 @@ data class Erc1155LazyAssetType(
     }
 }
 
-data class CryptoPunksAssetType(val marketAddress: Address, val punkId: Int) : AssetType(
+data class CryptoPunksAssetType(
+    override val token: Address,
+    override val tokenId: EthUInt256
+) : NftAssetType(
     type = CRYPTO_PUNKS,
-    data = Tuples.addressUintType().encode(Tuple2(marketAddress, BigInteger.valueOf(punkId.toLong()))),
+    data = Tuples.addressUintType().encode(Tuple2(token, tokenId.value)),
     nft = true
 ) {
     companion object {
         fun apply(data: Binary) = run {
             val decoded = Tuples.addressUintType().decode(data, 0)
-            CryptoPunksAssetType(decoded.value()._1, decoded.value()._2.toInt())
+            CryptoPunksAssetType(decoded.value()._1, EthUInt256(decoded.value()._2))
         }
     }
 }
