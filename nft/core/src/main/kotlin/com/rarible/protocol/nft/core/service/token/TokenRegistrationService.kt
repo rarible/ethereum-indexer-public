@@ -3,12 +3,14 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
+import com.rarible.core.common.*
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
+import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -19,7 +21,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
 import reactor.kotlin.core.publisher.toMono
-import com.rarible.core.common.*
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.util.*
@@ -94,13 +95,21 @@ class TokenRegistrationService(
             .onErrorResume { Mono.just(Optional.empty()) }
     }
 
-    private fun fetchStandard(address: Address): Mono<TokenStandard> {
+    internal fun fetchStandard(address: Address): Mono<TokenStandard> {
         val contract = IERC721(address, sender)
         return Flux.fromIterable(TokenStandard.values().filter { it.interfaceId != null })
             .flatMap {
                 contract.supportsInterface(it.interfaceId!!.bytes())
-                    .onErrorReturn(false)
-                    .map { supported -> it to supported }
+                    .onErrorResume { error ->
+                        if (error is RpcCodeException || error is IllegalArgumentException) {
+                            Mono.just(false)
+                        } else {
+                            Mono.error(error)
+                        }
+                    }
+                    .map { supported ->
+                        it to supported
+                    }
             }
             .collectList()
             .map { all ->

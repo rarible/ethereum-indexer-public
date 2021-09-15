@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coVerify
@@ -51,11 +52,12 @@ class OrderServiceIt : AbstractOrderIt() {
     private lateinit var protocolOrderPublisher: ProtocolOrderPublisher
 
     @BeforeEach
-    fun beforeEach() {
+    fun beforeEach() = runBlocking {
         runBlocking<Unit> {
             orderVersionRepository.deleteAll().awaitFirstOrNull()
             mongo.remove<Order>().allAndAwait()
         }
+        orderRepository.createIndexes()
     }
 
     companion object {

@@ -16,6 +16,7 @@ interface OrderRepository {
      * Still there are possible use-cases for using this method: to update transient order's fields (`makeStock`) for example.
      * @see [com.rarible.protocol.order.core.service.OrderUpdateService]
      */
+
     suspend fun save(order: Order, previousOrderVersion: Order? = null): Order
 
     suspend fun findById(hash: Word): Order?
@@ -36,5 +37,6 @@ interface OrderRepository {
 
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order>
 
+    suspend fun createIndexes()
 }
 

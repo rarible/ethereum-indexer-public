@@ -7,6 +7,8 @@ import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
+import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -15,26 +17,30 @@ object OrderFilterCriteria {
     fun OrderFilterDto.toCriteria(continuation: String?, limit: Int?): Query {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
-        val criteria = when (this) {
-            is OrderFilterAllDto -> Criteria()
-            is OrderFilterSellDto -> sell()
-            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker)
-            is OrderFilterSellByCollectionDto -> sellByCollection(collection)
-            is OrderFilterSellByMakerDto -> sellByMaker(maker)
-            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker)
-            is OrderFilterBidByMakerDto -> bidByMaker(maker)
-
+        val (criteria, hint) = when (this) {
+            is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
+            is OrderFilterSellDto -> sell().withNoHint()
+            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker).withNoHint()
+            is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
+            is OrderFilterSellByMakerDto -> sellByMaker(maker).withNoHint()
+            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
+            is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
+
         val requestLimit = limit.limit()
-        return Query(
+
+        val query = Query(
             criteria
                 .forPlatform(convert(platform))
                 .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
-        ).limit(requestLimit).with(
-            sort(this.sort)
-        )
+        ).limit(requestLimit).with(sort(this.sort))
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        return query
     }
 
     private fun sort(sort: OrderFilterDto.Sort): Sort {
@@ -147,4 +153,7 @@ object OrderFilterCriteria {
         }
 
     private fun convert(platform: PlatformDto?): Platform? = PlatformConverter.convert(platform)
+
+    private infix fun Criteria.withHint(index: Document) = Pair(this, index)
+    private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
 }

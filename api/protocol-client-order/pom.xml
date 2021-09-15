@@ -12,7 +12,6 @@
     <artifactId>protocol-client-order</artifactId>
     <packaging>jar</packaging>
 
-
     <dependencies>
         <dependency>
             <groupId>com.rarible.protocol</groupId>
