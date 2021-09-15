@@ -271,16 +271,19 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: returns Item by identifier
+      description: Returns NFT by item identifier
       operationId: getNftItemById
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
         - name: includeMeta
           in: query
+          description: "Include NFT item metadata"
           required: false
           schema:
             type: boolean
