@@ -70,8 +70,8 @@ class PropertiesCacheDescriptor(
                 .flatMap { uri ->
                     logger.info(marker, "got uri: $uri")
                     when {
-                        uri.startsWith("http") -> getByUri(uri)
-                        uri.isNotEmpty() -> getFromBase64(uri)
+                        isBase64String(uri) -> getFromBase64(uri)
+                        uri.isNotEmpty() -> getByUri(uri)
                         else -> {
                             logger.warn(marker, "unable to get metadata for $id: token URI is empty")
                             Mono.empty()
