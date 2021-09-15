@@ -13,61 +13,49 @@ class ActivityController(
 ) : NftOrderActivityControllerApi {
 
     override suspend fun getNftOrderAllActivities(
-        type: List<String>,
+        type: List<ActivityFilterAllTypeDto>,
         continuation: String?,
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
-        val filter = ActivityFilterAllDto(
-            LinkedHashSet(type).map { ActivityFilterAllDto.Types.valueOf(it) }
-        )
+        val filter = ActivityFilterAllDto(type)
         val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderActivitiesByItem(
-        type: List<String>,
+        type: List<ActivityFilterByItemTypeDto>,
         contract: String,
         tokenId: String,
         continuation: String?,
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
-        val filter = ActivityFilterByItemDto(
-            Address.apply(contract),
-            BigInteger(tokenId),
-            LinkedHashSet(type).map { ActivityFilterByItemDto.Types.valueOf(it) }
-        )
+        val filter = ActivityFilterByItemDto(Address.apply(contract), BigInteger(tokenId), type)
         val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderActivitiesByCollection(
-        type: List<String>,
+        type: List<ActivityFilterByCollectionTypeDto>,
         collection: String,
         continuation: String?,
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
-        val filter = ActivityFilterByCollectionDto(
-            Address.apply(collection),
-            LinkedHashSet(type).map { ActivityFilterByCollectionDto.Types.valueOf(it) }
-        )
+        val filter = ActivityFilterByCollectionDto(Address.apply(collection), type)
         val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftOrderActivitiesByUser(
-        type: List<String>,
+        type: List<ActivityFilterByUserTypeDto>,
         user: List<Address>,
         continuation: String?,
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<ActivitiesDto> {
-        val filter = ActivityFilterByUserDto(
-            user,
-            LinkedHashSet(type).map { ActivityFilterByUserDto.Types.valueOf(it) }
-        )
+        val filter = ActivityFilterByUserDto(user, type)
         val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
     }
