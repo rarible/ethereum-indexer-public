@@ -47,7 +47,7 @@ class OrderAggregationController(
         return ResponseEntity.ok(result)
     }
 
-    override fun aggregateNftPurchaseBuyCollection(
+    override fun aggregateNftPurchaseByCollection(
         startDate: Long,
         endDate: Long,
         size: Long?,

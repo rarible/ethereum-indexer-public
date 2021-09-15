@@ -150,7 +150,7 @@ paths:
     get:
       tags:
         - order-aggregation-controller
-      operationId: aggregateNftPurchaseBuyCollection
+      operationId: aggregateNftPurchaseByCollection
       description: Aggregate nft purchase by collection
       parameters:
         - name: startDate
