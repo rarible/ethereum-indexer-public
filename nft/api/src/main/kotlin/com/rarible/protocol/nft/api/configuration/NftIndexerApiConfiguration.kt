@@ -15,7 +15,7 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 @Configuration
-@EnableConfigurationProperties(NftIndexerApiProperties::class)
+@EnableConfigurationProperties(NftIndexerApiProperties::class, IpfsProperties::class)
 @EnableRaribleCache
 @EnableLoggingContextFilter
 @EnableRaribleRedisLock
