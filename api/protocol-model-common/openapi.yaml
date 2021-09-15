@@ -339,14 +339,17 @@ components:
         types:
           type: array
           items:
-            type: string
-            enum:
-              - TRANSFER
-              - MINT
-              - BURN
-              - BID
-              - LIST
-              - SELL
+            $ref: "#/components/schemas/ActivityFilterAllType"
+
+    ActivityFilterAllType:
+      type: string
+      enum:
+        - TRANSFER
+        - MINT
+        - BURN
+        - BID
+        - LIST
+        - SELL
 
     ActivityFilterByUser:
       type: object
@@ -366,17 +369,20 @@ components:
         types:
           type: array
           items:
-            type: string
-            enum:
-              - TRANSFER_FROM
-              - TRANSFER_TO
-              - MINT
-              - BURN
-              - MAKE_BID
-              - GET_BID
-              - LIST
-              - BUY
-              - SELL
+            $ref: "#/components/schemas/ActivityFilterByUserType"
+
+    ActivityFilterByUserType:
+      type: string
+      enum:
+        - TRANSFER_FROM
+        - TRANSFER_TO
+        - MINT
+        - BURN
+        - MAKE_BID
+        - GET_BID
+        - LIST
+        - BUY
+        - SELL
 
     ActivityFilterByItem:
       type: object
@@ -397,14 +403,17 @@ components:
         types:
           type: array
           items:
-            type: string
-            enum:
-              - TRANSFER
-              - MINT
-              - BURN
-              - BID
-              - LIST
-              - MATCH
+            $ref: "#/components/schemas/ActivityFilterByItemType"
+
+    ActivityFilterByItemType:
+      type: string
+      enum:
+        - TRANSFER
+        - MINT
+        - BURN
+        - BID
+        - LIST
+        - MATCH
 
     ActivityFilterByCollection:
       type: object
@@ -422,14 +431,17 @@ components:
         types:
           type: array
           items:
-            type: string
-            enum:
-              - TRANSFER
-              - MINT
-              - BURN
-              - BID
-              - LIST
-              - MATCH
+            $ref: "#/components/schemas/ActivityFilterByCollectionType"
+
+    ActivityFilterByCollectionType:
+      type: string
+      enum:
+        - TRANSFER
+        - MINT
+        - BURN
+        - BID
+        - LIST
+        - MATCH
 
     NftActivityFilter:
       type: object
