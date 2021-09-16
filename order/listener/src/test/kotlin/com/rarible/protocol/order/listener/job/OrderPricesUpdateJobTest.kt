@@ -6,6 +6,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
@@ -19,6 +20,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
+import com.rarible.protocol.order.listener.service.order.OrderPriceUpdateService
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -45,7 +47,6 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
             .then().block()
     }
 
-
     private val orderRepository = MongoOrderRepository(createReactiveMongoTemplate())
     private val orderVersionRepository = OrderVersionRepository(createReactiveMongoTemplate())
     private val priceUpdateService = mockk<PriceUpdateService>()
@@ -54,6 +55,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val priceNormalizer = mockk<PriceNormalizer>()
     private val protocolCommissionProvider = mockk<ProtocolCommissionProvider>()
     private val orderVersionListener = mockk<OrderVersionListener>()
+    private val nftOrdersPriceUpdateListener = mockk<NftOrdersPriceUpdateListener>()
     private val orderReduceService = OrderReduceService(
         exchangeHistoryRepository = exchangeHistoryRepository,
         orderRepository = orderRepository,
@@ -72,18 +74,23 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         orderReduceService = orderReduceService,
         orderVersionListener = orderVersionListener
     )
-    private val orderPricesUpdateJob = OrderPricesUpdateJob(
-        properties = OrderListenerProperties(priceUpdateEnabled = true),
-        priceUpdateService = priceUpdateService,
+    private val orderPriceUpdateService = OrderPriceUpdateService(
         orderReduceService = orderReduceService,
         orderVersionRepository = orderVersionRepository,
-        reactiveMongoTemplate = createReactiveMongoTemplate()
+        priceUpdateService = priceUpdateService
+    )
+    private val orderPricesUpdateJob = OrderPricesUpdateJob(
+        properties = OrderListenerProperties(priceUpdateEnabled = true),
+        orderPriceUpdateService = orderPriceUpdateService,
+        reactiveMongoTemplate = createReactiveMongoTemplate(),
+        nftOrdersPriceUpdateListener = nftOrdersPriceUpdateListener
     )
 
     @Test
     fun `should update only the active order and its version`() = runBlocking {
         coEvery { priceNormalizer.normalize(any()) } returns BigDecimal.ZERO to BigDecimal.ZERO
         coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
+        coEvery { nftOrdersPriceUpdateListener.onNftOrders(any(), any(), any()) } returns Unit
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
         coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
 

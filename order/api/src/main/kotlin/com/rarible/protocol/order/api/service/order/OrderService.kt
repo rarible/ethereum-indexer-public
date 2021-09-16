@@ -6,7 +6,7 @@ import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
 import com.rarible.protocol.order.api.exceptions.LazyItemNotFoundException
 import com.rarible.protocol.order.api.exceptions.OrderNotFoundException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.OrderFilterCriteria.toCriteria
+import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter

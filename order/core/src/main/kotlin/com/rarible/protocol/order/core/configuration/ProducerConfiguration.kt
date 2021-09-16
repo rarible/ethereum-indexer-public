@@ -25,6 +25,7 @@ class ProducerConfiguration(
         return ProtocolOrderPublisher(
             orderActivityProducer = producerFactory.createOrderActivitiesProducer(),
             orderEventProducer = producerFactory.createOrderEventsProducer(),
+            ordersPriceUpdateEventProducer = producerFactory.createOrderPriceUpdateEventsProducer(),
             globalOrderEventProducer = producerFactory.createGlobalOrderEventsProducer(),
             publishProperties = properties.publish
         )

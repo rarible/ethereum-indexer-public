@@ -171,7 +171,7 @@ class NftOrderListenerConfiguration(
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = OrderEventDto::class.java,
             consumerGroup = consumerGroup,
-            defaultTopic = OrderIndexerTopicProvider.getTopic(environmentInfo.name, blockchain.value) + ".global",
+            defaultTopic = OrderIndexerTopicProvider.getUpdateTopic(environmentInfo.name, blockchain.value) + ".global",
             bootstrapServers = orderIndexerSubscriberProperties.brokerReplicaSet
         )
     }

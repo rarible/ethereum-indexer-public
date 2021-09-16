@@ -12,8 +12,10 @@ import com.rarible.ethereum.listener.log.persist.BlockRepository
 import com.rarible.ethereum.monitoring.BlockchainMonitoringWorker
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
+import com.rarible.protocol.order.api.subscriber.OrderIndexerEventsConsumerFactory
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
@@ -25,6 +27,7 @@ import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.service.event.ConsumerWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
+import com.rarible.protocol.order.listener.service.event.OrderUpdateConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
@@ -47,12 +50,14 @@ class OrderListenerConfiguration(
     private val listenerProperties: OrderListenerProperties,
     private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
+    private val orderIndexerEventsConsumerFactory: OrderIndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
     private val transactionTraceProviderFactory: TransactionTraceProviderFactory,
     private val blockRepository: BlockRepository
 ) {
     private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
     private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
+    private val orderUpdateConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.order"
 
     @Bean
     fun blockchain(): Blockchain {
@@ -127,6 +132,22 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
+        ).apply { start() }
+    }
+
+    @Bean
+    fun orderUpdateWorker(
+        orderBalanceService: OrderBalanceService,
+        orderUpdateConsumerEventHandler: OrderUpdateConsumerEventHandler
+    ): ConsumerWorker<OrderEventDto> {
+        return ConsumerWorker(
+            consumer = orderIndexerEventsConsumerFactory.createOrderEventsConsumer(
+                orderUpdateConsumerGroup,
+                blockchain = blockchain()
+            ),
+            properties = listenerProperties.monitoringWorker,
+            eventHandler = orderUpdateConsumerEventHandler,
+            meterRegistry = meterRegistry
         ).apply { start() }
     }
 }

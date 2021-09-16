@@ -5,9 +5,12 @@ class OrderIndexerTopicProvider {
     companion object {
         const val VERSION = "v1"
 
-        fun getTopic(environment: String, blockchain: String): String {
+        fun getUpdateTopic(environment: String, blockchain: String): String {
             return "protocol.$environment.$blockchain.indexer.order"
         }
-    }
 
+        fun getPriceUpdateTopic(environment: String, blockchain: String): String {
+            return "protocol.$environment.$blockchain.indexer.order.price-update"
+        }
+    }
 }

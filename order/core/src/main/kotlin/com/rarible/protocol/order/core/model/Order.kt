@@ -477,6 +477,24 @@ val AssetType.token: Address
         }
     }
 
+val AssetType.tokeId: EthUInt256?
+    get() {
+        return when (this) {
+            is Erc721AssetType -> tokenId
+            is Erc1155AssetType -> tokenId
+            is Erc1155LazyAssetType -> tokenId
+            is Erc721LazyAssetType -> tokenId
+            is CryptoPunksAssetType -> EthUInt256.of(punkId)
+            is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType -> null
+        }
+    }
+
+val Order.makeNftItemId: ItemId?
+    get() = make.type.tokeId?.let { ItemId(make.type.token, it.value) }
+
+val Order.takeNftItemId: ItemId?
+    get() = take.type.tokeId?.let { ItemId(take.type.token, it.value) }
+
 /**
  * All on-chain CryptoPunks orders have salt = 0.
  * We can't have a better salt for them, because there is nothing like "nonce"
