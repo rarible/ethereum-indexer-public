@@ -444,17 +444,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              enum:
-                - TRANSFER_FROM
-                - TRANSFER_TO
-                - MINT
-                - BURN
-                - MAKE_BID
-                - GET_BID
-                - LIST
-                - BUY
-                - SELL
+              $ref: "#/components/schemas/ActivityFilterByUserType"
         - name: user
           in: query
           required: true
@@ -509,14 +499,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              enum:
-                - TRANSFER
-                - MINT
-                - BURN
-                - BID
-                - LIST
-                - SELL
+              $ref: "#/components/schemas/ActivityFilterByItemType"
         - name: contract
           in: query
           required: true
@@ -574,14 +557,8 @@ paths:
           schema:
             type: array
             items:
+              $ref: "#/components/schemas/ActivityFilterByCollectionType"
               type: string
-              enum:
-                - TRANSFER
-                - MINT
-                - BURN
-                - BID
-                - LIST
-                - SELL
         - name: collection
           in: query
           required: true
@@ -634,14 +611,7 @@ paths:
           schema:
             type: array
             items:
-              type: string
-              enum:
-                - TRANSFER
-                - MINT
-                - BURN
-                - BID
-                - LIST
-                - SELL
+              $ref: "#/components/schemas/ActivityFilterAllType"
         - name: continuation
           in: query
           required: false

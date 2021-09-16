@@ -9,12 +9,12 @@ object ActivityFilterDtoToNftDto : Converter<ActivityFilterDto, NftActivityFilte
             is ActivityFilterAllDto -> {
                 val nftTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterAllDto.Types.TRANSFER -> NftActivityFilterAllDto.Types.TRANSFER
-                        ActivityFilterAllDto.Types.MINT -> NftActivityFilterAllDto.Types.MINT
-                        ActivityFilterAllDto.Types.BURN -> NftActivityFilterAllDto.Types.BURN
-                        ActivityFilterAllDto.Types.BID,
-                        ActivityFilterAllDto.Types.LIST,
-                        ActivityFilterAllDto.Types.SELL -> null
+                        ActivityFilterAllTypeDto.TRANSFER -> NftActivityFilterAllDto.Types.TRANSFER
+                        ActivityFilterAllTypeDto.MINT -> NftActivityFilterAllDto.Types.MINT
+                        ActivityFilterAllTypeDto.BURN -> NftActivityFilterAllDto.Types.BURN
+                        ActivityFilterAllTypeDto.BID,
+                        ActivityFilterAllTypeDto.LIST,
+                        ActivityFilterAllTypeDto.SELL -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterAllDto(nftTypes) else null
@@ -22,12 +22,12 @@ object ActivityFilterDtoToNftDto : Converter<ActivityFilterDto, NftActivityFilte
             is ActivityFilterByCollectionDto -> {
                 val nftTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByCollectionDto.Types.TRANSFER -> NftActivityFilterByCollectionDto.Types.TRANSFER
-                        ActivityFilterByCollectionDto.Types.MINT -> NftActivityFilterByCollectionDto.Types.MINT
-                        ActivityFilterByCollectionDto.Types.BURN -> NftActivityFilterByCollectionDto.Types.BURN
-                        ActivityFilterByCollectionDto.Types.BID,
-                        ActivityFilterByCollectionDto.Types.LIST,
-                        ActivityFilterByCollectionDto.Types.MATCH -> null
+                        ActivityFilterByCollectionTypeDto.TRANSFER -> NftActivityFilterByCollectionDto.Types.TRANSFER
+                        ActivityFilterByCollectionTypeDto.MINT -> NftActivityFilterByCollectionDto.Types.MINT
+                        ActivityFilterByCollectionTypeDto.BURN -> NftActivityFilterByCollectionDto.Types.BURN
+                        ActivityFilterByCollectionTypeDto.BID,
+                        ActivityFilterByCollectionTypeDto.LIST,
+                        ActivityFilterByCollectionTypeDto.MATCH -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByCollectionDto(source.contract, nftTypes) else null
@@ -35,12 +35,12 @@ object ActivityFilterDtoToNftDto : Converter<ActivityFilterDto, NftActivityFilte
             is ActivityFilterByItemDto -> {
                 val nftTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByItemDto.Types.TRANSFER -> NftActivityFilterByItemDto.Types.TRANSFER
-                        ActivityFilterByItemDto.Types.MINT -> NftActivityFilterByItemDto.Types.MINT
-                        ActivityFilterByItemDto.Types.BURN -> NftActivityFilterByItemDto.Types.BURN
-                        ActivityFilterByItemDto.Types.BID,
-                        ActivityFilterByItemDto.Types.LIST,
-                        ActivityFilterByItemDto.Types.MATCH -> null
+                        ActivityFilterByItemTypeDto.TRANSFER -> NftActivityFilterByItemDto.Types.TRANSFER
+                        ActivityFilterByItemTypeDto.MINT -> NftActivityFilterByItemDto.Types.MINT
+                        ActivityFilterByItemTypeDto.BURN -> NftActivityFilterByItemDto.Types.BURN
+                        ActivityFilterByItemTypeDto.BID,
+                        ActivityFilterByItemTypeDto.LIST,
+                        ActivityFilterByItemTypeDto.MATCH -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByItemDto(
@@ -52,15 +52,15 @@ object ActivityFilterDtoToNftDto : Converter<ActivityFilterDto, NftActivityFilte
             is ActivityFilterByUserDto -> {
                 val nftTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByUserDto.Types.TRANSFER_FROM -> NftActivityFilterByUserDto.Types.TRANSFER_FROM
-                        ActivityFilterByUserDto.Types.TRANSFER_TO -> NftActivityFilterByUserDto.Types.TRANSFER_TO
-                        ActivityFilterByUserDto.Types.MINT -> NftActivityFilterByUserDto.Types.MINT
-                        ActivityFilterByUserDto.Types.BURN -> NftActivityFilterByUserDto.Types.BURN
-                        ActivityFilterByUserDto.Types.MAKE_BID,
-                        ActivityFilterByUserDto.Types.GET_BID,
-                        ActivityFilterByUserDto.Types.BUY,
-                        ActivityFilterByUserDto.Types.LIST,
-                        ActivityFilterByUserDto.Types.SELL -> null
+                        ActivityFilterByUserTypeDto.TRANSFER_FROM -> NftActivityFilterByUserDto.Types.TRANSFER_FROM
+                        ActivityFilterByUserTypeDto.TRANSFER_TO -> NftActivityFilterByUserDto.Types.TRANSFER_TO
+                        ActivityFilterByUserTypeDto.MINT -> NftActivityFilterByUserDto.Types.MINT
+                        ActivityFilterByUserTypeDto.BURN -> NftActivityFilterByUserDto.Types.BURN
+                        ActivityFilterByUserTypeDto.MAKE_BID,
+                        ActivityFilterByUserTypeDto.GET_BID,
+                        ActivityFilterByUserTypeDto.BUY,
+                        ActivityFilterByUserTypeDto.LIST,
+                        ActivityFilterByUserTypeDto.SELL -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByUserDto(source.users, nftTypes) else null

@@ -359,7 +359,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
         saveHistory(*collection1history.toTypedArray())
         saveHistory(*collection2history.toTypedArray())
 
-        val aggregation = orderAggregationApi.aggregateNftPurchaseBuyCollection(
+        val aggregation = orderAggregationApi.aggregateNftPurchaseByCollection(
             startDate.toEpochMilli(),
             endDate.toEpochMilli(),
             null,

@@ -6,7 +6,7 @@ server:
   port: 8080
 
 spring:
-  application.name: protocol-erc20-indexer-api
+  application.name: protocol-${api.blockchain}-erc20-indexer-api
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
