@@ -1001,3 +1001,23 @@ components:
     Address:
       type: string
       example: '0x60f80121c31a0d46b5279700f9df786054aa5ee5'
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorBadRequest"
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorServerError"
+    EntityNotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorEntityNotFound"
