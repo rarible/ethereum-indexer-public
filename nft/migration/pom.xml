@@ -48,10 +48,6 @@
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-starter</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-task</artifactId>
-        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>
