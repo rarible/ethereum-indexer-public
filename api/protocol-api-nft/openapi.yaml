@@ -489,9 +489,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NftIndexerApiError"
-      x-codeSamples:
-        lang: JavaScript
-        source: console.log('Hello World');
   "/v0.1/collections/{collection}/generate_token_id":
     get:
       tags:
