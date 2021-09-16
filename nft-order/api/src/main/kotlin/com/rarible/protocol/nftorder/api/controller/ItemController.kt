@@ -3,7 +3,7 @@ package com.rarible.protocol.nftorder.api.controller
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftOrderItemDto
-import com.rarible.protocol.dto.PageNftOrderItemDto
+import com.rarible.protocol.dto.NftOrderItemsPageDto
 import com.rarible.protocol.nftorder.api.service.ItemApiService
 import com.rarible.protocol.nftorder.core.model.ItemId
 import org.springframework.http.ResponseEntity
@@ -26,8 +26,9 @@ class ItemController(
         lastUpdatedFrom: Long?,
         lastUpdatedTo: Long?,
         includeMeta: Boolean?
-    ): ResponseEntity<PageNftOrderItemDto> {
-        val result = itemApiService.getAllItems(continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo, includeMeta)
+    ): ResponseEntity<NftOrderItemsPageDto> {
+        val result =
+            itemApiService.getAllItems(continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo, includeMeta)
         return ResponseEntity.ok(result)
     }
 
@@ -36,7 +37,7 @@ class ItemController(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): ResponseEntity<PageNftOrderItemDto> {
+    ): ResponseEntity<NftOrderItemsPageDto> {
         val result = itemApiService.getItemsByOwner(owner, continuation, size, includeMeta)
         return ResponseEntity.ok(result)
     }
@@ -46,7 +47,7 @@ class ItemController(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): ResponseEntity<PageNftOrderItemDto> {
+    ): ResponseEntity<NftOrderItemsPageDto> {
         val result = itemApiService.getItemsByCreator(creator, continuation, size, includeMeta)
         return ResponseEntity.ok(result)
     }
@@ -56,7 +57,7 @@ class ItemController(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): ResponseEntity<PageNftOrderItemDto> {
+    ): ResponseEntity<NftOrderItemsPageDto> {
         val result = itemApiService.getItemsByCollection(collection, continuation, size, includeMeta)
         return ResponseEntity.ok(result)
     }

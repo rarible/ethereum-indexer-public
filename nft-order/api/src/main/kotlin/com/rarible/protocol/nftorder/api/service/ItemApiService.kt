@@ -37,7 +37,7 @@ class ItemApiService(
         lastUpdatedFrom: Long?,
         lastUpdatedTo: Long?,
         includeMeta: Boolean?
-    ): PageNftOrderItemDto {
+    ): NftOrderItemsPageDto {
         logger.debug(
             "Get all Items with params: continuation={}, size={}, showDeleted={}, lastUpdatedFrom={}, lastUpdatedTo={}, includeMeta={}",
             continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo, includeMeta
@@ -59,7 +59,7 @@ class ItemApiService(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): PageNftOrderItemDto {
+    ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by owner with params: owner=[{}], continuation={}, size={}",
             owner, continuation, size
@@ -72,7 +72,7 @@ class ItemApiService(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): PageNftOrderItemDto {
+    ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by creator with params: creator=[{}], continuation={}, size={}",
             creator, continuation, size
@@ -85,7 +85,7 @@ class ItemApiService(
         continuation: String?,
         size: Int?,
         includeMeta: Boolean?
-    ): PageNftOrderItemDto {
+    ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by collection with params: collection=[{}], continuation={}, size={}",
             collection, continuation, size
@@ -105,12 +105,12 @@ class ItemApiService(
         return nftItemControllerApi.getNftItemMetaById(itemId).awaitFirst()
     }
 
-    private suspend fun itemsResponse(itemsDto: Mono<NftItemsDto>): PageNftOrderItemDto {
+    private suspend fun itemsResponse(itemsDto: Mono<NftItemsDto>): NftOrderItemsPageDto {
         val itemsResponse = itemsDto.awaitFirst()
         val items = itemsResponse.items
         return if (items.isEmpty()) {
             logger.debug("No Items found")
-            PageNftOrderItemDto(null, emptyList())
+            NftOrderItemsPageDto(null, emptyList())
         } else {
             val existingItems: Map<ItemId, Item> = itemService
                 .findAll(items.map { ItemId.parseId(it.id) })
@@ -126,7 +126,7 @@ class ItemApiService(
 
                 conversionService.convert<NftOrderItemDto>(item)
             }
-            PageNftOrderItemDto(itemsResponse.continuation, result)
+            NftOrderItemsPageDto(itemsResponse.continuation, result)
         }
     }
 

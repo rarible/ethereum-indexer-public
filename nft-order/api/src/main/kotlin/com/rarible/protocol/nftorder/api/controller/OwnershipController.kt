@@ -1,7 +1,7 @@
 package com.rarible.protocol.nftorder.api.controller
 
 import com.rarible.protocol.dto.NftOrderOwnershipDto
-import com.rarible.protocol.dto.PageNftOrderOwnershipItemDto
+import com.rarible.protocol.dto.NftOrderOwnershipsPageDto
 import com.rarible.protocol.nftorder.api.service.OwnershipApiService
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import org.springframework.http.ResponseEntity
@@ -15,7 +15,7 @@ class OwnershipController(
     override suspend fun getNftOrderAllOwnerships(
         continuation: String?,
         size: Int?
-    ): ResponseEntity<PageNftOrderOwnershipItemDto> {
+    ): ResponseEntity<NftOrderOwnershipsPageDto> {
         val result = ownershipApiService.getAllOwnerships(continuation, size)
         return ResponseEntity.ok(result)
     }
@@ -31,7 +31,7 @@ class OwnershipController(
         tokenId: String,
         continuation: String?,
         size: Int?
-    ): ResponseEntity<PageNftOrderOwnershipItemDto> {
+    ): ResponseEntity<NftOrderOwnershipsPageDto> {
         val result = ownershipApiService.getOwnershipsByItem(contract, tokenId, continuation, size)
         return ResponseEntity.ok(result)
     }

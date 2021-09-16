@@ -1,7 +1,9 @@
 package com.rarible.protocol.nftorder.api.test.mock
 
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LazyNftDto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nftorder.core.model.ItemId
 import io.mockk.every
@@ -23,10 +25,10 @@ class NftItemControllerApiMock(
         } returns Mono.just(returnItemMeta)
     }
 
-    fun mockGetNftItemById(itemId: ItemId, error: NftIndexerApiErrorDto) {
+    fun mockGetNftItemById(itemId: ItemId, status: Int, error: Any) {
         every {
             nftItemControllerApi.getNftItemById(itemId.decimalStringValue, null)
-        } throws (ProtocolApiResponseException(null, null, error))
+        } throws WebClientExceptionMock.mock(status, error)
     }
 
     fun mockGetNftAllItems(
