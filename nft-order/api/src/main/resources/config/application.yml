@@ -6,7 +6,7 @@ server:
   port: 8080
 
 spring:
-  application.name: nft-order-api
+  application.name: protocol-${common.blockchain}-nft-order-api
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
