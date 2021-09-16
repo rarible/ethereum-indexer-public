@@ -6,6 +6,47 @@ paths:
 components:
   schemas:
 
+    EthereumApiErrorEntityNotFound:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+        message:
+          type: string
+
+    EthereumApiErrorBadRequest:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - BAD_REQUEST
+            - VALIDATION
+        message:
+          type: string
+
+    EthereumApiErrorServerError:
+      required:
+        - code
+        - message
+        - status
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - UNKNOWN
+        message:
+          type: string
+
     Activity:
       type: object
       required:

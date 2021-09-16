@@ -6,13 +6,11 @@ import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
-import com.rarible.protocol.nft.api.exceptions.ItemNotFoundException
-import com.rarible.protocol.nft.api.exceptions.LazyItemNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.api.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemsSearchResult
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -33,7 +31,7 @@ class ItemService(
     suspend fun get(itemId: ItemId, includeMeta: Boolean): NftItemDto {
         val item = itemRepository
             .findById(itemId).awaitFirstOrNull()
-            ?: throw ItemNotFoundException(itemId)
+            ?: throw EntityNotFoundApiException("Item ", itemId)
 
         return if (includeMeta) {
             val meta = itemMetaService.getItemMetadata(itemId)
@@ -47,7 +45,7 @@ class ItemService(
         return lazyNftItemHistoryRepository
             .findById(itemId).awaitFirstOrNull()
             ?.let { conversionService.convert<LazyNftDto>(it) }
-            ?: throw LazyItemNotFoundException(itemId)
+            ?: throw EntityNotFoundApiException("Lazy Item", itemId)
     }
 
     suspend fun getMeta(itemId: ItemId): NftItemMetaDto {

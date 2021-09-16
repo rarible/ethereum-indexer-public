@@ -4,7 +4,7 @@ import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipFilterDto
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
-import com.rarible.protocol.nft.api.exceptions.OwnershipNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -22,7 +22,7 @@ class OwnershipApiService(
         return ownershipRepository
             .findById(ownershipId).awaitFirstOrNull()
             ?.let { conversionService.convert<NftOwnershipDto>(it) }
-            ?: throw OwnershipNotFoundException(ownershipId)
+            ?: throw EntityNotFoundApiException("Ownership", ownershipId)
     }
 
     suspend fun search(

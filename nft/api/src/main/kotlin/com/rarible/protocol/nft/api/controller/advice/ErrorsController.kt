@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.api.controller.advice
 
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
-import com.rarible.protocol.nft.api.exceptions.IndexerApiException
+import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
+import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
+import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
 import com.rarible.protocol.nft.core.model.IncorrectItemFormat
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -17,27 +18,20 @@ import org.springframework.web.server.ServerWebInputException
 class ErrorsController {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @ExceptionHandler(IndexerApiException::class)
-    fun handleIndexerApiException(ex: IndexerApiException) = mono {
+    @ExceptionHandler(NftIndexerApiException::class)
+    fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
         logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
-
-        val error = NftIndexerApiErrorDto(
-            status = ex.status.value(),
-            code = ex.code,
-            message = ex.message ?: MISSING_MESSAGE
-        )
-        ResponseEntity.status(ex.status).body(error)
+        ResponseEntity.status(ex.status).body(ex.data)
     }
 
     @ExceptionHandler(ServerWebInputException::class)
     fun handleServerWebInputException(ex: ServerWebInputException) = mono {
         logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
-
-        val error = NftIndexerApiErrorDto(
-            status = ex.status.value(),
-            code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
+        val error = EthereumApiErrorBadRequestDto(
+            code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
         )
+        // For ServerWebInputException status is always 400
         ResponseEntity.status(ex.status).body(error)
     }
 
@@ -47,9 +41,8 @@ class ErrorsController {
         when (ex.cause) {
             is IncorrectItemFormat -> {
                 logWithNecessaryLevel(HttpStatus.BAD_REQUEST, ex, INDEXER_API_ERROR)
-                NftIndexerApiErrorDto(
-                    status = HttpStatus.BAD_REQUEST.value(),
-                    code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
+                EthereumApiErrorBadRequestDto(
+                    code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
                     message = ex.cause?.message ?: MISSING_MESSAGE
                 )
             }
@@ -73,10 +66,8 @@ class ErrorsController {
 
     private fun logError(ex: Throwable) {
         logger.error("System error while handling request", ex)
-
-        NftIndexerApiErrorDto(
-            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            code = NftIndexerApiErrorDto.Code.UNKNOWN,
+        EthereumApiErrorServerErrorDto(
+            code = EthereumApiErrorServerErrorDto.Code.UNKNOWN,
             message = ex.message ?: "Something went wrong"
         )
     }
