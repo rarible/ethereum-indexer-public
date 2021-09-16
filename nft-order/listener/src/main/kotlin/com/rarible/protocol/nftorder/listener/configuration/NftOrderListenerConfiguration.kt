@@ -12,10 +12,7 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
-import com.rarible.protocol.nftorder.listener.handler.ItemEventHandler
-import com.rarible.protocol.nftorder.listener.handler.OrderEventHandler
-import com.rarible.protocol.nftorder.listener.handler.OwnershipEventHandler
-import com.rarible.protocol.nftorder.listener.handler.UnlockableEventHandler
+import com.rarible.protocol.nftorder.listener.handler.*
 import com.rarible.protocol.order.api.subscriber.OrderIndexerEventsConsumerFactory
 import com.rarible.protocol.order.api.subscriber.autoconfigure.OrderIndexerEventsSubscriberProperties
 import com.rarible.protocol.unlockable.api.subscriber.UnlockableEventsConsumerFactory
@@ -49,6 +46,7 @@ class NftOrderListenerConfiguration(
     private val ownershipConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.ownership"
     private val unlockableConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.unlockable"
     private val orderConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.order"
+    private val orderPriceUpdateConsumerGroup = "${environmentInfo.name}.protocol.${blockchain.value}.nft-order.order-price-update"
 
     private val logger = LoggerFactory.getLogger(NftOrderListenerConfiguration::class.java)
 
@@ -132,6 +130,30 @@ class NftOrderListenerConfiguration(
     }
 
     @Bean
+    fun orderPriceChangeWorker(
+        orderIndexerEventsConsumerFactory: OrderIndexerEventsConsumerFactory,
+        orderPriceChangeEventHandler: OrderPriceChangeEventHandler
+    ): BatchedConsumerWorker<NftOrdersPriceUpdateEventDto> {
+        logger.info(
+            "Creating batch of Order Price Update event consumers, number of consumers: {}",
+            listenerProperties.orderConsumerCount
+        )
+        val consumers = (1..listenerProperties.orderConsumerCount).map {
+            ConsumerWorker(
+                consumer = orderIndexerEventsConsumerFactory.createNftOrdersPriceUpdateEventsConsumer(
+                    orderPriceUpdateConsumerGroup,
+                    blockchain
+                ),
+                properties = listenerProperties.monitoringWorker,
+                eventHandler = orderPriceChangeEventHandler,
+                meterRegistry = meterRegistry,
+                workerName = "orderPriceUpdateEventDto.$it"
+            )
+        }
+        return BatchedConsumerWorker(consumers)
+    }
+
+    @Bean
     fun itemEventProducer(): RaribleKafkaProducer<NftOrderItemEventDto> {
         val env = eventProducerProperties.environment
         val blockchain = blockchain.value
@@ -175,5 +197,4 @@ class NftOrderListenerConfiguration(
             bootstrapServers = orderIndexerSubscriberProperties.brokerReplicaSet
         )
     }
-
 }
