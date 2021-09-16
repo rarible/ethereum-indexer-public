@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.CurrencyRateDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
 import io.daonomic.rpc.mono.WebClientTransport
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.beans.factory.annotation.Value
@@ -12,10 +13,8 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
 import scalether.transaction.MonoTransactionPoller
-import java.time.Instant
 
 @TestConfiguration
 class TestPropertiesConfiguration {
@@ -30,18 +29,6 @@ class TestPropertiesConfiguration {
     }
 
     @Bean
-    fun testCurrencyApi(): CurrencyControllerApi = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?): Mono<CurrencyRateDto>? {
-            return CurrencyRateDto(
-                "test",
-                "usd",
-                1.5.toBigDecimal(),
-                Instant.ofEpochMilli(at!!)
-            ).toMono()
-        }
-    }
-
-    @Bean
     @Primary
     fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
         return mockk {
@@ -51,10 +38,9 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedCurrencyApi() = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?): Mono<CurrencyRateDto>? {
-            return Mono.empty<CurrencyRateDto>()
+    fun mockedCurrencyApi(): CurrencyControllerApi {
+        return mockk {
+            coEvery { getCurrencyRate(any(), any(), any()) } returns Mono.empty<CurrencyRateDto>()
         }
     }
-
 }

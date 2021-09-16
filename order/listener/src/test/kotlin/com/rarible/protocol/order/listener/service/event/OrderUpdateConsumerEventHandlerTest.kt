@@ -4,21 +4,17 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
-import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
-import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
@@ -27,18 +23,16 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
+import reactor.core.publisher.Mono
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Duration
+import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
 
 @FlowPreview
 @IntegrationTest
-@Import(OrderUpdateConsumerEventHandlerTest.TestPriceUpdateService::class)
 internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
@@ -47,10 +41,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     protected lateinit var orderVersionRepository: OrderVersionRepository
 
     @Autowired
-    private lateinit var priceUpdateService: PriceUpdateService
-
-    @Autowired
-    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+    protected lateinit var currencyControllerApi: CurrencyControllerApi
 
     companion object {
         @JvmStatic
@@ -63,12 +54,20 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                     OrderKind.SELL,
                     createOrderVersion().copy(
                         make = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
-                        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+                        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+                        takeUsd = null,
+                        makeUsd = null,
+                        takePriceUsd = null,
+                        makePriceUsd = null
                     ),
                     (1..10).map {
                         createOrderVersion().copy(
                             make = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
-                            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+                            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+                            takeUsd = null,
+                            makeUsd = null,
+                            takePriceUsd = null,
+                            makePriceUsd = null
                         )
                     }
                 ),
@@ -76,12 +75,20 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                     OrderKind.BID,
                     createOrderVersion().copy(
                         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-                        take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN)
+                        take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                        takeUsd = null,
+                        makeUsd = null,
+                        takePriceUsd = null,
+                        makePriceUsd = null
                     ),
                     (1..10).map {
                         createOrderVersion().copy(
                             make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-                            take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN)
+                            take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                            takeUsd = null,
+                            makeUsd = null,
+                            takePriceUsd = null,
+                            makePriceUsd = null
                         )
                     }
                 )
@@ -107,9 +114,10 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
             bootstrapServers = orderIndexerProperties.kafkaReplicaSet
         )
         val nftOrder = save(nftOrderVersion)
-        val nftOrders = nftOrderVersions.map { save(it) }
+        setCurrencyControllerApiMockForOrder(nftOrder, kind)
 
-        val newOrderUsd = setRandomPriceUpdateServiceMock(kind)
+        val nftOrders = nftOrderVersions.map { save(it) }
+        nftOrders.forEach { setCurrencyControllerApiMockForOrder(it, kind) }
 
         val event = OrderUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
@@ -128,11 +136,11 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         Wait.waitAssert(Duration.ofSeconds(10)) {
             nftOrders.map { it.hash }.forEach { hash ->
                 orderVersionRepository.findAllByHash(hash).collect { orderVersion ->
-                    checkOrderVersionPrices(orderVersion, newOrderUsd)
+                    checkOrderVersionPrices(orderVersion, kind)
                 }
 
                 val order = orderRepository.findById(hash) ?: error("Can't find test order $hash")
-                checkOrderPrices(order, newOrderUsd)
+                checkOrderPrices(order, kind)
             }
         }
         sendJob.cancelAndJoin()
@@ -140,42 +148,54 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
 
     private suspend fun save(orderVersion: OrderVersion): Order {
         val order = orderVersion.toOrderExactFields().copy(hash = orderVersion.hash)
-        assertThat(order.hash).isEqualTo(orderVersion.hash)
-
         orderVersionRepository.save(orderVersion).awaitFirst()
         return orderRepository.save(order)
     }
 
-    private suspend fun setRandomPriceUpdateServiceMock(kind: OrderKind): OrderUsdValue {
-        val orderUsd = when (kind) {
-            OrderKind.SELL -> OrderUsdValue.SellOrder(takeUsd = randomBigDecimal(), makePriceUsd = randomBigDecimal())
-            OrderKind.BID -> OrderUsdValue.BidOrder(makeUsd = randomBigDecimal(), takePriceUsd = randomBigDecimal())
+    private fun checkOrderPrices(order: Order, kind: OrderKind) {
+        when (kind) {
+            OrderKind.SELL -> {
+                assertThat(order.takeUsd).isNotNull()
+                assertThat(order.makePriceUsd).isNotNull()
+                assertThat(order.makeUsd).isNull()
+                assertThat(order.takePriceUsd).isNull()
+            }
+            OrderKind.BID -> {
+                assertThat(order.makeUsd).isNotNull()
+                assertThat(order.takePriceUsd).isNotNull()
+                assertThat(order.takeUsd).isNull()
+                assertThat(order.makePriceUsd).isNull()
+            }
         }
-        coEvery { priceUpdateService.getAssetsUsdValue(make = any(), take = any(), at = any()) } returns orderUsd
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
-        return orderUsd
     }
 
-    private fun checkOrderPrices(order: Order, orderUsd: OrderUsdValue) {
-        assertThat(order.makeUsd).isEqualTo(orderUsd.makeUsd)
-        assertThat(order.takeUsd).isEqualTo(orderUsd.takeUsd)
-        assertThat(order.takePriceUsd).isEqualTo(orderUsd.takePriceUsd)
-        assertThat(order.makePriceUsd).isEqualTo(orderUsd.makePriceUsd)
-    }
-
-    private fun checkOrderVersionPrices(orderVersion: OrderVersion, orderUsd: OrderUsdValue) {
-        assertThat(orderVersion.makeUsd).isEqualTo(orderUsd.makeUsd)
-        assertThat(orderVersion.takeUsd).isEqualTo(orderUsd.takeUsd)
-        assertThat(orderVersion.takePriceUsd).isEqualTo(orderUsd.takePriceUsd)
-        assertThat(orderVersion.makePriceUsd).isEqualTo(orderUsd.makePriceUsd)
-    }
-
-    @TestConfiguration
-    class TestPriceUpdateService {
-        @Bean
-        @Primary
-        fun mockkPriceUpdateService(): PriceUpdateService {
-            return mockk()
+    private fun checkOrderVersionPrices(orderVersion: OrderVersion, kind: OrderKind) {
+        when (kind) {
+            OrderKind.SELL -> {
+                assertThat(orderVersion.takeUsd).isNotNull()
+                assertThat(orderVersion.makePriceUsd).isNotNull()
+                assertThat(orderVersion.makeUsd).isNull()
+                assertThat(orderVersion.takePriceUsd).isNull()
+            }
+            OrderKind.BID -> {
+                assertThat(orderVersion.makeUsd).isNotNull()
+                assertThat(orderVersion.takePriceUsd).isNotNull()
+                assertThat(orderVersion.takeUsd).isNull()
+                assertThat(orderVersion.makePriceUsd).isNull()
+            }
         }
+    }
+
+    private fun setCurrencyControllerApiMockForOrder(order: Order, kind: OrderKind) {
+        when (kind) {
+            OrderKind.SELL -> setCurrencyControllerApiMock(order.take.type.token)
+            OrderKind.BID -> setCurrencyControllerApiMock(order.make.type.token)
+        }
+    }
+
+    private fun setCurrencyControllerApiMock(address: Address) {
+        coEvery {
+            currencyControllerApi.getCurrencyRate(any(), eq(address.hex()), any())
+        } returns Mono.just(CurrencyRateDto("test", "usd", 1.5.toBigDecimal(), Instant.now()))
     }
 }
