@@ -55,7 +55,7 @@ class OrderUpdateConsumerEventHandler(
                 maker = null,
                 origin = null
             )
-            OrderKind.BID -> OrderFilterSellByItemDto(
+            OrderKind.BID -> OrderFilterBidByItemDto(
                 tokenId = tokenId,
                 contract = contract,
                 sort = OrderFilterDto.Sort.LAST_UPDATE,

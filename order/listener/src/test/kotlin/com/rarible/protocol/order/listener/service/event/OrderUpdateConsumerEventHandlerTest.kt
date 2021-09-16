@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.event
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
@@ -13,17 +12,25 @@ import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
+import io.mockk.mockk
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.reactive.awaitFirst
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import scalether.domain.AddressFactory
 import java.time.Duration
 import java.util.*
@@ -31,6 +38,7 @@ import java.util.stream.Stream
 
 @FlowPreview
 @IntegrationTest
+@Import(OrderUpdateConsumerEventHandlerTest.TestPriceUpdateService::class)
 internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
@@ -38,8 +46,11 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Autowired
     protected lateinit var orderVersionRepository: OrderVersionRepository
 
-    @MockkBean
+    @Autowired
     private lateinit var priceUpdateService: PriceUpdateService
+
+    @Autowired
+    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
     companion object {
         @JvmStatic
@@ -95,16 +106,8 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
             ),
             bootstrapServers = orderIndexerProperties.kafkaReplicaSet
         )
-
-        val currentOrderUsd = setRandomPriceUpdateServiceMock(kind)
-
-        val nftOrder = orderUpdateService.save(nftOrderVersion)
-        checkOrderPrices(nftOrder, currentOrderUsd)
-
-        val nftOrders = nftOrderVersions.map { orderUpdateService.save(it) }
-        nftOrders.forEach { order ->
-            checkOrderPrices(order, currentOrderUsd)
-        }
+        val nftOrder = save(nftOrderVersion)
+        val nftOrders = nftOrderVersions.map { save(it) }
 
         val newOrderUsd = setRandomPriceUpdateServiceMock(kind)
 
@@ -113,7 +116,6 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
             orderId = nftOrder.hash.toString(),
             order = OrderDtoConverter.convert(nftOrder)
         )
-
         val sendJob = async {
             val message = KafkaMessage(
                 key = "test",
@@ -121,23 +123,27 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                 value = event,
                 headers = emptyMap()
             )
-            while (true) {
-                producer.send(message)
-                delay(Duration.ofMillis(10).toMillis())
-            }
+            producer.send(message)
         }
         Wait.waitAssert(Duration.ofSeconds(10)) {
-            (nftOrders + nftOrder).forEach { order ->
-                orderVersionRepository.findAllByHash(order.hash).collect { orderVersion ->
+            nftOrders.map { it.hash }.forEach { hash ->
+                orderVersionRepository.findAllByHash(hash).collect { orderVersion ->
                     checkOrderVersionPrices(orderVersion, newOrderUsd)
                 }
-            }
-            nftOrders.forEach { order ->
-                orderRepository.findById(order.hash) ?: error("Can't find test order ${order.hash}")
+
+                val order = orderRepository.findById(hash) ?: error("Can't find test order $hash")
                 checkOrderPrices(order, newOrderUsd)
             }
         }
         sendJob.cancelAndJoin()
+    }
+
+    private suspend fun save(orderVersion: OrderVersion): Order {
+        val order = orderVersion.toOrderExactFields().copy(hash = orderVersion.hash)
+        assertThat(order.hash).isEqualTo(orderVersion.hash)
+
+        orderVersionRepository.save(orderVersion).awaitFirst()
+        return orderRepository.save(order)
     }
 
     private suspend fun setRandomPriceUpdateServiceMock(kind: OrderKind): OrderUsdValue {
@@ -146,6 +152,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
             OrderKind.BID -> OrderUsdValue.BidOrder(makeUsd = randomBigDecimal(), takePriceUsd = randomBigDecimal())
         }
         coEvery { priceUpdateService.getAssetsUsdValue(make = any(), take = any(), at = any()) } returns orderUsd
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
         return orderUsd
     }
 
@@ -161,5 +168,14 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         assertThat(orderVersion.takeUsd).isEqualTo(orderUsd.takeUsd)
         assertThat(orderVersion.takePriceUsd).isEqualTo(orderUsd.takePriceUsd)
         assertThat(orderVersion.makePriceUsd).isEqualTo(orderUsd.makePriceUsd)
+    }
+
+    @TestConfiguration
+    class TestPriceUpdateService {
+        @Bean
+        @Primary
+        fun mockkPriceUpdateService(): PriceUpdateService {
+            return mockk()
+        }
     }
 }

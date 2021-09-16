@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
@@ -55,6 +56,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     private val priceNormalizer = mockk<PriceNormalizer>()
     private val protocolCommissionProvider = mockk<ProtocolCommissionProvider>()
     private val orderVersionListener = mockk<OrderVersionListener>()
+    private val orderListener = mockk<OrderListener>()
     private val nftOrdersPriceUpdateListener = mockk<NftOrdersPriceUpdateListener>()
     private val orderReduceService = OrderReduceService(
         exchangeHistoryRepository = exchangeHistoryRepository,
@@ -72,7 +74,8 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         protocolCommissionProvider = protocolCommissionProvider,
         priceUpdateService = priceUpdateService,
         orderReduceService = orderReduceService,
-        orderVersionListener = orderVersionListener
+        orderVersionListener = orderVersionListener,
+        orderListener = orderListener
     )
     private val orderPriceUpdateService = OrderPriceUpdateService(
         orderReduceService = orderReduceService,
@@ -90,6 +93,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     fun `should update only the active order and its version`() = runBlocking {
         coEvery { priceNormalizer.normalize(any()) } returns BigDecimal.ZERO to BigDecimal.ZERO
         coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
+        coEvery { orderListener.onOrder(any()) } returns Unit
         coEvery { nftOrdersPriceUpdateListener.onNftOrders(any(), any(), any()) } returns Unit
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
         coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
