@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMIT
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
-import com.rarible.protocol.nft.api.service.mint.LazyNftValidator
+import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.NonCancellable
@@ -20,6 +20,7 @@ import java.time.Instant
 @RestController
 class ItemController(
     private val itemService: ItemService,
+    private val mintService: MintService,
     private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator
 ) : NftItemControllerApi {
@@ -51,7 +52,7 @@ class ItemController(
     override suspend fun deleteLazyMintNftAsset(itemId: String, lazyNftBodyDto: LazyNftBodyDto): ResponseEntity<Unit> {
         val item: ItemId = conversionService.convert(itemId)
         burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), lazyNftBodyDto)
-        itemService.burnLazyMint(item)
+        mintService.burnLazyMint(item)
         return ResponseEntity.noContent().build()
     }
 

@@ -276,7 +276,11 @@ class ItemReduceService(
                             } else {
                                 ownership
                             }
-                            event.from -> ownership.copy(value = ownership.value - event.value)
+                            event.from -> if (event.type == ItemType.LAZY_MINT) {
+                                ownership.copy(lazyValue = ownership.lazyValue - event.value)
+                            } else {
+                                ownership.copy(value = ownership.value - event.value)
+                            }
                             else -> ownership
                         }
                     }

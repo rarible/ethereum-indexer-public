@@ -18,14 +18,16 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,6 +52,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
+
+    @Autowired
+    private lateinit var itemRepository: ItemRepository
 
     @Test
     fun `should burn mint lazy item`() = runBlocking {
@@ -82,9 +87,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val lazyDto = LazyNftBodyDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
 
-        val burnedLazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
-        Assertions.assertNull(burnedLazyMint)
-        println()
+        val item = itemRepository.findById(itemId).awaitSingle()
+        assertTrue(item.deleted)
     }
 
     @Test
