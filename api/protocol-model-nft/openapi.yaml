@@ -131,33 +131,6 @@ components:
         signature:
           "$ref": "#/components/schemas/NftSignature"
 
-    NftIndexerApiError:
-      required:
-        - code
-        - message
-        - status
-      type: object
-      properties:
-        status:
-          type: integer
-          format: int32
-        code:
-          type: string
-          enum:
-            - UNKNOWN
-            - BAD_REQUEST
-            - VALIDATION
-            - ITEM_NOT_FOUND
-            - LAZY_ITEM_NOT_FOUND
-            - TOKEN_NOT_FOUND
-            - TOKEN_URI_NOT_FOUND
-            - TOKEN_PROPERTIES_EXTRACT
-            - OWNERSHIP_NOT_FOUND
-            - COLLECTION_NOT_FOUND
-            - INCORRECT_LAZY_NFT
-        message:
-          type: string
-
     NftItemFilter:
       type: object
       required:

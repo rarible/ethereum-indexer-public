@@ -1,9 +1,8 @@
 package com.rarible.protocol.nftorder.api.controller
 
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
-import com.rarible.protocol.dto.NftOrderApiErrorDto
+import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
+import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderOwnershipControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
@@ -18,10 +17,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import java.nio.charset.StandardCharsets
 
 @FunctionalTest
 internal class OwnershipControllerFt : AbstractFunctionalTest() {
@@ -69,71 +64,46 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
     @Test
     fun `get ownership by id - not found`() = runBlocking<Unit> {
         val ownershipId = randomOwnershipId()
-        val nftApiError = NftIndexerApiErrorDto(404, NftIndexerApiErrorDto.Code.OWNERSHIP_NOT_FOUND, "message")
+        val nftApiError = EthereumApiErrorEntityNotFoundDto(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND, "123");
 
-        nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftApiError)
+        nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, 404, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderOwnershipControllerApi.ErrorGetNftOrderOwnershipById> {
             nftOrderOwnershipControllerApi
                 .getNftOrderOwnershipById(ownershipId.decimalStringValue)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(404)
+        assertThat(ex.on404).isEqualTo(nftApiError)
     }
 
     @Test
     fun `get ownership by id - unexpected api error`() = runBlocking<Unit> {
         val ownershipId = randomOwnershipId()
-        val nftApiError = NftIndexerApiErrorDto(500, NftIndexerApiErrorDto.Code.UNKNOWN, "message")
+        val nftApiError = EthereumApiErrorServerErrorDto(EthereumApiErrorServerErrorDto.Code.UNKNOWN, "321")
 
-        nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftApiError)
+        nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, 500, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderOwnershipControllerApi.ErrorGetNftOrderOwnershipById> {
             nftOrderOwnershipControllerApi
                 .getNftOrderOwnershipById(ownershipId.decimalStringValue)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(500)
+        assertThat(ex.on500).isEqualTo(nftApiError)
     }
 
     @Test
     fun `get ownership by id - unparseable id`() = runBlocking<Unit> {
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderOwnershipControllerApi.ErrorGetNftOrderOwnershipById> {
             nftOrderOwnershipControllerApi
                 .getNftOrderOwnershipById("unparseable value")
                 .block()
         }
 
-        val errorData = ex.responseObject
-        assertThat(errorData is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((errorData as NftOrderApiErrorDto).status).isEqualTo(500)
-        assertThat((errorData).code).isEqualTo(NftOrderApiErrorDto.Code.UNKNOWN)
-    }
-
-    @Test
-    fun `get ownership by id - not handled response code`() = runBlocking<Unit> {
-        val ownershipId = randomOwnershipId()
-        val exception = WebClientResponseException.create(
-            HttpStatus.CONFLICT.value(),
-            "",
-            HttpHeaders(),
-            ByteArray(0),
-            StandardCharsets.UTF_8
-        )
-
-        nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, exception)
-
-        val ex = assertThrows<WebClientResponseException> {
-            nftOrderOwnershipControllerApi
-                .getNftOrderOwnershipById(ownershipId.decimalStringValue)
-                .block()
-        }
-
-        assertThat(ex.rawStatusCode).isEqualTo(HttpStatus.CONFLICT.value())
+        assertThat(ex.on500).isNotNull
     }
 
     @Test

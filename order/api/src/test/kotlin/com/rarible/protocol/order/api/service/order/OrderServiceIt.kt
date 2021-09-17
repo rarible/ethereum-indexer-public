@@ -6,14 +6,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.data.*
-import com.rarible.protocol.order.api.exceptions.IncorrectSignatureException
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.ownershipId
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coVerify
@@ -72,7 +71,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val (privateKey) = generateNewKeys()
         val order = createOrder(AddressFactory.create())
 
-        assertThrows<IncorrectSignatureException> {
+        assertThrows<OrderUpdateException> {
             runBlocking {
                 orderService.put(order.toForm(privateKey))
             }

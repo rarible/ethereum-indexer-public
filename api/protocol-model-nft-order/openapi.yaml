@@ -242,7 +242,7 @@ components:
         ownership:
           $ref: "#/components/schemas/NftOrderDeletedOwnership"
 
-    PageNftOrderOwnershipItem:
+    NftOrderOwnershipsPage:
       required:
         - data
       type: object
@@ -256,7 +256,7 @@ components:
           items:
             "$ref": "#/components/schemas/NftOrderOwnership"
 
-    PageNftOrderItem:
+    NftOrderItemsPage:
       required:
         - data
       type: object

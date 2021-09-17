@@ -19,11 +19,10 @@ components:
           items:
             "$ref": "#/components/schemas/OrderActivity"
 
-    OrderIndexerApiError:
+    EthereumOrderDataApiError:
       required:
         - code
         - message
-        - status
       type: object
       properties:
         status:
@@ -32,20 +31,26 @@ components:
         code:
           type: string
           enum:
-            - UNKNOWN
-            - SERVER_ERROR
-            - ABSENCE_OF_REQUIRED_FIELD
-            - INVALID_ARGUMENT
-            - ORDER_NOT_FOUND
-            - BALANCE_NOT_FOUND
-            - OWNERSHIP_NOT_FOUND
-            - LAZY_ITEM_NOT_FOUND
+            - BAD_REQUEST
+            - VALIDATION
+            - INCORRECT_ORDER_DATA
+        message:
+          type: string
+
+    EthereumOrderUpdateApiError:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
             - INCORRECT_SIGNATURE
             - INCORRECT_ORDER_DATA
             - INCORRECT_LAZY_ASSET
             - ORDER_CANCELED
             - ORDER_INVALID_UPDATE
-            - ASSET_BALANCE_NOT_FOUND
         message:
           type: string
 

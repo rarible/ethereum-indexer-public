@@ -4,6 +4,9 @@ info:
   version: v0.1
 
 paths:
+
+  ###################### Transactions ######################
+
   "/v0.1/transactions":
     post:
       tags:
@@ -14,7 +17,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CreateTransactionRequest"
+              $ref: "#/components/schemas/CreateTransactionRequest"
         required: true
       responses:
         '200':
@@ -24,13 +27,14 @@ paths:
               schema:
                 type: array
                 items:
-                  "$ref": "#/components/schemas/LogEvent"
+                  $ref: "#/components/schemas/LogEvent"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Lazy Mint ######################
+
   "/v0.1/mints":
     post:
       tags:
@@ -41,7 +45,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/LazyNft"
+              $ref: "#/components/schemas/LazyNft"
         required: true
       responses:
         '200':
@@ -49,13 +53,16 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftItem"
+                $ref: "#/components/schemas/NftItem"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Activities ######################
+
   "/v0.1/activities/search":
     post:
       tags:
@@ -79,12 +86,12 @@ paths:
           in: query
           required: false
           schema:
-            "$ref": "#/components/schemas/ActivitySort"
+            $ref: "#/components/schemas/ActivitySort"
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/NftActivityFilter"
+              $ref: "#/components/schemas/NftActivityFilter"
         required: true
       responses:
         '200':
@@ -92,13 +99,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftActivities"
+                $ref: "#/components/schemas/NftActivities"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Ownerships ######################
+
   "/v0.1/ownerships/{ownershipId}":
     get:
       tags:
@@ -116,13 +124,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftOwnership"
+                $ref: "#/components/schemas/NftOwnership"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/ownerships/byItem":
     get:
       tags:
@@ -133,12 +142,12 @@ paths:
           in: query
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: tokenId
           in: query
           required: true
           schema:
-            "$ref": "#/components/schemas/BigInteger"
+            $ref: "#/components/schemas/BigInteger"
         - name: continuation
           in: query
           required: false
@@ -152,17 +161,12 @@ paths:
             format: int32
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftOwnerships"
+          $ref: "#/components/responses/NftOwnershipsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/ownerships/all":
     get:
       tags:
@@ -182,17 +186,14 @@ paths:
             format: int32
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftOwnerships"
+          $ref: "#/components/responses/NftOwnershipsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Items ######################
+
   "/v0.1/items/{itemId}/meta":
     get:
       tags:
@@ -210,13 +211,12 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftItemMeta"
+                $ref: "#/components/schemas/NftItemMeta"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/{itemId}/resetMeta":
     delete:
       tags:
@@ -231,12 +231,11 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/{itemId}/lazy":
     get:
       tags:
@@ -256,17 +255,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/LazyNft"
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/{itemId}":
     get:
       tags:
@@ -290,19 +284,14 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftItem"
+                $ref: "#/components/schemas/NftItem"
         '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/byOwner":
     get:
       tags:
@@ -313,7 +302,7 @@ paths:
           in: query
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: continuation
           in: query
           required: false
@@ -332,17 +321,12 @@ paths:
             type: boolean
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftItems"
+          $ref: "#/components/responses/NftItemsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/byCreator":
     get:
       tags:
@@ -353,7 +337,7 @@ paths:
           in: query
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: continuation
           in: query
           required: false
@@ -372,17 +356,12 @@ paths:
             type: boolean
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftItems"
+          $ref: "#/components/responses/NftItemsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/byCollection":
     get:
       tags:
@@ -393,7 +372,7 @@ paths:
           in: query
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: continuation
           in: query
           required: false
@@ -412,17 +391,12 @@ paths:
             type: boolean
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftItems"
+          $ref: "#/components/responses/NftItemsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/items/all":
     get:
       tags:
@@ -464,17 +438,14 @@ paths:
             type: boolean
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftItems"
+          $ref: "#/components/responses/NftItemsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Collections ######################
+
   "/v0.1/collections/{collection}/generate_token_id":
     get:
       tags:
@@ -487,26 +458,25 @@ paths:
           description: collection address
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: minter
           in: query
           description: minter address
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftTokenId"
+                $ref: "#/components/schemas/NftTokenId"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/collections/{collection}":
     get:
       tags:
@@ -518,20 +488,21 @@ paths:
           in: path
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/NftCollection"
+                $ref: "#/components/schemas/NftCollection"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/collections/byOwner":
     get:
       tags:
@@ -543,7 +514,7 @@ paths:
           description: owner of searching collections
           required: true
           schema:
-            "$ref": "#/components/schemas/Address"
+            $ref: "#/components/schemas/Address"
         - name: continuation
           in: query
           required: false
@@ -557,17 +528,12 @@ paths:
             format: int32
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftCollections"
+          $ref: "#/components/responses/NftCollectionsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/collections/all":
     get:
       tags:
@@ -587,14 +553,29 @@ paths:
             format: int32
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftCollections"
+          $ref: "#/components/responses/NftCollectionsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
+components:
+  responses:
+    NftOwnershipsPage:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NftOwnerships"
+    NftCollectionsPage:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NftCollections"
+    NftItemsPage:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NftItems"

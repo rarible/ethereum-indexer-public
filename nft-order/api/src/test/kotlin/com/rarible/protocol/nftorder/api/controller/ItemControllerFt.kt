@@ -4,9 +4,8 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
-import com.rarible.protocol.dto.NftOrderApiErrorDto
+import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
+import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderItemControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
@@ -122,35 +121,35 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     @Test
     fun `get item by id - not found`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val nftApiError = NftIndexerApiErrorDto(404, NftIndexerApiErrorDto.Code.ITEM_NOT_FOUND, "")
+        val nftApiError = EthereumApiErrorEntityNotFoundDto(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND, "123")
 
-        nftItemControllerApiMock.mockGetNftItemById(itemId, nftApiError)
+        nftItemControllerApiMock.mockGetNftItemById(itemId, 404, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderItemControllerApi.ErrorGetNftOrderItemById> {
             nftOrderItemControllerApi
                 .getNftOrderItemById(itemId.decimalStringValue, null)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(404)
+        assertThat(ex.on404).isEqualTo(nftApiError)
     }
 
     @Test
     fun `get item by id - unexpected api error`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val nftApiError = NftIndexerApiErrorDto(500, NftIndexerApiErrorDto.Code.UNKNOWN, "")
+        val nftApiError = EthereumApiErrorServerErrorDto(EthereumApiErrorServerErrorDto.Code.UNKNOWN, "321")
 
-        nftItemControllerApiMock.mockGetNftItemById(itemId, nftApiError)
+        nftItemControllerApiMock.mockGetNftItemById(itemId, 500, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderItemControllerApi.ErrorGetNftOrderItemById> {
             nftOrderItemControllerApi
                 .getNftOrderItemById(itemId.decimalStringValue, null)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(500)
+        assertThat(ex.on500).isEqualTo(nftApiError)
     }
 
     @Test
