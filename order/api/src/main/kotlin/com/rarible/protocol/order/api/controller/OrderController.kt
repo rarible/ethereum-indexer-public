@@ -9,6 +9,7 @@ import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
@@ -33,7 +34,7 @@ class OrderController(
     private val orderInvertService: OrderInvertService,
     private val conversionService: ConversionService,
     private val prepareTxService: PrepareTxService,
-    private val featureFlags: FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -292,7 +293,7 @@ class OrderController(
         return source.map { PartConverter.convert(it) }
     }
 
-    private fun OrderFilterDto.featured(featureFlags: FeatureFlags): OrderFilterDto {
+    private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {
         return  if (platform == null && featureFlags.showAllOrdersByDefault) {
             when (this) {
                 is OrderFilterAllDto -> copy(platform = PlatformDto.ALL)

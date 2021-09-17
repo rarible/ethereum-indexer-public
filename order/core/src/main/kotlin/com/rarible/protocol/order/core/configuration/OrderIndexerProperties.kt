@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.order.core.model.FeatureFlags
 import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -45,6 +44,11 @@ data class OrderIndexerProperties(
 
     data class PublishProperties(
         val publishOpenSeaOrdersToCommonTopic: Boolean = false
+    )
+
+    data class FeatureFlags(
+        val useCommonTransactionTraceProvider: Boolean = true,
+        val showAllOrdersByDefault: Boolean = false
     )
 }
 

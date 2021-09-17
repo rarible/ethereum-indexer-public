@@ -16,7 +16,6 @@ import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFacto
 import com.rarible.protocol.nft.api.subscriber.NftIndexerEventsConsumerFactory
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
-import com.rarible.protocol.order.core.model.FeatureFlags
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -56,7 +55,7 @@ class OrderListenerConfiguration(
     private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
 
     @Bean
-    fun featureFlags(): FeatureFlags {
+    fun featureFlags(): OrderIndexerProperties.FeatureFlags {
         return commonProperties.featureFlags
     }
 
