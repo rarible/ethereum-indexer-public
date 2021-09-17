@@ -18,7 +18,8 @@ class OrderListenerProperties(
     val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),
     val loadOpenSeaDelay: Duration = Duration.ofSeconds(5),
     val saveOpenSeaOrdersBatchSize: Int = 200,
-    val openSeaOrderSide: OrderSide? = null
+    val openSeaOrderSide: OrderSide? = null,
+    val resetMakeStockEnabled: Boolean = false
 ) {
     enum class OrderSide {
         ALL,

@@ -47,6 +47,8 @@ common:
 listener:
   priceUpdateScheduleRate: PT12H # 12 hours to ms
   priceUpdateEnabled: false
+  resetMakeStockScheduleRate: PT15M # 15 minutes period
+  resetMakeStockEnabled: false
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50
