@@ -33,7 +33,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
@@ -236,7 +236,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
 
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
-        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val expectedBidOrder = Order(
             maker = bidderAddress,
             taker = null,
@@ -430,7 +430,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val listOrderTimestamp = cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, punkPrice, grantedAddress)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
@@ -576,7 +576,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertEquals(ownerAddress, sellOrder.maker)
                 assertEquals(
                     Asset(
-                        CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()),
+                        CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)),
                         EthUInt256.ONE
                     ), sellOrder.make
                 )

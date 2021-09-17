@@ -77,8 +77,8 @@ class MongoOrderRepository(
 
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {
         val criteria =
-            (Order::make / Asset::type / Erc721AssetType::token isEqualTo token)
-                .and(Order::make / Asset::type / Erc721AssetType::tokenId).isEqualTo(tokenId)
+            (Order::make / Asset::type / NftAssetType::token isEqualTo token)
+                .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
                 .and(Order::maker).isEqualTo(maker)
                 .and(Order::cancelled).isEqualTo(false)
 

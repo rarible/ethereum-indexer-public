@@ -29,7 +29,7 @@ class CryptoPunkBidWithdrawnLogDescriptor(
         val orderHash = Order.hashKey(
             maker = bidderAddress,
             makeAssetType = EthAssetType,
-            takeAssetType = CryptoPunksAssetType(marketAddress, punkIndex.value.toInt()),
+            takeAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)),
             salt = CRYPTO_PUNKS_SALT.value
         )
         return listOf(
@@ -37,7 +37,7 @@ class CryptoPunkBidWithdrawnLogDescriptor(
                 hash = orderHash,
                 maker = bidderAddress,
                 make = Asset(EthAssetType, EthUInt256.ZERO),
-                take = Asset(CryptoPunksAssetType(marketAddress, punkIndex.value.toInt()), EthUInt256.ONE),
+                take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE),
                 date = date,
                 source = HistorySource.CRYPTO_PUNKS
             )

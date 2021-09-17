@@ -7,7 +7,9 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -44,9 +46,9 @@ internal class OpenSeaOrderParserTest {
         assertThat(sellMatch.side).isEqualTo(OrderSide.LEFT)
         assertThat(sellMatch.maker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
         assertThat(sellMatch.taker).isEqualTo(Address.apply("0x47921676a46ccfe3d80b161c7b4ddc8ed9e716b6"))
-        assertThat(sellMatch.make.type).isInstanceOf(Erc721AssetType::class.java)
-        assertThat((sellMatch.make.type as Erc721AssetType).token).isEqualTo(Address.apply("0x4a6a5703a9796630e9fa04f5ecaf730065a7b827"))
-        assertThat((sellMatch.make.type as Erc721AssetType).tokenId).isEqualTo(EthUInt256.of(10))
+        assertThat(sellMatch.make.type).isInstanceOf(NftAssetType::class.java)
+        assertThat((sellMatch.make.type as NftAssetType).token).isEqualTo(Address.apply("0x4a6a5703a9796630e9fa04f5ecaf730065a7b827"))
+        assertThat((sellMatch.make.type as NftAssetType).tokenId).isEqualTo(EthUInt256.of(10))
         assertThat(sellMatch.make.value).isEqualTo(EthUInt256.ONE)
         assertThat(sellMatch.take.type).isInstanceOf(EthAssetType::class.java)
         assertThat(sellMatch.take.value).isEqualTo(EthUInt256.of(price))
@@ -58,9 +60,9 @@ internal class OpenSeaOrderParserTest {
         assertThat(buyMatch.side).isEqualTo(OrderSide.RIGHT)
         assertThat(buyMatch.maker).isEqualTo(Address.apply("0x47921676a46ccfe3d80b161c7b4ddc8ed9e716b6"))
         assertThat(buyMatch.taker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
-        assertThat(buyMatch.take.type).isInstanceOf(Erc721AssetType::class.java)
-        assertThat((buyMatch.take.type as Erc721AssetType).token).isEqualTo(Address.apply("0x4a6a5703a9796630e9fa04f5ecaf730065a7b827"))
-        assertThat((buyMatch.take.type as Erc721AssetType).tokenId).isEqualTo(EthUInt256.of(10))
+        assertThat(buyMatch.take.type).isInstanceOf(NftAssetType::class.java)
+        assertThat((buyMatch.take.type as NftAssetType).token).isEqualTo(Address.apply("0x4a6a5703a9796630e9fa04f5ecaf730065a7b827"))
+        assertThat((buyMatch.take.type as NftAssetType).tokenId).isEqualTo(EthUInt256.of(10))
         assertThat(buyMatch.take.value).isEqualTo(EthUInt256.ONE)
         assertThat(buyMatch.make.type).isInstanceOf(EthAssetType::class.java)
         assertThat(buyMatch.make.value).isEqualTo(EthUInt256.of(price))
@@ -94,9 +96,9 @@ internal class OpenSeaOrderParserTest {
         assertThat(buyMatch.make.type).isInstanceOf(Erc20AssetType::class.java)
         assertThat((buyMatch.make.type as Erc20AssetType).token).isEqualTo(Address.apply("0xc778417e063141139fce010982780140aa0cd5ab"))
         assertThat(buyMatch.make.value).isEqualTo(EthUInt256.of(price))
-        assertThat(buyMatch.take.type).isInstanceOf(Erc721AssetType::class.java)
-        assertThat((buyMatch.take.type as Erc721AssetType).token).isEqualTo(Address.apply("0x509fd4cdaa29be7b1fad251d8ea0fca2ca91eb60"))
-        assertThat((buyMatch.take.type as Erc721AssetType).tokenId).isEqualTo(EthUInt256.of(110711))
+        assertThat(buyMatch.take.type).isInstanceOf(NftAssetType::class.java)
+        assertThat((buyMatch.take.type as NftAssetType).token).isEqualTo(Address.apply("0x509fd4cdaa29be7b1fad251d8ea0fca2ca91eb60"))
+        assertThat((buyMatch.take.type as NftAssetType).tokenId).isEqualTo(EthUInt256.of(110711))
         assertThat(buyMatch.take.value).isEqualTo(EthUInt256.ONE)
         assertThat(buyMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(buyMatch.date).isEqualTo(date)
@@ -109,9 +111,9 @@ internal class OpenSeaOrderParserTest {
         assertThat(sellMatch.take.type).isInstanceOf(Erc20AssetType::class.java)
         assertThat((sellMatch.take.type as Erc20AssetType).token).isEqualTo(Address.apply("0xc778417e063141139fce010982780140aa0cd5ab"))
         assertThat(sellMatch.take.value).isEqualTo(EthUInt256.of(price))
-        assertThat(sellMatch.make.type).isInstanceOf(Erc721AssetType::class.java)
-        assertThat((sellMatch.make.type as Erc721AssetType).token).isEqualTo(Address.apply("0x509fd4cdaa29be7b1fad251d8ea0fca2ca91eb60"))
-        assertThat((sellMatch.make.type as Erc721AssetType).tokenId).isEqualTo(EthUInt256.of(110711))
+        assertThat(sellMatch.make.type).isInstanceOf(NftAssetType::class.java)
+        assertThat((sellMatch.make.type as NftAssetType).token).isEqualTo(Address.apply("0x509fd4cdaa29be7b1fad251d8ea0fca2ca91eb60"))
+        assertThat((sellMatch.make.type as NftAssetType).tokenId).isEqualTo(EthUInt256.of(110711))
         assertThat(sellMatch.make.value).isEqualTo(EthUInt256.ONE)
         assertThat(sellMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(sellMatch.date).isEqualTo(date)

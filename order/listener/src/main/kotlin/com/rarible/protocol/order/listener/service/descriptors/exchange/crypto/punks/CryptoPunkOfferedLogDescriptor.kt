@@ -58,7 +58,7 @@ class CryptoPunkOfferedLogDescriptor(
         }
         val marketAddress = log.address()
         val sellerAddress = transactionTrace.from
-        val make = Asset(CryptoPunksAssetType(marketAddress, punkIndex.value.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(minPrice))
         val sellOrderHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
         return listOf(
