@@ -271,7 +271,7 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: Returns NFT by item identifier
+      description: Returns NFT item by identifier
       operationId: getNftItemById
       parameters:
         - name: itemId
@@ -450,7 +450,7 @@ paths:
           example: 100
         - name: showDeleted
           in: query
-          description: "Show deleted items"
+          description: "Include deleted items"
           required: false
           schema:
             type: boolean
