@@ -500,7 +500,7 @@ components:
         - "$ref": "#/components/schemas/LazyErc721"
         - "$ref": "#/components/schemas/LazyErc1155"
 
-    LazyNftBody:
+    BurnLazyNftForm:
       type: object
       required:
         - creators

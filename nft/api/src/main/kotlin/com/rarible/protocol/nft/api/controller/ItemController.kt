@@ -49,9 +49,9 @@ class ItemController(
         return ResponseEntity.noContent().build()
     }
 
-    override suspend fun deleteLazyMintNftAsset(itemId: String, lazyNftBodyDto: LazyNftBodyDto): ResponseEntity<Unit> {
+    override suspend fun deleteLazyMintNftAsset(itemId: String, burnLazyNftBodyDto: BurnLazyNftFormDto): ResponseEntity<Unit> {
         val item: ItemId = conversionService.convert(itemId)
-        burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), lazyNftBodyDto)
+        burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), burnLazyNftBodyDto)
         mintService.burnLazyMint(item)
         return ResponseEntity.noContent().build()
     }

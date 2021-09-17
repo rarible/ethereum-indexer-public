@@ -5,8 +5,8 @@ import com.rarible.ethereum.common.toBinary
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
+import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyErc721Dto
-import com.rarible.protocol.dto.LazyNftBodyDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.controller.ItemController
 import com.rarible.protocol.nft.api.e2e.End2EndTest
@@ -84,7 +84,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val msg = ItemController.BURN_MSG.format(tokenId)
         val signature = sign(privateKey, msg).toBinary()
 
-        val lazyDto = LazyNftBodyDto(lazyItemDto.creators.map { it.account }, listOf(signature))
+        val lazyDto = BurnLazyNftFormDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
 
         val item = itemRepository.findById(itemId).awaitSingle()
@@ -111,7 +111,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         // burn with wrong signature
         val signature = sign(privateKey, "").toBinary()
 
-        val lazyDto = LazyNftBodyDto(lazyItemDto.creators.map { it.account }, listOf(signature))
+        val lazyDto = BurnLazyNftFormDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         val ex = assertThrows<WebClientResponseException> {
             nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto)
                 .block()
