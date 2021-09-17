@@ -3,8 +3,6 @@ spring:
     mongodb:
       uri: mongodb://${mongodb.hosts}
       database: ${mongodb.database}
-      username: ${mongodb.username}
-      password: ${mongodb.password}
 
 protocol:
   nft:
