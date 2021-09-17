@@ -5,7 +5,7 @@
     <parent>
         <artifactId>protocol-unlockable</artifactId>
         <groupId>com.rarible.protocol</groupId>
-        <version>1.13.37</version>
+        <version>1.13.38</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
