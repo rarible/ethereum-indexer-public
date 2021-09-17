@@ -29,7 +29,7 @@ class ErrorController {
     }
 
     @ExceptionHandler(WebClientResponseProxyException::class)
-    fun handleProtocolApiException(ex: WebClientResponseProxyException) = mono {
+    fun handleWebClientResponseException(ex: WebClientResponseProxyException) = mono {
         logger.warn("Exception during Protocol-API request to another service: {}; response: {}", ex.message, ex.data)
         ResponseEntity.status(ex.statusCode).body(ex.data)
     }

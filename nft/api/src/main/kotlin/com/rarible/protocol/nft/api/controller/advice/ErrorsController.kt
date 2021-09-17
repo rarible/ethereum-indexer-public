@@ -20,18 +20,18 @@ class ErrorsController {
 
     @ExceptionHandler(NftIndexerApiException::class)
     fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
-        logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
+        logger.warn("Indexer API error while handle request: {}", ex.message)
         ResponseEntity.status(ex.status).body(ex.data)
     }
 
     @ExceptionHandler(ServerWebInputException::class)
     fun handleServerWebInputException(ex: ServerWebInputException) = mono {
-        logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
+        // For ServerWebInputException status is always 400
         val error = EthereumApiErrorBadRequestDto(
             code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
         )
-        // For ServerWebInputException status is always 400
+        logger.warn("Web input error: {}", error.message)
         ResponseEntity.status(ex.status).body(error)
     }
 
@@ -40,31 +40,24 @@ class ErrorsController {
     fun handlerConversionFailedException(ex: ConversionFailedException) = mono {
         when (ex.cause) {
             is IncorrectItemFormat -> {
-                logWithNecessaryLevel(HttpStatus.BAD_REQUEST, ex, INDEXER_API_ERROR)
-                EthereumApiErrorBadRequestDto(
+                val result = EthereumApiErrorBadRequestDto(
                     code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
-                    message = ex.cause?.message ?: MISSING_MESSAGE
+                    message = ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
                 )
+                logger.warn("Conversion exception while handle request: {}", result.message)
+                result
             }
-            else -> logError(ex)
+            else -> logUnexpectedError(ex)
         }
     }
 
     @ExceptionHandler(Throwable::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handlerException(ex: Throwable) = mono {
-        logError(ex)
+        logUnexpectedError(ex)
     }
 
-    private fun logWithNecessaryLevel(status: HttpStatus, ex: Exception, message: String = "") {
-        when {
-            status == HttpStatus.NOT_FOUND -> logger.warn(message)
-            status.is5xxServerError -> logger.error(message, ex)
-            else -> logger.warn(message, ex)
-        }
-    }
-
-    private fun logError(ex: Throwable) {
+    private fun logUnexpectedError(ex: Throwable) {
         logger.error("System error while handling request", ex)
         EthereumApiErrorServerErrorDto(
             code = EthereumApiErrorServerErrorDto.Code.UNKNOWN,
@@ -74,6 +67,5 @@ class ErrorsController {
 
     companion object {
         const val MISSING_MESSAGE = "Missing message in error"
-        const val INDEXER_API_ERROR = "Indexer api error while handle request"
     }
 }

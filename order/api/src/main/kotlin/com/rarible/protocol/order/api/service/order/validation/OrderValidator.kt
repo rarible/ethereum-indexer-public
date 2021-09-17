@@ -1,8 +1,7 @@
 package com.rarible.protocol.order.api.service.order.validation
 
-import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
-import com.rarible.protocol.order.api.exceptions.OrderUpdateError
-import com.rarible.protocol.order.api.exceptions.OrderUpdateErrorReason
+import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
 import org.springframework.stereotype.Service
@@ -20,7 +19,10 @@ class OrderValidator(
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
         }
         if (isValidOrderDataType.not()) {
-            throw IncorrectOrderDataException("Order with type ${orderVersion.type} has invalid order data")
+            throw OrderUpdateException(
+                "Order with type ${orderVersion.type} has invalid order data",
+                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_ORDER_DATA
+            )
         }
 
         orderSignatureValidator.validate(orderVersion)
@@ -34,27 +36,41 @@ class OrderValidator(
 
     fun validate(existing: Order, update: OrderVersion) {
         if (existing.cancelled) {
-            throw OrderUpdateError(OrderUpdateErrorReason.CANCELLED)
+            throw OrderUpdateException("Order is cancelled", EthereumOrderUpdateApiErrorDto.Code.ORDER_CANCELED)
         }
         if (existing.data != update.data) {
-            throw OrderUpdateError(OrderUpdateErrorReason.INVALID_UPDATE)
+            throw OrderUpdateException(
+                "Order update failed ('data' changed)", EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
         if (existing.start != update.start) {
-            throw OrderUpdateError(OrderUpdateErrorReason.INVALID_UPDATE)
+            throw OrderUpdateException(
+                "Order update failed ('start' changed)", EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
         if (existing.end != update.end) {
-            throw OrderUpdateError(OrderUpdateErrorReason.INVALID_UPDATE)
+            throw OrderUpdateException(
+                "Order update failed ('end' changed)", EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
         if (existing.taker != update.taker) {
-            throw OrderUpdateError(OrderUpdateErrorReason.INVALID_UPDATE)
+            throw OrderUpdateException(
+                "Order update failed ('taker' changed)", EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
         if (update.make.value < existing.make.value) {
-            throw OrderUpdateError(OrderUpdateErrorReason.MAKE_VALUE_ERROR)
+            throw OrderUpdateException(
+                "Order update failed ('make.value' less then current)",
+                EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
 
         val newMaxTake = update.make.value * existing.take.value / existing.make.value
         if (newMaxTake < update.take.value) {
-            throw OrderUpdateError(OrderUpdateErrorReason.TAKE_VALUE_ERROR)
+            throw OrderUpdateException(
+                "Order update failed ('take.value' greater than maximum available: $newMaxTake)",
+                EthereumOrderUpdateApiErrorDto.Code.ORDER_INVALID_UPDATE
+            )
         }
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -21,7 +22,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
@@ -94,12 +94,11 @@ class ItemControllerFt : SpringContainerBaseTest() {
     @Test
     fun `should return bad request`() = runBlocking {
         try {
-            val result = nftItemApiClient.getNftLazyItemById("-").awaitFirst()
-        } catch (ex : WebClientResponseException.BadRequest) {
-            val dto = mapper.readValue(ex.responseBodyAsString, NftIndexerApiErrorDto::class.java)
-            assertEquals(400, dto.status)
-            assertEquals(NftIndexerApiErrorDto.Code.BAD_REQUEST, dto.code)
-            assertEquals("Incorrect format of itemId: -", dto.message)
+            nftItemApiClient.getNftLazyItemById("-").awaitFirst()
+        } catch (ex: NftItemControllerApi.ErrorGetNftLazyItemById) {
+            val dto = ex.on400
+            assertEquals(400, ex.rawStatusCode)
+            assertEquals(EthereumApiErrorBadRequestDto.Code.BAD_REQUEST, dto.code)
         }
     }
 

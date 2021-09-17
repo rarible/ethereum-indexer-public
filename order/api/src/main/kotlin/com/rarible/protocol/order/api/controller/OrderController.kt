@@ -4,17 +4,16 @@ import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.api.exceptions.InvalidParameterException
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.misc.limit
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-
 import com.rarible.protocol.order.api.service.order.OrderService
-import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -78,7 +77,7 @@ class OrderController(
     override suspend fun buyerFeeSignature(fee: Int, orderFormDto: OrderFormDto): ResponseEntity<Binary> {
         val data = when (orderFormDto) {
             is LegacyOrderFormDto -> orderFormDto.data
-            else -> throw InvalidParameterException("Unsupported order form type, should use only LegacyOrderForm type")
+            else -> throw ValidationApiException("Unsupported order form type, should use only LegacyOrderForm type")
         }
         // This is a legacy-support endpoint. Convert only the fields necessary for the calculation of a buyer fee signature.
         val order = Order(

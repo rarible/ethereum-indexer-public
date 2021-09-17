@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.exceptions.InvalidParameterException
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.converters.model.AssetTypeConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
@@ -67,8 +67,8 @@ class EncodeController(
                     types
                 )
             }
-            OrderType.OPEN_SEA_V1 -> throw InvalidParameterException("Unsupported order type ${order.type}")
-            OrderType.CRYPTO_PUNKS -> throw InvalidParameterException("CryptoPunks are not supported")
+            OrderType.OPEN_SEA_V1 -> throw ValidationApiException("Unsupported order type ${order.type}")
+            OrderType.CRYPTO_PUNKS -> throw ValidationApiException("CryptoPunks are not supported")
         }
         val encodedOrder = EncodedOrderDto(transferProxyService.getTransferProxy(order.make.type), signMessage)
         return ResponseEntity.ok(encodedOrder)
