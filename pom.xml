@@ -5,7 +5,7 @@
     <artifactId>rarible-protocol-ethereum-indexer</artifactId>
     <groupId>com.rarible.protocol</groupId>
     <packaging>pom</packaging>
-    <version>1.13.36</version>
+    <version>1.13.37</version>
 
     <parent>
         <groupId>com.rarible</groupId>
