@@ -62,10 +62,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val itemProperties = ItemProperties(
             name = "ItemMetaName",
             description = "ItemMetaDescription",
-            image = "http://test.com/ItemMetaImage.png",
-            imagePreview = "http://test.com/ItemMetaImagePreview.bmp",
-            imageBig = "http://test.com/ItemMetaImageBig.jpeg",
-            animationUrl = "http://test.com/ItemMetaImageUrl.gif",
+            image = "http://127.0.0.1/ItemMetaImage.png",
+            imagePreview = "http://127.0.0.1/ItemMetaImagePreview.bmp",
+            imageBig = "http://t127.0.0.1/ItemMetaImageBig.jpeg",
+            animationUrl = "http://127.0.0.1/ItemMetaImageUrl.gif",
             attributes = itemAttributes
         )
 
@@ -82,7 +82,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(metaDto.image!!.url[NftMediaSizeDto.ORIGINAL.name]).isEqualTo(itemProperties.image)
         assertThat(metaDto.image!!.url[NftMediaSizeDto.BIG.name]).isEqualTo(itemProperties.imageBig)
         assertThat(metaDto.image!!.url[NftMediaSizeDto.PREVIEW.name]).isEqualTo(itemProperties.imagePreview)
-        assertThat(metaDto.image!!.meta[NftMediaSizeDto.PREVIEW.name]!!.type).isEqualTo("text/html") //TODO is it correct?
+        assertThat(metaDto.image!!.meta[NftMediaSizeDto.PREVIEW.name]).isEqualTo(null)
         assertThat(metaDto.animation!!.url[NftMediaSizeDto.ORIGINAL.name]).isEqualTo(itemProperties.animationUrl)
         assertThat(metaDto.animation!!.meta[NftMediaSizeDto.ORIGINAL.name]!!.type).isEqualTo("image/gif")
         assertThat(metaDto.attributes!![0].key).isEqualTo(itemProperties.attributes[0].key)
@@ -92,7 +92,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should return bad request`() = runBlocking {
+    fun `should return bad request`() = runBlocking<Unit> {
         try {
             nftItemApiClient.getNftLazyItemById("-").awaitFirst()
         } catch (ex: NftItemControllerApi.ErrorGetNftLazyItemById) {
