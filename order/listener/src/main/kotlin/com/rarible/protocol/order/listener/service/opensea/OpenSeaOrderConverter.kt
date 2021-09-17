@@ -57,7 +57,9 @@ class OpenSeaOrderConverter(
             makeUsd = usdPrice?.makeUsd,
             takeUsd = usdPrice?.takeUsd,
             platform = Platform.OPEN_SEA
-        )
+        ).run {
+            copy(hash = Order.hash(this))
+        }
     }
 
     private fun joinSignaturePart(r: Word, s: Word, v: Byte): Binary {
