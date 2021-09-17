@@ -437,6 +437,31 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     @Test
+    fun `makeStock should by 0`() = runBlocking<Unit> {
+        val (privateKey, _, maker) = generateNewKeys()
+
+        val makerErc721Contract = AddressFactory.create()
+        val makerErc721TokenId = EthUInt256.TEN
+        val makerErc721Supply = EthUInt256.of(1)
+        val erc721AssetType = Erc721AssetType(makerErc721Contract, makerErc721TokenId)
+        val nft = createNftOwnershipDto().copy(value = makerErc721Supply.value)
+
+        // order doesn't belong the current start,end interval
+        val order = createOrder(maker, Long.MAX_VALUE-1, Long.MAX_VALUE)
+            .copy(
+                maker = maker,
+                make = Asset(erc721AssetType, EthUInt256.TEN),
+                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
+            )
+
+        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker))) } returns Mono.just(nft)
+
+        val saved = orderService.put(order.toForm(privateKey))
+
+        assertThat(saved.makeStock).isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
     fun `should set erc1155 stock`() = runBlocking<Unit> {
         val (privateKey, _, maker) = generateNewKeys()
 

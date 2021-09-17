@@ -42,6 +42,13 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
 
+    fun createOrder(maker: Address, start: Long?, end: Long?) = createOrder(
+        maker = maker,
+        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        start = start,
+        end = end
+    )
+
     fun createOpenSeaOrder(maker: Address) = createOpenSeaOrder(
         maker,
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
