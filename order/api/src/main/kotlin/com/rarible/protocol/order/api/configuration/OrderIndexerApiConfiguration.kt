@@ -9,6 +9,7 @@ import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.model.FeatureFlags
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,6 +24,10 @@ import java.math.BigInteger
 class OrderIndexerApiConfiguration(
     private val indexerProperties: OrderIndexerProperties
 ) {
+    @Bean
+    fun featureFlags(): FeatureFlags {
+        return indexerProperties.featureFlags
+    }
 
     @Bean
     fun blockchain(): Blockchain {
