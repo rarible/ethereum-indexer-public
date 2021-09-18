@@ -12,6 +12,7 @@ import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -62,11 +63,13 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     }
 
     @BeforeEach
-    fun cleanDatabase() {
+    fun cleanDatabase() = runBlocking {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
+
+        orderRepository.createIndexes()
     }
 
     @PostConstruct

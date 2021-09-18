@@ -473,9 +473,26 @@ val AssetType.token: Address
             is Erc721LazyAssetType -> token
             is GenerativeArtAssetType, is EthAssetType -> Address.ZERO()
             is CryptoPunksAssetType -> marketAddress
-            is EthAssetType -> Address.ZERO()
         }
     }
+
+val AssetType.tokenId: EthUInt256?
+    get() {
+        return when (this) {
+            is Erc721AssetType -> tokenId
+            is Erc1155AssetType -> tokenId
+            is Erc1155LazyAssetType -> tokenId
+            is Erc721LazyAssetType -> tokenId
+            is CryptoPunksAssetType -> EthUInt256.of(punkId)
+            is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType -> null
+        }
+    }
+
+val Order.makeNftItemId: ItemId?
+    get() = make.type.tokenId?.let { ItemId(make.type.token, it.value) }
+
+val Order.takeNftItemId: ItemId?
+    get() = take.type.tokenId?.let { ItemId(take.type.token, it.value) }
 
 /**
  * All on-chain CryptoPunks orders have salt = 0.

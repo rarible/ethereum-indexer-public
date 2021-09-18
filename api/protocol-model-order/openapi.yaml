@@ -780,6 +780,48 @@ components:
         order:
           "$ref": "#/components/schemas/Order"
 
+    NftOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - eventId
+        - contract
+        - tokenId
+        - orders
+      properties:
+        eventId:
+          type: string
+        contract:
+          $ref: "#/components/schemas/Address"
+        tokenId:
+          $ref: "#/components/schemas/BigInteger"
+        orders:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Order"
+      oneOf:
+        - "$ref": "#/components/schemas/NftSellOrdersPriceUpdateEvent"
+        - "$ref": "#/components/schemas/NftBidOrdersPriceUpdateEvent"
+
+    NftSellOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - SELL_ORDERS_PRICE_UPDATE
+
+    NftBidOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - BID_ORDERS_PRICE_UPDATE
+
     OrderFilter:
       type: object
       required:

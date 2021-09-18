@@ -14,14 +14,14 @@ import reactor.kotlin.core.publisher.toFlux
 
 @Service
 class BlockProcessor(
-    private val orderReduceService: OrderReduceService
+    private val orderUpdateService: OrderUpdateService
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
         val orderHashes = logs.map { (it.data as OrderExchangeHistory).hash }.distinct()
         return LoggingUtils.withMarker { marker ->
             orderHashes.toFlux()
-                .concatMap { mono { orderReduceService.updateOrder(it) } }
+                .concatMap { mono { orderUpdateService.update(it) } }
                 .then()
                 .toOptional()
                 .elapsed()

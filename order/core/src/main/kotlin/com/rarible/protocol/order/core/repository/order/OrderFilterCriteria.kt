@@ -1,13 +1,12 @@
-package com.rarible.protocol.order.api.service.order
+package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*

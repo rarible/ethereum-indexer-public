@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.Platform
 class ProtocolOrderPublisher(
     private val orderActivityProducer: RaribleKafkaProducer<ActivityDto>,
     private val orderEventProducer: RaribleKafkaProducer<OrderEventDto>,
+    private val ordersPriceUpdateEventProducer: RaribleKafkaProducer<NftOrdersPriceUpdateEventDto>,
     private val globalOrderEventProducer: RaribleKafkaProducer<OrderEventDto>,
     private val publishProperties: PublishProperties
 ) {
@@ -49,6 +50,16 @@ class ProtocolOrderPublisher(
             id = event.id
         )
         orderActivityProducer.send(message).ensureSuccess()
+    }
+
+    suspend fun publish(event: NftOrdersPriceUpdateEventDto) {
+        val message = KafkaMessage(
+            key = ItemId(event.contract, event.tokenId).toString(),
+            value = event,
+            headers = orderEventHeaders,
+            id = event.eventId
+        )
+        ordersPriceUpdateEventProducer.send(message).ensureSuccess()
     }
 
     private val OrderDto.key: String?

@@ -40,6 +40,10 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-subscriber-order-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-client-currency-starter</artifactId>
         </dependency>
         <dependency>

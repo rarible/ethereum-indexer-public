@@ -3,9 +3,9 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
+import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter

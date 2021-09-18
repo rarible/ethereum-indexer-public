@@ -25,6 +25,9 @@ abstract class BaseListenerApplicationTest {
             "protocol.erc20.subscriber.broker-replica-set", kafkaTestContainer.kafkaBoostrapServers()
         )
         System.setProperty(
+            "protocol.order.subscriber.broker-replica-set", kafkaTestContainer.kafkaBoostrapServers()
+        )
+        System.setProperty(
             "common.kafka-replica-set", kafkaTestContainer.kafkaBoostrapServers()
         )
         System.setProperty(

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -26,7 +27,8 @@ class OrderUpdateService(
     private val orderReduceService: OrderReduceService,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceUpdateService: PriceUpdateService,
-    private val orderVersionListener: OrderVersionListener
+    private val orderVersionListener: OrderVersionListener,
+    private val orderListener: OrderListener
 ) {
     private val logger = LoggerFactory.getLogger(OrderUpdateService::class.java)
 
@@ -42,8 +44,20 @@ class OrderUpdateService(
     suspend fun save(orderVersion: OrderVersion): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
         val order = optimisticLock { orderReduceService.updateOrder(orderVersion.hash) }
+
+        orderListener.onOrder(order)
         orderVersionListener.onOrderVersion(orderVersion)
         return order
+    }
+
+    suspend fun update(hash: Word): Order {
+        val order = orderRepository.findById(hash)
+        val updatedOrder = orderReduceService.updateOrder(hash)
+
+        if (order != updatedOrder) {
+            orderListener.onOrder(updatedOrder)
+        }
+        return updatedOrder
     }
 
     /**
