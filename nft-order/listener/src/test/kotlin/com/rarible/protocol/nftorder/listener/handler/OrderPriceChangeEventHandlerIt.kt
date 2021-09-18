@@ -47,7 +47,7 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         val updatedOrder4 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
             .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null, makeStock = BigInteger.ZERO) // Dead order
         val updatedOrder5 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null)
+            .copy(takePriceUsd = BigDecimal.valueOf(2), makePriceUsd = null)
         val updatedOrder6 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
             .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null)
         val updatedOrder7 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
@@ -78,15 +78,15 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         val updatedOrder1 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
             .copy(makePriceUsd = BigDecimal.valueOf(10), takePriceUsd = null)
         val updatedOrder2 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
-            .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null, cancelled = true) //Dead order
+            .copy(makePriceUsd = BigDecimal.valueOf(35), takePriceUsd = null, cancelled = true) //Dead order
         val updatedOrder3 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
             .copy(makePriceUsd = BigDecimal.valueOf(11), takePriceUsd = null)
         val updatedOrder4 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
-            .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null, makeStock = BigInteger.ZERO) // Dead order
+            .copy(makePriceUsd = BigDecimal.valueOf(36), takePriceUsd = null, cancelled = true) // Dead order
         val updatedOrder5 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
             .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null)
         val updatedOrder6 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
-            .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null)
+            .copy(makePriceUsd = BigDecimal.valueOf(31), takePriceUsd = null)
         val updatedOrder7 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
             .copy(makePriceUsd = BigDecimal.valueOf(32), takePriceUsd = null)
 

@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.exceptions.InvalidParameterException
-import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -13,6 +12,7 @@ import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PrepareTxService

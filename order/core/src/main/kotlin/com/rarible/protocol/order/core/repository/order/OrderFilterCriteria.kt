@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.*
 import org.bson.Document
 import org.springframework.data.domain.Sort
@@ -25,17 +26,16 @@ object OrderFilterCriteria {
             is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
 
+        val requestLimit = limit.limit()
+
         val query = Query(
             criteria
                 .forPlatform(convert(platform))
                 .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
-        ).with(sort(this.sort))
+        ).limit(requestLimit).with(sort(this.sort))
 
-        if (limit != null) {
-            query.limit(limit)
-        }
         if (hint != null) {
             query.withHint(hint)
         }

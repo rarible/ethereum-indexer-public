@@ -34,7 +34,7 @@ class MongoOrderRepository(
         }
     }
 
-    override suspend fun save(order: Order, previousOrderVersion: Order?): Order {
+    override suspend fun save(order: Order): Order {
         return template.save(order).awaitFirst()
     }
 

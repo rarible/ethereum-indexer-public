@@ -476,7 +476,7 @@ val AssetType.token: Address
         }
     }
 
-val AssetType.tokeId: EthUInt256?
+val AssetType.tokenId: EthUInt256?
     get() {
         return when (this) {
             is Erc721AssetType -> tokenId
@@ -489,10 +489,10 @@ val AssetType.tokeId: EthUInt256?
     }
 
 val Order.makeNftItemId: ItemId?
-    get() = make.type.tokeId?.let { ItemId(make.type.token, it.value) }
+    get() = make.type.tokenId?.let { ItemId(make.type.token, it.value) }
 
 val Order.takeNftItemId: ItemId?
-    get() = take.type.tokeId?.let { ItemId(take.type.token, it.value) }
+    get() = take.type.tokenId?.let { ItemId(take.type.token, it.value) }
 
 /**
  * All on-chain CryptoPunks orders have salt = 0.

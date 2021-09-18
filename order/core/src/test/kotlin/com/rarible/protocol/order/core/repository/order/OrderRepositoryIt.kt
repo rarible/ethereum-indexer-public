@@ -40,7 +40,7 @@ internal class OrderRepositoryIt {
     fun `test order raw format`() = runBlocking<Unit> {
         val order = createOrder()
 
-        delegate.save(order, null)
+        delegate.save(order)
 
         val document = mongo.findById(
             order.hash,

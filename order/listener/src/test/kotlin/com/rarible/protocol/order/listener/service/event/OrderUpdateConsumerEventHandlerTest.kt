@@ -17,7 +17,6 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.reactive.awaitFirst
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -147,9 +146,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     }
 
     private suspend fun save(orderVersion: OrderVersion): Order {
-        val order = orderVersion.toOrderExactFields().copy(hash = orderVersion.hash)
-        orderVersionRepository.save(orderVersion).awaitFirst()
-        return orderRepository.save(order)
+        return orderUpdateService.save(orderVersion)
     }
 
     private fun checkOrderPrices(order: Order, kind: OrderKind) {
