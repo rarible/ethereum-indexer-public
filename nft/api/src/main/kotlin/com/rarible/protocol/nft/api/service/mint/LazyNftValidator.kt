@@ -4,8 +4,8 @@ import com.rarible.core.common.convert
 import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.nft.api.exceptions.InvalidLazyNftException
-import com.rarible.protocol.nft.api.exceptions.TokenNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.exceptions.ValidationApiException
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -23,17 +23,17 @@ class LazyNftValidator(
 ) {
     suspend fun validate(lazyNftDto: LazyNftDto) {
         val token = tokenRepository.findById(lazyNftDto.contract).awaitFirstOrNull()
-            ?: throw TokenNotFoundException(lazyNftDto.contract)
+            ?: throw EntityNotFoundApiException("LazyNft", lazyNftDto.contract)
 
         if (token.features.contains(TokenFeature.MINT_AND_TRANSFER)) {
             val tokenId = Uint256Type.encode(lazyNftDto.tokenId).bytes()
             val firstCreator = lazyNftDto.creators.first().account.bytes()
 
             if (tokenId.size < firstCreator.size) {
-                throw InvalidLazyNftException("TokenId has invalid hex size")
+                throw ValidationApiException("TokenId $token has invalid hex size")
             }
             if (Arrays.equals(firstCreator, tokenId.sliceArray(firstCreator.indices)).not()) {
-                throw InvalidLazyNftException("TokenId must start with first creator address")
+                throw ValidationApiException("TokenId $token must start with first creator address")
             }
         }
 
@@ -45,6 +45,6 @@ class LazyNftValidator(
             ValidationResult.NotUniqCreators -> "All creators must be uniq"
             is ValidationResult.InvalidCreatorSignature -> "Invalid signatures for creators ${result.creators}"
         }
-        throw InvalidLazyNftException(errorMessage)
+        throw ValidationApiException(errorMessage)
     }
 }

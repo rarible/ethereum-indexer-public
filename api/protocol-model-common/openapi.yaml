@@ -6,6 +6,47 @@ paths:
 components:
   schemas:
 
+    EthereumApiErrorEntityNotFound:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - NOT_FOUND
+        message:
+          type: string
+
+    EthereumApiErrorBadRequest:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - BAD_REQUEST
+            - VALIDATION
+        message:
+          type: string
+
+    EthereumApiErrorServerError:
+      required:
+        - code
+        - message
+        - status
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - UNKNOWN
+        message:
+          type: string
+
     Activity:
       type: object
       required:
@@ -960,3 +1001,23 @@ components:
     Address:
       type: string
       example: '0x60f80121c31a0d46b5279700f9df786054aa5ee5'
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorBadRequest"
+    ServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorServerError"
+    EntityNotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EthereumApiErrorEntityNotFound"

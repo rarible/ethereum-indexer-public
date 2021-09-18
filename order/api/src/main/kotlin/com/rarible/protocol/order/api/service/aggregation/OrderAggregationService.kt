@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.service.aggregation
 
-import com.rarible.protocol.order.api.exceptions.InvalidParameterException
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.core.model.AggregatedData
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -29,7 +29,7 @@ class OrderAggregationService(
 
     private fun validateDates(startDate: Date, endDate: Date) {
         if (startDate >= endDate) {
-            throw InvalidParameterException("startDate must be greater then endDate")
+            throw ValidationApiException("startDate must be greater then endDate")
         }
     }
 }

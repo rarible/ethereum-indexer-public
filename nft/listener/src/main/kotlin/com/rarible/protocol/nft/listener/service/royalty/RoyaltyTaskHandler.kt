@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.service.royalty
 
+import com.rarible.core.task.RunTask
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
@@ -16,6 +17,10 @@ class RoyaltyTaskHandler(
 
     override val type: String
         get() = ROYALTY_REDUCE
+
+    override fun getAutorunParams(): List<RunTask> {
+        return listOf(RunTask("", null))
+    }
 
     override fun runLongTask(from: Address?, param: String): Flow<Address> {
         return itemRepository.findFromByToken(from ?: Address.ZERO())

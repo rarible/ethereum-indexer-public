@@ -4,7 +4,6 @@ import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.contract.model.Erc721Token
 import com.rarible.ethereum.contract.repository.ContractRepository
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.Erc20IndexerApiErrorDto
 import com.rarible.protocol.erc20.api.AbstractFt
 import com.rarible.protocol.erc20.api.End2EndTest
@@ -61,12 +60,12 @@ internal class Erc20TokenControllerFt : AbstractFt() {
         )
         contractRepository.save(contract)
 
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(Erc20TokenControllerApi.ErrorGetErc20TokenById::class.java, Executable {
             client.getErc20TokenById(contract.id.toString())
                 .block()
         })
 
-        val error = e.responseObject as Erc20IndexerApiErrorDto
+        val error = e.data as Erc20IndexerApiErrorDto
         assertEquals(HttpStatus.NOT_FOUND.value(), error.status)
         assertEquals(Erc20IndexerApiErrorDto.Code.TOKEN_NOT_FOUND, error.code)
     }
@@ -84,28 +83,14 @@ internal class Erc20TokenControllerFt : AbstractFt() {
         assertEquals("", token.symbol)
     }
 
-    /*
-    @Test
-    fun `get token - token not found`() = runBlocking<Unit> {
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
-            client.getErc20TokenById(AddressFactory.create())
-                .block()
-        })
-
-        val error = e.responseObject as Erc20IndexerApiErrorDto
-        assertEquals(HttpStatus.NOT_FOUND.value(), error.status)
-        assertEquals(Erc20IndexerApiErrorDto.Code.TOKEN_NOT_FOUND, error.code)
-    }
-    */
-
     @Test
     fun `get token - incorrect query params`() = runBlocking<Unit> {
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(Erc20TokenControllerApi.ErrorGetErc20TokenById::class.java, Executable {
             client.getErc20TokenById("not an address")
                 .block()
         })
 
-        val error = e.responseObject as Erc20IndexerApiErrorDto
+        val error = e.data as Erc20IndexerApiErrorDto
         // TODO originally here should be 400
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), error.status)
         assertEquals(Erc20IndexerApiErrorDto.Code.UNKNOWN, error.code)

@@ -7,7 +7,7 @@ import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.order.api.exceptions.InvalidLazyAssetException
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import io.mockk.*
@@ -88,7 +88,7 @@ internal class LazyAssetValidatorTest {
         every { nftCollectionApi.getNftCollectionById(eq(tokenId.hex())) } returns Mono.just(collection)
         coEvery { delegate.validate(eq(lazyNft)) } returns invalidResult
 
-        assertThrows<InvalidLazyAssetException> {
+        assertThrows<OrderUpdateException> {
             runBlocking {
                 lazyAssetValidator.validate(lazyAsset, "take")
             }
@@ -113,7 +113,7 @@ internal class LazyAssetValidatorTest {
         every { lazyNft.creators } returns listOf(Part(AddressFactory.create(), 10))
         every { nftCollectionApi.getNftCollectionById(eq(token.hex())) } returns Mono.just(collection)
 
-        assertThrows<InvalidLazyAssetException> {
+        assertThrows<OrderUpdateException> {
             runBlocking {
                 lazyAssetValidator.validate(lazyAsset, "take")
             }

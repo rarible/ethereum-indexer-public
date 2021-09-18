@@ -1,8 +1,6 @@
 package com.rarible.protocol.order.core.service.nft
 
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -26,13 +24,6 @@ class NftItemApiService(
     private suspend fun <T> clientRequest(body: suspend () -> Mono<T>): T? {
         return try {
             body().awaitFirstOrNull()
-        } catch (ex: ProtocolApiResponseException) {
-            val data = ex.responseObject
-            if (data is NftIndexerApiErrorDto && data.status == 404) {
-                return null
-            } else {
-                throw ex
-            }
         } catch (ex: WebClientResponseException) {
             if (ex.statusCode == HttpStatus.NOT_FOUND) {
                 null

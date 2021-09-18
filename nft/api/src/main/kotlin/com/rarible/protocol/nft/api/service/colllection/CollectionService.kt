@@ -2,8 +2,7 @@ package com.rarible.protocol.nft.api.service.colllection
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
-import com.rarible.protocol.nft.api.exceptions.CollectionNotFoundException
-import com.rarible.protocol.nft.api.exceptions.TokenNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -31,7 +30,7 @@ class CollectionService(
     suspend fun get(collectionId: Address): Token {
         return tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE }
-            ?: throw CollectionNotFoundException(collectionId)
+            ?: throw EntityNotFoundApiException("Collection", collectionId)
     }
 
     suspend fun search(filter: TokenFilter): List<Token> {
@@ -41,7 +40,7 @@ class CollectionService(
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {
         val token = tokenRegistrationService
             .register(collectionId).awaitFirstOrNull()
-            ?: throw TokenNotFoundException(collectionId)
+            ?: throw EntityNotFoundApiException("Collection", collectionId)
 
         val hasMintAndTransferFeature = token.features.contains(TokenFeature.MINT_AND_TRANSFER)
         val tokenIdKey = if (hasMintAndTransferFeature) "$collectionId:$minter" else "$collectionId"

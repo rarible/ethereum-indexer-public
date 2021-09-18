@@ -4,9 +4,10 @@ import com.rarible.core.common.convert
 import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
+import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
-import com.rarible.protocol.order.api.exceptions.InvalidLazyAssetException
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.model.AssetType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.core.convert.ConversionService
@@ -24,17 +25,26 @@ class LazyAssetValidator(
         val lazyNft = conversionService.convert<LazyNft>(lazyAssetType)
 
         val collection = nftCollectionClient.getNftCollectionById(lazyNft.token.hex()).awaitFirstOrNull()
-            ?: throw InvalidLazyAssetException("Token ${lazyNft.token} was not found")
+            ?: throw OrderUpdateException(
+                "Token ${lazyNft.token} was not found",
+                EthereumOrderUpdateApiErrorDto.Code.INCORRECT_LAZY_ASSET
+            )
 
         if (collection.features.contains(NftCollectionDto.Features.MINT_AND_TRANSFER)) {
             val tokenId = Uint256Type.encode(lazyNft.tokenId).bytes()
             val firstCreator = lazyNft.creators.first().account.bytes()
 
             if (tokenId.size < firstCreator.size) {
-                throw InvalidLazyAssetException("TokenId has invalid hex size")
+                throw OrderUpdateException(
+                    "TokenId has invalid hex size",
+                    EthereumOrderUpdateApiErrorDto.Code.INCORRECT_LAZY_ASSET
+                )
             }
             if (Arrays.equals(firstCreator, tokenId.sliceArray(firstCreator.indices)).not()) {
-                throw InvalidLazyAssetException("TokenId must start with first creator address")
+                throw OrderUpdateException(
+                    "TokenId must start with first creator address",
+                    EthereumOrderUpdateApiErrorDto.Code.INCORRECT_LAZY_ASSET
+                )
             }
         }
         val errorMessage = when (val result = delegate.validate(lazyNft)) {
@@ -43,6 +53,9 @@ class LazyAssetValidator(
             ValidationResult.NotUniqCreators -> "All creators must be uniq for lazy asset on $side side"
             is ValidationResult.InvalidCreatorSignature -> "Invalid signatures for creators ${result.creators} for lazy asset on $side side"
         }
-        throw InvalidLazyAssetException(errorMessage)
+        throw OrderUpdateException(
+            errorMessage,
+            EthereumOrderUpdateApiErrorDto.Code.INCORRECT_LAZY_ASSET
+        )
     }
 }

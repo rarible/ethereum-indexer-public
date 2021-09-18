@@ -2,7 +2,8 @@ package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.order.api.exceptions.IncorrectSignatureException
+import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
 import com.rarible.protocol.order.core.model.OrderType
@@ -19,7 +20,9 @@ class OrderSignatureValidator(
     private val erc1271SignService: ERC1271SignService
 ) {
     suspend fun validate(order: OrderVersion) {
-        val signature = order.signature ?: throw IncorrectSignatureException()
+        val signature = order.signature ?: throw OrderUpdateException(
+            "Signature is not specified", EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
+        )
 
         return when (order.type) {
             OrderType.RARIBLE_V1 -> {
@@ -27,7 +30,10 @@ class OrderSignatureValidator(
                 val legacyMessage = order.legacyMessage()
                 val signer = legacySigner.recover(legacyMessage, signature)
                 if (order.maker != signer) {
-                    throw IncorrectSignatureException()
+                    throw OrderUpdateException(
+                        "Maker's signature is not valid for V1 order",
+                        EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
+                    )
                 }
                 Unit
             }
@@ -36,7 +42,10 @@ class OrderSignatureValidator(
                 val structHash = Order.hash(order)
                 val hash = eip712Domain.hashToSign(structHash)
                 if (erc1271SignService.isSigner(order.maker, hash, signature).not()) {
-                    throw IncorrectSignatureException()
+                    throw OrderUpdateException(
+                        "Maker's signature is not valid for V2 order",
+                        EthereumOrderUpdateApiErrorDto.Code.INCORRECT_SIGNATURE
+                    )
                 }
                 Unit
             }
