@@ -265,16 +265,19 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: returns Item by identifier
+      description: Returns NFT item by identifier
       operationId: getNftItemById
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
         - name: includeMeta
           in: query
+          description: "Include NFT item metadata"
           required: false
           schema:
             type: boolean
@@ -401,38 +404,49 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns all NFT items
       operationId: getNftAllItems
       parameters:
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 1631782042000_0x85d39cea74b0baba54d7fd0df42dd3e6e39b1625:0x000000000000000000000000000000000000000000000000000000000000209a
         - name: size
           in: query
+          description: "The number of items to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
         - name: showDeleted
           in: query
+          description: "Include deleted items"
           required: false
           schema:
             type: boolean
         - name: lastUpdatedFrom
           in: query
+          description: "From what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
             format: int64
+          example: 1631653245
         - name: lastUpdatedTo
           in: query
+          description: "To what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
             format: int64
+          example: 1631782725
         - name: includeMeta
           in: query
+          description: "Include NFT item metadata"
           required: false
           schema:
             type: boolean
