@@ -20,15 +20,14 @@ pipeline {
     stage('test') {
       agent any
       steps {
-         //sh 'mvn clean test -U'
-         sh 'echo Ok'
+         sh 'mvn clean test -U'
       }
-//       post {
-//         always {
-//           junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-//           step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
-//         }
-//       }
+       post {
+         always {
+           junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+           step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
+         }
+       }
     }
     stage('package and publish') {
       agent any
@@ -125,7 +124,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
+//        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
   }
