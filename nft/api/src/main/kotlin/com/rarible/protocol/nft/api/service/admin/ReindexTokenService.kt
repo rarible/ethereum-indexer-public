@@ -2,24 +2,18 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
-import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import kotlinx.coroutines.reactive.awaitFirst
-import org.springframework.stereotype.Component
-import scalether.domain.Address
 import com.rarible.protocol.nft.api.exceptions.IllegalArgumentException
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
-import kotlinx.coroutines.flow.Flow
+import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.OptimisticLockingFailureException
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.find
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.isEqualTo
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class ReindexTokenService(
@@ -90,16 +84,3 @@ class ReindexTokenService(
     }
 }
 
-@Service
-class TempTaskRepository(
-    private val template: ReactiveMongoTemplate
-) {
-    suspend fun save(task: Task): Task {
-        return template.save(task).awaitFirst()
-    }
-
-    suspend fun findByType(type: String): Flow<Task> {
-        val criteria = Task::type isEqualTo type
-        return template.find<Task>(Query.query(criteria)).asFlow()
-    }
-}

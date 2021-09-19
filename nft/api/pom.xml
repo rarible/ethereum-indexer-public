@@ -52,10 +52,6 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-task</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-starter</artifactId>
         </dependency>
         <dependency>
