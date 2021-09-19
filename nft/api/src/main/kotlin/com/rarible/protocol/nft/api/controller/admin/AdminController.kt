@@ -2,17 +2,41 @@ package com.rarible.protocol.nft.api.controller.admin
 
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
+import com.rarible.protocol.nft.api.dto.TokenDto
+import com.rarible.protocol.nft.api.exceptions.TokenNotFoundException
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
+import com.rarible.protocol.nft.core.model.Token
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import scalether.domain.Address
 
 @RestController
 class AdminController(
     private val reindexTokenService: ReindexTokenService
 ) {
+    @GetMapping(
+        value = ["/admin/nft/collections/{collectionId}"],
+        produces = ["application/json"]
+    )
+    suspend fun getTokenById(
+        @PathVariable("collectionId") collectionId: Address
+    ): ResponseEntity<TokenDto> {
+        val token = reindexTokenService.getToken(collectionId)
+            ?: throw TokenNotFoundException(collectionId)
+        return ResponseEntity.ok().body(convert(token))
+    }
+
+    @DeleteMapping(
+        value = ["/admin/nft/collections/{collectionId}"],
+        produces = ["application/json"]
+    )
+    suspend fun deleteTokenById(
+        @PathVariable("collectionId") collectionId: Address
+    ): ResponseEntity<Void> {
+        reindexTokenService.removeToken(collectionId)
+        return ResponseEntity.noContent().build()
+    }
+
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reindex"],
         produces = ["application/json"]
@@ -42,6 +66,17 @@ class AdminController(
             error = task.lastError,
             params = task.param,
             state = task.state.toString()
+        )
+    }
+
+    private fun convert(token: Token): TokenDto {
+        return TokenDto(
+            id = token.id,
+            standard = token.standard.name,
+            owner = token.owner,
+            name = token.name,
+            symbol = token.symbol,
+            features = token.features.map { it.name }
         )
     }
 }

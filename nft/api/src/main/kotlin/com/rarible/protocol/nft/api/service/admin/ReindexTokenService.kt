@@ -4,12 +4,15 @@ import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.api.exceptions.IllegalArgumentException
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
@@ -18,8 +21,17 @@ import scalether.domain.Address
 @Component
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
+    private val tokenRepository: TokenRepository,
     private val taskRepository: TempTaskRepository
 ) {
+    suspend fun getToken(token: Address): Token? {
+        return tokenRepository.findById(token).awaitFirstOrNull()
+    }
+
+    suspend fun removeToken(token: Address) {
+        tokenRepository.remove(token).awaitFirstOrNull()
+    }
+
     suspend fun getTokenTasks(): List<Task> {
         return taskRepository.findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN).toList()
     }
