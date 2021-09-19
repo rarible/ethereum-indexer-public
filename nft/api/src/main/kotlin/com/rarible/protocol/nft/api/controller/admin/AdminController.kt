@@ -14,7 +14,7 @@ class AdminController(
     private val reindexTokenService: ReindexTokenService
 ) {
     @GetMapping(
-        value = ["/admin/collections/tasks/reindex"],
+        value = ["/admin/nft/collections/tasks/reindex"],
         produces = ["application/json"]
     )
     suspend fun createReindexTokenTask(
@@ -26,7 +26,7 @@ class AdminController(
     }
 
     @GetMapping(
-        value = ["/admin/collections/tasks"],
+        value = ["/admin/nft/collections/tasks"],
         produces = ["application/json"]
     )
     suspend fun getTokenTasks(): ResponseEntity<List<AdminTaskDto>> {
