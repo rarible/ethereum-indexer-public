@@ -984,5 +984,19 @@ components:
         data:
           "$ref": "#/components/schemas/Binary"
 
+    EthereumSignatureValidationForm:
+      required:
+        - signer
+        - message
+        - signature
+      type: object
+      properties:
+        signer:
+          $ref: "#/components/schemas/Address"
+        message:
+          type: string
+        signature:
+          $ref: "#/components/schemas/Binary"
+
     ObjectNode:
       type: object

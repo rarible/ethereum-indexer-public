@@ -10,6 +10,10 @@ open class OrderIndexerApiClientFactory(
     webClientCustomizer: WebClientCustomizer
 ) : AbstractApiClientFactory(uriProvider, webClientCustomizer) {
 
+    fun createOrderSignatureApiClient(blockchain: String): OrderSignatureControllerApi {
+        return OrderSignatureControllerApi(createApiClient(blockchain))
+    }
+
     fun createOrderApiClient(blockchain: String): OrderControllerApi {
         return OrderControllerApi(createApiClient(blockchain))
     }
