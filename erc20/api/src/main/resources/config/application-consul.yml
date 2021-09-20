@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+      uri: mongodb://${mongodb.hosts}
       database: ${mongodb.database}
 rarible:
   core:
