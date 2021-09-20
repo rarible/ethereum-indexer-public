@@ -208,6 +208,11 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/meta'
       responses:
         '200':
           description: OK
@@ -234,6 +239,11 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request DELETE \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/resetMeta'
       responses:
         '200':
           description: OK
@@ -256,6 +266,11 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/lazy'
       responses:
         '200':
           description: OK
@@ -284,6 +299,11 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802'
       responses:
         '200':
           description: OK
@@ -327,6 +347,11 @@ paths:
             type: integer
             format: int32
           example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byOwner?owner=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -364,6 +389,11 @@ paths:
             type: integer
             format: int32
           example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byCreator?creator=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -401,6 +431,11 @@ paths:
             type: integer
             format: int32
           example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byCollection?collection=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -453,6 +488,11 @@ paths:
             type: integer
             format: int64
           example: 1631782725
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/all?size=100&lastUpdatedFrom=1631653245'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
