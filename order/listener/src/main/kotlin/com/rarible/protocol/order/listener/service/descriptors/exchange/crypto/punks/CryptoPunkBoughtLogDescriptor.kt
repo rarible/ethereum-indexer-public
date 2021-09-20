@@ -6,6 +6,7 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Binary
@@ -27,7 +28,8 @@ class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum,
-    private val traceProvider: TransactionTraceProvider
+    private val traceProvider: TransactionTraceProvider,
+    private val priceUpdateService: PriceUpdateService
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
@@ -88,7 +90,7 @@ class CryptoPunkBoughtLogDescriptor(
                     takePriceUsd = null,
                     makeUsd = null,
                     takeUsd = null
-                )
+                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
             )
         } else {
             check(calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name())
@@ -114,7 +116,7 @@ class CryptoPunkBoughtLogDescriptor(
                     takePriceUsd = null,
                     makeUsd = null,
                     takeUsd = null
-                )
+                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
             )
         }
         return listOf(

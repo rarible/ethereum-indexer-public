@@ -18,7 +18,7 @@ import java.time.OffsetDateTime
 
 @RestController
 class OrderBidController(
-    private val orderVersionService: OrderBidsService,
+    private val orderBidsService: OrderBidsService,
     private val conversionService: ConversionService
 ) : OrderBidControllerApi {
 
@@ -47,7 +47,7 @@ class OrderBidController(
             priceContinuation
         )
         val statuses = status.map { conversionService.convert<BidStatus>(it) }
-        val orderVersions = orderVersionService.findOrderBids(filter, statuses)
+        val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
         val result = OrderBidsPaginationDto(

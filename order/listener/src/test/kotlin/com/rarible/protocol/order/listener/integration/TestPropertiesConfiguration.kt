@@ -30,18 +30,6 @@ class TestPropertiesConfiguration {
     }
 
     @Bean
-    fun testCurrencyApi(): CurrencyControllerApi = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?): Mono<CurrencyRateDto>? {
-            return CurrencyRateDto(
-                "test",
-                "usd",
-                1.5.toBigDecimal(),
-                Instant.ofEpochMilli(at!!)
-            ).toMono()
-        }
-    }
-
-    @Bean
     @Primary
     fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
         return mockk {
@@ -52,9 +40,16 @@ class TestPropertiesConfiguration {
     @Bean
     @Primary
     fun mockedCurrencyApi() = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?): Mono<CurrencyRateDto>? {
-            return Mono.empty<CurrencyRateDto>()
-        }
+        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?) =
+            CurrencyRateDto(
+                "test",
+                "usd",
+                ETH_CURRENCY_RATE,
+                Instant.ofEpochMilli(at!!)
+            ).toMono()
     }
 
+    companion object {
+        val ETH_CURRENCY_RATE = 3000.toBigDecimal() // 3000$
+    }
 }

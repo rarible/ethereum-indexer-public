@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -25,7 +26,8 @@ class OrderService(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val nftItemApiService: NftItemApiService,
-    private val orderValidator: OrderValidator
+    private val orderValidator: OrderValidator,
+    private val priceUpdateService: PriceUpdateService
 ) {
 
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -51,7 +53,7 @@ class OrderService(
             takePriceUsd = null,
             makeUsd = null,
             takeUsd = null
-        )
+        ).run { priceUpdateService.withUpdatedUsdPrices(this) }
     }
 
     suspend fun put(form: OrderFormDto): Order {

@@ -38,7 +38,7 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                         maker = data.maker,
                         asset = AssetDtoConverter.convert(data.make),
                         hash = data.hash,
-                        type = if (data.take.type.nft) {
+                        type = if (data.isBid()) {
                             OrderActivityMatchSideDto.Type.BID
                         } else {
                             OrderActivityMatchSideDto.Type.SELL
@@ -48,13 +48,17 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                         maker = data.taker,
                         asset = AssetDtoConverter.convert(data.take),
                         hash = data.counterHash ?: Word.apply(ByteArray(32)),
-                        type = if (data.make.type.nft) {
-                            OrderActivityMatchSideDto.Type.BID
-                        } else {
+                        type = if (data.isBid()) {
                             OrderActivityMatchSideDto.Type.SELL
+                        } else {
+                            OrderActivityMatchSideDto.Type.BID
                         }
                     ),
-                    price = nftPrice(data.take, data.make),
+                    price = if (data.isBid()) {
+                        price(data.make, data.take /* NFT */)
+                    } else {
+                        price(data.take, data.make /* NFT */)
+                    },
                     priceUsd = data.takePriceUsd ?: data.makePriceUsd,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
@@ -100,15 +104,15 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     maker = data.maker,
                     make = AssetDtoConverter.convert(data.make),
                     take = AssetDtoConverter.convert(data.take),
-                    price = nftPrice(data.make, data.take),
+                    price = price(data.make, data.take),
                     source = convert(data.source),
-                    priceUsd = null
+                    priceUsd = data.order.takePriceUsd
                 )
             } else if (data.order.taker != null) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
                 // are not supported by frontend, and thus the backend should not return them.
                 null
-            } else  {
+            } else {
                 OrderActivityListDto(
                     date = data.date,
                     id = history.id.toString(),
@@ -116,9 +120,9 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     maker = data.maker,
                     make = AssetDtoConverter.convert(data.make),
                     take = AssetDtoConverter.convert(data.take),
-                    price = nftPrice(data.take, data.make),
+                    price = price(data.take, data.make),
                     source = convert(data.source),
-                    priceUsd = null
+                    priceUsd = data.order.makePriceUsd
                 )
             }
         }
@@ -164,14 +168,6 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
             HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
             HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
             HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
-        }
-    }
-
-    private suspend fun nftPrice(left: Asset, right: Asset): BigDecimal {
-        return if (left.type.nft) {
-            price(right, left)
-        } else {
-            price(left, right)
         }
     }
 

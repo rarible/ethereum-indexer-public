@@ -4,6 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
@@ -18,7 +19,8 @@ import java.time.Instant
 class CryptoPunkOfferedLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val traceProvider: TransactionTraceProvider
+    private val traceProvider: TransactionTraceProvider,
+    private val priceUpdateService: PriceUpdateService
 ) : ItemExchangeHistoryLogEventDescriptor<OnChainOrder> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -82,7 +84,7 @@ class CryptoPunkOfferedLogDescriptor(
                     takePriceUsd = null,
                     makeUsd = null,
                     takeUsd = null
-                )
+                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
             )
         )
     }
