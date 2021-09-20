@@ -7,6 +7,8 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.mono
@@ -43,18 +45,21 @@ class LootCacheDescriptor(
 
             val tokenId = id.parseTokenId().second
             mono {
-                val attrs = mutableListOf<ItemAttribute>()
-                contract.getChest(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("chest", it)) }
-                contract.getFoot(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("foot", it)) }
-                contract.getHand(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("hand", it)) }
-                contract.getHead(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("head", it)) }
-                contract.getNeck(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("neck", it)) }
-                contract.getRing(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("ring", it)) }
-                contract.getWaist(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("waist", it)) }
-                contract.getWeapon(tokenId).call().awaitFirstOrNull()?.let { attrs.add(ItemAttribute("weapon", it)) }
+                val ll = listOf(
+                    contract.getChest(tokenId),
+                    contract.getFoot(tokenId),
+                    contract.getHand(tokenId),
+                    contract.getHead(tokenId),
+                    contract.getNeck(tokenId),
+                    contract.getRing(tokenId),
+                    contract.getWaist(tokenId),
+                    contract.getWeapon(tokenId)
+                ).map { async { it.call().awaitFirstOrNull() ?: "" } }.awaitAll()
+                val def = "chest foot hand head neck ring waist weapon".split(" ")
+                val attrs = ll.mapIndexed { i, v -> ItemAttribute(def[i], v) }.toList()
                 val node = mapper.readTree(base64MimeToString(contract.tokenURI(tokenId).call().awaitSingle())) as ObjectNode
                 val imageUrl = node.getText("image")?.let {
-                    val hash = ipfsService.upload("image.svg", base64MimeToBytes(it))
+                    val hash = ipfsService.upload("image.svg", base64MimeToBytes(it), "image/svg+xml")
                     ipfsService.url(hash)
                 } ?: ""
                 ItemProperties(

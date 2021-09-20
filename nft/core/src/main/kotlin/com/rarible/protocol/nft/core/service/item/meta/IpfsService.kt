@@ -40,13 +40,13 @@ class IpfsService(
 
     fun url(hash: String): String = "ipfs://ipfs/${hash}"
 
-    suspend fun upload(file: String, someByteArray: ByteArray): String {
-        val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
+    suspend fun upload(file: String, someByteArray: ByteArray, contentType: String): String {
+        val response = postFile(file, someByteArray, ipfsProperties.uploadProxy, contentType)
         logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
         return response.get("IpfsHash").toString()
     }
 
-    suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {
+    suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String, contentType: String): Map<*, *> {
         val fileMap: MultiValueMap<String, String> = LinkedMultiValueMap()
         val contentDisposition: ContentDisposition = ContentDisposition
             .builder("form-data")
@@ -54,7 +54,7 @@ class IpfsService(
             .filename(filename)
             .build()
         fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-        fileMap.add("Content-Type", "image/svg+xml")
+        fileMap.add("Content-Type", contentType)
         val fileEntity = HttpEntity(someByteArray, fileMap)
         val body: MultiValueMap<String, Any> = LinkedMultiValueMap()
         body.add("file", fileEntity)
