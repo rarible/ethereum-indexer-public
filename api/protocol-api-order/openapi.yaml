@@ -5,6 +5,31 @@ info:
 
 paths:
 
+  ######################### Sign API #########################
+
+  "/v0.1/signature/validate":
+    post:
+      tags:
+        - order-signature-controller
+      operationId: validate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EthereumSignatureValidationForm"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: boolean
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   ####################### Encoder API ########################
 
   "/v0.1/encoder/order":
@@ -27,7 +52,6 @@ paths:
                 $ref: "#/components/schemas/EncodedOrder"
         '400':
           $ref: "#/components/responses/OrderDataApiError"
-          # INCORRECT_ORDER_DATA
         '500':
           $ref: "#/components/responses/ServerError"
 
