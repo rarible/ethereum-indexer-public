@@ -25,6 +25,7 @@ import java.time.Duration
 
 @IntegrationTest
 class OrderReduceServiceIt : AbstractIntegrationTest() {
+
     @Autowired
     protected lateinit var orderVersionRepository: OrderVersionRepository
 
@@ -83,7 +84,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 source = HistorySource.RARIBLE
             )
         )
-        val result = orderReduceService.updateOrder(order.hash)
+        val result = orderReduceService.updateOrder(order.hash)!!
 
         assertThat(result.fill).isEqualTo(EthUInt256.of(3))
         assertThat(result.cancelled).isEqualTo(true)
@@ -124,10 +125,10 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createOrderVersion().copy(hash = hash)
         )
 
-        val order = orderReduceService.updateOrder(hash)
+        val order = orderReduceService.updateOrder(hash)!!
         assertThat(order.lastEventId).isNotNull()
 
-        val recalculatedOrder = orderReduceService.updateOrder(hash)
+        val recalculatedOrder = orderReduceService.updateOrder(hash)!!
         assertThat(recalculatedOrder.lastEventId).isEqualTo(order.lastEventId)
     }
 
@@ -146,10 +147,10 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createOrderCancel().copy(hash = hash)
         )
 
-        val order = orderReduceService.updateOrder(hash)
+        val order = orderReduceService.updateOrder(hash)!!
         assertThat(order.lastEventId).isNotNull()
 
-        val recalculatedOrder = orderReduceService.updateOrder(hash)
+        val recalculatedOrder = orderReduceService.updateOrder(hash)!!
         assertThat(recalculatedOrder.lastEventId).isEqualTo(order.lastEventId)
     }
 
@@ -164,14 +165,14 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             createOrderSideMatch().copy(hash = hash)
         )
 
-        val order = orderReduceService.updateOrder(hash)
+        val order = orderReduceService.updateOrder(hash)!!
         assertThat(order.lastEventId).isNotNull()
 
         prepareStorage(
             createOrderCancel().copy(hash = hash)
         )
 
-        val updatedOrder = orderReduceService.updateOrder(hash)
+        val updatedOrder = orderReduceService.updateOrder(hash)!!
         assertThat(updatedOrder.lastEventId).isNotNull()
         assertThat(updatedOrder.lastEventId).isNotEqualTo(order.lastEventId)
     }
@@ -188,7 +189,9 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     blockNumber = 1,
                     logIndex = 0,
                     minorLogIndex = 0,
-                    index = index
+                    index = index,
+                    createdAt = history.date,
+                    updatedAt = history.date
                 )
             ).awaitFirst()
         }

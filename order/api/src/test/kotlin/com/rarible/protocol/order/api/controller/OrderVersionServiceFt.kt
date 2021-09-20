@@ -1,29 +1,33 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderBidStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.RaribleV2OrderBidDto
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
-import com.rarible.protocol.order.core.model.BidStatus
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.model.*
+import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
+import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.OrderVersion
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
@@ -115,6 +119,48 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         versions.items.forEachIndexed { index, orderVersionDto ->
             checkOrderActivityDto(orderVersionDto, orderVersionBids[index])
         }
+    }
+
+    @Test
+    internal fun `should find on-chain bid`() = runBlocking<Unit> {
+        val bidVersion = createErc721BidOrderVersion().run {
+            OnChainOrder(
+                maker = maker,
+                taker = taker,
+                make = make,
+                take = take,
+                createdAt = createdAt,
+                platform = platform,
+                orderType = type,
+                salt = salt,
+                start = start,
+                end = end,
+                data = data,
+                signature = signature,
+                hash = hash,
+                priceUsd = makePriceUsd ?: takePriceUsd
+            )
+        }
+        val logEvent = createLogEvent(bidVersion)
+        exchangeHistoryRepository.save(logEvent).awaitFirst()
+        orderUpdateService.saveOrRemoveOnChainOrderVersions(listOf(logEvent))
+        orderReduceService.updateOrder(bidVersion.hash)
+        val paginationDto = orderBidsClient.getBidsByItem(
+            (bidVersion.take.type as Erc721AssetType).token.hex(),
+            (bidVersion.take.type as Erc721AssetType).tokenId.value.toString(),
+            OrderBidStatusDto.values().toList(),
+            null,
+            PlatformDto.RARIBLE,
+            null,
+            null,
+            null,
+            null
+        ).awaitFirst()
+        assertThat(paginationDto.items).hasSize(1)
+        val bidDto = paginationDto.items.single()
+        assertEquals(bidVersion.hash, bidDto.orderHash)
+        assertEquals(OrderBidStatusDto.INACTIVE, bidDto.status)
+        assertTrue(bidDto is RaribleV2OrderBidDto)
     }
 
     @Nested

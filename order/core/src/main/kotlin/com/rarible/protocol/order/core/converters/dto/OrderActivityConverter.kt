@@ -110,9 +110,9 @@ class OrderActivityConverter(
                     take = assetDtoConverter.convert(data.take),
                     price = price(data.make, data.take),
                     source = convert(data.source),
-                    priceUsd = data.order.takePriceUsd
+                    priceUsd = data.priceUsd
                 )
-            } else if (data.order.taker != null) {
+            } else if (data.taker != null) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
                 // are not supported by frontend, and thus the backend should not return them.
                 null
@@ -126,7 +126,7 @@ class OrderActivityConverter(
                     take = assetDtoConverter.convert(data.take),
                     price = price(data.take, data.make),
                     source = convert(data.source),
-                    priceUsd = data.order.makePriceUsd
+                    priceUsd = data.priceUsd
                 )
             }
         }

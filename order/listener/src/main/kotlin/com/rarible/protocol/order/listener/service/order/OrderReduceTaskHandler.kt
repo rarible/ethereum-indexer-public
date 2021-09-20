@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.service.OrderReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component

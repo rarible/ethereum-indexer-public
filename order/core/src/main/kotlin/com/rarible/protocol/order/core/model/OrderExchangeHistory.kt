@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -37,8 +38,8 @@ data class OrderSideMatch(
     val takeUsd: BigDecimal?,
     val makePriceUsd: BigDecimal?,
     val takePriceUsd: BigDecimal?,
-    val makeValue : BigDecimal?,
-    val takeValue : BigDecimal?,
+    val makeValue: BigDecimal?,
+    val takeValue: BigDecimal?,
     override val date: Instant = nowMillis(),
     override val source: HistorySource = HistorySource.RARIBLE,
     val externalOrderExecutedOnRarible: Boolean? = null,
@@ -55,13 +56,22 @@ data class OrderCancel(
 ) : OrderExchangeHistory(type = ItemType.CANCEL)
 
 data class OnChainOrder(
-    val order: OrderVersion,
-    override val hash: Word = order.hash,
-    override val make: Asset = order.make,
-    override val take: Asset = order.take,
-    override val date: Instant = order.createdAt,
-    override val maker: Address = order.maker,
-    override val source: HistorySource = when (order.platform) {
+    override val maker: Address,
+    val taker: Address?,
+    override val make: Asset,
+    override val take: Asset,
+    val createdAt: Instant,
+    val platform: Platform,
+    val orderType: OrderType,
+    val salt: EthUInt256,
+    val start: Long?,
+    val end: Long?,
+    val data: OrderData,
+    val signature: Binary?,
+    val priceUsd: BigDecimal?,
+    override val hash: Word,
+    override val date: Instant = createdAt,
+    override val source: HistorySource = when (platform) {
         Platform.RARIBLE -> HistorySource.RARIBLE
         Platform.OPEN_SEA -> HistorySource.OPEN_SEA
         Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS

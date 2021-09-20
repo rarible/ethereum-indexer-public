@@ -24,6 +24,7 @@ data class OrderVersion(
     val takeUsd: BigDecimal?,
     @Id
     val id: ObjectId = ObjectId(),
+    val onChainOrderKey: LogEventKey? = null,
     val createdAt: Instant = nowMillis(),
     val platform: Platform = Platform.RARIBLE,
     // TODO: Default values here are needed only before the 1st migration ChangeLog00011AddAllFieldsFromOrderToOrderVersion is run

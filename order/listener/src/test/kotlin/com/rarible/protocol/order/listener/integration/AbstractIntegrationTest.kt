@@ -181,7 +181,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         orderHash: Word,
         contractAddress: Address = Address.ZERO(),
         topic: Word = 0.toBigInteger().toWord()
-    ): Order {
+    ) {
         exchangeHistoryRepository.save(
             LogEvent(
                 data = OrderCancel(
@@ -203,7 +203,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 minorLogIndex = 0
             )
         ).awaitFirst()
-        return orderReduceService.updateOrder(orderHash)
+        orderReduceService.updateOrder(orderHash)
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {

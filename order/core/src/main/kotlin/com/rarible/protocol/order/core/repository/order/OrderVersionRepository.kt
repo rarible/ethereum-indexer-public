@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -106,6 +108,17 @@ class OrderVersionRepository(
 
     fun findById(id: ObjectId): Mono<OrderVersion> {
         return template.findById(id)
+    }
+
+    fun existsByOnChainOrderKey(key: LogEventKey): Mono<Boolean> {
+        val criteria = OrderVersion::onChainOrderKey / LogEventKey::databaseKey isEqualTo key.databaseKey
+        val query = Query(criteria)
+        return template.exists(query, COLLECTION)
+    }
+
+    fun deleteByOnChainOrderKey(key: LogEventKey): Mono<Void> {
+        val criteria = OrderVersion::onChainOrderKey isEqualTo key
+        return template.remove(Query(criteria), COLLECTION).then()
     }
 
     companion object {
