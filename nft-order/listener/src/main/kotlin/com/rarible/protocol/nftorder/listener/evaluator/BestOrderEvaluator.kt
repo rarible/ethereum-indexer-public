@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.data.RaribleOrderChecker
 import com.rarible.protocol.nftorder.listener.service.BestOrderService
 import org.slf4j.LoggerFactory
+import java.math.BigInteger
 
 class BestOrderEvaluator(
     private val comparator: BestOrderComparator,
@@ -121,7 +122,7 @@ class BestOrderEvaluator(
     }
 
     private fun isAlive(order: OrderDto): Boolean {
-        return order.take.value != order.fill && !order.cancelled
+        return order.take.value != order.fill && !order.cancelled && order.makeStock != BigInteger.ZERO
     }
 
 }
