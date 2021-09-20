@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${mongodb.hosts}
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
       database: ${mongodb.database}
 
 parityUrls: ${node.hosts}
