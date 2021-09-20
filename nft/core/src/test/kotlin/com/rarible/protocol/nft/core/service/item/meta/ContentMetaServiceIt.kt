@@ -1,15 +1,9 @@
-package com.rarible.protocol.nft.api.e2e.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.cache.Cache
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
-import com.rarible.protocol.nft.api.service.item.meta.ContentMetaService
-import com.rarible.protocol.nft.api.service.item.meta.ItemMetaService
+import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
-import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,20 +18,14 @@ import java.time.Instant
 
 @Tag("manual")
 @Disabled
-@End2EndTest
-class ContentMetaServiceIt : SpringContainerBaseTest() {
+@IntegrationTest
+class ContentMetaServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var service: ContentMetaService
 
     @Autowired
     private lateinit var itemMetaService: ItemMetaService
-
-    @Autowired
-    private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
-
-    @Autowired
-    private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 
     @Test
     fun testFetchCachedMeta() = runBlocking<Unit> {
@@ -84,20 +72,21 @@ class ContentMetaServiceIt : SpringContainerBaseTest() {
 
     @Test
     fun testResetCachedMeta() = runBlocking {
-        // OpenSea item.
+        val openSeaItem = ItemId(Address.apply("0x9b1aa69fe9fca10aa41250bba054aabd92aba5b6"), EthUInt256.of(116L))
+        println("Testing OpenSea item $openSeaItem")
         testResetCachedMeta(
-            ItemId(Address.apply("0x9b1aa69fe9fca10aa41250bba054aabd92aba5b6"), EthUInt256.of(116L)),
+            openSeaItem,
             "cache_opensea",
             "https://lh3.googleusercontent.com/_koUdMM9s66qz9yyNmoCiFiaeroNN6ZH0vvZXYPaajnTWQsPhhUAXrE_YG-kk4UvELgccw96hJrBQmdzwq_fHSc=s250"
         )
 
-        // Standard item (not available in OpenSea).
         run {
-            val itemId = ItemId(Address.apply("0x6ebeaf8e8e946f0716e6533a6f2cefc83f60e8ab"), EthUInt256.of(142708))
+            val standardItem = ItemId(Address.apply("0x6ebeaf8e8e946f0716e6533a6f2cefc83f60e8ab"), EthUInt256.of(142708))
+            println("Testing standard item (not available in OpenSea). $openSeaItem")
             val uri = "https://api.godsunchained.com/card/142708"
             lazyNftItemHistoryRepository.save(ItemLazyMint(
-                token = itemId.token,
-                tokenId = itemId.tokenId,
+                token = standardItem.token,
+                tokenId = standardItem.tokenId,
                 value = EthUInt256.ONE,
                 date = Instant.now(),
                 uri = uri,
@@ -108,14 +97,14 @@ class ContentMetaServiceIt : SpringContainerBaseTest() {
             )).awaitFirstOrNull()
 
             testResetCachedMeta(
-                itemId,
+                standardItem,
                 "cache_properties",
                 "https://images.godsunchained.com/cards/250/43.png"
             )
         }
 
-        // Temporary item properties
         run {
+            println("Testing saving to the Temporary item properties")
             val imageUrl = "https://cryptodozer.io/static/images/dozer/meta/dolls/100.png"
             val itemProperties = ItemProperties(
                 name = "ItemMetaName",

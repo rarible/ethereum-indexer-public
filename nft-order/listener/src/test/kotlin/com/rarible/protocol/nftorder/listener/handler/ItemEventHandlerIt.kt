@@ -6,7 +6,6 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class ItemEventHandlerIt : AbstractIntegrationTest() {
+internal class ItemEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     private lateinit var itemEventHandler: ItemEventHandler

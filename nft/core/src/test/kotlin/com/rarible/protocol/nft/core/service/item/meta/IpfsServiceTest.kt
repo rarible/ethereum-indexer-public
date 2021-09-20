@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

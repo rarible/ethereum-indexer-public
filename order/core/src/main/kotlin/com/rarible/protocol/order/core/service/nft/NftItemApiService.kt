@@ -14,7 +14,7 @@ class NftItemApiService(
     private val nftItemApi: NftItemControllerApi
 ) {
     suspend fun getNftItemById(itemId: String): NftItemDto? {
-        return clientRequest {  nftItemApi.getNftItemById(itemId, false) }
+        return clientRequest {  nftItemApi.getNftItemById(itemId) }
     }
 
     suspend fun getNftLazyItemById(itemId: String): LazyNftDto? {

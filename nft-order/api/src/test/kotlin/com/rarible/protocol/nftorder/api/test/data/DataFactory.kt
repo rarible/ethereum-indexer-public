@@ -53,7 +53,7 @@ fun randomNftItemDto(itemId: ItemId, vararg creators: PartDto): NftItemDto {
         owners = emptyList(),
         pending = emptyList(),
         deleted = false,
-        meta = null
+        meta = NftItemMetaDto(randomString(), randomString(), listOf(NftItemAttributeDto(randomString(), randomString())), null, null)
     )
 }
 

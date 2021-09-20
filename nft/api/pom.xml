@@ -32,23 +32,11 @@
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-api-nft</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-client-common</artifactId>
-        </dependency>
 
         <!-- =============== Rarible-core ================ -->
         <dependency>
             <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-cache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-lock-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.core</groupId>
-            <artifactId>rarible-core-client</artifactId>
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>

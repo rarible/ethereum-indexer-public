@@ -1,6 +1,7 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.common.toOptional
@@ -9,11 +10,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
+import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -123,6 +128,24 @@ class PropertiesCacheDescriptor(
 
     private fun getErc721TokenUri(token: Address, tokenId: BigInteger): Mono<String> {
         return MintableToken(token, sender).tokenURI(tokenId)
+    }
+
+    private fun convertObjectAttributes(attrs: ObjectNode): List<ItemAttribute> {
+        return attrs.fields().asSequence()
+            .mapNotNull { e ->
+                ItemAttribute(e.key, e.value.asText())
+            }
+            .toList()
+    }
+
+    private fun convertArrayAttributes(attrs: ArrayNode): List<ItemAttribute> {
+        return attrs.mapNotNull {
+            val key = it.getText("key", "trait_type")
+            if (key != null)
+                ItemAttribute(key, it.getText("value"))
+            else
+                null
+        }
     }
 
     companion object {

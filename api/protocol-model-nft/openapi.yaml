@@ -300,6 +300,7 @@ components:
         - lazySupply
         - owners
         - royalties
+        - meta
       type: object
       properties:
         id:

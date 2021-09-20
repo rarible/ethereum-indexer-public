@@ -12,22 +12,22 @@ object ExtendedItemToDtoConverter : Converter<ExtendedItem, NftOrderItemDto> {
         val (item, meta) = extendedItem
         return item.run {
             NftOrderItemDto(
-                id.decimalStringValue,
-                token,
-                tokenId.value,
-                unlockable,
-                creators.map { PartDto(it.account, it.value) },
-                supply.value,
-                lazySupply.value,
-                owners,
-                royalties.map { PartDto(it.account, it.value) },
-                date,
-                pending.map { ItemTransferToDtoConverter.convert(it) },
-                meta,
-                bestSellOrder,
-                bestBidOrder,
-                totalStock,
-                sellers
+                id = id.decimalStringValue,
+                contract = token,
+                tokenId = tokenId.value,
+                unlockable = unlockable,
+                creators = creators.map { PartDto(it.account, it.value) },
+                supply = supply.value,
+                lazySupply = lazySupply.value,
+                owners = owners,
+                royalties = royalties.map { PartDto(it.account, it.value) },
+                date = date,
+                pending = pending.map { ItemTransferToDtoConverter.convert(it) },
+                meta = meta,
+                bestSellOrder = bestSellOrder,
+                bestBidOrder = bestBidOrder,
+                totalStock = totalStock,
+                sellers = sellers
             )
         }
     }

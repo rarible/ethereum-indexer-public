@@ -1,9 +1,8 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.quotation.QuotationData
 import com.rarible.protocol.contracts.external.yinsure.YInsure
-import com.rarible.protocol.nft.api.service.item.meta.ExternalContracts.YINSURE
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import org.apache.commons.lang3.time.DateUtils
@@ -26,7 +25,7 @@ class YInsureCacheDescriptor(
     private val yInsure = YInsure(Address.apply(yInsureAddress), sender)
     private val quotationData = QuotationData(Address.apply(quotationDataAddress), sender)
 
-    final val token = YINSURE
+    final val token = "yinsure"
     override val collection: String = "cache_$token"
 
     override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
@@ -146,4 +145,11 @@ class YInsureCacheDescriptor(
                     }
             }
     }
+
+    private data class YInsurePlatform(
+        val address: String,
+        val name: String,
+        val gradientColor: Pair<String, String>,
+        val iconUrl: String
+    )
 }

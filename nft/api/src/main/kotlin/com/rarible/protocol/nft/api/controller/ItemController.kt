@@ -5,7 +5,6 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMIT
 import com.rarible.protocol.nft.api.service.item.ItemService
-import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -23,8 +22,8 @@ class ItemController(
 
     private val defaultSorting = NftItemFilterDto.Sort.LAST_UPDATE
 
-    override suspend fun getNftItemById(itemId: String, includeMeta: Boolean?): ResponseEntity<NftItemDto> {
-        val result = itemService.get(conversionService.convert(itemId), includeMeta.orDefault())
+    override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
+        val result = itemService.get(conversionService.convert(itemId))
         return ResponseEntity.ok(result)
     }
 
@@ -50,8 +49,7 @@ class ItemController(
         size: Int?,
         showDeleted: Boolean?,
         lastUpdatedFrom: Long?,
-        lastUpdatedTo: Long?,
-        includeMeta: Boolean?
+        lastUpdatedTo: Long?
     ): ResponseEntity<NftItemsDto> {
         val filter = NftItemFilterAllDto(
             defaultSorting,
@@ -62,77 +60,62 @@ class ItemController(
             ItemContinuation(Instant.ofEpochMilli(it), ItemId.MAX_ID).toString()
         }
 
-        val result = getItems(filter, filterContinuation, size, includeMeta)
+        val result = getItems(filter, filterContinuation, size)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftItemsByOwner(
         owner: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftItemsDto> {
         val filter = NftItemFilterByOwnerDto(
             defaultSorting,
             Address.apply(owner)
         )
 
-        val result = getItems(filter, continuation, size, includeMeta)
+        val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftItemsByCreator(
         creator: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftItemsDto> {
         val filter = NftItemFilterByCreatorDto(
             defaultSorting,
             Address.apply(creator)
         )
 
-        val result = getItems(filter, continuation, size, includeMeta)
+        val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftItemsByCollection(
         collection: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): ResponseEntity<NftItemsDto> {
         val filter = NftItemFilterByCollectionDto(
             defaultSorting,
             Address.apply(collection)
         )
 
-        val result = getItems(filter, continuation, size, includeMeta)
+        val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
     private suspend fun getItems(
         filter: NftItemFilterDto,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): NftItemsDto {
-        val requestSize = size.limit()
-        val (items, metas) = itemService.search(filter, ItemContinuation.parse(continuation), requestSize, includeMeta.orDefault())
-        val last = if (items.isEmpty() || items.size < requestSize) null else items.last()
-        val cont = last?.let { ItemContinuation(it.date, it.id) }?.toString()
-
-        val itemsDto = items.map { item ->
-            val meta = metas[item.id]
-
-            if (meta != null) conversionService.convert<NftItemDto>(ExtendedItem(item, meta))
-            else conversionService.convert(item)
-        }
-        return NftItemsDto(items.size.toLong(), cont, itemsDto)
-    }
-
-    companion object {
-        fun Boolean?.orDefault(): Boolean = this ?: false
-        private fun Int?.limit() = Integer.min(this ?: DEFAULT_LIMIT, DEFAULT_LIMIT)
+        val requestSize = Integer.min(size ?: DEFAULT_LIMIT, DEFAULT_LIMIT)
+        val result = itemService.search(filter, ItemContinuation.parse(continuation), requestSize)
+        val last = if (result.isEmpty() || result.size < requestSize) null else result.last()
+        val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
+        val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
+        return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 }

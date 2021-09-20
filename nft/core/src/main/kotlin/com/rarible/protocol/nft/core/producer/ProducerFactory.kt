@@ -4,6 +4,7 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
 
 class ProducerFactory(
     private val kafkaReplicaSet: String,
@@ -18,6 +19,16 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = NftItemEventDto::class.java,
             defaultTopic = NftItemEventTopicProvider.getTopic(environment, blockchain.value),
+            bootstrapServers = kafkaReplicaSet
+        )
+    }
+
+    fun createInternalItemEventsProducer(): RaribleKafkaProducer<NftItemEventDto> {
+        return RaribleKafkaProducer(
+            clientId = "$clientId.item.internal",
+            valueSerializerClass = JsonSerializer::class.java,
+            valueClass = NftItemEventDto::class.java,
+            defaultTopic = InternalItemHandler.getInternalTopic(environment, blockchain.value),
             bootstrapServers = kafkaReplicaSet
         )
     }

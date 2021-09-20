@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.migration.service
 
-import com.rarible.protocol.nft.api.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.repository.CryptoPunksRepository
 import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
 import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00013InsertAttributesForCryptoPunks

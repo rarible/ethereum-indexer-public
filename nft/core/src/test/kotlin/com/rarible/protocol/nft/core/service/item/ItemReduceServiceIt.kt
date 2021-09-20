@@ -4,10 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.NftItemDeleteEventDto
-import com.rarible.protocol.dto.NftItemUpdateEventDto
-import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
-import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
@@ -40,13 +37,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun mintItem() = runBlocking {
         val token = AddressFactory.create()
-
-        tokenRepository.save(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        ).awaitFirst()
-
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
 
         val transfer = ItemTransfer(
             owner = owner,
@@ -65,22 +62,23 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
     }
 
     @Test
     fun `should get creator from tokenId for opensea tokenId`() = runBlocking {
         val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
 
-        tokenRepository.save(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        ).awaitFirst()
-
         val owner = AddressFactory.create()
         // https://opensea.io/assets/0x495f947276749ce646f68ac8c248420045cb7b5e/43635738831738903259797022654371755363838740687517624872331458295230642520065
         // https://ethereum-api.rarible.org/v0.1/nft/items/0x495f947276749ce646f68ac8c248420045cb7b5e:43635738831738903259797022654371755363838740687517624872331458295230642520065
         val tokenId = EthUInt256.of("43635738831738903259797022654371755363838740687517624872331458295230642520065")
         val creator = Address.apply("0x6078f3f4a50eec358790bdfae15b351647e9cbb4")
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
 
         val transfer = ItemTransfer(
             owner = owner,
@@ -99,19 +97,18 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(creator)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
     }
 
     @Test
     fun mintItemViaPending() = runBlocking {
         val token = AddressFactory.create()
-
-        tokenRepository.save(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        ).awaitFirst()
-
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
 
         saveItemHistory(
             ItemTransfer(
@@ -126,7 +123,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)
 
-        checkItemEventWasPublished(token, tokenId, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
 
         val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
@@ -146,17 +143,19 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).then().block()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
     }
 
     @Test
     fun deleteErrorEntities() = runBlocking {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
-
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
 
         val transfer = ItemTransfer(
             owner = owner,
@@ -185,17 +184,20 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownershipRepository.findById(id).awaitFirstOrNull()).isNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO, deleted = true)
 
-        checkItemEventWasPublished(token, tokenId, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemDeleteEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
     @Test
     fun transferToSelf() = runBlocking {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
-
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
+
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -225,10 +227,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @MethodSource("invalidLogEventStatus")
     fun deleteItemAfterLogEventChangeStatusFromPendingToInvalidStatus(invalidStatus: LogEventStatus) = runBlocking<Unit> {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
-
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
 
         val transfer = ItemTransfer(
             owner = owner,
@@ -263,10 +268,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun burnItem() = runBlocking<Unit> {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
-
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
+
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -292,17 +300,20 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(item.deleted).isEqualTo(true)
 
-        checkItemEventWasPublished(token, tokenId, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemDeleteEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
     @Test
     fun pendingItemTransfer() = runBlocking {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
-
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
+
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -323,9 +334,12 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun confirmedItemTransfer() = runBlocking {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
-
         val tokenId = EthUInt256.ONE
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
+
         val transfer = ItemTransfer(
             owner = AddressFactory.create(),
             token = token,
@@ -355,10 +369,14 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun confirmedItemRoyalty() = runBlocking<Unit> {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
-
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
+
         val transfer = ItemTransfer(owner, token, tokenId, nowMillis(), Address.ZERO(), EthUInt256.TEN)
         saveItemHistory(transfer, token)
 
@@ -374,10 +392,14 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun confirmedItemMint() = runBlocking<Unit> {
         val token = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
-
         val minter = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
+
         val transfer = ItemTransfer(minter, token, tokenId, nowMillis(), Address.ZERO(), EthUInt256.TEN)
         saveItemHistory(transfer, token, logIndex = 1)
 
@@ -396,7 +418,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
 
         val transfer = ItemTransfer(
             owner = owner,
@@ -433,7 +458,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner1 = AddressFactory.create()
         val owner2 = AddressFactory.create()
         val owner3 = AddressFactory.create()
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
 
         val transfer1 = ItemTransfer(
             owner = owner1,
@@ -489,7 +517,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner3 = AddressFactory.create()
         val owner4 = AddressFactory.create()
         val value = EthUInt256.of(20)
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
         saveItemHistory(
             ItemTransfer(
                 owner = creator,
@@ -554,7 +585,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val creator = AddressFactory.create()
 
         val value = EthUInt256.of(20)
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
 
         lazyNftItemHistoryRepository.save(
             ItemLazyMint(
@@ -583,7 +617,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner1 = AddressFactory.create()
 
         val value = EthUInt256.of(10)
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
 
         lazyNftItemHistoryRepository.save(
             ItemLazyMint(
@@ -704,7 +741,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val creator = AddressFactory.create()
         val value = EthUInt256.of(10)
 
-        tokenRepository.save(Token(token, name = "TEST", standard = TokenStandard.ERC1155)).awaitFirst()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
+            tokenId
+        )
 
         lazyNftItemHistoryRepository.save(
             ItemLazyMint(
@@ -735,6 +775,32 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val realItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(realItem.royalties).isEqualTo(realRoyalties)
+    }
+
+    private val itemProperties = ItemProperties(
+        name = "Test Item",
+        description = "Test Description",
+        image = null,
+        imagePreview = null,
+        imageBig = null,
+        animationUrl = null,
+        attributes = emptyList()
+    )
+
+    private val expectedItemMeta = NftItemMetaDto(
+        name = itemProperties.name,
+        description = itemProperties.description,
+        attributes = emptyList(),
+        image = null,
+        animation = null
+    )
+
+    private suspend fun saveTokenAndMeta(token: Token, tokenId: EthUInt256) {
+        tokenRepository.save(token).awaitFirst()
+        temporaryItemPropertiesRepository.save(TemporaryItemProperties(
+            "${token.id}:${tokenId.value}",
+            itemProperties
+        )).awaitFirst()
     }
 
     private suspend fun checkItem(

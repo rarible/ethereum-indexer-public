@@ -1,6 +1,6 @@
 package com.rarible.protocol.nftorder.core.event
 
-import com.rarible.protocol.nftorder.core.model.Item
+import com.rarible.protocol.nftorder.core.model.ExtendedItem
 import com.rarible.protocol.nftorder.core.model.ItemId
 import java.util.*
 
@@ -11,7 +11,7 @@ sealed class ItemEvent(
 }
 
 data class ItemEventUpdate(
-    val item: Item
+    val item: ExtendedItem
 ) : ItemEvent(ItemEventType.UPDATE)
 
 

@@ -4,5 +4,5 @@ import com.rarible.protocol.dto.NftItemMetaDto
 
 data class ExtendedItem(
     val item: Item,
-    val meta: NftItemMetaDto?
+    val meta: NftItemMetaDto
 )

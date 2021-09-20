@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -8,6 +8,8 @@ import com.rarible.core.cache.get
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,7 +33,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @Service
-class OpenseaClient(
+class OpenSeaCacheDescriptor(
     @Value("\${api.opensea.url:}") private val openseaUrl: String,
     @Value("\${api.opensea.api-key:}") private val openseaApiKey: String,
     @Value("\${api.opensea.read-timeout}") private val readTimeout: Int,
@@ -85,7 +87,7 @@ class OpenseaClient(
                 .bodyToMono<ObjectNode>()
                 .map {
                     ItemProperties(
-                        name = it.getText("name") ?: "Untitled",
+                        name = it.getText("name") ?: "#$tokenId",
                         description = it.getText("description"),
                         image = it.getText("image_original_url") ?: it.getText("image_url"),
                         imagePreview = it.getText("image_preview_url"),
@@ -118,7 +120,7 @@ class OpenseaClient(
     companion object {
         private val DEFAULT_TIMEOUT: Duration = Duration.ofSeconds(60)
         const val X_API_KEY = "X-API-KEY"
-        val logger: Logger = LoggerFactory.getLogger(OpenseaClient::class.java)
+        val logger: Logger = LoggerFactory.getLogger(OpenSeaCacheDescriptor::class.java)
 
         private fun createConnector(connectTimeoutMs: Int, readTimeoutMs: Int, proxyUrl: String, followRedirect: Boolean): ClientHttpConnector {
             logger.info("createConnector $connectTimeoutMs $readTimeoutMs $proxyUrl $followRedirect")

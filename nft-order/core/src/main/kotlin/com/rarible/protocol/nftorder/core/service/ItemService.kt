@@ -62,10 +62,10 @@ class ItemService(
     private suspend fun fetchItem(itemId: ItemId): Item {
         val now = nowMillis()
         val nftItemDto = nftItemControllerApi
-            .getNftItemById(itemId.decimalStringValue, null)
+            .getNftItemById(itemId.decimalStringValue)
             .awaitFirstOrNull()!!
 
         logger.info("Fetched Item by Id [{}] ({}ms)", itemId, spent(now))
-        return conversionService.convert<Item>(nftItemDto)
+        return conversionService.convert(nftItemDto)
     }
 }

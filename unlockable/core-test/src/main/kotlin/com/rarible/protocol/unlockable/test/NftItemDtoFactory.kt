@@ -2,6 +2,7 @@ package com.rarible.protocol.unlockable.test
 
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.PartDto
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -21,7 +22,7 @@ object NftItemDtoFactory {
         pending = emptyList(),
         date = nowMillis(),
         deleted = false,
-        meta = null
+        meta = NftItemMetaDto("Test", null, null, null, null)
     )
 
 }

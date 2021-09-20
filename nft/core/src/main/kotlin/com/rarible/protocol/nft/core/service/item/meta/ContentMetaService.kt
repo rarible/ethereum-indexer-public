@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.cache.CacheService
@@ -22,12 +22,12 @@ class ContentMetaService(
 ) {
     fun getByProperties(properties: ItemProperties): Mono<ContentMeta> {
         val imageMediaMeta = when {
-            properties.imagePreview != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.imagePreview!!))
-            properties.image != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.image!!))
+            properties.imagePreview != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.imagePreview))
+            properties.image != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.image))
             else -> Mono.empty()
         }
         val animationMediaMeta = when {
-            properties.animationUrl != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.animationUrl!!))
+            properties.animationUrl != null -> getMediaMeta(ipfsService.resolveRealUrl(properties.animationUrl))
             else -> Mono.empty()
         }
         return Mono.zip(

@@ -42,6 +42,7 @@ components:
         - royalties
         - date
         - pending
+        - meta
         - totalStock
         - sellers
       properties:

@@ -23,10 +23,10 @@ class ItemApiService(
 
     private val logger = LoggerFactory.getLogger(ItemApiService::class.java)
 
-    suspend fun getItemById(itemId: ItemId, includeMeta: Boolean?): NftOrderItemDto = coroutineScope {
-        logger.debug("Get item: [{}], includeMeta={}", itemId, includeMeta)
+    suspend fun getItemById(itemId: ItemId): NftOrderItemDto = coroutineScope {
+        logger.debug("Get item: [{}]", itemId)
         val item = itemService.getOrFetchItemById(itemId).entity
-        val meta = if (includeMeta == true) itemService.fetchItemMetaById(itemId) else null
+        val meta = itemService.fetchItemMetaById(itemId)
         conversionService.convert<NftOrderItemDto>(ExtendedItem(item, meta))
     }
 
@@ -35,12 +35,11 @@ class ItemApiService(
         size: Int?,
         showDeleted: Boolean?,
         lastUpdatedFrom: Long?,
-        lastUpdatedTo: Long?,
-        includeMeta: Boolean?
+        lastUpdatedTo: Long?
     ): NftOrderItemsPageDto {
         logger.debug(
-            "Get all Items with params: continuation={}, size={}, showDeleted={}, lastUpdatedFrom={}, lastUpdatedTo={}, includeMeta={}",
-            continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo, includeMeta
+            "Get all Items with params: continuation={}, size={}, showDeleted={}, lastUpdatedFrom={}, lastUpdatedTo={}",
+            continuation, size, showDeleted, lastUpdatedFrom, lastUpdatedTo
         )
         return itemsResponse(
             nftItemControllerApi.getNftAllItems(
@@ -48,8 +47,7 @@ class ItemApiService(
                 size,
                 showDeleted,
                 lastUpdatedFrom,
-                lastUpdatedTo,
-                includeMeta
+                lastUpdatedTo
             )
         )
     }
@@ -57,41 +55,38 @@ class ItemApiService(
     suspend fun getItemsByOwner(
         owner: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by owner with params: owner=[{}], continuation={}, size={}",
             owner, continuation, size
         )
-        return itemsResponse(nftItemControllerApi.getNftItemsByOwner(owner, continuation, size, includeMeta))
+        return itemsResponse(nftItemControllerApi.getNftItemsByOwner(owner, continuation, size))
     }
 
     suspend fun getItemsByCreator(
         creator: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by creator with params: creator=[{}], continuation={}, size={}",
             creator, continuation, size
         )
-        return itemsResponse(nftItemControllerApi.getNftItemsByCreator(creator, continuation, size, includeMeta))
+        return itemsResponse(nftItemControllerApi.getNftItemsByCreator(creator, continuation, size))
     }
 
     suspend fun getItemsByCollection(
         collection: String,
         continuation: String?,
-        size: Int?,
-        includeMeta: Boolean?
+        size: Int?
     ): NftOrderItemsPageDto {
         logger.debug(
             "Get Items by collection with params: collection=[{}], continuation={}, size={}",
             collection, continuation, size
         )
         return itemsResponse(
-            nftItemControllerApi.getNftItemsByCollection(collection, continuation, size, includeMeta)
+            nftItemControllerApi.getNftItemsByCollection(collection, continuation, size)
         )
     }
 

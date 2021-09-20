@@ -8,12 +8,11 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
-import com.rarible.protocol.nft.api.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemsSearchResult
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -28,17 +27,12 @@ class ItemService(
     private val itemRepository: ItemRepository,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
-    suspend fun get(itemId: ItemId, includeMeta: Boolean): NftItemDto {
+    suspend fun get(itemId: ItemId): NftItemDto {
         val item = itemRepository
             .findById(itemId).awaitFirstOrNull()
             ?: throw EntityNotFoundApiException("Item ", itemId)
-
-        return if (includeMeta) {
-            val meta = itemMetaService.getItemMetadata(itemId)
-            conversionService.convert(ExtendedItem(item, meta))
-        } else {
-            conversionService.convert(item)
-        }
+        val meta = itemMetaService.getItemMetadata(itemId)
+        return conversionService.convert(ExtendedItem(item, meta))
     }
 
     suspend fun getLazy(itemId: ItemId): LazyNftDto {
@@ -61,21 +55,14 @@ class ItemService(
     suspend fun search(
         filter: NftItemFilterDto,
         continuation: ItemContinuation?,
-        size: Int?,
-        includeMeta: Boolean
-    ): ItemsSearchResult = coroutineScope {
+        size: Int?
+    ): List<ExtendedItem> = coroutineScope {
         val items = itemRepository.search(filter.toCriteria(continuation, size))
-
-        val meta = if (includeMeta && items.isNotEmpty()) {
-            items.map { item ->
-                async {
-                    val meta = itemMetaService.getItemMetadata(item.id)
-                    item.id to meta
-                }
-            }.awaitAll().toMap()
-        } else {
-            emptyMap()
-        }
-        ItemsSearchResult(items, meta)
+        items.map { item ->
+            async {
+                val meta = itemMetaService.getItemMetadata(item.id)
+                ExtendedItem(item, meta)
+            }
+        }.awaitAll()
     }
 }
