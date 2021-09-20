@@ -35,15 +35,6 @@ import java.util.stream.Stream
 @IntegrationTest
 class OrderVersionControllerFt : AbstractIntegrationTest() {
 
-    @Autowired
-    private lateinit var orderVersionRepository: OrderVersionRepository
-
-    @BeforeEach
-    override fun setupDatabase() = runBlocking {
-        super.setupDatabase()
-        orderVersionRepository.createIndexes()
-    }
-
     internal companion object {
         private val now: Instant = nowMillis()
 

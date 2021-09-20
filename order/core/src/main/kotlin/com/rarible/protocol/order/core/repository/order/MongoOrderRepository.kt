@@ -21,7 +21,7 @@ class MongoOrderRepository(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun dropIndexes() {
+    override suspend fun dropIndexes() {
         dropIndexes(
             "make.type.nft_1_lastUpdateAt_1__id_1",
             "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1"

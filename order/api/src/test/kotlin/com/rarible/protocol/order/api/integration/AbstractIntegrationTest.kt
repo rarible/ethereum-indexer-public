@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -24,6 +25,8 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,6 +79,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+
+    @Autowired
+    protected lateinit var orderVersionRepository: OrderVersionRepository
 
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()
@@ -153,11 +159,18 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     }
 
     @BeforeEach
-    open fun setupDatabase() {
+    fun setupDatabase() = runBlocking {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
-            .then().block()
+            .then().awaitFirstOrNull()
+
+        orderRepository.createIndexes()
+        orderRepository.dropIndexes()
+        orderVersionRepository.createIndexes()
+        orderVersionRepository.dropIndexes()
+        exchangeHistoryRepository.createIndexes()
+        exchangeHistoryRepository.dropIndexes()
     }
 
     @PostConstruct

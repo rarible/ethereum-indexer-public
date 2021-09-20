@@ -45,9 +45,6 @@ class OrderServiceIt : AbstractOrderIt() {
     private lateinit var orderService: OrderService
 
     @Autowired
-    private lateinit var orderVersionRepository: OrderVersionRepository
-
-    @Autowired
     private lateinit var protocolOrderPublisher: ProtocolOrderPublisher
 
     @BeforeEach

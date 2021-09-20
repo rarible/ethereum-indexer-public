@@ -18,12 +18,6 @@ import java.time.Duration
 
 @IntegrationTest
 class OrderAggregationControllerFt : AbstractIntegrationTest() {
-    @BeforeEach
-    override fun setupDatabase() = runBlocking<Unit> {
-        super.setupDatabase()
-        exchangeHistoryRepository.createIndexes()
-    }
-
     @Test
     fun `should aggregate nft sales by maker`() = runBlocking<Unit> {
         val now = nowMillis()

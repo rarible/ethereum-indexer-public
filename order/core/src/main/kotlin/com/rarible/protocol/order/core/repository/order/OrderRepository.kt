@@ -38,5 +38,7 @@ interface OrderRepository {
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order>
 
     suspend fun createIndexes()
+
+    suspend fun dropIndexes()
 }
 
