@@ -76,6 +76,12 @@ class ExchangeHistoryRepository(
         return template.find(query, COLLECTION)
     }
 
+    fun findAllHashesGreaterThan(fromHash: Word): Flux<Word> {
+        val criteria = LogEvent::data / OrderExchangeHistory::hash gt fromHash
+        val query = Query(criteria).with(LOG_SORT_ASC)
+        return template.findDistinct(query, LogEvent::data.name + "." + OrderExchangeHistory::hash.name, COLLECTION, Word::class.java)
+    }
+
     fun findAll(): Flux<LogEvent> {
         return template.findAll(COLLECTION)
     }

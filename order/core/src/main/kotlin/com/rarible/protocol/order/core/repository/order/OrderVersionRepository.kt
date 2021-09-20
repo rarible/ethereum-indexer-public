@@ -104,8 +104,19 @@ class OrderVersionRepository(
         return template.find(query, COLLECTION)
     }
 
+    fun findAllHashesGreaterThan(fromHash: Word): Flux<Word> {
+        val criteria = OrderVersion::hash gt fromHash
+        val query = Query(criteria)
+        return template.findDistinct(query, OrderVersion::hash.name, COLLECTION, Word::class.java)
+    }
+
     fun findById(id: ObjectId): Mono<OrderVersion> {
         return template.findById(id)
+    }
+
+    fun delete(id: ObjectId): Mono<Void> {
+        val criteria = Criteria("_id").isEqualTo(id)
+        return template.remove(Query(criteria), COLLECTION).then()
     }
 
     companion object {

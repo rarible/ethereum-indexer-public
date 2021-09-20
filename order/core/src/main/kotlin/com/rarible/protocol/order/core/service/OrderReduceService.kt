@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.mongodb.DuplicateKeyException
+import com.rarible.core.common.mapNotNull
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
@@ -13,9 +15,13 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.flow.fold
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -24,7 +30,10 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.time.Instant
+import java.util.stream.Collectors
+import kotlin.math.log
 
+@ExperimentalCoroutinesApi
 @Component
 class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
@@ -36,18 +45,47 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService
 ) {
 
-    suspend fun updateOrder(orderHash: Word): Order = update(orderHash = orderHash).awaitSingle()
+    suspend fun updateOrder(orderHash: Word): Order = update(orderHash = orderHash).first()
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
-    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
+    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flow<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
-        return Flux.mergeOrdered(
-            compareBy<OrderUpdate, Word>(wordComparator) { it.orderHash },
-            orderVersionRepository.findAllByHash(orderHash, fromOrderHash).map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash).map { OrderUpdate.ByLogEvent(it) }
-        )
-            .windowUntilChanged { it.orderHash }
-            .concatMap { updateOrder(it) }
+        return flow {
+            val orderHashes = if (orderHash != null) {
+                listOf(orderHash)
+            } else {
+                orderVersionRepository.findAllHashesGreaterThan(fromOrderHash!!).collect(Collectors.toSet()).awaitFirst() +
+                        exchangeHistoryRepository.findAllHashesGreaterThan(fromOrderHash).collect(Collectors.toSet()).awaitFirst()
+            }
+            for (hash in orderHashes) {
+                val logEvents = exchangeHistoryRepository.findLogEvents(hash, null).collectList().awaitFirst()
+                saveOrRemoveOnChainOrderVersions(logEvents)
+                val versions = orderVersionRepository.findAllByHash(hash).toCollection(arrayListOf())
+                val updates = logEvents.filterNot { it.data is OnChainOrder }.map { OrderUpdate.ByLogEvent(it) } +
+                        versions.map { OrderUpdate.ByOrderVersion(it) }
+                val order = updateOrder(updates)
+                emit(order)
+            }
+        }
+    }
+
+    private suspend fun saveOrRemoveOnChainOrderVersions(logEvents: List<LogEvent>) {
+        // Save or remove on-chain order versions.
+        for (log in logEvents) {
+            if (log.data is OnChainOrder) {
+                val orderVersion = (log.data as OnChainOrder).order
+                if (log.status == LogEventStatus.CONFIRMED) {
+                    if (orderVersionRepository.findById(orderVersion.id).awaitFirstOrNull() == null) {
+                        try {
+                            orderVersionRepository.save(orderVersion).awaitFirst()
+                        } catch (ignored: DuplicateKeyException) {
+                        }
+                    }
+                } else {
+                    orderVersionRepository.delete(orderVersion.id).awaitFirstOrNull()
+                }
+            }
+        }
     }
 
     private sealed class OrderUpdate {
@@ -62,9 +100,9 @@ class OrderReduceService(
         }
     }
 
-    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
+    private suspend fun updateOrder(updates: List<OrderUpdate>): Order {
         var lastSeenUpdate: OrderUpdate? = null
-        val orderStub = updates.asFlow().fold(emptyOrder) { order, update ->
+        val orderStub = updates.fold(emptyOrder) { order, update ->
             lastSeenUpdate = update
             when (update) {
                 is OrderUpdate.ByOrderVersion -> updateWith(order, update.orderVersion)
@@ -77,9 +115,9 @@ class OrderReduceService(
         if (orderStub.hash == EMPTY_ORDER_HASH) {
             logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced. " +
                     "Apparently there are no OrderVersions for this order, but only LogEvents.")
-            return@mono emptyOrder
+            return emptyOrder
         }
-        updateOrderWithState(orderStub)
+        return updateOrderWithState(orderStub)
     }
 
     private suspend fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
