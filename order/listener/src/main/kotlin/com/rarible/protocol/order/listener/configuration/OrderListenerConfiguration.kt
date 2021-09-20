@@ -60,6 +60,11 @@ class OrderListenerConfiguration(
     private val orderUpdateConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.order"
 
     @Bean
+    fun featureFlags(): OrderIndexerProperties.FeatureFlags {
+        return commonProperties.featureFlags
+    }
+
+    @Bean
     fun blockchain(): Blockchain {
         return commonProperties.blockchain
     }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import reactor.core.publisher.Mono
 import scala.Option
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.transaction.MonoTransactionSender
 import java.io.IOException
@@ -50,5 +51,14 @@ internal class TokenRegistrationServiceTest {
         assertThrows<IOException> {
             runBlocking { tokenRegistrationService.fetchStandard(token).awaitFirst() }
         }
+    }
+
+    @Test
+    fun `should return standard on well known token`() = runBlocking<Unit> {
+        every { sender.call(any()) } returns Mono.error(IllegalArgumentException())
+
+        val (token, standard) = TokenRegistrationService.WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.first()
+        val fetchedStandard = tokenRegistrationService.fetchStandard(token).awaitFirst()
+        assertThat(fetchedStandard).isEqualTo(standard)
     }
 }

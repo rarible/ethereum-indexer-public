@@ -23,6 +23,10 @@ import java.math.BigInteger
 class OrderIndexerApiConfiguration(
     private val indexerProperties: OrderIndexerProperties
 ) {
+    @Bean
+    fun featureFlags(): OrderIndexerProperties.FeatureFlags {
+        return indexerProperties.featureFlags
+    }
 
     @Bean
     fun blockchain(): Blockchain {

@@ -54,6 +54,10 @@
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-application</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-task</artifactId>
+        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>

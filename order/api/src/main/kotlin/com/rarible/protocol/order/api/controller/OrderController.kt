@@ -4,11 +4,11 @@ import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
@@ -32,7 +32,8 @@ class OrderController(
     private val orderService: OrderService,
     private val orderInvertService: OrderInvertService,
     private val conversionService: ConversionService,
-    private val prepareTxService: PrepareTxService
+    private val prepareTxService: PrepareTxService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -260,9 +261,8 @@ class OrderController(
         size: Int?
     ): OrdersPaginationDto {
         val requestSize = size.limit()
-        val result = orderService.findOrders(filter, requestSize, continuation)
-        val nextContinuation =
-            if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
+        val result = orderService.findOrders(filter.featured(featureFlags), requestSize, continuation)
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
 
         return OrdersPaginationDto(
             result.map { conversionService.convert<OrderDto>(it) },
@@ -290,5 +290,21 @@ class OrderController(
 
     private fun convert(source: List<PartDto>): List<Part> {
         return source.map { PartConverter.convert(it) }
+    }
+
+    private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {
+        return  if (platform == null && featureFlags.showAllOrdersByDefault) {
+            when (this) {
+                is OrderFilterAllDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterBidByItemDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterBidByMakerDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterSellByCollectionDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterSellByItemDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterSellByMakerDto -> copy(platform = PlatformDto.ALL)
+                is OrderFilterSellDto -> copy(platform = PlatformDto.ALL)
+            }
+        } else {
+            this
+        }
     }
 }

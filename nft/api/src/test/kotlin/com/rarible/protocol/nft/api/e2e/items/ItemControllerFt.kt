@@ -18,6 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
@@ -50,6 +51,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
+    @Disabled
     fun `should get item meta`() = runBlocking<Unit> {
         val item = createItem()
         itemRepository.save(item).awaitFirst()

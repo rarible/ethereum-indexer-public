@@ -50,11 +50,8 @@ class OpenSeaOrderConverter(
             makeUsd = usdPrice?.makeUsd,
             takeUsd = usdPrice?.takeUsd,
             platform = Platform.OPEN_SEA
-        ).let {
-            // Recalculate OpenSea's specific hash.
-            it.copy(
-                hash = Order.hash(it)
-            )
+        ).run {
+            copy(hash = Order.hash(this))
         }
     }
 
