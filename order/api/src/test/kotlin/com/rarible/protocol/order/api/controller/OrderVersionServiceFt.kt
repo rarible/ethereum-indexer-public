@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.controller
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderBidDto
@@ -14,8 +13,6 @@ import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -33,7 +30,6 @@ import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
-import java.util.concurrent.ConcurrentHashMap
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -42,24 +38,10 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var orderVersionRepository: OrderVersionRepository
 
-    @MockkBean
-    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
-    private val ownerToBalance = ConcurrentHashMap<Address, EthUInt256>()
-
     @BeforeEach
     override fun setupDatabase() = runBlocking {
         super.setupDatabase()
         orderVersionRepository.createIndexes()
-    }
-
-    @BeforeEach
-    fun mockBalances() {
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
-            val order = arg<Order>(0)
-            val owner = order.maker
-            ownerToBalance.getValue(owner)
-        }
     }
 
     internal companion object {
@@ -280,9 +262,16 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
 
     private suspend fun saveOrders(version: List<OrderVersionBid>) {
         for ((orderVersion, status) in version) {
-            ownerToBalance[orderVersion.maker] = when (status) {
-                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
-                else -> EthUInt256.ZERO
+            coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
+                val order = arg<Order>(0)
+                if (order.maker == orderVersion.maker) {
+                    when (status) {
+                        BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
+                        else -> EthUInt256.ZERO
+                    }
+                } else {
+                    EthUInt256.ZERO
+                }
             }
             if (status == BidStatus.CANCELLED) {
                 cancelOrder(orderVersion.hash)

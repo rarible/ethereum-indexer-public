@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.client.NoopWebClientCustomizer
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
@@ -18,8 +18,11 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -40,9 +43,6 @@ import javax.annotation.PostConstruct
 abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
-
-    @Autowired
-    protected lateinit var erc20BalanceApi: Erc20BalanceControllerApi
 
     @Autowired
     protected lateinit var nftOwnershipApi: NftOwnershipControllerApi
@@ -73,6 +73,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
+
+    @Autowired
+    protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()
@@ -142,6 +145,12 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @LocalServerPort
     private var port: Int = 0
+
+    @BeforeEach
+    fun clearMocks() {
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
+    }
 
     @BeforeEach
     open fun setupDatabase() {

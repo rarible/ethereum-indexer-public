@@ -13,11 +13,13 @@ import com.rarible.protocol.order.api.data.createErc20BalanceDto
 import com.rarible.protocol.order.api.data.createNftItemDto
 import com.rarible.protocol.order.api.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.apache.commons.lang3.RandomUtils
 import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.web.client.RestTemplate
@@ -51,14 +53,6 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
-        return mockk {
-            every { getErc20Balance(any(), any()) } returns Mono.just(createErc20BalanceDto())
-        }
-    }
-
-    @Bean
-    @Primary
     fun mockedNftItemApi(): NftItemControllerApi {
         return mockk {
             every { getNftItemById(any(), any()) } returns Mono.just(createNftItemDto())
@@ -69,14 +63,6 @@ class TestPropertiesConfiguration {
     @Primary
     fun mockedNftCollectionApi(): NftCollectionControllerApi {
         return mockk()
-    }
-
-    @Bean
-    @Primary
-    fun mockedNftOwnershipApi(): NftOwnershipControllerApi {
-        return mockk {
-            every { getNftOwnershipById(any()) } returns Mono.just(createNftOwnershipDto())
-        }
     }
 
     @Bean
@@ -94,5 +80,10 @@ class TestPropertiesConfiguration {
                 )
             )
         }
+    }
+
+    @Bean
+    @Primary
+    fun mockAssetMakeBalanceProvider(): AssetMakeBalanceProvider = mockk {
     }
 }

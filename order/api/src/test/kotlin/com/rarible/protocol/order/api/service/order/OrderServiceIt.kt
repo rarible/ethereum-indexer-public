@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
+import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import kotlinx.coroutines.reactive.awaitFirst
@@ -58,6 +59,11 @@ class OrderServiceIt : AbstractOrderIt() {
             mongo.remove<Order>().allAndAwait()
         }
         orderRepository.createIndexes()
+    }
+
+    @BeforeEach
+    fun mockBalances() {
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
     }
 
     companion object {
@@ -374,12 +380,9 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
             )
 
-        every {
-            erc20BalanceApi.getErc20Balance(
-                eq(makerErc20Contract.toString()),
-                eq(maker.toString())
-            )
-        } returns Mono.just(makerBalance)
+        coEvery {
+            assetMakeBalanceProvider.getMakeBalance(any())
+        } returns makerErc20Stock
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -403,7 +406,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
             )
 
-        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker))) } returns Mono.just(nft)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns makerErc721Supply
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -427,7 +430,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
             )
 
-        every { nftOwnershipApi.getNftOwnershipById(eq(erc1155AssetType.ownershipId(maker))) } returns Mono.just(nft)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns makerErc1155Supply
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -449,12 +452,8 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100))
             )
 
-        val nft1 = createNftOwnershipDto().copy(value = EthUInt256.ONE.value)
-        val nft2 = createNftOwnershipDto().copy(value = EthUInt256.TEN.value)
-        every { nftOwnershipApi.getNftOwnershipById(eq(erc1155AssetType.ownershipId(maker))) } returnsMany listOf(
-            Mono.just(
-                nft1
-            ), Mono.just(nft2)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returnsMany listOf(
+            EthUInt256.ONE, EthUInt256.TEN
         )
 
         val saved = orderService.put(order.toForm(privateKey))
@@ -477,15 +476,9 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(100))
             )
 
-        val balance1 = createErc20BalanceDto().copy(balance = EthUInt256.ONE.value)
-        val balance2 = createErc20BalanceDto().copy(balance = EthUInt256.TEN.value)
-
-        every {
-            erc20BalanceApi.getErc20Balance(
-                eq(erc20Contract.toString()),
-                eq(order.maker.toString())
-            )
-        } returnsMany listOf(Mono.just(balance1), Mono.just(balance2))
+        coEvery {
+            assetMakeBalanceProvider.getMakeBalance(any())
+        } returnsMany listOf(EthUInt256.ONE, EthUInt256.TEN)
 
         val saved = orderService.put(order.toForm(privateKey))
         assertThat(saved.makeStock).isEqualTo(EthUInt256.ONE)
