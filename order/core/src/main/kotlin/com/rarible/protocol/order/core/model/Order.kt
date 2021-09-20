@@ -116,13 +116,6 @@ data class Order(
         )
     }
 
-    fun withMakeStock(): Order {
-        return when {
-            active(start, end) -> this
-            else -> copy(makeStock = EthUInt256.ZERO)
-        }
-    }
-
     fun withNewValues(
         make: EthUInt256,
         take: EthUInt256,

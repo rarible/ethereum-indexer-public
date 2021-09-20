@@ -10,7 +10,7 @@ import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.job.OrderResetMakeStockJob
+import com.rarible.protocol.order.listener.job.OrderRecalculateMakeStockJob
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.FlowPreview
@@ -32,9 +32,9 @@ internal class OrderResetMakeStockTest : AbstractIntegrationTest() {
     private lateinit var reactiveMongoTemplate: ReactiveMongoTemplate
 
     @Test
-    fun `should update all not canceled balance orders`() = runBlocking<Unit> {
+    fun `should reset makeStock`() = runBlocking<Unit> {
         val props = OrderListenerProperties(resetMakeStockEnabled = true)
-        val updaterJob = OrderResetMakeStockJob(props, reactiveMongoTemplate)
+        val updaterJob = OrderRecalculateMakeStockJob(props, reactiveMongoTemplate, orderUpdateService)
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
         val stock = EthUInt256.of(5)
@@ -68,8 +68,48 @@ internal class OrderResetMakeStockTest : AbstractIntegrationTest() {
         val order = orderRepository.findById(order1.hash)!!
         orderRepository.save(order.copy(end = order.start))
 
-        updaterJob.resetMakeStock()
+        updaterJob.update()
         assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(EthUInt256.ZERO)
     }
 
+    @Test
+    fun `should recalculate makeStock`() = runBlocking<Unit> {
+        val props = OrderListenerProperties(resetMakeStockEnabled = true)
+        val updaterJob = OrderRecalculateMakeStockJob(props, reactiveMongoTemplate, orderUpdateService)
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val stock = EthUInt256.of(5)
+        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+
+        val order1 = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = 0L,
+            end = 0L
+        )
+
+        listOf(order1).forEach { orderUpdateService.save(it) }
+
+        val updatedBalance = mockk<Erc20BalanceDto> {
+            every { owner } returns targetMaker
+            every { contract } returns targetToken
+            every { balance } returns stock.value
+        }
+        val event = mockk<Erc20BalanceUpdateEventDto> {
+            every { balance } returns updatedBalance
+        }
+
+        orderBalanceService.handle(event)
+
+        assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(EthUInt256.ZERO)
+
+        // override the end date
+        val order = orderRepository.findById(order1.hash)!!
+        orderRepository.save(order.copy(end = Long.MAX_VALUE))
+
+        updaterJob.update()
+        assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+    }
 }
