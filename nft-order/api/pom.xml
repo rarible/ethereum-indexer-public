@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.rarible.protocol</groupId>
         <artifactId>protocol-nft-order</artifactId>
-        <version>1.13.40</version>
+        <version>1.13.41</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
