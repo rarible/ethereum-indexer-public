@@ -4,7 +4,10 @@ import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.api.exceptions.LazyItemNotFoundException
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -13,7 +16,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.time.Instant
 
 @Component
 class MintService(
@@ -39,15 +41,12 @@ class MintService(
     }
 
     private fun createLogEvent(data: ItemLazyMint): LogEvent {
-        val event = ItemTransfer(
+        val event = BurnItemLazyMint(
             from = data.owner,
-            owner = Address.ZERO(),
             token = data.token,
             tokenId = data.tokenId,
-            date = Instant.now(),
             value = data.value
         )
-        event.type = ItemType.LAZY_MINT
         return LogEvent(
             data = event,
             address = Address.ZERO(),
