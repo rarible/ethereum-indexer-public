@@ -79,7 +79,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val msg = ItemController.BURN_MSG.format(tokenId)
         val signature = sign(privateKey, msg).toBinary()
 
-        val lazyDto = LazyNftBodyDto(lazyItemDto.creators, listOf(signature))
+        val lazyDto = LazyNftBodyDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
 
         val burnedLazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
@@ -107,7 +107,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         // burn with wrong signature
         val signature = sign(privateKey, "").toBinary()
 
-        val lazyDto = LazyNftBodyDto(lazyItemDto.creators, listOf(signature))
+        val lazyDto = LazyNftBodyDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         val ex = assertThrows<WebClientResponseException> {
             nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto)
                 .block()

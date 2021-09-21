@@ -503,13 +503,13 @@ components:
     LazyNftBody:
       type: object
       required:
-        - signatures
         - creators
+        - signatures
       properties:
         creators:
           type: array
           items:
-            "$ref": "#/components/schemas/Part"
+            "$ref": "#/components/schemas/Address"
         signatures:
           type: array
           items:
