@@ -500,6 +500,21 @@ components:
         - "$ref": "#/components/schemas/LazyErc721"
         - "$ref": "#/components/schemas/LazyErc1155"
 
+    LazyNftBody:
+      type: object
+      required:
+        - signatures
+        - creators
+      properties:
+        creators:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Part"
+        signatures:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Binary"
+
     LazyErc1155:
       type: object
       required:

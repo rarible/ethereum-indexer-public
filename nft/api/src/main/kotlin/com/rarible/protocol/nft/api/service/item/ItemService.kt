@@ -17,6 +17,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
@@ -64,5 +67,16 @@ class ItemService(
                 ExtendedItem(item, meta)
             }
         }.awaitAll()
+    }
+
+    suspend fun burnLazyMint(itemId: ItemId) {
+        val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
+            ?: throw EntityNotFoundApiException("Item", itemId)
+        lazyNftItemHistoryRepository.remove(lazyMint).awaitSingle()
+        logger.info("Burned $ItemId item")
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(ItemService::class.java)
     }
 }
