@@ -184,8 +184,15 @@ Token ID: 51561
 
     @Test
     internal fun boredApeYachtClub() {
-        val properties = testing.getProperties(Address.apply("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"), BigInteger.valueOf(9786)).block()!!
-        assertEquals("#9786", properties.name)
+        val properties = testing.getProperties(Address.apply("0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"), BigInteger.valueOf(9163)).block()!!
+        assertEquals("#9163", properties.name)
+        assertEquals(6, properties.attributes.size)
+        assertThat(properties.attributes).contains(ItemAttribute("Fur", "Black"))
+        assertThat(properties.attributes).contains(ItemAttribute("Background", "New Punk Blue"))
+        assertThat(properties.attributes).contains(ItemAttribute("Clothes", "Biker Vest"))
+        assertThat(properties.attributes).contains(ItemAttribute("Eyes", "Bored"))
+        assertThat(properties.attributes).contains(ItemAttribute("Hat", "Army Hat"))
+        assertThat(properties.attributes).contains(ItemAttribute("Mouth", "Phoneme Vuh"))
     }
 
     @Test
