@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.nft.api.service.item.meta.LootCacheDescriptor
 import com.rarible.protocol.nft.core.configuration.IpfsProperties
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*

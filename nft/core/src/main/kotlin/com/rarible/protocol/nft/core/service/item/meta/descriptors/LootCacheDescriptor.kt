@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
@@ -80,4 +80,5 @@ class LootCacheDescriptor(
         const val DEFAULT_TITLE = "Untitled"
         val logger: Logger = LoggerFactory.getLogger(LootCacheDescriptor::class.java)
     }
+
 }

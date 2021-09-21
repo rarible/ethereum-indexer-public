@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
-import com.rarible.protocol.nft.api.service.item.meta.LootCacheDescriptor
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TemporaryItemProperties
