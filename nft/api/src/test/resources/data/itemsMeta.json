@@ -1,0 +1,82 @@
+{
+  "ERC721": [
+    {
+      "token": "0xa7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270",
+      "tokenId": 144000449,
+      "contractURI": "https://api.artblocks.io",
+      "tokenURI": "/token/144000449",
+      "data": {
+        "name": "autoRAD #449",
+        "description": "The 1980's and 1990's as an iterative dream, computer-aided RAD designs. Essentially, an expanded iterative Memphis/Neo-Memphis style project meant to emulate the free-flowing and fun spirit of the movement in tight compositions that surprise with each combination and position generation.",
+        "attributes": [
+          {
+            "key": "autoRAD",
+            "value": "All autoRADs"
+          },
+          {
+            "key": "autoRAD",
+            "value": "Mood: Light"
+          },
+          {
+            "key": "autoRAD",
+            "value": "Shape: Triangle"
+          },
+          {
+            "key": "autoRAD",
+            "value": "Flourish: Regular Flourish"
+          },
+          {
+            "key": "autoRAD",
+            "value": "Scene: Grid"
+          }
+        ],
+        "image": {
+          "url": {
+            "ORIGINAL": "https://media.artblocks.io/144000449.png",
+            "BIG": "https://lh3.googleusercontent.com/VF8aG_cDROwf-ppulz-6_yUjZZNmKjqCl2pSKDi_xo2FydHngNJ6L8jkGp8mdu8OS3NW2wmz6RFCXj30uGWexvMqXnlNF4W6jQVzLIU",
+            "PREVIEW": "https://lh3.googleusercontent.com/VF8aG_cDROwf-ppulz-6_yUjZZNmKjqCl2pSKDi_xo2FydHngNJ6L8jkGp8mdu8OS3NW2wmz6RFCXj30uGWexvMqXnlNF4W6jQVzLIU=s250"
+          },
+          "meta": {
+            "PREVIEW": {
+              "type": "image/png",
+              "width": 250,
+              "height": 250
+            }
+          }
+        },
+        "animation": {
+          "url": {
+            "ORIGINAL": "https://generator.artblocks.io/144000449"
+          },
+          "meta": {
+            "ORIGINAL": {
+              "type": "text/html;charset=utf-8"
+            }
+          }
+        }
+      }
+    },
+    {
+      "token": "0x9412ef10d7bae08993a5dd942b658d6cb4afe290",
+      "tokenId": 1,
+      "contractURI": "",
+      "tokenURI": "eyJuYW1lIjoiVW5pc3dhcCAtIDAuMDUlIC0gVVNEQy9VU0RUIC0gMC41MDAwOTw+MS4xMTA3Iiwg\nImRlc2NyaXB0aW9uIjoiVGhpcyBORlQgcmVwcmVzZW50cyBhIGxpcXVpZGl0eSBwb3NpdGlvbiBp\nbiBhIFVuaXN3YXAgVjMgVVNEQy1VU0RUIHBvb2wuIFRoZSBvd25lciBvZiB0aGlzIE5GVCBjYW4g\nbW9kaWZ5IG9yIHJlZGVlbSB0aGUgcG9zaXRpb24uXG5cblBvb2wgQWRkcmVzczogMHg4MjBlODkx\nYjE0MTQ5ZTk4YjQ4YjM5ZWUyNjY3MTU3ZWY3NTA1MzliXG5VU0RDIEFkZHJlc3M6IDB4YTBiODY5\nOTFjNjIxOGIzNmMxZDE5ZDRhMmU5ZWIwY2UzNjA2ZWI0OFxuVVNEVCBBZGRyZXNzOiAweGRhYzE3\nZjk1OGQyZWU1MjNhMjIwNjIwNjk5NDU5N2MxM2Q4MzFlYzdcbkZlZSBUaWVyOiAwLjA1JVxuVG9r\nZW4gSUQ6IDFcblxu4pqg77iPIERJU0NMQUlNRVI6IER1ZSBkaWxpZ2VuY2UgaXMgaW1wZXJhdGl2\nZSB3aGVuIGFzc2Vzc2luZyB0aGlzIE5GVC4gTWFrZSBzdXJlIHRva2VuIGFkZHJlc3NlcyBtYXRj\naCB0aGUgZXhwZWN0ZWQgdG9rZW5zLCBhcyB0b2tlbiBzeW1ib2xzIG1heSBiZSBpbWl0YXRlZC4i\nLCAiaW1hZ2UiOiAiIn0=",
+      "data": {
+        "name": "Uniswap - 0.05% - USDC/USDT - 0.50009<>1.1107",
+        "description": "This NFT represents a liquidity position in a Uniswap V3 USDC-USDT pool. The owner of this NFT can modify or redeem the position.\n\nPool Address: 0x820e891b14149e98b48b39ee2667157ef750539b\nUSDC Address: 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48\nUSDT Address: 0xdac17f958d2ee523a2206206994597c13d831ec7\nFee Tier: 0.05%\nToken ID: 1\n\n⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.",
+        "attributes": [],
+        "image": {
+          "url": {
+            "ORIGINAL": ""
+          },
+          "meta": {}
+        },
+        "animation": {
+          "url": {},
+          "meta": {}
+        }
+      }
+    }
+  ]
+}
+
