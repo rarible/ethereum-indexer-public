@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.api.service.mint
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.api.exceptions.LazyItemNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
@@ -34,7 +34,7 @@ class MintService(
 
     suspend fun burnLazyMint(itemId: ItemId) {
         val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
-            ?: throw LazyItemNotFoundException(itemId)
+            ?: throw EntityNotFoundApiException("Item", itemId)
         val log = createLogEvent(lazyMint)
         historyRepository.save(log).awaitFirstOrNull()
         itemReduceService.onItemHistories(listOf(log)).awaitFirstOrNull()

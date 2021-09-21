@@ -65,15 +65,4 @@ class ItemService(
             }
         }.awaitAll()
     }
-
-    suspend fun burnLazyMint(itemId: ItemId) {
-        val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
-            ?: throw EntityNotFoundApiException("Item", itemId)
-        lazyNftItemHistoryRepository.remove(lazyMint).awaitSingle()
-        logger.info("Burned $ItemId item")
-    }
-
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(ItemService::class.java)
-    }
 }

@@ -1,12 +1,8 @@
 package com.rarible.protocol.nft.api.service.mint
 
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.dto.LazyNftBodyDto
 import com.rarible.protocol.nft.api.exceptions.*
 import com.rarible.protocol.dto.BurnLazyNftFormDto
-import com.rarible.protocol.nft.api.exceptions.BurnLazyNftIncorrectCreatorsException
-import com.rarible.protocol.nft.api.exceptions.BurnLazyNftIncorrectSignatureException
-import com.rarible.protocol.nft.api.exceptions.LazyItemNotFoundException
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Word
