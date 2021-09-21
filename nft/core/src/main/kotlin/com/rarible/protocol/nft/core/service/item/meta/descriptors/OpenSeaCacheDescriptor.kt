@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
+import com.rarible.protocol.nft.core.service.item.meta.toProperties
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

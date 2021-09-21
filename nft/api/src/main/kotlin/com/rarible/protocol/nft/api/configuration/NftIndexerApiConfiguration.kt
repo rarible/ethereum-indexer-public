@@ -6,6 +6,7 @@ import com.rarible.core.loggingfilter.EnableLoggingContextFilter
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.nft.core.configuration.IpfsProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean

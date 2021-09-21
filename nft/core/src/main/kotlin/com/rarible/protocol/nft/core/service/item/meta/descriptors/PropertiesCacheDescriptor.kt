@@ -11,16 +11,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
-import com.rarible.protocol.nft.api.service.item.meta.toProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.getText
-import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
+import com.rarible.protocol.nft.core.service.item.meta.*
 import kotlinx.coroutines.reactor.mono
 import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.time.DateUtils

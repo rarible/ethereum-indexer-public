@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.configuration
+package com.rarible.protocol.nft.core.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding

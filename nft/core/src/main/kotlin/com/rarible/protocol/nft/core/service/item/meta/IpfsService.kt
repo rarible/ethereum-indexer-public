@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.protocol.nft.api.configuration.IpfsProperties
+import com.rarible.protocol.nft.core.configuration.IpfsProperties
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

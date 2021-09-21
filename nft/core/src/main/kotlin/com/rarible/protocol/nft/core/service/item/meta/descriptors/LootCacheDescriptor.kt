@@ -7,6 +7,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.reactive.awaitFirstOrNull

@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.api.e2e.meta
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.dto.NftItemMetaDto
@@ -16,12 +15,13 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaCacheDescriptor
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
-import io.mockk.every
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.mockito.Mockito
+import org.mockito.kotlin.isA
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.Arguments.arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.core.io.ClassPathResource
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono

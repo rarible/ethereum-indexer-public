@@ -184,6 +184,12 @@
                             <packageName>com.rarible.protocol.contracts.test.crypto.punks</packageName>
                             <type>MONO</type>
                         </contract>
+                        <!--RoyaltiesRegistry-->
+                        <contract>
+                            <truffle>src/main/truffle/royalties/RoyaltiesRegistry.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.royalties</packageName>
+                            <type>MONO</type>
+                        </contract>
                     </contracts>
                 </configuration>
             </plugin>
