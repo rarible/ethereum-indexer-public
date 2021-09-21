@@ -36,8 +36,6 @@ pipeline {
         beforeInput true
       }
       steps {
-        sh 'mvn clean package -DskipTests'
-
         script {
           env.BRANCH_NAME = "${env.GIT_BRANCH}"
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
