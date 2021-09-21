@@ -101,18 +101,12 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 
         wyvernProxyRegistry.registerProxy().withSender(userSender1).execute().awaitFirst()
-        wyvernProxyRegistry.registerProxy().withSender(userSender2).execute().awaitFirst()
         val user1RegisteredProxy = wyvernProxyRegistry.proxies(userSender1.from()).awaitFirst()
-        val user2RegisteredProxy = wyvernProxyRegistry.proxies(userSender2.from()).awaitFirst()
 
         token1.approve(wyvernTokenTransferProxy.address(), BigInteger.TEN.pow(10)).withSender(userSender1).execute().verifySuccess()
         token1.approve(wyvernTokenTransferProxy.address(), BigInteger.TEN.pow(10)).withSender(userSender2).execute().verifySuccess()
-
-        token2.approve(wyvernTokenTransferProxy.address(), BigInteger.TEN.pow(10)).withSender(userSender1).execute().verifySuccess()
         token2.approve(wyvernTokenTransferProxy.address(), BigInteger.TEN.pow(10)).withSender(userSender2).execute().verifySuccess()
-
         token721.setApprovalForAll(user1RegisteredProxy, true).withSender(userSender1).execute().verifySuccess()
-        token721.setApprovalForAll(user2RegisteredProxy, true).withSender(userSender2).execute().verifySuccess()
 
         logger.info("User1: ${userSender1.from()}")
         logger.info("User2: ${userSender2.from()}")
