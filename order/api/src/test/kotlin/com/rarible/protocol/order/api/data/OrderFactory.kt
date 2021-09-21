@@ -68,17 +68,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             end = end,
             signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
-        OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderFormDto(
-            maker = maker,
-            make = AssetDtoConverter.convert(make),
-            taker = taker,
-            take = AssetDtoConverter.convert(take),
-            salt = salt.value,
-            data = OrderDataDtoConverter.convert(data) as OrderOpenSeaV1DataV1Dto,
-            start = start,
-            end = end,
-            signature = signature
-        )
+        OrderType.OPEN_SEA_V1 ->  throw IllegalArgumentException("OpenSea order can't be crerated or updated")
         OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders are created on-chain")
     }
 }

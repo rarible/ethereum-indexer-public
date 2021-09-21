@@ -671,11 +671,9 @@ components:
         mapping:
           RARIBLE_V1: "#/components/schemas/LegacyOrderForm"
           RARIBLE_V2: "#/components/schemas/RaribleV2OrderForm"
-          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderForm"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderForm"
         - "$ref": "#/components/schemas/RaribleV2OrderForm"
-        - "$ref": "#/components/schemas/OpenSeaV1OrderForm"
 
     LegacyOrderForm:
       type: object
@@ -702,19 +700,6 @@ components:
             - RARIBLE_V2
         data:
           $ref: "#/components/schemas/OrderRaribleV2DataV1"
-
-    OpenSeaV1OrderForm:
-      type: object
-      required:
-        - type
-        - data
-      properties:
-        type:
-          type: string
-          enum:
-            - OPEN_SEA_V1
-        data:
-          $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
 
     Platform:
       type: string

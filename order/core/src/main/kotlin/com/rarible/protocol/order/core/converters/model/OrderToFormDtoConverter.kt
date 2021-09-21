@@ -34,17 +34,7 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
                 end = source.end,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataV1Dto
             )
-            OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderFormDto(
-                maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
-                taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
-                salt = source.salt.value,
-                signature = source.signature,
-                start = source.start,
-                end = source.end,
-                data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto
-            )
+            OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be created or updated")
             OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks order are created on-chain")
         }
     }

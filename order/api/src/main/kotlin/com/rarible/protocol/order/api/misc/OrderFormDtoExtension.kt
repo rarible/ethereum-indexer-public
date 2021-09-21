@@ -6,5 +6,4 @@ val OrderFormDto.data: OrderDataDto
     get() = when (this) {
         is LegacyOrderFormDto -> data
         is RaribleV2OrderFormDto -> data
-        is OpenSeaV1OrderFormDto -> data
     }
