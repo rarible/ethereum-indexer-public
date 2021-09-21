@@ -261,6 +261,37 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/NftIndexerApiError"
+    delete:
+      tags:
+        - nft-item-controller
+      description: Delete Lazy mint of NFT
+      operationId: deleteLazyMintNftAsset
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/BurnLazyNftForm"
+        required: true
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '500':
+          $ref: "#/components/responses/ServerError"
   "/v0.1/items/{itemId}":
     get:
       tags:

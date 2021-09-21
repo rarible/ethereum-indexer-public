@@ -5,6 +5,9 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMIT
 import com.rarible.protocol.nft.api.service.item.ItemService
+import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
+import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -17,7 +20,9 @@ import java.time.Instant
 @RestController
 class ItemController(
     private val itemService: ItemService,
-    private val conversionService: ConversionService
+    private val mintService: MintService,
+    private val conversionService: ConversionService,
+    private val burnLazyNftValidator: BurnLazyNftValidator
 ) : NftItemControllerApi {
 
     private val defaultSorting = NftItemFilterDto.Sort.LAST_UPDATE
@@ -41,6 +46,13 @@ class ItemController(
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
         itemService.resetMeta(conversionService.convert(itemId))
+        return ResponseEntity.noContent().build()
+    }
+
+    override suspend fun deleteLazyMintNftAsset(itemId: String, burnLazyNftBodyDto: BurnLazyNftFormDto): ResponseEntity<Unit> {
+        val item: ItemId = conversionService.convert(itemId)
+        burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), burnLazyNftBodyDto)
+        mintService.burnLazyMint(item)
         return ResponseEntity.noContent().build()
     }
 
@@ -117,5 +129,11 @@ class ItemController(
         val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
         val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
+    }
+
+    companion object {
+        val BURN_MSG = "I would like to burn my %s item."
+        fun Boolean?.orDefault(): Boolean = this ?: false
+        private fun Int?.limit() = Integer.min(this ?: DEFAULT_LIMIT, DEFAULT_LIMIT)
     }
 }

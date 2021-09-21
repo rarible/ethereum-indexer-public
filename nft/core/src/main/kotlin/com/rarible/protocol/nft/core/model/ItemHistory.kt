@@ -29,7 +29,8 @@ enum class ItemType(val topic: Set<Word>) {
     )),
     ROYALTY(setOf(SecondarySaleFeesEvent.id(), RoyaltiesSetEvent.id())),
     CREATORS(setOf(CreatorsEvent.id())),
-    LAZY_MINT(setOf())
+    LAZY_MINT(setOf()),
+    BURN_LAZY_MINT(setOf())
 }
 
 sealed class ItemHistory(var type: ItemType) : EventData {
@@ -87,3 +88,14 @@ data class ItemLazyMint(
     var id: String = ItemId(token, tokenId).stringValue
 }
 
+data class BurnItemLazyMint(
+    val from: Address,
+    override val token: Address,
+    override val tokenId: EthUInt256,
+    val value: EthUInt256
+) : ItemHistory(ItemType.BURN_LAZY_MINT) {
+    override val owner: Address
+        get() = Address.ZERO()
+    override val date: Instant
+        get() = Instant.now()
+}
