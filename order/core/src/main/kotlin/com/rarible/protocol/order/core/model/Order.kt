@@ -98,6 +98,7 @@ data class Order(
             fill, data,
             makeBalance,
             protocolCommission,
+            type,
             getFeeSide(make.type, take.type),
             cancelled
         ))
@@ -138,6 +139,7 @@ data class Order(
                 data,
                 makeBalance,
                 protocolCommission,
+                type,
                 getFeeSide(make.type, take.type),
                 cancelled
             ),
@@ -176,6 +178,7 @@ data class Order(
             data: OrderData,
             makeBalance: EthUInt256,
             protocolCommission: EthUInt256,
+            orderType: OrderType,
             feeSide: FeeSide,
             cancelled: Boolean
         ): EthUInt256 {
@@ -187,7 +190,10 @@ data class Order(
                 takeValue = takeValue,
                 makeBalance = (makeBalance * EthUInt256.of(10000)) / (fee + EthUInt256.of(10000))
             )
-            return minOf(make, roundedMakeBalance)
+            return when(orderType) {
+                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1 -> minOf(make, roundedMakeBalance)
+                OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
+            }
         }
 
         private fun calculateRemaining(

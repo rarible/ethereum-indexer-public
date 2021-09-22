@@ -56,6 +56,32 @@ class OrderTest {
     }
 
     @Test
+    fun `should get zero stock for opensea sell order`() {
+        val order = createOrder()
+            .copy(
+                make = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(10)),
+                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)),
+                type = OrderType.OPEN_SEA_V1
+            )
+        Assertions
+            .assertThat(order.withMakeBalance(EthUInt256.of(7), EthUInt256.ZERO).makeStock)
+            .isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
+    fun `should get zero stock for opensea buy order`() {
+        val order = createOrder()
+            .copy(
+                make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(100)),
+                take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.of(10)),
+                type = OrderType.OPEN_SEA_V1
+            )
+        Assertions
+            .assertThat(order.withMakeBalance(EthUInt256.of(7), EthUInt256.ZERO).makeStock)
+            .isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
     fun `stock is 0 when cancelled`() {
         Assertions.assertThat(
             order.withFillAndCancelledAndPendingAndChangeDate(

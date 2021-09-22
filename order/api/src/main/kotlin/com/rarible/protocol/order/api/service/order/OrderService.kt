@@ -60,10 +60,10 @@ class OrderService(
             data,
             makeBalance,
             protocolCommission,
+            OrderTypeConverter.convert(form),
             feeSide,
             false
         )
-
         return Order(
             maker = maker,
             make = make,
