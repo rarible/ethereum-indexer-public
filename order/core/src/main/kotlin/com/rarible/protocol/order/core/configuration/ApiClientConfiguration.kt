@@ -41,6 +41,6 @@ class ApiClientConfiguration(
 
     @Bean
     fun currencyApi(): CurrencyControllerApi {
-        return currencyApiClientFactory.createCurrencyApiClient(indexerProperties.blockchain.name)
+        return currencyApiClientFactory.createCurrencyApiClient()
     }
 }

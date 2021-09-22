@@ -52,11 +52,6 @@
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-currency</artifactId>
-                <version>${version.protocol.api}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-model-erc20</artifactId>
                 <version>${version.protocol.api}</version>
             </dependency>
@@ -117,11 +112,6 @@
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-currency</artifactId>
-                <version>${version.protocol.api}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-client-erc20</artifactId>
                 <version>${version.protocol.api}</version>
             </dependency>
@@ -143,11 +133,6 @@
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-client-unlockable</artifactId>
-                <version>${version.protocol.api}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-currency-starter</artifactId>
                 <version>${version.protocol.api}</version>
             </dependency>
             <dependency>
@@ -390,14 +375,11 @@
         <module>gateway-client</module>
         <module>gateway-client-starter</module>
         <module>protocol-api-erc20</module>
-        <module>protocol-api-currency</module>
         <module>protocol-api-nft</module>
         <module>protocol-api-nft-order</module>
         <module>protocol-api-order</module>
         <module>protocol-api-unlockable</module>
         <module>protocol-client-common</module>
-        <module>protocol-client-currency</module>
-        <module>protocol-client-currency-starter</module>
         <module>protocol-client-erc20</module>
         <module>protocol-client-erc20-starter</module>
         <module>protocol-client-nft</module>
@@ -409,7 +391,6 @@
         <module>protocol-client-unlockable</module>
         <module>protocol-client-unlockable-starter</module>
         <module>protocol-model-common</module>
-        <module>protocol-model-currency</module>
         <module>protocol-model-erc20</module>
         <module>protocol-model-nft</module>
         <module>protocol-model-nft-order</module>

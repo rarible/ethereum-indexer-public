@@ -2,7 +2,7 @@ package com.rarible.protocol.order.api.integration
 
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.dto.CurrencyRateDto
+import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi

@@ -5,7 +5,8 @@ import com.rarible.core.contract.model.Erc20Token
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.dto.CurrencyRateDto
+import com.rarible.protocol.currency.dto.BlockchainDto
+import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
@@ -101,7 +102,7 @@ class TestPropertiesConfiguration {
 
     @Bean
     fun testCurrencyApi(): CurrencyControllerApi = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?): Mono<CurrencyRateDto>? {
+        override fun getCurrencyRate(blockchain: BlockchainDto, address: String?, at: Long?): Mono<CurrencyRateDto> {
             return CurrencyRateDto(
                 "test",
                 "usd",
