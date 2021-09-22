@@ -13,9 +13,12 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.model.OrderSortConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderFilter
+import com.rarible.protocol.order.core.repository.order.OrderFilterAll
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -148,6 +151,20 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getOrdersAllByStatus(
+        sort: OrderSortDto?,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterAll(
+            sort = convert(sort),
+            continuation = continuation,
+            size = size
+        )
+        val result = searchOrders(filter)
+        return ResponseEntity.ok(result)
+    }
+
     override suspend fun getSellOrders(
         origin: String?,
         platform: PlatformDto?,
@@ -214,7 +231,7 @@ class OrderController(
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE
         )
-        val result = searchOrders(filter, continuation, size)
+        val result = searchOrders(null, filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -256,14 +273,18 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+
     private suspend fun searchOrders(
-        filter: OrderFilterDto,
+        filter: OrderFilter?,
+        legacyFilter: OrderFilterDto,
         continuation: String?,
         size: Int?
     ): OrdersPaginationDto {
         val requestSize = size.limit()
-        val result = orderService.findOrders(filter.featured(featureFlags), requestSize, continuation)
-        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
+
+        val result = orderService.findOrders(filter, legacyFilter.featured(featureFlags), requestSize, continuation)
+
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, legacyFilter, result.last())
 
         return OrdersPaginationDto(
             result.map { conversionService.convert<OrderDto>(it) },
@@ -271,18 +292,33 @@ class OrderController(
         )
     }
 
-    private fun toContinuation(filter: OrderFilterDto, order: Order): String {
-        return when (filter.sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> {
-                Continuation.LastDate(order.lastUpdateAt, order.hash)
-            }
-            OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
-                Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
-            }
-            OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
-                Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
-            }
-        }.toString()
+    private suspend fun searchOrders(
+        filter: OrderFilterDto,
+        continuation: String?,
+        size: Int?
+    ): OrdersPaginationDto {
+        return searchOrders(null, filter, continuation, size)
+    }
+
+    private suspend fun searchOrders(
+        filter: OrderFilter
+    ): OrdersPaginationDto {
+        return searchOrders(filter, OrderFilterAllDto(sort = OrderFilterDto.Sort.LAST_UPDATE), filter.continuation, filter.size)
+    }
+
+    private fun toContinuation(filter: OrderFilter?, legacyFilter: OrderFilterDto, order: Order): String {
+        return (filter?.toContinuation(order)
+            ?: when (legacyFilter.sort) {
+                OrderFilterDto.Sort.LAST_UPDATE -> {
+                    Continuation.LastDate(order.lastUpdateAt, order.hash)
+                }
+                OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
+                    Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
+                }
+                OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
+                    Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
+                }
+            }).toString()
     }
 
     private fun safeAddress(value: String?): Address? {
@@ -291,6 +327,10 @@ class OrderController(
 
     private fun convert(source: List<PartDto>): List<Part> {
         return source.map { PartConverter.convert(it) }
+    }
+
+    private fun convert(source: OrderSortDto?): OrderFilter.Sort {
+        return source?.let { OrderSortConverter.convert(it) } ?: OrderFilter.Sort.LAST_UPDATE_DESC
     }
 
     private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {

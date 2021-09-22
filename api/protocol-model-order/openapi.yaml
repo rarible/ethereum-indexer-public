@@ -667,6 +667,12 @@ components:
         - RARIBLE
         - OPEN_SEA
 
+    OrderSort:
+      type: string
+      enum:
+        - LAST_UPDATE_ASC
+        - LAST_UPDATE_DESC
+
     InvertOrderForm:
       type: object
       required: [maker, amount, originFees, salt]

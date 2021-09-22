@@ -536,7 +536,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         orderService.put(erc721Order.toForm(privateKey).withSignature(signature))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE), 10)
+        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE), 10, null)
 
         assertThat(orders).hasSize(1)
         assertThat(orders.first().make.type)
@@ -553,7 +553,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc20Order.toForm(privateKey))
         orderService.put(erc721Order.toForm(privateKey))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE), 10)
+        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE), 10, null)
 
         assertThat(orders).hasSize(1)
     }
@@ -571,7 +571,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order1.toForm(privateKey))
         orderService.put(erc721Order2.toForm(privateKey))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(origin, null, OrderFilterDto.Sort.LAST_UPDATE), 10)
+        val orders = orderService.findOrders(OrderFilterSellDto(origin, null, OrderFilterDto.Sort.LAST_UPDATE), 10, null)
 
         assertThat(orders).hasSize(1)
     }
@@ -591,7 +591,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey2))
 
         val orders =
-            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2), 10)
+            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2), 10, null)
 
         assertThat(orders).hasSize(1)
     }
@@ -620,7 +620,7 @@ class OrderServiceIt : AbstractOrderIt() {
         Wait.waitAssert {
             val orders = orderService.findOrders(
                 OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2),
-                10
+                10, null
             )
 
             assertThat(orders).hasSize(3)
@@ -660,7 +660,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 null,
                 OrderFilterDto.Sort.LAST_UPDATE,
                 collection1
-            ), 10
+            ), 10, null
         )
         assertThat(orders1).hasSize(1)
 
@@ -670,7 +670,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 null,
                 OrderFilterDto.Sort.LAST_UPDATE,
                 collection2
-            ), 10
+            ), 10, null
         )
         assertThat(orders2).hasSize(1)
     }
@@ -703,7 +703,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 origin = null,
                 platform = null,
                 maker = null
-            ), 10
+            ), 10, null
         )
         assertThat(orders1).hasSize(1)
 
@@ -715,7 +715,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 origin = null,
                 platform = null,
                 maker = null
-            ), 10
+            ), 10, null
         )
         assertThat(orders2).hasSize(1)
     }

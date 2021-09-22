@@ -115,7 +115,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
 
     @Test
     fun `should handle correct request with empty result`() = runBlocking<Unit> {
-        coEvery { orderService.findOrders(any(), any(), any()) } returns emptyList()
+        coEvery { orderService.findOrders(any(), any(), any(), any()) } returns emptyList()
 
         val result = orderClient.getSellOrders(null, null, null, null).awaitFirst()
 
@@ -126,7 +126,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
     fun `should handle request with pagination`() = runBlocking<Unit> {
         val (_, _, user) = generateNewKeys()
 
-        coEvery { orderService.findOrders(any(), any(), any()) } returns listOf(
+        coEvery { orderService.findOrders(any(), any(), any(), any()) } returns listOf(
             createOrder(
                 user,
                 Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.of(5)),
