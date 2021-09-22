@@ -1,15 +1,14 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.logging.LoggingUtils
-import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
+import com.rarible.protocol.nft.core.service.item.meta.toProperties
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -107,14 +106,6 @@ class OpenSeaCacheDescriptor(
                 }
         }
 
-    }
-
-    private fun JsonNode.toProperties(): List<ItemAttribute> {
-        return if (this.isArray) {
-            this.mapNotNull { it.getText("trait_type")?.let { key -> ItemAttribute(key, it.getText("value")) } }
-        } else {
-            emptyList()
-        }
     }
 
     companion object {

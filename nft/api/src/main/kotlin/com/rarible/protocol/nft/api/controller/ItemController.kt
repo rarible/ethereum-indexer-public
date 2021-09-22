@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMI
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
-import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
@@ -133,7 +132,5 @@ class ItemController(
 
     companion object {
         val BURN_MSG = "I would like to burn my %s item."
-        fun Boolean?.orDefault(): Boolean = this ?: false
-        private fun Int?.limit() = Integer.min(this ?: DEFAULT_LIMIT, DEFAULT_LIMIT)
     }
 }

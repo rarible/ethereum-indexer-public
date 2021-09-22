@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -16,9 +17,9 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.getText
-import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
+import com.rarible.protocol.nft.core.service.item.meta.*
+import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -47,7 +48,7 @@ class PropertiesCacheDescriptor(
         DefaultProtocolWebClientCustomizer().customize(it)
     }.build()
 
-    private val mapper = ObjectMapper()
+    private val mapper = ObjectMapper().registerKotlinModule()
 
     override val collection: String = "cache_properties"
     override fun getMaxAge(value: ItemProperties?): Long =
@@ -65,11 +66,13 @@ class PropertiesCacheDescriptor(
                 .let { (address, tokenId) -> getUri(address, tokenId).map { it.replace("{id}", EthUInt256.of(tokenId).toString()) } }
                 .flatMap { uri ->
                     logger.info(marker, "got uri: $uri")
-                    if (uri == "") {
-                        logger.warn(marker, "unable to get metadata for $id: token URI is empty")
-                        Mono.empty()
-                    } else {
-                        getByUri(uri)
+                    when {
+                        isBase64String(uri) -> getFromBase64(uri)
+                        uri.isNotEmpty() -> getByUri(uri)
+                        else -> {
+                            logger.warn(marker, "unable to get metadata for $id: token URI is empty")
+                            Mono.empty()
+                        }
                     }
                 }
                 .timeout(Duration.ofMillis(requestTimeout))
@@ -80,33 +83,68 @@ class PropertiesCacheDescriptor(
         }
     }
 
+    fun getFromBase64(uri: String): Mono<ItemProperties> {
+        val str = base64MimeToString(uri)
+        logger.info("Decoding properties from base64: $str")
+        return mono { parse(str) }
+    }
+
     fun getByUri(uri: String): Mono<ItemProperties> {
         return client.get()
             .uri(ipfsService.resolveRealUrl(uri))
             .retrieve()
             .bodyToMono<String>()
-            .map {
-                val node = mapper.readTree(it) as ObjectNode
-                val attributes = node.path("attributes")
+            .flatMap {
                 logger.info("Got properties from $uri")
-
-                ItemProperties(
-                    name = node.getText("name", "label", "title") ?: "Untitled",
-                    description = node.getText("description"),
-                    image = node.getText("image", "image_url"),
-                    imagePreview = null,
-                    imageBig = null,
-                    animationUrl = node.getText("animation_url"),
-                    attributes = when {
-                        attributes.isObject -> convertObjectAttributes(attributes.require())
-                        attributes.isArray -> convertArrayAttributes(attributes.require())
-                        else -> emptyList()
-                    }
-                )
+                mono { parse(it) }
             }
     }
 
-    private fun getUri(token: Address, tokenId: BigInteger): Mono<String> {
+    private suspend fun parse(body: String): ItemProperties {
+        val node = mapper.readTree(body) as ObjectNode
+        val image = image(node)
+        val animationUrl = node.getText("animation_url") ?: image
+        return ItemProperties(
+            name = node.getText("name", "label", "title") ?: DEFAULT_TITLE,
+            description = node.getText("description"),
+            image = image,
+            imagePreview = null,
+            imageBig = null,
+            animationUrl = animationUrl,
+            attributes = attributes(node)
+        )
+    }
+
+    suspend fun image(node: ObjectNode): String {
+        val imageNode = node.getText("image") ?: ""
+        val imageUrl = node.getText("image", "image_url") ?: ""
+        return when {
+            imageNode?.startsWith("data:image/svg+xml;base64") -> {
+                val hash = ipfsService.upload("image.svg", base64MimeToBytes(imageNode), "image/svg+xml")
+                ipfsService.url(hash)
+            }
+            imageUrl.isNotEmpty() -> imageUrl
+            imageNode.isNotEmpty() -> imageNode
+            else -> ""
+        }
+    }
+
+    fun attributes(node: ObjectNode): List<ItemAttribute> {
+        return when {
+            !node.path("attributes").isEmpty -> {
+                val attributes = node.path("attributes")
+                when {
+                    attributes.isObject -> convertObjectAttributes(attributes.require())
+                    attributes.isArray -> convertArrayAttributes(attributes.require())
+                    else -> emptyList()
+                }
+            }
+            !node.path("traits").isEmpty -> node.path("traits").toProperties()
+            else -> emptyList()
+        }
+    }
+
+    fun getUri(token: Address, tokenId: BigInteger): Mono<String> {
         //todo тест на получение lazy item properties
         return lazyNftItemHistoryRepository.findById(ItemId(token, EthUInt256(tokenId)))
             .map { it.uri }
@@ -149,6 +187,7 @@ class PropertiesCacheDescriptor(
     }
 
     companion object {
+        val DEFAULT_TITLE = "Untitled"
         val logger: Logger = LoggerFactory.getLogger(PropertiesCacheDescriptor::class.java)
     }
 }

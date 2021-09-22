@@ -1,10 +1,11 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class IpfsServiceTest {
-    private val service = IpfsService("https://ipfs.rarible.com")
+    private val service = IpfsService("https://ipfs.rarible.com", mockk())
 
     @Test
     fun testRealUrl() {

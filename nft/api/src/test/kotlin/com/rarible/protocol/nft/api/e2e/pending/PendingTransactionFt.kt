@@ -251,6 +251,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 temporaryItemPropertiesRepository = temporaryItemPropertiesRepository,
                 ipfsService = mockkIpfsService,
                 kittiesCacheDescriptor = mockk(),
+                lootCacheDescriptor = mockk(),
                 yInsureCacheDescriptor = mockk(),
                 hegicCacheDescriptor = mockk(),
                 hashmasksCacheDescriptor = mockk(),

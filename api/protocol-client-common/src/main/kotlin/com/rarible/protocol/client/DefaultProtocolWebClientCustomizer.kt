@@ -41,6 +41,7 @@ class DefaultProtocolWebClientCustomizer : WebClientCustomizer {
                     }
             }
             .responseTimeout(DEFAULT_TIMEOUT)
+            .followRedirect(true)
 
         val connector = ReactorClientHttpConnector(client)
 

@@ -1,12 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.nft.core.configuration.IpfsProperties
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.TemporaryItemProperties
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
 import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -29,13 +30,16 @@ import java.time.temporal.ChronoUnit
 @Tag("manual")
 @Disabled
 class ItemPropertiesServiceTest {
+    private val mapper = ObjectMapper().registerKotlinModule()
     private val tokenRepository = mockk<TokenRepository>()
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
     private val temporaryItemPropertiesRepository = mockk<TemporaryItemPropertiesRepository>()
     private val sender = ReadOnlyMonoTransactionSender(MonoEthereum(WebClientTransport("https://dark-solitary-resonance.quiknode.pro/c0b7c629520de6c3d39261f6417084d71c3f8791/", MonoEthereum.mapper(), 10000, 10000)), Address.ZERO())
-    private val ipfsService = IpfsService(IpfsService.IPFS_NEW_URL)
+    private val ipfsProps = IpfsProperties("https://pinata.rarible.com/upload", "https://rarible.mypinata.cloud/ipfs")
+    private val ipfsService = IpfsService(IpfsService.IPFS_NEW_URL, ipfsProps)
     private val propertiesCacheDescriptor = PropertiesCacheDescriptor(sender, tokenRepository, lazyNftItemHistoryRepository, ipfsService, 86400, 20000)
     private val kittiesCacheDescriptor = KittiesCacheDescriptor(86400)
+    private val lootCacheDescriptor = LootCacheDescriptor(86400, sender, mapper, ipfsService)
     private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "", "")
     private val yInsureCacheDescriptor = YInsureCacheDescriptor(sender, "0x181aea6936b407514ebfc0754a37704eb8d98f91", 86400, "0x1776651F58a17a50098d31ba3C3cD259C1903f7A", "http://localhost:8080")
     private val hegicCacheDescriptor = HegicCacheDescriptor(sender, "0xcb9ebae59738d9dadc423adbde66c018777455a4", 86400, "http://localhost:8080")
@@ -44,6 +48,7 @@ class ItemPropertiesServiceTest {
     private val testing = ItemPropertiesService(
         propertiesCacheDescriptor,
         kittiesCacheDescriptor,
+        lootCacheDescriptor,
         yInsureCacheDescriptor,
         hegicCacheDescriptor,
         hashmasksCacheDescriptor,
@@ -80,6 +85,44 @@ class ItemPropertiesServiceTest {
         assertEquals("https://img.cn.cryptokitties.co/0x06012c8cf97bead5deae237070f9587f8e7a266d/1001.svg", props.image)
         assertEquals(props.attributes[0].key, "colorprimary")
         assertEquals(props.attributes[0].value, "shadowgrey")
+    }
+
+    @Test
+    fun lootProperties() {
+        val props = lootCacheDescriptor.get("${ItemPropertiesService.LOOT_ADDRESS}:10").block()!!
+        assertEquals("Bag #10", props.name)
+        assertEquals("Loot is randomized adventurer gear generated and stored on chain. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.",
+            props.description
+        )
+        assertEquals(8, props.attributes.size)
+        assertThat(props.attributes).contains(ItemAttribute("chest", "Robe"))
+        assertThat(props.attributes).contains(ItemAttribute("foot", "Holy Greaves"))
+        assertThat(props.attributes).contains(ItemAttribute("ring", "Platinum Ring"))
+        assertThat(props.attributes).contains(ItemAttribute("weapon", "Maul"))
+        assertThat(props.attributes).contains(ItemAttribute("waist", "Studded Leather Belt"))
+        assertThat(props.attributes).contains(ItemAttribute("hand", "Wool Gloves"))
+        assertThat(props.attributes).contains(ItemAttribute("head", "Divine Hood"))
+        assertThat(props.attributes).contains(ItemAttribute("neck", "\"Havoc Sun\" Amulet of Reflection"))
+        assertEquals("ipfs://ipfs/QmaA5x5Hj9gQRaTLbpVzv3ruvSjF2T9FMLkPqtCQzXYJbU", props.image)
+        assertEquals("ipfs://ipfs/QmaA5x5Hj9gQRaTLbpVzv3ruvSjF2T9FMLkPqtCQzXYJbU", props.animationUrl)
+    }
+
+    @Test
+    fun uniswapProperties() {
+        val props = propertiesCacheDescriptor.get("0xc36442b4a4522e871399cd717abdd847ab11fe88:51561").block()!!
+        assertEquals("Uniswap - 0.3% - MATIC/WETH - 1555.6<>1603.0", props.name)
+        assertEquals("""This NFT represents a liquidity position in a Uniswap V3 MATIC-WETH pool. The owner of this NFT can modify or redeem the position.
+
+Pool Address: 0x290a6a7460b308ee3f19023d2d00de604bcf5b42
+MATIC Address: 0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0
+WETH Address: 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+Fee Tier: 0.3%
+Token ID: 51561
+
+⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.
+""".trim(), props.description?.trim())
+        assertEquals("ipfs://ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx", props.image)
+        assertEquals("ipfs://ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx", props.animationUrl)
     }
 
     @Test

@@ -24,6 +24,7 @@ import java.math.BigInteger
 class ItemPropertiesService(
     private val propertiesCacheDescriptor: PropertiesCacheDescriptor,
     private val kittiesCacheDescriptor: KittiesCacheDescriptor,
+    private val lootCacheDescriptor: LootCacheDescriptor,
     private val yInsureCacheDescriptor: YInsureCacheDescriptor,
     private val hegicCacheDescriptor: HegicCacheDescriptor,
     private val hashmasksCacheDescriptor: HashmasksCacheDescriptor,
@@ -91,6 +92,7 @@ class ItemPropertiesService(
                     .switchIfEmpty {
                         when (token) {
                             CRYPTO_KITTIES -> getCryptoKittiesProperties(tokenId)
+                            LOOT_ADDRESS -> getLootProperties(tokenId)
                             else -> getStandardProperties(token, tokenId)
                         }
                     }
@@ -121,6 +123,13 @@ class ItemPropertiesService(
     }
 
     @Suppress("ReactiveStreamsUnusedPublisher")
+    fun getLootProperties(tokenId: BigInteger): Mono<ItemProperties> {
+        return cacheService.get("$LOOT_ADDRESS:$tokenId", lootCacheDescriptor, true)
+    }
+
+    fun resetLootProperties(tokenId: BigInteger): Mono<Void> =
+        cacheService?.reset("$LOOT_ADDRESS:$tokenId", lootCacheDescriptor) ?: Mono.empty()
+
     fun resetProperties(token: Address, tokenId: BigInteger): Mono<Void> =
         listOf(
             when (token) {
@@ -129,6 +138,7 @@ class ItemPropertiesService(
                 hashmasksAddress -> resetExternalItemProperties(tokenId, hashmasksCacheDescriptor)
                 waifusionAddress -> resetExternalItemProperties(tokenId, waifusionCacheDescriptor)
                 CRYPTO_KITTIES -> resetCryptoKittiesProperties(tokenId)
+                LOOT_ADDRESS -> resetLootProperties(tokenId)
                 else -> Mono.empty<Void>()
             },
             openSeaCacheDescriptor.resetAsset(token, tokenId),
@@ -179,5 +189,6 @@ class ItemPropertiesService(
     companion object {
         val logger: Logger = LoggerFactory.getLogger(ItemPropertiesService::class.java)
         val CRYPTO_KITTIES: Address = Address.apply("0x06012c8cf97bead5deae237070f9587f8e7a266d")
+        val LOOT_ADDRESS: Address = Address.apply("0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7")
     }
 }
