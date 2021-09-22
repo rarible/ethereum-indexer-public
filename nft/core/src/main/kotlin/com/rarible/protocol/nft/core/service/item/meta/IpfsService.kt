@@ -33,6 +33,7 @@ class IpfsService(
             ipfsProtocolUri.startsWith("http") -> ipfsProtocolUri
             ipfsProtocolUri.startsWith("ipfs:///ipfs/") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs:///ipfs/".length)}"
             ipfsProtocolUri.startsWith("ipfs://ipfs/") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs://ipfs/".length)}"
+            ipfsProtocolUri.startsWith("ipfs://") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs://".length)}"
             ipfsProtocolUri.startsWith("Qm") -> "$ipfsUrl/ipfs/$ipfsProtocolUri"
             else -> "$ipfsUrl$ipfsProtocolUri"
         }
