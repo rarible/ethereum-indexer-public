@@ -134,7 +134,7 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
         val tokenId: Long,
         val contractURI: String,
         val tokenURI: String,
-        val name: String?,
+        val name: String,
         val data: NftItemMetaDto
     )
 }

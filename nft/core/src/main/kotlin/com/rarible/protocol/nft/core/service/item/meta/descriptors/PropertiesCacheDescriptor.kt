@@ -75,7 +75,7 @@ class PropertiesCacheDescriptor(
                         }
                     }
                 }
-                .flatMap { fixName(id, it) }
+                .flatMap { fixEmptyName(id, it) }
                 .timeout(Duration.ofMillis(requestTimeout))
                 .onErrorResume {
                     logger.warn("Unable to get properties for $id", it)
@@ -84,7 +84,7 @@ class PropertiesCacheDescriptor(
         }
     }
 
-    fun fixName(id: String, item: ItemProperties): Mono<ItemProperties> = mono {
+    fun fixEmptyName(id: String, item: ItemProperties): Mono<ItemProperties> = mono {
         when {
             item.name.isEmpty() -> {
                 val (address, tokenId) = id.parseTokenId()
