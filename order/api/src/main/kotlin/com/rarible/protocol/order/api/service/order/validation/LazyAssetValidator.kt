@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.service.order.validation
 
-import com.rarible.core.common.convert
 import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
@@ -8,9 +7,9 @@ import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
+import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.model.AssetType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Service
 import scalether.abi.Uint256Type
 import java.util.*
@@ -18,12 +17,15 @@ import java.util.*
 @Service
 class LazyAssetValidator(
     private val delegate: LazyNftValidator,
-    private val nftCollectionClient: NftCollectionControllerApi,
-    private val conversionService: ConversionService
+    private val nftCollectionClient: NftCollectionControllerApi
 ) {
-    suspend fun validate(lazyAssetType: AssetType, side: String) {
-        val lazyNft = conversionService.convert<LazyNft>(lazyAssetType)
 
+    suspend fun validate(lazyAssetType: AssetType, side: String) {
+        val lazyNft = LazyAssetTypeToLazyNftConverter.convert(lazyAssetType)
+        validate(lazyNft, side)
+    }
+
+    suspend fun validate(lazyNft: LazyNft, side: String) {
         val collection = nftCollectionClient.getNftCollectionById(lazyNft.token.hex()).awaitFirstOrNull()
             ?: throw OrderUpdateException(
                 "Token ${lazyNft.token} was not found",

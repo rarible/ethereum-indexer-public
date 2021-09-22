@@ -16,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.core.convert.ConversionService
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -26,8 +25,6 @@ import java.math.BigDecimal
 @DataMongoTest
 @ContextConfiguration(classes = [RepositoryConfiguration::class])
 internal class OrderVersionRepositoryTest {
-    @MockkBean
-    private lateinit var conversionService: ConversionService
 
     @MockkBean
     private lateinit var publisher: ProtocolOrderPublisher

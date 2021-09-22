@@ -3,22 +3,23 @@ package com.rarible.protocol.order.core.converters.dto
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.OrderType
-import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import scalether.abi.Uint256Type
 import java.math.BigInteger
 
 @Component
-object BidDtoConverter : Converter<CompositeBid, OrderBidDto> {
-    override fun convert(source: CompositeBid): OrderBidDto {
+class BidDtoConverter(
+    private val assetDtoConverter: AssetDtoConverter
+) {
+    suspend fun convert(source: CompositeBid): OrderBidDto {
         val order = source.order
         return when (order.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
 
-                make = AssetDtoConverter.convert(source.version.make),
-                take = AssetDtoConverter.convert(source.version.take),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
                 makePriceUsd = source.version.makePriceUsd,
@@ -37,8 +38,8 @@ object BidDtoConverter : Converter<CompositeBid, OrderBidDto> {
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
 
-                make = AssetDtoConverter.convert(source.version.make),
-                take = AssetDtoConverter.convert(source.version.take),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
                 makePriceUsd = source.version.makePriceUsd,
@@ -57,8 +58,8 @@ object BidDtoConverter : Converter<CompositeBid, OrderBidDto> {
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
 
-                make = AssetDtoConverter.convert(source.version.make),
-                take = AssetDtoConverter.convert(source.version.take),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
                 makePriceUsd = source.version.makePriceUsd,
@@ -77,8 +78,8 @@ object BidDtoConverter : Converter<CompositeBid, OrderBidDto> {
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
 
-                make = AssetDtoConverter.convert(source.version.make),
-                take = AssetDtoConverter.convert(source.version.take),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
                 makePriceUsd = source.version.makePriceUsd,

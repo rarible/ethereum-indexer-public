@@ -522,6 +522,8 @@ components:
           $ref: "#/components/schemas/Asset"
         fill:
           $ref: "#/components/schemas/BigInteger"
+        fillValue:
+          $ref: "#/components/schemas/BigDecimal"
         start:
           type: integer
           format: int64
@@ -530,6 +532,8 @@ components:
           format: int64
         makeStock:
           $ref: "#/components/schemas/BigInteger"
+        makeStockValue:
+          $ref: "#/components/schemas/BigDecimal"
         cancelled:
           type: boolean
         salt:
@@ -653,9 +657,9 @@ components:
         taker:
           $ref: "#/components/schemas/Address"
         make:
-          $ref: "#/components/schemas/Asset"
+          $ref: "#/components/schemas/OrderFormAsset"
         take:
-          $ref: "#/components/schemas/Asset"
+          $ref: "#/components/schemas/OrderFormAsset"
         salt:
           $ref: "#/components/schemas/BigInteger"
         start:
@@ -674,6 +678,17 @@ components:
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderForm"
         - "$ref": "#/components/schemas/RaribleV2OrderForm"
+
+    OrderFormAsset:
+      type: object
+      required:
+        - assetType
+        - value
+      properties:
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        value:
+          $ref: "#/components/schemas/BigInteger"
 
     LegacyOrderForm:
       type: object

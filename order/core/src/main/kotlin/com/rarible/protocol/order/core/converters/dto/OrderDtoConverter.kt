@@ -4,27 +4,34 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
-import org.springframework.core.convert.converter.Converter
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
 import java.math.BigInteger
 
 @Component
-object OrderDtoConverter : Converter<Order, OrderDto> {
-    override fun convert(source: Order): OrderDto {
+class OrderDtoConverter(
+    private val priceNormalizer: PriceNormalizer,
+    private val assetDtoConverter: AssetDtoConverter,
+    private val orderExchangeHistoryDtoConverter: OrderExchangeHistoryDtoConverter
+) {
+
+    suspend fun convert(source: Order): OrderDto {
         return when (source.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = assetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
                 makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
                 signature = source.signature,
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
-                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderDataLegacyDto,
                 makePriceUsd = source.makePriceUsd,
@@ -36,17 +43,19 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
             )
             OrderType.RARIBLE_V2 -> RaribleV2OrderDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = assetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
                 makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
                 signature = source.signature,
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
-                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataV1Dto,
                 makePriceUsd = source.makePriceUsd,
@@ -58,17 +67,19 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = assetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
                 makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
                 signature = source.signature,
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
-                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto,
                 makePriceUsd = source.makePriceUsd,
@@ -80,11 +91,13 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
             )
             OrderType.CRYPTO_PUNKS -> CryptoPunkOrderDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = assetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
                 makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 start = source.start,
                 end = source.end,
@@ -97,7 +110,7 @@ object OrderDtoConverter : Converter<Order, OrderDto> {
                 makeBalance = BigInteger.ZERO,
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
-                pending = source.pending.map { OrderExchangeHistoryDtoConverter.convert(it) },
+                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
             )
         }

@@ -7,17 +7,11 @@ import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.RaribleV2OrderDto
-import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.*
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import org.apache.commons.lang3.RandomUtils
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
-import org.web3j.utils.Numeric
-import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigDecimal
 import java.math.BigInteger
 
 fun createOrder() =
@@ -64,10 +58,12 @@ fun createOrderDto() =
     RaribleV2OrderDto(
         maker = AddressFactory.create(),
         taker = null,
-        make = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN),
-        take = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN),
+        make = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        take = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
         fill = BigInteger.ZERO,
+        fillValue = BigDecimal.ZERO,
         makeStock = BigInteger.TEN,
+        makeStockValue = BigDecimal.TEN,
         cancelled = false,
         salt = Word.apply(ByteArray(32)),
         data = OrderRaribleV2DataV1Dto(emptyList(), emptyList()),

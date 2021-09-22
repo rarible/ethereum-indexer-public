@@ -7,7 +7,9 @@ import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.CurrencyRateDto
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
+import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -15,8 +17,11 @@ import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -41,6 +46,9 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var currencyControllerApi: CurrencyControllerApi
+
+    @Autowired
+    protected lateinit var orderDtoConverter: OrderDtoConverter
 
     companion object {
         @JvmStatic
@@ -121,7 +129,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         val event = OrderUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             orderId = nftOrder.hash.toString(),
-            order = OrderDtoConverter.convert(nftOrder)
+            order = orderDtoConverter.convert(nftOrder)
         )
         val sendJob = async {
             val message = KafkaMessage(
