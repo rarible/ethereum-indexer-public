@@ -21,7 +21,7 @@ interface OrderRepository {
 
     suspend fun findById(hash: Word): Order?
 
-    suspend fun findAll(hashes: Collection<Word>): List<Order>
+    fun findAll(hashes: Collection<Word>): Flow<Order>
 
     suspend fun search(query: Query): List<Order>
 
