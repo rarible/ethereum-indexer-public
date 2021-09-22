@@ -78,7 +78,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         orderListener = orderListener
     )
     private val orderPriceUpdateService = OrderPriceUpdateService(
-        orderReduceService = orderReduceService,
+        orderRepository = orderRepository,
         orderVersionRepository = orderVersionRepository,
         priceUpdateService = priceUpdateService
     )
