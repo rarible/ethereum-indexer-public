@@ -210,10 +210,10 @@ class OrderServiceIt : AbstractOrderIt() {
             )
         ).collectList().awaitFirst()
 
-        // Same order as requested, non-existing Order is omitted
+        // Non-existing Order is omitted
         assertThat(orders).hasSize(2)
-        assertThat(orders[0].hash).isEqualTo(order2.hash)
-        assertThat(orders[1].hash).isEqualTo(order1.hash)
+        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order1.hash) }
+        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order2.hash) }
     }
 
     @Test
