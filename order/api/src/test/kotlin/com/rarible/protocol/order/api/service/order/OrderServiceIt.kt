@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.contracts.test.erc1271.TestERC1271
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
@@ -186,6 +187,33 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(updated.priceHistory.size).isEqualTo(20)
         // Checking last update is on the top
         assertThat(updated.priceHistory[0].makeValue.toLong()).isEqualTo(25 * 100)
+    }
+
+    @Test
+    fun `get orders by ids`() = runBlocking<Unit> {
+        val (privateKey1, _, signer1) = generateNewKeys()
+        val (privateKey2, _, signer2) = generateNewKeys()
+
+        val order1 = createOrder(signer1)
+        val order2 = createOrder(signer2)
+
+        orderService.put(order1.toForm(privateKey1))
+        orderService.put(order2.toForm(privateKey2))
+
+        val orders = orderClient.getOrdersByIds(
+            OrderIdsDto(
+                listOf(
+                    order2.hash,
+                    Word.apply(randomWord()),
+                    order1.hash
+                )
+            )
+        ).collectList().awaitFirst()
+
+        // Same order as requested, non-existing Order is omitted
+        assertThat(orders).hasSize(2)
+        assertThat(orders[0].hash).isEqualTo(order2.hash)
+        assertThat(orders[1].hash).isEqualTo(order1.hash)
     }
 
     @Test

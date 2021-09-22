@@ -5,16 +5,17 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
@@ -66,6 +67,10 @@ class OrderService(
     suspend fun get(hash: Word): Order {
         return orderRepository.findById(hash)
             ?: throw EntityNotFoundApiException("Order", hash)
+    }
+
+    fun getAll(hashes: List<Word>): Flow<Order> {
+        return orderRepository.findAll(hashes)
     }
 
     suspend fun updateMakeStock(hash: Word): Order =

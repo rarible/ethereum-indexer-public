@@ -644,6 +644,16 @@ components:
         takeValue:
           $ref: "#/components/schemas/BigDecimal"
 
+    OrderIds:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/Word"
+
     OrderForm:
       type: object
       required:

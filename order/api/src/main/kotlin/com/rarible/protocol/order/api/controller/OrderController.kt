@@ -19,6 +19,8 @@ import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -117,6 +119,11 @@ class OrderController(
     override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
         val order = orderService.put(form)
         val result = orderDtoConverter.convert(order)
+        return ResponseEntity.ok(result)
+    }
+
+    override fun getOrdersByIds(list: OrderIdsDto): ResponseEntity<Flow<OrderDto>> {
+        val result = orderService.getAll(list.ids).map { orderDtoConverter.convert(it) }
         return ResponseEntity.ok(result)
     }
 

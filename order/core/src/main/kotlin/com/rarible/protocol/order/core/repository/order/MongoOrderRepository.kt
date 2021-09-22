@@ -42,9 +42,9 @@ class MongoOrderRepository(
         return template.findById<Order>(hash).awaitFirstOrNull()
     }
 
-    override suspend fun findAll(hashes: Collection<Word>): List<Order> {
+    override fun findAll(hashes: Collection<Word>): Flow<Order> {
         val criteria = Criteria.where("_id").inValues(hashes)
-        return template.find<Order>(Query.query(criteria)).collectList().awaitFirst()
+        return template.find<Order>(Query.query(criteria)).asFlow()
     }
 
     override suspend fun search(query: Query): List<Order> {
