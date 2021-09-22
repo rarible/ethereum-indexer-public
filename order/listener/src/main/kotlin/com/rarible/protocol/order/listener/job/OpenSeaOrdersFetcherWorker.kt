@@ -49,8 +49,8 @@ class OpenSeaOrdersFetcherWorker(
         if (properties.loadOpenSeaOrders.not()) return
 
         val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
+        val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
 
-        val now = nowMillis().epochSecond
         val listedAfter = state.listedAfter
         val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
 
