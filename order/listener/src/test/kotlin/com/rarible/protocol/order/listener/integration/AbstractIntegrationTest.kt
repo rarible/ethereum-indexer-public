@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.integration
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
@@ -86,9 +85,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
-    @MockkBean
-    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
-    protected var assetMakeBalanceAnswers: suspend (Order) -> EthUInt256? = { null }
+    @Autowired
+    protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
     protected lateinit var parity: MonoParity
 
@@ -118,7 +116,6 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
             val order = arg<Order>(0)
-            assetMakeBalanceAnswers.invoke(order)?.let { return@r it }
             if (order.make.type is EthAssetType) {
                 return@r order.make.value
             }

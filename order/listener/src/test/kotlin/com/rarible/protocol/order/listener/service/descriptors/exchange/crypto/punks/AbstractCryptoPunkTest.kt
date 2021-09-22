@@ -6,13 +6,11 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.CryptoPunksAssetType
-import com.rarible.protocol.order.core.model.EthAssetType
-import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Binary
+import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -62,15 +60,19 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
     }
 
     @BeforeEach
-    fun initializeCryptoPunksMarket() = runBlocking {
+    fun initializeCryptoPunksMarket() = runBlocking<Unit> {
         cryptoPunksMarket = deployCryptoPunkMarket()
 
         // Override asset make balance service to correctly reflect ownership of CryptoPunks.
         // By default, this service returns 1 for all ownerships, even if a punk does not belong to this address.
-        assetMakeBalanceAnswers = r@ { order ->
-            val assetType = order.make.type as? CryptoPunksAssetType ?: return@r null
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@ {
+            val order = arg<Order>(0)
+            if (order.make.type is EthAssetType) {
+                return@r order.make.value
+            }
+            val assetType = order.make.type as? CryptoPunksAssetType ?: return@r EthUInt256.ONE
             if (assetType.marketAddress != cryptoPunksMarket.address()) {
-                return@r null
+                return@r EthUInt256.ONE
             }
             val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.punkId.toBigInteger()).awaitSingle()
             if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO

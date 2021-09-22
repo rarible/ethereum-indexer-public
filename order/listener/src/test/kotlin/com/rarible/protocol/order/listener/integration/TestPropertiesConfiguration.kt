@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.integration
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.coEvery
@@ -42,5 +43,10 @@ class TestPropertiesConfiguration {
         return mockk {
             coEvery { getCurrencyRate(any(), any(), any()) } returns Mono.empty<CurrencyRateDto>()
         }
+    }
+
+    @Bean
+    @Primary
+    fun mockAssetMakeBalanceProvider(): AssetMakeBalanceProvider = mockk {
     }
 }
