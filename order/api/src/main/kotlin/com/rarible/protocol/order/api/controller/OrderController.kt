@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
@@ -8,7 +7,9 @@ import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderToFormDtoConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
@@ -18,7 +19,6 @@ import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -31,9 +31,11 @@ import java.time.Instant
 class OrderController(
     private val orderService: OrderService,
     private val orderInvertService: OrderInvertService,
-    private val conversionService: ConversionService,
     private val prepareTxService: PrepareTxService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val orderDtoConverter: OrderDtoConverter,
+    private val assetDtoConverter: AssetDtoConverter,
+    private val orderToFormDtoConverter: OrderToFormDtoConverter
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -42,7 +44,7 @@ class OrderController(
     ): ResponseEntity<OrderFormDto> {
         val order = orderService.get(Word.apply(hash))
         val inverted = orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
-        return ResponseEntity.ok(conversionService.convert(inverted))
+        return ResponseEntity.ok(orderToFormDtoConverter.convert(inverted))
     }
 
     override suspend fun prepareOrderV2Transaction(
@@ -54,7 +56,7 @@ class OrderController(
         val result = with(prepareTxService.prepareTxFor2Orders(order, orderRight)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,
-                AssetDtoConverter.convert(asset),
+                assetDtoConverter.convert(asset),
                 PreparedOrderTxDto(transaction.to, transaction.data)
             )
         }
@@ -69,7 +71,7 @@ class OrderController(
         val result = with(prepareTxService.prepareTransaction(order, form)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,
-                AssetDtoConverter.convert(asset),
+                assetDtoConverter.convert(asset),
                 PreparedOrderTxDto(transaction.to, transaction.data)
             )
         }
@@ -114,13 +116,13 @@ class OrderController(
 
     override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
         val order = orderService.put(form)
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getOrderByHash(hash: String): ResponseEntity<OrderDto> {
         val order = orderService.get(Word.apply(hash))
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
 
@@ -128,7 +130,7 @@ class OrderController(
         hash: String
     ): ResponseEntity<OrderDto> {
         val order = orderService.updateMakeStock(Word.apply(hash))
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
 
@@ -265,7 +267,7 @@ class OrderController(
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
 
         return OrdersPaginationDto(
-            result.map { conversionService.convert<OrderDto>(it) },
+            result.map { orderDtoConverter.convert(it) },
             nextContinuation
         )
     }

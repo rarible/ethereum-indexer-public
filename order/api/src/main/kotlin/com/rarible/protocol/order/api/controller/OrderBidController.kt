@@ -1,15 +1,17 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.dto.OrderBidStatusDto
+import com.rarible.protocol.dto.OrderBidsPaginationDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.service.order.OrderBidsService
+import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
+import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.limit
-import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
-import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -19,7 +21,7 @@ import java.time.OffsetDateTime
 @RestController
 class OrderBidController(
     private val orderVersionService: OrderBidsService,
-    private val conversionService: ConversionService
+    private val bidDtoController: BidDtoConverter
 ) : OrderBidControllerApi {
 
     override suspend fun getBidsByItem(
@@ -46,12 +48,12 @@ class OrderBidController(
             requestSize,
             priceContinuation
         )
-        val statuses = status.map { conversionService.convert<BidStatus>(it) }
+        val statuses = status.map { OrderBidStatusConverter.convert(it) }
         val orderVersions = orderVersionService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
         val result = OrderBidsPaginationDto(
-            orderVersions.map { conversionService.convert<OrderBidDto>(it) },
+            orderVersions.map { bidDtoController.convert(it) },
             nextContinuation
         )
         return ResponseEntity.ok(result)

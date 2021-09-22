@@ -1,22 +1,22 @@
 package com.rarible.protocol.order.core.converters.model
 
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
+import com.rarible.protocol.order.core.converters.dto.OrderFormAssetDtoConverter
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
-import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
-    override fun convert(source: Order): OrderFormDto {
+class OrderToFormDtoConverter {
+
+    suspend fun convert(source: Order): OrderFormDto {
         return when (source.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = OrderFormAssetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = OrderFormAssetDtoConverter.convert(source.take),
                 salt = source.salt.value,
                 signature = source.signature,
                 start = source.start,
@@ -25,9 +25,9 @@ object OrderToFormDtoConverter : Converter<Order, OrderFormDto> {
             )
             OrderType.RARIBLE_V2 -> RaribleV2OrderFormDto(
                 maker = source.maker,
-                make = AssetDtoConverter.convert(source.make),
+                make = OrderFormAssetDtoConverter.convert(source.make),
                 taker = source.taker,
-                take = AssetDtoConverter.convert(source.take),
+                take = OrderFormAssetDtoConverter.convert(source.take),
                 salt = source.salt.value,
                 signature = source.signature,
                 start = source.start,

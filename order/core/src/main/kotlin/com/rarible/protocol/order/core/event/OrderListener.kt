@@ -9,13 +9,14 @@ import java.util.*
 
 @Component
 class OrderListener(
-    private val eventPublisher: ProtocolOrderPublisher
+    private val eventPublisher: ProtocolOrderPublisher,
+    private val orderDtoConverter: OrderDtoConverter
 ) {
     suspend fun onOrder(order: Order) {
         val updateEvent = OrderUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             orderId = order.hash.toString(),
-            order = OrderDtoConverter.convert(order)
+            order = orderDtoConverter.convert(order)
         )
         eventPublisher.publish(updateEvent)
     }

@@ -16,8 +16,11 @@ import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -42,6 +45,9 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var currencyControllerApi: CurrencyControllerApi
+
+    @Autowired
+    protected lateinit var orderDtoConverter: OrderDtoConverter
 
     companion object {
         @JvmStatic
@@ -122,7 +128,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         val event = OrderUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
             orderId = nftOrder.hash.toString(),
-            order = OrderDtoConverter.convert(nftOrder)
+            order = orderDtoConverter.convert(nftOrder)
         )
         val sendJob = async {
             val message = KafkaMessage(

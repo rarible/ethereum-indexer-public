@@ -10,7 +10,11 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 
 @Component
-class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
+class OrderActivityConverter(
+    private val priceNormalizer: PriceNormalizer,
+    private val assetDtoConverter: AssetDtoConverter
+) {
+
     suspend fun convert(ar: ActivityResult): OrderActivityDto? {
         return when (ar) {
             is ActivityResult.History -> convertHistory(ar.value)
@@ -36,7 +40,7 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     date = data.date,
                     left = OrderActivityMatchSideDto(
                         maker = data.maker,
-                        asset = AssetDtoConverter.convert(data.make),
+                        asset = assetDtoConverter.convert(data.make),
                         hash = data.hash,
                         type = if (data.take.type.nft) {
                             OrderActivityMatchSideDto.Type.BID
@@ -46,7 +50,7 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = data.taker,
-                        asset = AssetDtoConverter.convert(data.take),
+                        asset = assetDtoConverter.convert(data.take),
                         hash = data.counterHash ?: Word.apply(ByteArray(32)),
                         type = if (data.make.type.nft) {
                             OrderActivityMatchSideDto.Type.BID
@@ -98,8 +102,8 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                     id = history.id.toString(),
                     hash = data.hash,
                     maker = data.maker,
-                    make = AssetDtoConverter.convert(data.make),
-                    take = AssetDtoConverter.convert(data.take),
+                    make = assetDtoConverter.convert(data.make),
+                    take = assetDtoConverter.convert(data.take),
                     price = nftPrice(data.make, data.take),
                     source = convert(data.source),
                     priceUsd = null
@@ -108,14 +112,14 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
                 // are not supported by frontend, and thus the backend should not return them.
                 null
-            } else  {
+            } else {
                 OrderActivityListDto(
                     date = data.date,
                     id = history.id.toString(),
                     hash = data.hash,
                     maker = data.maker,
-                    make = AssetDtoConverter.convert(data.make),
-                    take = AssetDtoConverter.convert(data.take),
+                    make = assetDtoConverter.convert(data.make),
+                    take = assetDtoConverter.convert(data.take),
                     price = nftPrice(data.take, data.make),
                     source = convert(data.source),
                     priceUsd = null
@@ -131,8 +135,8 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                 id = version.id.toString(),
                 hash = version.hash,
                 maker = version.maker,
-                make = AssetDtoConverter.convert(version.make),
-                take = AssetDtoConverter.convert(version.take),
+                make = assetDtoConverter.convert(version.make),
+                take = assetDtoConverter.convert(version.take),
                 price = price(version.make, version.take),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform)
@@ -142,8 +146,8 @@ class OrderActivityConverter(private val priceNormalizer: PriceNormalizer) {
                 id = version.id.toString(),
                 hash = version.hash,
                 maker = version.maker,
-                make = AssetDtoConverter.convert(version.make),
-                take = AssetDtoConverter.convert(version.take),
+                make = assetDtoConverter.convert(version.make),
+                take = assetDtoConverter.convert(version.take),
                 price = price(version.take, version.make),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform)

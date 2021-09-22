@@ -17,7 +17,8 @@ class ChangeLog00006ExportOrderEvents {
     @ChangeSet(id = "ChangeLog00006ExportOrderEvents.exportAllOrdersEvents", order = "1", author = "protocol")
     fun createIndexForAll(
         @NonLockGuarded orderRepository: OrderRepository,
-        @NonLockGuarded publisher: ProtocolOrderPublisher
+        @NonLockGuarded publisher: ProtocolOrderPublisher,
+        @NonLockGuarded orderDtoConverter: OrderDtoConverter
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
 
@@ -29,7 +30,7 @@ class ChangeLog00006ExportOrderEvents {
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.hash.toString(),
-                    order = OrderDtoConverter.convert(order)
+                    order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)
 
