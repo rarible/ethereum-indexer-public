@@ -57,6 +57,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         // TODO: invent a better way of cleaning up the Kafka queue [RPN-1019].
         // Note! Here we should trim the time to seconds precious because the activities events will be created
         // with time taken from blockchain (it is in seconds).
+        Thread.sleep(2001)
         lastKafkaInstant = Instant.now().with(ChronoField.NANO_OF_SECOND, 0)
     }
 
