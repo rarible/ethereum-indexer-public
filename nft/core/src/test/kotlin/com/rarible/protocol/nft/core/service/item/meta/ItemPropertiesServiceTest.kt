@@ -199,7 +199,7 @@ Token ID: 51561
     internal fun etherCats() {
         val properties = testing.getProperties(Address.apply("0xff3559412c4618af7c6e6f166c74252ff6364456"), BigInteger.valueOf(50101)).block()!!
         assertEquals("Gatinho [10 Votes, Common]", properties.name)
-        assertEquals("This Chainlink VRF common Gatinho purrs with a rating of 10, and a multiplier of 1x. It has a total score of 10, and confers the same amount of votes in the EtherCats DAO. The card game properties are 8 for North, Stringalong for East, Box for South, and 1 for West. Gatinho has the personality suit of punter. Each Founders Series cat is part of NFT history. These fine felines represent the first verifiably random packs minted with Chainlink VRF.", properties.description)
+        assertThat(properties.description).contains("Gatinho")
         assertEquals(properties.image, "ipfs://ipfs/QmQSKwVhvTcfpgz8g47XgfvrSHTWe6a29WARdDs2uUHcZE/50101.png")
         assertEquals(9, properties.attributes.size)
         assertThat(properties.attributes).contains(ItemAttribute("Multiplier", "1"))
