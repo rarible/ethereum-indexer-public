@@ -36,8 +36,6 @@ pipeline {
         beforeInput true
       }
       steps {
-        sh 'mvn clean package -DskipTests'
-
         script {
           env.BRANCH_NAME = "${env.GIT_BRANCH}"
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
@@ -124,6 +122,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
+        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
   }

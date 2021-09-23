@@ -49,6 +49,8 @@ data class OrderIndexerProperties(
     )
 
     data class FeatureFlags(
-        val useCommonTransactionTraceProvider: Boolean = true
+        val useCommonTransactionTraceProvider: Boolean = true,
+        val showAllOrdersByDefault: Boolean = false
     )
 }
+

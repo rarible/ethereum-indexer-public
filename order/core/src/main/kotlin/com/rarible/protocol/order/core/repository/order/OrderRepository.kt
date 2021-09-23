@@ -25,6 +25,8 @@ interface OrderRepository {
 
     suspend fun search(query: Query): List<Order>
 
+    suspend fun search(filter: OrderFilter): List<Order>
+
     suspend fun remove(hash: Word): Boolean
 
     fun findActive(): Flow<Order>

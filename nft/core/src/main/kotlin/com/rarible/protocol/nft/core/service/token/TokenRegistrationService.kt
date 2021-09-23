@@ -98,17 +98,19 @@ class TokenRegistrationService(
     internal fun fetchStandard(address: Address): Mono<TokenStandard> {
         val contract = IERC721(address, sender)
         return Flux.fromIterable(TokenStandard.values().filter { it.interfaceId != null })
-            .flatMap {
-                contract.supportsInterface(it.interfaceId!!.bytes())
+            .flatMap { checkStandard ->
+                contract.supportsInterface(checkStandard.interfaceId!!.bytes())
                     .onErrorResume { error ->
-                        if (error is RpcCodeException || error is IllegalArgumentException) {
+                        if (WELL_KNOWN_TOKENS_WITHOUT_ERC165[address] == checkStandard) {
+                            Mono.just(true)
+                        } else if (error is RpcCodeException || error is IllegalArgumentException) {
                             Mono.just(false)
                         } else {
                             Mono.error(error)
                         }
                     }
                     .map { supported ->
-                        it to supported
+                        checkStandard to supported
                     }
             }
             .collectList()
@@ -164,7 +166,9 @@ class TokenRegistrationService(
             IERC721.burnSignature().id() to TokenFeature.BURN,
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
-
+        val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
+            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
+        )
         val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
     }
 }

@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.configuration
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
+import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -68,5 +69,10 @@ class RepositoryConfiguration(
     @Bean
     fun tokenHistoryRepository(): NftHistoryRepository {
         return NftHistoryRepository(mongo)
+    }
+
+    @Bean
+    fun tempTaskRepository(): TempTaskRepository {
+        return TempTaskRepository(mongo)
     }
 }

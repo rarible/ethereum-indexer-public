@@ -20,6 +20,11 @@ class TokenRepository(
         return mongo.save(token)
     }
 
+    fun remove(token: Address): Mono<Void> {
+        val criteria = Criteria.where("_id").isEqualTo(token)
+        return mongo.remove<Token>(Query(criteria)).then()
+    }
+
     fun findAll(): Flux<Token> {
         return mongo.findAll()
     }

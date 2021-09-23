@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
+import java.math.BigInteger
 
 @IntegrationTest
 class BestOrderServiceIt : AbstractIntegrationTest() {
@@ -135,7 +136,7 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     fun `item best sell order - updated is dead, current without preferred type is not null`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val item = randomItem(itemId).copy(bestSellOrder = randomOpenSeaV1OrderDto(itemId))
-        val updated = randomLegacyOrderDto(itemId).copy(cancelled = true)
+        val updated = randomLegacyOrderDto(itemId).copy(makeStock = BigInteger.ZERO)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
 
