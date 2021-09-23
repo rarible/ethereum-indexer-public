@@ -46,8 +46,8 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best sell order - updated is alive, current is not the best anymore`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomLegacyOrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
-        val current = randomLegacyOrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.plus(BigDecimal.ONE))
+        val updated = randomLegacyOrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
+        val current = randomLegacyOrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.plus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestSellOrder = current)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
@@ -59,9 +59,9 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best sell order - updated is alive, current has preferred type`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomOpenSeaV1OrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
+        val updated = randomOpenSeaV1OrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
         // Current has higher takePrice, but it has preferred type
-        val current = randomLegacyOrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.plus(BigDecimal.ONE))
+        val current = randomLegacyOrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.plus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestSellOrder = current)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
@@ -73,9 +73,9 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best sell order - updated is alive, updated has preferred type`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomLegacyOrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
+        val updated = randomLegacyOrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
         // Current is better than updated, but updated has preferred type
-        val current = randomOpenSeaV1OrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.minus(BigDecimal.ONE))
+        val current = randomOpenSeaV1OrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.minus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestSellOrder = current)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
@@ -87,8 +87,8 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best sell order - updated is alive, both orders doesn't have preferred type`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomOpenSeaV1OrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
-        val current = randomOpenSeaV1OrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.plus(BigDecimal.ONE))
+        val updated = randomOpenSeaV1OrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
+        val current = randomOpenSeaV1OrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.plus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestSellOrder = current)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
@@ -100,8 +100,8 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best sell order - updated is alive, current is still the best`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomLegacyOrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
-        val current = randomLegacyOrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.minus(BigDecimal.ONE))
+        val updated = randomLegacyOrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
+        val current = randomLegacyOrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.minus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestSellOrder = current)
 
         val bestSellOrder = bestOrderService.getBestSellOrder(item, updated)
@@ -146,8 +146,8 @@ class BestOrderServiceIt : AbstractIntegrationTest() {
     @Test
     fun `item best bid order - updated is alive, current is not the best anymore`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val updated = randomLegacyOrderDto(itemId).copy(makePriceUsd = randomBigDecimal(3, 1))
-        val current = randomLegacyOrderDto(itemId).copy(makePriceUsd = updated.makePriceUsd!!.minus(BigDecimal.ONE))
+        val updated = randomLegacyOrderDto(itemId).copy(takePriceUsd = randomBigDecimal(3, 1))
+        val current = randomLegacyOrderDto(itemId).copy(takePriceUsd = updated.takePriceUsd!!.minus(BigDecimal.ONE))
         val item = randomItem(itemId).copy(bestBidOrder = current)
 
         val bestBidOrder = bestOrderService.getBestBidOrder(item, updated)
