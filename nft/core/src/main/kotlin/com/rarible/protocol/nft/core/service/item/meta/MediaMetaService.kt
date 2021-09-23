@@ -58,8 +58,8 @@ class MediaMetaService(
                     MediaMeta("audio/mp3").toMono()
                 url.endsWith(".mpga") ->
                     MediaMeta("audio/mpeg").toMono()
-//                url.endsWith(".svg") ->
-//                    MediaMeta("image/svg+xml", 192, 192).toMono()
+                url.endsWith(".svg") ->
+                    MediaMeta("image/svg+xml", 192, 192).toMono()
                 else -> {
                     getMetadata(url)
                         .flatMap { (width, height, metadata) ->
