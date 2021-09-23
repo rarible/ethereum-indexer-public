@@ -6,6 +6,7 @@ import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderOwnershipControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.repository.OwnershipRepository
 import com.rarible.protocol.nftorder.core.test.data.assertOwnershipAndDtoEquals
 import com.rarible.protocol.nftorder.core.test.data.assertOwnershipDtoAndNftDtoEquals
@@ -49,7 +50,10 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
         val itemId = randomItemId()
         val ownershipId = randomOwnershipId(itemId)
         val orderDto = randomOrderDto(itemId, ownershipId.owner)
-        val ownership = randomOwnership(itemId).copy(owner = ownershipId.owner, bestSellOrder = orderDto)
+        val ownership = randomOwnership(itemId).copy(
+            owner = ownershipId.owner,
+            bestSellOrder = ShortOrderConverter.convert(orderDto)
+        )
         ownershipRepository.save(ownership)
 
         val result = nftOrderOwnershipControllerApi

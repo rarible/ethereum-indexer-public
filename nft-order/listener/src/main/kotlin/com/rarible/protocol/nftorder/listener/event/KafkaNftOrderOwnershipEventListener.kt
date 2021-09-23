@@ -1,19 +1,17 @@
 package com.rarible.protocol.nftorder.listener.event
 
-import com.rarible.core.common.convert
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.NftOrderOwnershipEventDto
 import com.rarible.protocol.dto.NftOrderOwnershipEventTopicProvider
+import com.rarible.protocol.nftorder.core.converter.OwnershipEventToDtoConverter
 import com.rarible.protocol.nftorder.core.event.OwnershipEvent
 import com.rarible.protocol.nftorder.core.event.OwnershipEventListener
 import com.rarible.protocol.nftorder.core.model.OwnershipId
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
 class KafkaNftOrderOwnershipEventListener(
-    private val conversionService: ConversionService,
     private val eventsProducer: RaribleKafkaProducer<NftOrderOwnershipEventDto>
 ) : OwnershipEventListener {
 
@@ -23,7 +21,7 @@ class KafkaNftOrderOwnershipEventListener(
 
     override suspend fun onEvent(event: OwnershipEvent) {
 
-        val dto = conversionService.convert<NftOrderOwnershipEventDto>(event)
+        val dto = OwnershipEventToDtoConverter.convert(event)
         val ownershipId = OwnershipId.parseId(dto.ownershipId)
         val itemId = "${ownershipId.token}:${ownershipId.tokenId.value}"
 

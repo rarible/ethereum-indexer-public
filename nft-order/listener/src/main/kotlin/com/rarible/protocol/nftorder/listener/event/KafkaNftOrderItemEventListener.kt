@@ -1,18 +1,16 @@
 package com.rarible.protocol.nftorder.listener.event
 
-import com.rarible.core.common.convert
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.NftOrderItemEventDto
 import com.rarible.protocol.dto.NftOrderItemEventTopicProvider
+import com.rarible.protocol.nftorder.core.converter.ItemEventToDtoConverter
 import com.rarible.protocol.nftorder.core.event.ItemEvent
 import com.rarible.protocol.nftorder.core.event.ItemEventListener
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
 class KafkaNftOrderItemEventListener(
-    private val conversionService: ConversionService,
     private val eventsProducer: RaribleKafkaProducer<NftOrderItemEventDto>
 ) : ItemEventListener {
 
@@ -21,7 +19,7 @@ class KafkaNftOrderItemEventListener(
     )
 
     override suspend fun onEvent(event: ItemEvent) {
-        val dto = conversionService.convert<NftOrderItemEventDto>(event)
+        val dto = ItemEventToDtoConverter.convert(event)
         val message = KafkaMessage(
             id = dto.eventId,
             key = dto.itemId,

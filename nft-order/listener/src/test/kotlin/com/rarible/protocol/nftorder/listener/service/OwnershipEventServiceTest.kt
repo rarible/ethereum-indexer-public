@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.listener.service
 
 import com.mongodb.client.result.DeleteResult
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.event.OwnershipEventListener
 import com.rarible.protocol.nftorder.core.service.OwnershipService
@@ -12,11 +13,9 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.core.convert.ConversionService
 
 class OwnershipEventServiceTest {
 
-    private val conversionService: ConversionService = mockk()
     private val ownershipService: OwnershipService = mockk()
     private val itemEventService: ItemEventService = mockk()
     private val eventListener: OwnershipEventListener = mockk()
@@ -24,7 +23,6 @@ class OwnershipEventServiceTest {
     private val bestOrderService: BestOrderService = mockk()
 
     private val ownershipEventService = OwnershipEventService(
-        conversionService,
         ownershipService,
         itemEventService,
         ownershipEventListeners,
@@ -34,7 +32,6 @@ class OwnershipEventServiceTest {
     @BeforeEach
     fun beforeEach() {
         clearMocks(
-            conversionService,
             ownershipService,
             itemEventService,
             eventListener,
@@ -49,12 +46,13 @@ class OwnershipEventServiceTest {
         val itemId = randomItemId()
         val ownership = randomOwnership(itemId)
         val order = randomLegacyOrderDto(itemId, ownership.id.owner)
+        val shortOrder = ShortOrderConverter.convert(order)
 
-        val expectedOwnership = ownership.copy(bestSellOrder = order)
+        val expectedOwnership = ownership.copy(bestSellOrder = shortOrder)
 
         // Ownership not fetched and enriched by received Order
         coEvery { ownershipService.getOrFetchOwnershipById(ownership.id) } returns Fetched(ownership, true)
-        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns order
+        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns shortOrder
         coEvery { ownershipService.save(expectedOwnership) } returns expectedOwnership
 
         ownershipEventService.onOwnershipBestSellOrderUpdated(ownership.id, order)
@@ -71,8 +69,9 @@ class OwnershipEventServiceTest {
         val itemId = randomItemId()
         val ownership = randomOwnership(itemId)
         val order = randomLegacyOrderDto(itemId, ownership.id.owner)
+        val shortOrder = ShortOrderConverter.convert(order)
 
-        val expectedOwnership = ownership.copy(bestSellOrder = order)
+        val expectedOwnership = ownership.copy(bestSellOrder = shortOrder)
 
         // Ownership fetched, best Order is cancelled - nothing should happen here
         coEvery { ownershipService.getOrFetchOwnershipById(ownership.id) } returns Fetched(ownership, true)
@@ -90,14 +89,16 @@ class OwnershipEventServiceTest {
     @Test
     fun `on ownership best sell order updated - not fetched, order updated`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val ownership = randomOwnership(itemId).copy(bestSellOrder = randomLegacyOrderDto())
+        val currentOrder = ShortOrderConverter.convert(randomLegacyOrderDto())
+        val ownership = randomOwnership(itemId).copy(bestSellOrder = currentOrder)
         val order = randomLegacyOrderDto(itemId, ownership.id.owner)
+        val shortOrder = ShortOrderConverter.convert(order)
 
-        val expectedOwnership = ownership.copy(bestSellOrder = order)
+        val expectedOwnership = ownership.copy(bestSellOrder = shortOrder)
 
         // Ownership not fetched, current Order should be replaced by updated Order
         coEvery { ownershipService.getOrFetchOwnershipById(ownership.id) } returns Fetched(ownership, false)
-        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns order
+        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns shortOrder
         coEvery { ownershipService.save(expectedOwnership) } returns expectedOwnership
 
         ownershipEventService.onOwnershipBestSellOrderUpdated(ownership.id, order)
@@ -112,10 +113,12 @@ class OwnershipEventServiceTest {
     @Test
     fun `on ownership best sell order updated - not fetched, order cancelled`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val ownership = randomOwnership(itemId).copy(bestSellOrder = randomLegacyOrderDto())
+        val currentOrder = ShortOrderConverter.convert(randomLegacyOrderDto())
+        val ownership = randomOwnership(itemId).copy(bestSellOrder = currentOrder)
         val order = randomLegacyOrderDto(itemId, ownership.id.owner)
+        val shortOrder = ShortOrderConverter.convert(order)
 
-        val expectedOwnership = ownership.copy(bestSellOrder = order)
+        val expectedOwnership = ownership.copy(bestSellOrder = shortOrder)
 
         // Ownership not fetched, best Order is cancelled - Ownership should be deleted
         coEvery { ownershipService.getOrFetchOwnershipById(ownership.id) } returns Fetched(ownership, false)
@@ -136,11 +139,12 @@ class OwnershipEventServiceTest {
         val itemId = randomItemId()
         val temp = randomOwnership(itemId)
         val order = randomLegacyOrderDto(itemId, temp.id.owner)
-        val ownership = temp.copy(bestSellOrder = order)
+        val shortOrder = ShortOrderConverter.convert(order)
+        val ownership = temp.copy(bestSellOrder = shortOrder)
 
         // Ownership not fetched, best Order is the same - nothing should happen here
         coEvery { ownershipService.getOrFetchOwnershipById(ownership.id) } returns Fetched(ownership, false)
-        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns order
+        coEvery { bestOrderService.getBestSellOrder(ownership, order) } returns shortOrder
 
         ownershipEventService.onOwnershipBestSellOrderUpdated(ownership.id, order)
 

@@ -1,32 +1,32 @@
 package com.rarible.protocol.nftorder.listener.service
 
-import com.rarible.core.common.convert
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.nftorder.core.converter.NftItemDtoConverter
 import com.rarible.protocol.nftorder.core.data.EnrichmentDataVerifier
 import com.rarible.protocol.nftorder.core.data.ItemSellStats
-import com.rarible.protocol.nftorder.core.event.ItemEvent
 import com.rarible.protocol.nftorder.core.event.ItemEventDelete
 import com.rarible.protocol.nftorder.core.event.ItemEventListener
 import com.rarible.protocol.nftorder.core.event.ItemEventUpdate
-import com.rarible.protocol.nftorder.core.model.ExtendedItem
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.ItemService
+import com.rarible.protocol.nftorder.core.service.OrderService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
 import com.rarible.protocol.nftorder.core.util.spent
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
 class ItemEventService(
-    private val conversionService: ConversionService,
     private val itemService: ItemService,
     private val ownershipService: OwnershipService,
+    private val orderService: OrderService,
     private val itemEventListeners: List<ItemEventListener>,
     private val bestOrderService: BestOrderService
 ) {
@@ -47,14 +47,16 @@ class ItemEventService(
                 val refreshedSellStats = ownershipService.getItemSellStats(itemId)
                 val currentSellStats = ItemSellStats(item.sellers, item.totalStock)
                 if (refreshedSellStats != currentSellStats) {
-                    val updatedItem =
-                        item.copy(sellers = refreshedSellStats.sellers, totalStock = refreshedSellStats.totalStock)
+                    val updatedItem = item.copy(
+                        sellers = refreshedSellStats.sellers,
+                        totalStock = refreshedSellStats.totalStock
+                    )
                     logger.info(
                         "Updating Item [{}] with new sell stats, was [{}] , now: [{}]",
                         itemId, currentSellStats, refreshedSellStats
                     )
-                    itemService.save(updatedItem)
-                    notify(ItemEventUpdate(updatedItem.extendWithMeta()))
+                    val saved = itemService.save(updatedItem)
+                    notifyUpdate(saved, null, null)
                 } else {
                     logger.debug(
                         "Sell stats of Item [{}] are the same as before Ownership event [{}], skipping update",
@@ -66,7 +68,7 @@ class ItemEventService(
     }
 
     suspend fun onItemUpdated(nftItem: NftItemDto) {
-        val received = conversionService.convert<Item>(nftItem)
+        val received = NftItemDtoConverter.convert(nftItem)
         optimisticLock {
             val existing = itemService.get(received.id)
             if (existing != null) {
@@ -80,39 +82,39 @@ class ItemEventService(
                     unlockable = existing.unlockable
                 )
                 val saved = updateItem(existing, updated)
-                notify(ItemEventUpdate(ExtendedItem(saved, nftItem.meta)))
+                notifyUpdate(saved, nftItem.meta)
             } else {
                 // Otherwise, we just proxy original event
-                notify(ItemEventUpdate(ExtendedItem(received, nftItem.meta)))
+                notifyUpdate(received, nftItem.meta)
             }
         }
     }
 
     suspend fun onItemBestSellOrderUpdated(itemId: ItemId, order: OrderDto) {
-        updateOrder(itemId) { item ->
+        updateOrder(itemId, order) { item ->
             item.copy(bestSellOrder = bestOrderService.getBestSellOrder(item, order))
         }
     }
 
     suspend fun onItemBestBidOrderUpdated(itemId: ItemId, order: OrderDto) {
-        updateOrder(itemId) { item ->
+        updateOrder(itemId, order) { item ->
             item.copy(bestBidOrder = bestOrderService.getBestBidOrder(item, order))
         }
     }
 
-    private suspend fun updateOrder(itemId: ItemId, orderUpdateAction: suspend (item: Item) -> Item) {
+    private suspend fun updateOrder(itemId: ItemId, order: OrderDto, orderUpdateAction: suspend (item: Item) -> Item) {
         optimisticLock {
             val fetchedItem = itemService.getOrFetchItemById(itemId)
             val item = fetchedItem.entity
             val updated = orderUpdateAction(item)
             if (item != updated) {
                 if (EnrichmentDataVerifier.isItemNotEmpty(updated)) {
-                    itemService.save(updated)
-                    notify(ItemEventUpdate(updated.extendWithMeta()))
-                } else if (!fetchedItem.isFetched) {
+                    val saved = itemService.save(updated)
+                    notifyUpdate(saved, fetchedItem.original?.meta, order)
+                } else if (!fetchedItem.isFetched()) {
                     itemService.delete(itemId)
                     logger.info("Deleted Item [{}] without enrichment data", itemId)
-                    notify(ItemEventUpdate(updated.extendWithMeta()))
+                    notifyUpdate(updated, null, order)
                 }
             }
         }
@@ -136,7 +138,7 @@ class ItemEventService(
 
     suspend fun onItemDeleted(itemId: ItemId) {
         val deleted = deleteItem(itemId)
-        notify(ItemEventDelete(itemId))
+        notifyDelete(itemId)
         if (deleted) {
             logger.info("Item [{}] deleted (removed from NFT-Indexer)", itemId)
         }
@@ -149,15 +151,20 @@ class ItemEventService(
 
     suspend fun onLockCreated(itemId: ItemId) {
         logger.info("Updating Item [{}] marked as Unlockable", itemId)
-        val item = itemService.getOrFetchItemById(itemId).entity.copy(unlockable = true)
-        itemService.save(item)
-        notify(ItemEventUpdate(item.extendWithMeta()))
+        val fetched = itemService.getOrFetchItemById(itemId)
+        val item = fetched.entity.copy(unlockable = true)
+        val saved = itemService.save(item)
+        notifyUpdate(saved, fetched.original?.meta, null)
     }
 
-    // NOTE! This method may be slow, we need to monitor it and maybe off load metadata fetching to dedicated workers.
-    private suspend fun Item.extendWithMeta() = ExtendedItem(this, itemService.fetchItemMetaById(id))
+    private suspend fun notifyDelete(itemId: ItemId) {
+        val event = ItemEventDelete(itemId)
+        itemEventListeners.forEach { it.onEvent(event) }
+    }
 
-    private suspend fun notify(event: ItemEvent) {
+    private suspend fun notifyUpdate(item: Item, meta: NftItemMetaDto?, order: OrderDto? = null) = coroutineScope {
+        val dto = itemService.enrichItem(item, meta, order)
+        val event = ItemEventUpdate(dto)
         itemEventListeners.forEach { it.onEvent(event) }
     }
 }

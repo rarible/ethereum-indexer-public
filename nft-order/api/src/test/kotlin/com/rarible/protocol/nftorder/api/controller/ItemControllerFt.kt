@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderItemControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.repository.ItemRepository
 import com.rarible.protocol.nftorder.core.test.data.assertItemAndDtoEquals
 import com.rarible.protocol.nftorder.core.test.data.assertItemDtoAndNftDtoEquals
@@ -57,8 +58,8 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val bestSellOrder = randomOrderDto(itemId)
         val bestBidOrder = randomOrderDto(itemId)
         val item = randomItem(itemId).copy(
-            bestSellOrder = bestSellOrder,
-            bestBidOrder = bestBidOrder,
+            bestSellOrder = ShortOrderConverter.convert(bestSellOrder),
+            bestBidOrder = ShortOrderConverter.convert(bestBidOrder),
             totalStock = randomBigInt()
         )
 
@@ -115,7 +116,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     fun `get all items`() = runBlocking {
         val existingItemId = randomItemId()
         val existingBestBid = randomOrderDto(existingItemId)
-        val existingItem = randomItem(existingItemId).copy(bestBidOrder = existingBestBid)
+        val existingItem = randomItem(existingItemId).copy(bestBidOrder = ShortOrderConverter.convert(existingBestBid))
         itemRepository.save(existingItem)
 
         val fetchedItemId = randomItemId()
@@ -174,7 +175,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId)
         val bestSell = randomOrderDto(itemId)
-        val item = randomItem(itemId).copy(bestSellOrder = bestSell)
+        val item = randomItem(itemId).copy(bestSellOrder = ShortOrderConverter.convert(bestSell))
         itemRepository.save(item)
 
         val collection = randomAddress()

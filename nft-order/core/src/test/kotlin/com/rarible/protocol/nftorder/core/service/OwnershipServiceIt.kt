@@ -1,6 +1,7 @@
 package com.rarible.protocol.nftorder.core.service
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.test.IntegrationTest
 import com.rarible.protocol.nftorder.core.test.data.*
@@ -21,9 +22,9 @@ class OwnershipServiceIt {
         val tokenId = randomEthUInt256()
         val itemId = randomItemId()
 
-        val orderDto1 = randomOrderDto(itemId).copy(makeStock = 54.toBigInteger())
-        val orderDto2 = randomOrderDto(itemId).copy(makeStock = 33.toBigInteger())
-        val orderDto3 = randomOrderDto(itemId).copy(makeStock = 13.toBigInteger())
+        val orderDto1 = ShortOrderConverter.convert(randomOrderDto(itemId).copy(makeStock = 54.toBigInteger()))
+        val orderDto2 = ShortOrderConverter.convert(randomOrderDto(itemId).copy(makeStock = 33.toBigInteger()))
+        val orderDto3 = ShortOrderConverter.convert(randomOrderDto(itemId).copy(makeStock = 13.toBigInteger()))
 
         val ownership1 = randomOwnership(itemId, randomPart()).copy(bestSellOrder = orderDto1)
         val ownership2 = randomOwnership(itemId, randomPart()).copy(bestSellOrder = orderDto2)

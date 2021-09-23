@@ -1,11 +1,11 @@
 package com.rarible.protocol.nftorder.core.repository
 
 import com.mongodb.client.result.DeleteResult
-import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.Ownership
 import com.rarible.protocol.nftorder.core.model.OwnershipId
+import com.rarible.protocol.nftorder.core.model.ShortOrder
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -53,7 +53,7 @@ class OwnershipRepository(
 
     suspend fun getItemSellStats(itemId: ItemId): ItemSellStats {
         val bestSellOrderField = Ownership::bestSellOrder.name
-        val makeStockField = OrderDto::makeStock.name
+        val makeStockField = ShortOrder::makeStock.name
         val query = Query(
             Criteria().andOperator(
                 Ownership::contract isEqualTo itemId.token,

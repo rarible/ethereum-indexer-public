@@ -1,7 +1,6 @@
 package com.rarible.protocol.nftorder.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.OrderDto
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
@@ -26,8 +25,8 @@ data class Item(
 
     val sellers: Int = 0,
     val totalStock: BigInteger,
-    val bestSellOrder: OrderDto?,
-    val bestBidOrder: OrderDto?,
+    val bestSellOrder: ShortOrder?,
+    val bestBidOrder: ShortOrder?,
     val unlockable: Boolean,
     @Version
     val version: Long? = null

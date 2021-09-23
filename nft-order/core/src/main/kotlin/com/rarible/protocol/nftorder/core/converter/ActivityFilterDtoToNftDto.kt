@@ -1,10 +1,10 @@
 package com.rarible.protocol.nftorder.core.converter
 
 import com.rarible.protocol.dto.*
-import org.springframework.core.convert.converter.Converter
 
-object ActivityFilterDtoToNftDto : Converter<ActivityFilterDto, NftActivityFilterDto> {
-    override fun convert(source: ActivityFilterDto): NftActivityFilterDto? {
+object ActivityFilterDtoToNftDto {
+
+    fun convert(source: ActivityFilterDto): NftActivityFilterDto? {
         return when (source) {
             is ActivityFilterAllDto -> {
                 val nftTypes = source.types.mapNotNull { type ->

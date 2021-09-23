@@ -1,10 +1,10 @@
 package com.rarible.protocol.nftorder.core.converter
 
 import com.rarible.protocol.dto.*
-import org.springframework.core.convert.converter.Converter
 
-object ActivityFilterDtoToOrderDtoConverter : Converter<ActivityFilterDto, OrderActivityFilterDto> {
-    override fun convert(source: ActivityFilterDto): OrderActivityFilterDto? {
+object ActivityFilterDtoToOrderDtoConverter {
+
+    fun convert(source: ActivityFilterDto): OrderActivityFilterDto? {
         return when (source) {
             is ActivityFilterAllDto -> {
                 val orderTypes = source.types.mapNotNull { type ->
