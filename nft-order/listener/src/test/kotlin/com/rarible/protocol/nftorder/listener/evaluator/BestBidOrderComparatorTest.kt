@@ -9,32 +9,32 @@ class BestBidOrderComparatorTest {
 
     @Test
     fun `updated is better - both prices specified`() {
-        val current = randomLegacyOrderDto().copy(makePriceUsd = BigDecimal.valueOf(1))
-        val updated = randomLegacyOrderDto().copy(makePriceUsd = BigDecimal.valueOf(2))
+        val current = randomLegacyOrderDto().copy(takePriceUsd = BigDecimal.valueOf(1))
+        val updated = randomLegacyOrderDto().copy(takePriceUsd = BigDecimal.valueOf(2))
         val result = BestBidOrderComparator.compare(current, updated)
         assertThat(result).isEqualTo(updated)
     }
 
     @Test
     fun `current is better - both prices specified`() {
-        val current = randomLegacyOrderDto().copy(makePriceUsd = BigDecimal.valueOf(2))
-        val updated = randomLegacyOrderDto().copy(makePriceUsd = BigDecimal.valueOf(1))
+        val current = randomLegacyOrderDto().copy(takePriceUsd = BigDecimal.valueOf(2))
+        val updated = randomLegacyOrderDto().copy(takePriceUsd = BigDecimal.valueOf(1))
         val result = BestBidOrderComparator.compare(current, updated)
         assertThat(result).isEqualTo(current)
     }
 
     @Test
     fun `updated is better - current price not specified`() {
-        val current = randomLegacyOrderDto().copy(makePriceUsd = null)
-        val updated = randomLegacyOrderDto().copy(makePriceUsd = BigDecimal.valueOf(1))
+        val current = randomLegacyOrderDto().copy(takePriceUsd = null)
+        val updated = randomLegacyOrderDto().copy(takePriceUsd = BigDecimal.valueOf(1))
         val result = BestBidOrderComparator.compare(current, updated)
         assertThat(result).isEqualTo(updated)
     }
 
     @Test
     fun `updated is better - no prices specified`() {
-        val current = randomLegacyOrderDto().copy(makePriceUsd = null)
-        val updated = randomLegacyOrderDto().copy(makePriceUsd = null)
+        val current = randomLegacyOrderDto().copy(takePriceUsd = null)
+        val updated = randomLegacyOrderDto().copy(takePriceUsd = null)
         val result = BestBidOrderComparator.compare(current, updated)
         assertThat(result).isEqualTo(updated)
     }
