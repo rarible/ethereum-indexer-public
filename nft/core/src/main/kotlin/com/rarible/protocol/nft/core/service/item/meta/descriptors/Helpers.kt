@@ -17,7 +17,7 @@ fun String.parseTokenId(): Pair<Address, BigInteger> {
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
         val current = this.path(path)
-        if (current.isTextual) {
+        if (current.isTextual || current.isNumber) {
             return current.asText()
         }
     }
