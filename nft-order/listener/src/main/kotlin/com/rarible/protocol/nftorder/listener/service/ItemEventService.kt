@@ -114,7 +114,7 @@ class ItemEventService(
                     notify(ItemEventUpdate(updated))
                 }
             } else {
-                logger.info("Item [{}] not changed after order updated, event won't be published")
+                logger.info("Item [{}] not changed after order updated, event won't be published", itemId)
             }
         }
     }
