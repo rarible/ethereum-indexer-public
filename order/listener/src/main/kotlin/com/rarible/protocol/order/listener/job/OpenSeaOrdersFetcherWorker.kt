@@ -86,7 +86,7 @@ class OpenSeaOrdersFetcherWorker(
             delay(pollingPeriod)
             if (listedBefore > now) now else listedBefore
         }
-        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter + 1))
+        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter))
     }
 
     private suspend fun save(order: Order) {
