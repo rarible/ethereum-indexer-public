@@ -15,6 +15,9 @@ data class Token(
     val symbol: String? = null,
     val status: ContractStatus = ContractStatus.CONFIRMED,
     val features: Set<TokenFeature> = emptySet(),
+
+    val lastEventId: String? = null,
+
     @Indexed(background = true)
     val standard: TokenStandard,
     @Version

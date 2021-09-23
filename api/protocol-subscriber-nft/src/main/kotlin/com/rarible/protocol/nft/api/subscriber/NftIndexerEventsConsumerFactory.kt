@@ -3,10 +3,7 @@ package com.rarible.protocol.nft.api.subscriber
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.dto.NftItemEventDto
-import com.rarible.protocol.dto.NftItemEventTopicProvider
-import com.rarible.protocol.dto.NftOwnershipEventDto
-import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.dto.*
 import java.util.*
 
 class NftIndexerEventsConsumerFactory(
@@ -14,6 +11,17 @@ class NftIndexerEventsConsumerFactory(
     private val host: String,
     private val environment: String
 ) {
+    fun createCollectionEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftCollectionEventDto> {
+        return RaribleKafkaConsumer(
+            clientId = "${createClientIdPrefix(blockchain)}.nft-indexer-collection-events-consumer",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = NftCollectionEventDto::class.java,
+            consumerGroup = consumerGroup,
+            defaultTopic = NftCollectionEventTopicProvider.getTopic(environment, blockchain.value),
+            bootstrapServers = brokerReplicaSet
+        )
+    }
+
     fun createItemEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<NftItemEventDto> {
         return RaribleKafkaConsumer(
             clientId = "${createClientIdPrefix(blockchain)}.nft-indexer-item-events-consumer",

@@ -14,8 +14,10 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.FlowPreview
@@ -64,6 +66,12 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var ethereum: MonoEthereum
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
+
+    @Autowired
+    protected lateinit var tokenReduceService: TokenReduceService
+
+    @Autowired
+    protected lateinit var tokenHistoryRepository: NftHistoryRepository
 
     private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
 

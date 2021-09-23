@@ -3,50 +3,37 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus.CONFIRMED
-import com.rarible.ethereum.listener.log.domain.LogEventStatus.PENDING
-import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.CreateCollection
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
-import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
+import scalether.util.Hash
 
 @Service
 class TokenReduceService(
     private val tokenRepository: TokenRepository,
     private val tokenHistoryRepository: NftHistoryRepository
 ) {
-    fun onTokenHistories(logs: List<LogEvent>): Mono<Void> {
-        if (logs.isNotEmpty()) {
-            logger.info("onProcessTokenHistory ${logs.size} logs")
-        }
-        return logs.toFlux()
-            .map { it.data as CreateCollection }
-            .map { it.id }
-            .distinct()
-            .concatMap { update(it) }
-            .then()
-    }
 
-    fun update(address: Address?): Flux<Token> {
-        return tokenHistoryRepository.find(address)
-            .windowUntilChanged { it.second.id }
+    suspend fun updateToken(address: Address): Token? = update(address).awaitFirstOrNull()
+
+    fun update(address: Address?): Flux<Token> =
+        tokenHistoryRepository.findAllByCollection(address)
+            .windowUntilChanged { (it.data as CollectionEvent).id }
             .concatMap { updateOneToken(it) }
-    }
 
-    private fun updateOneToken(logs: Flux<Pair<LogEvent, CreateCollection>>): Mono<Token> {
-        return logs.reduce(Token.empty()) { token, (log, data) -> reduce(token, log, data) }
+    private fun updateOneToken(logs: Flux<LogEvent>): Mono<Token> {
+        return logs.reduce(Token.empty()) { token, log -> reduce(token, log) }
             .flatMap {
                 logger.info("reduce result: $it")
-                if (it.owner != null) {
+                if (it.id != Address.ZERO()) {
                     insertOrUpdate(it)
                 } else {
                     Mono.empty()
@@ -54,29 +41,40 @@ class TokenReduceService(
             }
     }
 
-    private fun reduce(token: Token, log: LogEvent, data: CreateCollection): Token {
-        val (standard, features) = TokenStandard.CREATE_TOPIC_MAP.getValue(log.topic)
-        val status = when (log.status) {
-            PENDING -> ContractStatus.PENDING
-            CONFIRMED -> ContractStatus.CONFIRMED
-            else -> ContractStatus.ERROR
+    private fun reduce(token: Token, log: LogEvent): Token {
+        if (log.status != CONFIRMED) {
+            return token
         }
-        return token.copy(
-            id = data.id,
-            owner = data.owner,
-            name = data.name,
-            symbol = data.symbol,
-            features = features,
-            standard = standard,
-            status = if (status > token.status) status else token.status
-        )
+        return when (val data = log.data as CollectionEvent) {
+            is CreateCollection -> {
+                val (standard, features) = TokenStandard.CREATE_TOPIC_MAP[log.topic] ?: return token
+                token.copy(
+                    id = data.id,
+                    owner = data.owner,
+                    name = data.name,
+                    symbol = data.symbol,
+                    features = features,
+                    standard = standard,
+                    status = ContractStatus.CONFIRMED,
+                    lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
+                )
+            }
+            is CollectionOwnershipTransferred -> token.copy(
+                owner = data.newOwner,
+                status = ContractStatus.CONFIRMED,
+                lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
+            )
+        }
     }
+
+    private fun accumulateEventId(lastEventId: String?, eventId: String): String =
+        Hash.sha3((lastEventId ?: "") + eventId)
 
     private fun insertOrUpdate(token: Token): Mono<Token> {
         return tokenRepository.findById(token.id)
             .flatMap {
                 logger.info("found token with id ${token.id}. updating")
-                tokenRepository.save(it.copy(status = token.status))
+                tokenRepository.save(token.copy(version = it.version))
             }
             .switchIfEmpty {
                 logger.info("not found token with id ${token.id}. inserting")

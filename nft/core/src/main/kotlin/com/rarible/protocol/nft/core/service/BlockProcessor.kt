@@ -4,10 +4,11 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -16,14 +17,23 @@ import reactor.core.publisher.Mono
 @Service
 class BlockProcessor(
     private val itemReduceService: ItemReduceService,
-    private val tokenReduceService: TokenReduceService
+    private val tokenUpdateService: TokenUpdateService
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: MutableList<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
+            val monoTokensUpdate = mono {
+                val tokenIds = logs
+                    .filter { it.data is CollectionEvent }
+                    .map { (it.data as CollectionEvent).id }
+                    .distinct()
+                for (tokenId in tokenIds) {
+                    tokenUpdateService.update(tokenId)
+                }
+            }
             Mono.`when`(
                 itemReduceService.onItemHistories(logs.filter { it.data is ItemHistory }),
-                tokenReduceService.onTokenHistories(logs.filter { it.data is CreateCollection })
+                monoTokensUpdate
             ).toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Process time: ${it.t1}ms") }

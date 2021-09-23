@@ -5,10 +5,12 @@ import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
@@ -19,6 +21,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
@@ -26,6 +29,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
@@ -33,6 +38,7 @@ import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
 import scalether.transaction.*
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
 
@@ -60,6 +66,9 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var nftItemHistoryRepository: NftItemHistoryRepository
+
+    @Autowired
+    protected lateinit var nftHistoryRepository: NftHistoryRepository
 
     @Autowired
     protected lateinit var nftIndexerProperties: NftIndexerProperties
@@ -96,6 +105,25 @@ abstract class AbstractIntegrationTest {
         return receipt
     }
 
+    protected fun newSender(privateKey0: BigInteger? = null): Pair<Address, MonoSigningTransactionSender> {
+        val (privateKey, _, address) = generateNewKeys(privateKey0)
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+        return address to sender
+    }
+
+    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+        return NewKeys(privateKey, publicKey, signer)
+    }
+
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
@@ -113,6 +141,9 @@ abstract class AbstractIntegrationTest {
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     protected suspend fun checkActivityWasPublished(
         token: Address,

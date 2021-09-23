@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import java.time.Instant
 
 @Service
 class CreateERC721LogDescriptor : LogEventDescriptor<CreateCollection> {
@@ -21,6 +22,7 @@ class CreateERC721LogDescriptor : LogEventDescriptor<CreateCollection> {
         val e = CreateEvent.apply(log)
         return CreateCollection(
             id = e.log().address(),
+            date = Instant.ofEpochSecond(timestamp),
             owner = e.creator(),
             name = e.name(),
             symbol = e.symbol()

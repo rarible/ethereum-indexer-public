@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.listener.service.descriptors.crypto.punks
 
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent
 import com.rarible.protocol.contracts.test.crypto.punks.CryptoPunksMarket
@@ -16,22 +15,15 @@ import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.request.Transaction
-import scalether.transaction.MonoGasPriceProvider
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
@@ -225,24 +217,5 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         ethereum.ethGetBalance(account, "latest").awaitFirst()
 
     private fun BigInteger.ethToWei() = this.multiply(BigInteger.TEN.pow(18))
-
-    private fun newSender(privateKey0: BigInteger? = null): Pair<Address, MonoSigningTransactionSender> {
-        val (privateKey, _, address) = generateNewKeys(privateKey0)
-        val sender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
-        return address to sender
-    }
-
-    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
-        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
-        val publicKey = Sign.publicKeyFromPrivate(privateKey)
-        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
-        return NewKeys(privateKey, publicKey, signer)
-    }
 }
 
