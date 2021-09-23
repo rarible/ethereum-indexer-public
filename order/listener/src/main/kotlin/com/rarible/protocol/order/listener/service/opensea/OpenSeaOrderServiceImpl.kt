@@ -35,6 +35,7 @@ class OpenSeaOrderServiceImpl(
 
     private suspend fun getNextOrders(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> {
         val orders = mutableListOf<OpenSeaOrder>()
+        logger.info("[OpenSea] Load from $listedAfter to $listedBefore")
 
         do {
             val request = OrdersRequest(
