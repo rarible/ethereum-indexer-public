@@ -203,7 +203,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 minorLogIndex = 0
             )
         ).awaitFirst()
-        return orderReduceService.updateOrder(orderHash)
+        return orderReduceService.updateOrder(orderHash).order
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {

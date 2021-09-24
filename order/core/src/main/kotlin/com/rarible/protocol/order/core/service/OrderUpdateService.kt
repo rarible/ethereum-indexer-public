@@ -43,21 +43,21 @@ class OrderUpdateService(
      */
     suspend fun save(orderVersion: OrderVersion): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
-        val order = optimisticLock { orderReduceService.updateOrder(orderVersion.hash) }
+        val (order, eventId) = optimisticLock { orderReduceService.updateOrder(orderVersion.hash) }
 
-        orderListener.onOrder(order)
+        orderListener.onOrder(order, eventId)
         orderVersionListener.onOrderVersion(orderVersion)
         return order
     }
 
     suspend fun update(hash: Word): Order {
         val order = orderRepository.findById(hash)
-        val updatedOrder = orderReduceService.updateOrder(hash)
+        val (update, eventId) = orderReduceService.updateOrder(hash)
 
-        if (order != updatedOrder) {
-            orderListener.onOrder(updatedOrder)
+        if (order != update) {
+            orderListener.onOrder(update, eventId)
         }
-        return updatedOrder
+        return update
     }
 
     /**

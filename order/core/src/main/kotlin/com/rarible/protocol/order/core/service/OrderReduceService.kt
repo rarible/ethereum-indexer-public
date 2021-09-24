@@ -36,10 +36,12 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService
 ) {
 
-    suspend fun updateOrder(orderHash: Word): Order = update(orderHash = orderHash).awaitSingle()
+    suspend fun updateOrder(orderHash: Word): ReduceResult {
+        return update(orderHash = orderHash).awaitSingle()
+    }
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
-    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
+    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<ReduceResult> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
             compareBy<OrderUpdate, Word>(wordComparator) { it.orderHash },
@@ -52,34 +54,42 @@ class OrderReduceService(
 
     private sealed class OrderUpdate {
         abstract val orderHash: Word
+        abstract val eventId: String
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
+            override val eventId: String get() = orderVersion.id.toHexString()
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
+            override val eventId: String get() = logEvent.id.toHexString()
         }
     }
 
-    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
+    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<ReduceResult> = mono {
         var lastSeenUpdate: OrderUpdate? = null
-        val orderStub = updates.asFlow().fold(emptyOrder) { order, update ->
+
+        val result = updates.asFlow().fold(emptyResult) { result, update ->
             lastSeenUpdate = update
-            when (update) {
+            val order = result.order
+            val updatedOrder = when (update) {
                 is OrderUpdate.ByOrderVersion -> updateWith(order, update.orderVersion)
                 is OrderUpdate.ByLogEvent -> order.updateWith(
                     update.logEvent.status,
                     update.logEvent.data.toExchangeHistory()
                 )
             }
+            ReduceResult(updatedOrder, update.eventId)
         }
-        if (orderStub.hash == EMPTY_ORDER_HASH) {
+        val order = result.order
+
+        if (order.hash == EMPTY_ORDER_HASH) {
             logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced. " +
                     "Apparently there are no OrderVersions for this order, but only LogEvents.")
-            return@mono emptyOrder
+            return@mono emptyResult
         }
-        updateOrderWithState(orderStub)
+        result.withOrder(updateOrderWithState(order))
     }
 
     private suspend fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
@@ -198,6 +208,8 @@ class OrderReduceService(
             platform = Platform.RARIBLE,
             hash = EMPTY_ORDER_HASH
         )
+
+        private val emptyResult = ReduceResult(emptyOrder, eventId = "")
 
         private val wordComparator = Comparator<Word> r@{ w1, w2 ->
             val w1Bytes = w1.bytes()

@@ -38,7 +38,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val sideMatchDate2 = nowMillis() + Duration.ofHours(1)
         val cancelDate = nowMillis() + Duration.ofHours(3)
 
-        prepareStorage(
+        val events = prepareStorage(
             OrderSideMatch(
                 hash = order.hash,
                 counterHash = WordFactory.create(),
@@ -84,13 +84,27 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 source = HistorySource.RARIBLE
             )
         )
-        val updatedOrder = orderReduceService.updateOrder(order.hash)
+        val cancelLogEventId = events.last().id.toHexString()
 
-        assertThat(updatedOrder.fill).isEqualTo(EthUInt256.of(3))
-        assertThat(updatedOrder.cancelled).isEqualTo(true)
-        assertThat(updatedOrder.lastUpdateAt).isEqualTo(cancelDate)
+        val result = orderReduceService.updateOrder(order.hash)
+
+        assertThat(result.order.fill).isEqualTo(EthUInt256.of(3))
+        assertThat(result.order.cancelled).isEqualTo(true)
+        assertThat(result.order.lastUpdateAt).isEqualTo(cancelDate)
+        assertThat(result.eventId).isEqualTo(cancelLogEventId)
     }
 
+    @Test
+    fun `should use event id from orderVersion`() = runBlocking<Unit> {
+        val orderVersion = createOrderVersion()
+        val order = orderUpdateService.save(orderVersion)
+
+        val result = orderReduceService.updateOrder(order.hash)
+
+        val orderVersionEventId = orderVersion.id.toHexString()
+
+        assertThat(result.eventId).isEqualTo(orderVersionEventId)
+    }
 
     @Test
     fun `should not change order lastUpdateAt if reduce past events`() = runBlocking<Unit> {
@@ -116,8 +130,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updatedOrder?.lastUpdateAt).isEqualTo(orderCreatedAt)
     }
 
-    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
-        histories.forEachIndexed { index, history ->
+    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory): List<LogEvent> {
+        return histories.mapIndexed { index, history ->
             exchangeHistoryRepository.save(
                 LogEvent(
                     data = history,

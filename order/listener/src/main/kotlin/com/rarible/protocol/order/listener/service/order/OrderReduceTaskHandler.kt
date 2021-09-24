@@ -27,7 +27,7 @@ class OrderReduceTaskHandler(
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
         return orderReduceService.update(null, fromOrderHash = from?.let { Word.apply(it) })
-            .map { it.hash.toString() }
+            .map { it.order.hash.toString() }
             .asFlow()
     }
 
