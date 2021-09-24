@@ -31,9 +31,16 @@ class MediaMetaService(
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int
 ): CacheDescriptor<MediaMeta> {
+
     private val client = WebClient.builder()
         .clientConnector(WebClientHelper.createConnector(timeout, timeout, true))
         .build()
+
+    private val openSeaClient: WebClient by lazy {
+        WebClient.builder()
+            .clientConnector(Proxy.createConnector(timeout, timeout, proxyUrl, true))
+            .build()
+    }
 
     override val collection: String = "cache_meta"
 
@@ -137,11 +144,7 @@ class MediaMetaService(
 
     private fun client(url: String): WebClient {
         return when {
-            isOpenSea(url) -> {
-                WebClient.builder()
-                    .clientConnector(Proxy.createConnector(timeout, timeout, proxyUrl, true))
-                    .build()
-            }
+            isOpenSea(url) -> openSeaClient
             else -> client
         }
     }
