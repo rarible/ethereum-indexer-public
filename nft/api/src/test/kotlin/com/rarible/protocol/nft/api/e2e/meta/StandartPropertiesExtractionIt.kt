@@ -88,7 +88,7 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
 
-        val contract = MintableToken.deployAndWait(userSender, poller, "TEST", "TST", userSender.from(), argv.contractURI, argv.contractURI).awaitSingle()
+        val contract = MintableToken.deployAndWait(userSender, poller,  argv.name, "TST", userSender.from(), argv.contractURI, argv.contractURI).awaitSingle()
         val signature = SignUtils.sign(privateKey, tokenId, contract.address())
         tokenRepository.save(Token(contract.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
@@ -134,6 +134,7 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
         val tokenId: Long,
         val contractURI: String,
         val tokenURI: String,
+        val name: String,
         val data: NftItemMetaDto
     )
 }

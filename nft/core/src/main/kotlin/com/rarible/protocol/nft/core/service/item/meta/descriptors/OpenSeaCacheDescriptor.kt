@@ -80,7 +80,7 @@ class OpenSeaCacheDescriptor(
                 .bodyToMono<ObjectNode>()
                 .map {
                     ItemProperties(
-                        name = it.getText("name") ?: "#$tokenId",
+                        name = name(it, tokenId),
                         description = it.getText("description"),
                         image = it.getText("image_original_url") ?: it.getText("image_url"),
                         imagePreview = it.getText("image_preview_url"),
@@ -100,6 +100,12 @@ class OpenSeaCacheDescriptor(
                 }
         }
 
+    }
+
+    private fun name(node: ObjectNode, tokenId: BigInteger): String {
+        return node.getText("name")
+            ?: node.get("asset_contract")?.getText("name")?.let { "$it #$tokenId" }
+            ?: "#$tokenId"
     }
 
     companion object {

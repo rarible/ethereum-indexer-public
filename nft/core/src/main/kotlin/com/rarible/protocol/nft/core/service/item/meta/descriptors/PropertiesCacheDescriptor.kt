@@ -18,7 +18,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.item.meta.*
-import kotlinx.coroutines.reactor.mono
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
@@ -75,11 +75,24 @@ class PropertiesCacheDescriptor(
                         }
                     }
                 }
+                .flatMap { fixEmptyName(id, it) }
                 .timeout(Duration.ofMillis(requestTimeout))
                 .onErrorResume {
                     logger.warn("Unable to get properties for $id", it)
                     Mono.empty()
                 }
+        }
+    }
+
+    fun fixEmptyName(id: String, item: ItemProperties): Mono<ItemProperties> = mono {
+        when {
+            item.name.isEmpty() -> {
+                val (address, tokenId) = id.parseTokenId()
+                val collection = getCollectionName(address, tokenId).awaitFirstOrNull()
+                val name = collection?.let { "$it #$tokenId" } ?: "#$tokenId"
+                item.copy(name = name)
+            }
+            else -> item
         }
     }
 
@@ -105,7 +118,7 @@ class PropertiesCacheDescriptor(
         val image = image(node)
         val animationUrl = node.getText("animation_url") ?: image
         return ItemProperties(
-            name = node.getText("name", "label", "title") ?: DEFAULT_TITLE,
+            name = node.getText("name", "label", "title") ?: "",
             description = node.getText("description"),
             image = image,
             imagePreview = null,
@@ -160,6 +173,18 @@ class PropertiesCacheDescriptor(
             }
     }
 
+    fun getCollectionName(token: Address, tokenId: BigInteger): Mono<String> {
+        return tokenRepository.findById(token).toOptional()
+            .flatMap {
+                if (it.isPresent && it.get().standard == TokenStandard.ERC1155) {
+                    RaribleToken(token, sender).name()
+                } else {
+                    MintableToken(token, sender).name()
+                }
+            }
+
+    }
+
     private fun getErc1155TokenUri(token: Address, tokenId: BigInteger): Mono<String> {
         return RaribleToken(token, sender).uri(tokenId)
     }
@@ -187,7 +212,6 @@ class PropertiesCacheDescriptor(
     }
 
     companion object {
-        val DEFAULT_TITLE = "Untitled"
         val logger: Logger = LoggerFactory.getLogger(PropertiesCacheDescriptor::class.java)
     }
 }
