@@ -125,7 +125,6 @@ class MediaMetaService(
                 val r = readers.next()
                 r.setInput(iis, true)
                 try {
-                    println("${r.getWidth(0)}, ${r.getHeight(0)}")
                     Triple(r.getWidth(0), r.getHeight(0), r.getImageMetadata(0))
                 } finally {
                     r.dispose()
