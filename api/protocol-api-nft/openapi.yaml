@@ -473,16 +473,23 @@ paths:
       parameters:
         - name: collection
           in: path
-          description: collection address
+          description: "Address of the NFT collection"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: minter
           in: query
-          description: minter address
+          description: "Minter address"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/collections/0x60f80121c31a0d46b5279700f9df786054aa5ee5/generate_token_id?minter=0x60f80121c31a0d46b5279700f9df786054aa5ee5'
       responses:
         '200':
           description: OK
@@ -499,14 +506,21 @@ paths:
     get:
       tags:
         - nft-collection-controller
-      description: Returns Collection by address
+      description: Returns collection by address
       operationId: getNftCollectionById
       parameters:
         - name: collection
           in: path
+          description: "Address of the NFT collection"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/collections/0x60f80121c31a0d46b5279700f9df786054aa5ee5'
       responses:
         '200':
           description: OK
@@ -525,25 +539,36 @@ paths:
     get:
       tags:
         - nft-collection-controller
+      description: Returns collection by owner
       operationId: searchNftCollectionsByOwner
       parameters:
         - name: owner
           in: query
-          description: owner of searching collections
+          description: "ID of the NFT collection owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 1631782042000_0x85d39cea74b0baba54d7fd0df42dd3e6e39b1625:0x000000000000000000000000000000000000000000000000000000000000209a
         - name: size
           in: query
+          description: "The number of collections to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/collections/byOwner?owner=0x488728a8a3e51f7c34410164c4469c71fce1084a'
       responses:
         '200':
           $ref: "#/components/responses/NftCollectionsPage"
@@ -556,19 +581,29 @@ paths:
     get:
       tags:
         - nft-collection-controller
+      description: Returns all NFT collections
       operationId: searchNftAllCollections
       parameters:
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 0x9f5791277dfa7884620c688687351fc5423ec935
         - name: size
           in: query
+          description: "The number of collections to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/collections/all?size=100'
       responses:
         '200':
           $ref: "#/components/responses/NftCollectionsPage"
