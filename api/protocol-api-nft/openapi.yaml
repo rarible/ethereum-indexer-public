@@ -198,13 +198,21 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns the NFT item meta by identifier
       operationId: getNftItemMetaById
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/meta'
       responses:
         '200':
           description: OK
@@ -221,13 +229,21 @@ paths:
     delete:
       tags:
         - nft-item-controller
+      description: Deletes the NFT item meta by identifier
       operationId: resetNftItemMetaById
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request DELETE \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/resetMeta'
       responses:
         '200':
           description: OK
@@ -240,13 +256,21 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns the NFT lazy item by identifier
       operationId: getNftLazyItemById
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/lazy'
       responses:
         '200':
           description: OK
@@ -296,7 +320,7 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: Returns NFT item by identifier
+      description: Returns the NFT item by identifier
       operationId: getNftItemById
       parameters:
         - name: itemId
@@ -306,6 +330,11 @@ paths:
           schema:
             type: string
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802'
       responses:
         '200':
           description: OK
@@ -324,24 +353,36 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns the NFT item by owner
       operationId: getNftItemsByOwner
       parameters:
         - name: owner
           in: query
+          description: "ID of the NFT item owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 1631782042000_0x85d39cea74b0baba54d7fd0df42dd3e6e39b1625:0x000000000000000000000000000000000000000000000000000000000000209a
         - name: size
           in: query
+          description: "The number of items to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byOwner?owner=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -354,24 +395,36 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns the NFT item by creator
       operationId: getNftItemsByCreator
       parameters:
         - name: creator
           in: query
+          description: "ID of the NFT item creator"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 1631782042000_0x85d39cea74b0baba54d7fd0df42dd3e6e39b1625:0x000000000000000000000000000000000000000000000000000000000000209a
         - name: size
           in: query
+          description: "The number of items to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byCreator?creator=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -384,24 +437,36 @@ paths:
     get:
       tags:
         - nft-item-controller
+      description: Returns the NFT items by collection
       operationId: getNftItemsByCollection
       parameters:
         - name: collection
           in: query
+          description: "ID of the NFT collection"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
+          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
+          example: 1631782042000_0x85d39cea74b0baba54d7fd0df42dd3e6e39b1625:0x000000000000000000000000000000000000000000000000000000000000209a
         - name: size
           in: query
+          description: "The number of items to return"
           required: false
           schema:
             type: integer
             format: int32
+          example: 100
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/byCollection?collection=0x60f80121c31a0d46b5279700f9df786054aa5ee5&size=10'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
@@ -454,6 +519,11 @@ paths:
             type: integer
             format: int64
           example: 1631782725
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/all?size=100&lastUpdatedFrom=1631653245'
       responses:
         '200':
           $ref: "#/components/responses/NftItemsPage"
