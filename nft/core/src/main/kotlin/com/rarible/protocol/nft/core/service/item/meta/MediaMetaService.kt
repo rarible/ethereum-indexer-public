@@ -115,7 +115,7 @@ class MediaMetaService(
             .retrieve()
             .bodyToFlux(DataBuffer::class.java)
             .reduce { a, b -> a.factory().join(listOf(a, b)) }
-            .map { get(it.asInputStream()) }
+            .map { get(it.asInputStream(true)) }
     }
 
     private fun get(ins: InputStream): Triple<Int, Int, IIOMetadata> {
