@@ -6,7 +6,6 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
-import com.rarible.protocol.order.core.model.ActivitySort
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -126,7 +125,7 @@ class ExchangeHistoryRepository(
 
     fun getTokenPurchaseAggregation(startDate: Date, endDate: Date, source: HistorySource?): Flux<AggregatedData> {
         return getNftPurchaseAggregation(
-            "${LogEvent::data.name}.${OrderSideMatch::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}",
+            "${LogEvent::data.name}.${OrderSideMatch::make.name}.${Asset::type.name}.${NftAssetType::token.name}",
             source,
             startDate,
             endDate

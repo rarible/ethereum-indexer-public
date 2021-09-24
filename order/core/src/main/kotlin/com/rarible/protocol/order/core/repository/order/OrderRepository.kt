@@ -25,6 +25,8 @@ interface OrderRepository {
 
     suspend fun search(query: Query): List<Order>
 
+    suspend fun search(filter: OrderFilter): List<Order>
+
     suspend fun remove(hash: Word): Boolean
 
     fun findActive(): Flow<Order>
@@ -38,5 +40,7 @@ interface OrderRepository {
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order>
 
     suspend fun createIndexes()
+
+    suspend fun dropIndexes()
 }
 

@@ -50,6 +50,17 @@ class AdminController(
     }
 
     @GetMapping(
+        value = ["/admin/nft/collections/tasks/reduceItems"],
+        produces = ["application/json"]
+    )
+    suspend fun createReduceTokenItemsTask(
+        @RequestParam(value = "collection", required = true) collection: Address
+    ): ResponseEntity<AdminTaskDto> {
+        val task = reindexTokenService.createReduceTokenItemsTask(collection)
+        return ResponseEntity.ok().body(convert(task))
+    }
+
+    @GetMapping(
         value = ["/admin/nft/collections/tasks"],
         produces = ["application/json"]
     )

@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.BlockchainDto
@@ -48,6 +49,16 @@ class PriceUpdateService(
             }
             else -> null
         }
+    }
+
+    suspend fun withUpdatedUsdPrices(orderVersion: OrderVersion): OrderVersion {
+        val usdValue = getAssetsUsdValue(orderVersion.make, orderVersion.take, nowMillis()) ?: return orderVersion
+        return orderVersion.copy(
+            makeUsd = usdValue.makeUsd,
+            takeUsd = usdValue.takeUsd,
+            makePriceUsd = usdValue.makePriceUsd,
+            takePriceUsd = usdValue.takePriceUsd
+        )
     }
 
     /**

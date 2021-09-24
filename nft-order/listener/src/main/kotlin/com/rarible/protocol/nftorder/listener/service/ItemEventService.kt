@@ -116,6 +116,8 @@ class ItemEventService(
                     logger.info("Deleted Item [{}] without enrichment data", itemId)
                     notifyUpdate(updated, null, order)
                 }
+            } else {
+                logger.info("Item [{}] not changed after order updated, event won't be published", itemId)
             }
         }
     }

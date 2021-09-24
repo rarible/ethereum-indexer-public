@@ -1,9 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.google.common.net.InternetDomainName
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
-import com.rarible.core.common.blockingToMono
 import com.rarible.core.logging.LoggingUtils
+import com.rarible.protocol.nft.core.misc.Proxy
 import com.rarible.protocol.nft.core.model.MediaMeta
 import com.sun.imageio.plugins.bmp.BMPMetadata
 import com.sun.imageio.plugins.gif.GIFImageMetadata
@@ -13,26 +14,33 @@ import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.io.IOException
 import java.io.InputStream
-import java.net.HttpURLConnection
 import java.net.URI
 import java.net.URL
-import java.util.concurrent.Callable
 import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
 class MediaMetaService(
+    @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int
 ): CacheDescriptor<MediaMeta> {
+
     private val client = WebClient.builder()
         .clientConnector(WebClientHelper.createConnector(timeout, timeout, true))
         .build()
+
+    private val openSeaClient: WebClient by lazy {
+        WebClient.builder()
+            .clientConnector(Proxy.createConnector(timeout, timeout, proxyUrl, true))
+            .build()
+    }
 
     override val collection: String = "cache_meta"
 
@@ -67,6 +75,7 @@ class MediaMetaService(
                                 is JPEGMetadata -> MediaMeta("image/jpeg", width, height).toMono()
                                 is BMPMetadata -> MediaMeta("image/bmp", width, height).toMono()
                                 is PNGMetadata -> MediaMeta("image/png", width, height).toMono()
+                                is PNGMetadata -> MediaMeta("image/svg+xml", width, height).toMono()
                                 else -> Mono.error<MediaMeta>(IOException("Unknown metadata: " + metadata.javaClass.name))
                             }
                         }
@@ -95,7 +104,7 @@ class MediaMetaService(
     }
 
     private fun getMimeType(url: String): Mono<String> {
-        return client.head()
+        return client(url).head()
             .uri(URI(url))
             .exchange()
             .flatMap {
@@ -109,13 +118,11 @@ class MediaMetaService(
     }
 
     private fun getMetadata(url: String): Mono<Triple<Int, Int, IIOMetadata>> {
-        return Callable {
-            val conn = URL(url).openConnection() as HttpURLConnection
-            conn.readTimeout = timeout
-            conn.connectTimeout = timeout
-            conn.setRequestProperty("user-agent", "curl/7.73.0")
-            conn.inputStream.use { get(it) }
-        }.blockingToMono()
+        return client(url).get().uri(url)
+            .retrieve()
+            .bodyToFlux(DataBuffer::class.java)
+            .reduce { a, b -> a.factory().join(listOf(a, b)) }
+            .map { get(it.asInputStream(true)) }
     }
 
     private fun get(ins: InputStream): Triple<Int, Int, IIOMetadata> {
@@ -135,7 +142,20 @@ class MediaMetaService(
         }
     }
 
+    private fun client(url: String): WebClient {
+        return when {
+            isOpenSea(url) -> openSeaClient
+            else -> client
+        }
+    }
+
+    private fun isOpenSea(url: String): Boolean {
+        val domain = InternetDomainName.from(URL(url).host).topPrivateDomain().toString()
+        return domain.startsWith(OPENSEA_DOMAIN)
+    }
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(MediaMetaService::class.java)
+        const val OPENSEA_DOMAIN = "opensea.io"
     }
 }

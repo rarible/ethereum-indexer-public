@@ -8,12 +8,15 @@ import com.rarible.protocol.nftorder.core.converter.OwnershipEventToDtoConverter
 import com.rarible.protocol.nftorder.core.event.OwnershipEvent
 import com.rarible.protocol.nftorder.core.event.OwnershipEventListener
 import com.rarible.protocol.nftorder.core.model.OwnershipId
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class KafkaNftOrderOwnershipEventListener(
     private val eventsProducer: RaribleKafkaProducer<NftOrderOwnershipEventDto>
 ) : OwnershipEventListener {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val eventsHeaders = mapOf(
         "protocol.nft-order.event.version" to NftOrderOwnershipEventTopicProvider.VERSION
@@ -32,5 +35,6 @@ class KafkaNftOrderOwnershipEventListener(
             headers = eventsHeaders
         )
         eventsProducer.send(message).ensureSuccess()
+        logger.info("Item Event sent: {}", dto)
     }
 }

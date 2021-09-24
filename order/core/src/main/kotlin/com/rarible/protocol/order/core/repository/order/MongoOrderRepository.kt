@@ -21,7 +21,7 @@ class MongoOrderRepository(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun dropIndexes() {
+    override suspend fun dropIndexes() {
         dropIndexes(
             "make.type.nft_1_lastUpdateAt_1__id_1",
             "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1"
@@ -55,6 +55,21 @@ class MongoOrderRepository(
             .awaitFirst()
     }
 
+    override suspend fun search(filter: OrderFilter): List<Order> {
+        val limit = filter.limit
+        val hint = filter.hint
+        val sort = filter.dataSort
+        val criteria = filter.getCriteria()
+
+        val query = Query(criteria)
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        query.with(sort).limit(limit)
+        return template.find<Order>(query).collectList().awaitFirst()
+    }
+
     override suspend fun remove(hash: Word): Boolean {
         val criteria = Criteria.where("_id").isEqualTo(hash)
         return template.remove(Query(criteria), Order::class.java).awaitFirst().deletedCount > 0
@@ -77,8 +92,8 @@ class MongoOrderRepository(
 
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {
         val criteria =
-            (Order::make / Asset::type / Erc721AssetType::token isEqualTo token)
-                .and(Order::make / Asset::type / Erc721AssetType::tokenId).isEqualTo(tokenId)
+            (Order::make / Asset::type / NftAssetType::token isEqualTo token)
+                .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
                 .and(Order::maker).isEqualTo(maker)
                 .and(Order::cancelled).isEqualTo(false)
 

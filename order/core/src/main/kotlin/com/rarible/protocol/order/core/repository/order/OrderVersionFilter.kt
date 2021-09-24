@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
 import org.bson.Document
 import org.springframework.data.domain.Sort
@@ -20,10 +20,10 @@ abstract class OrderVersionFilter {
         val makeNftKey = OrderVersion::make / Asset::type / AssetType::nft
         val takeNftKey = OrderVersion::take / Asset::type / AssetType::nft
 
-        val takeNftContractKey = OrderVersion::take / Asset::type / Erc721AssetType::token
-        val takeNftTokenIdKey = OrderVersion::take / Asset::type / Erc721AssetType::tokenId
+        val takeNftContractKey = OrderVersion::take / Asset::type / NftAssetType::token
+        val takeNftTokenIdKey = OrderVersion::take / Asset::type / NftAssetType::tokenId
 
-        val makeNftContractKey = OrderVersion::make / Asset::type / Erc721AssetType::token
-        val makeNftTokenIdKey = OrderVersion::make / Asset::type / Erc721AssetType::tokenId
+        val makeNftContractKey = OrderVersion::make / Asset::type / NftAssetType::token
+        val makeNftTokenIdKey = OrderVersion::make / Asset::type / NftAssetType::tokenId
     }
 }
