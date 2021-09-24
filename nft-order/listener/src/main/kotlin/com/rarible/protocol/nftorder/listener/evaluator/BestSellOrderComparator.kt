@@ -7,17 +7,17 @@ object BestSellOrderComparator : BestOrderComparator {
     override val name: String = "BestSellOrder"
 
     override fun compare(current: OrderDto, updated: OrderDto): OrderDto {
-        val currentTakePrice = current.takePriceUsd
-        val updatedTakePrice = updated.takePriceUsd
+        val currentMakePrice = current.makePriceUsd
+        val updatedMakePrice = updated.makePriceUsd
 
-        val isCurrentTakePriceGreater = when {
-            currentTakePrice == null -> true
-            updatedTakePrice != null -> currentTakePrice >= updatedTakePrice
+        val isCurrentMakePriceGreater = when {
+            currentMakePrice == null -> true
+            updatedMakePrice != null -> currentMakePrice >= updatedMakePrice
             else -> false
         }
 
         // We have new price, which is lower, then current - updated order is better, using it
-        return if (isCurrentTakePriceGreater) updated else current
+        return if (isCurrentMakePriceGreater) updated else current
     }
 
 }

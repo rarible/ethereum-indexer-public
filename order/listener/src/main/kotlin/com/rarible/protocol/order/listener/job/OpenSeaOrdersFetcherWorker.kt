@@ -53,7 +53,7 @@ class OpenSeaOrdersFetcherWorker(
         val openSeaOrders =
             openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
 
-        val nextListedAfter = if (openSeaOrders.isNotEmpty()) {
+        if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }
             val minId = ids.min() ?: error("Can't be empty value")
             val maxId = ids.max() ?: error("Can't be empty value")
@@ -76,13 +76,12 @@ class OpenSeaOrdersFetcherWorker(
                     }.awaitAll()
             }
             logger.info("[OpenSea] All new OpenSea orders saved")
-            maxCreatedAt.epochSecond
         } else {
             logger.info("[OpenSea] No new orders to fetch")
             delay(pollingPeriod)
-            if (listedBefore > now) now else listedBefore
         }
-        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter + 1))
+        val nextListedAfter = if (listedBefore > now) now else listedBefore
+        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter))
     }
 
     private suspend fun saveOrder(orderVersion: OrderVersion) {
