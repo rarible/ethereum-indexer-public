@@ -97,7 +97,7 @@ class MediaMetaService(
     }
 
     private fun getMimeType(url: String): Mono<String> {
-        return client.head()
+        return client(url).head()
             .uri(URI(url))
             .exchange()
             .flatMap {
@@ -143,7 +143,7 @@ class MediaMetaService(
                     .clientConnector(Proxy.createConnector(timeout, timeout, proxyUrl, true))
                     .build()
             }
-            else -> WebClient.builder().build()
+            else -> client
         }
     }
 
