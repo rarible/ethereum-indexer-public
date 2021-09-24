@@ -406,12 +406,12 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: Returns the NFT item by collection
+      description: Returns the NFT items by collection
       operationId: getNftItemsByCollection
       parameters:
         - name: collection
           in: query
-          description: "ID of the NFT item collection"
+          description: "ID of the NFT collection"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
