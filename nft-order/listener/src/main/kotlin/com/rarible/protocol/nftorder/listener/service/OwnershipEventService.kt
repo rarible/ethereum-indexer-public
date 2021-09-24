@@ -55,13 +55,13 @@ class OwnershipEventService(
             if (updated.bestSellOrder != ownership.bestSellOrder) {
                 val saved = ownershipService.save(updated)
                 notifyUpdate(saved, order)
-                itemEventService.onOwnershipUpdated(ownershipId)
+                itemEventService.onOwnershipUpdated(ownershipId, order)
             }
         } else if (!fetchedItem.isFetched()) {
             logger.info("Deleting Ownership [{}] without related bestSellOrder", ownershipId)
             ownershipService.delete(ownershipId)
             notifyUpdate(updated, order)
-            itemEventService.onOwnershipUpdated(ownershipId)
+            itemEventService.onOwnershipUpdated(ownershipId, order)
         }
     }
 
@@ -72,7 +72,7 @@ class OwnershipEventService(
         notifyDelete(ownershipId)
         if (deleted) {
             logger.info("Ownership [{}] deleted (removed from NFT-Indexer), refreshing sell stats", ownershipId)
-            itemEventService.onOwnershipUpdated(ownershipId)
+            itemEventService.onOwnershipUpdated(ownershipId, null)
         }
     }
 

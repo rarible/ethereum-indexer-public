@@ -33,8 +33,10 @@ class ItemEventService(
 
     private val logger = LoggerFactory.getLogger(ItemEventService::class.java)
 
-    // If ownership was updated, we need to recalculate totalStock/sellers for related item
-    suspend fun onOwnershipUpdated(ownershipId: OwnershipId) {
+    // If ownership was updated, we need to recalculate totalStock/sellers for related item,
+    // also, we can specify here Order which triggered this update - ItemService
+    // can use this full Order to avoid unnecessary getOrderById calls
+    suspend fun onOwnershipUpdated(ownershipId: OwnershipId, order: OrderDto?) {
         val itemId = ItemId(ownershipId.token, ownershipId.tokenId)
         optimisticLock {
             val item = itemService.get(itemId)
@@ -56,7 +58,7 @@ class ItemEventService(
                         itemId, currentSellStats, refreshedSellStats
                     )
                     val saved = itemService.save(updatedItem)
-                    notifyUpdate(saved, null, null)
+                    notifyUpdate(saved, null, order)
                 } else {
                     logger.debug(
                         "Sell stats of Item [{}] are the same as before Ownership event [{}], skipping update",
@@ -164,6 +166,8 @@ class ItemEventService(
         itemEventListeners.forEach { it.onEvent(event) }
     }
 
+    // Potentially we could have updated Order here (no matter - bid/sell) and when we need to fetch
+    // full version of the order, we can use this already fetched Order if it has same ID (hash)
     private suspend fun notifyUpdate(item: Item, meta: NftItemMetaDto?, order: OrderDto? = null) = coroutineScope {
         val dto = itemService.enrichItem(item, meta, order)
         val event = ItemEventUpdate(dto)

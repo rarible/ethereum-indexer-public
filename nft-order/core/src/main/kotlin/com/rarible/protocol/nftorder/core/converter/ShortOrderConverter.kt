@@ -11,11 +11,8 @@ object ShortOrderConverter {
             hash = order.hash,
             platform = evalPlatform(order).name,
             makeStock = order.makeStock,
-            fill = order.fill,
-            takeValue = order.take.value,
             makePriceUsd = order.makePriceUsd,
-            takePriceUsd = order.takePriceUsd,
-            cancelled = order.cancelled
+            takePriceUsd = order.takePriceUsd
         )
     }
 

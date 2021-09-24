@@ -1,9 +1,10 @@
-package com.rarible.protocol.nftorder.core.repository
+package com.rarible.protocol.nftorder.listener.core.repository
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nftorder.core.model.Ownership
-import com.rarible.protocol.nftorder.core.test.IntegrationTest
-import com.rarible.protocol.nftorder.core.test.data.randomOwnership
+import com.rarible.protocol.nftorder.core.repository.OwnershipRepository
+import com.rarible.protocol.nftorder.listener.test.IntegrationTest
+import com.rarible.protocol.nftorder.listener.test.data.randomOwnership
 import kotlinx.coroutines.runBlocking
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals

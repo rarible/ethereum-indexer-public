@@ -36,6 +36,9 @@ class OrderService(
     }
 
     suspend fun getByIds(ids: List<Word>): List<OrderDto> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
         val result = orderControllerApi.getOrdersByIds(OrderIdsDto(ids)).collectList().awaitFirst()
         val notFound = result.map { it.hash }.subtract(ids)
         if (notFound.isNotEmpty()) {

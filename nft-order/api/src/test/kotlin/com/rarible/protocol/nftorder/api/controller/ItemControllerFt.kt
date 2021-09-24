@@ -35,19 +35,15 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     fun `get item by id - not synced`() = runBlocking {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId, randomPartDto())
-        val nftItemMeta = randomNftItemMetaDto()
 
+        // If item not found in local DB, it means it has no enrichment data - passing it "as is" to the result
         nftItemControllerApiMock.mockGetNftItemById(itemId, nftItem)
-        lockControllerApiMock.mockIsUnlockable(itemId, false)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId)
-        nftItemControllerApiMock.mockGetNftItemMetaById(itemId, nftItemMeta)
 
         val result = nftOrderItemControllerApi
             .getNftOrderItemById(itemId.decimalStringValue)
             .awaitFirst()
 
-        assertThat(result.meta).isEqualTo(nftItemMeta)
+        assertThat(nftItem.meta).isEqualTo(result.meta)
         assertItemDtoAndNftDtoEquals(result, nftItem)
     }
 
@@ -64,7 +60,9 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         )
 
         itemRepository.save(item)
+        // If we have some enrichment data for item, we should request meta and full orders for this item
         nftItemControllerApiMock.mockGetNftItemMetaById(itemId, nftItemMeta)
+        orderControllerApiMock.mockGetById(bestBidOrder, bestSellOrder)
 
         val result = nftOrderItemControllerApi
             .getNftOrderItemById(item.id.decimalStringValue)
@@ -113,7 +111,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     }
 
     @Test
-    fun `get all items`() = runBlocking {
+    fun `get all items - partially synced`() = runBlocking {
         val existingItemId = randomItemId()
         val existingBestBid = randomOrderDto(existingItemId)
         val existingItem = randomItem(existingItemId).copy(bestBidOrder = ShortOrderConverter.convert(existingBestBid))
@@ -129,7 +127,8 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val from = randomLong()
         val to = randomLong()
 
-        // If we have stored item, we should not enrich it despite of it was fetched from API
+        // We are fetching list of items and noe of them we have in DB with enrichment data - we need to
+        // request full best orders for it, but meta we can take from original NFT Item
         nftItemControllerApiMock.mockGetNftAllItems(
             continuation,
             size,
@@ -139,19 +138,19 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
             fetchedExistingItem,
             fetchedItem
         )
+        orderControllerApiMock.mockGetByIds(existingBestBid)
 
         val result = nftOrderItemControllerApi.getNftOrderAllItems(
             continuation, size, showDeleted, from, to
         ).awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(2)
-        assertThat(result.data[0].meta).isEqualTo(fetchedExistingItem.meta)
-        assertThat(result.data[1].meta).isEqualTo(fetchedItem.meta)
-
         assertItemAndDtoEquals(existingItem, result.data[0])
+        assertThat(result.data[0].meta).isEqualTo(fetchedExistingItem.meta)
         assertThat(existingBestBid).isEqualTo(result.data[0].bestBidOrder)
         assertThat(result.data[0].unlockable).isEqualTo(false)
 
+        assertThat(result.data[1].meta).isEqualTo(fetchedItem.meta)
         assertItemDtoAndNftDtoEquals(result.data[1], fetchedItem)
     }
 
@@ -171,23 +170,29 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     }
 
     @Test
-    fun `get items by collection`() = runBlocking<Unit> {
+    fun `get items by collection - all synced`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId)
-        val bestSell = randomOrderDto(itemId)
-        val item = randomItem(itemId).copy(bestSellOrder = ShortOrderConverter.convert(bestSell))
+        val bestBidOrder = randomOrderDto(itemId)
+        val bestSellOrder = randomOrderDto(itemId)
+        val item = randomItem(itemId).copy(
+            bestBidOrder = ShortOrderConverter.convert(bestBidOrder),
+            bestSellOrder = ShortOrderConverter.convert(bestSellOrder)
+        )
         itemRepository.save(item)
 
         val collection = randomAddress()
 
         // Items requested, but enrichment data should be taken from existing Item
         nftItemControllerApiMock.mockGetNftOrderItemsByCollection(collection.hex(), nftItem)
+        orderControllerApiMock.mockGetByIds(bestBidOrder, bestSellOrder)
+
         val result = nftOrderItemControllerApi.getNftOrderItemsByCollection(collection.hex(), null, null)
             .awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(1)
         assertItemAndDtoEquals(item, result.data[0])
-        assertThat(bestSell).isEqualTo(result.data[0].bestSellOrder)
+        assertThat(bestSellOrder).isEqualTo(result.data[0].bestSellOrder)
     }
 
     @Test

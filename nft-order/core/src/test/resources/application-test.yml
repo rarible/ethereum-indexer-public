@@ -1,5 +1,0 @@
-application:
-  environment: test
-
-common:
-  blockchain: ETHEREUM

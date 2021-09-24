@@ -8,9 +8,6 @@ data class ShortOrder(
     val hash: Word,
     val platform: String,
     val makeStock: BigInteger,
-    val fill: BigInteger,
-    val takeValue: BigInteger,
     val makePriceUsd: BigDecimal?,
-    val takePriceUsd: BigDecimal?,
-    val cancelled: Boolean
+    val takePriceUsd: BigDecimal?
 )

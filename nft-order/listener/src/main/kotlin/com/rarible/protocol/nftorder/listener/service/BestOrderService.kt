@@ -13,6 +13,8 @@ class BestOrderService(
     private val orderService: OrderService
 ) {
 
+    // TODO we can return here Full Order if it was fetched - thats allow us to avoid one more query to indexer
+    // for update events in ownership/item
     suspend fun getBestSellOrder(ownership: Ownership, order: OrderDto): ShortOrder? {
         val bestOrderEvaluator = BestOrderEvaluator(
             comparator = BestSellOrderComparator,

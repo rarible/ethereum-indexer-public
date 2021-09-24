@@ -59,14 +59,14 @@ class ItemService(
                 .awaitFirstOrNull()!!
 
             logger.info("Fetched Item by Id [{}] ({}ms)", itemId, spent(now))
-            // We can use meta already fetched from indexer to avoid unnecessary calls retrieve it again later
+            // We can use meta already fetched from indexer to avoid unnecessary getMeta calls later
             val fetchedItem = NftItemDtoConverter.convert(nftItemDto)
             Fetched(fetchedItem, nftItemDto)
         }
     }
 
-    // Here we potentially may have meta already fetched (from event or from just fetched NftItem),
-    // also, one of orders may be available here too - we can pass it here from order update
+    // Here we could specify Order already fetched (or received via event) to avoid unnecessary getById call
+    // if one of Item's short orders has same hash
     suspend fun enrichItem(item: Item, meta: NftItemMetaDto?, order: OrderDto? = null) = coroutineScope {
         val fetchedMeta = async { meta ?: fetchItemMetaById(item.id) }
         val bestSellOrder = async { orderService.fetchOrderIfDiffers(item.bestSellOrder, order) }

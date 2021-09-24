@@ -126,7 +126,7 @@ class ItemApiService(
                     NftItemDtoToNftOrderItemDtoConverter.convert(it)
                 } else {
                     // Enriched item found, using it for response
-                    ItemToDtoConverter.convert(existingItem, it.meta, orders)
+                    ItemToDtoConverter.convert(existingItem, it.meta!!, orders)
                 }
             }
 
