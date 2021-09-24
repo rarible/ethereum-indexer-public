@@ -7,15 +7,14 @@ import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.currency.dto.CurrencyRateDto
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
+import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -26,11 +25,8 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import reactor.core.publisher.Mono
-import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Duration
-import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
 
@@ -120,10 +116,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
             bootstrapServers = orderIndexerProperties.kafkaReplicaSet
         )
         val nftOrder = save(nftOrderVersion)
-        setCurrencyControllerApiMockForOrder(nftOrder, kind)
-
         val nftOrders = nftOrderVersions.map { save(it) }
-        nftOrders.forEach { setCurrencyControllerApiMockForOrder(it, kind) }
 
         val event = OrderUpdateEventDto(
             eventId = UUID.randomUUID().toString(),
@@ -188,18 +181,5 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                 assertThat(orderVersion.makePriceUsd).isNull()
             }
         }
-    }
-
-    private fun setCurrencyControllerApiMockForOrder(order: Order, kind: OrderKind) {
-        when (kind) {
-            OrderKind.SELL -> setCurrencyControllerApiMock(order.take.type.token)
-            OrderKind.BID -> setCurrencyControllerApiMock(order.make.type.token)
-        }
-    }
-
-    private fun setCurrencyControllerApiMock(address: Address) {
-        coEvery {
-            currencyControllerApi.getCurrencyRate(any(), eq(address.hex()), any())
-        } returns Mono.just(CurrencyRateDto("test", "usd", 1.5.toBigDecimal(), Instant.now()))
     }
 }

@@ -489,7 +489,7 @@ val AssetType.tokenId: EthUInt256?
             is Erc1155AssetType -> tokenId
             is Erc1155LazyAssetType -> tokenId
             is Erc721LazyAssetType -> tokenId
-            is CryptoPunksAssetType -> EthUInt256.of(punkId)
+            is CryptoPunksAssetType -> tokenId
             is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType -> null
         }
     }

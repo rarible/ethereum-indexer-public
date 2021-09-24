@@ -1,7 +1,10 @@
 package com.rarible.protocol.nftorder.listener.handler
 
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftBidOrdersPriceUpdateEventDto
+import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
+import com.rarible.protocol.dto.NftSellOrdersPriceUpdateEventDto
+import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
@@ -38,20 +41,31 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         nftItemControllerApiMock.mockGetNftItemById(takeItemId, nftTakeItemDto)
         nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftOwnership)
 
-        val updatedOrder1 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(10), makePriceUsd = null)
-        val updatedOrder2 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null, cancelled = true) //Dead order
-        val updatedOrder3 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(11), makePriceUsd = null)
-        val updatedOrder4 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null, makeStock = BigInteger.ZERO) // Dead order
-        val updatedOrder5 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(2), makePriceUsd = null)
-        val updatedOrder6 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(1), makePriceUsd = null)
-        val updatedOrder7 = randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
-            .copy(takePriceUsd = BigDecimal.valueOf(32), makePriceUsd = null)
+        val updatedOrder1 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(10), takePriceUsd = null)
+        val updatedOrder2 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null, cancelled = true) //Dead order
+        val updatedOrder3 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(11), takePriceUsd = null)
+        val updatedOrder4 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(
+                    makePriceUsd = BigDecimal.valueOf(1),
+                    takePriceUsd = null,
+                    makeStock = BigInteger.ZERO
+                ) // Dead order
+        val updatedOrder5 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(2), takePriceUsd = null)
+        val updatedOrder6 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(1), takePriceUsd = null)
+        val updatedOrder7 =
+            randomLegacyOrderDto(randomAssetErc721(makeItemId), ownershipId.owner, randomAssetErc1155(takeItemId))
+                .copy(makePriceUsd = BigDecimal.valueOf(32), takePriceUsd = null)
 
         orderPriceChangeEventHandler.handle(
             createNftSellOrdersPriceUpdateEventDto(
