@@ -2,6 +2,8 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
+import com.rarible.protocol.nft.api.exceptions.IllegalArgumentException
+import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -58,6 +60,20 @@ class ReindexTokenService(
         return saveTask(task)
     }
 
+    suspend fun createReduceTokenItemsTask(tokens: Address): Task {
+        val params = ReduceTokenItemsTaskParams(tokens)
+        checkOtherReduceTokenItemsTasks(params)
+
+        val task = Task(
+            type = ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
+            param = params.toParamString(),
+            state = null,
+            running = false,
+            lastStatus = TaskStatus.NONE
+        )
+        return saveTask(task)
+    }
+
     private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
         taskRepository.findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN).collect { task ->
             if (task.lastStatus != TaskStatus.COMPLETED) {
@@ -68,6 +84,18 @@ class ReindexTokenService(
 
                 if (existedReindexTokens.isNotEmpty()) {
                     throw IllegalArgumentException("Tokens $existedReindexTokens already reindexing in other task ${task.id}")
+                }
+            }
+        }
+    }
+
+    private suspend fun checkOtherReduceTokenItemsTasks(params: ReduceTokenItemsTaskParams) {
+        taskRepository.findByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS).collect { task ->
+            if (task.lastStatus != TaskStatus.COMPLETED) {
+                val existedReduceToken = ReduceTokenItemsTaskParams.fromParamString(task.param).token
+
+                if (existedReduceToken == params.token) {
+                    throw IllegalArgumentException("Token $existedReduceToken already reducing in other task ${task.id}")
                 }
             }
         }

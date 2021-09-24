@@ -55,7 +55,7 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
         // TODO: invent a better way of cleaning up the Kafka queue [RPN-1019].
         // Note! Here we should trim the time to seconds precious because the activities events will be created
         // with time taken from blockchain (it is in seconds).
-        Thread.sleep(1001) // We must ensure that the previous test was not run at the same second
+        Thread.sleep(2001)
         lastKafkaInstant = Instant.now().with(ChronoField.NANO_OF_SECOND, 0)
     }
 
@@ -71,10 +71,10 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
                 return@r order.make.value
             }
             val assetType = order.make.type as? CryptoPunksAssetType ?: return@r EthUInt256.ONE
-            if (assetType.marketAddress != cryptoPunksMarket.address()) {
+            if (assetType.token != cryptoPunksMarket.address()) {
                 return@r EthUInt256.ONE
             }
-            val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.punkId.toBigInteger()).awaitSingle()
+            val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.tokenId.value).awaitSingle()
             if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO
         }
     }

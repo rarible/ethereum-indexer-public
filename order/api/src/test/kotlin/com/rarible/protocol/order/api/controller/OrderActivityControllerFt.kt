@@ -36,26 +36,6 @@ import java.util.stream.Stream
 
 @IntegrationTest
 class OrderActivityControllerFt : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var orderVersionRepository: OrderVersionRepository
-
-    @BeforeEach
-    override fun setupDatabase() = runBlocking {
-        super.setupDatabase()
-        val orderRepository = MongoOrderRepository(mongo)
-        orderRepository.createIndexes()
-        orderRepository.dropIndexes()
-        orderVersionRepository.createIndexes()
-        orderVersionRepository.dropIndexes()
-        exchangeHistoryRepository.createIndexes()
-        exchangeHistoryRepository.dropIndexes()
-    }
-
-    @Test
-    fun empty() {
-
-    }
-
     internal companion object {
         private val now = nowMillis()
 

@@ -62,11 +62,11 @@ object OrderFilterCriteria {
         sell().and(Order::maker.name).isEqualTo(maker)
 
     private fun sellByCollection(collection: Address) =
-        sell().and("${Order::make.name}.${Asset::type.name}.${Erc721AssetType::token.name}").isEqualTo(collection)
+        sell().and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
 
     private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-        val c = (Order::make / Asset::type / Erc721AssetType::token isEqualTo token)
-            .and(Order::make / Asset::type / Erc721AssetType::tokenId).isEqualTo(tokenId)
+        val c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
+            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
 
         if (maker != null) {
             c.and(Order::maker.name).`is`(maker)
@@ -80,8 +80,8 @@ object OrderFilterCriteria {
 
     private fun bidByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
         val criteria = Criteria
-            .where("${Order::take.name}.${Asset::type.name}.${Erc721AssetType::token.name}").isEqualTo(token)
-            .and("${Order::take.name}.${Asset::type.name}.${Erc721AssetType::tokenId.name}").isEqualTo(tokenId)
+            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
 
         if (maker != null) {
             criteria.and(Order::maker.name).isEqualTo(maker)

@@ -16,6 +16,7 @@ class OrderListenerProperties(
     val loadOpenSeaOrders: Boolean = true,
     val loadOpenSeaOrderVersion: Boolean = false,
     val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),
+    val loadOpenSeaDelay: Duration = Duration.ofSeconds(5),
     val saveOpenSeaOrdersBatchSize: Int = 200,
     val openSeaOrderSide: OrderSide? = null
 ) {

@@ -20,8 +20,8 @@ import java.time.OffsetDateTime
 
 @RestController
 class OrderBidController(
-    private val orderVersionService: OrderBidsService,
-    private val bidDtoController: BidDtoConverter
+    private val orderBidsService: OrderBidsService,
+    private val bidDtoConverter: BidDtoConverter
 ) : OrderBidControllerApi {
 
     override suspend fun getBidsByItem(
@@ -49,11 +49,11 @@ class OrderBidController(
             priceContinuation
         )
         val statuses = status.map { OrderBidStatusConverter.convert(it) }
-        val orderVersions = orderVersionService.findOrderBids(filter, statuses)
+        val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
         val result = OrderBidsPaginationDto(
-            orderVersions.map { bidDtoController.convert(it) },
+            orderVersions.map { bidDtoConverter.convert(it) },
             nextContinuation
         )
         return ResponseEntity.ok(result)

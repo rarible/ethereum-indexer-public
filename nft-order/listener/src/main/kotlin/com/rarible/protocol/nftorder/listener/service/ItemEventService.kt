@@ -107,13 +107,15 @@ class ItemEventService(
             val updated = orderUpdateAction(item)
             if (item != updated) {
                 if (EnrichmentDataVerifier.isItemNotEmpty(updated)) {
-                    itemService.save(updated)
-                    notify(ItemEventUpdate(updated.extendWithMeta()))
+                    val saved = updateItem(item, updated)
+                    notify(ItemEventUpdate(saved.extendWithMeta()))
                 } else if (!fetchedItem.isFetched) {
                     itemService.delete(itemId)
                     logger.info("Deleted Item [{}] without enrichment data", itemId)
                     notify(ItemEventUpdate(updated.extendWithMeta()))
                 }
+            } else {
+                logger.info("Item [{}] not changed after order updated, event won't be published", itemId)
             }
         }
     }

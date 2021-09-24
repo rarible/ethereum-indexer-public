@@ -238,12 +238,12 @@ class PrepareTxService(
         val encoded = if (order.make.type is CryptoPunksAssetType) {
             check(order.take.type is EthAssetType)
             // order = sell order, form = buy order.
-            CryptoPunksMarket.buyPunkSignature().encode(order.make.type.punkId.toBigInteger())
+            CryptoPunksMarket.buyPunkSignature().encode(order.make.type.tokenId.value)
         } else {
             // order = bid order, form = accept bid (sell) order.
             check(order.make.type is EthAssetType)
             check(order.take.type is CryptoPunksAssetType)
-            CryptoPunksMarket.acceptBidForPunkSignature().encode(Tuple2(order.take.type.punkId.toBigInteger(), order.make.value.value))
+            CryptoPunksMarket.acceptBidForPunkSignature().encode(Tuple2(order.take.type.tokenId.value, order.make.value.value))
         }
         // Hack: add platform ID to the encoded transaction input data.
         val withPlatform = encoded.add(Platform.CRYPTO_PUNKS.id)
@@ -307,12 +307,12 @@ class PrepareTxService(
         val encoded = if (order.make.type is CryptoPunksAssetType) {
             check(order.take.type is EthAssetType)
             // order = sell order
-            CryptoPunksMarket.punkNoLongerForSaleSignature().encode(order.make.type.punkId.toBigInteger())
+            CryptoPunksMarket.punkNoLongerForSaleSignature().encode(order.make.type.tokenId.value)
         } else {
             // order = bid order
             check(order.make.type is EthAssetType)
             check(order.take.type is CryptoPunksAssetType)
-            CryptoPunksMarket.withdrawBidForPunkSignature().encode(order.take.type.punkId.toBigInteger())
+            CryptoPunksMarket.withdrawBidForPunkSignature().encode(order.take.type.tokenId.value)
         }
         return PreparedTx(exchangeContractAddresses.cryptoPunks, encoded)
     }

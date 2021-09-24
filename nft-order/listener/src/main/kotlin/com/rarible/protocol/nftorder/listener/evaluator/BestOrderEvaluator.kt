@@ -81,8 +81,8 @@ class BestOrderEvaluator(
         }
 
         logger.info(
-            "Evaluated {} for {} [{}] (current = [{}], updated = [{}])",
-            name, type, id, current.hash, updated.hash
+            "Evaluated {} for {} [{}] (current = [{}], updated = [{}], best = [{}])",
+            name, type, id, current.hash, updated.hash, bestOrder.hash
         )
         return bestOrder
     }

@@ -39,14 +39,17 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedCurrencyApi(): CurrencyControllerApi {
-        return mockk {
-            coEvery { getCurrencyRate(any(), any(), any()) } returns Mono.empty<CurrencyRateDto>()
-        }
+    fun mockedCurrencyApi() = object : CurrencyControllerApi() {
+        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?) =
+            CurrencyRateDto(
+                "test",
+                "usd",
+                ETH_CURRENCY_RATE,
+                Instant.ofEpochMilli(at!!)
+            ).toMono()
     }
 
-    @Bean
-    @Primary
-    fun mockAssetMakeBalanceProvider(): AssetMakeBalanceProvider = mockk {
+    companion object {
+        val ETH_CURRENCY_RATE = 3000.toBigDecimal() // 3000$
     }
 }

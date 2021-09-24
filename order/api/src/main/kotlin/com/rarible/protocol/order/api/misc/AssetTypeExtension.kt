@@ -14,7 +14,7 @@ fun AssetType.nftId(): String {
     return when (val asset = this) {
         is Erc721AssetType -> createItemId(asset.token, asset.tokenId)
         is Erc1155AssetType -> createItemId(asset.token, asset.tokenId)
-        is CryptoPunksAssetType -> createItemId(asset.marketAddress, EthUInt256.of(asset.punkId))
+        is CryptoPunksAssetType -> createItemId(asset.token, asset.tokenId)
         else -> throw IllegalArgumentException("Target asset $asset is not NFT")
     }
 }

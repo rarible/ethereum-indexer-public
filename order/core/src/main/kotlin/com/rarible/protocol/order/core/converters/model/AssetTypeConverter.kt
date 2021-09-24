@@ -40,8 +40,8 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
                 signatures = source.signatures
             )
             is CryptoPunksAssetTypeDto -> CryptoPunksAssetType(
-                marketAddress = source.contract,
-                punkId = source.punkId
+                token = source.contract,
+                tokenId = EthUInt256.of(source.punkId)
             )
         }
     }

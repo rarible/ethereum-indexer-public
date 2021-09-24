@@ -654,6 +654,36 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/all/byStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrdersAllByStatus
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/OrderSort"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
   "/v0.1/bids/byItem":
     get:
       tags:

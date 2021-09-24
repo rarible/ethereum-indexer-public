@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
@@ -33,8 +34,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
+
+        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
         val expectedListOrder = Order(
@@ -55,10 +58,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             createdAt = listOrderTimestamp,
             lastUpdateAt = listOrderTimestamp,
             pending = emptyList(),
-            makePriceUsd = null,
+            makePriceUsd = punkPriceUsd,
             takePriceUsd = null,
             makeUsd = null,
-            takeUsd = null,
+            takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS
         )
@@ -74,7 +77,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     this.make.value == expectedListOrder.make.value.value &&
                     this.take.assetType is EthAssetTypeDto &&
                     this.take.value == expectedListOrder.take.value.value &&
-                    price == punkPrice.toBigDecimal(18)
+                    price == punkPrice.toBigDecimal(18) &&
+                    this.priceUsd == punkPriceUsd
         }
 
         val (buyerAddress, buyerSender) = newSender()
@@ -124,8 +128,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             signature = null,
             pending = emptyList(),
             makePriceUsd = null,
-            takePriceUsd = null,
-            makeUsd = null,
+            takePriceUsd = punkPriceUsd,
+            makeUsd = punkPriceUsd,
             takeUsd = null,
             priceHistory = createPriceHistory(buyTimestamp, take, make)
         )
@@ -236,7 +240,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
 
         val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
-        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val punkPriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
         val expectedBidOrder = Order(
             maker = bidderAddress,
             taker = null,
@@ -256,8 +263,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastUpdateAt = bidTimestamp,
             pending = emptyList(),
             makePriceUsd = null,
-            takePriceUsd = null,
-            makeUsd = null,
+            takePriceUsd = punkPriceUsd,
+            makeUsd = punkPriceUsd,
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
             platform = Platform.CRYPTO_PUNKS
@@ -272,6 +279,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     && this.make.value == bidPrice
                     && this.take.assetType is CryptoPunksAssetTypeDto
                     && this.source == OrderActivityDto.Source.CRYPTO_PUNKS
+                    && this.price == bidPrice.toBigDecimal(18)
+                    && this.priceUsd == punkPriceUsd
         }
 
         val preparedAcceptBidTx = prepareTxService.prepareTransaction(
@@ -317,10 +326,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             end = null,
             signature = null,
             pending = emptyList(),
-            makePriceUsd = null,
+            makePriceUsd = punkPriceUsd,
             takePriceUsd = null,
             makeUsd = null,
-            takeUsd = null,
+            takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(acceptBidTimestamp, bidTake, bidMake)
         )
         Wait.waitAssert {
@@ -430,8 +439,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val listOrderTimestamp = cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, punkPrice, grantedAddress)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
-        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
+
+        val punkPriceUsd = punkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
 
         val listOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
         val expectedListOrder = Order(
@@ -452,10 +463,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             createdAt = listOrderTimestamp,
             lastUpdateAt = listOrderTimestamp,
             pending = emptyList(),
-            makePriceUsd = null,
+            makePriceUsd = punkPriceUsd,
             takePriceUsd = null,
             makeUsd = null,
-            takeUsd = null,
+            takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS
         )
@@ -576,7 +587,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertEquals(ownerAddress, sellOrder.maker)
                 assertEquals(
                     Asset(
-                        CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()),
+                        CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)),
                         EthUInt256.ONE
                     ), sellOrder.make
                 )

@@ -12,7 +12,7 @@ fun OrderVersion.withMakeToken(token: Address): OrderVersion {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(make = make.copy(type = makeType.copy(token = token)))
         is Erc1155AssetType -> copy(make = make.copy(type = makeType.copy(token = token)))
-        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(marketAddress = token)))
+        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(token = token)))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -21,7 +21,7 @@ fun OrderVersion.withTakeToken(token: Address): OrderVersion {
     return when (val takeType = take.type) {
         is Erc721AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
         is Erc1155AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
-        is CryptoPunksAssetType -> copy(take = take.copy(type = takeType.copy(marketAddress = token)))
+        is CryptoPunksAssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
         else -> throw IllegalArgumentException("Unsupported take assert type ${takeType.javaClass}")
     }
 }
@@ -30,7 +30,7 @@ fun OrderVersion.withMakeTokenId(tokenId: EthUInt256): OrderVersion {
     return when (val makeType = make.type) {
         is Erc721AssetType -> copy(make = make.copy(type = makeType.copy(tokenId = tokenId)))
         is Erc1155AssetType -> copy(make = make.copy(type = makeType.copy(tokenId = tokenId)))
-        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(punkId = tokenId.value.toInt())))
+        is CryptoPunksAssetType -> copy(make = make.copy(type = makeType.copy(tokenId = tokenId)))
         else -> throw IllegalArgumentException("Unsupported make assert type ${makeType.javaClass}")
     }
 }
@@ -64,7 +64,7 @@ fun OrderVersion.withTakeTokenId(tokenId: EthUInt256): OrderVersion {
     return when (val takeType = take.type) {
         is Erc721AssetType -> copy(take = take.copy(type = takeType.copy(tokenId = tokenId)))
         is Erc1155AssetType -> copy(take = take.copy(type = takeType.copy(tokenId = tokenId)))
-        is CryptoPunksAssetType -> copy(take = take.copy(type = takeType.copy(punkId = tokenId.value.toInt())))
+        is CryptoPunksAssetType -> copy(take = take.copy(type = takeType.copy(tokenId = tokenId)))
         else -> throw IllegalArgumentException("Unsupported take assert type ${takeType.javaClass}")
     }
 }

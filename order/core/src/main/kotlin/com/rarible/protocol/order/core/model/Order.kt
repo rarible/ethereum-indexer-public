@@ -99,6 +99,7 @@ data class Order(
                 makeBalance = makeBalance,
                 protocolCommission = protocolCommission,
                 cancelled = zeroWhenCancelled && cancelled,
+                orderType = type,
                 feeSide = getFeeSide(make.type, take.type)
             )
         )
@@ -150,6 +151,7 @@ data class Order(
             data: OrderData,
             makeBalance: EthUInt256,
             protocolCommission: EthUInt256,
+            orderType: OrderType,
             feeSide: FeeSide,
             cancelled: Boolean
         ): EthUInt256 {
@@ -164,7 +166,10 @@ data class Order(
                 takeValue = takeValue,
                 makeBalance = (makeBalance * EthUInt256.of(10000)) / (fee + EthUInt256.of(10000))
             )
-            return minOf(make, roundedMakeBalance)
+            return when(orderType) {
+                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> minOf(make, roundedMakeBalance)
+                OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
+            }
         }
 
         private fun calculateRemaining(
@@ -472,7 +477,8 @@ val AssetType.token: Address
             is Erc20AssetType -> token
             is Erc721LazyAssetType -> token
             is GenerativeArtAssetType, is EthAssetType -> Address.ZERO()
-            is CryptoPunksAssetType -> marketAddress
+            is CryptoPunksAssetType -> token
+            is EthAssetType -> Address.ZERO()
         }
     }
 

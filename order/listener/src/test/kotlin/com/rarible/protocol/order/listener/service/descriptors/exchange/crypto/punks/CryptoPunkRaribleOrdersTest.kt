@@ -97,7 +97,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             .execute().verifySuccess()
 
         // Insert the Rarible sell order.
-        val sellMake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val sellMake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
         val sellTake = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val sellOrderVersion = OrderVersion(
@@ -238,7 +238,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         wethContract.approve(erc20TransferProxy.address(), bidPrice).withSender(bidderSender).execute().verifySuccess()
 
         val bidMake = Asset(Erc20AssetType(wethContract.address()), EthUInt256(bidPrice))
-        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), punkIndex.toInt()), EthUInt256.ONE)
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
 
         // Insert the Rarible bid order.
         val bidOrderVersion = OrderVersion(
