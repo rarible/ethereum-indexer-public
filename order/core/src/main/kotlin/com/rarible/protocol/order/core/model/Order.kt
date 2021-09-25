@@ -60,7 +60,14 @@ data class Order(
     val lastEventId: String? = null,
 
     @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value)
+    val hash: Word = hashKey(maker, make.type, take.type, salt.value),
+
+    /**
+     * TODO: we need this field only temporarily, until the "OrderReduceService" refactoring commit is released and is proven to be stable.
+     *  This is needed to not corrupt production database completely if we need to revert the above commit.
+     *  That commit removes the field, and the old production release will not be able to start.
+     */
+    val version: Long? = 1
 ) {
     fun forV1Tx() = run {
         assert(type == OrderType.RARIBLE_V1)
