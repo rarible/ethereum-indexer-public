@@ -31,6 +31,17 @@ class ChangeLog00003ItemIndexes {
         )
     }
 
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByCollection", order = "1", author = "aatapin")
+    fun createIndexByItem(template: MongockTemplate) {
+        template.indexOps(ItemRepository.COLLECTION).ensureIndex(
+            Index()
+                .on(Item.Fields.TOKEN, Sort.Direction.ASC)
+                .on(Item.Fields.TOKEN_ID, Sort.Direction.ASC)
+                .on(Item.Fields.DATE, Sort.Direction.ASC)
+                .on(Item.Fields.ID, Sort.Direction.ASC)
+        )
+    }
+
     @ChangeSet(id = "ChangeLog00003ItemIdexes.deleteIndexByCreator", order = "1", author = "protocol")
     fun removeIndexByCreator(template: MongockTemplate) {
         /*

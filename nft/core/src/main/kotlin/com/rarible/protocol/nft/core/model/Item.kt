@@ -63,6 +63,7 @@ data class Item(
     object Fields {
         const val ID = "_id"
         val TOKEN = Item::token.name
+        val TOKEN_ID = Item::tokenId.name
         val CREATORS_RECIPIENT = "${Item::creators.name}.recipient"
         val OWNERS = Item::owners.name
         val DATE = Item::date.name

@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository.item
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +13,7 @@ import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
@@ -34,10 +36,28 @@ class ItemRepository(
             .awaitFirst()
     }
 
-    fun findFromByToken(from: Address): Flow<Item> {
+    fun findFromByToken(from: Address?): Flow<Item> {
         val criteria = Criteria().run { Item::token gt from }
+
         val queue = Query().addCriteria(criteria)
         queue.with(Sort.by(Sort.Direction.ASC, Item::token.name))
+        return mongo.query<Item>().matching(queue).all().asFlow()
+    }
+
+    fun findTokenItems(token: Address, from: EthUInt256?): Flow<Item> {
+        val criteria = when {
+            from != null ->
+                Criteria().andOperator(
+                    Item::token isEqualTo token,
+                    Item::tokenId gt from
+                )
+            else ->
+                Item::token isEqualTo token
+        }
+        val queue = Query().addCriteria(criteria)
+        queue.with(
+            Sort.by(Sort.Direction.ASC, Item::token.name, Item::tokenId.name)
+        )
         return mongo.query<Item>().matching(queue).all().asFlow()
     }
 

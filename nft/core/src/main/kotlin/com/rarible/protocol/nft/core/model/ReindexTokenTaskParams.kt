@@ -11,6 +11,7 @@ data class ReindexTokenTaskParams(
     }
 
     companion object {
+        val SUPPORTED_REINDEX_TOKEN_STANDARD: Set<TokenStandard> = setOf(TokenStandard.ERC721, TokenStandard.ERC1155)
         const val ADMIN_REINDEX_TOKEN = "ADMIN_REINDEX_TOKEN"
 
         fun fromParamString(param: String): ReindexTokenTaskParams {

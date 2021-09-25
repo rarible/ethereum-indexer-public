@@ -3,10 +3,8 @@ package com.rarible.protocol.nft.api.service.admin
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.api.exceptions.IllegalArgumentException
-import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -49,29 +47,19 @@ class ReindexTokenService(
         }
         val params = ReindexTokenTaskParams(standards.first(), tokens)
         checkOtherReindexTokenTasks(params)
-
-        val task = Task(
-            type = ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN,
-            param = params.toParamString(),
-            state = fromBlock,
-            running = false,
-            lastStatus = TaskStatus.NONE
-        )
-        return saveTask(task)
+        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
     }
 
     suspend fun createReduceTokenItemsTask(tokens: Address): Task {
         val params = ReduceTokenItemsTaskParams(tokens)
-        checkOtherReduceTokenItemsTasks(params)
+        checkOtherTasks(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+        return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+    }
 
-        val task = Task(
-            type = ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
-            param = params.toParamString(),
-            state = null,
-            running = false,
-            lastStatus = TaskStatus.NONE
-        )
-        return saveTask(task)
+    suspend fun createReindexRoyaltiesTask(tokens: Address): Task {
+        val params = ReindexTokenRoyaltiesTaskParam(tokens)
+        checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
+        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
     }
 
     private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
@@ -89,16 +77,28 @@ class ReindexTokenService(
         }
     }
 
-    private suspend fun checkOtherReduceTokenItemsTasks(params: ReduceTokenItemsTaskParams) {
-        taskRepository.findByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS).collect { task ->
+    private suspend fun checkOtherTasks(params: TokenTaskParam, type: String) {
+        taskRepository.findByType(type).collect { task ->
             if (task.lastStatus != TaskStatus.COMPLETED) {
-                val existedReduceToken = ReduceTokenItemsTaskParams.fromParamString(task.param).token
+                val existedToken = ReduceTokenItemsTaskParams.fromParamString(task.param).token
 
-                if (existedReduceToken == params.token) {
-                    throw IllegalArgumentException("Token $existedReduceToken already reducing in other task ${task.id}")
+                if (existedToken == params.token) {
+                    throw IllegalArgumentException("Token $existedToken already in other task ${task.id}, type $task")
                 }
             }
         }
+    }
+
+    private suspend fun saveTask(params: String, type: String): Task {
+        return saveTask(
+            Task(
+                type = type,
+                param = params,
+                state = null,
+                running = false,
+                lastStatus = TaskStatus.NONE
+            )
+        )
     }
 
     private suspend fun saveTask(task: Task): Task {
@@ -116,10 +116,6 @@ class ReindexTokenService(
 
     private fun formatToString(tokenStandardMap: List<Pair<Address, TokenStandard>>): String {
         return tokenStandardMap.joinToString(",") { "${it.second}:${it.first}" }
-    }
-
-    private companion object {
-        val SUPPORTED_REINDEX_TOKEN_STANDARD: Set<TokenStandard> = setOf(TokenStandard.ERC721, TokenStandard.ERC1155)
     }
 }
 
