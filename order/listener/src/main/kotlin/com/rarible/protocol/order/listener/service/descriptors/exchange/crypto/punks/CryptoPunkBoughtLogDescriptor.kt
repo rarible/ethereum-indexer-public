@@ -6,7 +6,6 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Binary
@@ -28,8 +27,7 @@ class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum,
-    private val traceProvider: TransactionTraceProvider,
-    private val priceUpdateService: PriceUpdateService
+    private val traceProvider: TransactionTraceProvider
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
@@ -67,60 +65,7 @@ class CryptoPunkBoughtLogDescriptor(
         )
         val make = Asset(cryptoPunksAssetType, EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
-        val newOrder = if (calledFunctionSignature == CryptoPunksMarket.buyPunkSignature().name()) {
-            // 'buyPunk' function was called
-            // => there was a SELL order already available on-chain
-            // => we need to add only the BUY order
-            OnChainOrder(
-                OrderVersion(
-                    hash = buyOrderHash,
-                    maker = buyerAddress,
-                    taker = sellerAddress,
-                    make = take,
-                    take = make,
-                    type = OrderType.CRYPTO_PUNKS,
-                    data = OrderCryptoPunksData,
-                    platform = Platform.CRYPTO_PUNKS,
-                    salt = CRYPTO_PUNKS_SALT,
-                    start = null,
-                    end = null,
-                    signature = null,
-                    createdAt = date,
-                    makePriceUsd = null,
-                    takePriceUsd = null,
-                    makeUsd = null,
-                    takeUsd = null
-                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
-            )
-        } else {
-            check(calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name())
-            // 'acceptBidForPunk' function was called
-            // => there was a BUY (BID) order already available on-chain
-            // => we need to add only the SELL order
-            OnChainOrder(
-                OrderVersion(
-                    hash = sellOrderHash,
-                    maker = sellerAddress,
-                    taker = buyerAddress,
-                    make = make,
-                    take = take,
-                    type = OrderType.CRYPTO_PUNKS,
-                    data = OrderCryptoPunksData,
-                    platform = Platform.CRYPTO_PUNKS,
-                    salt = CRYPTO_PUNKS_SALT,
-                    start = null,
-                    end = null,
-                    signature = null,
-                    createdAt = date,
-                    makePriceUsd = null,
-                    takePriceUsd = null,
-                    makeUsd = null,
-                    takeUsd = null
-                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
-            )
-        }
         return listOf(
-            newOrder,
             OrderSideMatch(
                 hash = sellOrderHash,
                 counterHash = buyOrderHash,
