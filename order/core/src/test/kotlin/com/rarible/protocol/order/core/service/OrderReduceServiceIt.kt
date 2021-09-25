@@ -5,29 +5,28 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.data.createOrderCancel
+import com.rarible.protocol.order.core.data.createOrderSideMatch
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Duration
 
 @IntegrationTest
-@Import(OrderReduceServiceIt.TestOrderRepository::class)
 class OrderReduceServiceIt : AbstractIntegrationTest() {
+    @Autowired
+    protected lateinit var orderVersionRepository: OrderVersionRepository
 
     @Test
     fun `should calculate order for existed order`() = runBlocking<Unit> {
@@ -38,7 +37,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val sideMatchDate2 = nowMillis() + Duration.ofHours(1)
         val cancelDate = nowMillis() + Duration.ofHours(3)
 
-        val events = prepareStorage(
+        prepareStorage(
             OrderSideMatch(
                 hash = order.hash,
                 counterHash = WordFactory.create(),
@@ -84,26 +83,11 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 source = HistorySource.RARIBLE
             )
         )
-        val cancelLogEventId = events.last().id.toHexString()
-
         val result = orderReduceService.updateOrder(order.hash)
 
-        assertThat(result.order.fill).isEqualTo(EthUInt256.of(3))
-        assertThat(result.order.cancelled).isEqualTo(true)
-        assertThat(result.order.lastUpdateAt).isEqualTo(cancelDate)
-        assertThat(result.eventId).isEqualTo(cancelLogEventId)
-    }
-
-    @Test
-    fun `should use event id from orderVersion`() = runBlocking<Unit> {
-        val orderVersion = createOrderVersion()
-        val order = orderUpdateService.save(orderVersion)
-
-        val result = orderReduceService.updateOrder(order.hash)
-
-        val orderVersionEventId = orderVersion.id.toHexString()
-
-        assertThat(result.eventId).isEqualTo(orderVersionEventId)
+        assertThat(result.fill).isEqualTo(EthUInt256.of(3))
+        assertThat(result.cancelled).isEqualTo(true)
+        assertThat(result.lastUpdateAt).isEqualTo(cancelDate)
     }
 
     @Test
@@ -130,8 +114,70 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updatedOrder?.lastUpdateAt).isEqualTo(orderCreatedAt)
     }
 
-    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory): List<LogEvent> {
-        return histories.mapIndexed { index, history ->
+    @Test
+    fun `should not change lastEventId with only orderVersions`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+
+        prepareStorage(
+            createOrderVersion().copy(hash = hash),
+            createOrderVersion().copy(hash = hash),
+            createOrderVersion().copy(hash = hash)
+        )
+
+        val order = orderReduceService.updateOrder(hash)
+        assertThat(order.lastEventId).isNotNull()
+
+        val recalculatedOrder = orderReduceService.updateOrder(hash)
+        assertThat(recalculatedOrder.lastEventId).isEqualTo(order.lastEventId)
+    }
+
+
+    @Test
+    fun `should not change lastEventId with orderVersions and logEvents`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+
+        prepareStorage(
+            createOrderVersion().copy(hash = hash),
+            createOrderVersion().copy(hash = hash),
+            createOrderVersion().copy(hash = hash)
+        )
+        prepareStorage(
+            createOrderSideMatch().copy(hash = hash),
+            createOrderCancel().copy(hash = hash)
+        )
+
+        val order = orderReduceService.updateOrder(hash)
+        assertThat(order.lastEventId).isNotNull()
+
+        val recalculatedOrder = orderReduceService.updateOrder(hash)
+        assertThat(recalculatedOrder.lastEventId).isEqualTo(order.lastEventId)
+    }
+
+    @Test
+    fun `should change lastEventId if a new event come`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+
+        prepareStorage(
+            createOrderVersion().copy(hash = hash)
+        )
+        prepareStorage(
+            createOrderSideMatch().copy(hash = hash)
+        )
+
+        val order = orderReduceService.updateOrder(hash)
+        assertThat(order.lastEventId).isNotNull()
+
+        prepareStorage(
+            createOrderCancel().copy(hash = hash)
+        )
+
+        val updatedOrder = orderReduceService.updateOrder(hash)
+        assertThat(updatedOrder.lastEventId).isNotNull()
+        assertThat(updatedOrder.lastEventId).isNotEqualTo(order.lastEventId)
+    }
+
+    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
+        histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(
                 LogEvent(
                     data = history,
@@ -148,12 +194,9 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         }
     }
 
-    @TestConfiguration
-    class TestOrderRepository {
-        @Bean
-        @Primary
-        fun mongoOrderRepository(template: ReactiveMongoTemplate): MongoOrderRepository {
-            return MongoOrderRepository(template)
+    private suspend fun prepareStorage(vararg orderVersions: OrderVersion) {
+        orderVersions.forEach {
+            orderVersionRepository.save(it).awaitFirst()
         }
     }
 }

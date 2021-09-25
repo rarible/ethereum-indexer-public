@@ -13,6 +13,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -60,9 +61,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             makeUsd = null,
             takeUsd = null,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
-            platform = Platform.CRYPTO_PUNKS
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = listOrder.lastEventId
         )
-        assertEquals(expectedListOrder, listOrder)
+        assertThat(listOrder).isEqualTo(expectedListOrder)
 
         checkActivityWasPublished {
             this is OrderActivityListDto &&
@@ -98,43 +100,46 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             )
         ).verifySuccess().getTimestamp()
 
-        val expectedSellOrder = expectedListOrder.copy(
-            fill = take.value,
-            makeStock = EthUInt256.ZERO,
-            lastUpdateAt = buyTimestamp,
-            taker = null
-        )
-        val expectedBuyOrder = Order(
-            maker = buyerAddress,
-            taker = sellerAddress,
-            make = take,
-            take = make,
-            type = OrderType.CRYPTO_PUNKS,
-            cancelled = false,
-            data = OrderCryptoPunksData,
-            createdAt = buyTimestamp,
-            lastUpdateAt = buyTimestamp,
-            platform = Platform.CRYPTO_PUNKS,
-            fill = EthUInt256.ONE, // Filled!
-
-            makeStock = EthUInt256.ZERO,
-            salt = CRYPTO_PUNKS_SALT,
-            start = null,
-            end = null,
-            signature = null,
-            pending = emptyList(),
-            makePriceUsd = null,
-            takePriceUsd = null,
-            makeUsd = null,
-            takeUsd = null,
-            priceHistory = createPriceHistory(buyTimestamp, take, make)
-        )
         Wait.waitAssert {
             val orders = orderRepository.findAll().toList().sortedBy { it.createdAt }
             assertEquals(2, orders.size)
             val (sellOrder, buyOrder) = orders
-            assertEquals(expectedSellOrder, sellOrder)
-            assertEquals(expectedBuyOrder, buyOrder)
+
+            val expectedSellOrder = expectedListOrder.copy(
+                fill = take.value,
+                makeStock = EthUInt256.ZERO,
+                lastUpdateAt = buyTimestamp,
+                taker = null,
+                lastEventId = sellOrder.lastEventId
+            )
+            val expectedBuyOrder = Order(
+                maker = buyerAddress,
+                taker = sellerAddress,
+                make = take,
+                take = make,
+                type = OrderType.CRYPTO_PUNKS,
+                cancelled = false,
+                data = OrderCryptoPunksData,
+                createdAt = buyTimestamp,
+                lastUpdateAt = buyTimestamp,
+                platform = Platform.CRYPTO_PUNKS,
+                fill = EthUInt256.ONE, // Filled!
+
+                makeStock = EthUInt256.ZERO,
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                signature = null,
+                pending = emptyList(),
+                makePriceUsd = null,
+                takePriceUsd = null,
+                makeUsd = null,
+                takeUsd = null,
+                priceHistory = createPriceHistory(buyTimestamp, take, make),
+                lastEventId = buyOrder.lastEventId
+            )
+            assertThat(sellOrder).isEqualTo(expectedSellOrder)
+            assertThat(buyOrder).isEqualTo(expectedBuyOrder)
         }
 
         cryptoPunksMarket.withdraw().withSender(sellerSender).execute().verifySuccess()
@@ -144,9 +149,9 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
-            Assertions.assertThat(items).hasSize(3)
-            Assertions.assertThat(items.filter { it.data is OnChainOrder }).hasSize(1)
-            Assertions.assertThat(items.filter { it.data is OrderSideMatch }).hasSize(2)
+            assertThat(items).hasSize(3)
+            assertThat(items.filter { it.data is OnChainOrder }).hasSize(1)
+            assertThat(items.filter { it.data is OrderSideMatch }).hasSize(2)
 
             val sides = items.filter { it.data is OrderSideMatch }
                 .map { it.data as OrderSideMatch }.associateBy { it.side }
@@ -260,9 +265,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             makeUsd = null,
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
-            platform = Platform.CRYPTO_PUNKS
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = bidOrder.lastEventId
         )
-        assertEquals(expectedBidOrder, bidOrder)
+        assertThat(bidOrder).isEqualTo(expectedBidOrder)
 
         checkActivityWasPublished {
             this is OrderActivityBidDto
@@ -292,43 +298,46 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             )
         ).verifySuccess().getTimestamp()
 
-        val expectedBuyOrder = expectedBidOrder.copy(
-            fill = bidTake.value,
-            makeStock = EthUInt256.ZERO,
-            lastUpdateAt = acceptBidTimestamp,
-            taker = null
-        )
-        val expectedSellOrder = Order(
-            maker = ownerAddress,
-            taker = bidderAddress,
-            make = bidTake,
-            take = bidMake,
-            type = OrderType.CRYPTO_PUNKS,
-            cancelled = false,
-            data = OrderCryptoPunksData,
-            createdAt = acceptBidTimestamp,
-            lastUpdateAt = acceptBidTimestamp,
-            platform = Platform.CRYPTO_PUNKS,
-            fill = bidMake.value,
-
-            makeStock = EthUInt256.ZERO,
-            salt = CRYPTO_PUNKS_SALT,
-            start = null,
-            end = null,
-            signature = null,
-            pending = emptyList(),
-            makePriceUsd = null,
-            takePriceUsd = null,
-            makeUsd = null,
-            takeUsd = null,
-            priceHistory = createPriceHistory(acceptBidTimestamp, bidTake, bidMake)
-        )
         Wait.waitAssert {
             val orders = orderRepository.findAll().toList().sortedBy { it.createdAt }
             assertEquals(2, orders.size)
             val (buyOrder, sellOrder) = orders
-            assertEquals(expectedBuyOrder, buyOrder)
-            assertEquals(expectedSellOrder, sellOrder)
+
+            val expectedBuyOrder = expectedBidOrder.copy(
+                fill = bidTake.value,
+                makeStock = EthUInt256.ZERO,
+                lastUpdateAt = acceptBidTimestamp,
+                taker = null,
+                lastEventId = buyOrder.lastEventId
+            )
+            val expectedSellOrder = Order(
+                maker = ownerAddress,
+                taker = bidderAddress,
+                make = bidTake,
+                take = bidMake,
+                type = OrderType.CRYPTO_PUNKS,
+                cancelled = false,
+                data = OrderCryptoPunksData,
+                createdAt = acceptBidTimestamp,
+                lastUpdateAt = acceptBidTimestamp,
+                platform = Platform.CRYPTO_PUNKS,
+                fill = bidMake.value,
+
+                makeStock = EthUInt256.ZERO,
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                signature = null,
+                pending = emptyList(),
+                makePriceUsd = null,
+                takePriceUsd = null,
+                makeUsd = null,
+                takeUsd = null,
+                priceHistory = createPriceHistory(acceptBidTimestamp, bidTake, bidMake),
+                lastEventId = sellOrder.lastEventId
+            )
+            assertThat(buyOrder).isEqualTo(expectedBuyOrder)
+            assertThat(sellOrder).isEqualTo(expectedSellOrder)
         }
 
         cryptoPunksMarket.withdraw().withSender(ownerSender).execute().verifySuccess()
@@ -457,9 +466,10 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             makeUsd = null,
             takeUsd = null,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
-            platform = Platform.CRYPTO_PUNKS
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = listOrder.lastEventId
         )
-        assertEquals(expectedListOrder, listOrder)
+        assertThat(listOrder).isEqualTo(expectedListOrder)
 
         // We can check here that 'OrderActivityListDto' with a specific granted address has been published,
         // but currently, such activities are ignored because frontend does not support "for-specific-address" sale orders.

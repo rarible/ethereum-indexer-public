@@ -93,7 +93,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
     fun `should update only the active order and its version`() = runBlocking {
         coEvery { priceNormalizer.normalize(any()) } returns BigDecimal.ZERO to BigDecimal.ZERO
         coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
-        coEvery { orderListener.onOrder(any(), any()) } returns Unit
+        coEvery { orderListener.onOrder(any()) } returns Unit
         coEvery { nftOrdersPriceUpdateListener.onNftOrders(any(), any(), any()) } returns Unit
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
         coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
