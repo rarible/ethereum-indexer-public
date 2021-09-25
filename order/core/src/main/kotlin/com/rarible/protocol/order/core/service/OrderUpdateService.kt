@@ -52,12 +52,12 @@ class OrderUpdateService(
 
     suspend fun update(hash: Word): Order {
         val order = orderRepository.findById(hash)
-        val updatedOrder = orderReduceService.updateOrder(hash)
+        val update = orderReduceService.updateOrder(hash)
 
-        if (order != updatedOrder) {
-            orderListener.onOrder(updatedOrder)
+        if (order?.lastEventId != update.lastEventId) {
+            orderListener.onOrder(update)
         }
-        return updatedOrder
+        return update
     }
 
     /**

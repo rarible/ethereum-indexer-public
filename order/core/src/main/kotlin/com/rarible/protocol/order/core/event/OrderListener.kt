@@ -14,7 +14,7 @@ class OrderListener(
 ) {
     suspend fun onOrder(order: Order) {
         val updateEvent = OrderUpdateEventDto(
-            eventId = UUID.randomUUID().toString(),
+            eventId = order.lastEventId ?: UUID.randomUUID().toString(),
             orderId = order.hash.toString(),
             order = orderDtoConverter.convert(order)
         )

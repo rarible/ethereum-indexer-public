@@ -79,3 +79,31 @@ fun createOrderDto() =
         end = null,
         priceHistory = listOf()
     )
+
+fun createOrderCancel(): OrderCancel {
+    return OrderCancel(
+        hash = WordFactory.create(),
+        maker = AddressFactory.create(),
+        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
+    )
+}
+
+fun createOrderSideMatch(): OrderSideMatch {
+    return OrderSideMatch(
+        hash = WordFactory.create(),
+        maker = AddressFactory.create(),
+        taker = AddressFactory.create(),
+        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        fill = EthUInt256.ZERO,
+        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        side = OrderSide.LEFT,
+        makeUsd = null,
+        takeUsd = null,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        makeValue = null,
+        takeValue = null
+    )
+}
