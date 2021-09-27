@@ -67,6 +67,14 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
+    fun mockedNftOwnershipApi(): NftOwnershipControllerApi {
+        return mockk {
+            every { getNftOwnershipById(any()) } returns Mono.just(createNftOwnershipDto())
+        }
+    }
+
+    @Bean
+    @Primary
     fun mockedCurrencyApi(): CurrencyControllerApi {
         return mockk {
             coEvery {
