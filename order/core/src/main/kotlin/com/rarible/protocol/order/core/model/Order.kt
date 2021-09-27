@@ -168,7 +168,7 @@ data class Order(
             start: Long?,
             end: Long?
         ): EthUInt256 {
-            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !active(start, end)) {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !isAlive(start, end)) {
                 return EthUInt256.ZERO
             }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
@@ -185,7 +185,7 @@ data class Order(
             }
         }
 
-        private fun active(start: Long?, end: Long?): Boolean {
+        private fun isAlive(start: Long?, end: Long?): Boolean {
             val now = Instant.now().toEpochMilli()
             val started = start?.let { it < now } ?: true
             val alive = end?.let { it > now } ?: true

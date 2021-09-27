@@ -132,7 +132,7 @@ class MongoOrderRepository(
                 Order::end lt now.toEpochMilli()
             )
         )
-        return template.updateFirst(query, Update().set("makeStock", EthUInt256.ZERO), Order::class.java)
+        return template.updateFirst(query, Update().set(Order::makeStock.name, EthUInt256.ZERO), Order::class.java)
     }
 
     fun findActualZeroMakeStock(now: Instant): Flow<Order> {

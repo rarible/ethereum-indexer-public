@@ -28,7 +28,7 @@ class OrderRecalculateMakeStockJob(
     fun update() = runBlocking {
         if (properties.resetMakeStockEnabled.not()) return@runBlocking
 
-        logger.info("Starting update...")
+        logger.info("Starting to update makeStock for orders...")
 
         val result = orderRepository.resetMakeStockAfter(Instant.now()).awaitFirstOrNull()
         logger.info("Successfully reset makeStock for ${result?.modifiedCount} documents")
@@ -37,6 +37,6 @@ class OrderRecalculateMakeStockJob(
             orderUpdateService.updateMakeStock(hash = it.hash)
         }
 
-        logger.info("Successfully finished update().")
+        logger.info("Successfully finished update makeStock for orders.")
     }
 }
