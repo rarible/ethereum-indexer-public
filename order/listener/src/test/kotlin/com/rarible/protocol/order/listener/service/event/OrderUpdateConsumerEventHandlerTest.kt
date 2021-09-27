@@ -37,9 +37,6 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     private lateinit var application: ApplicationEnvironmentInfo
 
     @Autowired
-    protected lateinit var orderVersionRepository: OrderVersionRepository
-
-    @Autowired
     protected lateinit var currencyControllerApi: CurrencyControllerApi
 
     @Autowired

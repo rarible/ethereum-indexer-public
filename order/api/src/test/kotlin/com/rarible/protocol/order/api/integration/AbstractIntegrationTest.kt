@@ -16,16 +16,14 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
- import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
-import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -98,7 +96,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirst()
         require(value != null) { "txHash is null" }
-        return  createEthereum().ethGetTransactionReceipt(value).awaitFirst().get()
+        return createEthereum().ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
@@ -154,7 +152,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @BeforeEach
     fun clearMocks() {
-        clearMocks(assetMakeBalanceProvider)
+        io.mockk.clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
     }
 
@@ -163,7 +161,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
-            .then().awaitFirstOrNull()
+            .then().block()
 
         orderRepository.createIndexes()
         orderRepository.dropIndexes()

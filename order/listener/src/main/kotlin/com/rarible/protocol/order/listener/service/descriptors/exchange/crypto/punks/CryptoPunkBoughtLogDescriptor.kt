@@ -127,7 +127,9 @@ class CryptoPunkBoughtLogDescriptor(
         calledFunctionSignature: String,
         transactionTrace: SimpleTraceResult?
     ): BigInteger {
-        if (punkBoughtEvent.value() != BigInteger.ZERO || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature().name()) {
+        if (punkBoughtEvent.value() != BigInteger.ZERO || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature()
+                .name()
+        ) {
             return punkBoughtEvent.value()
         }
         // Because of https://github.com/larvalabs/cryptopunks/issues/19 we cannot extract the correct "bid.value" for "acceptBidForPunk" function.

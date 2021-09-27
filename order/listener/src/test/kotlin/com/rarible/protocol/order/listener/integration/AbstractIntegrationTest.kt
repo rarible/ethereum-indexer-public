@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -69,6 +70,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     protected lateinit var orderRepository: OrderRepository
+
+    @Autowired
+    protected lateinit var orderVersionRepository: OrderVersionRepository
 
     @Autowired
     protected lateinit var orderIndexerProperties: OrderIndexerProperties
@@ -181,7 +185,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         orderHash: Word,
         contractAddress: Address = Address.ZERO(),
         topic: Word = 0.toBigInteger().toWord()
-    ): Order {
+    ) {
         exchangeHistoryRepository.save(
             LogEvent(
                 data = OrderCancel(
@@ -203,7 +207,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 minorLogIndex = 0
             )
         ).awaitFirst()
-        return orderReduceService.updateOrder(orderHash)
+        orderReduceService.updateOrder(orderHash)
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {

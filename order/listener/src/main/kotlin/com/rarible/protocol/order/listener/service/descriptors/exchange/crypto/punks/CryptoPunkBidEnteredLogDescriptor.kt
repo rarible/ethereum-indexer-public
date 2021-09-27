@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBidEnteredEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -29,26 +30,25 @@ class CryptoPunkBidEnteredLogDescriptor(
         val punkIndex = punkBidEnteredEvent.punkIndex()
         val bidderAddress = punkBidEnteredEvent.fromAddress()
         val marketAddress = log.address()
+        val make = Asset(EthAssetType, EthUInt256(bidPrice))
+        val take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex)), EthUInt256.ONE)
+        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
         return listOf(
             OnChainOrder(
-                OrderVersion(
-                    maker = bidderAddress,
-                    taker = null,
-                    make = Asset(EthAssetType, EthUInt256(bidPrice)),
-                    take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256.of(punkIndex)), EthUInt256.ONE),
-                    type = OrderType.CRYPTO_PUNKS,
-                    salt = CRYPTO_PUNKS_SALT,
-                    start = null,
-                    end = null,
-                    data = OrderCryptoPunksData,
-                    signature = null,
-                    createdAt = date,
-                    platform = Platform.CRYPTO_PUNKS,
-                    makePriceUsd = null,
-                    takePriceUsd = null,
-                    makeUsd = null,
-                    takeUsd = null
-                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
+                maker = bidderAddress,
+                taker = null,
+                make = make,
+                take = take,
+                orderType = OrderType.CRYPTO_PUNKS,
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                data = OrderCryptoPunksData,
+                signature = null,
+                createdAt = date,
+                platform = Platform.CRYPTO_PUNKS,
+                priceUsd = usdValue?.makePriceUsd ?: usdValue?.takePriceUsd,
+                hash = Order.hashKey(bidderAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
             )
         )
     }
