@@ -29,7 +29,8 @@ class ChangeLog00006FixOrderUsdValues {
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded orderVersionRepository: OrderVersionRepository,
         @NonLockGuarded priceUpdateService: PriceUpdateService,
-        @NonLockGuarded publisher: ProtocolOrderPublisher
+        @NonLockGuarded publisher: ProtocolOrderPublisher,
+        @NonLockGuarded orderDtoConverter: OrderDtoConverter
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
         val orderRepository = MongoOrderRepository(template)
@@ -77,7 +78,7 @@ class ChangeLog00006FixOrderUsdValues {
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.hash.toString(),
-                    order = OrderDtoConverter.convert(order)
+                    order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)
 

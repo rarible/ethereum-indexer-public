@@ -6,7 +6,6 @@ import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.client.FixedApiServiceUriProvider
 import com.rarible.protocol.client.NoopWebClientCustomizer
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
 import com.rarible.protocol.dto.LockFormDto
 import com.rarible.protocol.dto.SignatureFormDto
 import com.rarible.protocol.dto.UnlockableApiErrorDto
@@ -94,11 +93,11 @@ class LockControllerFt {
 
         coEvery { nftClientService.getItem(itemId) } returns nftItem
 
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(LockControllerApi.ErrorCreateLock::class.java, Executable {
             client.createLock(itemId, form).block()
         })
 
-        val error = e.responseObject as UnlockableApiErrorDto
+        val error = e.data as UnlockableApiErrorDto
         assertEquals(HttpStatus.BAD_REQUEST.value(), error.status)
         assertEquals(UnlockableApiErrorDto.Code.LOCK_EXISTS, error.code)
     }
@@ -114,11 +113,11 @@ class LockControllerFt {
 
         coEvery { nftClientService.getItem(itemId) } returns nftItem
 
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(LockControllerApi.ErrorCreateLock::class.java, Executable {
             client.createLock(itemId, form).block()
         })
 
-        val error = e.responseObject as UnlockableApiErrorDto
+        val error = e.data as UnlockableApiErrorDto
         assertEquals(HttpStatus.BAD_REQUEST.value(), error.status)
         assertEquals(UnlockableApiErrorDto.Code.OWNERHIP_ERROR, error.code)
     }
@@ -166,11 +165,11 @@ class LockControllerFt {
         coEvery { nftClientService.getItem(itemId) } returns nftItem
         coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners[0]) } returns true
 
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(LockControllerApi.ErrorGetLockContent::class.java, Executable {
             client.getLockContent(itemId, unlockForm).block()
         })
 
-        val error = e.responseObject as UnlockableApiErrorDto
+        val error = e.data as UnlockableApiErrorDto
         // TODO there should be defined error code
         assertEquals(HttpStatus.BAD_REQUEST.value(), error.status)
         assertEquals(UnlockableApiErrorDto.Code.OWNERHIP_ERROR, error.code)
@@ -190,11 +189,11 @@ class LockControllerFt {
         coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners[0]) } returns false
 
         val unlockForm = SignatureFormDto(testData.getItemUnlockSignature())
-        val e = assertThrows(ProtocolApiResponseException::class.java, Executable {
+        val e = assertThrows(LockControllerApi.ErrorGetLockContent::class.java, Executable {
             client.getLockContent(itemId, unlockForm).block()
         })
 
-        val error = e.responseObject as UnlockableApiErrorDto
+        val error = e.data as UnlockableApiErrorDto
         // TODO there should be defined error code
         assertEquals(HttpStatus.BAD_REQUEST.value(), error.status)
         assertEquals(UnlockableApiErrorDto.Code.OWNERHIP_ERROR, error.code)

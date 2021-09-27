@@ -21,6 +21,7 @@ class AdminTaskHandlersInitializer(
     private val taskService: TaskService,
     private val taskRepository: TempTaskRepository
 ) {
+
     @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
     fun init() = runBlocking<Unit> {
         listOf(

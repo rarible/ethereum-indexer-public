@@ -1,28 +1,29 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.api.exceptions.InvalidParameterException
-import com.rarible.protocol.order.api.misc.limit
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-
+import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderToFormDtoConverter
 import com.rarible.protocol.order.core.converters.model.OrderSortConverter
 import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.misc.limit
+import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.repository.order.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderFilterAll
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import org.springframework.core.convert.ConversionService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -35,9 +36,11 @@ import java.time.Instant
 class OrderController(
     private val orderService: OrderService,
     private val orderInvertService: OrderInvertService,
-    private val conversionService: ConversionService,
     private val prepareTxService: PrepareTxService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val orderDtoConverter: OrderDtoConverter,
+    private val assetDtoConverter: AssetDtoConverter,
+    private val orderToFormDtoConverter: OrderToFormDtoConverter
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -46,7 +49,7 @@ class OrderController(
     ): ResponseEntity<OrderFormDto> {
         val order = orderService.get(Word.apply(hash))
         val inverted = orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
-        return ResponseEntity.ok(conversionService.convert(inverted))
+        return ResponseEntity.ok(orderToFormDtoConverter.convert(inverted))
     }
 
     override suspend fun prepareOrderV2Transaction(
@@ -58,7 +61,7 @@ class OrderController(
         val result = with(prepareTxService.prepareTxFor2Orders(order, orderRight)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,
-                AssetDtoConverter.convert(asset),
+                assetDtoConverter.convert(asset),
                 PreparedOrderTxDto(transaction.to, transaction.data)
             )
         }
@@ -73,7 +76,7 @@ class OrderController(
         val result = with(prepareTxService.prepareTransaction(order, form)) {
             PrepareOrderTxResponseDto(
                 transferProxyAddress,
-                AssetDtoConverter.convert(asset),
+                assetDtoConverter.convert(asset),
                 PreparedOrderTxDto(transaction.to, transaction.data)
             )
         }
@@ -83,7 +86,7 @@ class OrderController(
     override suspend fun buyerFeeSignature(fee: Int, orderFormDto: OrderFormDto): ResponseEntity<Binary> {
         val data = when (orderFormDto) {
             is LegacyOrderFormDto -> orderFormDto.data
-            else -> throw InvalidParameterException("Unsupported order form type, should use only LegacyOrderForm type")
+            else -> throw ValidationApiException("Unsupported order form type, should use only LegacyOrderForm type")
         }
         // This is a legacy-support endpoint. Convert only the fields necessary for the calculation of a buyer fee signature.
         val order = Order(
@@ -118,13 +121,18 @@ class OrderController(
 
     override suspend fun upsertOrder(form: OrderFormDto): ResponseEntity<OrderDto> {
         val order = orderService.put(form)
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
+        return ResponseEntity.ok(result)
+    }
+
+    override fun getOrdersByIds(list: OrderIdsDto): ResponseEntity<Flow<OrderDto>> {
+        val result = orderService.getAll(list.ids).map { orderDtoConverter.convert(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getOrderByHash(hash: String): ResponseEntity<OrderDto> {
         val order = orderService.get(Word.apply(hash))
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
 
@@ -132,7 +140,7 @@ class OrderController(
         hash: String
     ): ResponseEntity<OrderDto> {
         val order = orderService.updateMakeStock(Word.apply(hash))
-        val result = conversionService.convert<OrderDto>(order)
+        val result = orderDtoConverter.convert(order)
         return ResponseEntity.ok(result)
     }
 
@@ -273,7 +281,6 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
-
     private suspend fun searchOrders(
         filter: OrderFilter?,
         legacyFilter: OrderFilterDto,
@@ -287,7 +294,7 @@ class OrderController(
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, legacyFilter, result.last())
 
         return OrdersPaginationDto(
-            result.map { conversionService.convert<OrderDto>(it) },
+            result.map { orderDtoConverter.convert(it) },
             nextContinuation
         )
     }

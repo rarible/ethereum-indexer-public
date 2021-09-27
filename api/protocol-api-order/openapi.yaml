@@ -4,17 +4,19 @@ info:
   version: v0.1
 
 paths:
-  "/v0.1/transactions":
+
+  ######################### Sign API #########################
+
+  "/v0.1/signature/validate":
     post:
       tags:
-        - order-transaction-controller
-      description: Create pending transaction for order
-      operationId: createOrderPendingTransaction
+        - order-signature-controller
+      operationId: validate
       requestBody:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/CreateTransactionRequest"
+              $ref: "#/components/schemas/EthereumSignatureValidationForm"
         required: true
       responses:
         '200':
@@ -22,15 +24,85 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/LogEvent"
+                type: boolean
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
+          $ref: "#/components/responses/ServerError"
+
+  ####################### Encoder API ########################
+
+  "/v0.1/encoder/order":
+    post:
+      tags:
+        - order-encode-controller
+      operationId: encodeOrder
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderForm"
+        required: true
+      responses:
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+                $ref: "#/components/schemas/EncodedOrder"
+        '400':
+          $ref: "#/components/responses/OrderDataApiError"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/encoder/data":
+    post:
+      tags:
+        - order-encode-controller
+      operationId: encodeOrderData
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderData"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncodedOrderData"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/encoder/assetType":
+    post:
+      tags:
+        - order-encode-controller
+      operationId: encodeOrderAssetType
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetType"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncodedOrderData"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ####################### Orders API ########################
+
   "/v0.1/orders":
     post:
       tags:
@@ -41,7 +113,7 @@ paths:
         content:
           application/json:
             schema:
-              "$ref": "#/components/schemas/OrderForm"
+              $ref: "#/components/schemas/OrderForm"
         required: true
       responses:
         '200':
@@ -49,13 +121,708 @@ paths:
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/Order"
+                $ref: "#/components/schemas/Order"
+        '400':
+          $ref: "#/components/responses/OrderUpdateApiError"
         '500':
-          description: Internal Server Error
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}/prepareTx":
+    post:
+      tags:
+        - order-controller
+      operationId: prepareOrderTransaction
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PrepareOrderTxForm"
+      responses:
+        '200':
+          description: OK
           content:
             application/json:
               schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+                $ref: "#/components/schemas/PrepareOrderTxResponse"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}/prepareV2Tx":
+    post:
+      deprecated: true
+      tags:
+        - order-controller
+      operationId: prepareOrderV2Transaction
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderForm"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrepareOrderTxResponse"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/OrderDataApiError"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}/invert":
+    post:
+      deprecated: true
+      tags:
+        - order-controller
+      operationId: invertOrder
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvertOrderForm"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderForm"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}/prepareCancelTx":
+    post:
+      tags:
+        - order-controller
+      operationId: prepareOrderCancelTransaction
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PreparedOrderTx"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrderByHash
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/{hash}/updateMakeStock":
+    get:
+      tags:
+        - order-controller
+      operationId: updateOrderMakeStock
+      parameters:
+        - name: hash
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/buyerFeeSignature":
+    post:
+      tags:
+        - order-controller
+      operationId: buyerFeeSignature
+      parameters:
+        - name: fee
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderForm"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Binary"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ####################### Orders-Search API ########################
+
+  "/v0.1/orders/all":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrdersAll
+      parameters:
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/byIds":
+    post:
+      tags:
+        - order-controller
+      operationId: getOrdersByIds
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderIds"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/sell/byMaker":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByMaker
+      parameters:
+        - name: maker
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/sell/byItem":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByItem
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: maker
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/sell/byCollection":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByCollection
+      parameters:
+        - name: collection
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/sell":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrders
+      parameters:
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Bids ######################
+
+  "/v0.1/orders/bids/byMaker":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrderBidsByMaker
+      parameters:
+        - name: maker
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/bids/byItem":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrderBidsByItem
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: maker
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/all/byStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrdersAllByStatus
+      parameters:
+        - name: sort
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/OrderSort"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+  "/v0.1/bids/byItem":
+    get:
+      tags:
+        - order-bid-controller
+      operationId: getBidsByItem
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderBidStatus"
+        - name: maker
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderBidsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Transactions ######################
+
+  "/v0.1/transactions":
+    post:
+      tags:
+        - order-transaction-controller
+      description: Create pending transaction for order
+      operationId: createOrderPendingTransaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LogEvent"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ####################### Activities ########################
+
+  "/v0.1/activities/search":
+    post:
+      tags:
+        - order-activity-controller
+      operationId: getOrderActivities
+      parameters:
+        - name: continuation
+          in: query
+          description: continuation value from previous response
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          description: how many items to return
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: sort
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/ActivitySort"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderActivityFilter"
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderActivities"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  ###################### Aggregations ######################
+
   "/v0.1/aggregations/nftSellByMaker":
     get:
       tags:
@@ -85,22 +852,15 @@ paths:
           in: query
           required: false
           schema:
-            "$ref": "#/components/schemas/Platform"
+            $ref: "#/components/schemas/Platform"
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/AggregationData"
+          $ref: "#/components/responses/AggregationDataResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/aggregations/nftPurchaseByTaker":
     get:
       tags:
@@ -130,27 +890,20 @@ paths:
           in: query
           required: false
           schema:
-            "$ref": "#/components/schemas/Platform"
+            $ref: "#/components/schemas/Platform"
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/AggregationData"
+          $ref: "#/components/responses/AggregationDataResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/aggregations/nftPurchaseByCollection":
     get:
       tags:
         - order-aggregation-controller
-      operationId: aggregateNftPurchaseBuyCollection
+      operationId: aggregateNftPurchaseByCollection
       description: Aggregate nft purchase by collection
       parameters:
         - name: startDate
@@ -175,752 +928,47 @@ paths:
           in: query
           required: false
           schema:
-            "$ref": "#/components/schemas/Platform"
+            $ref: "#/components/schemas/Platform"
       responses:
         '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  "$ref": "#/components/schemas/AggregationData"
+          $ref: "#/components/responses/AggregationDataResponse"
+        '400':
+          $ref: "#/components/responses/BadRequest"
         '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+          $ref: "#/components/responses/ServerError"
 
-  "/v0.1/encoder/order":
-    post:
-      tags:
-        - order-encode-controller
-      operationId: encodeOrder
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/OrderForm"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/EncodedOrder"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/encoder/data":
-    post:
-      tags:
-        - order-encode-controller
-      operationId: encodeOrderData
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/OrderData"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/EncodedOrderData"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/encoder/assetType":
-    post:
-      tags:
-        - order-encode-controller
-      operationId: encodeOrderAssetType
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/AssetType"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/EncodedOrderData"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/activities/search":
-    post:
-      tags:
-        - order-activity-controller
-      operationId: getOrderActivities
-      parameters:
-        - name: continuation
-          in: query
-          description: continuation value from previous response
-          required: false
+components:
+  responses:
+    OrderPage:
+      description: OK
+      content:
+        application/json:
           schema:
-            type: string
-        - name: size
-          in: query
-          description: how many items to return
-          required: false
+            $ref: "#/components/schemas/OrdersPagination"
+    OrderBidsPage:
+      description: OK
+      content:
+        application/json:
           schema:
-            type: integer
-            format: int32
-        - name: sort
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/ActivitySort"
-      requestBody:
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/OrderActivityFilter"
-        required: true
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderActivities"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-
-  "/v0.1/orders/{hash}/prepareTx":
-    post:
-      tags:
-        - order-controller
-      operationId: prepareOrderTransaction
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/PrepareOrderTxForm"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/PrepareOrderTxResponse"
-
-  "/v0.1/orders/{hash}/prepareV2Tx":
-    post:
-      deprecated: true
-      tags:
-        - order-controller
-      operationId: prepareOrderV2Transaction
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/OrderForm"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/PrepareOrderTxResponse"
-
-  "/v0.1/orders/{hash}/invert":
-    post:
-      deprecated: true
-      tags:
-        - order-controller
-      operationId: invertOrder
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/InvertOrderForm"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderForm"
-
-  "/v0.1/orders/{hash}/prepareCancelTx":
-    post:
-      tags:
-        - order-controller
-      operationId: prepareOrderCancelTransaction
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/PreparedOrderTx"
-
-  "/v0.1/orders/{hash}":
-    get:
-      tags:
-        - order-controller
-      operationId: getOrderByHash
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Order"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-
-  "/v0.1/orders/{hash}/updateMakeStock":
-    get:
-      tags:
-        - order-controller
-      operationId: updateOrderMakeStock
-      parameters:
-        - name: hash
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Order"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-
-  "/v0.1/orders/all":
-    get:
-      tags:
-        - order-controller
-      operationId: getOrdersAll
-      parameters:
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/buyerFeeSignature":
-    post:
-      tags:
-        - order-controller
-      operationId: buyerFeeSignature
-      parameters:
-        - name: fee
-          in: query
-          required: true
-          schema:
-            type: integer
-            minimum: 0
-            format: int32
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              "$ref": "#/components/schemas/OrderForm"
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Binary"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/sell/byMaker":
-    get:
-      tags:
-        - order-controller
-      operationId: getSellOrdersByMaker
-      parameters:
-        - name: maker
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/sell/byItem":
-    get:
-      tags:
-        - order-controller
-      operationId: getSellOrdersByItem
-      parameters:
-        - name: contract
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: tokenId
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/BigInteger"
-        - name: maker
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/sell/byCollection":
-    get:
-      tags:
-        - order-controller
-      operationId: getSellOrdersByCollection
-      parameters:
-        - name: collection
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/sell":
-    get:
-      tags:
-        - order-controller
-      operationId: getSellOrders
-      parameters:
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/bids/byMaker":
-    get:
-      tags:
-        - order-controller
-      operationId: getOrderBidsByMaker
-      parameters:
-        - name: maker
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/bids/byItem":
-    get:
-      tags:
-        - order-controller
-      operationId: getOrderBidsByItem
-      parameters:
-        - name: contract
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: tokenId
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/BigInteger"
-        - name: maker
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: origin
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/orders/all/byStatus":
-    get:
-      tags:
-        - order-controller
-      operationId: getOrdersAllByStatus
-      parameters:
-        - name: sort
-          in: query
-          required: false
-          schema:
-            "$ref": "#/components/schemas/OrderSort"
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrdersPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
-  "/v0.1/bids/byItem":
-    get:
-      tags:
-        - order-bid-controller
-      operationId: getBidsByItem
-      parameters:
-        - name: contract
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/Address"
-        - name: tokenId
-          in: query
-          required: true
-          schema:
-            "$ref": "#/components/schemas/BigInteger"
-        - name: status
-          in: query
-          required: true
+            $ref: "#/components/schemas/OrderBidsPagination"
+    AggregationDataResponse:
+      description: OK
+      content:
+        application/json:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/OrderBidStatus"
-        - name: maker
-          in: query
-          required: false
+              $ref: "#/components/schemas/AggregationData"
+
+    OrderUpdateApiError:
+      description: OK
+      content:
+        application/json:
           schema:
-            "$ref": "#/components/schemas/Address"
-        - name: platform
-          in: query
-          required: false
+            $ref: "#/components/schemas/EthereumOrderUpdateApiError"
+    OrderDataApiError:
+      description: OK
+      content:
+        application/json:
           schema:
-            "$ref": "#/components/schemas/Platform"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: continuation
-          in: query
-          required: false
-          schema:
-            type: string
-        - name: size
-          in: query
-          required: false
-          schema:
-            minimum: 1
-            type: integer
-            format: int32
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderBidsPagination"
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/OrderIndexerApiError"
+            $ref: "#/components/schemas/EthereumOrderDataApiError"

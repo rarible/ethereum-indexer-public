@@ -4,12 +4,12 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
-import com.rarible.protocol.dto.NftOrderApiErrorDto
+import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
+import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderItemControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.repository.ItemRepository
 import com.rarible.protocol.nftorder.core.test.data.assertItemAndDtoEquals
 import com.rarible.protocol.nftorder.core.test.data.assertItemDtoAndNftDtoEquals
@@ -18,7 +18,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
@@ -33,82 +32,40 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     lateinit var nftOrderItemControllerApi: NftOrderItemControllerApi
 
     @Test
-    @Disabled
-    fun `get item by id - not synced`() = runBlocking<Unit> {
+    fun `get item by id - not synced`() = runBlocking {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId, randomPartDto())
 
+        // If item not found in local DB, it means it has no enrichment data - passing it "as is" to the result
         nftItemControllerApiMock.mockGetNftItemById(itemId, nftItem)
 
         val result = nftOrderItemControllerApi
-            .getNftOrderItemById(itemId.decimalStringValue, null)
-            .awaitFirst()!!
-
-        assertThat(result.bestSellOrder).isNull()
-        assertThat(result.bestBidOrder).isNull()
-        assertThat(result.unlockable).isEqualTo(false)
-        assertThat(result.meta).isNull()
-        assertItemDtoAndNftDtoEquals(result, nftItem)
-    }
-
-    @Test
-    fun `get item by id with meta - not synced`() = runBlocking<Unit> {
-        val itemId = randomItemId()
-        val nftItem = randomNftItemDto(itemId, randomPartDto())
-        val nftItemMeta = randomNftItemMetaDto()
-
-        nftItemControllerApiMock.mockGetNftItemById(itemId, nftItem)
-        lockControllerApiMock.mockIsUnlockable(itemId, false)
-        orderControllerApiMock.mockGetSellOrdersByItem(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId)
-        nftItemControllerApiMock.mockGetNftItemMetaById(itemId, nftItemMeta)
-
-        val result = nftOrderItemControllerApi
-            .getNftOrderItemById(itemId.decimalStringValue, true)
+            .getNftOrderItemById(itemId.decimalStringValue)
             .awaitFirst()
 
-        assertThat(result.meta).isEqualTo(nftItemMeta)
+        assertThat(nftItem.meta).isEqualTo(result.meta)
         assertItemDtoAndNftDtoEquals(result, nftItem)
     }
 
     @Test
-    fun `get item by id - synced`() = runBlocking<Unit> {
-        val itemId = randomItemId()
-        val bestSell = randomOrderDto(itemId)
-        val bestBid = randomOrderDto(itemId)
-        val item = randomItem(itemId).copy(
-            bestSellOrder = bestSell,
-            bestBidOrder = bestBid,
-            totalStock = randomBigInt()
-        )
-
-        itemRepository.save(item)
-
-        val result = nftOrderItemControllerApi
-            .getNftOrderItemById(item.id.decimalStringValue, null)
-            .awaitFirst()!!
-
-        assertThat(result.meta).isNull()
-        assertItemAndDtoEquals(item, result)
-    }
-
-    @Test
-    fun `get item by id with meta - synced`() = runBlocking<Unit> {
+    fun `get item by id - synced`() = runBlocking {
         val itemId = randomItemId()
         val nftItemMeta = randomNftItemMetaDto()
         val bestSellOrder = randomOrderDto(itemId)
         val bestBidOrder = randomOrderDto(itemId)
         val item = randomItem(itemId).copy(
-            bestSellOrder = bestSellOrder,
-            bestBidOrder = bestBidOrder,
+            bestSellOrder = ShortOrderConverter.convert(bestSellOrder),
+            bestBidOrder = ShortOrderConverter.convert(bestBidOrder),
             totalStock = randomBigInt()
         )
 
         itemRepository.save(item)
+        // If we have some enrichment data for item, we should request meta and full orders for this item
         nftItemControllerApiMock.mockGetNftItemMetaById(itemId, nftItemMeta)
+        orderControllerApiMock.mockGetById(bestBidOrder, bestSellOrder)
 
         val result = nftOrderItemControllerApi
-            .getNftOrderItemById(item.id.decimalStringValue, true)
+            .getNftOrderItemById(item.id.decimalStringValue)
             .awaitFirst()!!
 
         assertThat(result.bestSellOrder).isEqualTo(bestSellOrder)
@@ -122,42 +79,42 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     @Test
     fun `get item by id - not found`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val nftApiError = NftIndexerApiErrorDto(404, NftIndexerApiErrorDto.Code.ITEM_NOT_FOUND, "")
+        val nftApiError = EthereumApiErrorEntityNotFoundDto(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND, "123")
 
-        nftItemControllerApiMock.mockGetNftItemById(itemId, nftApiError)
+        nftItemControllerApiMock.mockGetNftItemById(itemId, 404, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderItemControllerApi.ErrorGetNftOrderItemById> {
             nftOrderItemControllerApi
-                .getNftOrderItemById(itemId.decimalStringValue, null)
+                .getNftOrderItemById(itemId.decimalStringValue)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(404)
+        assertThat(ex.on404).isEqualTo(nftApiError)
     }
 
     @Test
     fun `get item by id - unexpected api error`() = runBlocking<Unit> {
         val itemId = randomItemId()
-        val nftApiError = NftIndexerApiErrorDto(500, NftIndexerApiErrorDto.Code.UNKNOWN, "")
+        val nftApiError = EthereumApiErrorServerErrorDto(EthereumApiErrorServerErrorDto.Code.UNKNOWN, "321")
 
-        nftItemControllerApiMock.mockGetNftItemById(itemId, nftApiError)
+        nftItemControllerApiMock.mockGetNftItemById(itemId, 500, nftApiError)
 
-        val ex = assertThrows<ProtocolApiResponseException> {
+        val ex = assertThrows<NftOrderItemControllerApi.ErrorGetNftOrderItemById> {
             nftOrderItemControllerApi
-                .getNftOrderItemById(itemId.decimalStringValue, null)
+                .getNftOrderItemById(itemId.decimalStringValue)
                 .block()
         }
 
-        assertThat(ex.responseObject is NftOrderApiErrorDto).isEqualTo(true)
-        assertThat((ex.responseObject as NftOrderApiErrorDto).status).isEqualTo(nftApiError.status)
+        assertThat(ex.rawStatusCode).isEqualTo(500)
+        assertThat(ex.on500).isEqualTo(nftApiError)
     }
 
     @Test
-    fun `get all items`() = runBlocking<Unit> {
+    fun `get all items - partially synced`() = runBlocking {
         val existingItemId = randomItemId()
         val existingBestBid = randomOrderDto(existingItemId)
-        val existingItem = randomItem(existingItemId).copy(bestBidOrder = existingBestBid)
+        val existingItem = randomItem(existingItemId).copy(bestBidOrder = ShortOrderConverter.convert(existingBestBid))
         itemRepository.save(existingItem)
 
         val fetchedItemId = randomItemId()
@@ -167,94 +124,45 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
         val continuation = randomString()
         val size = 15
         val showDeleted = true
-        val includeMeta = false
         val from = randomLong()
         val to = randomLong()
 
-        // If we have stored item, we should not enrich it despite of it was fetched from API
+        // We are fetching list of items and noe of them we have in DB with enrichment data - we need to
+        // request full best orders for it, but meta we can take from original NFT Item
         nftItemControllerApiMock.mockGetNftAllItems(
             continuation,
             size,
             showDeleted,
             from,
             to,
-            includeMeta,
             fetchedExistingItem,
             fetchedItem
         )
+        orderControllerApiMock.mockGetByIds(existingBestBid)
 
         val result = nftOrderItemControllerApi.getNftOrderAllItems(
-            continuation, size, showDeleted, from, to, includeMeta
+            continuation, size, showDeleted, from, to
         ).awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(2)
-        assertThat(result.data[0].meta).isNull()
-        assertThat(result.data[1].meta).isNull()
-
         assertItemAndDtoEquals(existingItem, result.data[0])
+        assertThat(result.data[0].meta).isEqualTo(fetchedExistingItem.meta)
         assertThat(existingBestBid).isEqualTo(result.data[0].bestBidOrder)
         assertThat(result.data[0].unlockable).isEqualTo(false)
 
+        assertThat(result.data[1].meta).isEqualTo(fetchedItem.meta)
         assertItemDtoAndNftDtoEquals(result.data[1], fetchedItem)
     }
 
     @Test
-    fun `get all items with meta`() = runBlocking<Unit> {
-        val existingItemId = randomItemId()
-        val existingItemMeta = randomNftItemMetaDto()
-        val existingBestBid = randomOrderDto(existingItemId)
-        val existingItem = randomItem(existingItemId).copy(bestBidOrder = existingBestBid)
-        val fetchedExistingItem = randomNftItemDto(existingItemId).copy(meta = existingItemMeta)
-        itemRepository.save(existingItem)
-
-        val fetchedItemId = randomItemId()
-        val fetchedItemMeta = randomNftItemMetaDto()
-        val fetchedItem = randomNftItemDto(fetchedItemId).copy(meta = fetchedItemMeta)
-
-        val continuation = randomString()
-        val size = 15
-        val showDeleted = true
-        val includeMeta = true
-        val from = randomLong()
-        val to = randomLong()
-
-        // If we have stored item, we should not enrich it despite of it was fetched from API
-        nftItemControllerApiMock.mockGetNftAllItems(
-            continuation,
-            size,
-            showDeleted,
-            from,
-            to,
-            includeMeta,
-            fetchedExistingItem,
-            fetchedItem
-        )
-
-        val result = nftOrderItemControllerApi.getNftOrderAllItems(
-            continuation, size, showDeleted, from, to, includeMeta
-        ).awaitFirstOrNull()!!
-
-        assertThat(result.data.size).isEqualTo(2)
-
-        assertThat(result.data[0].meta).isEqualTo(existingItemMeta)
-        assertThat(result.data[1].meta).isEqualTo(fetchedItemMeta)
-
-        assertItemAndDtoEquals(existingItem, result.data[0])
-        assertThat(existingBestBid).isEqualTo(result.data[0].bestBidOrder)
-        assertThat(result.data[0].unlockable).isEqualTo(false)
-
-        assertItemDtoAndNftDtoEquals(result.data[1], fetchedItem)
-    }
-
-    @Test
-    fun `get items by owner`() = runBlocking<Unit> {
+    fun `get items by owner`() = runBlocking {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId)
         val owner = randomAddress()
 
         nftItemControllerApiMock.mockGetNftOrderItemsByOwner(owner.hex(), nftItem)
 
-        val result = nftOrderItemControllerApi.getNftOrderItemsByOwner(owner.hex(), null, null, null)
+        val result = nftOrderItemControllerApi.getNftOrderItemsByOwner(owner.hex(), null, null)
             .awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(1)
@@ -262,23 +170,29 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
     }
 
     @Test
-    fun `get items by collection`() = runBlocking<Unit> {
+    fun `get items by collection - all synced`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val nftItem = randomNftItemDto(itemId)
-        val bestSell = randomOrderDto(itemId)
-        val item = randomItem(itemId).copy(bestSellOrder = bestSell)
+        val bestBidOrder = randomOrderDto(itemId)
+        val bestSellOrder = randomOrderDto(itemId)
+        val item = randomItem(itemId).copy(
+            bestBidOrder = ShortOrderConverter.convert(bestBidOrder),
+            bestSellOrder = ShortOrderConverter.convert(bestSellOrder)
+        )
         itemRepository.save(item)
 
         val collection = randomAddress()
 
         // Items requested, but enrichment data should be taken from existing Item
         nftItemControllerApiMock.mockGetNftOrderItemsByCollection(collection.hex(), nftItem)
-        val result = nftOrderItemControllerApi.getNftOrderItemsByCollection(collection.hex(), null, null, null)
+        orderControllerApiMock.mockGetByIds(bestBidOrder, bestSellOrder)
+
+        val result = nftOrderItemControllerApi.getNftOrderItemsByCollection(collection.hex(), null, null)
             .awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(1)
         assertItemAndDtoEquals(item, result.data[0])
-        assertThat(bestSell).isEqualTo(result.data[0].bestSellOrder)
+        assertThat(bestSellOrder).isEqualTo(result.data[0].bestSellOrder)
     }
 
     @Test
@@ -287,7 +201,7 @@ internal class ItemControllerFt : AbstractFunctionalTest() {
 
         nftItemControllerApiMock.mockGetNftOrderItemsByCreator(creator.hex())
 
-        val result = nftOrderItemControllerApi.getNftOrderItemsByCreator(creator.hex(), null, null, null)
+        val result = nftOrderItemControllerApi.getNftOrderItemsByCreator(creator.hex(), null, null)
             .awaitFirstOrNull()!!
 
         assertThat(result.data.size).isEqualTo(0)

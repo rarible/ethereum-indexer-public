@@ -5,9 +5,9 @@ import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import io.daonomic.rpc.domain.Word
@@ -18,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigInteger
 
 @IntegrationTest
-class OrderEventHandlerIt : AbstractIntegrationTest() {
+class OrderEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     lateinit var orderEventHandler: OrderEventHandler
@@ -59,18 +59,18 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         val makeItem = itemService.get(makeItemId)!!
         assertItemAndDtoEquals(makeItem, nftMakeItemDto)
         assertThat(makeItem.unlockable).isFalse()
-        assertThat(makeItem.bestSellOrder).isEqualTo(updatedOrder)
+        assertThat(makeItem.bestSellOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder))
         assertThat(makeItem.bestBidOrder).isNull()
 
         val takeItem = itemService.get(takeItemId)!!
         assertItemAndDtoEquals(takeItem, nftTakeItemDto)
         assertThat(takeItem.unlockable).isFalse()
         assertThat(takeItem.bestSellOrder).isNull()
-        assertThat(takeItem.bestBidOrder).isEqualTo(updatedOrder)
+        assertThat(takeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder))
 
         val ownership = ownershipService.get(ownershipId)!!
         assertOwnershipAndNftDtoEquals(ownership, nftOwnership)
-        assertThat(ownership.bestSellOrder).isEqualTo(updatedOrder)
+        assertThat(ownership.bestSellOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder))
 
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(3)
@@ -120,20 +120,23 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         ownershipService.save(ownership)
         itemService.save(item)
 
+
         // If ownership and item already stored in Mongo, no HTTP calls should be executed,
         // updated order should be taken from event
         val bestSell = randomLegacyOrderDto(makeItemId, ownershipId.owner)
+        orderControllerApiMock.mockGetById(bestSell)
+
         orderEventHandler.handle(createOrderUpdateEvent(bestSell))
 
         // Ensure existing entities updated with enrich data
         val updatedMakeItem = itemService.get(makeItemId)!!
-        assertThat(updatedMakeItem.bestSellOrder).isEqualTo(bestSell)
+        assertThat(updatedMakeItem.bestSellOrder).isEqualTo(ShortOrderConverter.convert(bestSell))
 
         // Ensure existing entity updated order from event
         verify(exactly = 0) { orderControllerApi.getSellOrdersByItem(any(), any(), any(), any(), any(), any(), any()) }
 
         val updateOwnership = ownershipService.get(ownershipId)!!
-        assertThat(updateOwnership.bestSellOrder).isEqualTo(bestSell)
+        assertThat(updateOwnership.bestSellOrder).isEqualTo(ShortOrderConverter.convert(bestSell))
         assertThat(updatedMakeItem.sellers).isEqualTo(1)
         assertThat(updatedMakeItem.totalStock).isEqualTo(bestSell.makeStock)
         Wait.waitAssert {
@@ -158,7 +161,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         verify(exactly = 0) { orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), any(), any(), any()) }
 
         val updatedMakeItem = itemService.get(takeItemId)!!
-        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(updatedOrder)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder))
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
         }
@@ -170,7 +173,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         val item = randomItem(randomPart())
         val takeItemId = item.id
         val existingOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(takeItemId))
-        val exist = itemService.save(item.copy(bestBidOrder = existingOrder))
+        val exist = itemService.save(item.copy(bestBidOrder = ShortOrderConverter.convert(existingOrder)))
 
         // Order should not be replaced since it cancelled, so item should not be updated
         val updatedOrder = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(takeItemId))
@@ -180,7 +183,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
 
         // Version of item should be the same since item wasn't updated
         assertThat(updatedMakeItem.version).isEqualTo(exist.version)
-        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(existingOrder)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(existingOrder))
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(0)
         }
@@ -191,20 +194,22 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         // Starting with item already saved in Mongo with cancelled OpenSea order
         val itemId = randomItemId()
         val current = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
-        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = current)
+        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = ShortOrderConverter.convert(current))
         itemService.save(item)
 
         // Fetching best bid order, which is OpenSeaOrder - and there is no Rarible best order
         val openSeaBestBid = randomOpenSeaV1OrderDto(itemId)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE)
+        // TODO we could avoid this query, should be optimized in future
+        orderControllerApiMock.mockGetById(openSeaBestBid)
 
         val updatedOrder = current.copy(hash = current.hash, cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Ensure item updated with OpenSea order
         val updatedMakeItem = itemService.get(itemId)!!
-        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(openSeaBestBid)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(openSeaBestBid))
 
         verify(exactly = 1) {
             orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.ALL), any(), any())
@@ -222,7 +227,7 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         // Starting with item already saved in Mongo with cancelled order
         val itemId = randomItemId()
         val current = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
-        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = current)
+        val item = randomItem(itemId, randomPart()).copy(bestBidOrder = ShortOrderConverter.convert(current))
         itemService.save(item)
 
         // Fetching best bid order, which is OpenSeaOrder, but we also have Rarible bestBid
@@ -230,13 +235,15 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         val raribleBestBid = randomLegacyOrderDto(itemId)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE, raribleBestBid)
+        // TODO we could avoid this query, should be optimized in future
+        orderControllerApiMock.mockGetById(raribleBestBid)
 
         val updatedOrder = current.copy(cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
         // Ensure item updated with Rarible order
         val updatedMakeItem = itemService.get(itemId)!!
-        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(raribleBestBid)
+        assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(raribleBestBid))
 
         verify(exactly = 1) {
             orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.ALL), any(), any())
@@ -254,9 +261,11 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         // Starting with item/ownership already saved in Mongo, both of them have bestSellOrder
         val itemId = randomItemId()
         val orderHash = Word.apply(randomWord())
-        val item =
-            randomItem(itemId, randomPart()).copy(bestSellOrder = randomLegacyOrderDto(itemId).copy(hash = orderHash))
-        val ownership = randomOwnership(item).copy(bestSellOrder = randomLegacyOrderDto(itemId).copy(hash = orderHash))
+        val bestSell = randomLegacyOrderDto(itemId).copy(hash = orderHash)
+        val shortBestSell = ShortOrderConverter.convert(bestSell)
+        val item = randomItem(itemId, randomPart()).copy(bestSellOrder = shortBestSell)
+        val ownership = randomOwnership(item).copy(bestSellOrder = shortBestSell)
+
         ownershipService.save(ownership)
         itemService.save(item)
 
@@ -283,7 +292,8 @@ class OrderEventHandlerIt : AbstractIntegrationTest() {
         // Unlockable set to TRUE, so even we don't have bestBidOrder, we have to keep this entity in Mongo
         val itemId = randomItemId()
         val current = randomLegacyOrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
-        val item = randomItem(itemId, randomPart()).copy(unlockable = true, bestBidOrder = current)
+        val currentShort = ShortOrderConverter.convert(current)
+        val item = randomItem(itemId, randomPart()).copy(unlockable = true, bestBidOrder = currentShort)
         itemService.save(item)
 
         // HTTP API returns NULL best bid order

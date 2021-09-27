@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
+import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.order.core.model.*
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -94,7 +95,7 @@ class PriceUpdateService(
             null
         } else {
             val rate =
-                currencyApi.getCurrencyRate(blockchain.name, address.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
+                currencyApi.getCurrencyRate(convert(blockchain), address.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
             if (rate == null) {
                 logger.warn("Currency api didn't respond any value")
             }
@@ -108,5 +109,12 @@ class PriceUpdateService(
 
     private fun usdValue(usdRate: BigDecimal, payingPart: BigDecimal): BigDecimal {
         return usdRate * payingPart
+    }
+
+    private fun convert(source: Blockchain): BlockchainDto {
+        return when (source) {
+            Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
+            Blockchain.POLYGON -> BlockchainDto.POLYGON
+        }
     }
 }

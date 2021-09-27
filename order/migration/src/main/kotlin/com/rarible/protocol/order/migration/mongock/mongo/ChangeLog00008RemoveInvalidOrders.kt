@@ -28,7 +28,8 @@ class ChangeLog00008RemoveInvalidOrders {
     fun removeOrdersWithMakeValueZero(
         @NonLockGuarded orderRepository: OrderRepository,
         @NonLockGuarded publisher: ProtocolOrderPublisher,
-        @NonLockGuarded template: ReactiveMongoTemplate
+        @NonLockGuarded template: ReactiveMongoTemplate,
+        @NonLockGuarded orderDtoConverter: OrderDtoConverter
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
 
@@ -50,7 +51,7 @@ class ChangeLog00008RemoveInvalidOrders {
                     val updateEvent = OrderUpdateEventDto(
                         eventId = UUID.randomUUID().toString(),
                         orderId = canceledOrder.hash.toString(),
-                        order = OrderDtoConverter.convert(canceledOrder)
+                        order = orderDtoConverter.convert(canceledOrder)
                     )
                     publisher.publish(updateEvent)
 

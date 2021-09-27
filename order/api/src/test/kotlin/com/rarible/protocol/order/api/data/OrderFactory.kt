@@ -4,8 +4,8 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
+import com.rarible.protocol.order.core.converters.dto.OrderFormAssetDtoConverter
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
@@ -23,7 +23,9 @@ import java.math.BigInteger
 fun createOrder(
     maker: Address = AddressFactory.create(),
     taker: Address? = AddressFactory.create(),
-    make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+    start: Long? = null,
+    end: Long? = null
 ): Order {
     return Order(
         maker = maker,
@@ -35,8 +37,8 @@ fun createOrder(
         fill = EthUInt256.ZERO,
         cancelled = false,
         salt = EthUInt256.TEN,
-        start = null,
-        end = null,
+        start = start,
+        end = end,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null,
         createdAt = nowMillis(),
@@ -48,9 +50,9 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
     return when (type) {
         OrderType.RARIBLE_V2 -> RaribleV2OrderFormDto(
             maker = maker,
-            make = AssetDtoConverter.convert(make),
+            make = OrderFormAssetDtoConverter.convert(make),
             taker = taker,
-            take = AssetDtoConverter.convert(take),
+            take = OrderFormAssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataV1Dto,
             start = start,
@@ -59,26 +61,16 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
         )
         OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
             maker = maker,
-            make = AssetDtoConverter.convert(make),
+            make = OrderFormAssetDtoConverter.convert(make),
             taker = taker,
-            take = AssetDtoConverter.convert(take),
+            take = OrderFormAssetDtoConverter.convert(take),
             salt = salt.value,
             data = OrderDataDtoConverter.convert(data) as OrderDataLegacyDto,
             start = start,
             end = end,
             signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
-        OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderFormDto(
-            maker = maker,
-            make = AssetDtoConverter.convert(make),
-            taker = taker,
-            take = AssetDtoConverter.convert(take),
-            salt = salt.value,
-            data = OrderDataDtoConverter.convert(data) as OrderOpenSeaV1DataV1Dto,
-            start = start,
-            end = end,
-            signature = signature
-        )
+        OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be crerated or updated")
         OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders are created on-chain")
     }
 }

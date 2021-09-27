@@ -6,10 +6,10 @@ import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.order.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
-import com.rarible.protocol.order.api.misc.limit
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
 import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
+import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController

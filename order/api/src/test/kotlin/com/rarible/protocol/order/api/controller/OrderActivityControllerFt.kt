@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.mockk.coEvery
@@ -973,7 +972,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                             every { tokenId } returns nftAsset.tokenId.value
                         }
                     }
-                coEvery { nftItemApi.getNftItemsByOwner(eq(user.hex()), any(), any(), any()) } returns Mono.just(
+                coEvery { nftItemApi.getNftItemsByOwner(eq(user.hex()), any(), any()) } returns Mono.just(
                     NftItemsDto(
                         total = (erc721Tokens.size + erc1155Tokens.size).toLong(),
                         continuation = null,

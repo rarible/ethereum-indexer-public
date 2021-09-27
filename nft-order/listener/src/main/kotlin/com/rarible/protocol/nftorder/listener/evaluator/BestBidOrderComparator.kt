@@ -1,12 +1,12 @@
 package com.rarible.protocol.nftorder.listener.evaluator
 
-import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.nftorder.core.model.ShortOrder
 
 object BestBidOrderComparator : BestOrderComparator {
 
     override val name: String = "BestBidOrder"
 
-    override fun compare(current: OrderDto, updated: OrderDto): OrderDto {
+    override fun compare(current: ShortOrder, updated: ShortOrder): ShortOrder {
         val currentTakePrice = current.takePriceUsd
         val updatedTakePrice = updated.takePriceUsd
 

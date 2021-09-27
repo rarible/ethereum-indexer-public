@@ -5,13 +5,11 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.time.Duration
@@ -353,7 +351,7 @@ class OrderAggregationControllerFt : AbstractIntegrationTest() {
         saveHistory(*collection1history.toTypedArray())
         saveHistory(*collection2history.toTypedArray())
 
-        val aggregation = orderAggregationApi.aggregateNftPurchaseBuyCollection(
+        val aggregation = orderAggregationApi.aggregateNftPurchaseByCollection(
             startDate.toEpochMilli(),
             endDate.toEpochMilli(),
             null,

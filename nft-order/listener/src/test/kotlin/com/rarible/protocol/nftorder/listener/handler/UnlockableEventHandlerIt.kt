@@ -5,7 +5,6 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.UnlockableEventDto
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.assertItemAndDtoEquals
 import com.rarible.protocol.nftorder.listener.test.data.randomItem
@@ -16,7 +15,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class UnlockableEventHandlerIt : AbstractIntegrationTest() {
+internal class UnlockableEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     protected lateinit var itemService: ItemService

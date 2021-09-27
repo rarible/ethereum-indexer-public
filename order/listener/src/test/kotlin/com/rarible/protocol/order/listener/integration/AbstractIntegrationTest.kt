@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.integration
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
@@ -18,6 +17,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -72,6 +72,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var orderRepository: OrderRepository
 
     @Autowired
+    protected lateinit var orderVersionRepository: OrderVersionRepository
+
+    @Autowired
     protected lateinit var orderIndexerProperties: OrderIndexerProperties
 
     @Autowired
@@ -86,9 +89,8 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
-    @MockkBean
-    private lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
-    protected var assetMakeBalanceAnswers: suspend (Order) -> EthUInt256? = { null }
+    @Autowired
+    protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
     protected lateinit var parity: MonoParity
 
@@ -118,7 +120,6 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
             val order = arg<Order>(0)
-            assetMakeBalanceAnswers.invoke(order)?.let { return@r it }
             if (order.make.type is EthAssetType) {
                 return@r order.make.value
             }
@@ -184,7 +185,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         orderHash: Word,
         contractAddress: Address = Address.ZERO(),
         topic: Word = 0.toBigInteger().toWord()
-    ): Order {
+    ) {
         exchangeHistoryRepository.save(
             LogEvent(
                 data = OrderCancel(
@@ -206,7 +207,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
                 minorLogIndex = 0
             )
         ).awaitFirst()
-        return orderReduceService.updateOrder(orderHash)
+        orderReduceService.updateOrder(orderHash)
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {

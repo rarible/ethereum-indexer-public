@@ -21,10 +21,3 @@ rarible:
   ethereum:
     converter:
       enabled: true
-  core:
-    filter:
-      cors:
-        enabled: true
-    nginx-expose:
-      enabled: false
-      location: /template

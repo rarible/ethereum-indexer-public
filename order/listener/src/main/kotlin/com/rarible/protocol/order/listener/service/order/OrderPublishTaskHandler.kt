@@ -15,9 +15,10 @@ import java.util.*
 
 @Component
 class OrderPublishTaskHandler(
-    private val orderReduceService: OrderRepository,
+    private val orderRepository: OrderRepository,
     private val publisher: ProtocolOrderPublisher,
-    private val properties: OrderListenerProperties
+    private val properties: OrderListenerProperties,
+    private val orderDtoConverter: OrderDtoConverter
 ) : TaskHandler<Long> {
 
     override val type: String
@@ -28,12 +29,12 @@ class OrderPublishTaskHandler(
     }
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
-        return orderReduceService.findAllBeforeLastUpdateAt(from?.let { Date(it) })
+        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) })
             .map { order ->
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = order.hash.toString(),
-                    order = OrderDtoConverter.convert(order)
+                    order = orderDtoConverter.convert(order)
                 )
                 publisher.publish(updateEvent)
                 delay(Duration.ofMillis(properties.publishTaskDelayMs))

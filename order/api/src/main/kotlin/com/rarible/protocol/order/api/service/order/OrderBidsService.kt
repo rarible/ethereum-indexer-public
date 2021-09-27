@@ -2,11 +2,15 @@ package com.rarible.protocol.order.api.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.CompositeBid
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -28,7 +32,7 @@ class OrderBidsService(
             versions = orderVersionRepository.search(next).collectList().awaitFirst()
 
             val orderHashes = versions.map { it.hash }.toHashSet()
-            val orders = orderRepository.findAll(orderHashes).associateBy { it.hash }
+            val orders = orderRepository.findAll(orderHashes).toList().associateBy { it.hash }
 
             val result = convert(versions, orders).filter { it.status in statuses }.toList()
             totalResult.addAll(result)

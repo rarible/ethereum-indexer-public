@@ -1,7 +1,9 @@
 package com.rarible.protocol.nftorder.listener.evaluator
 
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.data.RaribleOrderChecker
+import com.rarible.protocol.nftorder.core.model.ShortOrder
 import com.rarible.protocol.nftorder.listener.service.BestOrderService
 import org.slf4j.LoggerFactory
 import java.math.BigInteger
@@ -19,15 +21,16 @@ class BestOrderEvaluator(
         private val logger = LoggerFactory.getLogger(BestOrderService::class.java)
     }
 
-    suspend fun evaluateBestOrder(current: OrderDto?, updated: OrderDto): OrderDto? {
+    suspend fun evaluateBestOrder(current: ShortOrder?, updated: OrderDto): ShortOrder? {
+        val shortUpdated = ShortOrderConverter.convert(updated)
         return if (isAlive(updated)) {
-            onAliveOrderUpdate(current, updated)
+            onAliveOrderUpdate(current, shortUpdated)
         } else {
-            onDeadOrderUpdate(current, updated)
+            onDeadOrderUpdate(current, shortUpdated)
         }
     }
 
-    private fun onAliveOrderUpdate(current: OrderDto?, updated: OrderDto): OrderDto {
+    private fun onAliveOrderUpdate(current: ShortOrder?, updated: ShortOrder): ShortOrder {
         return if (current == null) {
             setBestOrder(updated)
         } else if (updated.hash == current.hash) {
@@ -37,7 +40,7 @@ class BestOrderEvaluator(
         }
     }
 
-    private suspend fun onDeadOrderUpdate(current: OrderDto?, updated: OrderDto): OrderDto? {
+    private suspend fun onDeadOrderUpdate(current: ShortOrder?, updated: ShortOrder): ShortOrder? {
         return if (current == null) {
             skipDeadOrder(updated)
         } else if (updated.hash == current.hash) {
@@ -50,7 +53,7 @@ class BestOrderEvaluator(
     //--- Methods below presented as separate methods mostly for logging ---//
 
     // Set alive best Order for entity if there is no current best Order
-    private fun setBestOrder(updated: OrderDto): OrderDto {
+    private fun setBestOrder(updated: ShortOrder): ShortOrder {
         logger.info(
             "Updated {} Order [{}] is alive, current Order for {} [{}] is null - using updated Order",
             name, updated.hash, type, id
@@ -59,7 +62,7 @@ class BestOrderEvaluator(
     }
 
     // Update current best Order with new data if current best Order is same as updated Order
-    private fun updateBestOrder(updated: OrderDto): OrderDto {
+    private fun updateBestOrder(updated: ShortOrder): ShortOrder {
         logger.info(
             "Updated {} Order [{}] is the same as current for {} [{}] - using updated Order",
             name, updated.hash, type, id
@@ -68,7 +71,7 @@ class BestOrderEvaluator(
     }
 
     // Select best Order between current and updated if they are different and alive
-    private fun evaluateBestOrder(current: OrderDto, updated: OrderDto): OrderDto {
+    private fun evaluateBestOrder(current: ShortOrder, updated: ShortOrder): ShortOrder {
         val isCurrentPreferred = isPreferred(current)
         val isUpdatedPreferred = isPreferred(updated)
 
@@ -88,7 +91,7 @@ class BestOrderEvaluator(
     }
 
     // Ignore dead Order when current best Order is not exist
-    private fun skipDeadOrder(updated: OrderDto): OrderDto? {
+    private fun skipDeadOrder(updated: ShortOrder): ShortOrder? {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is null - nothing to update",
             name, updated.hash, type, id
@@ -97,7 +100,7 @@ class BestOrderEvaluator(
     }
 
     // Re-fetch best order from indexer if updated Order is dead and the same as current best Order
-    private suspend fun refetchDeadOrder(updated: OrderDto): OrderDto? {
+    private suspend fun refetchDeadOrder(updated: ShortOrder): ShortOrder? {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is the same - dropping it",
             name, updated.hash, type, id
@@ -105,11 +108,11 @@ class BestOrderEvaluator(
         // It means, current best Order is not alive, we have to fetch actual best Order
         val fetched = provider.fetch()
         logger.info("Fetched {} for {} [{}] : [{}]", name, type, id, fetched?.hash)
-        return fetched
+        return fetched?.let { ShortOrderConverter.convert(it) }
     }
 
     // Ignore dead Order when current best Order exists
-    private fun ignoreDeadOrder(current: OrderDto, updated: OrderDto): OrderDto {
+    private fun ignoreDeadOrder(current: ShortOrder, updated: ShortOrder): ShortOrder {
         logger.info(
             "Updated {} Order [{}] is cancelled/filled, current Order for {} [{}] is [{}] - nothing to update",
             name, updated.hash, type, id, current.hash
@@ -117,7 +120,7 @@ class BestOrderEvaluator(
         return current
     }
 
-    private fun isPreferred(order: OrderDto): Boolean {
+    private fun isPreferred(order: ShortOrder): Boolean {
         return RaribleOrderChecker.isRaribleOrder(order)
     }
 

@@ -15,7 +15,7 @@ import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import scalether.util.Hash
 import java.time.Instant
 
 @Component
@@ -36,15 +37,18 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService
 ) {
 
-    suspend fun updateOrder(orderHash: Word): Order = update(orderHash = orderHash).awaitSingle()
+    suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
-            compareBy<OrderUpdate, Word>(wordComparator) { it.orderHash },
-            orderVersionRepository.findAllByHash(orderHash, fromOrderHash).map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash).map { OrderUpdate.ByLogEvent(it) }
+            orderUpdateComparator,
+            orderVersionRepository.findAllByHash(orderHash, fromOrderHash)
+                .map { OrderUpdate.ByOrderVersion(it) },
+            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash)
+                .filter { it.data !is OnChainOrder }
+                .map { OrderUpdate.ByLogEvent(it) }
         )
             .windowUntilChanged { it.orderHash }
             .concatMap { updateOrder(it) }
@@ -52,57 +56,84 @@ class OrderReduceService(
 
     private sealed class OrderUpdate {
         abstract val orderHash: Word
+        abstract val eventId: String
+        abstract val date: Instant
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
+            override val eventId: String get() = orderVersion.id.toHexString()
+            override val date get() = orderVersion.createdAt
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
+            override val eventId: String get() = logEvent.id.toHexString()
+            override val date get() = logEvent.updatedAt
         }
     }
 
     private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
         var lastSeenUpdate: OrderUpdate? = null
-        val orderStub = updates.asFlow().fold(emptyOrder) { order, update ->
+
+        val result = updates.asFlow().fold(emptyOrder) { order, update ->
             lastSeenUpdate = update
             when (update) {
-                is OrderUpdate.ByOrderVersion -> updateWith(order, update.orderVersion)
+                is OrderUpdate.ByOrderVersion -> updateWith(
+                    order,
+                    update.orderVersion,
+                    update.eventId
+                )
                 is OrderUpdate.ByLogEvent -> order.updateWith(
                     update.logEvent.status,
-                    update.logEvent.data.toExchangeHistory()
+                    update.logEvent.data.toExchangeHistory(),
+                    update.eventId
                 )
             }
         }
-        if (orderStub.hash == EMPTY_ORDER_HASH) {
-            logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced. " +
-                    "Apparently there are no OrderVersions for this order, but only LogEvents.")
+        if (result.hash == EMPTY_ORDER_HASH) {
+            logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced, none OrderVersion ware found")
             return@mono emptyOrder
         }
-        updateOrderWithState(orderStub)
+        updateOrderWithState(result)
     }
 
-    private suspend fun Order.updateWith(logEventStatus: LogEventStatus, orderExchangeHistory: OrderExchangeHistory): Order {
+    private suspend fun Order.updateWith(
+        logEventStatus: LogEventStatus,
+        orderExchangeHistory: OrderExchangeHistory,
+        eventId: String
+    ): Order {
         return when (logEventStatus) {
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> copy(
                     fill = fill.plus(orderExchangeHistory.fill),
-                    lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date)
+                    lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
+                    lastEventId = accumulateEventId(lastEventId, eventId)
                 )
                 is OrderCancel -> copy(
                     cancelled = true,
-                    lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date)
+                    lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
+                    lastEventId = accumulateEventId(lastEventId, eventId)
                 )
-                // On-chain orders can be re-opened, so we must start from the empty state again, even if there were previous events.
-                is OnChainOrder -> updateWith(emptyOrder, orderExchangeHistory.order)
+                is OnChainOrder -> error("OnChainOrder events must have been processed earlier.")
             }
             else -> this
         }
     }
 
-    private suspend fun updateWith(accumulator: Order, version: OrderVersion): Order =
-        Order(
+    private suspend fun updateWith(
+        accumulator: Order,
+        version: OrderVersion,
+        eventId: String
+    ): Order {
+        val previous = if (version.onChainOrderKey != null) {
+            // On-chain orders can be re-opened, so we must start from the empty state again, even if there were previous events.
+            emptyOrder
+        } else {
+            accumulator
+        }
+
+        return Order(
             maker = version.maker,
             taker = version.taker,
             make = version.make,
@@ -120,15 +151,18 @@ class OrderReduceService(
             platform = version.platform,
             hash = version.hash,
 
-            createdAt = accumulator.createdAt.takeUnless { it == Instant.EPOCH } ?: version.createdAt,
+            createdAt = previous.createdAt.takeUnless { it == Instant.EPOCH } ?: version.createdAt,
             lastUpdateAt = version.createdAt,
 
-            priceHistory = getUpdatedPriceHistoryRecords(accumulator, version),
-            fill = accumulator.fill,
-            cancelled = accumulator.cancelled,
-            makeStock = accumulator.makeStock,
-            pending = accumulator.pending
+            lastEventId = accumulateEventId(accumulator.lastEventId, eventId),
+
+            priceHistory = getUpdatedPriceHistoryRecords(previous, version),
+            fill = previous.fill,
+            cancelled = previous.cancelled,
+            makeStock = previous.makeStock,
+            pending = previous.pending
         )
+    }
 
     private suspend fun getUpdatedPriceHistoryRecords(
         previous: Order,
@@ -199,6 +233,10 @@ class OrderReduceService(
             hash = EMPTY_ORDER_HASH
         )
 
+        private fun accumulateEventId(lastEventId: String?, eventId: String): String {
+            return Hash.sha3((lastEventId ?: "") + eventId)
+        }
+
         private val wordComparator = Comparator<Word> r@{ w1, w2 ->
             val w1Bytes = w1.bytes()
             val w2Bytes = w2.bytes()
@@ -208,6 +246,21 @@ class OrderReduceService(
                 }
             }
             return@r w1Bytes.size.compareTo(w2Bytes.size)
+        }
+
+        private fun OrderUpdate.toLogEventKey() = when (this) {
+            is OrderUpdate.ByLogEvent -> logEvent.toLogEventKey()
+            is OrderUpdate.ByOrderVersion -> orderVersion.onChainOrderKey
+        }
+
+        private val orderUpdateComparator: Comparator<OrderUpdate> = Comparator r@{ u1, u2 ->
+            wordComparator.compare(u1.orderHash, u2.orderHash).takeUnless { it == 0 }?.let { return@r it }
+            val k1 = u1.toLogEventKey()
+            val k2 = u2.toLogEventKey()
+            if (k1 == null || k2 == null) {
+                return@r u1.date.compareTo(u2.date)
+            }
+            return@r k1.compareTo(k2)
         }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)

@@ -2,9 +2,12 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
-import com.rarible.protocol.nft.api.exceptions.IllegalArgumentException
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
+import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
+import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService

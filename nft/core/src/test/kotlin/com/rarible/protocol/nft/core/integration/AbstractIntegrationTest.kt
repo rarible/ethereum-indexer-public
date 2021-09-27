@@ -11,6 +11,7 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -45,6 +46,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var mongo: ReactiveMongoOperations
     @Autowired
     protected lateinit var tokenRepository: TokenRepository
+    @Autowired
+    protected lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
     @Autowired
     protected lateinit var itemRepository: ItemRepository
     @Autowired
@@ -119,6 +122,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected suspend fun checkItemEventWasPublished(
         token: Address,
         tokenId: EthUInt256,
+        itemMeta: NftItemMetaDto,
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
         val events = Collections.synchronizedList(ArrayList<KafkaMessage<NftItemEventDto>>())
@@ -135,7 +139,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                     val filteredEvents = messages.filter { message ->
                         when (val event = message.value) {
                             is NftItemUpdateEventDto -> {
-                                event.item.contract == token && event.item.tokenId == tokenId.value
+                                event.item.contract == token
+                                        && event.item.tokenId == tokenId.value
+                                        && event.item.meta == itemMeta
                             }
                             is NftItemDeleteEventDto -> {
                                 event.item.token == token && event.item.tokenId == tokenId.value

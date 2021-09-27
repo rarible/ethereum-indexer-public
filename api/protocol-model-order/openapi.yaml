@@ -19,11 +19,10 @@ components:
           items:
             "$ref": "#/components/schemas/OrderActivity"
 
-    OrderIndexerApiError:
+    EthereumOrderDataApiError:
       required:
         - code
         - message
-        - status
       type: object
       properties:
         status:
@@ -32,20 +31,26 @@ components:
         code:
           type: string
           enum:
-            - UNKNOWN
-            - SERVER_ERROR
-            - ABSENCE_OF_REQUIRED_FIELD
-            - INVALID_ARGUMENT
-            - ORDER_NOT_FOUND
-            - BALANCE_NOT_FOUND
-            - OWNERSHIP_NOT_FOUND
-            - LAZY_ITEM_NOT_FOUND
+            - BAD_REQUEST
+            - VALIDATION
+            - INCORRECT_ORDER_DATA
+        message:
+          type: string
+
+    EthereumOrderUpdateApiError:
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
             - INCORRECT_SIGNATURE
             - INCORRECT_ORDER_DATA
             - INCORRECT_LAZY_ASSET
             - ORDER_CANCELED
             - ORDER_INVALID_UPDATE
-            - ASSET_BALANCE_NOT_FOUND
         message:
           type: string
 
@@ -517,6 +522,8 @@ components:
           $ref: "#/components/schemas/Asset"
         fill:
           $ref: "#/components/schemas/BigInteger"
+        fillValue:
+          $ref: "#/components/schemas/BigDecimal"
         start:
           type: integer
           format: int64
@@ -525,6 +532,8 @@ components:
           format: int64
         makeStock:
           $ref: "#/components/schemas/BigInteger"
+        makeStockValue:
+          $ref: "#/components/schemas/BigDecimal"
         cancelled:
           type: boolean
         salt:
@@ -635,6 +644,16 @@ components:
         takeValue:
           $ref: "#/components/schemas/BigDecimal"
 
+    OrderIds:
+      type: object
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          items:
+            $ref: "#/components/schemas/Word"
+
     OrderForm:
       type: object
       required:
@@ -648,9 +667,9 @@ components:
         taker:
           $ref: "#/components/schemas/Address"
         make:
-          $ref: "#/components/schemas/Asset"
+          $ref: "#/components/schemas/OrderFormAsset"
         take:
-          $ref: "#/components/schemas/Asset"
+          $ref: "#/components/schemas/OrderFormAsset"
         salt:
           $ref: "#/components/schemas/BigInteger"
         start:
@@ -666,11 +685,20 @@ components:
         mapping:
           RARIBLE_V1: "#/components/schemas/LegacyOrderForm"
           RARIBLE_V2: "#/components/schemas/RaribleV2OrderForm"
-          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderForm"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderForm"
         - "$ref": "#/components/schemas/RaribleV2OrderForm"
-        - "$ref": "#/components/schemas/OpenSeaV1OrderForm"
+
+    OrderFormAsset:
+      type: object
+      required:
+        - assetType
+        - value
+      properties:
+        assetType:
+          $ref: "#/components/schemas/AssetType"
+        value:
+          $ref: "#/components/schemas/BigInteger"
 
     LegacyOrderForm:
       type: object
@@ -697,19 +725,6 @@ components:
             - RARIBLE_V2
         data:
           $ref: "#/components/schemas/OrderRaribleV2DataV1"
-
-    OpenSeaV1OrderForm:
-      type: object
-      required:
-        - type
-        - data
-      properties:
-        type:
-          type: string
-          enum:
-            - OPEN_SEA_V1
-        data:
-          $ref: "#/components/schemas/OrderOpenSeaV1DataV1"
 
     Platform:
       type: string
@@ -780,6 +795,48 @@ components:
             - UPDATE
         order:
           "$ref": "#/components/schemas/Order"
+
+    NftOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - eventId
+        - contract
+        - tokenId
+        - orders
+      properties:
+        eventId:
+          type: string
+        contract:
+          $ref: "#/components/schemas/Address"
+        tokenId:
+          $ref: "#/components/schemas/BigInteger"
+        orders:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Order"
+      oneOf:
+        - "$ref": "#/components/schemas/NftSellOrdersPriceUpdateEvent"
+        - "$ref": "#/components/schemas/NftBidOrdersPriceUpdateEvent"
+
+    NftSellOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - SELL_ORDERS_PRICE_UPDATE
+
+    NftBidOrdersPriceUpdateEvent:
+      type: object
+      required:
+        - "@type"
+      properties:
+        "@type":
+          type: string
+          enum:
+            - BID_ORDERS_PRICE_UPDATE
 
     OrderFilter:
       type: object
@@ -942,6 +999,20 @@ components:
           "$ref": "#/components/schemas/Address"
         data:
           "$ref": "#/components/schemas/Binary"
+
+    EthereumSignatureValidationForm:
+      required:
+        - signer
+        - message
+        - signature
+      type: object
+      properties:
+        signer:
+          $ref: "#/components/schemas/Address"
+        message:
+          type: string
+        signature:
+          $ref: "#/components/schemas/Binary"
 
     ObjectNode:
       type: object

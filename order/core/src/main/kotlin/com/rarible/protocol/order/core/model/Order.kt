@@ -57,8 +57,17 @@ data class Order(
 
     val platform: Platform = Platform.RARIBLE,
 
+    val lastEventId: String? = null,
+
     @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value)
+    val hash: Word = hashKey(maker, make.type, take.type, salt.value),
+
+    /**
+     * TODO: we need this field only temporarily, until the "OrderReduceService" refactoring commit is released and is proven to be stable.
+     *  This is needed to not corrupt production database completely if we need to revert the above commit.
+     *  That commit removes the field, and the old production release will not be able to start.
+     */
+    val version: Long? = 1
 ) {
     fun forV1Tx() = run {
         assert(type == OrderType.RARIBLE_V1)
@@ -100,7 +109,9 @@ data class Order(
                 protocolCommission = protocolCommission,
                 cancelled = zeroWhenCancelled && cancelled,
                 orderType = type,
-                feeSide = getFeeSide(make.type, take.type)
+                feeSide = getFeeSide(make.type, take.type),
+                start = start,
+                end = end
             )
         )
     }
@@ -153,9 +164,11 @@ data class Order(
             protocolCommission: EthUInt256,
             orderType: OrderType,
             feeSide: FeeSide,
-            cancelled: Boolean
+            cancelled: Boolean,
+            start: Long?,
+            end: Long?
         ): EthUInt256 {
-            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !isAlive(start, end)) {
                 return EthUInt256.ZERO
             }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
@@ -170,6 +183,13 @@ data class Order(
                 OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> minOf(make, roundedMakeBalance)
                 OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
             }
+        }
+
+        private fun isAlive(start: Long?, end: Long?): Boolean {
+            val now = Instant.now().toEpochMilli()
+            val started = start?.let { it < now } ?: true
+            val alive = end?.let { it > now } ?: true
+            return started && alive
         }
 
         private fun calculateRemaining(
@@ -481,6 +501,24 @@ val AssetType.token: Address
             is EthAssetType -> Address.ZERO()
         }
     }
+
+val AssetType.tokenId: EthUInt256?
+    get() {
+        return when (this) {
+            is Erc721AssetType -> tokenId
+            is Erc1155AssetType -> tokenId
+            is Erc1155LazyAssetType -> tokenId
+            is Erc721LazyAssetType -> tokenId
+            is CryptoPunksAssetType -> tokenId
+            is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType -> null
+        }
+    }
+
+val Order.makeNftItemId: ItemId?
+    get() = make.type.tokenId?.let { ItemId(make.type.token, it.value) }
+
+val Order.takeNftItemId: ItemId?
+    get() = take.type.tokenId?.let { ItemId(take.type.token, it.value) }
 
 /**
  * All on-chain CryptoPunks orders have salt = 0.

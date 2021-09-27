@@ -49,12 +49,12 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         val sort = ActivitySortDto.LATEST_FIRST
 
         val types = listOf(
-            ActivityFilterAllDto.Types.TRANSFER,
-            ActivityFilterAllDto.Types.MINT,
-            ActivityFilterAllDto.Types.BURN,
-            ActivityFilterAllDto.Types.SELL,
-            ActivityFilterAllDto.Types.BID,
-            ActivityFilterAllDto.Types.LIST
+            ActivityFilterAllTypeDto.TRANSFER,
+            ActivityFilterAllTypeDto.MINT,
+            ActivityFilterAllTypeDto.BURN,
+            ActivityFilterAllTypeDto.SELL,
+            ActivityFilterAllTypeDto.BID,
+            ActivityFilterAllTypeDto.LIST
         )
         val nftFilter = NftActivityFilterAllDto(
             listOf(
@@ -99,12 +99,8 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         )
 
         val result =
-            nftOrderActivityControllerApi.getNftOrderAllActivities(
-                types.map { it.name },
-                filterContinuation,
-                filterSize,
-                sort
-            ).awaitFirst()
+            nftOrderActivityControllerApi
+                .getNftOrderAllActivities(types, filterContinuation, filterSize, sort).awaitFirst()
         assertThat(result.items).hasSize(8)
         assertThat(result.continuation).isEqualTo(ContinuationMapper.toString(nftActivity4))
         assertThat(result.items).containsExactly(
@@ -129,12 +125,12 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         val tokenId = (1..1000).random().toBigInteger()
 
         val types = listOf(
-            ActivityFilterByItemDto.Types.TRANSFER,
-            ActivityFilterByItemDto.Types.MINT,
-            ActivityFilterByItemDto.Types.BURN,
-            ActivityFilterByItemDto.Types.MATCH,
-            ActivityFilterByItemDto.Types.BID,
-            ActivityFilterByItemDto.Types.LIST
+            ActivityFilterByItemTypeDto.TRANSFER,
+            ActivityFilterByItemTypeDto.MINT,
+            ActivityFilterByItemTypeDto.BURN,
+            ActivityFilterByItemTypeDto.MATCH,
+            ActivityFilterByItemTypeDto.BID,
+            ActivityFilterByItemTypeDto.LIST
         )
         val nftFilter = NftActivityFilterByItemDto(
             token,
@@ -183,7 +179,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
 
         val result =
             nftOrderActivityControllerApi.getNftOrderActivitiesByItem(
-                types.map { it.name },
+                types,
                 token.hex(),
                 tokenId.toString(),
                 filterContinuation,
@@ -213,12 +209,12 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         val token = Address.FOUR()
 
         val types = listOf(
-            ActivityFilterByCollectionDto.Types.TRANSFER,
-            ActivityFilterByCollectionDto.Types.MINT,
-            ActivityFilterByCollectionDto.Types.BURN,
-            ActivityFilterByCollectionDto.Types.MATCH,
-            ActivityFilterByCollectionDto.Types.BID,
-            ActivityFilterByCollectionDto.Types.LIST
+            ActivityFilterByCollectionTypeDto.TRANSFER,
+            ActivityFilterByCollectionTypeDto.MINT,
+            ActivityFilterByCollectionTypeDto.BURN,
+            ActivityFilterByCollectionTypeDto.MATCH,
+            ActivityFilterByCollectionTypeDto.BID,
+            ActivityFilterByCollectionTypeDto.LIST
         )
         val nftFilter = NftActivityFilterByCollectionDto(
             token,
@@ -265,7 +261,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
 
         val result =
             nftOrderActivityControllerApi.getNftOrderActivitiesByCollection(
-                types.map { it.name },
+                types,
                 token.hex(),
                 filterContinuation,
                 filterSize,
@@ -295,15 +291,15 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         val user = listOf(Address.FOUR(), Address.ONE())
 
         val types = listOf(
-            ActivityFilterByUserDto.Types.TRANSFER_TO,
-            ActivityFilterByUserDto.Types.TRANSFER_FROM,
-            ActivityFilterByUserDto.Types.MINT,
-            ActivityFilterByUserDto.Types.BURN,
-            ActivityFilterByUserDto.Types.GET_BID,
-            ActivityFilterByUserDto.Types.MAKE_BID,
-            ActivityFilterByUserDto.Types.SELL,
-            ActivityFilterByUserDto.Types.BUY,
-            ActivityFilterByUserDto.Types.LIST
+            ActivityFilterByUserTypeDto.TRANSFER_TO,
+            ActivityFilterByUserTypeDto.TRANSFER_FROM,
+            ActivityFilterByUserTypeDto.MINT,
+            ActivityFilterByUserTypeDto.BURN,
+            ActivityFilterByUserTypeDto.GET_BID,
+            ActivityFilterByUserTypeDto.MAKE_BID,
+            ActivityFilterByUserTypeDto.SELL,
+            ActivityFilterByUserTypeDto.BUY,
+            ActivityFilterByUserTypeDto.LIST
         )
         val nftFilter = NftActivityFilterByUserDto(
             user,
@@ -353,7 +349,7 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
 
         val result =
             nftOrderActivityControllerApi.getNftOrderActivitiesByUser(
-                types.map { it.name },
+                types,
                 user,
                 filterContinuation,
                 filterSize,

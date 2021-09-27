@@ -4,9 +4,9 @@ import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import com.rarible.protocol.nftorder.core.service.OwnershipService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
+internal class OwnershipEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     private lateinit var ownershipEventHandler: OwnershipEventHandler
@@ -45,9 +45,11 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
     fun `update event - existing ownership updated`() = runWithKafka {
         val itemId = randomItemId()
         val bestSell = randomLegacyOrderDto(itemId)
-        val ownership = randomOwnership(itemId).copy(bestSellOrder = bestSell)
+        val ownership = randomOwnership(itemId).copy(bestSellOrder = ShortOrderConverter.convert(bestSell))
 
         ownershipService.save(ownership)
+
+        orderControllerApiMock.mockGetById(bestSell)
 
         val ownershipDto = randomNftOwnershipDto(ownership.id)
         ownershipEventHandler.handle(createOwnershipUpdateEvent(ownershipDto))
@@ -56,7 +58,7 @@ internal class OwnershipEventHandlerIt : AbstractIntegrationTest() {
 
         // Entity should be completely replaced by update data, except enrich data - it should be the same
         assertOwnershipAndNftDtoEquals(updated, ownershipDto)
-        assertThat(updated.bestSellOrder).isEqualTo(bestSell)
+        assertThat(updated.bestSellOrder).isEqualTo(ShortOrderConverter.convert(bestSell))
         Wait.waitAssert {
             assertThat(ownershipEvents).hasSize(1)
             assertUpdateOwnershipEvent(ownership.id, ownershipEvents!![0])

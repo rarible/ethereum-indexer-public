@@ -1,8 +1,10 @@
 package com.rarible.protocol.order.listener.integration
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.dto.CurrencyRateDto
+import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.every
@@ -15,7 +17,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
 import scalether.transaction.MonoTransactionPoller
-import java.time.Instant
 
 @TestConfiguration
 class TestPropertiesConfiguration {
@@ -39,14 +40,20 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedCurrencyApi() = object : CurrencyControllerApi() {
-        override fun getCurrencyRate(blockchain: String?, address: String?, at: Long?) =
-            CurrencyRateDto(
+    fun mockedCurrencyApi(): CurrencyControllerApi {
+        return mockk {
+            every { getCurrencyRate(any(), any(), any()) } returns CurrencyRateDto(
                 "test",
                 "usd",
                 ETH_CURRENCY_RATE,
-                Instant.ofEpochMilli(at!!)
+                nowMillis()
             ).toMono()
+        }
+    }
+
+    @Bean
+    @Primary
+    fun mockAssetMakeBalanceProvider(): AssetMakeBalanceProvider = mockk {
     }
 
     companion object {

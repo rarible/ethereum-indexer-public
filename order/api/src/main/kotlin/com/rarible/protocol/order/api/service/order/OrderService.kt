@@ -2,16 +2,15 @@ package com.rarible.protocol.order.api.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.exceptions.IncorrectOrderDataException
-import com.rarible.protocol.order.api.exceptions.LazyItemNotFoundException
-import com.rarible.protocol.order.api.exceptions.OrderNotFoundException
+import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.misc.data
-import com.rarible.protocol.order.api.service.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.order.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -19,6 +18,7 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
@@ -70,11 +70,15 @@ class OrderService(
 
     suspend fun get(hash: Word): Order {
         return orderRepository.findById(hash)
-            ?: throw OrderNotFoundException(hash)
+            ?: throw EntityNotFoundApiException("Order", hash)
+    }
+
+    fun getAll(hashes: List<Word>): Flow<Order> {
+        return orderRepository.findAll(hashes)
     }
 
     suspend fun updateMakeStock(hash: Word): Order =
-        orderUpdateService.updateMakeStock(hash) ?: throw OrderNotFoundException(hash)
+        orderUpdateService.updateMakeStock(hash) ?: throw EntityNotFoundApiException("Order", hash)
 
     suspend fun findOrders(filter: OrderFilter?, legacyFilter: OrderFilterDto, size: Int, continuation: String?): List<Order> {
         return if (filter != null) orderRepository.search(filter) else orderRepository.search(legacyFilter.toCriteria(continuation, size))
@@ -102,13 +106,13 @@ class OrderService(
                             lazy.signatures
                         )
                     }
-                    is LazyErc1155Dto -> throw IncorrectOrderDataException("lazy nft is of type ERC1155, not ERC721")
+                    is LazyErc1155Dto -> throw OrderDataException("lazy nft is of type ERC1155, not ERC721")
                     else -> assetType
                 }
             }
             is Erc1155AssetType -> {
                 when (val lazy = getLazyNft(assetType.token, assetType.tokenId)) {
-                    is LazyErc721Dto -> throw IncorrectOrderDataException("lazy nft is of type ERC721, not ERC1155")
+                    is LazyErc721Dto -> throw OrderDataException("lazy nft is of type ERC721, not ERC1155")
                     is LazyErc1155Dto -> {
                         Erc1155LazyAssetType(
                             lazy.contract,
@@ -132,7 +136,7 @@ class OrderService(
         val lazySupply = nftItemApiService.getNftItemById(itemId)?.lazySupply ?: BigInteger.ZERO
 
         return if (lazySupply > BigInteger.ZERO) {
-            nftItemApiService.getNftLazyItemById(itemId) ?: throw LazyItemNotFoundException(itemId)
+            nftItemApiService.getNftLazyItemById(itemId) ?: throw EntityNotFoundApiException("Lazy Item", itemId)
         } else {
             return null
         }

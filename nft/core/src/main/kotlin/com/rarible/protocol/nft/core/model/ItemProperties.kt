@@ -8,7 +8,18 @@ data class ItemProperties(
     val imageBig: String?,
     val animationUrl: String? = null,
     val attributes: List<ItemAttribute>
-)
+) {
+    companion object {
+        val EMPTY = ItemProperties(
+            name = "Untitled",
+            description = null,
+            image = null,
+            imagePreview = null,
+            imageBig = null,
+            attributes = listOf()
+        )
+    }
+}
 
 data class ItemAttribute(
     val key: String,

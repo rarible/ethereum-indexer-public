@@ -4,9 +4,9 @@ import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
-import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import org.assertj.core.api.Assertions.assertThat
@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-internal class ItemEventHandlerIt : AbstractIntegrationTest() {
+internal class ItemEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     private lateinit var itemEventHandler: ItemEventHandler
@@ -46,8 +46,14 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
         val bestSell = randomLegacyOrderDto(itemId)
         val bestBid = randomLegacyOrderDto(itemId)
 
-        val item = randomItem(itemId).copy(bestSellOrder = bestSell, bestBidOrder = bestBid, unlockable = true)
+        val item = randomItem(itemId).copy(
+            bestSellOrder = ShortOrderConverter.convert(bestSell),
+            bestBidOrder = ShortOrderConverter.convert(bestBid),
+            unlockable = true
+        )
+
         itemService.save(item)
+        orderControllerApiMock.mockGetById(bestSell, bestBid)
 
         val nftItemDto = randomNftItemDto(itemId)
         itemEventHandler.handle(createItemUpdateEvent(nftItemDto))
@@ -57,8 +63,8 @@ internal class ItemEventHandlerIt : AbstractIntegrationTest() {
         // Entity should be completely replaced by update data, except enrich data - it should be the same
         assertItemAndDtoEquals(created, nftItemDto)
         assertThat(created.unlockable).isTrue()
-        assertThat(created.bestSellOrder).isEqualTo(bestSell)
-        assertThat(created.bestBidOrder).isEqualTo(bestBid)
+        assertThat(created.bestSellOrder).isEqualTo(ShortOrderConverter.convert(bestSell))
+        assertThat(created.bestBidOrder).isEqualTo(ShortOrderConverter.convert(bestBid))
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
             assertUpdateItemEvent(itemId, itemEvents!![0])

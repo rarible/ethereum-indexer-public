@@ -7,24 +7,21 @@ import com.rarible.protocol.dto.NftOrderItemUpdateEventDto
 import com.rarible.protocol.nftorder.core.event.ItemEvent
 import com.rarible.protocol.nftorder.core.event.ItemEventDelete
 import com.rarible.protocol.nftorder.core.event.ItemEventUpdate
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object ItemEventToDtoConverter : Converter<ItemEvent, NftOrderItemEventDto> {
+object ItemEventToDtoConverter {
 
-    override fun convert(source: ItemEvent): NftOrderItemEventDto {
+    fun convert(source: ItemEvent): NftOrderItemEventDto {
         return when (source) {
             is ItemEventUpdate -> NftOrderItemUpdateEventDto(
-                source.id,
-                source.item.id.decimalStringValue,
-                ItemToDtoConverter.convert(source.item)
+                eventId = source.id,
+                itemId = source.item.id,
+                item = source.item
             )
             is ItemEventDelete -> {
                 NftOrderItemDeleteEventDto(
-                    source.id,
-                    source.itemId.decimalStringValue,
-                    NftOrderDeletedItemDto(
+                    eventId = source.id,
+                    itemId = source.itemId.decimalStringValue,
+                    item = NftOrderDeletedItemDto(
                         id = source.itemId.stringValue,
                         token = source.itemId.token,
                         tokenId = source.itemId.tokenId.value
@@ -33,5 +30,4 @@ object ItemEventToDtoConverter : Converter<ItemEvent, NftOrderItemEventDto> {
             }
         }
     }
-
 }

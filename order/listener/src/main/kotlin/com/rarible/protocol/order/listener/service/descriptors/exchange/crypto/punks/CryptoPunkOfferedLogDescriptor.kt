@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -62,29 +63,25 @@ class CryptoPunkOfferedLogDescriptor(
         val sellerAddress = transactionTrace.from
         val make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(minPrice))
+        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
         val sellOrderHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
         return listOf(
             OnChainOrder(
-                OrderVersion(
-                    hash = sellOrderHash,
-                    maker = sellerAddress,
-                    taker = grantedBuyer,
-                    make = make,
-                    take = take,
-                    type = OrderType.CRYPTO_PUNKS,
+                hash = sellOrderHash,
+                maker = sellerAddress,
+                taker = grantedBuyer,
+                make = make,
+                take = take,
+                orderType = OrderType.CRYPTO_PUNKS,
 
-                    salt = CRYPTO_PUNKS_SALT,
-                    start = null,
-                    end = null,
-                    data = OrderCryptoPunksData,
-                    signature = null,
-                    createdAt = date,
-                    platform = Platform.CRYPTO_PUNKS,
-                    makePriceUsd = null,
-                    takePriceUsd = null,
-                    makeUsd = null,
-                    takeUsd = null
-                ).run { priceUpdateService.withUpdatedUsdPrices(this) }
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                data = OrderCryptoPunksData,
+                signature = null,
+                createdAt = date,
+                platform = Platform.CRYPTO_PUNKS,
+                priceUsd = usdValue?.makePriceUsd ?: usdValue?.takePriceUsd
             )
         )
     }

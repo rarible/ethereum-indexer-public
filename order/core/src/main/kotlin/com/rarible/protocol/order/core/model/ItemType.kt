@@ -18,8 +18,7 @@ enum class ItemType(
     ON_CHAIN_ORDER(
         topic = setOf(
             PunkOfferedEvent.id(),
-            PunkBidEnteredEvent.id(),
-            PunkBoughtEvent.id()
+            PunkBidEnteredEvent.id()
         )
     ),
     ORDER_SIDE_MATCH(

@@ -1,9 +1,6 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.NftAssetType
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.*
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 
@@ -74,6 +71,12 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION: Index = Index()
+        .on("${OrderVersion::onChainOrderKey.name}.${LogEventKey::databaseKey.name}", Sort.Direction.ASC)
+        .sparse()
+        .unique()
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_BID_DEFINITION,
         ALL_LIST_DEFINITION,
@@ -84,6 +87,7 @@ internal object OrderVersionRepositoryIndexes {
         ITEM_LIST_DEFINITION,
         ITEM_BID_DEFINITION,
         ITEM_TAKE_PRICE_BID_DEFINITION,
-        HASH_AND_ID_DEFINITION
+        HASH_AND_ID_DEFINITION,
+        ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION
     )
 }

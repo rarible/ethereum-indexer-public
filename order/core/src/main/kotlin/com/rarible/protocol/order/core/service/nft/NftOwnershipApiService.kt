@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.core.service.nft
 
-import com.rarible.protocol.client.exception.ProtocolApiResponseException
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -16,13 +14,6 @@ class NftOwnershipApiService(
     suspend fun getOwnershipById(ownershipId: String): NftOwnershipDto? {
         return try {
             nftOwnershipControllerApi.getNftOwnershipById(ownershipId).awaitFirstOrNull()
-        } catch (ex: ProtocolApiResponseException) {
-            val data = ex.responseObject
-            if (data is NftIndexerApiErrorDto && data.status == 404) {
-                return null
-            } else {
-                throw ex
-            }
         } catch (ex: WebClientResponseException) {
             if (ex.statusCode == HttpStatus.NOT_FOUND) {
                 null

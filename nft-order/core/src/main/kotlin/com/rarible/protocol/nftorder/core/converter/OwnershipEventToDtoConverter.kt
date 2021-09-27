@@ -7,23 +7,20 @@ import com.rarible.protocol.dto.NftOrderOwnershipUpdateEventDto
 import com.rarible.protocol.nftorder.core.event.OwnershipEvent
 import com.rarible.protocol.nftorder.core.event.OwnershipEventDelete
 import com.rarible.protocol.nftorder.core.event.OwnershipEventUpdate
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 
-@Component
-object OwnershipEventToDtoConverter : Converter<OwnershipEvent, NftOrderOwnershipEventDto> {
+object OwnershipEventToDtoConverter {
 
-    override fun convert(source: OwnershipEvent): NftOrderOwnershipEventDto {
+    fun convert(source: OwnershipEvent): NftOrderOwnershipEventDto {
         return when (source) {
             is OwnershipEventUpdate -> NftOrderOwnershipUpdateEventDto(
-                source.id,
-                source.ownership.id.decimalStringValue,
-                OwnershipToDtoConverter.convert(source.ownership)
+                eventId = source.id,
+                ownershipId = source.ownership.id,
+                ownership = source.ownership
             )
             is OwnershipEventDelete -> NftOrderOwnershipDeleteEventDto(
-                source.id,
-                source.ownershipId.decimalStringValue,
-                NftOrderDeletedOwnershipDto(
+                eventId = source.id,
+                ownershipId = source.ownershipId.decimalStringValue,
+                ownership = NftOrderDeletedOwnershipDto(
                     id = source.ownershipId.stringValue,
                     owner = source.ownershipId.owner,
                     token = source.ownershipId.token,

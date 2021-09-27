@@ -25,7 +25,7 @@
     </distributionManagement>
 
     <properties>
-        <revision>1.14.3</revision>
+        <revision>1.15-SNAPSHOT</revision>
         <nexus.maven.public>http://nexus.rarible.int/repository/maven-public</nexus.maven.public>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -35,11 +35,17 @@
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible-core.version>1.3-SNAPSHOT</rarible-core.version>
-        <rarible-ethereum.version>1.1.1</rarible-ethereum.version>
+        <rarible-core.version>1.3.4</rarible-core.version>
+        <rarible-ethereum.version>1.1.3</rarible-ethereum.version>
+        <rarible-currency.version>1.2.4</rarible-currency.version>
+
         <dev-jna.version>5.7.0</dev-jna.version>
 
         <!-- ============== Plugin versions ============== -->
+        <version.model.generator>1.2.5</version.model.generator>
+        <version.client.generator>1.1.4</version.client.generator>
+        <version.server.generator>1.0.1</version.server.generator>
+
         <version.plugin.clean>3.1.0</version.plugin.clean>
         <version.plugin.source>3.2.1</version.plugin.source>
         <version.plugin.compiler>3.5.1</version.plugin.compiler>
@@ -66,6 +72,18 @@
                 <version>${rarible-ethereum.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- ============ External dependencies ============ -->
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-client-currency-starter</artifactId>
+                <version>${rarible-currency.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-currency</artifactId>
+                <version>${rarible-currency.version}</version>
             </dependency>
 
             <!-- ============ Internal dependencies ============ -->
@@ -127,11 +145,6 @@
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-client-erc20-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-currency-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

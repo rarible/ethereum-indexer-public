@@ -1,20 +1,20 @@
 package com.rarible.protocol.nftorder.core.converter
 
 import com.rarible.protocol.dto.*
-import org.springframework.core.convert.converter.Converter
 
-object ActivityFilterDtoToOrderDtoConverter : Converter<ActivityFilterDto, OrderActivityFilterDto> {
-    override fun convert(source: ActivityFilterDto): OrderActivityFilterDto? {
+object ActivityFilterDtoToOrderDtoConverter {
+
+    fun convert(source: ActivityFilterDto): OrderActivityFilterDto? {
         return when (source) {
             is ActivityFilterAllDto -> {
                 val orderTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterAllDto.Types.BID -> OrderActivityFilterAllDto.Types.BID
-                        ActivityFilterAllDto.Types.LIST -> OrderActivityFilterAllDto.Types.LIST
-                        ActivityFilterAllDto.Types.SELL -> OrderActivityFilterAllDto.Types.MATCH
-                        ActivityFilterAllDto.Types.TRANSFER,
-                        ActivityFilterAllDto.Types.MINT,
-                        ActivityFilterAllDto.Types.BURN -> null
+                        ActivityFilterAllTypeDto.BID -> OrderActivityFilterAllDto.Types.BID
+                        ActivityFilterAllTypeDto.LIST -> OrderActivityFilterAllDto.Types.LIST
+                        ActivityFilterAllTypeDto.SELL -> OrderActivityFilterAllDto.Types.MATCH
+                        ActivityFilterAllTypeDto.TRANSFER,
+                        ActivityFilterAllTypeDto.MINT,
+                        ActivityFilterAllTypeDto.BURN -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterAllDto(orderTypes) else null
@@ -22,12 +22,12 @@ object ActivityFilterDtoToOrderDtoConverter : Converter<ActivityFilterDto, Order
             is ActivityFilterByCollectionDto -> {
                 val orderTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByCollectionDto.Types.BID -> OrderActivityFilterByCollectionDto.Types.BID
-                        ActivityFilterByCollectionDto.Types.LIST -> OrderActivityFilterByCollectionDto.Types.LIST
-                        ActivityFilterByCollectionDto.Types.MATCH -> OrderActivityFilterByCollectionDto.Types.MATCH
-                        ActivityFilterByCollectionDto.Types.TRANSFER,
-                        ActivityFilterByCollectionDto.Types.MINT,
-                        ActivityFilterByCollectionDto.Types.BURN -> null
+                        ActivityFilterByCollectionTypeDto.BID -> OrderActivityFilterByCollectionDto.Types.BID
+                        ActivityFilterByCollectionTypeDto.LIST -> OrderActivityFilterByCollectionDto.Types.LIST
+                        ActivityFilterByCollectionTypeDto.MATCH -> OrderActivityFilterByCollectionDto.Types.MATCH
+                        ActivityFilterByCollectionTypeDto.TRANSFER,
+                        ActivityFilterByCollectionTypeDto.MINT,
+                        ActivityFilterByCollectionTypeDto.BURN -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterByCollectionDto(source.contract, orderTypes) else null
@@ -35,12 +35,12 @@ object ActivityFilterDtoToOrderDtoConverter : Converter<ActivityFilterDto, Order
             is ActivityFilterByItemDto -> {
                 val orderTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByItemDto.Types.BID -> OrderActivityFilterByItemDto.Types.BID
-                        ActivityFilterByItemDto.Types.LIST -> OrderActivityFilterByItemDto.Types.LIST
-                        ActivityFilterByItemDto.Types.MATCH -> OrderActivityFilterByItemDto.Types.MATCH
-                        ActivityFilterByItemDto.Types.TRANSFER,
-                        ActivityFilterByItemDto.Types.MINT,
-                        ActivityFilterByItemDto.Types.BURN -> null
+                        ActivityFilterByItemTypeDto.BID -> OrderActivityFilterByItemDto.Types.BID
+                        ActivityFilterByItemTypeDto.LIST -> OrderActivityFilterByItemDto.Types.LIST
+                        ActivityFilterByItemTypeDto.MATCH -> OrderActivityFilterByItemDto.Types.MATCH
+                        ActivityFilterByItemTypeDto.TRANSFER,
+                        ActivityFilterByItemTypeDto.MINT,
+                        ActivityFilterByItemTypeDto.BURN -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterByItemDto(
@@ -52,15 +52,15 @@ object ActivityFilterDtoToOrderDtoConverter : Converter<ActivityFilterDto, Order
             is ActivityFilterByUserDto -> {
                 val nftTypes = source.types.mapNotNull { type ->
                     when (type) {
-                        ActivityFilterByUserDto.Types.MAKE_BID -> OrderActivityFilterByUserDto.Types.MAKE_BID
-                        ActivityFilterByUserDto.Types.GET_BID -> OrderActivityFilterByUserDto.Types.GET_BID
-                        ActivityFilterByUserDto.Types.BUY -> OrderActivityFilterByUserDto.Types.BUY
-                        ActivityFilterByUserDto.Types.LIST -> OrderActivityFilterByUserDto.Types.LIST
-                        ActivityFilterByUserDto.Types.SELL -> OrderActivityFilterByUserDto.Types.SELL
-                        ActivityFilterByUserDto.Types.TRANSFER_FROM,
-                        ActivityFilterByUserDto.Types.TRANSFER_TO,
-                        ActivityFilterByUserDto.Types.MINT,
-                        ActivityFilterByUserDto.Types.BURN -> null
+                        ActivityFilterByUserTypeDto.MAKE_BID -> OrderActivityFilterByUserDto.Types.MAKE_BID
+                        ActivityFilterByUserTypeDto.GET_BID -> OrderActivityFilterByUserDto.Types.GET_BID
+                        ActivityFilterByUserTypeDto.BUY -> OrderActivityFilterByUserDto.Types.BUY
+                        ActivityFilterByUserTypeDto.LIST -> OrderActivityFilterByUserDto.Types.LIST
+                        ActivityFilterByUserTypeDto.SELL -> OrderActivityFilterByUserDto.Types.SELL
+                        ActivityFilterByUserTypeDto.TRANSFER_FROM,
+                        ActivityFilterByUserTypeDto.TRANSFER_TO,
+                        ActivityFilterByUserTypeDto.MINT,
+                        ActivityFilterByUserTypeDto.BURN -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) OrderActivityFilterByUserDto(source.users, nftTypes) else null

@@ -4,7 +4,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.LegacyOrderFormDto
-import com.rarible.protocol.dto.OpenSeaV1OrderFormDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.RaribleV2OrderFormDto
 import com.rarible.protocol.order.api.data.createOrder
@@ -41,6 +40,13 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
     fun createOrder(maker: Address) = createOrder(
         maker,
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    )
+
+    fun createOrder(maker: Address, start: Long?, end: Long?) = createOrder(
+        maker = maker,
+        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        start = start,
+        end = end
     )
 
     fun createOpenSeaOrder(maker: Address) = createOpenSeaOrder(
@@ -135,7 +141,6 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         return when (this) {
             is LegacyOrderFormDto -> copy(signature = signature)
             is RaribleV2OrderFormDto -> copy(signature = signature)
-            is OpenSeaV1OrderFormDto -> copy(signature = signature)
         }
     }
 
@@ -144,7 +149,6 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         val data = when (this) {
             is LegacyOrderFormDto -> data
             is RaribleV2OrderFormDto -> data
-            is OpenSeaV1OrderFormDto -> data
         }
         val hash = Order.hash(
             maker,
@@ -160,7 +164,6 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         return when (this) {
             is LegacyOrderFormDto -> copy(signature = CommonSigner().hashToSign(hash).sign(privateKey))
             is RaribleV2OrderFormDto -> copy(signature = eip712Domain.hashToSign(hash).sign(privateKey))
-            is OpenSeaV1OrderFormDto -> copy(signature = CommonSigner().openSeaHashToSign(hash).sign(privateKey))
         }
     }
 }

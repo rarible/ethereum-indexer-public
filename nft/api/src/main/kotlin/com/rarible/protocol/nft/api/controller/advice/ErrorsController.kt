@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.api.controller.advice
 
-import com.rarible.protocol.dto.NftIndexerApiErrorDto
-import com.rarible.protocol.nft.api.exceptions.IndexerApiException
+import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
+import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
+import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
 import com.rarible.protocol.nft.core.model.IncorrectItemFormat
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
@@ -17,27 +18,20 @@ import org.springframework.web.server.ServerWebInputException
 class ErrorsController {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    @ExceptionHandler(IndexerApiException::class)
-    fun handleIndexerApiException(ex: IndexerApiException) = mono {
-        logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
-
-        val error = NftIndexerApiErrorDto(
-            status = ex.status.value(),
-            code = ex.code,
-            message = ex.message ?: MISSING_MESSAGE
-        )
-        ResponseEntity.status(ex.status).body(error)
+    @ExceptionHandler(NftIndexerApiException::class)
+    fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
+        logger.warn("Indexer API error while handle request: {}", ex.message)
+        ResponseEntity.status(ex.status).body(ex.data)
     }
 
     @ExceptionHandler(ServerWebInputException::class)
     fun handleServerWebInputException(ex: ServerWebInputException) = mono {
-        logWithNecessaryLevel(ex.status, ex, INDEXER_API_ERROR)
-
-        val error = NftIndexerApiErrorDto(
-            status = ex.status.value(),
-            code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
+        // For ServerWebInputException status is always 400
+        val error = EthereumApiErrorBadRequestDto(
+            code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
         )
+        logger.warn("Web input error: {}", error.message)
         ResponseEntity.status(ex.status).body(error)
     }
 
@@ -46,43 +40,32 @@ class ErrorsController {
     fun handlerConversionFailedException(ex: ConversionFailedException) = mono {
         when (ex.cause) {
             is IncorrectItemFormat -> {
-                logWithNecessaryLevel(HttpStatus.BAD_REQUEST, ex, INDEXER_API_ERROR)
-                NftIndexerApiErrorDto(
-                    status = HttpStatus.BAD_REQUEST.value(),
-                    code = NftIndexerApiErrorDto.Code.BAD_REQUEST,
-                    message = ex.cause?.message ?: MISSING_MESSAGE
+                val result = EthereumApiErrorBadRequestDto(
+                    code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
+                    message = ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
                 )
+                logger.warn("Conversion exception while handle request: {}", result.message)
+                result
             }
-            else -> logError(ex)
+            else -> logUnexpectedError(ex)
         }
     }
 
     @ExceptionHandler(Throwable::class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     fun handlerException(ex: Throwable) = mono {
-        logError(ex)
+        logUnexpectedError(ex)
     }
 
-    private fun logWithNecessaryLevel(status: HttpStatus, ex: Exception, message: String = "") {
-        when {
-            status == HttpStatus.NOT_FOUND -> logger.warn(message)
-            status.is5xxServerError -> logger.error(message, ex)
-            else -> logger.warn(message, ex)
-        }
-    }
-
-    private fun logError(ex: Throwable) {
+    private fun logUnexpectedError(ex: Throwable) {
         logger.error("System error while handling request", ex)
-
-        NftIndexerApiErrorDto(
-            status = HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            code = NftIndexerApiErrorDto.Code.UNKNOWN,
+        EthereumApiErrorServerErrorDto(
+            code = EthereumApiErrorServerErrorDto.Code.UNKNOWN,
             message = ex.message ?: "Something went wrong"
         )
     }
 
     companion object {
         const val MISSING_MESSAGE = "Missing message in error"
-        const val INDEXER_API_ERROR = "Indexer api error while handle request"
     }
 }

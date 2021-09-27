@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.request.Transaction
+import java.math.BigDecimal
 import java.math.BigInteger
 
 @IntegrationTest
@@ -213,7 +214,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                         CryptoPunksAssetTypeDto(
                             cryptoPunksMarket.address(),
                             punkIndex.toInt()
-                        ), BigInteger.ONE
+                        ), BigInteger.ONE, BigDecimal.ONE
                     ), matchActivity.left.asset
                 )
                 assertEquals(buyOrderHash, matchActivity.right.hash)
@@ -355,7 +356,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                         CryptoPunksAssetTypeDto(
                             cryptoPunksMarket.address(),
                             punkIndex.toInt()
-                        ), BigInteger.ONE
+                        ), BigInteger.ONE, BigDecimal.ONE
                     ), matchActivity.right.asset
                 )
                 assertEquals(ownerAddress, matchActivity.right.maker)

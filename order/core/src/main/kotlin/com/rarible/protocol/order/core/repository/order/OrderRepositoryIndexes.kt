@@ -114,6 +114,13 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val BY_END_START_AND_MAKE_STOCK = Index()
+        .on(Order::end.name, Sort.Direction.ASC)
+        .on(Order::start.name, Sort.Direction.ASC)
+        .on(Order::makeStock.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC) // ?
+        .background()
+
     val ALL_INDEXES = listOf(
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
@@ -135,6 +142,8 @@ object OrderRepositoryIndexes {
 
         BY_LAST_UPDATE_DEFINITION,
         BY_MAKE_STOCK_DEFINITION,
-        BY_LAST_UPDATE_AND_ID_DEFINITION
+        BY_LAST_UPDATE_AND_ID_DEFINITION,
+
+        BY_END_START_AND_MAKE_STOCK
     )
 }

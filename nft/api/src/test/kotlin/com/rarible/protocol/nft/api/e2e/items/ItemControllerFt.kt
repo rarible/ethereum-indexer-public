@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.web.reactive.function.client.WebClientResponseException
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
@@ -64,10 +64,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val itemProperties = ItemProperties(
             name = "ItemMetaName",
             description = "ItemMetaDescription",
-            image = "http://test.com/ItemMetaImage.png",
-            imagePreview = "http://test.com/ItemMetaImagePreview.bmp",
-            imageBig = "http://test.com/ItemMetaImageBig.jpeg",
-            animationUrl = "http://test.com/ItemMetaImageUrl.gif",
+            image = "http://127.0.0.1/ItemMetaImage.png",
+            imagePreview = "http://127.0.0.1/ItemMetaImagePreview.bmp",
+            imageBig = "http://t127.0.0.1/ItemMetaImageBig.jpeg",
+            animationUrl = "http://127.0.0.1/ItemMetaImageUrl.gif",
             attributes = itemAttributes
         )
 
@@ -84,7 +84,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(metaDto.image!!.url[NftMediaSizeDto.ORIGINAL.name]).isEqualTo(itemProperties.image)
         assertThat(metaDto.image!!.url[NftMediaSizeDto.BIG.name]).isEqualTo(itemProperties.imageBig)
         assertThat(metaDto.image!!.url[NftMediaSizeDto.PREVIEW.name]).isEqualTo(itemProperties.imagePreview)
-        assertThat(metaDto.image!!.meta[NftMediaSizeDto.PREVIEW.name]!!.type).isEqualTo("text/html") //TODO is it correct?
+        assertThat(metaDto.image!!.meta[NftMediaSizeDto.PREVIEW.name]).isEqualTo(null)
         assertThat(metaDto.animation!!.url[NftMediaSizeDto.ORIGINAL.name]).isEqualTo(itemProperties.animationUrl)
         assertThat(metaDto.animation!!.meta[NftMediaSizeDto.ORIGINAL.name]!!.type).isEqualTo("image/gif")
         assertThat(metaDto.attributes!![0].key).isEqualTo(itemProperties.attributes[0].key)
@@ -94,14 +94,13 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should return bad request`() = runBlocking {
+    fun `should return bad request`() = runBlocking<Unit> {
         try {
-            val result = nftItemApiClient.getNftLazyItemById("-").awaitFirst()
-        } catch (ex : WebClientResponseException.BadRequest) {
-            val dto = mapper.readValue(ex.responseBodyAsString, NftIndexerApiErrorDto::class.java)
-            assertEquals(400, dto.status)
-            assertEquals(NftIndexerApiErrorDto.Code.BAD_REQUEST, dto.code)
-            assertEquals("Incorrect format of itemId: -", dto.message)
+            nftItemApiClient.getNftLazyItemById("-").awaitFirst()
+        } catch (ex: NftItemControllerApi.ErrorGetNftLazyItemById) {
+            val dto = ex.on400
+            assertEquals(400, ex.rawStatusCode)
+            assertEquals(EthereumApiErrorBadRequestDto.Code.BAD_REQUEST, dto.code)
         }
     }
 
@@ -110,13 +109,13 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val item = createItem()
         itemRepository.save(item).awaitFirst()
 
-        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue, null).awaitFirst()
+        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst()
         assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
         assertThat(itemDto.contract).isEqualTo(item.token)
         assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
         assertThat(itemDto.supply).isEqualTo(item.supply.value)
         assertThat(itemDto.owners).isEqualTo(item.owners)
-        assertThat(itemDto.meta).isNull()
+        assertThat(itemDto.meta).isNotNull
 
         assertThat(itemDto.creators.size).isEqualTo(item.creators.size)
         itemDto.creators.forEachIndexed { index, partDto ->
@@ -129,7 +128,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             assertThat(royaltyDto.value).isEqualTo(item.royalties[index].value)
         }
 
-        val list = nftItemApiClient.getNftItemsByOwner(item.owners.first().hex(), null, null, null).awaitFirst()
+        val list = nftItemApiClient.getNftItemsByOwner(item.owners.first().hex(), null, null).awaitFirst()
         assertThat(list.items)
             .hasSize(1)
         assertThat(list.items.firstOrNull())
@@ -142,17 +141,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should get item with meta`() = runBlocking<Unit> {
-        val item = createItem()
-        itemRepository.save(item).awaitFirst()
-
-        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue, true).awaitFirst()
-        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
-        assertThat(itemDto.meta).isNotNull
-    }
-
-    @Test
-    fun `should get all items by owner`() = runBlocking<Unit> {
+    fun `should get all items by owner`() = runBlocking {
         val owner = AddressFactory.create()
         val item1 = createItem().copy(owners = listOf(owner))
         val item2 = createItem().copy(owners = listOf(owner, AddressFactory.create()))
@@ -174,7 +163,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val allItems = mutableListOf<NftItemDto>()
         var continuation: String? = null
         do {
-            val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), continuation, 2, false).awaitFirst()
+            val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), continuation, 2).awaitFirst()
             assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(2)
 
             allItems.addAll(itemsDto.items)
@@ -191,7 +180,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             item5.id.decimalStringValue
         )
         allItems.forEach {
-            assertThat(it.meta).isNull()
+            assertThat(it.meta).isNotNull
         }
     }
 
@@ -202,14 +191,14 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
         listOf(item1).forEach { itemRepository.save(it).awaitFirst() }
 
-        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 2, false).awaitFirst()
+        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 2).awaitFirst()
 
         assertNull(itemsDto.continuation)
         assertThat(itemsDto.items).hasSize(1)
     }
 
     @Test
-    fun `should get all items with meta`() = runBlocking<Unit> {
+    fun `should get all items with meta`() = runBlocking {
         val owner = AddressFactory.create()
         val item1 = createItem().copy(owners = listOf(owner))
         val item2 = createItem().copy(owners = listOf(owner))
@@ -225,7 +214,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             item5
         ).forEach { itemRepository.save(it).awaitFirst() }
 
-        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 10, true).awaitFirst()
+        val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 10).awaitFirst()
 
         assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(5)
 

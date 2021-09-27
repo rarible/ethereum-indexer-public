@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.api.controller.admin
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
 import com.rarible.protocol.nft.api.dto.TokenDto
-import com.rarible.protocol.nft.api.exceptions.TokenNotFoundException
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
 import org.springframework.http.ResponseEntity
@@ -22,7 +22,7 @@ class AdminController(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<TokenDto> {
         val token = reindexTokenService.getToken(collectionId)
-            ?: throw TokenNotFoundException(collectionId)
+            ?: throw EntityNotFoundApiException("Collection", collectionId)
         return ResponseEntity.ok().body(convert(token))
     }
 

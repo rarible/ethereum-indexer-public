@@ -1,18 +1,19 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.contracts.test.erc1271.TestERC1271
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.data.*
-import com.rarible.protocol.order.api.exceptions.IncorrectSignatureException
+import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
+import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -73,7 +74,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val (privateKey) = generateNewKeys()
         val order = createOrder(AddressFactory.create())
 
-        assertThrows<IncorrectSignatureException> {
+        assertThrows<OrderUpdateException> {
             runBlocking {
                 orderService.put(order.toForm(privateKey))
             }
@@ -188,6 +189,33 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(updated.priceHistory.size).isEqualTo(20)
         // Checking last update is on the top
         assertThat(updated.priceHistory[0].makeValue.toLong()).isEqualTo(25 * 100)
+    }
+
+    @Test
+    fun `get orders by ids`() = runBlocking<Unit> {
+        val (privateKey1, _, signer1) = generateNewKeys()
+        val (privateKey2, _, signer2) = generateNewKeys()
+
+        val order1 = createOrder(signer1)
+        val order2 = createOrder(signer2)
+
+        orderService.put(order1.toForm(privateKey1))
+        orderService.put(order2.toForm(privateKey2))
+
+        val orders = orderClient.getOrdersByIds(
+            OrderIdsDto(
+                listOf(
+                    order2.hash,
+                    Word.apply(randomWord()),
+                    order1.hash
+                )
+            )
+        ).collectList().awaitFirst()
+
+        // Non-existing Order is omitted
+        assertThat(orders).hasSize(2)
+        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order1.hash) }
+        assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order2.hash) }
     }
 
     @Test
@@ -409,6 +437,31 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     @Test
+    fun `makeStock should by 0`() = runBlocking<Unit> {
+        val (privateKey, _, maker) = generateNewKeys()
+
+        val makerErc721Contract = AddressFactory.create()
+        val makerErc721TokenId = EthUInt256.TEN
+        val makerErc721Supply = EthUInt256.of(1)
+        val erc721AssetType = Erc721AssetType(makerErc721Contract, makerErc721TokenId)
+        val nft = createNftOwnershipDto().copy(value = makerErc721Supply.value)
+
+        // order doesn't belong the current start,end interval
+        val order = createOrder(maker, Long.MAX_VALUE-1, Long.MAX_VALUE)
+            .copy(
+                maker = maker,
+                make = Asset(erc721AssetType, EthUInt256.TEN),
+                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
+            )
+
+        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker))) } returns Mono.just(nft)
+
+        val saved = orderService.put(order.toForm(privateKey))
+
+        assertThat(saved.makeStock).isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
     fun `should set erc1155 stock`() = runBlocking<Unit> {
         val (privateKey, _, maker) = generateNewKeys()
 
@@ -514,7 +567,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val signature = realOrder.toForm(privateKey).signature
 
         val itemId = "${erc721AssetType.token}:${erc721AssetType.tokenId}"
-        every { nftItemApi.getNftItemById(eq(itemId), any()) } returns
+        every { nftItemApi.getNftItemById(eq(itemId)) } returns
                 Mono.just(
                     createNftItemDto(
                         erc721AssetType.token,

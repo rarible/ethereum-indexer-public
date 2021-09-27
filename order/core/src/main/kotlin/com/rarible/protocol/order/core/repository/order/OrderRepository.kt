@@ -17,11 +17,11 @@ interface OrderRepository {
      * @see [com.rarible.protocol.order.core.service.OrderUpdateService]
      */
 
-    suspend fun save(order: Order, previousOrderVersion: Order? = null): Order
+    suspend fun save(order: Order): Order
 
     suspend fun findById(hash: Word): Order?
 
-    suspend fun findAll(hashes: Collection<Word>): List<Order>
+    fun findAll(hashes: Collection<Word>): Flow<Order>
 
     suspend fun search(query: Query): List<Order>
 
