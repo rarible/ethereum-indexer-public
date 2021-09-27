@@ -50,19 +50,19 @@ class ReindexTokenService(
         }
         val params = ReindexTokenTaskParams(standards.first(), tokens)
         checkOtherReindexTokenTasks(params)
-        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
+        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, state = fromBlock)
     }
 
-    suspend fun createReduceTokenItemsTask(tokens: Address): Task {
-        val params = ReduceTokenItemsTaskParams(tokens)
+    suspend fun createReduceTokenItemsTask(token: Address): Task {
+        val params = ReduceTokenItemsTaskParams(token)
         checkOtherTasks(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
-        return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+        return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS, state = null)
     }
 
-    suspend fun createReindexRoyaltiesTask(tokens: Address): Task {
-        val params = ReindexTokenRoyaltiesTaskParam(tokens)
+    suspend fun createReindexRoyaltiesTask(token: Address): Task {
+        val params = ReindexTokenRoyaltiesTaskParam(token)
         checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
-        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
+        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, state = null)
     }
 
     private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
@@ -83,7 +83,7 @@ class ReindexTokenService(
     private suspend fun checkOtherTasks(params: TokenTaskParam, type: String) {
         taskRepository.findByType(type).collect { task ->
             if (task.lastStatus != TaskStatus.COMPLETED) {
-                val existedToken = ReduceTokenItemsTaskParams.fromParamString(task.param).token
+                val existedToken = TokenTaskParam.fromParamString(task.param)
 
                 if (existedToken == params.token) {
                     throw IllegalArgumentException("Token $existedToken already in other task ${task.id}, type $task")
@@ -92,12 +92,12 @@ class ReindexTokenService(
         }
     }
 
-    private suspend fun saveTask(params: String, type: String): Task {
+    private suspend fun saveTask(params: String, type: String, state: Any?): Task {
         return saveTask(
             Task(
                 type = type,
                 param = params,
-                state = null,
+                state = state,
                 running = false,
                 lastStatus = TaskStatus.NONE
             )

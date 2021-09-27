@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.eto.NftCollectionDto
+import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import org.springframework.core.convert.converter.Converter

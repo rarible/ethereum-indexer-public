@@ -8,6 +8,12 @@ sealed class TokenTaskParam {
     fun toParamString(): String {
         return token.prefixed()
     }
+
+    companion object {
+        fun fromParamString(param: String): Address {
+            return Address.apply(param)
+        }
+    }
 }
 
 data class ReduceTokenItemsTaskParams(override val token: Address) : TokenTaskParam() {
@@ -15,7 +21,7 @@ data class ReduceTokenItemsTaskParams(override val token: Address) : TokenTaskPa
         const val ADMIN_REDUCE_TOKEN_ITEMS = "ADMIN_REDUCE_TOKEN_ITEMS"
 
         fun fromParamString(param: String): ReduceTokenItemsTaskParams {
-            return ReduceTokenItemsTaskParams(Address.apply(param))
+            return ReduceTokenItemsTaskParams(TokenTaskParam.fromParamString(param))
         }
     }
 }
@@ -25,7 +31,7 @@ data class ReindexTokenRoyaltiesTaskParam(override val token: Address) : TokenTa
         const val ADMIN_REINDEX_TOKEN_ROYALTIES = "ADMIN_REINDEX_TOKEN_ROYALTIES"
 
         fun fromParamString(param: String): ReindexTokenRoyaltiesTaskParam {
-            return ReindexTokenRoyaltiesTaskParam(Address.apply(param))
+            return ReindexTokenRoyaltiesTaskParam(TokenTaskParam.fromParamString(param))
         }
     }
 }
