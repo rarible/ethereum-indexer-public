@@ -10,10 +10,10 @@ import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
+import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
