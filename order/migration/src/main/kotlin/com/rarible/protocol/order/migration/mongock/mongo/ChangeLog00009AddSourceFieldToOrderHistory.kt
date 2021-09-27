@@ -4,7 +4,10 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.flow.collect
@@ -13,9 +16,10 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.exists
-import java.lang.IllegalStateException
+import org.springframework.data.mongodb.core.query.inValues
 
 @ChangeLog(order = "00009")
 class ChangeLog00009AddSourceFieldToOrderHistory {
@@ -30,10 +34,15 @@ class ChangeLog00009AddSourceFieldToOrderHistory {
         logger.info("--- Start add source field to order exchange history")
         var counter = 0L
 
-        val queue = Query().addCriteria(
-            LogEvent::data / OrderExchangeHistory::source exists false
+        val knownClasses = listOf(
+            "com.rarible.protocol.order.core.model.OrderSideMatch",
+            "com.rarible.protocol.order.core.model.OrderCancel"
         )
-        template.find(queue, LogEvent::class.java, ExchangeHistoryRepository.COLLECTION).asFlow().collect { log ->
+
+        val criteria = Criteria("data._class").inValues(knownClasses)
+            .andOperator(LogEvent::data / OrderExchangeHistory::source exists false)
+        template.find(Query().addCriteria(criteria), LogEvent::class.java, ExchangeHistoryRepository.COLLECTION)
+            .asFlow().collect { log ->
             val updatedLog = when (val data = log.data) {
                 is OrderSideMatch -> log.copy(data = data.copy(source = HistorySource.RARIBLE))
                 is OrderCancel -> log.copy(data = data.copy(source = HistorySource.RARIBLE))
