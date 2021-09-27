@@ -25,6 +25,7 @@ import org.mockito.kotlin.isA
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -46,6 +47,7 @@ import java.util.stream.Stream
 
 @Tag("manual")
 @End2EndTest
+@Disabled
 class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
 
     @Autowired
