@@ -323,4 +323,12 @@ Token ID: 51561
         assertNotNull(props)
         assertEquals(props!!.name, name)
     }
+
+    @Test
+    fun testDatetimeFromOpensea() {
+        val descriptor = OpenSeaCacheDescriptor("https://rinkeby-api.opensea.io/api/v1", "", 10000, 3000, 86400, 20000, "", null)
+        val meta = descriptor.get("0x20d34e12657b2317be1ef1384d9d54cef087dcae:26").block()!!
+        assertThat(meta.attributes).contains(ItemAttribute("Active Since", "2020-12-08T00:00:00Z", "string", "date-time"))
+        assertEquals(5, meta.attributes.size)
+    }
 }

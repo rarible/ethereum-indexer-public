@@ -124,6 +124,53 @@
           "meta": {}
         }
       }
+    },
+    {
+      "token": "0x20d34e12657b2317be1ef1384d9d54cef087dcae",
+      "tokenId": 26,
+      "contractURI": "",
+      "tokenURI": "https://gateway.pinata.cloud/ipfs/QmQT1Jnxxd4ChjXjNiEPF61vZAke7rHYGLEFK4AzMVTyiB/GatherFullMasternodeTier-1-1-0-250000_wo_image.json",
+      "name": "NFT token",
+      "data": {
+        "name": "Gather Full Masternode - Tier 1 - 250000 GTH",
+        "description": "This NFT represents the ownership of Gather Network's Full Masternode, $GTH masternode collateral is linked to the NFT. It is used as an access key to run masternode servers for Gather Cloud.",
+        "attributes": [
+          {
+            "key": "Batch Number",
+            "value": "1"
+          },
+          {
+            "key": "Masternode Number",
+            "value": "1"
+          },
+          {
+            "key": "GTH amount",
+            "value": "250000"
+          },
+          {
+            "key": "Type",
+            "value": "Full"
+          },
+          {
+            "key": "Active Since",
+            "type": "string",
+            "format": "date-time",
+            "value": "2020-12-08T00:00:00Z"
+          }
+        ],
+        "image": {
+          "url": {
+            "ORIGINAL": ""
+          },
+          "meta": {}
+        },
+        "animation": {
+          "url": {
+            "ORIGINAL": "https://gateway.pinata.cloud/ipfs/QmTJKg2n1iJ84eZrLXK9ApZJNdkaCJ3fRgCQhKGwrAwaEP/Gather%20Full%20Masternode%20Series-1.mp4"
+          },
+          "meta": {}
+        }
+      }
     }
   ]
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import scalether.domain.Address
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 
 const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
@@ -26,10 +27,22 @@ fun JsonNode.getText(vararg paths: String): String? {
 
 fun JsonNode.toProperties(): List<ItemAttribute> {
     return if (this.isArray) {
-        this.mapNotNull { it.getText("trait_type")?.let { key -> ItemAttribute(key, it.getText("value")) } }
+        this.mapNotNull { it.getText("trait_type")?.let { key -> attribute(key, it) } }
     } else {
         emptyList()
     }
+}
+
+fun attribute(key: String, node: JsonNode): ItemAttribute {
+    val format = node.getText("display_type")?.let { "date-time" }
+    val type = format?.let { "string" }
+    val value = node.getText("value")
+        ?.let {
+            if (format == "date-time" && it.toDoubleOrNull() != null)
+                Instant.ofEpochSecond(it.toDouble().toLong()).toString()
+            else it
+        }
+    return ItemAttribute(key, value, type, format)
 }
 
 fun isBase64String(data: String): Boolean {

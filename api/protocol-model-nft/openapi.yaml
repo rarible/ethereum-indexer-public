@@ -348,6 +348,10 @@ components:
           type: string
         value:
           type: string
+        type:
+          type: string
+        format:
+          type: string
     NftDeletedItem:
       required:
         - id

@@ -144,14 +144,7 @@ class PropertiesCacheDescriptor(
 
     fun attributes(node: ObjectNode): List<ItemAttribute> {
         return when {
-            !node.path("attributes").isEmpty -> {
-                val attributes = node.path("attributes")
-                when {
-                    attributes.isObject -> convertObjectAttributes(attributes.require())
-                    attributes.isArray -> convertArrayAttributes(attributes.require())
-                    else -> emptyList()
-                }
-            }
+            !node.path("attributes").isEmpty -> node.path("attributes").toProperties()
             !node.path("traits").isEmpty -> node.path("traits").toProperties()
             else -> emptyList()
         }

@@ -66,7 +66,9 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
     private fun convert(source: ItemAttribute): NftItemAttributeDto {
         return NftItemAttributeDto(
             key = source.key,
-            value = source.value
+            value = source.value,
+            type = source.type,
+            format = source.format
         )
     }
 }
