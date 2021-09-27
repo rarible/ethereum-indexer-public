@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.mongodb.client.result.UpdateResult
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
@@ -12,7 +13,9 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.*
+import reactor.core.publisher.Mono
 import scalether.domain.Address
+import java.time.Instant
 import java.util.*
 
 class MongoOrderRepository(
@@ -120,6 +123,29 @@ class MongoOrderRepository(
 
         queue.with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name))
         return template.query<Order>().matching(queue).all().asFlow()
+    }
+
+    fun resetMakeStockAfter(now: Instant): Mono<UpdateResult> {
+        val query = Query(
+            Criteria().andOperator(
+                Order::end exists true,
+                Order::end lt now.toEpochMilli()
+            )
+        )
+        return template.updateFirst(query, Update().set(Order::makeStock.name, EthUInt256.ZERO), Order::class.java)
+    }
+
+    fun findActualZeroMakeStock(now: Instant): Flow<Order> {
+        val query = Query(
+            Criteria().andOperator(
+                Order::start exists true,
+                Order::end exists true,
+                Order::start lte now.toEpochMilli(),
+                Order::end gte now.toEpochMilli(),
+                Order::makeStock isEqualTo EthUInt256.ZERO
+            )
+        )
+        return template.query<Order>().matching(query).all().asFlow()
     }
 
     private suspend fun dropIndexes(vararg names: String) {

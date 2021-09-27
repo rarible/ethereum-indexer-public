@@ -23,7 +23,9 @@ import java.math.BigInteger
 fun createOrder(
     maker: Address = AddressFactory.create(),
     taker: Address? = AddressFactory.create(),
-    make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+    start: Long? = null,
+    end: Long? = null
 ): Order {
     return Order(
         maker = maker,
@@ -35,8 +37,8 @@ fun createOrder(
         fill = EthUInt256.ZERO,
         cancelled = false,
         salt = EthUInt256.TEN,
-        start = null,
-        end = null,
+        start = start,
+        end = end,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null,
         createdAt = nowMillis(),

@@ -109,7 +109,9 @@ data class Order(
                 protocolCommission = protocolCommission,
                 cancelled = zeroWhenCancelled && cancelled,
                 orderType = type,
-                feeSide = getFeeSide(make.type, take.type)
+                feeSide = getFeeSide(make.type, take.type),
+                start = start,
+                end = end
             )
         )
     }
@@ -162,9 +164,11 @@ data class Order(
             protocolCommission: EthUInt256,
             orderType: OrderType,
             feeSide: FeeSide,
-            cancelled: Boolean
+            cancelled: Boolean,
+            start: Long?,
+            end: Long?
         ): EthUInt256 {
-            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !isAlive(start, end)) {
                 return EthUInt256.ZERO
             }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
@@ -179,6 +183,13 @@ data class Order(
                 OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> minOf(make, roundedMakeBalance)
                 OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
             }
+        }
+
+        private fun isAlive(start: Long?, end: Long?): Boolean {
+            val now = Instant.now().toEpochMilli()
+            val started = start?.let { it < now } ?: true
+            val alive = end?.let { it > now } ?: true
+            return started && alive
         }
 
         private fun calculateRemaining(

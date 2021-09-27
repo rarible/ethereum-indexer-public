@@ -10,10 +10,10 @@ import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
+import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -434,6 +434,31 @@ class OrderServiceIt : AbstractOrderIt() {
         val saved = orderService.put(order.toForm(privateKey))
 
         assertThat(saved.makeStock).isEqualTo(makerErc721Supply)
+    }
+
+    @Test
+    fun `makeStock should by 0`() = runBlocking<Unit> {
+        val (privateKey, _, maker) = generateNewKeys()
+
+        val makerErc721Contract = AddressFactory.create()
+        val makerErc721TokenId = EthUInt256.TEN
+        val makerErc721Supply = EthUInt256.of(1)
+        val erc721AssetType = Erc721AssetType(makerErc721Contract, makerErc721TokenId)
+        val nft = createNftOwnershipDto().copy(value = makerErc721Supply.value)
+
+        // order doesn't belong the current start,end interval
+        val order = createOrder(maker, Long.MAX_VALUE-1, Long.MAX_VALUE)
+            .copy(
+                maker = maker,
+                make = Asset(erc721AssetType, EthUInt256.TEN),
+                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
+            )
+
+        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker))) } returns Mono.just(nft)
+
+        val saved = orderService.put(order.toForm(privateKey))
+
+        assertThat(saved.makeStock).isEqualTo(EthUInt256.ZERO)
     }
 
     @Test
