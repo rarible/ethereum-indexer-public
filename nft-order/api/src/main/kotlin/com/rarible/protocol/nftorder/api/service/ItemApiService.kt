@@ -1,33 +1,32 @@
 package com.rarible.protocol.nftorder.api.service
 
-import com.rarible.core.common.convert
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
-import com.rarible.protocol.nftorder.core.model.ExtendedItem
+import com.rarible.protocol.nftorder.core.converter.ItemToDtoConverter
+import com.rarible.protocol.nftorder.core.converter.NftItemDtoToNftOrderItemDtoConverter
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
+import com.rarible.protocol.nftorder.core.service.OrderService
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
 class ItemApiService(
-    private val conversionService: ConversionService,
     private val nftItemControllerApi: NftItemControllerApi,
-    private val itemService: ItemService
+    private val itemService: ItemService,
+    private val orderService: OrderService
 ) {
 
     private val logger = LoggerFactory.getLogger(ItemApiService::class.java)
 
     suspend fun getItemById(itemId: ItemId): NftOrderItemDto = coroutineScope {
         logger.debug("Get item: [{}]", itemId)
-        val item = itemService.getOrFetchItemById(itemId).entity
-        val meta = itemService.fetchItemMetaById(itemId)
-        conversionService.convert<NftOrderItemDto>(ExtendedItem(item, meta))
+        val fetchedItem = itemService.getOrFetchItemById(itemId)
+        itemService.enrichItem(fetchedItem.entity, fetchedItem.original?.meta)
     }
 
     suspend fun getAllItems(
@@ -112,15 +111,25 @@ class ItemApiService(
                 .associateBy { it.id }
             logger.debug("{} enriched of {} Items found in DB", existingItems.size, items.size)
 
+            // Looking for full orders for existing items in order-indexer
+            val shortOrderIds = existingItems.values
+                .map { listOfNotNull(it.bestBidOrder?.hash, it.bestSellOrder?.hash) }
+                .flatten()
+
+            val orders = orderService.getByIds(shortOrderIds).associateBy { it.hash }
+
             val result = items.map {
                 val itemId = ItemId.parseId(it.id)
-                // Nothing to enrich, taking item we got from Nft-Indexer
-                val item = existingItems[itemId]
-                    ?.let { existingItem -> ExtendedItem(existingItem, it.meta) }
-                    ?: conversionService.convert(it)
-
-                conversionService.convert<NftOrderItemDto>(item)
+                val existingItem = existingItems[itemId]
+                if (existingItem == null) {
+                    // No enrichment data found, item proxied "as is"
+                    NftItemDtoToNftOrderItemDtoConverter.convert(it)
+                } else {
+                    // Enriched item found, using it for response
+                    ItemToDtoConverter.convert(existingItem, it.meta!!, orders)
+                }
             }
+
             NftOrderItemsPageDto(itemsResponse.continuation, result)
         }
     }

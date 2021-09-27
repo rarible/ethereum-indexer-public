@@ -1,17 +1,13 @@
 package com.rarible.protocol.nftorder.core.converter
 
-import com.rarible.protocol.dto.ItemHistoryDto
-import com.rarible.protocol.dto.ItemTransferDto
-import com.rarible.protocol.dto.NftOrderOwnershipDto
-import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemTransfer
 import com.rarible.protocol.nftorder.core.model.Ownership
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
+import io.daonomic.rpc.domain.Word
 
-@Component
-object OwnershipToDtoConverter : Converter<Ownership, NftOrderOwnershipDto> {
-    override fun convert(source: Ownership): NftOrderOwnershipDto {
+object OwnershipToDtoConverter {
+
+    fun convert(source: Ownership, orders: Map<Word, OrderDto>): NftOrderOwnershipDto {
         return NftOrderOwnershipDto(
             id = source.id.decimalStringValue,
             contract = source.contract,
@@ -21,12 +17,12 @@ object OwnershipToDtoConverter : Converter<Ownership, NftOrderOwnershipDto> {
             value = source.value.value,
             lazyValue = source.lazyValue.value,
             date = source.date,
-            pending = source.pending.map { itemHistory(it) },
-            bestSellOrder = source.bestSellOrder
+            pending = source.pending.map { convert(it) },
+            bestSellOrder = source.bestSellOrder?.let { orders[it.hash] }
         )
     }
 
-    private fun itemHistory(source: ItemTransfer): ItemHistoryDto =
+    private fun convert(source: ItemTransfer): ItemHistoryDto =
         ItemTransferDto(
             owner = source.owner,
             contract = source.token,

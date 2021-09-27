@@ -1,6 +1,6 @@
 package com.rarible.protocol.nftorder.core.event
 
-import com.rarible.protocol.nftorder.core.model.Ownership
+import com.rarible.protocol.dto.NftOrderOwnershipDto
 import com.rarible.protocol.nftorder.core.model.OwnershipId
 import java.util.*
 
@@ -11,7 +11,7 @@ sealed class OwnershipEvent(
 }
 
 data class OwnershipEventUpdate(
-    val ownership: Ownership
+    val ownership: NftOrderOwnershipDto
 ) : OwnershipEvent(OwnershipEventType.UPDATE)
 
 

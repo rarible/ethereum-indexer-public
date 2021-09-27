@@ -6,12 +6,12 @@ import com.rarible.protocol.nftorder.core.repository.OwnershipRepository
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 
-@ChangeLog(order = "00001")
-class ChangeLog00001CreateOwnershipIndices() {
+@ChangeLog(order = "99999")
+class ChangeLog99999CreateOwnershipIndices() {
 
     @ChangeSet(
         id = "ChangeLog00001CreateOwnershipIndices.createIndicesForAllCollections",
-        order = "1",
+        order = "99999",
         author = "protocol",
         runAlways = true
     )

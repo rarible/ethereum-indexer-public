@@ -6,6 +6,8 @@ import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nftorder.api.client.NftOrderOwnershipControllerApi
 import com.rarible.protocol.nftorder.api.test.AbstractFunctionalTest
 import com.rarible.protocol.nftorder.api.test.FunctionalTest
+import com.rarible.protocol.nftorder.core.converter.NftOwnershipDtoConverter
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.repository.OwnershipRepository
 import com.rarible.protocol.nftorder.core.test.data.assertOwnershipAndDtoEquals
 import com.rarible.protocol.nftorder.core.test.data.assertOwnershipDtoAndNftDtoEquals
@@ -49,14 +51,40 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
         val itemId = randomItemId()
         val ownershipId = randomOwnershipId(itemId)
         val orderDto = randomOrderDto(itemId, ownershipId.owner)
-        val ownership = randomOwnership(itemId).copy(owner = ownershipId.owner, bestSellOrder = orderDto)
+        val ownership = randomOwnership(itemId).copy(
+            owner = ownershipId.owner,
+            bestSellOrder = ShortOrderConverter.convert(orderDto)
+        )
         ownershipRepository.save(ownership)
+
+        orderControllerApiMock.mockGetById(orderDto)
 
         val result = nftOrderOwnershipControllerApi
             .getNftOrderOwnershipById(ownership.id.decimalStringValue)
             .awaitFirst()!!
 
         assertThat(result.bestSellOrder).isEqualTo(orderDto)
+        assertOwnershipAndDtoEquals(ownership, result)
+    }
+
+    @Test
+    fun `get ownership by id - synced, order not found`() = runBlocking<Unit> {
+        val itemId = randomItemId()
+        val ownershipId = randomOwnershipId(itemId)
+        val orderDto = randomOrderDto(itemId, ownershipId.owner)
+        val ownership = randomOwnership(itemId).copy(
+            owner = ownershipId.owner,
+            bestSellOrder = ShortOrderConverter.convert(orderDto)
+        )
+        ownershipRepository.save(ownership)
+
+        orderControllerApiMock.mockGetByIdNotFound(orderDto.hash)
+
+        val result = nftOrderOwnershipControllerApi
+            .getNftOrderOwnershipById(ownership.id.decimalStringValue)
+            .awaitFirst()!!
+
+        assertThat(result.bestSellOrder).isNull()
         assertOwnershipAndDtoEquals(ownership, result)
     }
 
@@ -107,7 +135,39 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
     }
 
     @Test
-    fun `get ownerships by item`() = runBlocking<Unit> {
+    fun `get ownerships by item - partially synced`() = runBlocking<Unit> {
+        val itemId = randomItemId()
+        val nftOwnership = randomNftOwnershipDto(itemId)
+        val nftOwnershipSynced = randomNftOwnershipDto(itemId)
+
+        val orderDto = randomOrderDto(itemId, nftOwnershipSynced.owner)
+        val ownershipSynced = NftOwnershipDtoConverter.convert(nftOwnershipSynced).copy(
+            owner = nftOwnershipSynced.owner,
+            bestSellOrder = ShortOrderConverter.convert(orderDto)
+        )
+
+        ownershipRepository.save(ownershipSynced)
+
+        nftOwnershipControllerApiMock.mockGetNftOwnershipsByItem(itemId, nftOwnership, nftOwnershipSynced)
+        orderControllerApiMock.mockGetByIds(orderDto)
+
+        val result = nftOrderOwnershipControllerApi.getNftOrderOwnershipsByItem(
+            itemId.token.hex(),
+            itemId.tokenId.value.toString(),
+            null,
+            null
+        ).awaitFirstOrNull()!!
+
+        assertThat(result.data.size).isEqualTo(2)
+        assertOwnershipDtoAndNftDtoEquals(result.data[0], nftOwnership)
+        assertOwnershipDtoAndNftDtoEquals(result.data[1], nftOwnershipSynced)
+        assertThat(result.data[0].bestSellOrder).isNull()
+        assertThat(result.data[1].bestSellOrder).isEqualTo(orderDto)
+    }
+
+
+    @Test
+    fun `get ownerships by item - all not synced`() = runBlocking<Unit> {
         val itemId = randomItemId()
         val nftOwnership1 = randomNftOwnershipDto(itemId)
         val nftOwnership2 = randomNftOwnershipDto(itemId)
@@ -124,23 +184,26 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
         assertThat(result.data.size).isEqualTo(2)
         assertOwnershipDtoAndNftDtoEquals(result.data[0], nftOwnership1)
         assertOwnershipDtoAndNftDtoEquals(result.data[1], nftOwnership2)
+        assertThat(result.data[0].bestSellOrder).isNull()
+        assertThat(result.data[1].bestSellOrder).isNull()
     }
 
     @Test
-    fun `get all ownerships`() = runBlocking<Unit> {
+    fun `get all ownerships - all not synced`() = runBlocking<Unit> {
+        val itemId = randomItemId()
         val nftOwnership1 = randomNftOwnershipDto()
         val nftOwnership2 = randomNftOwnershipDto()
-        val nftOwnership3 = randomNftOwnershipDto()
+        val nftOwnershipSynced = randomNftOwnershipDto()
 
         val continuation = randomString()
-        val size = 25
+        val size = 5
 
         nftOwnershipControllerApiMock.mockGetNftAllOwnerships(
             continuation,
             size,
             nftOwnership1,
             nftOwnership2,
-            nftOwnership3
+            nftOwnershipSynced
         )
 
         val result = nftOrderOwnershipControllerApi.getNftOrderAllOwnerships(
@@ -151,6 +214,47 @@ internal class OwnershipControllerFt : AbstractFunctionalTest() {
         assertThat(result.data.size).isEqualTo(3)
         assertOwnershipDtoAndNftDtoEquals(result.data[0], nftOwnership1)
         assertOwnershipDtoAndNftDtoEquals(result.data[1], nftOwnership2)
-        assertOwnershipDtoAndNftDtoEquals(result.data[2], nftOwnership3)
+        assertOwnershipDtoAndNftDtoEquals(result.data[2], nftOwnershipSynced)
+    }
+
+    @Test
+    fun `get all ownerships - partially synced`() = runBlocking<Unit> {
+        val itemId = randomItemId()
+        val nftOwnership1 = randomNftOwnershipDto(itemId)
+        val nftOwnership2 = randomNftOwnershipDto(itemId)
+        val nftOwnershipSynced = randomNftOwnershipDto(itemId)
+
+        val orderDto = randomOrderDto(itemId, nftOwnershipSynced.owner)
+        val ownershipSynced = NftOwnershipDtoConverter.convert(nftOwnershipSynced).copy(
+            owner = nftOwnershipSynced.owner,
+            bestSellOrder = ShortOrderConverter.convert(orderDto)
+        )
+
+        val continuation = randomString()
+        val size = 5
+
+        ownershipRepository.save(ownershipSynced)
+        orderControllerApiMock.mockGetByIds(orderDto)
+
+        nftOwnershipControllerApiMock.mockGetNftAllOwnerships(
+            continuation,
+            size,
+            nftOwnership1,
+            nftOwnership2,
+            nftOwnershipSynced
+        )
+
+        val result = nftOrderOwnershipControllerApi.getNftOrderAllOwnerships(
+            continuation,
+            size
+        ).awaitFirstOrNull()!!
+
+        assertThat(result.data.size).isEqualTo(3)
+        assertOwnershipDtoAndNftDtoEquals(result.data[0], nftOwnership1)
+        assertOwnershipDtoAndNftDtoEquals(result.data[1], nftOwnership2)
+        assertOwnershipDtoAndNftDtoEquals(result.data[2], nftOwnershipSynced)
+        assertThat(result.data[0].bestSellOrder).isNull()
+        assertThat(result.data[1].bestSellOrder).isNull()
+        assertThat(result.data[2].bestSellOrder).isEqualTo(orderDto)
     }
 }

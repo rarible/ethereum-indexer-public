@@ -1,9 +1,13 @@
 package com.rarible.protocol.nftorder.core.service
 
 import com.mongodb.client.result.DeleteResult
-import com.rarible.core.common.convert
 import com.rarible.core.common.nowMillis
+import com.rarible.protocol.dto.NftOrderOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
+import com.rarible.protocol.nftorder.core.converter.NftOwnershipDtoConverter
+import com.rarible.protocol.nftorder.core.converter.OwnershipToDtoConverter
 import com.rarible.protocol.nftorder.core.data.Fetched
 import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.model.ItemId
@@ -13,14 +17,13 @@ import com.rarible.protocol.nftorder.core.repository.OwnershipRepository
 import com.rarible.protocol.nftorder.core.util.spent
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
 class OwnershipService(
-    private val conversionService: ConversionService,
     private val nftOwnershipControllerApi: NftOwnershipControllerApi,
-    private val ownershipRepository: OwnershipRepository
+    private val ownershipRepository: OwnershipRepository,
+    private val orderService: OrderService
 ) {
 
     private val logger = LoggerFactory.getLogger(OwnershipService::class.java)
@@ -50,23 +53,29 @@ class OwnershipService(
         return result
     }
 
-    suspend fun getOrFetchOwnershipById(ownershipId: OwnershipId): Fetched<Ownership> {
+    suspend fun getOrFetchOwnershipById(ownershipId: OwnershipId): Fetched<Ownership, NftOwnershipDto> {
         val ownership = get(ownershipId)
         return if (ownership != null) {
-            Fetched(ownership, false)
+            Fetched(ownership, null)
         } else {
-            Fetched(fetchOwnership(ownershipId), true)
+            val now = nowMillis()
+            val nftOwnershipDto = nftOwnershipControllerApi
+                .getNftOwnershipById(ownershipId.stringValue)
+                .awaitFirstOrNull()!!
+
+            logger.info("Fetched Ownership by Id [{}] ({}ms)", ownershipId, spent(now))
+            val fetchedOwnership = NftOwnershipDtoConverter.convert(nftOwnershipDto)
+            Fetched(fetchedOwnership, nftOwnershipDto)
         }
     }
 
-    private suspend fun fetchOwnership(ownershipId: OwnershipId): Ownership {
-        val now = nowMillis()
-        val nftOwnershipDto = nftOwnershipControllerApi
-            .getNftOwnershipById(ownershipId.stringValue)
-            .awaitFirstOrNull()!!
+    suspend fun enrichOwnership(ownership: Ownership, order: OrderDto? = null): NftOrderOwnershipDto {
+        val bestSellOrder = orderService.fetchOrderIfDiffers(ownership.bestSellOrder, order)
 
-        logger.info("Fetched Ownership by Id [{}] ({}ms)", ownershipId, spent(now))
-        return conversionService.convert(nftOwnershipDto)
+        val orders = listOfNotNull(bestSellOrder)
+            .associateBy { it.hash }
+
+        return OwnershipToDtoConverter.convert(ownership, orders)
     }
 
 }

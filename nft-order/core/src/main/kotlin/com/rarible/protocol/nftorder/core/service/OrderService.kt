@@ -2,14 +2,19 @@ package com.rarible.protocol.nftorder.core.service
 
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrdersPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.nftorder.core.data.RaribleOrderChecker
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.OwnershipId
+import com.rarible.protocol.nftorder.core.model.ShortOrder
 import com.rarible.protocol.nftorder.core.util.spent
 import com.rarible.protocol.order.api.client.OrderControllerApi
+import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrDefault
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -20,6 +25,40 @@ class OrderService(
 ) {
 
     private val logger = LoggerFactory.getLogger(OrderService::class.java)
+
+    suspend fun getById(hash: Word): OrderDto? {
+        return try {
+            orderControllerApi.getOrderByHash(hash.prefixed()).awaitFirstOrNull()
+        } catch (e: OrderControllerApi.ErrorGetOrderByHash) {
+            logger.warn("Unable to retrieve original Order [{}] from indexer: {}", hash, e.message)
+            null
+        }
+    }
+
+    suspend fun getByIds(ids: List<Word>): List<OrderDto> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        val result = orderControllerApi.getOrdersByIds(OrderIdsDto(ids)).collectList().awaitFirst()
+        val notFound = result.map { it.hash }.subtract(ids)
+        if (notFound.isNotEmpty()) {
+            logger.warn("Orders not found in order-indexer: {}", notFound)
+        }
+        return result
+    }
+
+    suspend fun fetchOrderIfDiffers(existing: ShortOrder?, order: OrderDto?): OrderDto? {
+        // Nothing to download - there is no existing short order
+        if (existing == null) {
+            return null
+        }
+        // Full order we already fetched is the same as short Order we want to download - using obtained order here
+        if (existing.hash == order?.hash) {
+            return order
+        }
+        // Downloading full order in common case
+        return getById(existing.hash)
+    }
 
     suspend fun getBestSell(itemId: ItemId): OrderDto? {
         val now = nowMillis()

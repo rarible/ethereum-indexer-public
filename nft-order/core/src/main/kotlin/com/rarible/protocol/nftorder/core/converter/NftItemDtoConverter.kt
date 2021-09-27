@@ -4,14 +4,11 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.nftorder.core.model.Item
-import org.springframework.core.convert.converter.Converter
-import org.springframework.stereotype.Component
 import java.math.BigInteger
 
-@Component
-object NftItemDtoConverter : Converter<NftItemDto, Item> {
+object NftItemDtoConverter {
 
-    override fun convert(nftItem: NftItemDto): Item {
+    fun convert(nftItem: NftItemDto): Item {
         return Item(
             token = nftItem.contract,
             tokenId = EthUInt256(nftItem.tokenId),

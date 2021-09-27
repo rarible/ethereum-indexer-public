@@ -1,7 +1,6 @@
 package com.rarible.protocol.nftorder.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.OrderDto
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
@@ -20,7 +19,7 @@ data class Ownership(
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
     val pending: List<ItemTransfer>,
-    val bestSellOrder: OrderDto?
+    val bestSellOrder: ShortOrder?
 ) {
 
     @Transient

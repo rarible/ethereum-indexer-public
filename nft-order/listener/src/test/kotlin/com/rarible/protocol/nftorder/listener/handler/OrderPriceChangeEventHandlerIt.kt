@@ -1,17 +1,18 @@
 package com.rarible.protocol.nftorder.listener.handler
 
 import com.rarible.core.test.data.randomString
+import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.NftBidOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.NftSellOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.listener.test.AbstractIntegrationTest
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
-import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import java.math.BigDecimal
@@ -27,7 +28,7 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
     lateinit var itemService: ItemService
 
     @Test
-    fun `sell order use from change price event`() = runBlocking<Unit> {
+    fun `sell order use from change price event`() = runWithKafka<Unit> {
         val makeItemId = randomItemId()
         val takeItemId = randomItemId()
         val ownershipId = randomOwnershipId(makeItemId)
@@ -70,23 +71,35 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         orderPriceChangeEventHandler.handle(
             createNftSellOrdersPriceUpdateEventDto(
                 makeItemId,
-                listOf(updatedOrder1, updatedOrder2, updatedOrder3, updatedOrder4, updatedOrder5, updatedOrder6, updatedOrder7)
+                listOf(
+                    updatedOrder1,
+                    updatedOrder2,
+                    updatedOrder3,
+                    updatedOrder4,
+                    updatedOrder5,
+                    updatedOrder6,
+                    updatedOrder7
+                )
             )
         )
 
         val makeItem = itemService.get(makeItemId)!!
-        Assertions.assertThat(makeItem.bestSellOrder).isEqualTo(updatedOrder6)
+        assertThat(makeItem.bestSellOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder6))
+        Wait.waitAssert {
+            assertThat(ownershipEvents).hasSize(1)
+            assertThat(itemEvents).hasSize(2)
+        }
     }
 
     @Test
-    fun `bid order use from change price event`() = runBlocking<Unit> {
+    fun `bid order use from change price event`() = runWithKafka<Unit> {
         val takeItemId = randomItemId()
         val ownershipId = randomOwnershipId(takeItemId)
 
-        val nftTaketemDto = randomNftItemDto(takeItemId, randomPartDto(ownershipId.owner))
-        val nftOwnership = randomNftOwnershipDto(nftTaketemDto)
+        val nftTakeItemDto = randomNftItemDto(takeItemId, randomPartDto(ownershipId.owner))
+        val nftOwnership = randomNftOwnershipDto(nftTakeItemDto)
 
-        nftItemControllerApiMock.mockGetNftItemById(takeItemId, nftTaketemDto)
+        nftItemControllerApiMock.mockGetNftItemById(takeItemId, nftTakeItemDto)
         nftOwnershipControllerApiMock.mockGetNftOwnershipById(ownershipId, nftOwnership)
 
         val updatedOrder1 = randomLegacyOrderDto(randomAssetErc20(), ownershipId.owner, randomAssetErc721(takeItemId))
@@ -107,12 +120,24 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         orderPriceChangeEventHandler.handle(
             createNftBidOrdersPriceUpdateEventDto(
                 takeItemId,
-                listOf(updatedOrder1, updatedOrder2, updatedOrder3, updatedOrder4, updatedOrder5, updatedOrder6, updatedOrder7)
+                listOf(
+                    updatedOrder1,
+                    updatedOrder2,
+                    updatedOrder3,
+                    updatedOrder4,
+                    updatedOrder5,
+                    updatedOrder6,
+                    updatedOrder7
+                )
             )
         )
 
         val makeItem = itemService.get(takeItemId)!!
-        Assertions.assertThat(makeItem.bestBidOrder).isEqualTo(updatedOrder7)
+        assertThat(makeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder7))
+
+        Wait.waitAssert {
+            assertThat(itemEvents).hasSize(1)
+        }
     }
 
     private fun createNftSellOrdersPriceUpdateEventDto(itemId: ItemId, orders: List<OrderDto>): NftOrdersPriceUpdateEventDto {
