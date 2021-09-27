@@ -21,7 +21,7 @@ class ChangeLog00003ItemIndexes {
         )
     }
 
-    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByCollection", order = "1", author = "aatapin")
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByCollection", order = "2", author = "aatapin")
     fun createIndexByCollection(template: MongockTemplate) {
         template.indexOps(ItemRepository.COLLECTION).ensureIndex(
             Index()
@@ -31,7 +31,7 @@ class ChangeLog00003ItemIndexes {
         )
     }
 
-    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByCollection", order = "1", author = "aatapin")
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByItem", order = "3", author = "aatapin")
     fun createIndexByItem(template: MongockTemplate) {
         template.indexOps(ItemRepository.COLLECTION).ensureIndex(
             Index()
@@ -42,7 +42,7 @@ class ChangeLog00003ItemIndexes {
         )
     }
 
-    @ChangeSet(id = "ChangeLog00003ItemIdexes.deleteIndexByCreator", order = "1", author = "protocol")
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.deleteIndexByCreator", order = "4", author = "protocol")
     fun removeIndexByCreator(template: MongockTemplate) {
         /*
         Index()
@@ -57,7 +57,7 @@ class ChangeLog00003ItemIndexes {
             ?.let { template.indexOps(ItemRepository.COLLECTION).dropIndex(it.name)  }
     }
 
-    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByRecipient", order = "1", author = "protocol")
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexByRecipient", order = "5", author = "protocol")
     fun createIndexByRecipient(template: MongockTemplate) {
         template.indexOps(ItemRepository.COLLECTION).ensureIndex(
             Index()
@@ -67,7 +67,7 @@ class ChangeLog00003ItemIndexes {
         )
     }
 
-    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexForAll", order = "1", author = "aatapin")
+    @ChangeSet(id = "ChangeLog00003ItemIdexes.createIndexForAll", order = "6", author = "aatapin")
     fun createIndexForAll(template: MongockTemplate) {
         template.indexOps(ItemRepository.COLLECTION).ensureIndex(
             Index()
