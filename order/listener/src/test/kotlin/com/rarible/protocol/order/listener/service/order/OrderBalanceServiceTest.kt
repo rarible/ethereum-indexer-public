@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
@@ -68,12 +69,15 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             every { balance } returns updatedBalance
         }
 
-        orderBalanceService.handle(event)
+        // Background job might update makeStock before this event is handled => try until the event solely changes the makeStock.
+        Wait.waitAssert {
+            orderBalanceService.handle(event)
 
-        assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
+            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
+            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+        }
     }
 
     @Test
@@ -116,11 +120,13 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             every { ownership } returns updatedOwnership
         }
 
-        orderBalanceService.handle(event)
+        Wait.waitAssert {
+            orderBalanceService.handle(event)
 
-        assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-        assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-        assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
+            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
+            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+        }
     }
 }
