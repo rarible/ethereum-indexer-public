@@ -10,7 +10,7 @@ import java.math.BigInteger
 
 class BestOrderEvaluator(
     private val comparator: BestOrderComparator,
-    private val provider: BestOrderProvider<*, *>
+    private val provider: BestOrderProvider<*>
 ) {
 
     private val id = provider.entityId

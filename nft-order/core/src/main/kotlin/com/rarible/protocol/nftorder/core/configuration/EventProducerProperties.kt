@@ -1,11 +1,11 @@
-package com.rarible.protocol.nftorder.listener.configuration
+package com.rarible.protocol.nftorder.core.configuration
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
 @ConstructorBinding
-@ConfigurationProperties("listener.event-producer")
-data class NftOrderEventProducerProperties(
+@ConfigurationProperties("common.event-producer")
+data class EventProducerProperties(
     val environment: String,
     val kafkaReplicaSet: String
 )

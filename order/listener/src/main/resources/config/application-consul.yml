@@ -18,6 +18,9 @@ protocol:
   nft:
     subscriber:
       broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
   erc20:
     subscriber:
       broker-replica-set: ${kafka.hosts}

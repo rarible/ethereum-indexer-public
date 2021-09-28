@@ -1,12 +1,10 @@
-package com.rarible.protocol.nftorder.listener.event
+package com.rarible.protocol.nftorder.core.event
 
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.NftOrderItemEventDto
 import com.rarible.protocol.dto.NftOrderItemEventTopicProvider
 import com.rarible.protocol.nftorder.core.converter.ItemEventToDtoConverter
-import com.rarible.protocol.nftorder.core.event.ItemEvent
-import com.rarible.protocol.nftorder.core.event.ItemEventListener
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

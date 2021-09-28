@@ -55,14 +55,14 @@ class ItemEventService(
                     )
                     logger.info(
                         "Updating Item [{}] with new sell stats, was [{}] , now: [{}]",
-                        itemId, currentSellStats, refreshedSellStats
+                        itemId.decimalStringValue, currentSellStats, refreshedSellStats
                     )
                     val saved = itemService.save(updatedItem)
                     notifyUpdate(saved, null, order)
                 } else {
                     logger.debug(
                         "Sell stats of Item [{}] are the same as before Ownership event [{}], skipping update",
-                        itemId, ownershipId
+                        itemId.decimalStringValue, ownershipId
                     )
                 }
             }
@@ -115,11 +115,14 @@ class ItemEventService(
                     notifyUpdate(saved, fetchedItem.original?.meta, order)
                 } else if (!fetchedItem.isFetched()) {
                     itemService.delete(itemId)
-                    logger.info("Deleted Item [{}] without enrichment data", itemId)
+                    logger.info("Deleted Item [{}] without enrichment data", itemId.decimalStringValue)
                     notifyUpdate(updated, null, order)
                 }
             } else {
-                logger.info("Item [{}] not changed after order updated, event won't be published", itemId)
+                logger.info(
+                    "Item [{}] not changed after order updated, event won't be published",
+                    itemId.decimalStringValue
+                )
             }
         }
     }
@@ -129,7 +132,7 @@ class ItemEventService(
         val result = itemService.save(updated.copy(version = existing.version))
         logger.info(
             "Updated Item [{}] with data: totalStock = {}, sellers = {}, bestSellOrder = [{}], bestBidOrder = [{}], unlockable = [{}] ({}ms)",
-            updated.id,
+            updated.id.decimalStringValue,
             updated.totalStock,
             updated.sellers,
             updated.bestSellOrder?.hash,
@@ -144,7 +147,7 @@ class ItemEventService(
         val deleted = deleteItem(itemId)
         notifyDelete(itemId)
         if (deleted) {
-            logger.info("Item [{}] deleted (removed from NFT-Indexer)", itemId)
+            logger.info("Item [{}] deleted (removed from NFT-Indexer)", itemId.decimalStringValue)
         }
     }
 
@@ -154,7 +157,7 @@ class ItemEventService(
     }
 
     suspend fun onLockCreated(itemId: ItemId) {
-        logger.info("Updating Item [{}] marked as Unlockable", itemId)
+        logger.info("Updating Item [{}] marked as Unlockable", itemId.decimalStringValue)
         val fetched = itemService.getOrFetchItemById(itemId)
         val item = fetched.entity.copy(unlockable = true)
         val saved = itemService.save(item)

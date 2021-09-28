@@ -36,6 +36,9 @@ protocol:
   nft:
     subscriber:
       blockchain: ${common.blockchain}
+  order:
+    subscriber:
+      blockchain: ${common.blockchain}
   erc20:
     subscriber:
       blockchain: ${common.blockchain}
