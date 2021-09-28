@@ -38,6 +38,27 @@ class OrderEventService(
         oFuture?.await()
     }
 
+    suspend fun updateOrderByForce(order: OrderDto) = coroutineScope {
+
+        val makeItemId = toItemId(order.make.assetType)
+        val takeItemId = toItemId(order.take.assetType)
+
+        val mFuture = makeItemId?.let {
+            async { ignoreApi404 { itemEventService.onForceItemBestSellOrderUpdate(makeItemId, order) } }
+        }
+        val tFuture = takeItemId?.let {
+            async { ignoreApi404 { itemEventService.onForceItemBestBidOrderUpdate(takeItemId, order) } }
+        }
+        val oFuture = makeItemId?.let {
+            val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
+            async { ignoreApi404 { ownershipEventService.onForceOwnershipBestSellOrderUpdated(ownershipId, order) } }
+        }
+
+        mFuture?.await()
+        tFuture?.await()
+        oFuture?.await()
+    }
+
     private fun toItemId(assetType: AssetTypeDto): ItemId? {
 
         return when (assetType) {

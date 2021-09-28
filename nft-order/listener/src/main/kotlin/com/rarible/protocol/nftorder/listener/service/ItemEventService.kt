@@ -104,6 +104,22 @@ class ItemEventService(
         }
     }
 
+    suspend fun onForceItemBestSellOrderUpdate(itemId: ItemId, order: OrderDto) {
+        updateOrder(itemId, order) { item ->
+            val withDroppedBestSellOrderItem = item.copy(bestSellOrder = null)
+            val bestSellOrder = bestOrderService.getBestSellOrder(withDroppedBestSellOrderItem, order)
+            item.copy(bestSellOrder = bestSellOrder)
+        }
+    }
+
+    suspend fun onForceItemBestBidOrderUpdate(itemId: ItemId, order: OrderDto) {
+        updateOrder(itemId, order) { item ->
+            val withDroppedBestBidOrderItem = item.copy(bestBidOrder = null)
+            val bestBidOrder = bestOrderService.getBestBidOrder(withDroppedBestBidOrderItem, order)
+            item.copy(bestBidOrder = bestBidOrder)
+        }
+    }
+
     private suspend fun updateOrder(itemId: ItemId, order: OrderDto, orderUpdateAction: suspend (item: Item) -> Item) {
         optimisticLock {
             val fetchedItem = itemService.getOrFetchItemById(itemId)

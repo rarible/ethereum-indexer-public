@@ -47,9 +47,23 @@ class OwnershipEventService(
     }
 
     suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) = optimisticLock {
+        updateOrder(ownershipId, order) { ownership ->
+            ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
+        }
+    }
+
+    suspend fun onForceOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) = optimisticLock {
+        updateOrder(ownershipId, order) { ownership ->
+            val withDroppedBestSellOrderOwnership = ownership.copy(bestSellOrder = null)
+            val bestSellOrder = bestOrderService.getBestSellOrder(withDroppedBestSellOrderOwnership, order)
+            ownership.copy(bestSellOrder = bestSellOrder)
+        }
+    }
+
+    suspend fun updateOrder(ownershipId: OwnershipId, order: OrderDto, orderUpdateAction: suspend (ownership: Ownership) -> Ownership) = optimisticLock {
         val fetchedItem = ownershipService.getOrFetchOwnershipById(ownershipId)
         val ownership = fetchedItem.entity
-        val updated = ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
+        val updated = orderUpdateAction(ownership)
         if (EnrichmentDataVerifier.isOwnershipNotEmpty(updated)) {
             // If order is completely the same - do nothing
             if (updated.bestSellOrder != ownership.bestSellOrder) {
