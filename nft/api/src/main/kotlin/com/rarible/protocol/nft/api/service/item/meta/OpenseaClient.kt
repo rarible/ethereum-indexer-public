@@ -6,6 +6,7 @@ import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.logging.LoggingUtils
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import org.apache.commons.lang3.time.DateUtils
@@ -84,10 +85,11 @@ class OpenseaClient(
             get.retrieve()
                 .bodyToMono<ObjectNode>()
                 .map {
+                    val image = it.getText("image_original_url") ?: it.getText("image_url")
                     ItemProperties(
                         name = it.getText("name") ?: "Untitled",
                         description = it.getText("description"),
-                        image = it.getText("image_original_url") ?: it.getText("image_url"),
+                        image = image?.replace("{id}", EthUInt256.of(tokenId).toString()),
                         imagePreview = it.getText("image_preview_url"),
                         imageBig = it.getText("image_url"),
                         animationUrl = it.getText("animation_url"),
