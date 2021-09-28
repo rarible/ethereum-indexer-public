@@ -43,7 +43,7 @@ class OrderPriceChangeEventHandler(
             is NftBidOrdersPriceUpdateEventDto -> getBestOrder(bestBidOrderEvaluator, orders)
         }
         if (bestOrder != null) {
-            orderEventService.updateOrderByForce(bestOrder)
+            orderEventService.updateOrder(bestOrder, forced = true)
         }
     }
 
