@@ -2,11 +2,14 @@ package com.rarible.protocol.order.core.trace
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
@@ -24,51 +27,58 @@ class CommonTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
+    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult {
         try {
-            val result = ethereum.executeRaw(
-                Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
-            ).awaitFirst()
-
-            return result.result()
-                .map { mapper.treeToValue(it, Array<Trace>::class.java) }
-                .map { convert(it) }
-                .getOrElse {
-                    if (result.error().isEmpty.not()) {
-                        logger.error("Can't fetch trace: {}", result.error().get())
+            val request = Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
+            val attempts = 5
+            for (attempt in 0 until attempts) {
+                try {
+                    val response = ethereum.executeRaw(request).awaitFirst()
+                    val result: JsonNode? = response.result().getOrElse { null }
+                    val trace = result
+                        ?.let { mapper.treeToValue<Array<Trace>>(it) }
+                        ?.let { convertTraces(it) }
+                    if (trace != null) {
+                        return trace
                     }
-                    null
+                    if (response.error().isEmpty.not()) {
+                        val errorMessage = response.error().get().fullMessage()
+                        logger.error("Failed attempt $attempt/$attempts to fetch trace of $transactionHash: $errorMessage")
+                    }
+                } catch (e: Throwable) {
+                    logger.error("Error attempt $attempt/$attempts to fetch trace of $transactionHash", e)
                 }
+                delay(100)
+            }
+            error("Failed to fetch trace by hash $transactionHash in $attempts attempts")
         } catch (ex: Throwable) {
             logger.error("Can't fetch trace by hash $transactionHash")
             throw ex
         }
     }
 
-    private fun convert(source: Array<Trace>): SimpleTraceResult? {
-        return source.firstOrNull()?.let { trace ->
-            val action = trace.action
-            if (action.callType != null) {
-                val type = action.callType
-                val from = action.from ?: throw IllegalArgumentException("From can't be null")
-                val to = action.to ?: throw IllegalArgumentException("To can't be null")
-                val input = action.input ?: throw IllegalArgumentException("Input can't be null")
-                val valueHexString = action.value ?: throw IllegalArgumentException("Value can't be null")
-                val output = trace.result?.output ?: "0x"
-
-                SimpleTraceResult(
-                    type = type,
-                    from = from,
-                    to = to,
-                    input = input,
-                    output = output,
-                    valueHexString = valueHexString
-                )
-            } else if (trace.action.address != null) {
-                null
-            } else {
-                throw IllegalArgumentException("Unsupported trace type $trace")
-            }
+    private fun convertTraces(source: Array<Trace>): SimpleTraceResult? {
+        val trace = source.firstOrNull() ?: return null
+        val action = trace.action
+        if (action.callType != null) {
+            val type = action.callType
+            val from = requireNotNull(action.from) { "From can't be null" }
+            val to = requireNotNull(action.to) { "To can't be null" }
+            val input = requireNotNull(action.input) { "Input can't be null" }
+            val valueHexString = requireNotNull(action.value) { "Value can't be null" }
+            val output = trace.result?.output ?: "0x"
+            return SimpleTraceResult(
+                type = type,
+                from = from,
+                to = to,
+                input = input,
+                output = output,
+                valueHexString = valueHexString
+            )
+        } else if (trace.action.address != null) {
+            return null
+        } else {
+            throw IllegalArgumentException("Unsupported trace type $trace")
         }
     }
 
