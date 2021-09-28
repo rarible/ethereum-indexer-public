@@ -17,20 +17,20 @@ class OrderEventService(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    suspend fun updateOrder(order: OrderDto) = coroutineScope {
+    suspend fun updateOrder(order: OrderDto, forced: Boolean = false) = coroutineScope {
 
         val makeItemId = toItemId(order.make.assetType)
         val takeItemId = toItemId(order.take.assetType)
 
         val mFuture = makeItemId?.let {
-            async { ignoreApi404 { itemEventService.onItemBestSellOrderUpdated(makeItemId, order) } }
+            async { ignoreApi404 { itemEventService.onItemBestSellOrderUpdated(makeItemId, order, forced) } }
         }
         val tFuture = takeItemId?.let {
-            async { ignoreApi404 { itemEventService.onItemBestBidOrderUpdated(takeItemId, order) } }
+            async { ignoreApi404 { itemEventService.onItemBestBidOrderUpdated(takeItemId, order, forced) } }
         }
         val oFuture = makeItemId?.let {
             val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
-            async { ignoreApi404 { ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order) } }
+            async { ignoreApi404 { ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order, forced) } }
         }
 
         mFuture?.await()
