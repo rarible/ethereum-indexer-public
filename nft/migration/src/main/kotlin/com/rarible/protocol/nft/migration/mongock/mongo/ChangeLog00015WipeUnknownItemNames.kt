@@ -11,7 +11,7 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 
-@ChangeLog(order = "00014")
+@ChangeLog(order = "00015")
 class ChangeLog00015WipeUnknownItemNames {
 
     @ChangeSet(id = "ChangeLog00015WipeUnknownItemNames.run", order = "1", author = "protocol")
