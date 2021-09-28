@@ -4,9 +4,7 @@ import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
-import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonDeserializer
-import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.task.EnableRaribleTask
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -30,14 +28,12 @@ import java.util.*
 @EnableConfigurationProperties(
     value = [
         NftOrderListenerProperties::class,
-        NftOrderEventProducerProperties::class,
         NftOrderJobProperties::class
     ]
 )
 class NftOrderListenerConfiguration(
     private val environmentInfo: ApplicationEnvironmentInfo,
     private val listenerProperties: NftOrderListenerProperties,
-    private val eventProducerProperties: NftOrderEventProducerProperties,
     private val meterRegistry: MeterRegistry,
     private val blockchain: Blockchain,
     private val orderIndexerSubscriberProperties: OrderIndexerEventsSubscriberProperties
@@ -151,38 +147,6 @@ class NftOrderListenerConfiguration(
             )
         }
         return BatchedConsumerWorker(consumers)
-    }
-
-    @Bean
-    fun itemEventProducer(): RaribleKafkaProducer<NftOrderItemEventDto> {
-        val env = eventProducerProperties.environment
-        val blockchain = blockchain.value
-
-        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.item"
-
-        return RaribleKafkaProducer(
-            clientId = clientId,
-            valueSerializerClass = JsonSerializer::class.java,
-            valueClass = NftOrderItemEventDto::class.java,
-            defaultTopic = NftOrderItemEventTopicProvider.getTopic(env, blockchain),
-            bootstrapServers = eventProducerProperties.kafkaReplicaSet
-        )
-    }
-
-    @Bean
-    fun ownershipEventProducer(): RaribleKafkaProducer<NftOrderOwnershipEventDto> {
-        val env = eventProducerProperties.environment
-        val blockchain = blockchain.value
-
-        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.ownership"
-
-        return RaribleKafkaProducer(
-            clientId = clientId,
-            valueSerializerClass = JsonSerializer::class.java,
-            valueClass = NftOrderOwnershipEventDto::class.java,
-            defaultTopic = NftOrderOwnershipEventTopicProvider.getTopic(env, blockchain),
-            bootstrapServers = eventProducerProperties.kafkaReplicaSet
-        )
     }
 
     // TODO remove when order-subscriber start to use .global topic by default

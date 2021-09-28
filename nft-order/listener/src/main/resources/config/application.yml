@@ -33,6 +33,11 @@ protocol:
     subscriber:
       blockchain: ${common.blockchain}
 
+common:
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}
+
 listener:
   orderConsumerCount: 5
   ownershipConsumerCount: 2
@@ -40,7 +45,5 @@ listener:
     reconciliation:
       order:
         batch-size: 50
-  event-producer:
-    environment: ${application.environment}
-    kafka-replica-set: ${kafka.hosts}
+
 

@@ -20,6 +20,9 @@ application:
 
 common:
   blockchain: ETHEREUM
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}
 
 rarible:
   ethereum:
@@ -39,8 +42,3 @@ protocol:
     subscriber:
       broker-replica-set: ${kafka.hosts}
       blockchain: ${common.blockchain}
-
-listener:
-  event-producer:
-    environment: ${application.environment}
-    kafka-replica-set: ${kafka.hosts}

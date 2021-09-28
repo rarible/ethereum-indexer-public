@@ -59,8 +59,8 @@ class OrderPriceChangeEventHandler(
         }
     }
 
-    private class AbsentBestOrderProvider(itemId: ItemId) : BestOrderProvider<Item, ItemId> {
-        override val entityId = itemId
+    private class AbsentBestOrderProvider(itemId: ItemId) : BestOrderProvider<Item> {
+        override val entityId = itemId.decimalStringValue
         override val entityType: Class<Item> = Item::class.java
         override suspend fun fetch(): OrderDto? = null
     }

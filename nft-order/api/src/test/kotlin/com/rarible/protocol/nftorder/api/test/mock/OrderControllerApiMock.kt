@@ -54,12 +54,12 @@ class OrderControllerApiMock(
         } returns Mono.just(OrdersPaginationDto(returnOrders.asList(), null))
     }
 
-    fun mockGetSellOrdersByItem(itemId: OwnershipId, vararg returnOrders: OrderDto) {
+    fun mockGetSellOrdersByOwnership(ownershipId: OwnershipId, vararg returnOrders: OrderDto) {
         every {
             orderControllerApi.getSellOrdersByItem(
-                itemId.token.hex(),
-                itemId.tokenId.value.toString(),
-                itemId.owner.hex(),
+                ownershipId.token.hex(),
+                ownershipId.tokenId.value.toString(),
+                ownershipId.owner.hex(),
                 any(),
                 any(),
                 any(),

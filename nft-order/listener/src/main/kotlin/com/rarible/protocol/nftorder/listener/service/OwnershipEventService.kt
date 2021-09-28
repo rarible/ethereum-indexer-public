@@ -58,7 +58,7 @@ class OwnershipEventService(
                 itemEventService.onOwnershipUpdated(ownershipId, order)
             }
         } else if (!fetchedItem.isFetched()) {
-            logger.info("Deleting Ownership [{}] without related bestSellOrder", ownershipId)
+            logger.info("Deleting Ownership [{}] without related bestSellOrder", ownershipId.decimalStringValue)
             ownershipService.delete(ownershipId)
             notifyUpdate(updated, order)
             itemEventService.onOwnershipUpdated(ownershipId, order)
@@ -67,11 +67,14 @@ class OwnershipEventService(
 
     suspend fun onOwnershipDeleted(nftOwnership: NftDeletedOwnershipDto) {
         val ownershipId = OwnershipId.parseId(nftOwnership.id)
-        logger.debug("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId)
+        logger.debug("Deleting Ownership [{}] since it was removed from NFT-Indexer", ownershipId.decimalStringValue)
         val deleted = deleteOwnership(ownershipId)
         notifyDelete(ownershipId)
         if (deleted) {
-            logger.info("Ownership [{}] deleted (removed from NFT-Indexer), refreshing sell stats", ownershipId)
+            logger.info(
+                "Ownership [{}] deleted (removed from NFT-Indexer), refreshing sell stats",
+                ownershipId.decimalStringValue
+            )
             itemEventService.onOwnershipUpdated(ownershipId, null)
         }
     }

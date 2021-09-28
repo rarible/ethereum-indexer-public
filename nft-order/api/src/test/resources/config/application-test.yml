@@ -17,6 +17,9 @@ logging:
 
 common:
   blockchain: ethereum
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}
 
 application:
   environment: test

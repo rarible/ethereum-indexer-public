@@ -53,16 +53,20 @@ class ItemService(
         return if (item != null) {
             Fetched(item, null)
         } else {
-            val now = nowMillis()
-            val nftItemDto = nftItemControllerApi
-                .getNftItemById(itemId.decimalStringValue)
-                .awaitFirstOrNull()!!
-
-            logger.info("Fetched Item by Id [{}] ({}ms)", itemId, spent(now))
-            // We can use meta already fetched from indexer to avoid unnecessary getMeta calls later
+            val nftItemDto = fetchItemById(itemId)
             val fetchedItem = NftItemDtoConverter.convert(nftItemDto)
             Fetched(fetchedItem, nftItemDto)
         }
+    }
+
+    suspend fun fetchItemById(itemId: ItemId): NftItemDto {
+        val now = nowMillis()
+        val nftItemDto = nftItemControllerApi
+            .getNftItemById(itemId.decimalStringValue)
+            .awaitFirstOrNull()!!
+
+        logger.info("Fetched Item by Id [{}] ({}ms)", itemId, spent(now))
+        return nftItemDto
     }
 
     // Here we could specify Order already fetched (or received via event) to avoid unnecessary getById call

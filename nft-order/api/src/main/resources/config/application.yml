@@ -17,6 +17,11 @@ spring:
     banner-mode: log
     web-application-type: reactive
 
+common:
+  event-producer:
+    environment: ${application.environment}
+    kafka-replica-set: ${kafka.hosts}
+
 rarible:
   ethereum:
     converter:
