@@ -69,7 +69,7 @@ pipeline {
       agent any
       when {
         allOf {
-          anyOf { branch 'master'; branch 'develop'; branch 'release/*' }
+          anyOf { branch 'release/*' }
           expression {
             input message: "Deploy to e2e?"
             return true
