@@ -1,10 +1,17 @@
 package com.rarible.protocol.nftorder.core.configuration
 
+import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.dto.NftOrderItemEventDto
+import com.rarible.protocol.dto.NftOrderItemEventTopicProvider
+import com.rarible.protocol.dto.NftOrderOwnershipEventDto
+import com.rarible.protocol.dto.NftOrderOwnershipEventTopicProvider
 import com.rarible.protocol.nft.api.client.*
 import com.rarible.protocol.nftorder.core.converter.OwnershipToDtoConverter
+import com.rarible.protocol.nftorder.core.event.ItemEventListener
 import com.rarible.protocol.nftorder.core.repository.ItemRepository
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.order.api.client.OrderActivityControllerApi
@@ -13,6 +20,7 @@ import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
 import com.rarible.protocol.unlockable.api.client.LockControllerApi
 import com.rarible.protocol.unlockable.api.client.UnlockableApiClientFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
@@ -20,14 +28,18 @@ import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRep
 @EnableScaletherMongoConversions
 @EnableRaribleMongo
 @EnableReactiveMongoRepositories(basePackageClasses = [ItemRepository::class])
+@EnableConfigurationProperties(EventProducerProperties::class)
 @ComponentScan(
     basePackageClasses = [
         ItemService::class,
         OwnershipToDtoConverter::class,
-        ItemRepository::class
+        ItemRepository::class,
+        ItemEventListener::class
     ]
 )
-class CoreConfiguration {
+class CoreConfiguration(
+    private val eventProducerProperties: EventProducerProperties
+) {
 
     @Value("\${common.blockchain}")
     private lateinit var blockchain: Blockchain
@@ -75,6 +87,38 @@ class CoreConfiguration {
     @Bean
     fun lockControllerApi(unlockableApiClientFactory: UnlockableApiClientFactory): LockControllerApi {
         return unlockableApiClientFactory.createUnlockableApiClient(blockchain.value)
+    }
+
+    @Bean
+    fun itemEventProducer(): RaribleKafkaProducer<NftOrderItemEventDto> {
+        val env = eventProducerProperties.environment
+        val blockchain = blockchain.value
+
+        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.item"
+
+        return RaribleKafkaProducer(
+            clientId = clientId,
+            valueSerializerClass = JsonSerializer::class.java,
+            valueClass = NftOrderItemEventDto::class.java,
+            defaultTopic = NftOrderItemEventTopicProvider.getTopic(env, blockchain),
+            bootstrapServers = eventProducerProperties.kafkaReplicaSet
+        )
+    }
+
+    @Bean
+    fun ownershipEventProducer(): RaribleKafkaProducer<NftOrderOwnershipEventDto> {
+        val env = eventProducerProperties.environment
+        val blockchain = blockchain.value
+
+        val clientId = "${env}.${blockchain}.protocol-nft-order-listener.ownership"
+
+        return RaribleKafkaProducer(
+            clientId = clientId,
+            valueSerializerClass = JsonSerializer::class.java,
+            valueClass = NftOrderOwnershipEventDto::class.java,
+            defaultTopic = NftOrderOwnershipEventTopicProvider.getTopic(env, blockchain),
+            bootstrapServers = eventProducerProperties.kafkaReplicaSet
+        )
     }
 
 }

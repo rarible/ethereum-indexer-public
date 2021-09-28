@@ -8,9 +8,9 @@ import com.rarible.protocol.nftorder.core.service.OrderService
 class ItemBestBidOrderProvider(
     private val itemId: ItemId,
     private val orderService: OrderService
-) : BestOrderProvider<Item, ItemId> {
+) : BestOrderProvider<Item> {
 
-    override val entityId: ItemId = itemId
+    override val entityId: String = itemId.decimalStringValue
     override val entityType: Class<Item> get() = Item::class.java
 
     override suspend fun fetch(): OrderDto? {
