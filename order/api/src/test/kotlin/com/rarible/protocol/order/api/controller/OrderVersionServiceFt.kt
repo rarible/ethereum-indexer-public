@@ -2,8 +2,6 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomInt
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderBidStatusDto
@@ -14,7 +12,6 @@ import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.*
-import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -87,6 +84,43 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                     ),
                     BidByItemParams(token, tokenId)
                 )
+            },
+            run {
+                val token = randomAddress()
+                val tokenId = EthUInt256.of((1L..1000L).random())
+                val origin = randomAddress()
+
+                Arguments.of(
+                    listOf(
+                        OrderVersionBid(
+                            createErc721BidOrderVersion()
+                                .withTakePriceUsd(BigDecimal.valueOf(4))
+                                .withTakeNft(token, tokenId)
+                                .withOrigin(origin)
+                                .withCreatedAt(now + Duration.ofMinutes(1)),
+                            BidStatus.ACTIVE
+                        ),
+                        OrderVersionBid(
+                            createErc1155BidOrderVersion()
+                                .withTakePriceUsd(BigDecimal.valueOf(3))
+                                .withOrigin(origin)
+                                .withTakeNft(token, tokenId)
+                                .withCreatedAt(now + Duration.ofMinutes(2)),
+                            BidStatus.ACTIVE
+                        )
+                    ),
+                    listOf(
+                        createErc1155BidOrderVersion()
+                            .withTakePriceUsd(BigDecimal.valueOf(2))
+                            .withTakeNft(token, tokenId)
+                            .withCreatedAt(now + Duration.ofMinutes(3)),
+                        createErc1155BidOrderVersion()
+                            .withTakePriceUsd(BigDecimal.valueOf(1))
+                            .withTakeNft(token, tokenId)
+                            .withCreatedAt(now + Duration.ofMinutes(4))
+                    ),
+                    BidByItemParams(token, tokenId, origin = origin)
+                )
             }
         )
 
@@ -99,14 +133,14 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         otherVersions: List<OrderVersion>,
         params: BidByItemParams
     ) = runBlocking {
-        saveOrders(orderVersionBids)
-        saveOrders(otherVersions.map { OrderVersionBid(it, BidStatus.ACTIVE) })
+        saveOrders(orderVersionBids + otherVersions.map { OrderVersionBid(it, BidStatus.ACTIVE) })
 
         val versions = orderBidsClient.getBidsByItem(
             params.token.hex(),
             params.tokenId.value.toString(),
             params.status,
             params.maker?.hex(),
+            params.origin?.hex(),
             params.platform,
             params.startDate?.atOffset(ZoneOffset.UTC),
             params.endDate?.atOffset(ZoneOffset.UTC),
@@ -150,6 +184,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             (bidVersion.take.type as Erc721AssetType).tokenId.value.toString(),
             OrderBidStatusDto.values().toList(),
             null,
+            null,
             PlatformDto.RARIBLE,
             null,
             null,
@@ -180,6 +215,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 null,
                 null,
+                null,
                 3
             ).awaitFirst()
 
@@ -201,6 +237,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 null,
                 null,
+                null,
                 2
             ).awaitFirst()
 
@@ -217,6 +254,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 token.hex(),
                 tokenId.value.toString(),
                 listOf(OrderBidStatusDto.INACTIVE),
+                null,
                 null,
                 null,
                 null,
@@ -298,18 +336,15 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     }
 
     private suspend fun saveOrders(version: List<OrderVersionBid>) {
-        for ((orderVersion, status) in version) {
-            coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
-                val order = arg<Order>(0)
-                if (order.maker == orderVersion.maker) {
-                    when (status) {
-                        BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
-                        else -> EthUInt256.ZERO
-                    }
-                } else {
-                    EthUInt256.ZERO
-                }
+        io.mockk.clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
+            val order = arg<Order>(0)
+            when (version.firstOrNull { it.orderVersion.maker == order.maker }?.status) {
+                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
+                else -> EthUInt256.ZERO
             }
+        }
+        for ((orderVersion, status) in version) {
             if (status == BidStatus.CANCELLED) {
                 cancelOrder(orderVersion.hash)
             }
@@ -327,6 +362,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         val tokenId: EthUInt256,
         val status: List<OrderBidStatusDto> = OrderBidStatusDto.values().toList(),
         val platform: PlatformDto = PlatformDto.RARIBLE,
+        val origin: Address? = null,
         val maker: Address? = null,
         val startDate: Instant? = null,
         val endDate: Instant? = null

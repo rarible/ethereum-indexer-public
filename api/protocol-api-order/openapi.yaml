@@ -712,6 +712,11 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
         - name: platform
           in: query
           required: false

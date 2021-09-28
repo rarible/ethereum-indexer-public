@@ -29,6 +29,7 @@ class OrderBidController(
         tokenId: String,
         status: List<OrderBidStatusDto>,
         maker: String?,
+        origin: String?,
         platform: PlatformDto?,
         startDate: OffsetDateTime?,
         endDate: OffsetDateTime?,
@@ -38,10 +39,12 @@ class OrderBidController(
         val requestSize = size.limit()
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
+        val originAddress = if (origin == null) null else Address.apply(origin)
         val filter = PriceOrderVersionFilter.BidByItem(
             Address.apply(contract),
             EthUInt256.of(tokenId),
             makerAddress,
+            originAddress,
             PlatformConverter.convert(platform),
             startDate?.toInstant(),
             endDate?.toInstant(),
