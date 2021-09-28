@@ -978,10 +978,12 @@ components:
           "$ref": "#/components/schemas/BigInteger"
         payouts:
           type: array
+          description: "Value of the payouts for the order"
           items:
             "$ref": "#/components/schemas/Part"
         originFees:
           type: array
+          description: "Value of the origin fees for the order"
           items:
             "$ref": "#/components/schemas/Part"
 

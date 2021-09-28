@@ -107,7 +107,7 @@ paths:
     post:
       tags:
         - order-controller
-      description: Create or update Order
+      description: Create or update order
       operationId: upsertOrder
       requestBody:
         content:
@@ -131,13 +131,16 @@ paths:
     post:
       tags:
         - order-controller
+      description: Prepare order transaction
       operationId: prepareOrderTransaction
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
       requestBody:
         required: true
         content:
@@ -226,13 +229,21 @@ paths:
     post:
       tags:
         - order-controller
+      description: Prepare order for cancel transaction
       operationId: prepareOrderCancelTransaction
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request POST \
+            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/prepareCancelTx'
       responses:
         '200':
           description: OK
@@ -251,13 +262,21 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns the order by order hash
       operationId: getOrderByHash
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0'
       responses:
         '200':
           description: OK
