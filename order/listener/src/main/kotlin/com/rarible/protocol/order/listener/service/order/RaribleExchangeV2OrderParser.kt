@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.order.core.model.*
@@ -17,13 +18,15 @@ class RaribleExchangeV2OrderParser {
                 data = convert(
                     version = Binary.apply(decoded.value()._1()._8()),
                     data = Binary.apply(decoded.value()._1()._9())
-                )
+                ),
+                salt = EthUInt256.of(decoded.value()._1()._5())
             ),
             right = SimpleOrder(
                 data = convert(
                     version = Binary.apply(decoded.value()._3()._8()),
                     data = Binary.apply(decoded.value()._3()._9())
-                )
+                ),
+                salt = EthUInt256.of(decoded.value()._3()._5())
             )
         )
     }

@@ -17,6 +17,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -145,6 +146,9 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
 
             val filledOrder = orderRepository.findById(sellOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.TEN)
+
+            assertFalse(left?.adhoc!!)
+            assertFalse(right?.adhoc!!)
 
             checkActivityWasPublished(sellOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
         }

@@ -42,6 +42,8 @@ class ExchangeBuyDescriptor(
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
         val counterHash = Order.hashKey(event.buyer(), takeAssetType, makeAssetType, BigInteger.ZERO)
 
+        val adhoc = EthUInt256.of(event.salt()) == EthUInt256.ZERO
+
         return listOf(
             OrderSideMatch(
                 hash = hash,
@@ -58,7 +60,8 @@ class ExchangeBuyDescriptor(
                 takeValue = prizeNormalizer.normalize(take),
                 makePriceUsd = usdValue?.makePriceUsd,
                 takePriceUsd = usdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                adhoc = adhoc
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -75,7 +78,8 @@ class ExchangeBuyDescriptor(
                 takeValue = prizeNormalizer.normalize(make),
                 makePriceUsd = usdValue?.takePriceUsd,
                 takePriceUsd = usdValue?.makePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                adhoc = true
             )
         )
     }
