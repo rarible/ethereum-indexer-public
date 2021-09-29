@@ -74,6 +74,7 @@ enum class TraitType(
     DEFAULT(null, null, { true }, { it.getText("value") });
 
     companion object {
-        fun fromNode(node: JsonNode) = values().find { it.predicate(node) } ?: DEFAULT
+        fun fromNode(node: JsonNode) = values().asSequence()
+            .sortedBy { it.ordinal }.find { it.predicate(node) } ?: DEFAULT
     }
 }
