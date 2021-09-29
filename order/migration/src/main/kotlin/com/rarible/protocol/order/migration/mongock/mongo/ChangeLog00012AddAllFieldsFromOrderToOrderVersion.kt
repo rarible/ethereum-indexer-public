@@ -16,10 +16,10 @@ import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
 // RPN-1135: add pre-migration of OrderVersions.
-@ChangeLog(order = "000011")
-class ChangeLog00011AddAllFieldsFromOrderToOrderVersion {
+@ChangeLog(order = "000012")
+class ChangeLog00012AddAllFieldsFromOrderToOrderVersion {
 
-    @ChangeSet(id = "ChangeLog00011AddAllFieldsFromOrderToOrderVersion.addAllFieldsFromOrderToOrderVersion", order = "1", author = "protocol")
+    @ChangeSet(id = "ChangeLog00012AddAllFieldsFromOrderToOrderVersion.addAllFieldsFromOrderToOrderVersion", order = "1", author = "protocol")
     fun addAllFieldsFromOrderToOrderVersion(
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded orderVersionRepository: OrderVersionRepository
