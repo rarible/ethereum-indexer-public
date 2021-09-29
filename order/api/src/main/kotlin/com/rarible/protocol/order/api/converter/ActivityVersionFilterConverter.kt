@@ -38,10 +38,10 @@ class ActivityVersionFilterConverter(
             is OrderActivityFilterByUserDto -> source.types.flatMap {
                 when (it) {
                     OrderActivityFilterByUserDto.Types.LIST -> listOf(
-                        UserActivityOrderVersionFilter.ByUserList(sort, source.users, continuation)
+                        UserActivityOrderVersionFilter.ByUserList(sort, source.users, source.from, source.to, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityOrderVersionFilter.ByUserMakeBid(sort, source.users, continuation)
+                        UserActivityOrderVersionFilter.ByUserMakeBid(sort, source.users, source.from, source.to, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.GET_BID -> {
                         logger.info("Get bids for ${source.users.size}} users")

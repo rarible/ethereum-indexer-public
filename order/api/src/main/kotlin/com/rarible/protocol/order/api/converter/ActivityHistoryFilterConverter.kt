@@ -40,13 +40,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
                 when (it) {
                     OrderActivityFilterByUserDto.Types.SELL -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserSell(sort, users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserSell(sort, users, source.from, source.to, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.BUY -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, source.from, source.to, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, continuation)
+                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, source.from, source.to, continuation)
                     )
                     OrderActivityFilterByUserDto.Types.LIST,
                     OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()

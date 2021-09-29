@@ -635,6 +635,12 @@ components:
               - LIST
               - BUY
               - SELL
+        from:
+          type: string
+          format: date-time
+        to:
+          type: string
+          format: date-time
 
     OrderActivityFilterByItem:
       type: object
