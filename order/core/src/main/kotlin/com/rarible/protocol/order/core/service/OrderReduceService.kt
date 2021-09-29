@@ -199,7 +199,9 @@ class OrderReduceService(
             append("hash=${saved.hash}, ")
             append("makeStock=${saved.makeStock}, ")
             append("fill=${saved.fill}, ")
-            append("cancelled=${saved.cancelled}")
+            append("cancelled=${saved.cancelled}, ")
+            append("signature=${saved.signature}, ")
+            append("pendingSize=${saved.pending.size}")
         })
         return saved
     }
