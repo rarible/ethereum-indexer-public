@@ -104,6 +104,7 @@ class StandartPropertiesExtractionIt : SpringContainerBaseTest() {
         assertEquals(argv.data.name, itemDto.name)
         assertEquals(argv.data.description, itemDto.description)
         assertEquals(argv.data.attributes?.size, itemDto.attributes?.size)
+        assertEquals(argv.data.attributes?.toSet(), itemDto.attributes?.toSet())
 
         // no images with diff resolutions
         assertEquals(argv.data.image?.url?.get("ORIGINAL"), itemDto.image?.url?.get("ORIGINAL"))

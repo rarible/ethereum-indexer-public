@@ -23,5 +23,7 @@ data class ItemProperties(
 
 data class ItemAttribute(
     val key: String,
-    val value: String?
+    val value: String? = null,
+    val type: String? = null,
+    val format: String? = null
 )
