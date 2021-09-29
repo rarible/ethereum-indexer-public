@@ -1,13 +1,10 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Continuation
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.ActivitySort
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
@@ -62,12 +59,24 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
         }
     }
 
-    protected fun Criteria.dateBoundaries(from: Instant?, to: Instant?): Criteria {
-        return if (from == null && to == null) {
-            this
-        } else {
-            (LogEvent::data / OrderExchangeHistory::date gte (from ?: Instant.EPOCH))
-                .and(LogEvent::data / OrderExchangeHistory::date).lte(to ?: Instant.now())
+    protected fun Criteria.dateBoundary(
+        activitySort: ActivitySort,
+        continuation: Continuation?,
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(OrderVersion::createdAt).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            ActivitySort.LATEST_FIRST -> this.and(OrderVersion::createdAt).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(OrderVersion::createdAt).lte(end)
         }
     }
 }
@@ -93,7 +102,7 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         override fun getCriteria(): Criteria {
             return AllBid(activitySort,null).getCriteria()
                 .andOperator(makerCriteria)
-                .dateBoundaries(from, to)
+                .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
         }
     }
@@ -113,7 +122,7 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         override fun getCriteria(): Criteria {
             return AllList(activitySort,null).getCriteria()
                 .andOperator(makerCriteria)
-                .dateBoundaries(from, to)
+                .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
         }
     }

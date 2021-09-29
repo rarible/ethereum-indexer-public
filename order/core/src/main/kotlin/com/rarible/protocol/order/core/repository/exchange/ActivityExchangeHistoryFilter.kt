@@ -60,12 +60,24 @@ sealed class ActivityExchangeHistoryFilter {
                 )
         }
 
-    protected fun Criteria.dateBoundaries(from: Instant?, to: Instant?): Criteria {
-        return if (from == null && to == null) {
-            this
-        } else {
-            (LogEvent::data / OrderExchangeHistory::date gte (from ?: Instant.EPOCH))
-                .and(LogEvent::data / OrderExchangeHistory::date).lte(to ?: Instant.now())
+    protected fun Criteria.dateBoundary(
+        activitySort: ActivitySort,
+        continuation: Continuation?,
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(LogEvent::data / OrderExchangeHistory::date).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
         }
     }
 }
@@ -96,7 +108,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
 
         override fun getCriteria(): Criteria {
             return AllSell(sort,null).getCriteria().andOperator(makerCriteria)
-                .dateBoundaries(from, to)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }
@@ -115,7 +127,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
 
         override fun getCriteria(): Criteria {
             return AllCanceledBid(sort,null).getCriteria().andOperator(makerCriteria)
-                .dateBoundaries(from, to)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }
@@ -133,7 +145,7 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
 
         override fun getCriteria(): Criteria {
             return AllSell(sort,null).getCriteria().andOperator(takerCriteria)
-                .dateBoundaries(from, to)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }

@@ -12,20 +12,16 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.springframework.beans.factory.annotation.Autowired
 import reactor.core.publisher.Mono
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
@@ -104,6 +100,54 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                 val maker = AddressFactory.create()
                 Arguments.of(
                     listOf(
+                        createErc721BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(10, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(9, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(8, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(7, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    listOf(
+                        createErc721BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(12, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(11, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(6, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155BidOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(5, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    OrderActivityFilterByUserDto(
+                        listOf(maker),
+                        listOf(OrderActivityFilterByUserDto.Types.MAKE_BID),
+                        from = now.plus(7, ChronoUnit.MINUTES),
+                        to = now.plus(10, ChronoUnit.MINUTES)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
                         createErc721BidOrderVersion().copy(maker = maker, createdAt = now.plus(2, ChronoUnit.MINUTES)),
                         createErc1155BidOrderVersion().copy(maker = maker, createdAt = now.plus(1, ChronoUnit.MINUTES)),
                         createErc1155BidOrderVersion().copy(
@@ -170,6 +214,102 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.LIST)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createErc721ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(10, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(11, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(12, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(13, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    listOf(
+                        createErc721ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(1, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(2, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(14, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(15, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    OrderActivityFilterByUserDto(
+                        listOf(maker),
+                        listOf(OrderActivityFilterByUserDto.Types.LIST),
+                        from = now.plus(10, ChronoUnit.MINUTES),
+                        to = now.plus(13, ChronoUnit.MINUTES)
+                    ),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createErc721ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(13, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(12, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(11, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(10, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    listOf(
+                        createErc721ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(1, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(2, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(14, ChronoUnit.MINUTES)
+                        ),
+                        createErc1155ListOrderVersion().copy(
+                            maker = maker,
+                            createdAt = now.plus(15, ChronoUnit.MINUTES)
+                        )
+                    ),
+                    OrderActivityFilterByUserDto(
+                        listOf(maker),
+                        listOf(OrderActivityFilterByUserDto.Types.LIST),
+                        from = now.plus(10, ChronoUnit.MINUTES),
+                        to = now.plus(13, ChronoUnit.MINUTES)
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -413,6 +553,160 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByUserDto(listOf(maker), listOf(OrderActivityFilterByUserDto.Types.SELL)),
                     ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(10, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(9, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(8, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(7, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(6, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(5, ChronoUnit.MINUTES)
+                            )
+                        )
+                    ),
+                    listOf(
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(12, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(11, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(4, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(3, ChronoUnit.MINUTES)
+                            )
+                        )
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByUserDto(
+                        listOf(maker),
+                        listOf(OrderActivityFilterByUserDto.Types.SELL),
+                        from = now.plus(5, ChronoUnit.MINUTES),
+                        to = now.plus(10, ChronoUnit.MINUTES)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(5, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(6, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(7, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(8, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(9, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(10, ChronoUnit.MINUTES)
+                            )
+                        )
+                    ),
+                    listOf(
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(12, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(11, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc721SellCancel().copy(
+                                maker = maker,
+                                date = now.plus(4, ChronoUnit.MINUTES)
+                            )
+                        ),
+                        createLogEvent(
+                            orderErc1155SellSideMatch().copy(
+                                maker = maker,
+                                date = now.plus(3, ChronoUnit.MINUTES)
+                            )
+                        )
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByUserDto(
+                        listOf(maker),
+                        listOf(OrderActivityFilterByUserDto.Types.SELL),
+                        from = now.plus(5, ChronoUnit.MINUTES),
+                        to = now.plus(10, ChronoUnit.MINUTES)
+                    ),
+                    ActivitySortDto.EARLIEST_FIRST
                 )
             },
             run {
@@ -887,7 +1181,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         logs: List<LogEvent>,
         otherLogs: List<LogEvent>,
         otherVersions: List<OrderVersion>,
-        filter: OrderActivityFilterDto
+        filter: OrderActivityFilterDto,
+        sort: ActivitySortDto
     ) = runBlocking {
         saveHistory(*logs.shuffled().toTypedArray())
         saveHistory(*otherLogs.shuffled().toTypedArray())
@@ -897,7 +1192,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
 
         var continuation: String? = null
         do {
-            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, ActivitySortDto.LATEST_FIRST).awaitFirst()
+            val activities = orderActivityClient.getOrderActivities(filter, continuation, 2, sort).awaitFirst()
             assertThat(activities.items).hasSizeLessThanOrEqualTo(2)
 
             allActivities.addAll(activities.items)
@@ -917,14 +1212,15 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         logs: List<LogEvent>,
         otherLogs: List<LogEvent>,
         otherVersions: List<OrderVersion>,
-        filter: OrderActivityFilterDto
+        filter: OrderActivityFilterDto,
+        sort: ActivitySortDto
     ) = runBlocking {
         saveHistory(*logs.shuffled().toTypedArray())
         saveHistory(*otherLogs.shuffled().toTypedArray())
         saveVersion(*otherVersions.shuffled().toTypedArray())
 
         Wait.waitAssert {
-            val activities = orderActivityClient.getOrderActivities(filter, null, null, null).awaitFirst()
+            val activities = orderActivityClient.getOrderActivities(filter, null, null, sort).awaitFirst()
 
             assertThat(activities.items).hasSize(logs.size)
 
