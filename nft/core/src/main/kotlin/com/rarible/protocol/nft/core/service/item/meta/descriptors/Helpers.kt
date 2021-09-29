@@ -34,15 +34,8 @@ fun JsonNode.toProperties(): List<ItemAttribute> {
 }
 
 fun attribute(key: String, node: JsonNode): ItemAttribute {
-    val format = node.getText("display_type")?.let { "date-time" }
-    val type = format?.let { "string" }
-    val value = node.getText("value")
-        ?.let {
-            if (format == "date-time" && it.toDoubleOrNull() != null)
-                Instant.ofEpochSecond(it.toDouble().toLong()).toString()
-            else it
-        }
-    return ItemAttribute(key, value, type, format)
+    val traitType = TraitType.fromNode(node)
+    return ItemAttribute(key, traitType.converter(node), traitType.type, traitType.format)
 }
 
 fun isBase64String(data: String): Boolean {
@@ -54,8 +47,33 @@ fun base64MimeToString(data: String): String {
 }
 
 fun base64MimeToBytes(data: String): ByteArray {
-    return Base64.getMimeDecoder().decode(data
-        .removePrefix(BASE_64_JSON_PREFIX)
-        .removePrefix(BASE_64_SVG_PREFIX)
-        .toByteArray())
+    return Base64.getMimeDecoder().decode(
+        data
+            .removePrefix(BASE_64_JSON_PREFIX)
+            .removePrefix(BASE_64_SVG_PREFIX)
+            .toByteArray()
+    )
+}
+
+enum class TraitType(
+    val type: String?,
+    val format: String?,
+    val predicate: (JsonNode) -> Boolean,
+    val converter: (JsonNode) -> String?
+) {
+    DATE_TIME("string", "date-time",
+        { it.getText("display_type") == "date" && it.getText("value")?.toDoubleOrNull() != null },
+        {
+            val v = it.getText("value") ?: null
+            if (v.isNullOrBlank()) {
+                null
+            } else {
+                Instant.ofEpochSecond(v.toDouble().toLong()).toString()
+            }
+        }),
+    DEFAULT(null, null, { true }, { it.getText("value") });
+
+    companion object {
+        fun fromNode(node: JsonNode) = values().find { it.predicate(node) } ?: DEFAULT
+    }
 }
