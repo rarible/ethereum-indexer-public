@@ -101,7 +101,6 @@ class OrderPriceChangeEventHandlerIt : AbstractIntegrationTest() {
         val makeItem = itemService.get(makeItemId)!!
         assertThat(makeItem.bestSellOrder).isEqualTo(ShortOrderConverter.convert(updatedOrder6))
         Wait.waitAssert {
-            assertThat(ownershipEvents).hasSize(1)
             assertThat(itemEvents).hasSize(2)
         }
     }
