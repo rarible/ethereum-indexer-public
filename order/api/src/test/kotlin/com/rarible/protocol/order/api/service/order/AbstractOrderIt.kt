@@ -137,7 +137,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
 
     fun Order.toForm(privateKey: BigInteger) = toForm(eip712Domain, privateKey)
 
-    fun OrderFormDto.withSignature(signature: Binary?): OrderFormDto {
+    fun OrderFormDto.withSignature(signature: Binary): OrderFormDto {
         return when (this) {
             is LegacyOrderFormDto -> copy(signature = signature)
             is RaribleV2OrderFormDto -> copy(signature = signature)

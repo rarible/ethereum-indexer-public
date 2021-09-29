@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
@@ -28,7 +29,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
@@ -52,7 +53,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
@@ -76,7 +77,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
@@ -102,7 +103,7 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 salt = source.salt.value.toWord(),
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 hash = source.hash,

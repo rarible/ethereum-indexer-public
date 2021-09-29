@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.stereotype.Component
@@ -30,7 +31,7 @@ class BidDtoConverter(
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
-                signature = source.order.signature,
+                signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderDataLegacyDto,
                 makeBalance = BigInteger.ZERO
             )
@@ -50,7 +51,7 @@ class BidDtoConverter(
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
-                signature = source.order.signature,
+                signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataV1Dto,
                 makeBalance = BigInteger.ZERO
             )
@@ -70,7 +71,7 @@ class BidDtoConverter(
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
-                signature = source.order.signature,
+                signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderOpenSeaV1DataV1Dto,
                 makeBalance = BigInteger.ZERO
             )
@@ -90,7 +91,7 @@ class BidDtoConverter(
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
-                signature = source.order.signature,
+                signature = source.order.signature.orEmpty(),
                 makeBalance = BigInteger.ZERO
             )
         }
