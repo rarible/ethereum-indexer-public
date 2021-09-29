@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.converters.model
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderFormAssetDtoConverter
+import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import org.springframework.stereotype.Component
@@ -18,7 +19,7 @@ class OrderToFormDtoConverter {
                 taker = source.taker,
                 take = OrderFormAssetDtoConverter.convert(source.take),
                 salt = source.salt.value,
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 start = source.start,
                 end = source.end,
                 data = OrderDataDtoConverter.convert(source.data) as OrderDataLegacyDto
@@ -29,7 +30,7 @@ class OrderToFormDtoConverter {
                 taker = source.taker,
                 take = OrderFormAssetDtoConverter.convert(source.take),
                 salt = source.salt.value,
-                signature = source.signature,
+                signature = source.signature.orEmpty(),
                 start = source.start,
                 end = source.end,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataV1Dto

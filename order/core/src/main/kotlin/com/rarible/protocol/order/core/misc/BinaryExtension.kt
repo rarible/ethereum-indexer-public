@@ -16,3 +16,7 @@ fun Binary.clearAfter(offset: Int): Binary {
     }
     return Binary.apply(bytes)
 }
+
+fun Binary?.orEmpty(): Binary {
+    return this ?: Binary.apply()
+}

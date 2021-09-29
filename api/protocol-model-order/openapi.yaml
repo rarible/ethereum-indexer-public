@@ -660,6 +660,7 @@ components:
         - maker
         - make
         - take
+        - signature
         - salt
       properties:
         maker:
