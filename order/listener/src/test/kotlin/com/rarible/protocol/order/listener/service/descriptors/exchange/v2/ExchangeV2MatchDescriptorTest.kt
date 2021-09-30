@@ -120,7 +120,10 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left?.takeValue).isEqualTo(right?.makeValue)
 
             assertFalse(left?.adhoc!!)
+            assertFalse(right?.counterAdhoc!!)
+
             assertTrue(right?.adhoc!!)
+            assertTrue(left?.counterAdhoc!!)
 
             checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), MatchEvent.id(), OrderActivityMatchDto::class.java)
         }

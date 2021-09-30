@@ -81,7 +81,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 source = HistorySource.RARIBLE,
                 date = date,
                 data = transactionOrders?.left?.data,
-                adhoc = leftAdhoc
+                adhoc = leftAdhoc,
+                counterAdhoc = rightAdhoc
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -101,7 +102,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 source = HistorySource.RARIBLE,
                 date = date,
                 data = transactionOrders?.right?.data,
-                adhoc = rightAdhoc
+                adhoc = rightAdhoc,
+                counterAdhoc = leftAdhoc
             )
         )
     }

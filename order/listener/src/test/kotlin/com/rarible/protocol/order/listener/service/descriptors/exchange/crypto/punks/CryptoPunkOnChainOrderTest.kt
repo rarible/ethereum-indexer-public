@@ -144,6 +144,12 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(take, right.make)
             assertEquals(make, right.take)
             assertEquals(true, right.externalOrderExecutedOnRarible)
+
+            assertFalse(left?.adhoc!!)
+            assertTrue(left?.counterAdhoc!!)
+
+            assertTrue(right?.adhoc!!)
+            assertFalse(right?.counterAdhoc!!)
         }
 
         checkActivityWasPublished {
@@ -321,6 +327,12 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             // Real buy/sell price may differ. See workaround at [CryptoPunkBoughtLogDescriptor].
             assertEquals(bidMake, left.take)
             assertEquals(bidMake, right.make)
+
+            assertTrue(left?.adhoc!!)
+            assertFalse(left?.counterAdhoc!!)
+
+            assertFalse(right?.adhoc!!)
+            assertTrue(right?.counterAdhoc!!)
         }
 
         checkActivityWasPublished {

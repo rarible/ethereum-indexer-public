@@ -45,7 +45,8 @@ data class OrderSideMatch(
     val externalOrderExecutedOnRarible: Boolean? = null,
     val data: OrderData? = null,
     val salt: EthUInt256? = null,
-    val adhoc: Boolean? = null
+    val adhoc: Boolean? = null,
+    val counterAdhoc: Boolean? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
 
 data class OrderCancel(
