@@ -15,7 +15,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -26,11 +25,6 @@ internal class OrderActivityConverterTest {
     private val primeNormalizer = PriceNormalizer(mockk())
     private val assetDtoConverter = AssetDtoConverter(primeNormalizer)
     private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter)
-
-    @BeforeEach
-    fun setUp() {
-
-    }
 
     companion object {
         @JvmStatic
