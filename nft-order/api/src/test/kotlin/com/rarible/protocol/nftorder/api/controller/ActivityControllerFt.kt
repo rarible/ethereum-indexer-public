@@ -312,8 +312,8 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
                 NftActivityFilterByUserDto.Types.MINT,
                 NftActivityFilterByUserDto.Types.BURN
             ),
-            Instant.ofEpochSecond(from),
-            Instant.ofEpochSecond(to)
+            from,
+            to
         )
         val orderFilter = OrderActivityFilterByUserDto(
             user,
@@ -324,8 +324,8 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
                 OrderActivityFilterByUserDto.Types.BUY,
                 OrderActivityFilterByUserDto.Types.LIST
             ),
-            Instant.ofEpochSecond(from),
-            Instant.ofEpochSecond(to)
+            from,
+            to
         )
         coEvery {
             nftActivityControllerApi.getNftActivities(
