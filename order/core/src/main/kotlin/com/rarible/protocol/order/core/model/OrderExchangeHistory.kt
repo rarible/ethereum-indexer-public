@@ -44,7 +44,6 @@ data class OrderSideMatch(
     override val source: HistorySource = HistorySource.RARIBLE,
     val externalOrderExecutedOnRarible: Boolean? = null,
     val data: OrderData? = null,
-    val salt: EthUInt256? = null,
     val adhoc: Boolean? = null,
     val counterAdhoc: Boolean? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
