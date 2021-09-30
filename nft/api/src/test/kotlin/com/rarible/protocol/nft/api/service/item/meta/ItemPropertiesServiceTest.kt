@@ -24,6 +24,7 @@ import java.math.BigInteger
 import java.time.temporal.ChronoUnit
 
 @Tag("manual")
+@Disabled
 class ItemPropertiesServiceTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
