@@ -7,7 +7,6 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.*
-import com.rarible.protocol.nft.core.repository.history.ActivitySort
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -19,6 +18,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.time.Duration
+import java.time.Instant
 import java.util.stream.Stream
 
 @End2EndTest
@@ -34,7 +34,7 @@ class ActivityFt : SpringContainerBaseTest() {
     }
 
     companion object {
-        private val now = nowMillis()
+        private val now = Instant.ofEpochSecond(Instant.now().epochSecond)
 
         @JvmStatic
         private fun allFilter() = Stream.of(
@@ -112,6 +112,92 @@ class ActivityFt : SpringContainerBaseTest() {
                 )
             },
             run {
+                val owner = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(4)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(3)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(2)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(1)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(0))
+                    ),
+                    listOf(
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(6)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(5)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now - Duration.ofMinutes(1)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now - Duration.ofMinutes(2))
+                    ),
+                    NftActivityFilterByUserDto(
+                        listOf(owner),
+                        listOf(NftActivityFilterByUserDto.Types.MINT),
+                        from = (now + Duration.ofMinutes(0)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val owner = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(0)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(1)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(2)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(3)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(4))
+                    ),
+                    listOf(
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(6)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(5)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now - Duration.ofMinutes(1)),
+                        createItemMint()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now - Duration.ofMinutes(2))
+                    ),
+                    NftActivityFilterByUserDto(
+                        listOf(owner),
+                        listOf(NftActivityFilterByUserDto.Types.MINT),
+                        from = (now + Duration.ofMinutes(0)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
+                    ),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            },
+            run {
                 val from = AddressFactory.create()
                 Arguments.of(
                     listOf(
@@ -133,6 +219,37 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(from), listOf(NftActivityFilterByUserDto.Types.BURN)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val from = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createItemBurn()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(4)),
+                        createItemBurn()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(3)),
+                        createItemBurn()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(2))
+                    ),
+                    listOf(
+                        createItemBurn()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(5)),
+                        createItemBurn()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(1))
+                    ),
+                    NftActivityFilterByUserDto(
+                        listOf(from),
+                        listOf(NftActivityFilterByUserDto.Types.BURN),
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             },
@@ -162,6 +279,37 @@ class ActivityFt : SpringContainerBaseTest() {
                 )
             },
             run {
+                val from = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createItemTransfer()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(4)),
+                        createItemTransfer()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(3)),
+                        createItemTransfer()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(2))
+                    ),
+                    listOf(
+                        createItemTransfer()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(5)),
+                        createItemTransfer()
+                            .withTransferFrom(from)
+                            .withTransferDate(now + Duration.ofMinutes(1))
+                    ),
+                    NftActivityFilterByUserDto(
+                        listOf(from),
+                        listOf(NftActivityFilterByUserDto.Types.TRANSFER_FROM),
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
                 val owner = AddressFactory.create()
                 Arguments.of(
                     listOf(
@@ -183,6 +331,37 @@ class ActivityFt : SpringContainerBaseTest() {
                     ),
                     listOf(createItemMint(), createItemMint(), createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
                     NftActivityFilterByUserDto(listOf(owner), listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val owner = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createItemTransfer()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(4)),
+                        createItemTransfer()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(3)),
+                        createItemTransfer()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(2))
+                    ),
+                    listOf(
+                        createItemTransfer()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(5)),
+                        createItemTransfer()
+                            .withTransferOwner(owner)
+                            .withTransferDate(now + Duration.ofMinutes(1))
+                    ),
+                    NftActivityFilterByUserDto(
+                        listOf(owner),
+                        listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO),
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             },

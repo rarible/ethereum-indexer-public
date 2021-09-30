@@ -411,6 +411,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ActivityFilterByUserType"
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
 
     ActivityFilterByUserType:
       type: string
@@ -535,6 +541,12 @@ components:
               - TRANSFER_TO
               - MINT
               - BURN
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
 
     NftActivityFilterByItem:
       type: object
@@ -635,6 +647,12 @@ components:
               - LIST
               - BUY
               - SELL
+        from:
+          type: integer
+          format: int64
+        to:
+          type: integer
+          format: int64
 
     OrderActivityFilterByItem:
       type: object

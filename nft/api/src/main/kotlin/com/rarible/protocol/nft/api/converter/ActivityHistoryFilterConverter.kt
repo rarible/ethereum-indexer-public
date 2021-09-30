@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.core.repository.history.*
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
@@ -23,25 +24,35 @@ class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
             }
             is NftActivityFilterByUserDto -> source.types.map {
                 val users = if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
+                val from = source.from?.let { from -> Instant.ofEpochSecond(from) }
+                val to = source.to?.let { to -> Instant.ofEpochSecond(to) }
                 when (it) {
                     NftActivityFilterByUserDto.Types.TRANSFER_FROM -> UserActivityItemHistoryFilter.ByUserTransferFrom(
                         sort,
                         users,
+                        from,
+                        to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.TRANSFER_TO -> UserActivityItemHistoryFilter.ByUserTransferTo(
                         sort,
                         users,
+                        from,
+                        to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.MINT -> UserActivityItemHistoryFilter.ByUserMint(
                         sort,
                         users,
+                        from,
+                        to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.BURN -> UserActivityItemHistoryFilter.ByUserBurn(
                         sort,
                         users,
+                        from,
+                        to,
                         continuation
                     )
                 }

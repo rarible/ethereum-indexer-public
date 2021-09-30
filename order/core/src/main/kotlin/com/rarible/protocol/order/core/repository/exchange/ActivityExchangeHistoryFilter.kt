@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.*
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
+import java.time.Instant
 
 sealed class ActivityExchangeHistoryFilter {
     protected companion object {
@@ -50,16 +51,35 @@ sealed class ActivityExchangeHistoryFilter {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date lt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id")
-                        .lt(continuation.afterId)
+                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date gt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id")
-                        .gt(continuation.afterId)
+                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
                 )
         }
+
+    protected fun Criteria.dateBoundary(
+        activitySort: ActivitySort,
+        continuation: Continuation?,
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(LogEvent::data / OrderExchangeHistory::date).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
+        }
+    }
 }
 
 sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityExchangeHistoryFilter() {
@@ -71,35 +91,61 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
     protected val makerCriteria = if (users.isSingleton) makerKey isEqualTo users.single() else makerKey inValues users
     protected val takerCriteria = if (users.isSingleton) takerKey isEqualTo users.single() else takerKey inValues users
 
-    class ByUserSell(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    abstract val from: Instant?
+    abstract val to: Instant?
+
+    class ByUserSell(
+        override val sort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityExchangeHistoryFilter(users) {
+
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return AllSell(sort,null).getCriteria().andOperator(makerCriteria)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserCanceledBid(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    class ByUserCanceledBid(
+        override val sort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityExchangeHistoryFilter(users) {
+
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return AllCanceledBid(sort,null).getCriteria().andOperator(makerCriteria)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserBuy(override val sort: ActivitySort, users: List<Address>, private val continuation: Continuation?) : UserActivityExchangeHistoryFilter(users) {
+    class ByUserBuy(
+        override val sort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityExchangeHistoryFilter(users) {
         override val hint: Document =
             if (users.isSingleton) ExchangeHistoryRepositoryIndexes.TAKER_SELL_DEFINITION.indexKeys
             else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return AllSell(sort,null).getCriteria().andOperator(takerCriteria)
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }

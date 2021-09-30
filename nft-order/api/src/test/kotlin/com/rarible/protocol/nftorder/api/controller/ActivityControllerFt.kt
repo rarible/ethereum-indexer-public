@@ -1,5 +1,6 @@
 package com.rarible.protocol.nftorder.api.controller
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
@@ -287,6 +288,8 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
         val filterContinuation = UUID.randomUUID().toString()
         val filterSize = 8
         val sort = ActivitySortDto.LATEST_FIRST
+        val from = nowMillis().epochSecond
+        val to = nowMillis().epochSecond + 1
 
         val user = listOf(Address.FOUR(), Address.ONE())
 
@@ -308,7 +311,9 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
                 NftActivityFilterByUserDto.Types.TRANSFER_FROM,
                 NftActivityFilterByUserDto.Types.MINT,
                 NftActivityFilterByUserDto.Types.BURN
-            )
+            ),
+            Instant.ofEpochSecond(from),
+            Instant.ofEpochSecond(to)
         )
         val orderFilter = OrderActivityFilterByUserDto(
             user,
@@ -318,7 +323,9 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
                 OrderActivityFilterByUserDto.Types.SELL,
                 OrderActivityFilterByUserDto.Types.BUY,
                 OrderActivityFilterByUserDto.Types.LIST
-            )
+            ),
+            Instant.ofEpochSecond(from),
+            Instant.ofEpochSecond(to)
         )
         coEvery {
             nftActivityControllerApi.getNftActivities(
@@ -351,6 +358,8 @@ internal class ActivityControllerFt : AbstractFunctionalTest() {
             nftOrderActivityControllerApi.getNftOrderActivitiesByUser(
                 types,
                 user,
+                from,
+                to,
                 filterContinuation,
                 filterSize,
                 sort

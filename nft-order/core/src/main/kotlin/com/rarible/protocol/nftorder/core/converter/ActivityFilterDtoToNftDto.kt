@@ -63,7 +63,7 @@ object ActivityFilterDtoToNftDto {
                         ActivityFilterByUserTypeDto.SELL -> null
                     }
                 }
-                if (nftTypes.isNotEmpty()) NftActivityFilterByUserDto(source.users, nftTypes) else null
+                if (nftTypes.isNotEmpty()) NftActivityFilterByUserDto(source.users, nftTypes, source.from, source.to) else null
             }
             else -> throw IllegalArgumentException("Unexpected activity filter type $javaClass")
         }

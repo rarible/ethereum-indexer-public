@@ -349,6 +349,18 @@ paths:
             type: array
             items:
               "$ref": "#/components/schemas/Address"
+        - name: from
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: to
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
         - name: continuation
           in: query
           required: false

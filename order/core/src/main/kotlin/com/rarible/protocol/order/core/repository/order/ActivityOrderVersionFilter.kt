@@ -9,6 +9,7 @@ import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
+import java.time.Instant
 
 sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
 
@@ -57,12 +58,43 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
                 )
         }
     }
+
+    protected fun Criteria.dateBoundary(
+        activitySort: ActivitySort,
+        continuation: Continuation?,
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(OrderVersion::createdAt).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            ActivitySort.LATEST_FIRST -> this.and(OrderVersion::createdAt).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(OrderVersion::createdAt).lte(end)
+        }
+    }
 }
 
 sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrderVersionFilter() {
     protected val makerCriteria = if (users.isSingleton) OrderVersion::maker isEqualTo users.single() else OrderVersion::maker inValues users
 
-    class ByUserMakeBid(override val activitySort: ActivitySort, users: List<Address>, private val continuation: Continuation? = null) : UserActivityOrderVersionFilter(users) {
+    abstract val from: Instant?
+    abstract val to: Instant?
+
+    class ByUserMakeBid(
+        override val activitySort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation? = null
+    ) : UserActivityOrderVersionFilter(users) {
+
         override val hint: Document =
             if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
             else OrderVersionRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
@@ -70,11 +102,19 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         override fun getCriteria(): Criteria {
             return AllBid(activitySort,null).getCriteria()
                 .andOperator(makerCriteria)
+                .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
         }
     }
 
-    class ByUserList(override val activitySort: ActivitySort, users: List<Address>, val continuation: Continuation?) : UserActivityOrderVersionFilter(users) {
+    class ByUserList(
+        override val activitySort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        val continuation: Continuation?
+    ) : UserActivityOrderVersionFilter(users) {
+
         override val hint: Document =
             if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_LIST_DEFINITION.indexKeys
             else OrderVersionRepositoryIndexes.ALL_LIST_DEFINITION.indexKeys
@@ -82,6 +122,7 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         override fun getCriteria(): Criteria {
             return AllList(activitySort,null).getCriteria()
                 .andOperator(makerCriteria)
+                .dateBoundary(activitySort, continuation, from, to)
                 .scrollTo(activitySort, continuation)
         }
     }
