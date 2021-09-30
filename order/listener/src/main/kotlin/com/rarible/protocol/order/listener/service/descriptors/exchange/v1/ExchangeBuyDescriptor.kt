@@ -42,7 +42,7 @@ class ExchangeBuyDescriptor(
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
         val counterHash = Order.hashKey(event.buyer(), takeAssetType, makeAssetType, BigInteger.ZERO)
 
-        val adhoc = EthUInt256.of(event.salt()) == EthUInt256.ZERO
+        val adhoc = false
         val counterAdhoc = true
 
         return listOf(
