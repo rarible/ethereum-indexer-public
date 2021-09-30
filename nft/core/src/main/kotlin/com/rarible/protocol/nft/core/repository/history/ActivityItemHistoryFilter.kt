@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.core.repository.history
 
+import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.core.misc.div
 import com.rarible.protocol.nft.core.misc.isSingleton
 import com.rarible.protocol.nft.core.model.Continuation
 import com.rarible.protocol.nft.core.model.ItemHistory
@@ -13,6 +13,7 @@ import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
+import java.time.Instant
 
 sealed class ActivityItemHistoryFilter {
     protected companion object {
@@ -75,28 +76,75 @@ sealed class ActivityItemHistoryFilter {
                     (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").gt(continuation.afterId)
                 )
         }
+
+    protected fun Criteria.dateBoundary(
+        activitySort: ActivitySort,
+        continuation: Continuation?,
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(LogEvent::data / ItemHistory::date).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / ItemHistory::date).gte(start)
+            ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / ItemHistory::date).lte(end)
+        }
+    }
 }
 
 sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
-    class ByUserMint(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    protected abstract val from: Instant?
+    protected abstract val to: Instant?
+
+    class ByUserMint(
+        override val sort: ActivitySort,
+        private val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityItemHistoryFilter() {
+
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val userMintCriteria = if (users.isSingleton) ownerKey isEqualTo users.single() else ownerKey inValues users
-            return AllMint(sort, null).getCriteria().andOperator(userMintCriteria).scrollTo(sort, continuation)
+            return AllMint(sort, null).getCriteria().andOperator(userMintCriteria)
+                .dateBoundary(sort, continuation, from, to)
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserBurn(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserBurn(
+        override val sort: ActivitySort,
+        private val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val userBurnCriteria = if (users.isSingleton) fromKey isEqualTo users.single() else fromKey inValues users
-            return AllBurn(sort,null).getCriteria().andOperator(userBurnCriteria).scrollTo(sort, continuation)
+            return AllBurn(sort,null).getCriteria().andOperator(userBurnCriteria)
+                .dateBoundary(sort, continuation, from, to)
+                .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserTransferFrom(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserTransferFrom(
+        override val sort: ActivitySort,
+        private val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+    ) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -104,11 +152,18 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(fromKey).isEqualTo(users.single()) else and(fromKey).inValues(users) }
                 .and(ownerKey).ne(Address.ZERO())
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }
 
-    class ByUserTransferTo(override val sort: ActivitySort, private val users: List<Address>, private val continuation: Continuation?) : UserActivityItemHistoryFilter() {
+    class ByUserTransferTo(
+        override val sort: ActivitySort,
+        private val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+   ) : UserActivityItemHistoryFilter() {
         override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
@@ -116,6 +171,7 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .run { if (users.isSingleton) and(ownerKey).isEqualTo(users.single()) else and(ownerKey).inValues(users) }
                 .and(fromKey).ne(Address.ZERO())
+                .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
     }

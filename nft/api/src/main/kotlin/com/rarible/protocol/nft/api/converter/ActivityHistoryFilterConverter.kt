@@ -27,21 +27,29 @@ class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
                     NftActivityFilterByUserDto.Types.TRANSFER_FROM -> UserActivityItemHistoryFilter.ByUserTransferFrom(
                         sort,
                         users,
+                        source.from,
+                        source.to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.TRANSFER_TO -> UserActivityItemHistoryFilter.ByUserTransferTo(
                         sort,
                         users,
+                        source.from,
+                        source.to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.MINT -> UserActivityItemHistoryFilter.ByUserMint(
                         sort,
                         users,
+                        source.from,
+                        source.to,
                         continuation
                     )
                     NftActivityFilterByUserDto.Types.BURN -> UserActivityItemHistoryFilter.ByUserBurn(
                         sort,
                         users,
+                        source.from,
+                        source.to,
                         continuation
                     )
                 }
