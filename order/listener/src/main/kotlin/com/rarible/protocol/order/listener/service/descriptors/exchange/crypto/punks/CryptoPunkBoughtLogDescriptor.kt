@@ -65,6 +65,11 @@ class CryptoPunkBoughtLogDescriptor(
         )
         val make = Asset(cryptoPunksAssetType, EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
+
+        // the left order is always a sell order; if we receive accept bid -> left adhoc = true
+        val adhoc = calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name()
+        // the right order is always a buy order; if we receive buy -> right adhoc = true
+        val counterAdhoc = calledFunctionSignature == CryptoPunksMarket.buyPunkSignature().name()
         return listOf(
             OrderSideMatch(
                 hash = sellOrderHash,
@@ -83,7 +88,9 @@ class CryptoPunkBoughtLogDescriptor(
                 makeValue = null,
                 takeValue = null,
                 source = HistorySource.CRYPTO_PUNKS,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                adhoc = adhoc,
+                counterAdhoc = counterAdhoc
             ),
             OrderSideMatch(
                 hash = buyOrderHash,
@@ -102,7 +109,9 @@ class CryptoPunkBoughtLogDescriptor(
                 makeValue = null,
                 takeValue = null,
                 source = HistorySource.CRYPTO_PUNKS,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible
+                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                adhoc = counterAdhoc,
+                counterAdhoc = adhoc
             )
         )
     }

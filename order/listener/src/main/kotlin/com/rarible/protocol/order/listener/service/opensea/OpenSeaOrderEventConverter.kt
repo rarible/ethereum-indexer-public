@@ -55,6 +55,8 @@ class OpenSeaOrderEventConverter(
         val at = nowMillis()
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = at)
         val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = at)
+        val buyAdhoc = EthUInt256.of(buyOrder.salt) == EthUInt256.ZERO
+        val sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
 
         return listOf(
             OrderSideMatch(
@@ -74,7 +76,9 @@ class OpenSeaOrderEventConverter(
                 takePriceUsd = buyUsdValue?.takePriceUsd,
                 source = HistorySource.OPEN_SEA,
                 externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
-                date = date
+                date = date,
+                adhoc = buyAdhoc,
+                counterAdhoc = sellAdhoc
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -93,7 +97,9 @@ class OpenSeaOrderEventConverter(
                 takePriceUsd = sellUsdValue?.takePriceUsd,
                 externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
                 date = date,
-                source = HistorySource.OPEN_SEA
+                source = HistorySource.OPEN_SEA,
+                adhoc = sellAdhoc,
+                counterAdhoc = buyAdhoc
             )
         )
     }

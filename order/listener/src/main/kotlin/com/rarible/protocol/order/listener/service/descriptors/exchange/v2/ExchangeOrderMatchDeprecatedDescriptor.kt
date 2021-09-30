@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -60,6 +59,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
         val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
         val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
+        val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
+        val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
 
         return listOf(
             OrderSideMatch(
@@ -79,7 +80,9 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 takePriceUsd = lestUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.left?.data
+                data = transactionOrders?.left?.data,
+                adhoc = leftAdhoc,
+                counterAdhoc = rightAdhoc
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -98,7 +101,9 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 takePriceUsd = rightUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.right?.data
+                data = transactionOrders?.right?.data,
+                adhoc = rightAdhoc,
+                counterAdhoc = leftAdhoc
             )
         )
     }

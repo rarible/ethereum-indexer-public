@@ -12,6 +12,8 @@ import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import com.rarible.protocol.order.listener.misc.sign
+import junit.framework.Assert.assertFalse
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -116,6 +118,12 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(left?.makeValue).isEqualTo(right?.takeValue)
             assertThat(left?.takeValue).isEqualTo(right?.makeValue)
+
+            assertFalse(left?.adhoc!!)
+            assertFalse(right?.counterAdhoc!!)
+
+            assertTrue(right?.adhoc!!)
+            assertTrue(left?.counterAdhoc!!)
 
             checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), MatchEvent.id(), OrderActivityMatchDto::class.java)
         }

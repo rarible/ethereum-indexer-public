@@ -59,6 +59,8 @@ class ExchangeOrderMatchDescriptor(
         val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
         val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
         val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
+        val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
+        val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
 
         return listOf(
             OrderSideMatch(
@@ -78,7 +80,9 @@ class ExchangeOrderMatchDescriptor(
                 takePriceUsd = lestUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.left?.data
+                data = transactionOrders?.left?.data,
+                adhoc = leftAdhoc,
+                counterAdhoc = rightAdhoc
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -97,7 +101,9 @@ class ExchangeOrderMatchDescriptor(
                 takePriceUsd = rightUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.right?.data
+                data = transactionOrders?.right?.data,
+                adhoc = rightAdhoc,
+                counterAdhoc = leftAdhoc
             )
         )
     }

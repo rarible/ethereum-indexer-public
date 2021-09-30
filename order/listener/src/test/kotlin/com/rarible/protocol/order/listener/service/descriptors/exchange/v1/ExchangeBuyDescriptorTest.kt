@@ -27,7 +27,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
@@ -198,6 +198,9 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
                 .isEqualTo(buyer.from()).withFailMessage(failMessage)
             assertThat(buy.take.type)
                 .isEqualTo(Erc20AssetType(buyToken.address())).withFailMessage(failMessage)
+
+            assertFalse(buy.adhoc!!)
+            assertTrue(buy.counterAdhoc!!)
 
             checkActivityWasPublished(orderLeft, BuyEvent.id(), OrderActivityMatchDto::class.java)
         }
