@@ -30,17 +30,19 @@ class ChangeLog00012AddAllFieldsFromOrderToOrderVersion {
 
             try {
                 orderVersionRepository.findAllByHash(order.hash).collect { version ->
-                    orderVersionRepository.save(
-                        version.copy(
-                            type = order.type,
-                            salt = order.salt,
-                            start = version.start ?: order.start,
-                            end = version.end ?: order.end,
-                            data = order.data,
-                            signature = version.signature ?: order.signature,
-                            platform = order.platform
-                        )
-                    ).awaitFirst()
+                    if (version.signature == null) {
+                        orderVersionRepository.save(
+                            version.copy(
+                                type = order.type,
+                                salt = order.salt,
+                                start = order.start,
+                                end = order.end,
+                                data = order.data,
+                                signature = order.signature,
+                                platform = order.platform
+                            )
+                        ).awaitFirst()
+                    }
                 }
                 if (counter % 5000L == 0L) {
                     logger.info("Fixed $counter orders")

@@ -120,7 +120,14 @@ class OrderService(
             takePriceUsd = saved.takePriceUsd,
             takeUsd = saved.takeUsd,
             makeUsd = saved.makeUsd,
-            platform = Platform.RARIBLE
+            platform = Platform.RARIBLE,
+
+            type = saved.type,
+            salt = saved.salt,
+            start = saved.start,
+            end = saved.end,
+            data = saved.data,
+            signature = saved.signature
         )).awaitFirst()
 
         orderVersionListener.onOrderVersion(orderVersion)
