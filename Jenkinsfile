@@ -1,7 +1,7 @@
 @Library('shared-library@no-tests-more-properties') _
 
 def ETHEREUM_PROPERTIES = [BLOCKCHAIN:"ethereum"]
-def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
+// def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
 
 pipeline {
   agent none
@@ -13,7 +13,7 @@ pipeline {
     PREFIX = "protocol"
     CREDENTIALS_ID = "nexus-ci"
     ETHEREUM_STACK = "protocol-ethereum"
-    POLYGON_STACK = "protocol-polygon"
+//     POLYGON_STACK = "protocol-polygon"
   }
 
   stages {
@@ -65,7 +65,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
+//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to e2e") {
@@ -85,7 +85,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
+//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to staging") {
@@ -105,7 +105,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
+//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to prod") {
@@ -125,7 +125,7 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-        deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
+//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
   }
