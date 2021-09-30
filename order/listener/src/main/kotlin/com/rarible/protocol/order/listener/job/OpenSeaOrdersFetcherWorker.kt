@@ -103,7 +103,14 @@ class OpenSeaOrdersFetcherWorker(
                 takePriceUsd = order.takePriceUsd,
                 makeUsd = order.makeUsd,
                 takeUsd = order.takeUsd,
-                platform = Platform.OPEN_SEA
+                platform = Platform.OPEN_SEA,
+
+                type = order.type,
+                salt = order.salt,
+                start = order.start,
+                end = order.end,
+                data = order.data,
+                signature = order.signature
             )).awaitFirst()
 
             orderVersionListener.onOrderVersion(version)
