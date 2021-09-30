@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -27,13 +26,14 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
+import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.stream.Stream
 
 @IntegrationTest
 class OrderActivityControllerFt : AbstractIntegrationTest() {
     internal companion object {
-        private val now = nowMillis()
+        private val now = Instant.ofEpochSecond(Instant.now().epochSecond)
 
         @JvmStatic
         private fun activityVersionFilterData() = Stream.of(
@@ -138,8 +138,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.MAKE_BID),
-                        from = now.plus(7, ChronoUnit.MINUTES),
-                        to = now.plus(10, ChronoUnit.MINUTES)
+                        from = (now.plus(7, ChronoUnit.MINUTES)).epochSecond,
+                        to = (now.plus(10, ChronoUnit.MINUTES)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -260,8 +260,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.LIST),
-                        from = now.plus(10, ChronoUnit.MINUTES),
-                        to = now.plus(13, ChronoUnit.MINUTES)
+                        from = (now.plus(10, ChronoUnit.MINUTES)).epochSecond,
+                        to = (now.plus(13, ChronoUnit.MINUTES)).epochSecond
                     ),
                     ActivitySortDto.EARLIEST_FIRST
                 )
@@ -308,8 +308,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.LIST),
-                        from = now.plus(10, ChronoUnit.MINUTES),
-                        to = now.plus(13, ChronoUnit.MINUTES)
+                        from = (now.plus(10, ChronoUnit.MINUTES)).epochSecond,
+                        to = (now.plus(13, ChronoUnit.MINUTES)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -626,8 +626,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.SELL),
-                        from = now.plus(5, ChronoUnit.MINUTES),
-                        to = now.plus(10, ChronoUnit.MINUTES)
+                        from = (now.plus(5, ChronoUnit.MINUTES)).epochSecond,
+                        to = (now.plus(10, ChronoUnit.MINUTES)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -703,8 +703,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     OrderActivityFilterByUserDto(
                         listOf(maker),
                         listOf(OrderActivityFilterByUserDto.Types.SELL),
-                        from = now.plus(5, ChronoUnit.MINUTES),
-                        to = now.plus(10, ChronoUnit.MINUTES)
+                        from = (now.plus(5, ChronoUnit.MINUTES)).epochSecond,
+                        to = (now.plus(10, ChronoUnit.MINUTES)).epochSecond
                     ),
                     ActivitySortDto.EARLIEST_FIRST
                 )

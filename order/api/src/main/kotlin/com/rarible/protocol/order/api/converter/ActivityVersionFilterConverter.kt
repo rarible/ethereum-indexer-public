@@ -13,6 +13,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class ActivityVersionFilterConverter(
@@ -35,33 +36,49 @@ class ActivityVersionFilterConverter(
                     OrderActivityFilterAllDto.Types.MATCH -> null
                 }
             }
-            is OrderActivityFilterByUserDto -> source.types.flatMap {
-                when (it) {
-                    OrderActivityFilterByUserDto.Types.LIST -> listOf(
-                        UserActivityOrderVersionFilter.ByUserList(sort, source.users, source.from, source.to, continuation)
-                    )
-                    OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityOrderVersionFilter.ByUserMakeBid(sort, source.users, source.from, source.to, continuation)
-                    )
-                    OrderActivityFilterByUserDto.Types.GET_BID -> {
-                        logger.info("Get bids for ${source.users.size}} users")
+            is OrderActivityFilterByUserDto -> {
+                val from = source.from?.let { from -> Instant.ofEpochSecond(from) }
+                val to = source.to?.let { to -> Instant.ofEpochSecond(to) }
+                source.types.flatMap {
+                    when (it) {
+                        OrderActivityFilterByUserDto.Types.LIST -> listOf(
+                            UserActivityOrderVersionFilter.ByUserList(
+                                sort,
+                                source.users,
+                                from,
+                                to,
+                                continuation
+                            )
+                        )
+                        OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
+                            UserActivityOrderVersionFilter.ByUserMakeBid(
+                                sort,
+                                source.users,
+                                from,
+                                to,
+                                continuation
+                            )
+                        )
+                        OrderActivityFilterByUserDto.Types.GET_BID -> {
+                            logger.info("Get bids for ${source.users.size}} users")
 
-                        source.users
-                            .map { user -> async { nftAssetService.getOwnerNftAssets(user) } }
-                            .awaitAll()
-                            .flatten()
-                            .distinct()
-                            .map { item ->
-                                ItemActivityOrderVersionFilter.ByItemBid(
-                                    sort,
-                                    item.contract,
-                                    item.tokenId,
-                                    continuation
-                                )
-                            }
+                            source.users
+                                .map { user -> async { nftAssetService.getOwnerNftAssets(user) } }
+                                .awaitAll()
+                                .flatten()
+                                .distinct()
+                                .map { item ->
+                                    ItemActivityOrderVersionFilter.ByItemBid(
+                                        sort,
+                                        item.contract,
+                                        item.tokenId,
+                                        continuation
+                                    )
+                                }
+                        }
+                        OrderActivityFilterByUserDto.Types.SELL,
+                        OrderActivityFilterByUserDto.Types.BUY -> emptyList()
                     }
-                    OrderActivityFilterByUserDto.Types.SELL,
-                    OrderActivityFilterByUserDto.Types.BUY -> emptyList()
                 }
             }
             is OrderActivityFilterByItemDto -> source.types.mapNotNull {

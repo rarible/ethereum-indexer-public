@@ -63,7 +63,7 @@ object ActivityFilterDtoToOrderDtoConverter {
                         ActivityFilterByUserTypeDto.BURN -> null
                     }
                 }
-                if (nftTypes.isNotEmpty()) OrderActivityFilterByUserDto(source.users, nftTypes) else null
+                if (nftTypes.isNotEmpty()) OrderActivityFilterByUserDto(source.users, nftTypes, source.from, source.to) else null
             }
             else -> throw IllegalArgumentException("Unexpected activity filter type $javaClass")
         }

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.repository.exchange.ItemActivityExchangeH
 import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 
 @Component
@@ -35,21 +36,24 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     OrderActivityFilterAllDto.Types.LIST -> emptyList()
                 }
             }
-            is OrderActivityFilterByUserDto -> source.types.flatMap {
-                val users =
-                    if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
-                when (it) {
-                    OrderActivityFilterByUserDto.Types.SELL -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserSell(sort, users, source.from, source.to, continuation)
-                    )
-                    OrderActivityFilterByUserDto.Types.BUY -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, source.from, source.to, continuation)
-                    )
-                    OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                        UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, source.from, source.to, continuation)
-                    )
-                    OrderActivityFilterByUserDto.Types.LIST,
-                    OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
+            is OrderActivityFilterByUserDto -> {
+                val users = if (source.users.size > 1 && skipHeavyRequest) listOf(source.users.first()) else source.users
+                val from = source.from?.let { from -> Instant.ofEpochSecond(from) }
+                val to = source.to?.let { to -> Instant.ofEpochSecond(to) }
+                source.types.flatMap {
+                    when (it) {
+                        OrderActivityFilterByUserDto.Types.SELL -> listOf(
+                            UserActivityExchangeHistoryFilter.ByUserSell(sort, users, from, to, continuation)
+                        )
+                        OrderActivityFilterByUserDto.Types.BUY -> listOf(
+                            UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, from, to, continuation)
+                        )
+                        OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
+                            UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, from, to, continuation)
+                        )
+                        OrderActivityFilterByUserDto.Types.LIST,
+                        OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
+                    }
                 }
             }
             is OrderActivityFilterByItemDto -> source.types.flatMap {

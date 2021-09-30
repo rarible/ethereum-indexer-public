@@ -7,7 +7,6 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.*
-import com.rarible.protocol.nft.core.repository.history.ActivitySort
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -19,6 +18,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.time.Duration
+import java.time.Instant
 import java.util.stream.Stream
 
 @End2EndTest
@@ -34,7 +34,7 @@ class ActivityFt : SpringContainerBaseTest() {
     }
 
     companion object {
-        private val now = nowMillis()
+        private val now = Instant.ofEpochSecond(Instant.now().epochSecond)
 
         @JvmStatic
         private fun allFilter() = Stream.of(
@@ -148,8 +148,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByUserDto(
                         listOf(owner),
                         listOf(NftActivityFilterByUserDto.Types.MINT),
-                        from = now + Duration.ofMinutes(0),
-                        to = now + Duration.ofMinutes(4)
+                        from = (now + Duration.ofMinutes(0)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -191,8 +191,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByUserDto(
                         listOf(owner),
                         listOf(NftActivityFilterByUserDto.Types.MINT),
-                        from = now + Duration.ofMinutes(0),
-                        to = now + Duration.ofMinutes(4)
+                        from = (now + Duration.ofMinutes(0)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
                     ),
                     ActivitySortDto.EARLIEST_FIRST
                 )
@@ -247,8 +247,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByUserDto(
                         listOf(from),
                         listOf(NftActivityFilterByUserDto.Types.BURN),
-                        from = now + Duration.ofMinutes(2),
-                        to = now + Duration.ofMinutes(4)
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -303,8 +303,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByUserDto(
                         listOf(from),
                         listOf(NftActivityFilterByUserDto.Types.TRANSFER_FROM),
-                        from = now + Duration.ofMinutes(2),
-                        to = now + Duration.ofMinutes(4)
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -359,8 +359,8 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByUserDto(
                         listOf(owner),
                         listOf(NftActivityFilterByUserDto.Types.TRANSFER_TO),
-                        from = now + Duration.ofMinutes(2),
-                        to = now + Duration.ofMinutes(4)
+                        from = (now + Duration.ofMinutes(2)).epochSecond,
+                        to = (now + Duration.ofMinutes(4)).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
