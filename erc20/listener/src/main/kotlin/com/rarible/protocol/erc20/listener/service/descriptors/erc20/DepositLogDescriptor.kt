@@ -2,6 +2,7 @@ package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 
 import com.rarible.contracts.interfaces.weth9.DepositEvent
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.erc20.contract.DepositEventByLogData
 import com.rarible.protocol.erc20.core.model.Erc20Deposit
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
@@ -26,7 +27,10 @@ class DepositLogDescriptor(
     override suspend fun convert(log: Log, date: Date): List<Erc20TokenHistory> {
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
 
-        val event = DepositEvent.apply(log)
+        val event = when {
+            log.topics().size() == 1 -> DepositEventByLogData.apply(log)
+            else -> DepositEvent.apply(log)
+        }
 
         val approval = Erc20Deposit(
             owner = event.dst(),
