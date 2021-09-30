@@ -46,6 +46,10 @@
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-listener-log-domain</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-task</artifactId>
+        </dependency>
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
