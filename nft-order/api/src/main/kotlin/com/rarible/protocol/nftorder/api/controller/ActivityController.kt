@@ -6,8 +6,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.math.BigInteger
-import java.time.Instant
-import java.time.OffsetDateTime
 
 @RestController
 class ActivityController(
@@ -62,8 +60,8 @@ class ActivityController(
         val filter = ActivityFilterByUserDto(
             user,
             type,
-            from?.let { Instant.ofEpochSecond(it) },
-            to?.let { Instant.ofEpochSecond(it) }
+            from,
+            to
         )
         val result = activityApiService.getActivities(filter, continuation, size, sort)
         return ResponseEntity.ok(result)
