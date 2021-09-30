@@ -5,10 +5,10 @@ import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.blockingToMono
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.MediaMeta
-//import com.sun.imageio.plugins.bmp.BMPMetadata
-//import com.sun.imageio.plugins.gif.GIFImageMetadata
-//import com.sun.imageio.plugins.jpeg.JPEGMetadata
-//import com.sun.imageio.plugins.png.PNGMetadata
+import com.sun.imageio.plugins.bmp.BMPMetadata
+import com.sun.imageio.plugins.gif.GIFImageMetadata
+import com.sun.imageio.plugins.jpeg.JPEGMetadata
+import com.sun.imageio.plugins.png.PNGMetadata
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -64,11 +64,11 @@ class MediaMetaService(
                     getMetadata(url)
                         .flatMap { (width, height, metadata) ->
                             when (metadata) {
-//                                is GIFImageMetadata -> MediaMeta("image/gif", metadata.imageWidth, metadata.imageHeight).toMono()
-//                                is JPEGMetadata -> MediaMeta("image/jpeg", width, height).toMono()
-//                                is BMPMetadata -> MediaMeta("image/bmp", width, height).toMono()
-//                                is PNGMetadata -> MediaMeta("image/png", width, height).toMono()
-//                                is PNGMetadata -> MediaMeta("image/svg+xml", width, height).toMono()
+                                is GIFImageMetadata -> MediaMeta("image/gif", metadata.imageWidth, metadata.imageHeight).toMono()
+                                is JPEGMetadata -> MediaMeta("image/jpeg", width, height).toMono()
+                                is BMPMetadata -> MediaMeta("image/bmp", width, height).toMono()
+                                is PNGMetadata -> MediaMeta("image/png", width, height).toMono()
+                                is PNGMetadata -> MediaMeta("image/svg+xml", width, height).toMono()
                                 else -> Mono.error<MediaMeta>(IOException("Unknown metadata: " + metadata.javaClass.name))
                             }
                         }
