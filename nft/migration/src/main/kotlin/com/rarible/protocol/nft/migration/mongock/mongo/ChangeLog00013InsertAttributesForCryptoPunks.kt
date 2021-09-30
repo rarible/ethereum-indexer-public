@@ -5,6 +5,7 @@ import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
+import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ import java.math.BigInteger
 class ChangeLog00013InsertAttributesForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00013InsertAttributesForCryptoPunks.create", order = "1", author = "protocol")
-    fun create(punksService: CryptoPunksMetaService) = runBlocking<Unit> {
+    fun create(@NonLockGuarded punksService: CryptoPunksMetaService) = runBlocking<Unit> {
 
         // dataset from https://github.com/cryptopunksnotdead/punks.attributes/tree/master/original
         val names = resource2Lines(path)

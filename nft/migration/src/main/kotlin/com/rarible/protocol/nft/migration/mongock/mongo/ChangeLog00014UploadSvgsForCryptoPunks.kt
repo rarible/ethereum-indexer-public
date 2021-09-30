@@ -29,7 +29,7 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
     fun create(
-        cryptoPunksMetaService: CryptoPunksMetaService,
+        @NonLockGuarded cryptoPunksMetaService: CryptoPunksMetaService,
         @NonLockGuarded ipfsProperties: IpfsProperties
     ) = runBlocking<Unit> {
         val zipResponse = archive(ipfsProperties.cryptoPunksImagesUrl).awaitSingle()
