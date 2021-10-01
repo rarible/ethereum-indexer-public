@@ -43,14 +43,13 @@ class ReduceTokenTaskHandler(
 
         return erc20TransferHistoryRepository
             .findOwnerLogEvents(token = token, owner = null, from = fromWallet)
-            .map { BalanceId(token = it.history.token, owner = it.history.owner) }
-            .windowUntilChanged<BalanceId>()
+            .windowUntilChanged { BalanceId(token = it.history.token, owner = it.history.owner) }
             .concatMap { flow ->
                 flow.switchOnFirst { element, balanceFlow ->
-                    val balanceId = element.get()
+                    val balanceId = element.get()?.let { BalanceId(token = it.history.token, owner = it.history.owner) }
                     if (balanceId != null) {
-                        reduceService
-                            .update(key = balanceId, minMark = Long.MIN_VALUE)
+                        balanceFlow
+                            .thenMany(reduceService.update(key = balanceId, minMark = Long.MIN_VALUE))
                             .then(Mono.just(Wallet(token = balanceId.token, owner = balanceId.owner)))
                     } else {
                         Mono.empty<Wallet>()
