@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
 // RPN-1135: restore fields of Order/OrderVersion
-@ChangeLog(order = "000011")
+// @ChangeLog(order = "000011")
 class ChangeLog00011RestoreOrderSignatures {
 
     private suspend fun <T, R : Comparable<R>> Flow<T>.maxBy(selector: (T) -> R): T? {
@@ -56,7 +56,7 @@ class ChangeLog00011RestoreOrderSignatures {
         }
     }
 
-    @ChangeSet(id = "ChangeLog00011RestoreOrderSignatures.restoreOrderSignatures", order = "1", author = "protocol")
+    // @ChangeSet(id = "ChangeLog00011RestoreOrderSignatures.restoreOrderSignatures", order = "1", author = "protocol")
     fun restoreOrderSignatures(
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded orderVersionRepository: OrderVersionRepository
