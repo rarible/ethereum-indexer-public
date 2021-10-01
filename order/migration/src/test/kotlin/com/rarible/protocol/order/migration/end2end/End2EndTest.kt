@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.migration
+package com.rarible.protocol.order.migration.end2end
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson

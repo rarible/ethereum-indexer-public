@@ -58,6 +58,7 @@ data class Order(
     val platform: Platform = Platform.RARIBLE,
 
     val lastEventId: String? = null,
+    val status: OrderStatus? = null,
 
     @Id
     val hash: Word = hashKey(maker, make.type, take.type, salt.value),
@@ -114,6 +115,15 @@ data class Order(
                 end = end
             )
         )
+    }
+
+    fun calculateStatus(): OrderStatus? {
+        return when {
+            fill == take.value -> OrderStatus.FILLED
+            makeStock > EthUInt256.ZERO -> OrderStatus.ACTIVE
+            cancelled -> OrderStatus.CANCELLED
+            else -> OrderStatus.INACTIVE
+        }
     }
 
     fun withNewValues(
