@@ -13,7 +13,7 @@ object TokenIdDtoConverter : Converter<SignedTokenId, NftTokenIdDto> {
         return NftTokenIdDto(
             tokenId = source.tokenId.value,
             signature = NftSignatureDto(
-                v = source.sign.v,
+                v = source.sign.v.toInt(),
                 r = Binary(source.sign.r),
                 s = Binary(source.sign.s)
             )
