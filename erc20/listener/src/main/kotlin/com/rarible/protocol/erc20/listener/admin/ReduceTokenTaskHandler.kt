@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
@@ -44,10 +45,17 @@ class ReduceTokenTaskHandler(
             .findOwnerLogEvents(token = token, owner = null, from = fromWallet)
             .map { BalanceId(token = it.history.token, owner = it.history.owner) }
             .windowUntilChanged<BalanceId>()
-            .flatMap { flow ->
-                flow.take(1)
-                    .flatMap { balanceId -> reduceService.update(key = balanceId, minMark = Long.MIN_VALUE) }
-                    .map { balanceId -> Wallet(token = balanceId.token, owner = balanceId.owner) }
+            .concatMap { flow ->
+                flow.switchOnFirst { element, balanceFlow ->
+                    val balanceId = element.get()
+                    if (balanceId != null) {
+                        reduceService
+                            .update(key = balanceId, minMark = Long.MIN_VALUE)
+                            .then(Mono.just(Wallet(token = balanceId.token, owner = balanceId.owner)))
+                    } else {
+                        Mono.empty<Wallet>()
+                    }
+                }
             }
             .asFlow()
     }
