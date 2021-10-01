@@ -134,7 +134,7 @@ class OrderActivityConverter(
     }
 
     private fun typeDto(orderSideMatch: OrderSideMatch): OrderActivityMatchDto.Type? {
-        val isNft: (Asset) -> Boolean = { it.type is NftAssetType }
+        val isNft: (Asset) -> Boolean = { it.type.nft }
         val isAdhoc: (OrderSideMatch) -> Boolean = { it.adhoc == true }
         return when {
             isNft(orderSideMatch.make) && !isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.SELL
