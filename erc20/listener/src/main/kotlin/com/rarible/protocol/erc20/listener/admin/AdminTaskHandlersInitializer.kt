@@ -4,6 +4,7 @@ import com.rarible.core.task.TaskService
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.erc20.core.model.ReindexTokenTransferTaskParams.Companion.ADMIN_REINDEX_TOKEN_TRANSFER
 import com.rarible.protocol.erc20.core.model.ReindexTokenWithdrawalTaskParams.Companion.ADMIN_REINDEX_TOKEN_WITHDRAWAL
+import com.rarible.protocol.erc20.core.model.ReduceTokenTaskParams.Companion.ADMIN_REDUCE_TOKEN
 import com.rarible.protocol.erc20.core.repository.TempTaskRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -31,5 +32,10 @@ class AdminTaskHandlersInitializer(
             .findByType(ADMIN_REINDEX_TOKEN_WITHDRAWAL)
             .filter { it.lastStatus != TaskStatus.COMPLETED }
             .collect { taskService.runTask(ADMIN_REINDEX_TOKEN_WITHDRAWAL, it.param) }
+
+        taskRepository
+            .findByType(ADMIN_REDUCE_TOKEN)
+            .filter { it.lastStatus != TaskStatus.COMPLETED }
+            .collect { taskService.runTask(ADMIN_REDUCE_TOKEN, it.param) }
     }
 }
