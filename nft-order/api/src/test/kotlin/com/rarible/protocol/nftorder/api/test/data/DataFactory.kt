@@ -203,7 +203,7 @@ fun randomLazyErc721Dto(itemId: ItemId): LazyNftDto {
 
 fun randomNftSignatureDto(): NftSignatureDto {
     return NftSignatureDto(
-        v = RandomUtils.nextBytes(1)[0],
+        v = RandomUtils.nextBytes(1)[0].toInt(),
         r = randomBinary(),
         s = randomBinary()
     )

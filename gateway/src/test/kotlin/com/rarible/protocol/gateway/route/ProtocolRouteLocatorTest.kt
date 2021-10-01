@@ -40,7 +40,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             signature = NftSignatureDto(
                 r = Binary.apply("0x12"),
                 s = Binary.apply("0x13"),
-                v = Byte.MIN_VALUE
+                v = Byte.MIN_VALUE.toInt()
             )
         )
         mockNftServerClient
