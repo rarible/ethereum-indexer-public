@@ -139,6 +139,11 @@ components:
           format: int64
         logIndex:
           type: integer
+        type:
+          type: string
+          enum:
+            - SELL
+            - ACCEPT_BID
 
     OrderActivityBid:
       type: object

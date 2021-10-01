@@ -68,7 +68,8 @@ class OrderActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    source = convert(data.source)
+                    source = convert(data.source),
+                    type = typeDto(data)
                 )
             }
             is OrderCancel -> if (data.isBid()) {
@@ -129,6 +130,18 @@ class OrderActivityConverter(
                     priceUsd = data.priceUsd
                 )
             }
+        }
+    }
+
+    private fun typeDto(orderSideMatch: OrderSideMatch): OrderActivityMatchDto.Type? {
+        val isNft: (Asset) -> Boolean = { it.type.nft }
+        val isAdhoc: (OrderSideMatch) -> Boolean = { it.adhoc == true }
+        return when {
+            isNft(orderSideMatch.make) && !isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.SELL
+            isNft(orderSideMatch.take) && !isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.ACCEPT_BID
+            isNft(orderSideMatch.make) && isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.ACCEPT_BID
+            isNft(orderSideMatch.take) && isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.SELL
+            else -> null
         }
     }
 
