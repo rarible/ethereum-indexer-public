@@ -15,14 +15,14 @@ class RaribleExchangeV2OrderParser {
 
         return RaribleMatchedOrders(
             left = SimpleOrder(
-                data = convert(
+                data = convertOrderData(
                     version = Binary.apply(decoded.value()._1()._8()),
                     data = Binary.apply(decoded.value()._1()._9())
                 ),
                 salt = EthUInt256.of(decoded.value()._1()._5())
             ),
             right = SimpleOrder(
-                data = convert(
+                data = convertOrderData(
                     version = Binary.apply(decoded.value()._3()._8()),
                     data = Binary.apply(decoded.value()._3()._9())
                 ),
@@ -31,7 +31,7 @@ class RaribleExchangeV2OrderParser {
         )
     }
 
-    private fun convert(version: Binary, data: Binary): OrderData {
+    fun convertOrderData(version: Binary, data: Binary): OrderData {
         return when (version) {
             OrderDataVersion.RARIBLE_V2_DATA_V1.ethDataType -> {
                 val (payouts, originFees) = when {

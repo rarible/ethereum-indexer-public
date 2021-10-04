@@ -97,7 +97,7 @@ class OrderReduceService(
         updateOrderWithState(result)
     }
 
-    private suspend fun Order.updateWith(
+    private fun Order.updateWith(
         logEventStatus: LogEventStatus,
         orderExchangeHistory: OrderExchangeHistory,
         eventId: String

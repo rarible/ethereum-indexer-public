@@ -8,6 +8,7 @@ import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.ext.KafkaTestExtension.Companion.kafkaContainer
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -21,6 +22,7 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -32,6 +34,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
+import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
@@ -40,12 +43,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.core.MonoParity
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import scalether.domain.request.Transaction
 import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
 import scalether.transaction.*
@@ -160,6 +166,45 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     protected suspend fun TransactionReceipt.getTimestamp(): Instant =
         Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
+
+    protected fun depositInitialBalance(to: Address, amount: BigInteger) {
+        val coinBaseWalletPrivateKey =
+            BigInteger(Numeric.hexStringToByteArray("00120de4b1518cf1f16dc1b02f6b4a8ac29e870174cb1d8575f578480930250a"))
+        val (coinBaseAddress, coinBaseSender) = newSender(coinBaseWalletPrivateKey)
+        coinBaseSender.sendTransaction(
+            Transaction(
+                to,
+                coinBaseAddress,
+                BigInteger.valueOf(8000000),
+                BigInteger.ZERO,
+                amount,
+                Binary(ByteArray(1)),
+                null
+            )
+        ).verifySuccess()
+    }
+
+    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
+        val (privateKey, _, address) = generateNewKeys(privateKey0)
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+        return Triple(address, sender, privateKey)
+    }
+
+    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+        return NewKeys(privateKey, publicKey, signer)
+    }
+
+    protected suspend fun getEthBalance(account: Address): BigInteger =
+        ethereum.ethGetBalance(account, "latest").awaitFirst()
 
     protected suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
         if (data is OrderExchangeHistory) {
