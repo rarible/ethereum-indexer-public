@@ -9,9 +9,11 @@ import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
+import reactor.kotlin.extra.retry.retryExponentialBackoff
 import scala.collection.JavaConverters
 import scalether.core.MonoEthereum
 import scalether.java.Lists
+import java.time.Duration
 
 class GethTransactionTraceProvider(
     private val ethereum: MonoEthereum
@@ -32,6 +34,14 @@ class GethTransactionTraceProvider(
                     JavaConverters.asScala(mapOf("tracer" to "callTracer"))
                 ), "2.0"
             )
+        ).retryExponentialBackoff(
+            times = 10,
+            first = Duration.ofMillis(100),
+            max = Duration.ofMinutes(2),
+            jitter = true,
+            doOnRetry = {
+                logger.warn("Failed attempt #${it.iteration()} to get Geth transaction trace: ${it.exception()?.message}")
+            }
         ).awaitFirst()
 
         return result.result()
