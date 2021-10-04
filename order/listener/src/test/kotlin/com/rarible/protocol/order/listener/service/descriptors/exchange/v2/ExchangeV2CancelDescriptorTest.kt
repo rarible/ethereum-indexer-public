@@ -48,6 +48,7 @@ class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
 
             val canceledOrder = orderRepository.findById(order.hash)
             assertThat(canceledOrder?.cancelled).isTrue()
+            assertThat(canceledOrder?.makeStock).isEqualTo(EthUInt256.ZERO)
 
             checkActivityWasPublished(order, CancelEvent.id(), OrderActivityCancelListDto::class.java)
         }
