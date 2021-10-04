@@ -13,7 +13,7 @@ import scalether.domain.Address
 class RoyaltyTaskHandler(
     private val itemRepository: ItemRepository,
     private val royaltyService: RoyaltyService
-) : TaskHandler<Address> {
+) : TaskHandler<String> {
 
     override val type: String
         get() = ROYALTY_REDUCE
@@ -22,12 +22,12 @@ class RoyaltyTaskHandler(
         return listOf(RunTask("", null))
     }
 
-    override fun runLongTask(from: Address?, param: String): Flow<Address> {
-        return itemRepository.findFromByToken(from ?: Address.ZERO())
+    override fun runLongTask(from: String?, param: String): Flow<String> {
+        return itemRepository.findFromByToken(from?.let { Address.apply(it) } ?: Address.ZERO())
             .map { item ->
                 royaltyService.getRoyalty(item.token, item.tokenId)
                 item.token
-            }
+            }.map { it.prefixed() }
     }
 
     companion object {
