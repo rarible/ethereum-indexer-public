@@ -21,7 +21,9 @@ data class Token(
     @Indexed(background = true)
     val standard: TokenStandard,
     @Version
-    val version: Long? = null
+    val version: Long? = null,
+
+    val minters: List<Address> = emptyList()
 ) {
     companion object {
         fun empty() = Token(

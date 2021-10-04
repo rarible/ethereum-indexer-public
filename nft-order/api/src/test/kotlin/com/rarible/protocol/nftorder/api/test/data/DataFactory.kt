@@ -211,13 +211,15 @@ fun randomNftSignatureDto(): NftSignatureDto {
 
 fun randomNftCollectionDto() = randomNftCollectionDto(randomAddress())
 fun randomNftCollectionDto(id: Address): NftCollectionDto {
+    val owner = randomAddress()
     return NftCollectionDto(
         id = id,
         type = NftCollectionDto.Type.ERC1155,
-        owner = randomAddress(),
+        owner = owner,
         name = randomString(),
         symbol = randomString(),
         features = listOf(NftCollectionDto.Features.MINT_WITH_ADDRESS, NftCollectionDto.Features.APPROVE_FOR_ALL),
-        supportsLazyMint = true
+        supportsLazyMint = true,
+        minters = listOf(owner)
     )
 }

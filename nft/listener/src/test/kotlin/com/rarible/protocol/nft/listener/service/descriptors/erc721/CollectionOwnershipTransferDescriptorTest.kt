@@ -112,7 +112,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     name = "Test",
                     symbol = "TEST",
                     features = it.collection.features,
-                    supportsLazyMint = it.collection.supportsLazyMint
+                    supportsLazyMint = it.collection.supportsLazyMint,
+                    minters = listOf(creatorAddress)
                 )
             }
         }
@@ -161,7 +162,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     name = "Test",
                     symbol = "TEST",
                     features = it.collection.features,
-                    supportsLazyMint = it.collection.supportsLazyMint
+                    supportsLazyMint = it.collection.supportsLazyMint,
+                    minters = listOf(creatorAddress)
                 )
             }
         }

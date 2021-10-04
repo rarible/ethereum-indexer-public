@@ -55,6 +55,11 @@ components:
               - MINT_AND_TRANSFER
         supportsLazyMint:
           type: boolean
+        minters:
+          type: array
+          description: List of addresses that can mint items in this collection
+          items:
+            "$ref": "#/components/schemas/Address"
 
     NftCollections:
       required:
