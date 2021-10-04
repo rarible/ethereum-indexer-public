@@ -22,7 +22,7 @@ class ChangeLog00012AddStatusToOrder {
         var counter = 0L
         orderRepository.findAll().collect { order ->
             try {
-                orderRepository.save(order.copy(status = order.calculateStatus()))
+                orderRepository.save(order.withCurrentStatus())
                 counter++
             } catch (ex: Exception) {
                 logger.error("Failed to set status for ${order.hash} order")

@@ -4,14 +4,13 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
+import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
-import com.rarible.protocol.order.core.converters.model.AssetConverter
-import com.rarible.protocol.order.core.converters.model.OrderToFormDtoConverter
-import com.rarible.protocol.order.core.converters.model.OrderSortConverter
-import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.converters.model.*
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
@@ -19,6 +18,8 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.repository.order.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderFilterAll
+import com.rarible.protocol.order.core.repository.order.OrderFilterSell
+import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -30,6 +31,7 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
+import java.time.OffsetDateTime
 
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 @RestController
@@ -40,7 +42,9 @@ class OrderController(
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
     private val orderDtoConverter: OrderDtoConverter,
     private val assetDtoConverter: AssetDtoConverter,
-    private val orderToFormDtoConverter: OrderToFormDtoConverter
+    private val orderToFormDtoConverter: OrderToFormDtoConverter,
+    private val orderBidsService: OrderBidsService,
+    private val bidDtoConverter: BidDtoConverter
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -162,12 +166,18 @@ class OrderController(
     override suspend fun getOrdersAllByStatus(
         sort: OrderSortDto?,
         continuation: String?,
-        size: Int?
+        size: Int?,
+        status: List<OrderStatusDto>?,
+        start: OffsetDateTime?,
+        end: OffsetDateTime?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterAll(
             sort = convert(sort),
             continuation = continuation,
-            size = size
+            size = size,
+            statuses = convertStatus(status),
+            start = start?.toInstant(),
+            end = end?.toInstant()
         )
         val result = searchOrders(filter)
         return ResponseEntity.ok(result)
@@ -209,6 +219,35 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getSellOrdersByItemAndByStatus(
+        contract: String,
+        tokenId: String,
+        maker: String?,
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        status: List<OrderStatusDto>?,
+        start: OffsetDateTime?,
+        end: OffsetDateTime?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterSell(
+            contract = Address.apply(contract),
+            tokenId = EthUInt256.of(tokenId),
+            maker = safeAddress(maker),
+            continuation = continuation,
+            origin = safeAddress(origin),
+            platform = convert(platform),
+            sort = OrderFilter.Sort.MAKE_PRICE_ASC,
+            size = size,
+            statuses = convertStatus(status),
+            start = start?.toInstant(),
+            end = end?.toInstant()
+        )
+        val result = searchOrders(filter)
+        return ResponseEntity.ok(result)
+    }
+
     override suspend fun getSellOrdersByCollection(
         collection: String,
         origin: String?,
@@ -226,6 +265,31 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getSellOrdersByCollectionAndByStatus(
+        collection: String,
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        status: List<OrderStatusDto>?,
+        start: OffsetDateTime?,
+        end: OffsetDateTime?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterSell(
+            contract = Address.apply(collection),
+            continuation = continuation,
+            origin = safeAddress(origin),
+            platform = convert(platform),
+            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            size = size,
+            statuses = convertStatus(status),
+            start = start?.toInstant(),
+            end = end?.toInstant()
+        )
+        val result = searchOrders(filter)
+        return ResponseEntity.ok(result)
+    }
+
     override suspend fun getSellOrdersByMaker(
         maker: String,
         origin: String?,
@@ -240,6 +304,54 @@ class OrderController(
             sort = OrderFilterDto.Sort.LAST_UPDATE
         )
         val result = searchOrders(null, filter, continuation, size)
+        return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getSellOrdersByMakerAndByStatus(
+        maker: String,
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        status: List<OrderStatusDto>?,
+        start: OffsetDateTime?,
+        end: OffsetDateTime?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterSell(
+            maker = safeAddress(maker),
+            continuation = continuation,
+            origin = safeAddress(origin),
+            platform = convert(platform),
+            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            size = size,
+            statuses = convertStatus(status),
+            start = start?.toInstant(),
+            end = end?.toInstant()
+        )
+        val result = searchOrders(filter)
+        return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getSellOrdersByStatus(
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        status: List<OrderStatusDto>?,
+        start: OffsetDateTime?,
+        end: OffsetDateTime?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterSell(
+            continuation = continuation,
+            origin = safeAddress(origin),
+            platform = convert(platform),
+            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            size = size,
+            statuses = convertStatus(status),
+            start = start?.toInstant(),
+            end = end?.toInstant()
+        )
+        val result = searchOrders(filter)
         return ResponseEntity.ok(result)
     }
 
@@ -264,6 +376,36 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getOrderBidsByItemAndByStatus(
+        contract: String,
+        tokenId: String,
+        status: List<OrderBidStatusDto>,
+        maker: String?,
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        startDate: OffsetDateTime?,
+        endDate: OffsetDateTime?
+    ): ResponseEntity<OrderBidsPaginationDto> {
+        val requestSize = size.limit()
+        val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
+        val makerAddress = if (maker == null) null else Address.apply(maker)
+        val originAddress = if (origin == null) null else Address.apply(origin)
+        val filter = PriceOrderVersionFilter.BidByItem(
+            Address.apply(contract),
+            EthUInt256.of(tokenId),
+            makerAddress,
+            originAddress,
+            PlatformConverter.convert(platform),
+            startDate?.toInstant(),
+            endDate?.toInstant(),
+            requestSize,
+            priceContinuation
+        )
+        return searchBids(status, filter, requestSize)
+    }
+
     override suspend fun getOrderBidsByMaker(
         maker: String,
         origin: String?,
@@ -278,6 +420,46 @@ class OrderController(
             sort = OrderFilterDto.Sort.LAST_UPDATE
         )
         val result = searchOrders(filter, continuation, size)
+        return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getOrderBidsByMakerAndByStatus(
+        maker: String,
+        status: List<OrderBidStatusDto>,
+        origin: String?,
+        platform: PlatformDto?,
+        continuation: String?,
+        size: Int?,
+        startDate: OffsetDateTime?,
+        endDate: OffsetDateTime?
+    ): ResponseEntity<OrderBidsPaginationDto> {
+        val requestSize = size.limit()
+        val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
+        val makerAddress = if (maker == null) null else Address.apply(maker)
+        val originAddress = if (origin == null) null else Address.apply(origin)
+        val filter = PriceOrderVersionFilter.BidByItem(
+            null,
+            null,
+            makerAddress,
+            originAddress,
+            PlatformConverter.convert(platform),
+            startDate?.toInstant(),
+            endDate?.toInstant(),
+            requestSize,
+            priceContinuation
+        )
+        return searchBids(status, filter, requestSize)
+    }
+
+    suspend fun searchBids(status: List<OrderBidStatusDto>, filter: PriceOrderVersionFilter, requestSize: Int): ResponseEntity<OrderBidsPaginationDto> {
+        val statuses = status.map { OrderBidStatusConverter.convert(it) }
+        val orderVersions = orderBidsService.findOrderBids(filter, statuses)
+        val nextContinuation =
+            if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
+        val result = OrderBidsPaginationDto(
+            orderVersions.map { bidDtoConverter.convert(it) },
+            nextContinuation
+        )
         return ResponseEntity.ok(result)
     }
 
@@ -336,8 +518,18 @@ class OrderController(
         return source.map { PartConverter.convert(it) }
     }
 
+    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatus> {
+        return source?.map { OrderStatus.valueOf(it.name) } ?: listOf()
+    }
+
+    private fun convert(platform: PlatformDto?): Platform? = PlatformConverter.convert(platform)
+
     private fun convert(source: OrderSortDto?): OrderFilter.Sort {
         return source?.let { OrderSortConverter.convert(it) } ?: OrderFilter.Sort.LAST_UPDATE_DESC
+    }
+
+    private fun toContinuation(orderVersion: OrderVersion): String {
+        return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
 
     private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {

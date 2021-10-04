@@ -176,6 +176,14 @@ components:
           enum:
             - CRYPTO_PUNKS
 
+    OrderStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - FILLED
+        - INACTIVE
+        - CANCELLED
+
     OrderBidStatus:
       type: string
       enum:
@@ -563,6 +571,13 @@ components:
           default: [ ]
           items:
             $ref: "#/components/schemas/OrderPriceHistoryRecord"
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - CANCELLED
+            - FILLED
 
       discriminator:
         propertyName: type

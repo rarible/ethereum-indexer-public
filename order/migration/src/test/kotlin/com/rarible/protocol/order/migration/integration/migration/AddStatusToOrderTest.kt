@@ -38,7 +38,7 @@ class AddStatusToOrderTest : AbstractMigrationTest() {
                 maker = AddressFactory.create(),
                 taker = null,
                 make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ZERO),
-                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ZERO),
+                take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE),
                 makeStock = EthUInt256.ZERO,
                 type = OrderType.RARIBLE_V2,
                 fill = EthUInt256.ZERO,
@@ -49,6 +49,7 @@ class AddStatusToOrderTest : AbstractMigrationTest() {
                 data = OrderRaribleV2DataV1(emptyList(), emptyList()),
                 signature = null,
                 createdAt = nowMillis(),
+                status = null,
                 lastUpdateAt = nowMillis()
             )
             Stream.of(

@@ -242,6 +242,31 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(sortedOrder2.lastUpdateAt).isAfterOrEqualTo(sortedOrder3.lastUpdateAt)
     }
 
+    @Test
+    fun `get all_2 orders - ok`() = runBlocking<Unit> {
+        saveRandomOrderWithMakeBalance()
+        saveRandomOrderWithMakeBalance()
+        saveRandomOrderWithMakeBalance()
+
+        val page1 = orderClient.getOrdersAllByStatus(OrderSortDto.LAST_UPDATE_DESC, null, 2,
+            listOf(), null, null).awaitFirst()
+
+        assertThat(page1.continuation).isNotNull()
+        assertThat(page1.orders.size).isEqualTo(2)
+
+        val page2 = orderClient.getOrdersAll(null, null, page1.continuation, 2).awaitFirst()
+
+        assertThat(page2.continuation).isNull()
+        assertThat(page2.orders.size).isEqualTo(1)
+
+        val sortedOrder1 = page1.orders[0]
+        val sortedOrder2 = page1.orders[1]
+        val sortedOrder3 = page2.orders[0]
+
+        assertThat(sortedOrder1.lastUpdateAt).isAfterOrEqualTo(sortedOrder2.lastUpdateAt)
+        assertThat(sortedOrder2.lastUpdateAt).isAfterOrEqualTo(sortedOrder3.lastUpdateAt)
+    }
+
     @ParameterizedTest
     @MethodSource("allPlatform")
     fun `get orders by platform`(platform: Platform) = runBlocking<Unit> {

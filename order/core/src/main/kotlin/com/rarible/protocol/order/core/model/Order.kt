@@ -55,10 +55,11 @@ data class Order(
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
+    val status: OrderStatus? = calculateStatus(fill, take, makeStock, cancelled),
+
     val platform: Platform = Platform.RARIBLE,
 
     val lastEventId: String? = null,
-    val status: OrderStatus? = null,
 
     @Id
     val hash: Word = hashKey(maker, make.type, take.type, salt.value),
@@ -117,15 +118,6 @@ data class Order(
         )
     }
 
-    fun calculateStatus(): OrderStatus? {
-        return when {
-            fill == take.value -> OrderStatus.FILLED
-            makeStock > EthUInt256.ZERO -> OrderStatus.ACTIVE
-            cancelled -> OrderStatus.CANCELLED
-            else -> OrderStatus.INACTIVE
-        }
-    }
-
     fun withNewValues(
         make: EthUInt256,
         take: EthUInt256,
@@ -157,6 +149,10 @@ data class Order(
 
     fun withMakePrice(price: BigDecimal?): Order {
         return copy(makePriceUsd = price)
+    }
+
+    fun withCurrentStatus(): Order {
+        return copy(status = calculateStatus(fill, take, makeStock, cancelled))
     }
 
     companion object {
@@ -192,6 +188,15 @@ data class Order(
             return when(orderType) {
                 OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> minOf(make, roundedMakeBalance)
                 OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
+            }
+        }
+
+        private fun calculateStatus(fill: EthUInt256, take: Asset, makeStock: EthUInt256, cancelled: Boolean): OrderStatus {
+            return when {
+                fill == take.value -> OrderStatus.FILLED
+                makeStock > EthUInt256.ZERO -> OrderStatus.ACTIVE
+                cancelled -> OrderStatus.CANCELLED
+                else -> OrderStatus.INACTIVE
             }
         }
 

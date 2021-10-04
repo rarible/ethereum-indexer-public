@@ -16,8 +16,8 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     abstract fun withContinuation(continuation: Continuation.Price?): PriceOrderVersionFilter
 
     data class BidByItem(
-        private val contract: Address,
-        private val tokenId: EthUInt256,
+        private val contract: Address?,
+        private val tokenId: EthUInt256?,
         private val maker: Address?,
         private val origin: Address?,
         private val platform: Platform?,
@@ -31,8 +31,8 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
 
         override fun getCriteria(): Criteria {
             val criteria = listOfNotNull(
-                takeNftContractKey isEqualTo contract,
-                takeNftTokenIdKey isEqualTo tokenId,
+                contract?.let { takeNftContractKey isEqualTo it },
+                tokenId?.let { takeNftTokenIdKey isEqualTo it },
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 platform?.let { OrderVersion::platform isEqualTo it },
