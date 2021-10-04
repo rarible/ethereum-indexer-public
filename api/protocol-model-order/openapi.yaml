@@ -572,12 +572,7 @@ components:
           items:
             $ref: "#/components/schemas/OrderPriceHistoryRecord"
         status:
-          type: string
-          enum:
-            - ACTIVE
-            - INACTIVE
-            - CANCELLED
-            - FILLED
+          $ref: "#/components/schemas/OrderStatus"
 
       discriminator:
         propertyName: type
