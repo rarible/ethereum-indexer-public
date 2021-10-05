@@ -55,7 +55,7 @@ data class Order(
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
-    val status: OrderStatus? = calculateStatus(fill, take, makeStock, cancelled),
+    val status: OrderStatus = calculateStatus(fill, take, makeStock, cancelled),
 
     val platform: Platform = Platform.RARIBLE,
 

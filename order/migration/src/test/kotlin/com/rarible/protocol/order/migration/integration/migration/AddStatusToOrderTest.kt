@@ -3,19 +3,21 @@ package com.rarible.protocol.order.migration.integration.migration
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.migration.integration.AbstractMigrationTest
 import com.rarible.protocol.order.migration.integration.IntegrationTest
 import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00012AddStatusToOrder
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
@@ -48,7 +50,6 @@ class AddStatusToOrderTest : AbstractMigrationTest() {
                 data = OrderRaribleV2DataV1(emptyList(), emptyList()),
                 signature = null,
                 createdAt = nowMillis(),
-                status = null,
                 lastUpdateAt = nowMillis()
             )
             Stream.of(
@@ -63,8 +64,10 @@ class AddStatusToOrderTest : AbstractMigrationTest() {
     @ParameterizedTest
     @MethodSource("orders")
     fun `should set status`(order: Order, status: OrderStatus) = runBlocking {
-        assertNull(order.status)
         orderRepository.save(order)
+
+        // remove status
+        template.updateMulti(Query(), Update().unset("status"), MongoOrderRepository.COLLECTION).awaitFirst()
 
         migration.migrate(template)
         val result = orderRepository.findById(order.hash)
