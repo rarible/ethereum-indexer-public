@@ -10,7 +10,6 @@ import com.rarible.protocol.nft.core.configuration.IpfsProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
@@ -20,7 +19,6 @@ import java.math.BigInteger
 @EnableRaribleCache
 @EnableLoggingContextFilter
 @EnableRaribleRedisLock
-@ComponentScan(basePackages = ["com.rarible.protocol.nft.api.converters"])
 class NftIndexerApiConfiguration(
     private val nftIndexerApiProperties: NftIndexerApiProperties
 ) {
@@ -35,9 +33,14 @@ class NftIndexerApiConfiguration(
     }
 
     @Bean
-    fun daonomicLazyNftValidator(transactionSender: MonoTransactionSender): LazyNftValidator {
+    fun erc1271SignService(sender: MonoTransactionSender): ERC1271SignService {
+        return ERC1271SignService(sender)
+    }
+
+    @Bean
+    fun daonomicLazyNftValidator(sender: MonoTransactionSender, erc1271SignService: ERC1271SignService): LazyNftValidator {
         return LazyNftValidator(
-            ERC1271SignService(transactionSender),
+            erc1271SignService,
             EIP712DomainNftFactory(BigInteger.valueOf(nftIndexerApiProperties.chainId))
         )
     }
