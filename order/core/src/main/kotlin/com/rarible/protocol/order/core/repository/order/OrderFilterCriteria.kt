@@ -51,7 +51,16 @@ object OrderFilterCriteria {
 
     private fun sort(sort: OrderFilterDto.Sort): Sort {
         return when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name, Order::hash.name)
+            OrderFilterDto.Sort.LAST_UPDATE -> Sort.by(
+                Sort.Direction.DESC,
+                Order::lastUpdateAt.name,
+                Order::hash.name
+            )
+            OrderFilterDto.Sort.LAST_UPDATE_ASC -> Sort.by(
+                Sort.Direction.ASC,
+                Order::lastUpdateAt.name,
+                Order::hash.name
+            )
             OrderFilterDto.Sort.MAKE_PRICE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::makePriceUsd.name,
@@ -121,6 +130,18 @@ object OrderFilterCriteria {
                         Criteria().andOperator(
                             Order::lastUpdateAt isEqualTo c.afterDate,
                             Order::hash lt c.afterId
+                        )
+                    )
+                } ?: this
+            }
+            OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
+                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                lastDate?.let { c ->
+                    this.orOperator(
+                        Order::lastUpdateAt gt c.afterDate,
+                        Criteria().andOperator(
+                            Order::lastUpdateAt isEqualTo c.afterDate,
+                            Order::hash gt c.afterId
                         )
                     )
                 } ?: this

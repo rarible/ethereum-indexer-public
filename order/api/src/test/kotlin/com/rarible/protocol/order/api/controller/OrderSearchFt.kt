@@ -53,19 +53,19 @@ class OrderSearchFt : AbstractIntegrationTest() {
 
         @JvmStatic
         fun orders4All(): Stream<Arguments> = run {
-            val now = Instant.now()
-            val endInHour = now + Duration.ofHours(1)
+            val now = nowMillis()
+            val endInHour = (now + Duration.ofHours(1)).epochSecond
             val order: () -> Order = { createOrderFully().copy(
                 makeStock = EthUInt256.ZERO,
                 start = now.toEpochMilli(),
-                end = endInHour.toEpochMilli()).withCurrentStatus() }
+                end = endInHour).withCurrentStatus() }
             val inactiveOrder = order()
             val activeOrder = order().copy(makeStock = EthUInt256.ONE).withCurrentStatus()
             val filledOrder = order().copy(fill = EthUInt256.TEN, take = Asset(EthAssetType, EthUInt256.TEN)).withCurrentStatus()
             val canceledOrder = order().copy(cancelled = true).withCurrentStatus()
             val futureOrder = order().copy(
-                start = now.toEpochMilli() + Duration.ofHours(2).toMillis(),
-                end = now.toEpochMilli() + Duration.ofHours(4).toMillis()
+                start = (now + Duration.ofHours(2)).epochSecond,
+                end = (now + Duration.ofHours(4)).epochSecond
             ).withCurrentStatus()
             val orders = listOf(inactiveOrder, activeOrder, filledOrder, canceledOrder, futureOrder)
             Stream.of(
@@ -73,7 +73,8 @@ class OrderSearchFt : AbstractIntegrationTest() {
                 Arguments.of(orders, activeOrder, listOf(OrderStatusDto.ACTIVE), null, endInHour),
                 Arguments.of(orders, filledOrder, listOf(OrderStatusDto.FILLED), null, endInHour),
                 Arguments.of(orders, canceledOrder, listOf(OrderStatusDto.CANCELLED), null, endInHour),
-                Arguments.of(orders, futureOrder, null, now + Duration.ofHours(1), now + Duration.ofHours(5))
+                Arguments.of(orders, futureOrder, null,
+                    (now + Duration.ofHours(1)).epochSecond, (now + Duration.ofHours(5)).epochSecond)
             )
         }
     }
@@ -127,13 +128,12 @@ class OrderSearchFt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("orders4All")
     fun `should find all orders by query`(
-        orders: List<Order>, order: Order, statuses: List<OrderStatusDto>?, start: Instant?, end: Instant?
+        orders: List<Order>, order: Order, statuses: List<OrderStatusDto>?, start: Long?, end: Long?
     ) = runBlocking<Unit> {
         saveOrder(*orders.shuffled().toTypedArray())
 
         Wait.waitAssert {
-            val result = orderClient.getOrdersAllByStatus(null, null, 1, statuses,
-                start?.atOffset(ZoneOffset.UTC), end?.atOffset(ZoneOffset.UTC)).awaitFirst()
+            val result = orderClient.getOrdersAllByStatus(null, null, 1, statuses, start, end).awaitFirst()
             assertThat(result.orders.size).isEqualTo(1)
             assertThat(order.hash).isEqualTo(result.orders[0].hash)
         }

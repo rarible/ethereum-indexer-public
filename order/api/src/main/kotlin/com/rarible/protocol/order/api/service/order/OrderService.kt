@@ -11,8 +11,6 @@ import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
-import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
-import com.rarible.protocol.order.core.repository.order.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -80,12 +78,8 @@ class OrderService(
     suspend fun updateMakeStock(hash: Word): Order =
         orderUpdateService.updateMakeStock(hash) ?: throw EntityNotFoundApiException("Order", hash)
 
-    suspend fun findOrders(filter: OrderFilter?, legacyFilter: OrderFilterDto, size: Int, continuation: String?): List<Order> {
-        return if (filter != null) orderRepository.search(filter) else orderRepository.search(legacyFilter.toCriteria(continuation, size))
-    }
-
     suspend fun findOrders(legacyFilter: OrderFilterDto, size: Int, continuation: String?): List<Order> {
-        return findOrders(null, legacyFilter, size, continuation)
+        return orderRepository.search(legacyFilter.toCriteria(continuation, size))
     }
 
     private suspend fun checkLazyNft(asset: Asset): Asset {

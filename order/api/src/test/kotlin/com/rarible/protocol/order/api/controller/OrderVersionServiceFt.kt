@@ -144,8 +144,8 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             params.platform,
             null,
             null,
-            params.startDate?.atOffset(ZoneOffset.UTC),
-            params.endDate?.atOffset(ZoneOffset.UTC)
+            params.startDate?.epochSecond,
+            params.endDate?.epochSecond
         ).awaitFirst()
 
         assertThat(versions.items).hasSize(orderVersionBids.size)

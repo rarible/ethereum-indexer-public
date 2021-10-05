@@ -15,8 +15,6 @@ import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderFilter
-import com.rarible.protocol.order.core.repository.order.OrderFilterAll
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
@@ -170,15 +168,13 @@ class OrderController(
         start: Long?,
         end: Long?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterAll(
+        val filter = OrderFilterAllDto(
             sort = convert(sort),
-            continuation = continuation,
-            size = size,
-            statuses = convertStatus(status),
+            status = convertStatus(status),
             start = start,
             end = end
         )
-        val result = searchOrders(filter)
+        val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -239,7 +235,7 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.MAKE_PRICE_ASC,
-            status = convertStatusNullavle(status),
+            status = convertStatus(status),
             start = start,
             end = end
         )
@@ -280,7 +276,7 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE,
-            status = convertStatusNullavle(status),
+            status = convertStatus(status),
             start = start,
             end = end
         )
@@ -302,7 +298,7 @@ class OrderController(
             sort = OrderFilterDto.Sort.LAST_UPDATE,
             status = listOf(OrderStatusDto.ACTIVE)
         )
-        val result = searchOrders(null, filter, continuation, size)
+        val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -321,11 +317,11 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE,
-            status = convertStatusNullavle(status),
+            status = convertStatus(status),
             start = start,
             end = end
         )
-        val result = searchOrders(null, filter, continuation, size)
+        val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
 
@@ -342,7 +338,7 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE,
-            status = convertStatusNullavle(status),
+            status = convertStatus(status),
             start = start,
             end = end
         )
@@ -461,16 +457,15 @@ class OrderController(
     }
 
     private suspend fun searchOrders(
-        filter: OrderFilter?,
-        legacyFilter: OrderFilterDto,
+        filter: OrderFilterDto,
         continuation: String?,
         size: Int?
     ): OrdersPaginationDto {
         val requestSize = size.limit()
 
-        val result = orderService.findOrders(filter, legacyFilter.featured(featureFlags), requestSize, continuation)
+        val result = orderService.findOrders(filter.featured(featureFlags), requestSize, continuation)
 
-        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, legacyFilter, result.last())
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
 
         return OrdersPaginationDto(
             result.map { orderDtoConverter.convert(it) },
@@ -478,24 +473,12 @@ class OrderController(
         )
     }
 
-    private suspend fun searchOrders(
-        filter: OrderFilterDto,
-        continuation: String?,
-        size: Int?
-    ): OrdersPaginationDto {
-        return searchOrders(null, filter, continuation, size)
-    }
-
-    private suspend fun searchOrders(
-        filter: OrderFilter
-    ): OrdersPaginationDto {
-        return searchOrders(filter, OrderFilterAllDto(sort = OrderFilterDto.Sort.LAST_UPDATE, origin = null, platform = null), filter.continuation, filter.size)
-    }
-
-    private fun toContinuation(filter: OrderFilter?, legacyFilter: OrderFilterDto, order: Order): String {
-        return (filter?.toContinuation(order)
-            ?: when (legacyFilter.sort) {
+    private fun toContinuation(legacyFilter: OrderFilterDto, order: Order): String {
+        return (when (legacyFilter.sort) {
                 OrderFilterDto.Sort.LAST_UPDATE -> {
+                    Continuation.LastDate(order.lastUpdateAt, order.hash)
+                }
+                OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
                     Continuation.LastDate(order.lastUpdateAt, order.hash)
                 }
                 OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
@@ -515,16 +498,12 @@ class OrderController(
         return source.map { PartConverter.convert(it) }
     }
 
-    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatus> {
-        return source?.map { OrderStatus.valueOf(it.name) } ?: listOf()
-    }
-
-    private fun convertStatusNullavle(source: List<OrderStatusDto>?): List<OrderStatusDto>? {
+    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatusDto>? {
         return source?.map { OrderStatusDto.valueOf(it.name) } ?: listOf()
     }
 
-    private fun convert(source: OrderSortDto?): OrderFilter.Sort {
-        return source?.let { OrderSortConverter.convert(it) } ?: OrderFilter.Sort.LAST_UPDATE_DESC
+    private fun convert(source: OrderSortDto?): OrderFilterDto.Sort {
+        return source?.let { OrderSortDtoConverter.convert(it) } ?: OrderFilterDto.Sort.LAST_UPDATE
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {

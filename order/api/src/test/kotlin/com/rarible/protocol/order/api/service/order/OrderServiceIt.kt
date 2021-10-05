@@ -636,7 +636,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey2))
 
         val orders =
-            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2), 10, null)
+            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, null, null, null, signer2), 10, null)
 
         assertThat(orders).hasSize(1)
     }
@@ -664,7 +664,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2),
+                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, null, null, null, signer2),
                 10, null
             )
 
@@ -674,7 +674,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, signer2),
+                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE, null, null, null, signer2),
                 10,
                 continuation.toString()
             )
@@ -703,7 +703,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollectionDto(
                 null,
                 null,
-                OrderFilterDto.Sort.LAST_UPDATE,
+                OrderFilterDto.Sort.LAST_UPDATE, null, null, null,
                 collection1
             ), 10, null
         )
@@ -713,7 +713,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollectionDto(
                 null,
                 null,
-                OrderFilterDto.Sort.LAST_UPDATE,
+                OrderFilterDto.Sort.LAST_UPDATE, null, null, null,
                 collection2
             ), 10, null
         )
@@ -766,9 +766,9 @@ class OrderServiceIt : AbstractOrderIt() {
     }
 
     private suspend fun saveRandomOrderWithMakeBalance(): Order {
-        val (privateKey, _, signer) = generateNewKeys()
+        val (_, _, signer) = generateNewKeys()
         val order = createOrder(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
-        return orderService.put(order.toForm(privateKey))
+        return orderRepository.save(order)
     }
 
     private suspend fun saveRandomOpenSeaOrderWithMakeBalance(): Order {

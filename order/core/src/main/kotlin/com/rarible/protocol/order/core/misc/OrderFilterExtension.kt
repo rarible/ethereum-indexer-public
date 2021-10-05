@@ -10,6 +10,9 @@ fun OrderFilterDto.toContinuation(order: Order): String {
         OrderFilterDto.Sort.LAST_UPDATE -> {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }
+        OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
         OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
             Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
         }
