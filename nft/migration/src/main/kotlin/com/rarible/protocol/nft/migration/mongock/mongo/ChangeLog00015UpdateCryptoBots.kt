@@ -13,11 +13,11 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 
-@ChangeLog(order = "00013")
-class ChangeLog00013UpdateCryptoBots {
+@ChangeLog(order = "00015")
+class ChangeLog00015UpdateCryptoBots {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
-    @ChangeSet(id = "ChangeLog00013UpdateCryptoBots.sendItemUpdates", order = "1", author = "protocol")
+    @ChangeSet(id = "ChangeLog00015UpdateCryptoBots.sendItemUpdates", order = "1", author = "protocol")
     fun sendItemUpdates(
         @NonLockGuarded itemRepository: ItemRepository,
         @NonLockGuarded reduceEventListenerListener: ReduceEventListenerListener
