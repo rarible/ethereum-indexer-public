@@ -864,6 +864,16 @@ components:
             - LAST_UPDATE
             - TAKE_PRICE_DESC
             - MAKE_PRICE_ASC
+        status:
+          type: array
+          items:
+            "$ref": "#/components/schemas/OrderStatus"
+        start:
+          type: integer
+          format: int64
+        end:
+          type: integer
+          format: int64
       oneOf:
         - "$ref": "#/components/schemas/OrderFilterAll"
         - "$ref": "#/components/schemas/OrderFilterSell"

@@ -69,19 +69,11 @@ class MongoOrderRepository(
         if (hint != null) {
             query.withHint(hint)
         }
-        filter.contract?.let { query.addCriteria(Order::make / Asset::type / NftAssetType::token isEqualTo it) }
-        filter.tokenId?.let { query.addCriteria(Order::make / Asset::type / NftAssetType::tokenId isEqualTo it) }
-        filter.origin?.let {
-            query.addCriteria(Criteria("${Order::data.name}.${OrderRaribleV2DataV1::originFees.name}")
-                .elemMatch(Criteria.where(Part::account.name).`is`(it)))
-        }
-        filter.maker?.let { query.addCriteria(Order::maker isEqualTo it) }
-        filter.platform?.let { query.addCriteria(Order::platform isEqualTo it) }
         if (filter.statuses.isNotEmpty()) {
             query.addCriteria(Order::status inValues filter.statuses)
         }
-        filter.start?.let { query.addCriteria(Order::start gte it.toEpochMilli()) }
-        filter.end?.let { query.addCriteria(Order::end lte it.toEpochMilli()) }
+        filter.start?.let { query.addCriteria(Order::start gte it) }
+        filter.end?.let { query.addCriteria(Order::end lte it) }
         query.with(sort).limit(limit)
         return template.find<Order>(query).collectList().awaitFirst()
     }

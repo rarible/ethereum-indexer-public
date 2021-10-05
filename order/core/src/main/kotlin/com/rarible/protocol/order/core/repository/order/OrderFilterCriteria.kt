@@ -31,7 +31,6 @@ object OrderFilterCriteria {
         val query = Query(
             criteria
                 .forPlatform(convert(platform))
-                .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
         ).limit(requestLimit).with(sort(this.sort))
@@ -39,6 +38,14 @@ object OrderFilterCriteria {
         if (hint != null) {
             query.withHint(hint)
         }
+        this.status?.let {
+            if (it.isNotEmpty()) {
+                val statuses = it.map { OrderStatus.valueOf(it.name) }
+                query.addCriteria(Order::status inValues statuses)
+            }
+        }
+        this.start?.let { query.addCriteria(Order::start gte it) }
+        this.end?.let { query.addCriteria(Order::end lte it) }
         return query
     }
 
@@ -94,13 +101,6 @@ object OrderFilterCriteria {
         Criteria()
             .and(Order::maker.name).isEqualTo(maker)
             .and("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
-
-    private infix fun Criteria.pickAlive(alive: Boolean) =
-        if (alive) {
-            this.and(Order::makeStock.name).ne(EthUInt256.ZERO)
-        } else {
-            this
-        }
 
     private infix fun Criteria.fromOrigin(origin: Address?) = origin?.let {
         and("${Order::data.name}.${OrderRaribleV2DataV1::originFees.name}")

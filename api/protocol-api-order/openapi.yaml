@@ -478,14 +478,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -600,14 +600,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -702,14 +702,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -794,14 +794,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -898,14 +898,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderBidsPage"
@@ -1020,14 +1020,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderBidsPage"
@@ -1070,14 +1070,14 @@ paths:
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
         - name: endDate
           in: query
           required: false
           schema:
-            type: string
-            format: date-time
+            type: integer
+            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
