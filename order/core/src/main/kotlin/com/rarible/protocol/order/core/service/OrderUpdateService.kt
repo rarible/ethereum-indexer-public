@@ -68,9 +68,13 @@ class OrderUpdateService(
      */
     suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
         val order = orderRepository.findById(hash) ?: return null
+
         val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order) ?: EthUInt256.ZERO
+
         val protocolCommission = protocolCommissionProvider.get()
         val withNewMakeStock = order.withMakeBalance(makeBalance, protocolCommission)
+        logger.info("Fetched makeBalance $makeBalance (knownMakeBalance=$knownMakeBalance, newMakeStock=${withNewMakeStock.makeStock}, oldMakeStock=${order.makeStock})")
+
         val updated = if (order.makeStock == EthUInt256.ZERO && withNewMakeStock.makeStock != EthUInt256.ZERO) {
             priceUpdateService.updateOrderPrice(withNewMakeStock, nowMillis())
         } else {
