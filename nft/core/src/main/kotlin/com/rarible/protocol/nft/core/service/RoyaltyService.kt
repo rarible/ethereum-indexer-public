@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
@@ -20,21 +21,31 @@ class RoyaltyService(
 ) {
 
     suspend fun getRoyalty(address: Address, tokenId: EthUInt256): List<Part> {
-        var record = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
-        return when {
-            record != null -> record.royalty
-            else -> {
-                val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
-                val answer = provider.getRoyalties(address, tokenId.value).call().awaitSingle()
-                val royalty = answer.map { Part(it._1, it._2.intValueExact()) }.toList()
-                royaltyRepository.save(
-                    Royalty(
-                        address = address,
-                        tokenId = tokenId,
-                        royalty = royalty
-                    )
-                ).awaitSingle().royalty
-            }
+        val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
+        if (cachedRoyalties != null) {
+            return cachedRoyalties.royalty
         }
+        logger.info("Requesting royalties $address:$tokenId")
+        val royalties = try {
+            val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
+            provider.getRoyalties(address, tokenId.value)
+                .call().awaitSingle()
+                .map { Part(it._1, it._2.intValueExact()) }.toList()
+                .also { logger.info("Got royalties for $address:$tokenId: $it") }
+        } catch (e: Exception) {
+            logger.error("Failed to request royalties for $address:$tokenId", e)
+            emptyList<Part>()
+        }
+        return royaltyRepository.save(
+            Royalty(
+                address = address,
+                tokenId = tokenId,
+                royalty = royalties
+            )
+        ).awaitSingle().royalty
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(RoyaltyService::class.java)
     }
 }
