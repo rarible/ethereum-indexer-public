@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -36,12 +37,11 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->
                 var entry: ZipEntry?
-                var counter = 0
-                var futures = mutableListOf<Deferred<*>>()
+                val finished = AtomicInteger()
+                var rateLimiter = 0
+                val futures = mutableListOf<Deferred<*>>()
                 while (unzipStream.nextEntry.also { entry = it } != null) {
                     entry?.takeIf { !it.isDirectory }?.let {
-                        counter++
-                        logger.info("Uploading... ${it.name}")
                         val content = unzipStream.readBytes()
                         futures.add(async(Dispatchers.IO) {
                             upload(
@@ -50,12 +50,12 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                                 cryptoPunksMetaService,
                                 ipfsProperties
                             )
+                            logger.info("Uploaded ${finished.incrementAndGet()}/10000 images")
                         })
                         delay(betweenRequest)
-                        if (counter % ratelimit == 0) {
+                        if (++rateLimiter % ratelimit == 0) {
                             futures.awaitAll()
                             futures.clear()
-                            logger.info("Uploaded: $counter images")
                         }
                     }
                 }
