@@ -861,7 +861,7 @@ components:
         sort:
           type: string
           enum:
-            - LAST_UPDATE
+            - LAST_UPDATE_DESC
             - LAST_UPDATE_ASC
             - TAKE_PRICE_DESC
             - MAKE_PRICE_ASC

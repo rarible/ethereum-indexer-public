@@ -51,7 +51,7 @@ object OrderFilterCriteria {
 
     private fun sort(sort: OrderFilterDto.Sort): Sort {
         return when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> Sort.by(
+            OrderFilterDto.Sort.LAST_UPDATE_DESC -> Sort.by(
                 Sort.Direction.DESC,
                 Order::lastUpdateAt.name,
                 Order::hash.name
@@ -122,7 +122,7 @@ object OrderFilterCriteria {
 
     private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort) =
         when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> {
+            OrderFilterDto.Sort.LAST_UPDATE_DESC -> {
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
