@@ -430,9 +430,7 @@ class OrderController(
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
-        val filter = PriceOrderVersionFilter.BidByItem(
-            null,
-            null,
+        val filter = PriceOrderVersionFilter.BidByMaker(
             makerAddress,
             originAddress,
             PlatformConverter.convert(platform),
