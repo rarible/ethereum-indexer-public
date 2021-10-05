@@ -9,6 +9,8 @@ import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -29,7 +31,11 @@ class WithdrawalLogDescriptor(
 
         val event: WithdrawalEvent = when {
             log.topics().size() == 1 -> WithdrawalEventByLogData.apply(log)
-            else -> WithdrawalEvent.apply(log)
+            log.topics().size() == 2 -> WithdrawalEvent.apply(log)
+            else -> {
+                logger.warn("Can't parse WithdrawalEvent from $log")
+                return emptyList()
+            }
         }
 
         val withdrawal = Erc20Withdrawal(
@@ -43,5 +49,9 @@ class WithdrawalLogDescriptor(
 
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(addresses)
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(WithdrawalLogDescriptor::class.java)
     }
 }

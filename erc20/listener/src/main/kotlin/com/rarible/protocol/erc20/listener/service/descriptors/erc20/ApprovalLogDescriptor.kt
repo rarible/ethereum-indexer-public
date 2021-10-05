@@ -10,6 +10,8 @@ import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -34,7 +36,11 @@ class ApprovalLogDescriptor(
 
         val event: ApprovalEvent = when {
             log.topics().size() == 1 -> ApprovalEventByLogData.apply(log)
-            else -> ApprovalEvent.apply(log)
+            log.topics().size() == 3 -> ApprovalEvent.apply(log)
+            else -> {
+                logger.warn("Can't parse ApprovalEvent from $log")
+                return emptyList()
+            }
         }
 
         val approval = Erc20TokenApproval(
@@ -49,5 +55,9 @@ class ApprovalLogDescriptor(
 
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(addresses)
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(ApprovalLogDescriptor::class.java)
     }
 }
