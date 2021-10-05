@@ -20,9 +20,13 @@ class RoyaltyService(
     private val royaltyRepository: RoyaltyRepository
 ) {
 
+    // TODO: handle the two cases differently:
+    //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
+    //  2) item doesn't have any royalties at all
+    //  Currently, we request royalties from the contract in both cases.
     suspend fun getRoyalty(address: Address, tokenId: EthUInt256): List<Part> {
         val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
-        if (cachedRoyalties != null) {
+        if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
             return cachedRoyalties.royalty
         }
         logger.info("Requesting royalties $address:$tokenId")
@@ -34,15 +38,18 @@ class RoyaltyService(
                 .also { logger.info("Got royalties for $address:$tokenId: $it") }
         } catch (e: Exception) {
             logger.error("Failed to request royalties for $address:$tokenId", e)
-            emptyList<Part>()
+            return emptyList()
         }
-        return royaltyRepository.save(
-            Royalty(
-                address = address,
-                tokenId = tokenId,
-                royalty = royalties
-            )
-        ).awaitSingle().royalty
+        if (royalties.isNotEmpty()) {
+            return royaltyRepository.save(
+                Royalty(
+                    address = address,
+                    tokenId = tokenId,
+                    royalty = royalties
+                )
+            ).awaitSingle().royalty
+        }
+        return emptyList()
     }
 
     companion object {
