@@ -23,6 +23,9 @@ class ChangeLog00012AddStatusToOrder {
         orderRepository.findAll().collect { order ->
             try {
                 orderRepository.save(order.withCurrentStatus())
+                if (counter % 10000L == 0L) {
+                    logger.info("Fixed $counter orders")
+                }
                 counter++
             } catch (ex: Exception) {
                 logger.error("Failed to set status for ${order.hash} order")

@@ -19,7 +19,6 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
-@Disabled
 @IntegrationTest
 class AddStatusToOrderTest : AbstractMigrationTest() {
 

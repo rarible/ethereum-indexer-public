@@ -60,20 +60,20 @@ sealed class OrderFilter(
         return Criteria().scrollTo(sort, continuation)
     }
 
-    internal fun Criteria.scrollTo(sort: Sort, txt: String?): Criteria {
+    internal fun Criteria.scrollTo(sort: Sort, continuationTxt: String?): Criteria {
         return if (continuation == null) {
             this
         } else {
             when (sort) {
                 Sort.LAST_UPDATE_DESC -> {
-                    val continuation = Continuation.parse<Continuation.LastDate>(txt)!!
+                    val continuation = Continuation.parse<Continuation.LastDate>(continuationTxt)!!
                     this.orOperator(
                         Order::lastUpdateAt lt continuation.afterDate,
                         (Order::lastUpdateAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
                     )
                 }
                 Sort.LAST_UPDATE_ASC -> {
-                    val continuation = Continuation.parse<Continuation.LastDate>(txt)!!
+                    val continuation = Continuation.parse<Continuation.LastDate>(continuationTxt)!!
                     this.orOperator(
                         Order::lastUpdateAt gt continuation.afterDate,
                         (Order::lastUpdateAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
