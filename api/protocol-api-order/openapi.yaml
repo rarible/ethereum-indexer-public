@@ -1126,7 +1126,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/OrderBidStatus"
+              $ref: "#/components/schemas/OrderStatus"
         - name: maker
           in: query
           required: false
@@ -1168,7 +1168,7 @@ paths:
             format: int32
       responses:
         '200':
-          $ref: "#/components/responses/OrderBidsPage"
+          $ref: "#/components/responses/OrderPage"
         '400':
           $ref: "#/components/responses/BadRequest"
         '500':
@@ -1370,12 +1370,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/OrdersPagination"
-    OrderBidsPage:
-      description: OK
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/OrderBidsPagination"
     AggregationDataResponse:
       description: OK
       content:

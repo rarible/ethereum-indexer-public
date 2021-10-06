@@ -9,12 +9,10 @@ import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusConverter
-import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.*
 import io.mockk.coEvery
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.OrderVersion
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
