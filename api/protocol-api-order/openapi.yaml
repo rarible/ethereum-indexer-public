@@ -107,7 +107,7 @@ paths:
     post:
       tags:
         - order-controller
-      description: Create or update Order
+      description: Create or update order
       operationId: upsertOrder
       requestBody:
         content:
@@ -131,13 +131,16 @@ paths:
     post:
       tags:
         - order-controller
+      description: Prepare order transaction
       operationId: prepareOrderTransaction
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
       requestBody:
         required: true
         content:
@@ -226,13 +229,21 @@ paths:
     post:
       tags:
         - order-controller
+      description: Prepare order for cancel transaction
       operationId: prepareOrderCancelTransaction
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request POST \
+            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/prepareCancelTx'
       responses:
         '200':
           description: OK
@@ -251,13 +262,21 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns the order by order hash
       operationId: getOrderByHash
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0'
       responses:
         '200':
           description: OK
@@ -276,13 +295,21 @@ paths:
     get:
       tags:
         - order-controller
+      description: Update stock of the order by order hash
       operationId: updateOrderMakeStock
       parameters:
         - name: hash
+          description: "Hash of the order"
           in: path
           required: true
           schema:
             type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/updateMakeStock'
       responses:
         '200':
           description: OK
@@ -301,9 +328,11 @@ paths:
     post:
       tags:
         - order-controller
+      description: Buyer's signature for a fee
       operationId: buyerFeeSignature
       parameters:
         - name: fee
+          description: "Fee value for operation"
           in: query
           required: true
           schema:
@@ -334,24 +363,29 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders by specified parameters
       operationId: getOrdersAll
       parameters:
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -370,6 +404,7 @@ paths:
     post:
       tags:
         - order-controller
+      description: Returns all orders by order hash
       operationId: getOrdersByIds
       requestBody:
         content:
@@ -395,29 +430,35 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders for sale by maker
       operationId: getSellOrdersByMaker
       parameters:
         - name: maker
+          description: "The maker of the order"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -436,39 +477,47 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders for sale by item
       operationId: getSellOrdersByItem
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/BigInteger"
         - name: maker
+          description: "The maker of the order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -487,29 +536,35 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders for sale by collection
       operationId: getSellOrdersByCollection
       parameters:
         - name: collection
+          description: "Address of the NFT collection"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -528,24 +583,29 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders for sale by specified parameters
       operationId: getSellOrders
       parameters:
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -566,29 +626,35 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all order bids by maker
       operationId: getOrderBidsByMaker
       parameters:
         - name: maker
+          description: "The maker of the order"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -607,39 +673,47 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all order bids by item
       operationId: getOrderBidsByItem
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/BigInteger"
         - name: maker
+          description: "The maker of the order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin
+          description: "Address of the consumer to receive the commission for order"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: platform
+          description: "The platform where the order was created"
           in: query
           required: false
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:
@@ -658,19 +732,23 @@ paths:
     get:
       tags:
         - order-controller
+      description: Returns all orders with status sorting
       operationId: getOrdersAllByStatus
       parameters:
         - name: sort
+          description: "Sorting by last update"
           in: query
           required: false
           schema:
             "$ref": "#/components/schemas/OrderSort"
         - name: continuation
+          description: "Continuation token to paginate items search result"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of orders to return"
           in: query
           required: false
           schema:

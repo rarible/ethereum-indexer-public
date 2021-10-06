@@ -1,5 +1,11 @@
 openapi: 3.0.3
 info:
+  title: OpenAPI definition
+  description: Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript etc.) and server controller interfaces are generated automatically using yaml OpenAPI files.
+  version: v0.1
+  license:
+    name: MIT
+    url: https://github.com/rarible/ethereum-indexer/blob/master/api/LICENSE
 servers:
 paths:
 

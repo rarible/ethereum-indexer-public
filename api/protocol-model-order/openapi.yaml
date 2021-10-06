@@ -390,6 +390,7 @@ components:
 
     OrderRaribleV2DataV1:
       type: object
+      description: "Order data for create or update"
       required:
         - dataType
         - payouts
@@ -397,29 +398,35 @@ components:
       properties:
         dataType:
           type: string
+          description: "Data type of the order"
           enum:
             - RARIBLE_V2_DATA_V1
         payouts:
           type: array
+          description: "Value of the payouts for the order"
           items:
             "$ref": "#/components/schemas/Part"
         originFees:
           type: array
+          description: "Value of the origin fees for the order"
           items:
             "$ref": "#/components/schemas/Part"
 
     OrderDataLegacy:
       type: object
+      description: "Order data for create or update"
       required:
         - fee
         - dataType
       properties:
         dataType:
           type: string
+          description: "Data type of the order"
           enum:
             - LEGACY
         fee:
           type: integer
+          description: "Fee value for operation"
 
     OrderOpenSeaV1DataV1:
       type: object
@@ -709,6 +716,7 @@ components:
       properties:
         type:
           type: string
+          description: "Type of the order"
           enum:
             - RARIBLE_V1
         data:
@@ -722,6 +730,7 @@ components:
       properties:
         type:
           type: string
+          description: "Type of the order"
           enum:
             - RARIBLE_V2
         data:
@@ -970,10 +979,12 @@ components:
           "$ref": "#/components/schemas/BigInteger"
         payouts:
           type: array
+          description: "Value of the payouts for the order"
           items:
             "$ref": "#/components/schemas/Part"
         originFees:
           type: array
+          description: "Value of the origin fees for the order"
           items:
             "$ref": "#/components/schemas/Part"
 
