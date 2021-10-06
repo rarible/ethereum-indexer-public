@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
@@ -24,21 +25,33 @@ class CommonTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
+    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult {
         try {
-            val result = ethereum.executeRaw(
-                Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
-            ).awaitFirst()
+            val request = Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
+            val attempts = 5
+            for (attempt in 0 until attempts) {
+                try {
+                    val result = ethereum.executeRaw(request).awaitFirst()
 
-            return result.result()
-                .map { mapper.treeToValue(it, Array<Trace>::class.java) }
-                .map { convert(it) }
-                .getOrElse {
-                    if (result.error().isEmpty.not()) {
-                        logger.error("Can't fetch trace: {}", result.error().get())
+                    val trace: SimpleTraceResult? = result.result()
+                        .map { mapper.treeToValue(it, Array<Trace>::class.java) }
+                        .map { convert(it) }
+                        .getOrElse {
+                            if (result.error().isEmpty.not()) {
+                                logger.error("Can't fetch trace: {}", result.error().get())
+                            }
+                            null
+                        }
+
+                    if (trace != null) {
+                        return trace
                     }
-                    null
+                } catch (ex: Throwable) {
+                    logger.error("Error attempt $attempt/$attempts to fetch trace of $transactionHash", ex)
                 }
+                delay(100)
+            }
+            throw IllegalStateException("Failed to fetch trace by hash $transactionHash in $attempts attempts")
         } catch (ex: Throwable) {
             logger.error("Can't fetch trace by hash $transactionHash")
             throw ex
