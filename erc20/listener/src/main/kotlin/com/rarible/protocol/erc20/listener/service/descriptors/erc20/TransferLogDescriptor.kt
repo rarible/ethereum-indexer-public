@@ -28,7 +28,7 @@ class TransferLogDescriptor(
 
     private val addresses = properties.tokens.map { Address.apply(it) }
     override val topic: Word = TransferEvent.id()
-    
+
     init {
         logger.info("init $addresses")
     }
@@ -37,7 +37,11 @@ class TransferLogDescriptor(
         val erc20Token = registrationService.tryRegister(log.address()) ?: return emptyList()
         val event = when {
             log.topics().size() == 1 -> TransferEventWithFullData.apply(log)
-            else -> TransferEvent.apply(log)
+            log.topics().size() == 3 -> TransferEvent.apply(log)
+            else -> {
+                logger.warn("Can't parse TransferEvent from $log")
+                return emptyList()
+            }
         }
 
         val outcome = if (event.from() != Address.ZERO()) {
@@ -64,7 +68,7 @@ class TransferLogDescriptor(
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(addresses)
     }
-    
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(TransferLogDescriptor::class.java)
     }

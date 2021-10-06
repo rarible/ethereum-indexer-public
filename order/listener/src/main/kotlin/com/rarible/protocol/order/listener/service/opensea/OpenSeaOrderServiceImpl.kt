@@ -6,6 +6,7 @@ import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Instant
@@ -63,6 +64,7 @@ class OpenSeaOrderServiceImpl(
                 is OperationResult.Success -> return result.result.orders
                 is OperationResult.Fail -> lastError = result.error
             }
+            delay(retries * 300L)
         }
         throw IllegalStateException("Can't fetch OpenSea orders, number of attempts exceeded, last error: $lastError")
     }

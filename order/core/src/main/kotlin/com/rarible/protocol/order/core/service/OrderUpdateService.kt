@@ -68,16 +68,26 @@ class OrderUpdateService(
      */
     suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
         val order = orderRepository.findById(hash) ?: return null
+
         val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order) ?: EthUInt256.ZERO
+
         val protocolCommission = protocolCommissionProvider.get()
-        val withNewBalance = order.withMakeBalance(makeBalance, protocolCommission)
-        val updated = if (order.makeStock == EthUInt256.ZERO && withNewBalance.makeStock != EthUInt256.ZERO) {
-            priceUpdateService.updateOrderPrice(withNewBalance, nowMillis())
+        val withNewMakeStock = order.withMakeBalance(makeBalance, protocolCommission)
+        logger.info("Fetched makeBalance $makeBalance (knownMakeBalance=$knownMakeBalance, newMakeStock=${withNewMakeStock.makeStock}, oldMakeStock=${order.makeStock})")
+
+        val updated = if (order.makeStock == EthUInt256.ZERO && withNewMakeStock.makeStock != EthUInt256.ZERO) {
+            priceUpdateService.updateOrderPrice(withNewMakeStock, nowMillis())
         } else {
-            withNewBalance
+            withNewMakeStock
         }
-        logger.info("Updated order ${updated.hash}, makeStock=${updated.makeStock}, makeBalance=$makeBalance")
-        return orderRepository.save(updated)
+        return if (order.makeStock != updated.makeStock) {
+            val savedOrder = orderRepository.save(updated)
+            logger.info("Updated order ${savedOrder.hash}, makeStock=${savedOrder.makeStock}, makeBalance=$makeBalance")
+            orderListener.onOrder(savedOrder)
+            savedOrder
+        } else {
+            order
+        }
     }
 
     suspend fun saveOrRemoveOnChainOrderVersions(logEvents: List<LogEvent>) {

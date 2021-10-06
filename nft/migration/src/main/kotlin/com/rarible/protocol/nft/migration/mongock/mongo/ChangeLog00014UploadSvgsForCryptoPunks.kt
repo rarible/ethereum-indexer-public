@@ -20,6 +20,7 @@ import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
 import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -29,34 +30,34 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
     fun create(
-        cryptoPunksMetaService: CryptoPunksMetaService,
+        @NonLockGuarded cryptoPunksMetaService: CryptoPunksMetaService,
         @NonLockGuarded ipfsProperties: IpfsProperties
     ) = runBlocking<Unit> {
         val zipResponse = archive(ipfsProperties.cryptoPunksImagesUrl).awaitSingle()
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->
                 var entry: ZipEntry?
-                var counter = 0
-                var futures = mutableListOf<Deferred<*>>()
+                val finished = AtomicInteger()
+                var rateLimiter = 0
+                val futures = mutableListOf<Deferred<*>>()
                 while (unzipStream.nextEntry.also { entry = it } != null) {
-                    entry?.takeIf { !it.isDirectory }?.let {
-                        counter++
-                        logger.info("Uploading... ${it.name}")
-                        val content = unzipStream.readBytes()
-                        futures.add(async(Dispatchers.IO) {
-                            upload(
-                                it.name,
-                                content,
-                                cryptoPunksMetaService,
-                                ipfsProperties
-                            )
-                        })
-                        delay(betweenRequest)
-                        if (counter % ratelimit == 0) {
-                            futures.awaitAll()
-                            futures.clear()
-                            logger.info("Uploaded: $counter images")
-                        }
+                    if (entry == null) break
+                    if (entry!!.isDirectory) continue
+                    val fileName = entry!!.name.substringAfterLast("/")
+                    val content = unzipStream.readBytes()
+                    futures.add(async(Dispatchers.IO) {
+                        val imageUrl = upload(
+                            fileName,
+                            content,
+                            cryptoPunksMetaService,
+                            ipfsProperties
+                        )
+                        logger.info("Uploaded #${finished.incrementAndGet()}/10000 image: $imageUrl")
+                    })
+                    delay(betweenRequest)
+                    if (++rateLimiter % ratelimit == 0) {
+                        futures.awaitAll()
+                        futures.clear()
                     }
                 }
                 futures.awaitAll()
@@ -78,13 +79,13 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         file: String, someByteArray: ByteArray,
         cryptoPunksMetaService: CryptoPunksMetaService,
         ipfsProperties: IpfsProperties
-    ) {
+    ): String {
         val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
         val id = file.filter { it.isDigit() }.toBigInteger()
-        var punk = cryptoPunksMetaService.get(id).awaitSingle()
-        punk = punk.copy(image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}")
-        cryptoPunksMetaService.save(punk)
-        logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
+        val image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}"
+        val punk = cryptoPunksMetaService.get(id).awaitSingle()
+        cryptoPunksMetaService.save(punk.copy(image = image))
+        return image
     }
 
     suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {

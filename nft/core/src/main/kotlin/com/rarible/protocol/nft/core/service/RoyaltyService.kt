@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
@@ -19,22 +20,39 @@ class RoyaltyService(
     private val royaltyRepository: RoyaltyRepository
 ) {
 
+    // TODO: handle the two cases differently:
+    //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
+    //  2) item doesn't have any royalties at all
+    //  Currently, we request royalties from the contract in both cases.
     suspend fun getRoyalty(address: Address, tokenId: EthUInt256): List<Part> {
-        var record = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
-        return when {
-            record != null -> record.royalty
-            else -> {
-                val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
-                val answer = provider.getRoyalties(address, tokenId.value).call().awaitSingle()
-                val royalty = answer.map { Part(it._1, it._2.intValueExact()) }.toList()
-                royaltyRepository.save(
-                    Royalty(
-                        address = address,
-                        tokenId = tokenId,
-                        royalty = royalty
-                    )
-                ).awaitSingle().royalty
-            }
+        val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
+        if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
+            return cachedRoyalties.royalty
         }
+        logger.info("Requesting royalties $address:$tokenId")
+        val royalties = try {
+            val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
+            provider.getRoyalties(address, tokenId.value)
+                .call().awaitSingle()
+                .map { Part(it._1, it._2.intValueExact()) }.toList()
+                .also { logger.info("Got royalties for $address:$tokenId: $it") }
+        } catch (e: Exception) {
+            logger.error("Failed to request royalties for $address:$tokenId", e)
+            return emptyList()
+        }
+        if (royalties.isNotEmpty()) {
+            return royaltyRepository.save(
+                Royalty(
+                    address = address,
+                    tokenId = tokenId,
+                    royalty = royalties
+                )
+            ).awaitSingle().royalty
+        }
+        return emptyList()
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(RoyaltyService::class.java)
     }
 }

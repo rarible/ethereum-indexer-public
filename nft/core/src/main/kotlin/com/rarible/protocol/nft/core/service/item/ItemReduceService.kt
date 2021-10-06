@@ -207,7 +207,7 @@ class ItemReduceService(
                         }
                     }
                     is ItemRoyalty -> {
-                        logger.info("Ignoring ItemRoyalty event")
+                        logger.info("Ignoring ItemRoyalty event: $event")
                         item
                     }
                     is ItemLazyMint -> {
@@ -217,7 +217,7 @@ class ItemReduceService(
                         item.copy(creators = event.creators, creatorsFinal = true)
                     }
                     is BurnItemLazyMint -> {
-                        logger.info("Ignoring BurnItemLazyMint event")
+                        logger.info("Ignoring BurnItemLazyMint event: $event")
                         item
                     }
                 }.copy(date = event.date)

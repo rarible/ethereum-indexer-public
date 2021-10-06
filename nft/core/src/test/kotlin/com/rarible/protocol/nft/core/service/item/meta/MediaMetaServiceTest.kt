@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 @Tag("manual")
 @Disabled
 class MediaMetaServiceTest {
-    private val service = MediaMetaService("http://69.197.181.202:3128", 5000)
+    private val service = MediaMetaService(5000)
 
     @Test
     fun gif() {
@@ -40,14 +40,5 @@ class MediaMetaServiceTest {
         assertEquals("image/jpeg", b.type)
         assertEquals(167, b.width)
         assertEquals(250, b.height)
-    }
-
-    // This test uses proxy
-    @Test
-    fun openseaGif() {
-        val b = service.getMediaMeta("https://storage.opensea.io/files/5cb1a7c9700b29e4213816e0874b065b.gif").block()!!
-        assertEquals("image/gif", b.type)
-        assertEquals(764, b.width)
-        assertEquals(764, b.height)
     }
 }

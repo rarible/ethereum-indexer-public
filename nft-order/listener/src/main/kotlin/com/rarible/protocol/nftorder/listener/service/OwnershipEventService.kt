@@ -7,6 +7,7 @@ import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.converter.NftOwnershipDtoConverter
 import com.rarible.protocol.nftorder.core.converter.OwnershipToDtoConverter
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.data.EnrichmentDataVerifier
 import com.rarible.protocol.nftorder.core.event.OwnershipEventDelete
 import com.rarible.protocol.nftorder.core.event.OwnershipEventListener
@@ -46,10 +47,16 @@ class OwnershipEventService(
         }
     }
 
-    suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto) = optimisticLock {
+    suspend fun onOwnershipBestSellOrderUpdated(ownershipId: OwnershipId, order: OrderDto, forced: Boolean = false) = optimisticLock {
+        updateOrder(ownershipId, order) { ownership ->
+            ownership.copy(bestSellOrder = if (forced) ShortOrderConverter.convert(order) else bestOrderService.getBestSellOrder(ownership, order))
+        }
+    }
+
+    suspend fun updateOrder(ownershipId: OwnershipId, order: OrderDto, orderUpdateAction: suspend (ownership: Ownership) -> Ownership) = optimisticLock {
         val fetchedItem = ownershipService.getOrFetchOwnershipById(ownershipId)
         val ownership = fetchedItem.entity
-        val updated = ownership.copy(bestSellOrder = bestOrderService.getBestSellOrder(ownership, order))
+        val updated = orderUpdateAction(ownership)
         if (EnrichmentDataVerifier.isOwnershipNotEmpty(updated)) {
             // If order is completely the same - do nothing
             if (updated.bestSellOrder != ownership.bestSellOrder) {

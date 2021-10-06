@@ -104,6 +104,10 @@
             <artifactId>reactor-netty</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.projectreactor.addons</groupId>
+            <artifactId>reactor-extra</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.daonomic.rpc</groupId>
             <artifactId>transport-mono_${scala.major.version}</artifactId>
             <version>${scalether.version}</version>

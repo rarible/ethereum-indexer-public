@@ -22,7 +22,7 @@ class ReindexTokenRoyaltiesHandler(
     private val taskRepository: TaskRepository,
     private val royaltyService: RoyaltyService,
     private val itemRepository: ItemRepository
-) : TaskHandler<EthUInt256> {
+) : TaskHandler<String> {
 
     override val type: String
         get() = ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES
@@ -34,14 +34,14 @@ class ReindexTokenRoyaltiesHandler(
         )
     }
 
-    override fun runLongTask(from: EthUInt256?, param: String): Flow<EthUInt256> {
+    override fun runLongTask(from: String?, param: String): Flow<String> {
         val reindexParam = ReindexTokenRoyaltiesTaskParam.fromParamString(param)
 
-        return itemRepository.findTokenItems(reindexParam.token, from)
+        return itemRepository.findTokenItems(reindexParam.token, from?.let { EthUInt256.of(it) })
             .map { item ->
                 royaltyService.getRoyalty(item.token, item.tokenId)
                 item.tokenId
-            }
+            }.map { it.toString() }
     }
 
     private suspend fun verifyAllCompleted(vararg topics: Word): Boolean {

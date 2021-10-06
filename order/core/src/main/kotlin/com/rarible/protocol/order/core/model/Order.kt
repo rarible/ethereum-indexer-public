@@ -202,8 +202,8 @@ data class Order(
         }
 
         private fun isAlive(start: Long?, end: Long?): Boolean {
-            val now = Instant.now().toEpochMilli()
-            val started = start?.let { it < now } ?: true
+            val now = Instant.now().epochSecond
+            val started = start?.let { it <= now } ?: true
             val alive = end?.let { it > now } ?: true
             return started && alive
         }

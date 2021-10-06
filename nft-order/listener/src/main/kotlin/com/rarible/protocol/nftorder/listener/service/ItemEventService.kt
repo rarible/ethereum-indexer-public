@@ -6,6 +6,7 @@ import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.converter.NftItemDtoConverter
+import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
 import com.rarible.protocol.nftorder.core.data.EnrichmentDataVerifier
 import com.rarible.protocol.nftorder.core.data.ItemSellStats
 import com.rarible.protocol.nftorder.core.event.ItemEventDelete
@@ -92,15 +93,15 @@ class ItemEventService(
         }
     }
 
-    suspend fun onItemBestSellOrderUpdated(itemId: ItemId, order: OrderDto) {
+    suspend fun onItemBestSellOrderUpdated(itemId: ItemId, order: OrderDto, forced: Boolean = false) {
         updateOrder(itemId, order) { item ->
-            item.copy(bestSellOrder = bestOrderService.getBestSellOrder(item, order))
+            item.copy(bestSellOrder = if (forced) ShortOrderConverter.convert(order) else bestOrderService.getBestSellOrder(item, order))
         }
     }
 
-    suspend fun onItemBestBidOrderUpdated(itemId: ItemId, order: OrderDto) {
+    suspend fun onItemBestBidOrderUpdated(itemId: ItemId, order: OrderDto, forced: Boolean = false) {
         updateOrder(itemId, order) { item ->
-            item.copy(bestBidOrder = bestOrderService.getBestBidOrder(item, order))
+            item.copy(bestBidOrder = if (forced) ShortOrderConverter.convert(order) else bestOrderService.getBestBidOrder(item, order))
         }
     }
 

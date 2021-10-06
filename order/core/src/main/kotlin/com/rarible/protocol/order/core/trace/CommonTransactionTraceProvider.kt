@@ -27,7 +27,7 @@ class CommonTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult {
+    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
         try {
             val request = Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
             val attempts = 5
@@ -50,7 +50,9 @@ class CommonTransactionTraceProvider(
                 }
                 delay(100)
             }
-            error("Failed to fetch trace by hash $transactionHash in $attempts attempts")
+            // TODO: temporarily disable.
+            //  error("Failed to fetch trace by hash $transactionHash in $attempts attempts")
+            return null
         } catch (ex: Throwable) {
             logger.error("Can't fetch trace by hash $transactionHash")
             throw ex
