@@ -8,6 +8,7 @@ import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.dto.BidOrderStatusDtoConverter
 import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.converters.model.*
@@ -40,7 +41,7 @@ class OrderController(
     private val assetDtoConverter: AssetDtoConverter,
     private val orderToFormDtoConverter: OrderToFormDtoConverter,
     private val orderBidsService: OrderBidsService,
-    private val bidDtoConverterComposite: CompositeBidConverter
+    private val compositeBidConverter: CompositeBidConverter
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -423,12 +424,12 @@ class OrderController(
     }
 
     suspend fun searchBids(status: List<OrderStatusDto>, filter: PriceOrderVersionFilter, requestSize: Int): ResponseEntity<OrdersPaginationDto> {
-        val statuses = status.map { BidStatus.valueOf(it.name) }
+        val statuses = status.map { BidOrderStatusDtoConverter.convert(it) }
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
         val result = OrdersPaginationDto(
-            orderVersions.map { bidDtoConverterComposite.convert(it) },
+            orderVersions.map { compositeBidConverter.convert(it) },
             nextContinuation
         )
         return ResponseEntity.ok(result)

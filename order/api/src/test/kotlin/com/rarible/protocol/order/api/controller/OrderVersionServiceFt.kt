@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.*
@@ -133,23 +134,28 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     ) = runBlocking {
         saveOrders(orderVersionBids + otherVersions.map { OrderVersionBid(it, BidStatus.ACTIVE) })
 
-        val versions = orderClient.getOrderBidsByItemAndByStatus(
-            params.token.hex(),
-            params.tokenId.value.toString(),
-            params.status,
-            params.maker?.hex(),
-            params.origin?.hex(),
-            params.platform,
-            null,
-            null,
-            params.startDate?.epochSecond,
-            params.endDate?.epochSecond
-        ).awaitFirst()
+        Wait.waitAssert {
+            val versions = orderClient.getOrderBidsByItemAndByStatus(
+                params.token.hex(),
+                params.tokenId.value.toString(),
+                params.status,
+                params.maker?.hex(),
+                params.origin?.hex(),
+                params.platform,
+                null,
+                null,
+                params.startDate?.epochSecond,
+                params.endDate?.epochSecond
+            ).awaitFirst()
 
-        assertThat(versions.orders).hasSize(orderVersionBids.size)
+            assertThat(versions.orders).hasSize(orderVersionBids.size)
 
-        versions.orders.forEachIndexed { index, orderVersionDto ->
-            checkOrderActivityDto(orderVersionDto, orderVersionBids[index])
+            versions.orders.forEachIndexed { index, orderVersionDto ->
+                val versionBid = orderVersionBids[index]
+                assertThat(orderVersionDto.status).isEqualTo(BidStatusConverter.convert(versionBid.status))
+                assertThat(orderVersionDto.hash).isEqualTo(versionBid.orderVersion.hash)
+                assertThat(orderVersionDto.createdAt).isEqualTo(versionBid.orderVersion.createdAt)
+            }
         }
     }
 
