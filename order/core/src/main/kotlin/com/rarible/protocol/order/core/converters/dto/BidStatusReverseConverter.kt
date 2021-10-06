@@ -6,7 +6,7 @@ import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-object BidOrderStatusDtoConverter : Converter<OrderStatusDto, BidStatus> {
+object BidStatusReverseConverter : Converter<OrderStatusDto, BidStatus> {
     override fun convert(source: OrderStatusDto): BidStatus {
         return when (source) {
             OrderStatusDto.ACTIVE -> BidStatus.ACTIVE

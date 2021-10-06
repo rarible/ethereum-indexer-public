@@ -1,8 +1,6 @@
 package com.rarible.protocol.order.api.integration
 
 import com.rarible.core.test.ext.EthereumTest
-import com.rarible.core.test.ext.MongoCleanup
-import com.rarible.core.test.ext.MongoTest
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
