@@ -64,7 +64,7 @@ class RoyaltyTaskHandlerTest : AbstractIntegrationTest() {
             .verifySuccess()
 
         val address = handler.runLongTask(null, "").firstOrNull()
-        assertEquals(item.token, address)
+        assertEquals(item.token.prefixed(), address)
 
         // check royalty in the cache
         assertEquals(1, royaltyRepository.count().awaitFirst())
