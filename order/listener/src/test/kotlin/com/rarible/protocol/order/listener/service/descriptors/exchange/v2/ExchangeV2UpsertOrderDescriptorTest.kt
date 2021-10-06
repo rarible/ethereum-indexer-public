@@ -94,9 +94,9 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             priceUsd = null,
             hash = Order.hashKey(maker, make.type, take.type, salt.value)
         )
-        depositInitialBalance(userSender1.from(), makeValue.value.plus(BigInteger.TWO))
+        depositInitialBalance(userSender1.from(), makeValue.value.plus(BigInteger.valueOf(2)))
         `test insert order`(onChainOrder)
-        assertEquals(BigInteger.TWO, getEthBalance(userSender1.from()))
+        assertEquals(BigInteger.valueOf(2), getEthBalance(userSender1.from()))
     }
 
     private suspend fun `test insert order`(onChainOrder: OnChainOrder) {
