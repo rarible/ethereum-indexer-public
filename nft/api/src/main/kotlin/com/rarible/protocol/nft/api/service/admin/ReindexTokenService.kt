@@ -29,6 +29,10 @@ class ReindexTokenService(
         return tokenRepository.findById(token).awaitFirstOrNull()
     }
 
+    suspend fun registerToken(token: Address): Token? {
+        return tokenRegistrationService.register(token).awaitFirstOrNull()
+    }
+
     suspend fun removeToken(token: Address) {
         tokenRepository.remove(token).awaitFirstOrNull()
     }

@@ -26,6 +26,18 @@ class AdminController(
         return ResponseEntity.ok().body(convert(token))
     }
 
+    @GetMapping(
+        value = ["/admin/nft/collections/{collectionId}/register"],
+        produces = ["application/json"]
+    )
+    suspend fun registerTokenById(
+        @PathVariable("collectionId") collectionId: Address
+    ): ResponseEntity<TokenDto> {
+        val token = reindexTokenService.registerToken(collectionId)
+            ?: throw TokenNotFoundException(collectionId)
+        return ResponseEntity.ok().body(convert(token))
+    }
+
     @DeleteMapping(
         value = ["/admin/nft/collections/{collectionId}"],
         produces = ["application/json"]
