@@ -98,8 +98,7 @@ data class Order(
 
     fun withMakeBalance(
         makeBalance: EthUInt256,
-        protocolCommission: EthUInt256,
-        zeroWhenCancelled: Boolean = true
+        protocolCommission: EthUInt256
     ): Order {
         return copy(
             makeStock = calculateMakeStock(
@@ -109,7 +108,7 @@ data class Order(
                 data = data,
                 makeBalance = makeBalance,
                 protocolCommission = protocolCommission,
-                cancelled = zeroWhenCancelled && cancelled,
+                cancelled = cancelled,
                 orderType = type,
                 feeSide = getFeeSide(make.type, take.type),
                 start = start,

@@ -97,7 +97,7 @@ class OrderReduceService(
         updateOrderWithState(result)
     }
 
-    private suspend fun Order.updateWith(
+    private fun Order.updateWith(
         logEventStatus: LogEventStatus,
         orderExchangeHistory: OrderExchangeHistory,
         eventId: String
@@ -181,7 +181,7 @@ class OrderReduceService(
 
     private suspend fun Order.withUpdatedMakeStock(): Order {
         val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
-        return withMakeBalance(makeBalance, protocolCommissionProvider.get(), zeroWhenCancelled = false)
+        return withMakeBalance(makeBalance, protocolCommissionProvider.get())
     }
 
     private suspend fun Order.withNewPrice(): Order {

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.model
 import com.rarible.protocol.contracts.exchange.crypto.punks.*
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
+import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import io.daonomic.rpc.domain.Word
@@ -17,6 +18,7 @@ enum class ItemType(
     ),
     ON_CHAIN_ORDER(
         topic = setOf(
+            UpsertOrderEvent.id(),
             PunkOfferedEvent.id(),
             PunkBidEnteredEvent.id()
         )

@@ -38,6 +38,8 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     @Autowired
     private lateinit var exchangeOrderMatchDescriptor: ExchangeOrderMatchDescriptor
     @Autowired
+    private lateinit var exchangeV2UpsertOrderDescriptor: ExchangeV2UpsertOrderDescriptor
+    @Autowired
     private lateinit var sideMatchTransactionProvider: SideMatchTransactionProvider
 
     @BeforeEach
@@ -85,6 +87,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
 
         setField(exchV2CancelDescriptor, "exchangeContract", exchange.address())
         setField(exchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
+        setField(exchangeV2UpsertOrderDescriptor, "exchangeContract", exchange.address())
         setField(sideMatchTransactionProvider, "exchangeContract", exchange.address())
 
         eip712Domain = EIP712Domain(
