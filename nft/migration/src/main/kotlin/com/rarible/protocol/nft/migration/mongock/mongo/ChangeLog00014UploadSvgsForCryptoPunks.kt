@@ -41,22 +41,23 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                 var rateLimiter = 0
                 val futures = mutableListOf<Deferred<*>>()
                 while (unzipStream.nextEntry.also { entry = it } != null) {
-                    entry?.takeIf { !it.isDirectory }?.let {
-                        val content = unzipStream.readBytes()
-                        futures.add(async(Dispatchers.IO) {
-                            upload(
-                                it.name,
-                                content,
-                                cryptoPunksMetaService,
-                                ipfsProperties
-                            )
-                            logger.info("Uploaded ${finished.incrementAndGet()}/10000 images")
-                        })
-                        delay(betweenRequest)
-                        if (++rateLimiter % ratelimit == 0) {
-                            futures.awaitAll()
-                            futures.clear()
-                        }
+                    if (entry == null) break
+                    if (entry!!.isDirectory) continue
+                    val fileName = entry!!.name.substringAfterLast("/")
+                    val content = unzipStream.readBytes()
+                    futures.add(async(Dispatchers.IO) {
+                        val imageUrl = upload(
+                            fileName,
+                            content,
+                            cryptoPunksMetaService,
+                            ipfsProperties
+                        )
+                        logger.info("Uploaded #${finished.incrementAndGet()}/10000 image: $imageUrl")
+                    })
+                    delay(betweenRequest)
+                    if (++rateLimiter % ratelimit == 0) {
+                        futures.awaitAll()
+                        futures.clear()
                     }
                 }
                 futures.awaitAll()
@@ -78,13 +79,13 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         file: String, someByteArray: ByteArray,
         cryptoPunksMetaService: CryptoPunksMetaService,
         ipfsProperties: IpfsProperties
-    ) {
+    ): String {
         val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
         val id = file.filter { it.isDigit() }.toBigInteger()
-        var punk = cryptoPunksMetaService.get(id).awaitSingle()
-        punk = punk.copy(image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}")
-        cryptoPunksMetaService.save(punk)
-        logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
+        val image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}"
+        val punk = cryptoPunksMetaService.get(id).awaitSingle()
+        cryptoPunksMetaService.save(punk.copy(image = image))
+        return image
     }
 
     suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {
