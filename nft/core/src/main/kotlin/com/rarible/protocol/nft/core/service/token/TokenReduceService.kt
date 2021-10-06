@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.listener.log.domain.LogEventStatus.CONFIRMED
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -42,8 +43,10 @@ class TokenReduceService(
     }
 
     private fun reduce(token: Token, log: LogEvent): Token {
-        if (log.status != CONFIRMED) {
-            return token
+        val status = when (log.status) {
+            LogEventStatus.PENDING -> ContractStatus.PENDING
+            CONFIRMED -> ContractStatus.CONFIRMED
+            else -> ContractStatus.ERROR
         }
         return when (val data = log.data as CollectionEvent) {
             is CreateCollection -> {
@@ -55,13 +58,13 @@ class TokenReduceService(
                     symbol = data.symbol,
                     features = features,
                     standard = standard,
-                    status = ContractStatus.CONFIRMED,
+                    status = maxOf(token.status, status),
                     lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
                 )
             }
             is CollectionOwnershipTransferred -> token.copy(
                 owner = data.newOwner,
-                status = ContractStatus.CONFIRMED,
+                status = maxOf(token.status, status),
                 lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
             )
         }
