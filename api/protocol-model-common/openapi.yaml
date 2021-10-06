@@ -61,7 +61,6 @@ components:
       oneOf:
         - $ref: "#/components/schemas/OrderActivity"
         - $ref: "#/components/schemas/NftActivity"
-        - $ref: "#/components/schemas/NftCollectionActivity"
 
     OrderActivityMatchSide:
       type: object
@@ -269,63 +268,6 @@ components:
           format: int64
         logIndex:
           type: integer
-
-    NftCollectionActivity:
-      type: object
-      required:
-        - contract
-        - blockHash
-        - blockNumber
-        - transactionHash
-        - logIndex
-      properties:
-        contract:
-          $ref: "#/components/schemas/Address"
-        blockHash:
-          $ref: "#/components/schemas/Word"
-        blockNumber:
-          type: integer
-          format: int64
-        transactionHash:
-          $ref: "#/components/schemas/Word"
-        logIndex:
-          type: integer
-      oneOf:
-        - $ref: "#/components/schemas/NftCollectionCreated"
-        - $ref: "#/components/schemas/NftCollectionOwnershipTransferred"
-
-    NftCollectionCreated:
-      type: object
-      required:
-        - owner
-        - name
-        - symbol
-      properties:
-        "@type":
-          type: string
-          enum:
-            - "collection_created"
-        owner:
-          $ref: "#/components/schemas/Address"
-        name:
-          type: string
-        symbol:
-          type: string
-
-    NftCollectionOwnershipTransferred:
-      type: object
-      required:
-        - previousOwner
-        - newOwner
-      properties:
-        "@type":
-          type: string
-          enum:
-            - "collection_ownership_transferred"
-        previousOwner:
-          $ref: "#/components/schemas/Address"
-        newOwner:
-          $ref: "#/components/schemas/Address"
 
     NftActivity:
       type: object

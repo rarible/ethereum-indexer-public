@@ -5,7 +5,10 @@ import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftCollectionDto
+import com.rarible.protocol.dto.NftCollectionEventDto
+import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
@@ -30,28 +33,13 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
 
-    private lateinit var collectionActivityConsumer: RaribleKafkaConsumer<ActivityDto>
     private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
 
-    private val collectionActivities = Collections.synchronizedList(arrayListOf<ActivityDto>())
     private val collectionEvents = Collections.synchronizedList(arrayListOf<NftCollectionEventDto>())
-
     private lateinit var consumingJobs: List<Job>
 
     @BeforeEach
     fun setUpEventConsumers() {
-        collectionActivityConsumer = RaribleKafkaConsumer(
-            clientId = "test-consumer-collection-activity",
-            consumerGroup = "test-group-collection-activity",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(
-                application.name,
-                nftIndexerProperties.blockchain.value
-            ),
-            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-        )
         collectionEventConsumer = RaribleKafkaConsumer(
             clientId = "test-consumer-collection-event",
             consumerGroup = "test-group-collection-event",
@@ -65,11 +53,6 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
         consumingJobs = listOf(
-            GlobalScope.launch {
-                collectionActivityConsumer.receive().collect {
-                    collectionActivities += it.value
-                }
-            },
             GlobalScope.launch {
                 collectionEventConsumer.receive().collect {
                     collectionEvents += it.value
@@ -117,19 +100,6 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                 )
             }
         }
-        Wait.waitAssert {
-            assertThat(collectionActivities).anyMatch {
-                it is NftCollectionCreatedDto
-                        && it.owner == creatorAddress
-                        && it.name == "Test"
-                        && it.symbol == "TEST"
-            }
-            assertThat(collectionActivities).anyMatch {
-                it is NftCollectionOwnershipTransferredDto
-                        && it.previousOwner == Address.ZERO()
-                        && it.newOwner == creatorAddress
-            }
-        }
     }
 
     @Test
@@ -165,13 +135,6 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     supportsLazyMint = it.collection.supportsLazyMint,
                     minters = listOf(creatorAddress)
                 )
-            }
-        }
-        Wait.waitAssert {
-            assertThat(collectionActivities).anyMatch {
-                it is NftCollectionOwnershipTransferredDto
-                        && it.previousOwner == creatorAddress
-                        && it.newOwner == newOwnerAddress
             }
         }
     }

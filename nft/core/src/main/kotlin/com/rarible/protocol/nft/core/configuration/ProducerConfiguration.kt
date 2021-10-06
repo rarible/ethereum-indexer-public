@@ -37,7 +37,6 @@ class ProducerConfiguration(
             producerFactory.createItemEventsProducer(),
             producerFactory.createInternalItemEventsProducer(),
             producerFactory.createOwnershipEventsProducer(),
-            producerFactory.createCollectionActivityProducer(),
             producerFactory.createItemActivityProducer()
         )
     }

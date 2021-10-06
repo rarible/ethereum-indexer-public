@@ -53,16 +53,6 @@ class ProducerFactory(
         )
     }
 
-    fun createCollectionActivityProducer(): RaribleKafkaProducer<ActivityDto> {
-        return RaribleKafkaProducer(
-            clientId = "$clientId.collection-activity",
-            valueSerializerClass = JsonSerializer::class.java,
-            valueClass = ActivityDto::class.java,
-            defaultTopic = ActivityTopicProvider.getTopic(environment, blockchain.value),
-            bootstrapServers = kafkaReplicaSet
-        )
-    }
-
     fun createItemActivityProducer(): RaribleKafkaProducer<ActivityDto> {
         return RaribleKafkaProducer(
             clientId = "$clientId.item-activity",

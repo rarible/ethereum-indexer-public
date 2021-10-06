@@ -10,14 +10,12 @@ class ProtocolNftEventPublisher(
     private val itemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val internalItemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
-    private val collectionActivityProducer: RaribleKafkaProducer<ActivityDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>
 ) {
     private val collectionEventHeaders = mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
     private val itemEventHeaders = mapOf("protocol.item.event.version" to NftItemEventTopicProvider.VERSION)
     private val ownershipEventHeaders =
         mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
-    private val collectionActivityHeaders = mapOf("protocol.collection.activity.version" to ActivityTopicProvider.VERSION)
     private val itemActivityHeaders = mapOf("protocol.item.activity.version" to ActivityTopicProvider.VERSION)
 
     suspend fun publish(event: NftCollectionEventDto) {
@@ -61,16 +59,6 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         ownershipEventProducer.send(message).ensureSuccess()
-    }
-
-    suspend fun publish(event: NftCollectionActivityDto) {
-        val message = KafkaMessage(
-            key = event.contract.hex(),
-            value = event as ActivityDto,
-            headers = collectionActivityHeaders,
-            id = event.id
-        )
-        collectionActivityProducer.send(message).ensureSuccess()
     }
 
     suspend fun publish(event: NftActivityDto) {
