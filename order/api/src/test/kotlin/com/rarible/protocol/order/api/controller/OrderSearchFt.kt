@@ -3,8 +3,10 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderSortDto
+import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
@@ -16,7 +18,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.AddressFactory
-import java.time.*
+import java.time.Duration
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
 
@@ -54,10 +56,10 @@ class OrderSearchFt : AbstractIntegrationTest() {
         @JvmStatic
         fun orders4All(): Stream<Arguments> = run {
             val order: () -> Order = { createOrderFully().copy(makeStock = EthUInt256.ZERO) }
-            val inactiveOrder = order().withCurrentStatus()
-            val activeOrder = order().copy(makeStock = EthUInt256.ONE).withCurrentStatus()
-            val filledOrder = order().copy(fill = EthUInt256.TEN, take = Asset(EthAssetType, EthUInt256.TEN)).withCurrentStatus()
-            val canceledOrder = order().copy(cancelled = true).withCurrentStatus()
+            val inactiveOrder = order()
+            val activeOrder = order().copy(makeStock = EthUInt256.ONE).copy()
+            val filledOrder = order().copy(fill = EthUInt256.TEN, take = Asset(EthAssetType, EthUInt256.TEN)).copy()
+            val canceledOrder = order().copy(cancelled = true).copy()
             val orders = listOf(inactiveOrder, activeOrder, filledOrder, canceledOrder)
             Stream.of(
                 Arguments.of(orders, inactiveOrder, listOf(OrderStatusDto.INACTIVE)),

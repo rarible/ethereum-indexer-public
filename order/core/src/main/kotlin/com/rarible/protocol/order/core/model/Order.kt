@@ -55,7 +55,9 @@ data class Order(
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
-    val status: OrderStatus = calculateStatus(fill, take, makeStock, cancelled),
+    // TODO: this field is 'var' and calculated in the constructor to make sure it is recalculated on any Order.copy()
+    //  Is there a better way of storing "computable" fields in the Mongo, but ignoring them on deserialization?
+    var status: OrderStatus = OrderStatus.ACTIVE,
 
     val platform: Platform = Platform.RARIBLE,
 
@@ -71,6 +73,10 @@ data class Order(
      */
     val version: Long? = 1
 ) {
+    init {
+        status = calculateStatus(fill, take, makeStock, cancelled)
+    }
+
     fun forV1Tx() = run {
         assert(type == OrderType.RARIBLE_V1)
         assert(data is OrderDataLegacy)
@@ -148,10 +154,6 @@ data class Order(
 
     fun withMakePrice(price: BigDecimal?): Order {
         return copy(makePriceUsd = price)
-    }
-
-    fun withCurrentStatus(): Order {
-        return copy(status = calculateStatus(fill, take, makeStock, cancelled))
     }
 
     companion object {

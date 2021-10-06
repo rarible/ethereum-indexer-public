@@ -22,7 +22,7 @@ class ChangeLog00012AddStatusToOrder {
         var counter = 0L
         orderRepository.findAll().collect { order ->
             try {
-                orderRepository.save(order.withCurrentStatus())
+                orderRepository.save(order.copy())
                 if (counter % 10000L == 0L) {
                     logger.info("Fixed $counter orders")
                 }
