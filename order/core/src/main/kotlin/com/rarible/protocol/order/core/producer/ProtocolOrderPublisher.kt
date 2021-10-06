@@ -14,7 +14,7 @@ class ProtocolOrderPublisher(
     private val globalOrderEventProducer: RaribleKafkaProducer<OrderEventDto>,
     private val publishProperties: PublishProperties
 ) {
-    private val orderActivityHeaders = mapOf("protocol.order.activity.version" to OrderIndexerTopicProvider.VERSION)
+    private val orderActivityHeaders = mapOf("protocol.order.activity.version" to ActivityTopicProvider.VERSION)
     private val orderEventHeaders = mapOf("protocol.order.event.version" to OrderIndexerTopicProvider.VERSION)
 
     suspend fun publish(event: OrderEventDto) {

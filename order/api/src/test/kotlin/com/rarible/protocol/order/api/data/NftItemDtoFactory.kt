@@ -51,6 +51,7 @@ fun createNftCollectionDto(id: Address): NftCollectionDto {
         name = "TEST",
         symbol = null,
         owner = null,
-        supportsLazyMint = true
+        supportsLazyMint = true,
+        minters = emptyList()
     )
 }

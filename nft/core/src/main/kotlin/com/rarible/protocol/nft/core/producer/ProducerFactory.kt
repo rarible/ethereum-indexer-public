@@ -13,6 +13,16 @@ class ProducerFactory(
 ) {
     private val clientId = "$environment.${blockchain.value}.protocol-nft-events-importer"
 
+    fun createCollectionEventsProducer(): RaribleKafkaProducer<NftCollectionEventDto> {
+        return RaribleKafkaProducer(
+            clientId = "$clientId.collection",
+            valueSerializerClass = JsonSerializer::class.java,
+            valueClass = NftCollectionEventDto::class.java,
+            defaultTopic = NftCollectionEventTopicProvider.getTopic(environment, blockchain.value),
+            bootstrapServers = kafkaReplicaSet
+        )
+    }
+
     fun createItemEventsProducer(): RaribleKafkaProducer<NftItemEventDto> {
         return RaribleKafkaProducer(
             clientId = "$clientId.item",

@@ -198,22 +198,50 @@ class PendingTransactionService(
 
         MintableOwnableTokenV2.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(address, from, it.get()._1(), it.get()._2()), address, CreateEvent.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        date = nowMillis(),
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ),
+                    address,
+                    CreateEvent.id()
+                )
             }
         }
         MintableOwnableTokenV3.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(address, from, it.get()._1(), it.get()._2()), address, CreateEvent.id())
+                return PendingLog(CreateCollection(
+                    id = address,
+                    date = nowMillis(),
+                    owner = from,
+                    name = it.get()._1(),
+                    symbol = it.get()._2()
+                ), address, CreateEvent.id())
             }
         }
         MintableOwnableTokenV4.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(address, from, it.get()._1(), it.get()._2()), address, CreateERC721_v4Event.id())
+                return PendingLog(CreateCollection(
+                    id = address,
+                    date = nowMillis(),
+                    owner = from,
+                    name = it.get()._1(),
+                    symbol = it.get()._2()
+                ), address, CreateERC721_v4Event.id())
             }
         }
         RaribleUserToken.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(address, from, it.get()._1(), it.get()._2()), address, CreateERC1155_v1Event.id())
+                return PendingLog(CreateCollection(
+                    id = address,
+                    date = nowMillis(),
+                    owner = from,
+                    name = it.get()._1(),
+                    symbol = it.get()._2()
+                ), address, CreateERC1155_v1Event.id())
             }
         }
         return null

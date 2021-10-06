@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.ethereum.log.service.LogEventService
-import com.rarible.protocol.contracts.collection.*
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
+import com.rarible.protocol.nft.core.model.CollectionEventType
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -24,15 +24,8 @@ class CoreConfiguration {
         val nftItemHistoryTopics = (ItemType.TRANSFER.topic + ItemType.ROYALTY.topic + ItemType.CREATORS.topic)
             .associateWith { NftItemHistoryRepository.COLLECTION }
 
-        val nftHistoryTopics = listOf(
-            CreateERC1155_v1Event.id(),
-            CreateEvent.id(),
-            CreateERC721_v4Event.id(),
-            CreateERC721RaribleUserEvent.id(),
-            CreateERC721RaribleEvent.id(),
-            CreateERC1155RaribleUserEvent.id(),
-            CreateERC1155RaribleEvent.id()
-        ).associateWith {NftHistoryRepository.COLLECTION }
+        val nftHistoryTopics = CollectionEventType.values().flatMap { it.topic }
+            .associateWith { NftHistoryRepository.COLLECTION }
 
         return LogEventService(nftItemHistoryTopics + nftHistoryTopics, mongo)
     }

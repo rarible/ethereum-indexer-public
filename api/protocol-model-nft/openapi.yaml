@@ -55,6 +55,11 @@ components:
               - MINT_AND_TRANSFER
         supportsLazyMint:
           type: boolean
+        minters:
+          type: array
+          description: List of addresses that can mint items in this collection
+          items:
+            "$ref": "#/components/schemas/Address"
 
     NftCollections:
       required:
@@ -75,36 +80,33 @@ components:
           items:
             "$ref": "#/components/schemas/NftCollection"
 
-    NftCollectionHistory:
+    NftCollectionEvent:
       required:
+        - eventId
         - id
       properties:
+        eventId:
+          type: string
         id:
           $ref: '#/components/schemas/Address'
       discriminator:
         propertyName: 'type'
         mapping:
-          COLLECTION_CREATE: '#/components/schemas/NftCreateCollection'
+          UPDATE: '#/components/schemas/NftCollectionUpdateEvent'
       oneOf:
-        - $ref: '#/components/schemas/NftCreateCollection'
+        - $ref: '#/components/schemas/NftCollectionUpdateEvent'
 
-    NftCreateCollection:
+    NftCollectionUpdateEvent:
       type: object
       required:
-        - owner
-        - name
-        - symbol
+        - collection
       properties:
         type:
           type: string
           enum:
-            - COLLECTION_CREATE
-        owner:
-          $ref: '#/components/schemas/Address'
-        name:
-          type: string
-        symbol:
-          type: string
+            - UPDATE
+        collection:
+          $ref: '#/components/schemas/NftCollection'
 
     NftSignature:
       required:

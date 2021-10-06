@@ -33,6 +33,7 @@ class ProducerConfiguration(
     @Bean
     fun protocolNftEventPublisher(producerFactory: ProducerFactory): ProtocolNftEventPublisher {
         return ProtocolNftEventPublisher(
+            producerFactory.createCollectionEventsProducer(),
             producerFactory.createItemEventsProducer(),
             producerFactory.createInternalItemEventsProducer(),
             producerFactory.createOwnershipEventsProducer(),

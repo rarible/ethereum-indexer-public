@@ -6,15 +6,27 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.model.OwnershipId
 
 class ProtocolNftEventPublisher(
+    private val collectionEventProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val internalItemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>
 ) {
+    private val collectionEventHeaders = mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
     private val itemEventHeaders = mapOf("protocol.item.event.version" to NftItemEventTopicProvider.VERSION)
     private val ownershipEventHeaders =
         mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
     private val itemActivityHeaders = mapOf("protocol.item.activity.version" to ActivityTopicProvider.VERSION)
+
+    suspend fun publish(event: NftCollectionEventDto) {
+        val message = KafkaMessage(
+            key = event.id.hex(),
+            value = event,
+            headers = collectionEventHeaders,
+            id = event.eventId
+        )
+        collectionEventProducer.send(message).ensureSuccess()
+    }
 
     suspend fun publish(event: NftItemEventDto) {
         val message = KafkaMessage(

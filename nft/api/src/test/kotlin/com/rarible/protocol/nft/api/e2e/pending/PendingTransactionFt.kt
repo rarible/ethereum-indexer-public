@@ -177,9 +177,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             }
         }
 
-        val history = nftHistoryRepository.find(receipt.contractAddress()).collectList().awaitFirst()
+        val history = nftHistoryRepository.findAllByCollection(receipt.contractAddress()).collectList().awaitFirst()
         assertThat(history).hasSize(1)
-        assertThat(history.single().first.status).isEqualTo(LogEventStatus.PENDING)
+        assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
     }
 
     private suspend fun processTransaction(receipt: TransactionReceipt, isCollection: Boolean = false) {
