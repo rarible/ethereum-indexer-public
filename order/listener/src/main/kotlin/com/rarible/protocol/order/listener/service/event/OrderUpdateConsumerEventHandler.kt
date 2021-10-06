@@ -52,7 +52,7 @@ class OrderUpdateConsumerEventHandler(
             OrderKind.SELL -> OrderFilterSellByItemDto(
                 tokenId = tokenId,
                 contract = contract,
-                sort = OrderFilterDto.Sort.LAST_UPDATE,
+                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
                 platform = null,
                 maker = null,
                 origin = null
@@ -60,7 +60,7 @@ class OrderUpdateConsumerEventHandler(
             OrderKind.BID -> OrderFilterBidByItemDto(
                 tokenId = tokenId,
                 contract = contract,
-                sort = OrderFilterDto.Sort.LAST_UPDATE,
+                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
                 platform = null,
                 maker = null,
                 origin = null

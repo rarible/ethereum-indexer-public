@@ -7,7 +7,10 @@ import java.math.BigDecimal
 
 fun OrderFilterDto.toContinuation(order: Order): String {
     return when (sort) {
-        OrderFilterDto.Sort.LAST_UPDATE -> {
+        OrderFilterDto.Sort.LAST_UPDATE_DESC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
+        OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }
         OrderFilterDto.Sort.TAKE_PRICE_DESC -> {

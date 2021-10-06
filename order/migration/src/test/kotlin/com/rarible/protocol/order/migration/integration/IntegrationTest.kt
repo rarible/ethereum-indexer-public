@@ -1,31 +1,31 @@
-package com.rarible.protocol.order.migration
+package com.rarible.protocol.order.migration.integration
 
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
+import com.rarible.core.test.ext.MongoCleanup
+import com.rarible.core.test.ext.MongoTest
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Retention
+@MongoTest
+@MongoCleanup
 @AutoConfigureJson
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
         "application.environment = e2e",
+        "common.blockchain = ethereum",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",
-        "rarible.core.contract.enabled = true",
+        "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
+        "rarible.common.jms-eventTopic = protocol",
         "spring.cloud.consul.config.enabled = false",
-        "logging.logstash.tcp-socket.enabled = false",
-        "common.kafka-replica-set = localhost:\${random.int(5000,5100)}",
-        "rarible.core.ethereum.url=test",
-        "rarible.core.ethereum.web-socket-url=test",
-        "node.hosts=localhost:8081",
-        "node.webSocketHosts=localhost:8081",
-        "kafka.hosts=localhost:8081"
+        "logging.logstash.tcp-socket.enabled = false"
     ]
 )
-@ActiveProfiles("e2e", "integration", "ethereum")
+@ActiveProfiles("integration")
+@Import(TestPropertiesConfiguration::class)
 @Testcontainers
-@EnableAutoConfiguration
-annotation class End2EndTest
+annotation class IntegrationTest

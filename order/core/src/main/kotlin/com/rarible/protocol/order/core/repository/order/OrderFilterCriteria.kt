@@ -31,7 +31,6 @@ object OrderFilterCriteria {
         val query = Query(
             criteria
                 .forPlatform(convert(platform))
-                .pickAlive(true)
                 .scrollTo(continuation, this.sort)
                 .fromOrigin(origin)
         ).limit(requestLimit).with(sort(this.sort))
@@ -39,12 +38,27 @@ object OrderFilterCriteria {
         if (hint != null) {
             query.withHint(hint)
         }
+        this.status?.let {
+            if (it.isNotEmpty()) {
+                val statuses = it.map { OrderStatus.valueOf(it.name) }
+                query.addCriteria(Order::status inValues statuses)
+            }
+        }
         return query
     }
 
     private fun sort(sort: OrderFilterDto.Sort): Sort {
         return when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name, Order::hash.name)
+            OrderFilterDto.Sort.LAST_UPDATE_DESC -> Sort.by(
+                Sort.Direction.DESC,
+                Order::lastUpdateAt.name,
+                Order::hash.name
+            )
+            OrderFilterDto.Sort.LAST_UPDATE_ASC -> Sort.by(
+                Sort.Direction.ASC,
+                Order::lastUpdateAt.name,
+                Order::hash.name
+            )
             OrderFilterDto.Sort.MAKE_PRICE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::makePriceUsd.name,
@@ -95,13 +109,6 @@ object OrderFilterCriteria {
             .and(Order::maker.name).isEqualTo(maker)
             .and("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
 
-    private infix fun Criteria.pickAlive(alive: Boolean) =
-        if (alive) {
-            this.and(Order::makeStock.name).ne(EthUInt256.ZERO)
-        } else {
-            this
-        }
-
     private infix fun Criteria.fromOrigin(origin: Address?) = origin?.let {
         and("${Order::data.name}.${OrderRaribleV2DataV1::originFees.name}")
             .elemMatch(Criteria.where(Part::account.name).`is`(origin))
@@ -113,7 +120,7 @@ object OrderFilterCriteria {
 
     private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort) =
         when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE -> {
+            OrderFilterDto.Sort.LAST_UPDATE_DESC -> {
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
@@ -121,6 +128,18 @@ object OrderFilterCriteria {
                         Criteria().andOperator(
                             Order::lastUpdateAt isEqualTo c.afterDate,
                             Order::hash lt c.afterId
+                        )
+                    )
+                } ?: this
+            }
+            OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
+                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                lastDate?.let { c ->
+                    this.orOperator(
+                        Order::lastUpdateAt gt c.afterDate,
+                        Criteria().andOperator(
+                            Order::lastUpdateAt isEqualTo c.afterDate,
+                            Order::hash gt c.afterId
                         )
                     )
                 } ?: this

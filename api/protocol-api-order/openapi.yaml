@@ -361,6 +361,7 @@ paths:
 
   "/v0.1/orders/all":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all orders by specified parameters
@@ -428,6 +429,7 @@ paths:
 
   "/v0.1/orders/sell/byMaker":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all orders for sale by maker
@@ -473,8 +475,57 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/sell/byMakerAndByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByMakerAndByStatus
+      parameters:
+        - name: maker
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/sell/byItem":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all orders for sale by item
@@ -532,8 +583,67 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/sell/byItemAndByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByItemAndByStatus
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: maker
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/sell/byCollection":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all orders for sale by collection
@@ -579,8 +689,57 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/sell/byCollectionAndByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByCollectionAndByStatus
+      parameters:
+        - name: collection
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/sell":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all orders for sale by specified parameters
@@ -620,10 +779,54 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/sellByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getSellOrdersByStatus
+      parameters:
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   ###################### Bids ######################
 
   "/v0.1/orders/bids/byMaker":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all order bids by maker
@@ -669,8 +872,69 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/bids/byMakerAndByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrderBidsByMakerAndByStatus
+      parameters:
+        - name: maker
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderBidStatus"
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderBidsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/bids/byItem":
     get:
+      deprecated: true
       tags:
         - order-controller
       description: Returns all order bids by item
@@ -728,6 +992,76 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/bids/byItemAndByStatus":
+    get:
+      tags:
+        - order-controller
+      operationId: getOrderBidsByItemAndByStatus
+      parameters:
+        - name: contract
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: maker
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderBidStatus"
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderBidsPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/all/byStatus":
     get:
       tags:
@@ -755,6 +1089,13 @@ paths:
             minimum: 1
             type: integer
             format: int32
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -764,6 +1105,7 @@ paths:
           $ref: "#/components/responses/ServerError"
   "/v0.1/bids/byItem":
     get:
+      deprecated: true
       tags:
         - order-bid-controller
       operationId: getBidsByItem

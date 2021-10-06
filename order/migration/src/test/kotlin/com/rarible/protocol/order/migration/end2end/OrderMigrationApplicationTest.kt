@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.migration
+package com.rarible.protocol.order.migration.end2end
 
 import com.rarible.core.test.containers.MongodbTestContainer
 import org.junit.jupiter.api.Disabled

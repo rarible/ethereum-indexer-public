@@ -58,21 +58,6 @@ class MongoOrderRepository(
             .awaitFirst()
     }
 
-    override suspend fun search(filter: OrderFilter): List<Order> {
-        val limit = filter.limit
-        val hint = filter.hint
-        val sort = filter.dataSort
-        val criteria = filter.getCriteria()
-
-        val query = Query(criteria)
-
-        if (hint != null) {
-            query.withHint(hint)
-        }
-        query.with(sort).limit(limit)
-        return template.find<Order>(query).collectList().awaitFirst()
-    }
-
     override suspend fun remove(hash: Word): Boolean {
         val criteria = Criteria.where("_id").isEqualTo(hash)
         return template.remove(Query(criteria), Order::class.java).awaitFirst().deletedCount > 0
