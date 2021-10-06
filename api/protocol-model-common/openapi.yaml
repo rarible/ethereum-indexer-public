@@ -18,6 +18,9 @@ components:
             - NOT_FOUND
         message:
           type: string
+        status:
+          type: integer
+          default: 404
 
     EthereumApiErrorBadRequest:
       required:
@@ -32,6 +35,9 @@ components:
             - VALIDATION
         message:
           type: string
+        status:
+          type: integer
+          default: 400
 
     EthereumApiErrorServerError:
       required:
@@ -46,6 +52,9 @@ components:
             - UNKNOWN
         message:
           type: string
+        status:
+          type: integer
+          default: 500
 
     Activity:
       type: object
