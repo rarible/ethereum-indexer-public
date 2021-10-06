@@ -28,12 +28,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NftOrderApiError"
-        '404':
-          description: Ownership not found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftOrderApiError"
         '500':
           description: Internal Server Error
           content:
@@ -147,12 +141,6 @@ paths:
                 "$ref": "#/components/schemas/NftOrderItem"
         '400':
           description: Bad request
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftOrderApiError"
-        '404':
-          description: Item not found
           content:
             application/json:
               schema:

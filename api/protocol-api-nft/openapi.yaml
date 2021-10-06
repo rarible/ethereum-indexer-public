@@ -255,12 +255,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/LazyNft"
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
         '500':
           description: Internal Server Error
           content:
@@ -291,12 +285,6 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/NftItem"
-        '404':
-          description: Not Found
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
         '500':
           description: Internal Server Error
           content:
