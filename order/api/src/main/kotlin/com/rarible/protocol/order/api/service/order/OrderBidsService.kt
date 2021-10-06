@@ -1,11 +1,7 @@
 package com.rarible.protocol.order.api.service.order
 
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.core.model.BidStatus
-import com.rarible.protocol.order.core.model.CompositeBid
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
@@ -51,7 +47,7 @@ class OrderBidsService(
                     val status = convert(order)
 
                     val calculatedStatus = if (!foundOrders.contains(version.hash) && status == BidStatus.HISTORICAL) {
-                        if (order.fill == order.take.value) BidStatus.FILLED else BidStatus.ACTIVE
+                        if (order.status == OrderStatus.FILLED) BidStatus.FILLED else BidStatus.ACTIVE
                     } else {
                         status
                     }
@@ -64,9 +60,9 @@ class OrderBidsService(
     }
 
     private fun convert(source: Order): BidStatus {
-        return when {
-            source.cancelled -> BidStatus.CANCELLED
-            source.makeStock == EthUInt256.ZERO -> BidStatus.INACTIVE
+        return when (source.status) {
+            OrderStatus.CANCELLED -> BidStatus.CANCELLED
+            OrderStatus.INACTIVE -> BidStatus.INACTIVE
             else -> BidStatus.HISTORICAL
         }
     }

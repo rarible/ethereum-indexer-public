@@ -38,6 +38,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
@@ -62,6 +63,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
@@ -86,6 +88,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
@@ -112,6 +115,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
+                status = OrderStatusDtoConverter.convert(source.status),
                 data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
             )
         }
