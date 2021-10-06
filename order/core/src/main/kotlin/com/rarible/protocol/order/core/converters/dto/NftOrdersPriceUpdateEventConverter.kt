@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.NftBidOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.NftSellOrdersPriceUpdateEventDto
 import com.rarible.protocol.order.core.model.ItemId
@@ -23,7 +24,7 @@ class NftOrdersPriceUpdateEventConverter(
                 orders = orders.map { orderDtoConverter.convert(it) },
                 eventId = eventId
             )
-            OrderKind.BID -> NftSellOrdersPriceUpdateEventDto(
+            OrderKind.BID -> NftBidOrdersPriceUpdateEventDto(
                 contract = item.contract,
                 tokenId = item.tokenId,
                 orders = orders.map { orderDtoConverter.convert(it) },
