@@ -474,18 +474,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -596,18 +584,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -698,18 +674,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -790,18 +754,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -1066,18 +1018,6 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
-        - name: startDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-        - name: endDate
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"

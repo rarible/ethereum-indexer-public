@@ -164,15 +164,11 @@ class OrderController(
         sort: OrderSortDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?,
-        start: Long?,
-        end: Long?
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterAllDto(
             sort = convert(sort),
-            status = convertStatus(status),
-            start = start,
-            end = end
+            status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -224,9 +220,7 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?,
-        start: Long?,
-        end: Long?
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByItemDto(
             contract = Address.apply(contract),
@@ -235,9 +229,7 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.MAKE_PRICE_ASC,
-            status = convertStatus(status),
-            start = start,
-            end = end
+            status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -267,18 +259,14 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?,
-        start: Long?,
-        end: Long?
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByCollectionDto(
             collection = Address.apply(collection),
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status),
-            start = start,
-            end = end
+            status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -308,18 +296,14 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?,
-        start: Long?,
-        end: Long?
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByMakerDto(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status),
-            start = start,
-            end = end
+            status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -330,17 +314,13 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?,
-        start: Long?,
-        end: Long?
+        status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellDto(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status),
-            start = start,
-            end = end
+            status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)

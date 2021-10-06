@@ -44,8 +44,6 @@ object OrderFilterCriteria {
                 query.addCriteria(Order::status inValues statuses)
             }
         }
-        this.start?.let { query.addCriteria(Order::start gte it) }
-        this.end?.let { query.addCriteria(Order::end lte it) }
         return query
     }
 
