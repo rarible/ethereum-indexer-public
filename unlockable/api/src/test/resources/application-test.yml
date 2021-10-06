@@ -19,7 +19,7 @@ application:
   environment: test
 
 common:
-  blockchain: ETHEREUM
+  blockchain: ethereum
 
 rarible:
   ethereum:
