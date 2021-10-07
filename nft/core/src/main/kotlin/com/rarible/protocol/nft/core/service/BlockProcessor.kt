@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service
 
+import com.rarible.core.common.retryOptimisticLock
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -22,8 +23,8 @@ class BlockProcessor(
     override fun postProcessLogs(logs: MutableList<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
             Mono.`when`(
-                itemReduceService.onItemHistories(logs.filter { it.data is ItemHistory }),
-                tokenReduceService.onTokenHistories(logs.filter { it.data is CreateCollection })
+                itemReduceService.onItemHistories(logs.filter { it.data is ItemHistory }).retryOptimisticLock(),
+                tokenReduceService.onTokenHistories(logs.filter { it.data is CreateCollection }).retryOptimisticLock()
             ).toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Process time: ${it.t1}ms") }

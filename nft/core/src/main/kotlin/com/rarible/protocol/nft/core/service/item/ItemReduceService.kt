@@ -120,7 +120,6 @@ class ItemReduceService(
                     Mono.empty()
                 }
             }
-            .retryOptimisticLock()
 
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = pair.first
