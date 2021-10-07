@@ -911,7 +911,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/OrderBidStatus"
+              $ref: "#/components/schemas/OrderStatus"
         - name: startDate
           in: query
           required: false
@@ -926,7 +926,7 @@ paths:
             format: int64
       responses:
         '200':
-          $ref: "#/components/responses/OrderBidsPage"
+          $ref: "#/components/responses/OrderPage"
         '400':
           $ref: "#/components/responses/BadRequest"
         '500':
@@ -1041,7 +1041,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/OrderBidStatus"
+              $ref: "#/components/schemas/OrderStatus"
         - name: startDate
           in: query
           required: false
@@ -1056,7 +1056,7 @@ paths:
             format: int64
       responses:
         '200':
-          $ref: "#/components/responses/OrderBidsPage"
+          $ref: "#/components/responses/OrderPage"
         '400':
           $ref: "#/components/responses/BadRequest"
         '500':

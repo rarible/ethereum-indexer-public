@@ -8,7 +8,8 @@ import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
-import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
+import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
+import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.converters.model.*
 import com.rarible.protocol.order.core.misc.limit
@@ -40,7 +41,7 @@ class OrderController(
     private val assetDtoConverter: AssetDtoConverter,
     private val orderToFormDtoConverter: OrderToFormDtoConverter,
     private val orderBidsService: OrderBidsService,
-    private val bidDtoConverter: BidDtoConverter
+    private val compositeBidConverter: CompositeBidConverter
 ) : OrderControllerApi {
 
     override suspend fun invertOrder(
@@ -351,7 +352,7 @@ class OrderController(
     override suspend fun getOrderBidsByItemAndByStatus(
         contract: String,
         tokenId: String,
-        status: List<OrderBidStatusDto>,
+        status: List<OrderStatusDto>,
         maker: String?,
         origin: String?,
         platform: PlatformDto?,
@@ -359,7 +360,7 @@ class OrderController(
         size: Int?,
         startDate: Long?,
         endDate: Long?
-    ): ResponseEntity<OrderBidsPaginationDto> {
+    ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = size.limit()
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
@@ -398,14 +399,14 @@ class OrderController(
 
     override suspend fun getOrderBidsByMakerAndByStatus(
         maker: String,
-        status: List<OrderBidStatusDto>,
+        status: List<OrderStatusDto>,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
         startDate: Long?,
         endDate: Long?
-    ): ResponseEntity<OrderBidsPaginationDto> {
+    ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = size.limit()
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
@@ -422,13 +423,13 @@ class OrderController(
         return searchBids(status, filter, requestSize)
     }
 
-    suspend fun searchBids(status: List<OrderBidStatusDto>, filter: PriceOrderVersionFilter, requestSize: Int): ResponseEntity<OrderBidsPaginationDto> {
-        val statuses = status.map { OrderBidStatusConverter.convert(it) }
+    suspend fun searchBids(status: List<OrderStatusDto>, filter: PriceOrderVersionFilter, requestSize: Int): ResponseEntity<OrdersPaginationDto> {
+        val statuses = status.map { BidStatusReverseConverter.convert(it) }
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
-        val result = OrderBidsPaginationDto(
-            orderVersions.map { bidDtoConverter.convert(it) },
+        val result = OrdersPaginationDto(
+            orderVersions.map { compositeBidConverter.convert(it) },
             nextContinuation
         )
         return ResponseEntity.ok(result)

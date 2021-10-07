@@ -2,19 +2,19 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.OrderBidDto
-import com.rarible.protocol.dto.OrderBidStatusDto
-import com.rarible.protocol.dto.PlatformDto
-import com.rarible.protocol.dto.RaribleV2OrderBidDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.converters.dto.BidStatusConverter
 import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.*
 import io.mockk.coEvery
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.OrderVersion
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -30,7 +30,6 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneOffset
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -135,23 +134,28 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     ) = runBlocking {
         saveOrders(orderVersionBids + otherVersions.map { OrderVersionBid(it, BidStatus.ACTIVE) })
 
-        val versions = orderClient.getOrderBidsByItemAndByStatus(
-            params.token.hex(),
-            params.tokenId.value.toString(),
-            params.status,
-            params.maker?.hex(),
-            params.origin?.hex(),
-            params.platform,
-            null,
-            null,
-            params.startDate?.epochSecond,
-            params.endDate?.epochSecond
-        ).awaitFirst()
+        Wait.waitAssert {
+            val versions = orderClient.getOrderBidsByItemAndByStatus(
+                params.token.hex(),
+                params.tokenId.value.toString(),
+                params.status,
+                params.maker?.hex(),
+                params.origin?.hex(),
+                params.platform,
+                null,
+                null,
+                params.startDate?.epochSecond,
+                params.endDate?.epochSecond
+            ).awaitFirst()
 
-        assertThat(versions.items).hasSize(orderVersionBids.size)
+            assertThat(versions.orders).hasSize(orderVersionBids.size)
 
-        versions.items.forEachIndexed { index, orderVersionDto ->
-            checkOrderActivityDto(orderVersionDto, orderVersionBids[index])
+            versions.orders.forEachIndexed { index, orderVersionDto ->
+                val versionBid = orderVersionBids[index]
+                assertThat(orderVersionDto.status).isEqualTo(BidStatusConverter.convert(versionBid.status))
+                assertThat(orderVersionDto.hash).isEqualTo(versionBid.orderVersion.hash)
+                assertThat(orderVersionDto.createdAt).isEqualTo(versionBid.orderVersion.createdAt)
+            }
         }
     }
 
@@ -182,7 +186,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         val paginationDto = orderClient.getOrderBidsByItemAndByStatus(
             (bidVersion.take.type as Erc721AssetType).token.hex(),
             (bidVersion.take.type as Erc721AssetType).tokenId.value.toString(),
-            OrderBidStatusDto.values().toList(),
+            OrderStatusDto.values().toList(),
             null,
             null,
             PlatformDto.RARIBLE,
@@ -191,11 +195,11 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             null,
             null
         ).awaitFirst()
-        assertThat(paginationDto.items).hasSize(1)
-        val bidDto = paginationDto.items.single()
-        assertEquals(bidVersion.hash, bidDto.orderHash)
-        assertEquals(OrderBidStatusDto.INACTIVE, bidDto.status)
-        assertTrue(bidDto is RaribleV2OrderBidDto)
+        assertThat(paginationDto.orders).hasSize(1)
+        val bidDto = paginationDto.orders.single()
+        assertEquals(bidVersion.hash, bidDto.hash)
+        assertEquals(OrderStatusDto.INACTIVE, bidDto.status)
+        assertTrue(bidDto is RaribleV2OrderDto)
     }
 
     @Nested
@@ -209,7 +213,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderBidStatusDto.ACTIVE),
+                listOf(OrderStatusDto.ACTIVE),
                 null,
                 null,
                 null,
@@ -219,7 +223,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null
             ).awaitFirst()
 
-            assertThat(versions.items).hasSize(3)
+            assertThat(versions.orders).hasSize(3)
         }
 
         @Test
@@ -231,7 +235,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderBidStatusDto.CANCELLED),
+                listOf(OrderStatusDto.CANCELLED),
                 null,
                 null,
                 null,
@@ -241,7 +245,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null
             ).awaitFirst()
 
-            assertThat(versions.items).hasSize(2)
+            assertThat(versions.orders).hasSize(2)
         }
 
         @Test
@@ -253,7 +257,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderBidStatusDto.INACTIVE),
+                listOf(OrderStatusDto.INACTIVE),
                 null,
                 null,
                 null,
@@ -263,7 +267,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null
             ).awaitFirst()
 
-            assertThat(versions.items).hasSize(3)
+            assertThat(versions.orders).hasSize(3)
         }
 
         private suspend fun prepareDatabase(token: Address, tokenId: EthUInt256) {
@@ -329,9 +333,9 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         }
     }
 
-    private fun checkOrderActivityDto(orderVersionDto: OrderBidDto, versionBid: OrderVersionBid) {
-        assertThat(orderVersionDto.status).isEqualTo(BidStatusDtoConverter.convert(versionBid.status))
-        assertThat(orderVersionDto.orderHash).isEqualTo(versionBid.orderVersion.hash)
+    private fun checkOrderActivityDto(orderVersionDto: OrderDto, versionBid: OrderVersionBid) {
+        assertThat(orderVersionDto.status).isEqualTo(BidStatusConverter.convert(versionBid.status))
+        assertThat(orderVersionDto.hash).isEqualTo(versionBid.orderVersion.hash)
         assertThat(orderVersionDto.createdAt).isEqualTo(versionBid.orderVersion.createdAt)
     }
 
@@ -360,7 +364,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     data class BidByItemParams(
         val token: Address,
         val tokenId: EthUInt256,
-        val status: List<OrderBidStatusDto> = OrderBidStatusDto.values().toList(),
+        val status: List<OrderStatusDto> = OrderStatusDto.values().toList(),
         val platform: PlatformDto = PlatformDto.RARIBLE,
         val origin: Address? = null,
         val maker: Address? = null,
