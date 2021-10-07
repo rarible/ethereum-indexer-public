@@ -570,6 +570,10 @@ components:
           $ref: "#/components/schemas/Word"
         makeBalance:
           $ref: "#/components/schemas/BigInteger"
+        makePrice:
+          $ref: "#/components/schemas/BigDecimal"
+        takePrice:
+          $ref: "#/components/schemas/BigDecimal"
         makePriceUsd:
           $ref: "#/components/schemas/BigDecimal"
         takePriceUsd:
