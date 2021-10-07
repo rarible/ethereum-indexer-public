@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 @Tag("manual")
 @Disabled
 class MediaMetaServiceTest {
-    private val service = MediaMetaService(5000)
+    private val service = MediaMetaService("http://69.197.181.202:3128", 5000)
 
     @Test
     fun gif() {

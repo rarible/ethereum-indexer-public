@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.google.common.net.InternetDomainName
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.blockingToMono
@@ -19,15 +20,14 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import java.io.IOException
 import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URI
-import java.net.URL
+import java.net.*
 import java.util.concurrent.Callable
 import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
 class MediaMetaService(
+    @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int
 ): CacheDescriptor<MediaMeta> {
 
@@ -112,7 +112,7 @@ class MediaMetaService(
 
     private fun getMetadata(url: String): Mono<Triple<Int, Int, IIOMetadata>> {
         return Callable {
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val conn = connection(url) as HttpURLConnection
             conn.readTimeout = timeout
             conn.connectTimeout = timeout
             conn.setRequestProperty("user-agent", "curl/7.73.0")
@@ -137,7 +137,24 @@ class MediaMetaService(
         }
     }
 
+    private fun connection(url: String): URLConnection {
+        return when {
+            isOpenSea(url) -> {
+                val address = URL(proxyUrl)
+                val proxy = Proxy(Proxy.Type.HTTP, InetSocketAddress(address.host, address.port))
+                URL(url).openConnection(proxy)
+            }
+            else -> URL(url).openConnection()
+        }
+    }
+
+    private fun isOpenSea(url: String): Boolean {
+        val domain = InternetDomainName.from(URL(url).host).topPrivateDomain().toString()
+        return domain.startsWith(OPENSEA_DOMAIN)
+    }
+
     companion object {
         val logger: Logger = LoggerFactory.getLogger(MediaMetaService::class.java)
+        const val OPENSEA_DOMAIN = "opensea.io"
     }
 }
