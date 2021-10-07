@@ -2,12 +2,12 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.dto.OrderStatusDto
-import com.rarible.protocol.dto.OrdersPaginationDto
+import com.rarible.protocol.dto.OrderBidStatusDto
+import com.rarible.protocol.dto.OrderBidsPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.service.order.OrderBidsService
-import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
-import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
+import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
+import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -21,13 +21,13 @@ import java.time.OffsetDateTime
 @RestController
 class OrderBidController(
     private val orderBidsService: OrderBidsService,
-    private val compositeBidConverter: CompositeBidConverter
+    private val bidDtoConverter: BidDtoConverter
 ) : OrderBidControllerApi {
 
     override suspend fun getBidsByItem(
         contract: String,
         tokenId: String,
-        status: List<OrderStatusDto>,
+        status: List<OrderBidStatusDto>,
         maker: String?,
         origin: String?,
         platform: PlatformDto?,
@@ -35,7 +35,7 @@ class OrderBidController(
         endDate: OffsetDateTime?,
         continuation: String?,
         size: Int?
-    ): ResponseEntity<OrdersPaginationDto> {
+    ): ResponseEntity<OrderBidsPaginationDto> {
         val requestSize = size.limit()
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
@@ -51,12 +51,12 @@ class OrderBidController(
             requestSize,
             priceContinuation
         )
-        val statuses = status.map { BidStatusReverseConverter.convert(it) }
+        val statuses = status.map { OrderBidStatusConverter.convert(it) }
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)
-        val result = OrdersPaginationDto(
-            orderVersions.map { compositeBidConverter.convert(it) },
+        val result = OrderBidsPaginationDto(
+            orderVersions.map { bidDtoConverter.convert(it) },
             nextContinuation
         )
         return ResponseEntity.ok(result)
