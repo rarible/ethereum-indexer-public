@@ -9,7 +9,9 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-object ExtendedItemEventDtoConverter : Converter<ExtendedItem, NftItemEventDto> {
+class ExtendedItemEventDtoConverter(
+    private val extendedItemDtoConverter: ExtendedItemDtoConverter
+) : Converter<ExtendedItem, NftItemEventDto> {
     override fun convert(source: ExtendedItem): NftItemEventDto {
         val eventId = UUID.randomUUID().toString()
 
@@ -25,7 +27,7 @@ object ExtendedItemEventDtoConverter : Converter<ExtendedItem, NftItemEventDto> 
             NftItemUpdateEventDto(
                 eventId,
                 source.item.id.decimalStringValue,
-                ExtendedItemDtoConverter.convert(source)
+                extendedItemDtoConverter.convert(source)
             )
         }
     }
