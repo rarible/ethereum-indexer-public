@@ -18,19 +18,19 @@ pipeline {
 
   stages {
     stage('test') {
-      agent any
-      steps {
-        sh 'echo skipTests'
-      }
+//       agent any
 //       steps {
-//          sh 'mvn clean test -U'
+//         sh 'echo skipTests'
 //       }
-//       post {
-//         always {
-//           junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-//           step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
-//         }
-//       }
+      steps {
+         sh 'mvn clean test -U'
+      }
+      post {
+        always {
+          junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
+          step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
+        }
+      }
     }
     stage('package and publish') {
       agent any
