@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import io.mockk.every
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -29,7 +30,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
     fun setUpBalances() {
         // It is necessary to make 'makePriceUsd/takePriceUsd/makeUsd/takeUsd' fields null.
         clearMocks(currencyApi)
-        coEvery { currencyApi.getCurrencyRate(any(), any(), any()) } returns Mono.empty()
+        every { currencyApi.getCurrencyRate(any(), any(), any()) } returns Mono.empty()
 
         clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{

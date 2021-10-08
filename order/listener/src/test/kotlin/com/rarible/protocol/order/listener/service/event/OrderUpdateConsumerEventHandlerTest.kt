@@ -6,12 +6,10 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -35,9 +33,6 @@ import java.util.stream.Stream
 internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
-
-    @Autowired
-    protected lateinit var currencyControllerApi: CurrencyControllerApi
 
     @Autowired
     protected lateinit var orderDtoConverter: OrderDtoConverter
@@ -103,7 +98,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         nftOrderVersions: List<OrderVersion>
     ) = runBlocking {
         val producer = RaribleKafkaProducer(
-            clientId = "update-price-update-"+UUID.randomUUID(),
+            clientId = "update-price-update-" + UUID.randomUUID(),
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = OrderUpdateEventDto::class.java,
             defaultTopic = OrderIndexerTopicProvider.getUpdateTopic(
