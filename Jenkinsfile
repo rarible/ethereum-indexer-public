@@ -18,7 +18,7 @@ pipeline {
 
   stages {
     stage('test') {
-//       agent any
+      agent any
 //       steps {
 //         sh 'echo skipTests'
 //       }
