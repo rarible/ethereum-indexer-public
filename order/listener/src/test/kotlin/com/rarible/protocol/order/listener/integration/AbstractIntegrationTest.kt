@@ -12,6 +12,8 @@ import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.currency.api.client.CurrencyControllerApi
+import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
@@ -28,6 +30,7 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import io.mockk.every
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
@@ -47,6 +50,7 @@ import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
 import scalether.core.MonoParity
 import scalether.domain.Address
@@ -98,6 +102,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
 
+    @Autowired
+    lateinit var currencyApi: CurrencyControllerApi
+
     protected lateinit var parity: MonoParity
 
     protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
@@ -123,6 +130,14 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @BeforeEach
     fun setUpMocks() {
+        clearMocks(currencyApi)
+        every { currencyApi.getCurrencyRate(any(), any(), any()) } returns CurrencyRateDto(
+            "test",
+            "usd",
+            TestPropertiesConfiguration.ETH_CURRENCY_RATE,
+            nowMillis()
+        ).toMono()
+
         clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
             val order = arg<Order>(0)

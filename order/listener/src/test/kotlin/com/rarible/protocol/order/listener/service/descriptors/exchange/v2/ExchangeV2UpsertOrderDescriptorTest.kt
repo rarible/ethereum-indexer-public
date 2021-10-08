@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.clearMocks
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import reactor.core.publisher.Mono
 import java.math.BigInteger
 
@@ -27,12 +25,10 @@ import java.math.BigInteger
 @IntegrationTest
 class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
 
-    @Autowired
-    lateinit var currencyApi: CurrencyControllerApi
-
     @BeforeEach
     fun setUpBalances() {
         // It is necessary to make 'makePriceUsd/takePriceUsd/makeUsd/takeUsd' fields null.
+        clearMocks(currencyApi)
         coEvery { currencyApi.getCurrencyRate(any(), any(), any()) } returns Mono.empty()
 
         clearMocks(assetMakeBalanceProvider)
