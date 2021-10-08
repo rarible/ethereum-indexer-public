@@ -161,8 +161,12 @@ class ItemReduceService(
     }
 
     private fun saveItem(marker: Marker, item: Item, ownerships: List<Ownership>): Mono<Item> {
-        logger.info(marker, "Saving Item $item\nowners: ${ownerships.map { it.owner }}")
-        return itemRepository.save(item.copy(owners = ownerships.map { it.owner }))
+        // TODO: RPN-497 we limit the number of Item.owners to avoid "too big Kafka message" errors.
+        //  Here we use a heuristic: those limited owners will be the ones with the highest balance.
+        //  Anyway we should come up with a better solution of passing huge 'Item.owners'.
+        val withNewOwners = item.copy(owners = ownerships.sortedByDescending { it.value }.map { it.owner })
+        logger.info(marker, "Saving updated item: {}", withNewOwners)
+        return itemRepository.save(withNewOwners)
             .flatMap { savedItem ->
                 eventListenerListener.onItemChanged(savedItem).thenReturn(savedItem)
             }
