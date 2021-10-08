@@ -1,12 +1,22 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.CryptoPunkOrderDto
+import com.rarible.protocol.dto.LegacyOrderDto
+import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderCryptoPunksDataDto
+import com.rarible.protocol.dto.OrderDataLegacyDto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
+import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 import java.math.BigInteger
 
 @Component
@@ -35,6 +45,8 @@ class OrderDtoConverter(
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderDataLegacyDto,
+                makePrice = getPrice(source.take, source.make),
+                takePrice = getPrice(source.make, source.take),
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
@@ -60,6 +72,8 @@ class OrderDtoConverter(
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataV1Dto,
+                makePrice = getPrice(source.take, source.make),
+                takePrice = getPrice(source.make, source.take),
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
@@ -85,6 +99,8 @@ class OrderDtoConverter(
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto,
+                makePrice = getPrice(source.take, source.make),
+                takePrice = getPrice(source.make, source.take),
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
@@ -112,12 +128,22 @@ class OrderDtoConverter(
                 hash = source.hash,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
                 makeBalance = BigInteger.ZERO,
+                makePrice = getPrice(source.take, source.make),
+                takePrice = getPrice(source.make, source.take),
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 status = OrderStatusDtoConverter.convert(source.status),
                 data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
             )
+        }
+    }
+
+    private suspend fun getPrice(nft: Asset, payment: Asset): BigDecimal? {
+        return if (nft.type.nft && !payment.type.nft) {
+            priceNormalizer.normalize(payment) / nft.value.value.toBigDecimal()
+        } else {
+            null
         }
     }
 }
