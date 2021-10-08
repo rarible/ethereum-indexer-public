@@ -5,6 +5,7 @@ import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.nftorder.core.model.Item
 import com.rarible.protocol.nftorder.core.model.Ownership
 import io.changock.migration.api.annotations.NonLockGuarded
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
@@ -18,9 +19,9 @@ class ChangeLog00001DeleteAll() {
         runAlways = false
     )
     fun deleteAll(@NonLockGuarded mongoTemplate: ReactiveMongoTemplate) = runBlocking<Unit> {
-        mongoTemplate.dropCollection("task")
-        mongoTemplate.dropCollection(Item::class.java)
-        mongoTemplate.dropCollection(Ownership::class.java)
+        mongoTemplate.dropCollection("task").awaitFirst()
+        mongoTemplate.dropCollection(Item::class.java).awaitFirst()
+        mongoTemplate.dropCollection(Ownership::class.java).awaitFirst()
     }
 
 }
