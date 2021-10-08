@@ -165,7 +165,7 @@ class ItemReduceService(
         //  Here we use a heuristic: those limited owners will be the ones with the highest balance.
         //  Anyway we should come up with a better solution of passing huge 'Item.owners'.
         val withNewOwners = item.copy(owners = ownerships.sortedByDescending { it.value }.map { it.owner })
-        logger.info(marker, "Saving updated item: $withNewOwners")
+        logger.info(marker, "Saving updated item: {}", withNewOwners)
         return itemRepository.save(withNewOwners)
             .flatMap { savedItem ->
                 eventListenerListener.onItemChanged(savedItem).thenReturn(savedItem)
