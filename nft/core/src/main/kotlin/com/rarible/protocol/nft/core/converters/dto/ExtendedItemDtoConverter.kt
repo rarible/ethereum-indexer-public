@@ -8,13 +8,13 @@ import org.springframework.stereotype.Component
 
 @Component
 class ExtendedItemDtoConverter(
-    @Value("\${nft.api.item.owners.size.limit:5000}") private val ownersSizeLimit: String
+    @Value("\${nft.api.item.owners.size.limit:5000}") private val ownersSizeLimit: Int
 ) : Converter<ExtendedItem, NftItemDto> {
     override fun convert(source: ExtendedItem): NftItemDto {
         val (item, meta) = source
         // TODO: RPN-497: until we've found a better solution, we limit the number of owners in the NftItem
         //  to avoid "too big Kafka message" errors.
-        val limitedOwners = item.owners.take(ownersSizeLimit.toInt())
+        val limitedOwners = item.owners.take(ownersSizeLimit)
         return NftItemDto(
             id = item.id.decimalStringValue,
             contract = item.token,
