@@ -69,10 +69,6 @@ components:
           type: string
         balanceId:
           type: string
-      discriminator:
-        propertyName: type
-        mapping:
-          UPDATE: "#/components/schemas/Erc20BalanceUpdateEvent"
       oneOf:
         - $ref: "#/components/schemas/Erc20BalanceUpdateEvent"
 

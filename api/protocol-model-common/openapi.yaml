@@ -731,11 +731,6 @@ components:
           type: string
           format: date-time
       description: History of item
-      discriminator:
-        propertyName: type
-        mapping:
-          ROYALTY: "#/components/schemas/ItemRoyalty"
-          TRANSFER: "#/components/schemas/ItemTransfer"
       oneOf:
         - "$ref": "#/components/schemas/ItemRoyalty"
         - "$ref": "#/components/schemas/ItemTransfer"
@@ -772,17 +767,6 @@ components:
 
     AssetType:
       type: object
-      discriminator:
-        propertyName: assetClass
-        mapping:
-          ETH: "#/components/schemas/EthAssetType"
-          ERC20: "#/components/schemas/Erc20AssetType"
-          ERC721: "#/components/schemas/Erc721AssetType"
-          ERC1155: "#/components/schemas/Erc1155AssetType"
-          ERC721_LAZY: "#/components/schemas/Erc721LazyAssetType"
-          ERC1155_LAZY: "#/components/schemas/Erc1155LazyAssetType"
-          CRYPTO_PUNKS: "#/components/schemas/CryptoPunksAssetType"
-          GEN_ART: "#/components/schemas/GenerativeArtAssetType"
       oneOf:
         - $ref: "#/components/schemas/EthAssetType"
         - $ref: "#/components/schemas/Erc20AssetType"

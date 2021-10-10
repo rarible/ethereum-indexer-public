@@ -114,11 +114,6 @@ components:
           type: string
         itemId:
           type: string
-      discriminator:
-        propertyName: type
-        mapping:
-          UPDATE: "#/components/schemas/NftOrderItemUpdateEvent"
-          DELETE: "#/components/schemas/NftOrderItemDeleteEvent"
       oneOf:
         - $ref: "#/components/schemas/NftOrderItemUpdateEvent"
         - $ref: "#/components/schemas/NftOrderItemDeleteEvent"
@@ -211,11 +206,6 @@ components:
           type: string
         ownershipId:
           type: string
-      discriminator:
-        propertyName: type
-        mapping:
-          UPDATE: "#/components/schemas/NftOrderOwnershipUpdateEvent"
-          DELETE: "#/components/schemas/NftOrderOwnershipDeleteEvent"
       oneOf:
         - $ref: "#/components/schemas/NftOrderOwnershipUpdateEvent"
         - $ref: "#/components/schemas/NftOrderOwnershipDeleteEvent"
