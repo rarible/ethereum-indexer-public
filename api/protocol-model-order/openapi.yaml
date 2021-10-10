@@ -114,13 +114,6 @@ components:
         createdAt:
           type: string
           format: date-time
-      discriminator:
-        propertyName: type
-        mapping:
-          RARIBLE_V1: "#/components/schemas/LegacyOrderBid"
-          RARIBLE_V2: "#/components/schemas/RaribleV2OrderBid"
-          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1OrderBid"
-          CRYPTO_PUNKS: "#/components/schemas/CryptoPunksOrderBid"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderBid"
         - "$ref": "#/components/schemas/RaribleV2OrderBid"
@@ -290,12 +283,6 @@ components:
           format: date-time
         maker:
           $ref: "#/components/schemas/Address"
-      discriminator:
-        propertyName: type
-        mapping:
-          CANCEL: "#/components/schemas/OrderCancel"
-          ORDER_SIDE_MATCH: "#/components/schemas/OrderSideMatch"
-          ON_CHAIN_ORDER: "#/components/schemas/OnChainOrder"
       oneOf:
         - "$ref": "#/components/schemas/OrderCancel"
         - "$ref": "#/components/schemas/OrderSideMatch"
@@ -384,13 +371,6 @@ components:
 
     OrderData:
       type: object
-      discriminator:
-        propertyName: dataType
-        mapping:
-          RARIBLE_V2_DATA_V1: "#/components/schemas/OrderRaribleV2DataV1"
-          LEGACY: "#/components/schemas/OrderDataLegacy"
-          OPEN_SEA_V1_DATA_V1: "#/components/schemas/OrderOpenSeaV1DataV1"
-          CRYPTO_PUNKS_DATA: "#/components/schemas/OrderCryptoPunksData"
       oneOf:
         - "$ref": "#/components/schemas/OrderRaribleV2DataV1"
         - "$ref": "#/components/schemas/OrderDataLegacy"
@@ -586,13 +566,6 @@ components:
         status:
           $ref: "#/components/schemas/OrderStatus"
 
-      discriminator:
-        propertyName: type
-        mapping:
-          RARIBLE_V1: "#/components/schemas/LegacyOrder"
-          RARIBLE_V2: "#/components/schemas/RaribleV2Order"
-          OPEN_SEA_V1: "#/components/schemas/OpenSeaV1Order"
-          CRYPTO_PUNK: "#/components/schemas/CryptoPunkOrder"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrder"
         - "$ref": "#/components/schemas/RaribleV2Order"
@@ -703,11 +676,6 @@ components:
           format: int64
         signature:
           $ref: "#/components/schemas/Binary"
-      discriminator:
-        propertyName: type
-        mapping:
-          RARIBLE_V1: "#/components/schemas/LegacyOrderForm"
-          RARIBLE_V2: "#/components/schemas/RaribleV2OrderForm"
       oneOf:
         - "$ref": "#/components/schemas/LegacyOrderForm"
         - "$ref": "#/components/schemas/RaribleV2OrderForm"
@@ -802,10 +770,6 @@ components:
           type: string
         orderId:
           type: string
-      discriminator:
-        propertyName: type
-        mapping:
-          UPDATE: "#/components/schemas/OrderUpdateEvent"
       oneOf:
         - "$ref": "#/components/schemas/OrderUpdateEvent"
 
