@@ -2,6 +2,7 @@ package com.rarible.protocol.order.migration.integration
 
 import com.rarible.core.test.ext.MongoCleanup
 import com.rarible.core.test.ext.MongoTest
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -28,4 +29,5 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @ActiveProfiles("integration")
 @Import(TestPropertiesConfiguration::class)
 @Testcontainers
+@EnableAutoConfiguration
 annotation class IntegrationTest

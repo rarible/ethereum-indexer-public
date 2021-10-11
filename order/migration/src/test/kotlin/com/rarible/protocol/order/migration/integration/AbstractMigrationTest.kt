@@ -19,6 +19,7 @@ abstract class AbstractMigrationTest {
 
     @BeforeEach
     fun clearMocks() {
+        io.mockk.clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
     }
 }

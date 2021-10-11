@@ -2,23 +2,26 @@ package com.rarible.protocol.order.migration.integration.migration
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
-import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.migration.integration.AbstractMigrationTest
 import com.rarible.protocol.order.migration.integration.IntegrationTest
+import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00012AddStatusToOrder
 import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00013AddTakeMakeToOrder
+import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
@@ -26,6 +29,7 @@ import org.springframework.data.mongodb.core.query.Update
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
+import java.util.stream.Stream
 
 @IntegrationTest
 class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
@@ -71,6 +75,20 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         assertEquals(BigDecimal.valueOf(12L), updatedOrder2.takePrice)
     }
 
+    @Test
+    fun `should set prices for order versions`() = runBlocking {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+        val v1 = createOrderVersion(
+            Asset(Erc20AssetType(currencyToken), EthUInt256.of(13)),
+            Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN)
+        )
+        orderUpdateService.save(v1)
+
+        var updatedOrder1 = orderVersionRepository.findAll().collectList().awaitFirst()
+        assertEquals(BigDecimal.valueOf(11L), updatedOrder1[0].makePrice)
+    }
+
     private fun createOrder(
         maker: Address = AddressFactory.create(),
         taker: Address? = AddressFactory.create(),
@@ -96,4 +114,25 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
             lastUpdateAt = nowMillis()
         )
     }
+
+    private fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
+        hash = Word.apply(RandomUtils.nextBytes(32)),
+        maker = AddressFactory.create(),
+        taker = AddressFactory.create(),
+        makePriceUsd = (1..100).random().toBigDecimal(),
+        takePriceUsd = (1..100).random().toBigDecimal(),
+        makePrice = null,
+        takePrice = null,
+        makeUsd = (1..100).random().toBigDecimal(),
+        takeUsd = (1..100).random().toBigDecimal(),
+        make = make,
+        take = take,
+        platform = Platform.RARIBLE,
+        type = OrderType.RARIBLE_V2,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        signature = null
+    )
 }
