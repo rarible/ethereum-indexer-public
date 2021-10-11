@@ -27,8 +27,17 @@ pipeline {
       }
       post {
         always {
-          junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
-          step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
+          script {
+            def testsSummary = junit(testResults: '**/surefire-reports/*.xml', allowEmptyResults: true)
+            step([ $class: 'JacocoPublisher', execPattern: '**/target/jacoco-aggregate.exec' ])
+
+            def color = testsSummary.failCount > 0 ? "danger" : "good"
+            slackSend(
+              channel: "#protocol-duty",
+              color: color,
+              message: "\n *[ethereum-indexer] [${env.GIT_BRANCH}] Test Summary*: Total ${testsSummary.totalCount}, Failures: ${testsSummary.failCount}, Skipped: ${testsSummary.skipCount}, Passed: ${testsSummary.passCount}"
+            )
+          }
         }
       }
     }
