@@ -637,7 +637,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            $ref: "#/components/schemas/Address"
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -1051,7 +1051,7 @@ paths:
           in: query
           required: false
           schema:
-            type: string
+            $ref: "#/components/schemas/Address"
         - name: startDate
           in: query
           required: false
