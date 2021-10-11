@@ -636,7 +636,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey2))
 
         val orders =
-            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null,  signer2), 10, null)
+            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null,  null, signer2), 10, null)
 
         assertThat(orders).hasSize(1)
     }
@@ -664,7 +664,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, signer2),
+                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10, null
             )
 
@@ -674,7 +674,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, signer2),
+                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10,
                 continuation.toString()
             )
@@ -703,7 +703,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollectionDto(
                 null,
                 null,
-                OrderFilterDto.Sort.LAST_UPDATE_DESC, null,
+                OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
                 collection1
             ), 10, null
         )
@@ -713,7 +713,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollectionDto(
                 null,
                 null,
-                OrderFilterDto.Sort.LAST_UPDATE_DESC, null,
+                OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
                 collection2
             ), 10, null
         )

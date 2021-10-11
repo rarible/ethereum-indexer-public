@@ -144,6 +144,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 params.platform,
                 null,
                 null,
+                null,
                 params.startDate?.epochSecond,
                 params.endDate?.epochSecond
             ).awaitFirst()
@@ -193,6 +194,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             null,
             null,
             null,
+            null,
             null
         ).awaitFirst()
         assertThat(paginationDto.orders).hasSize(1)
@@ -220,6 +222,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 3,
                 null,
+                null,
                 null
             ).awaitFirst()
 
@@ -242,6 +245,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 2,
                 null,
+                null,
                 null
             ).awaitFirst()
 
@@ -263,6 +267,7 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 null,
                 null,
                 3,
+                null,
                 null,
                 null
             ).awaitFirst()

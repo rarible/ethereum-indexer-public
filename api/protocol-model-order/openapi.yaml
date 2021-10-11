@@ -847,6 +847,8 @@ components:
           type: array
           items:
             "$ref": "#/components/schemas/OrderStatus"
+        currency:
+          "$ref": "#/components/schemas/Address"
       oneOf:
         - "$ref": "#/components/schemas/OrderFilterAll"
         - "$ref": "#/components/schemas/OrderFilterSell"

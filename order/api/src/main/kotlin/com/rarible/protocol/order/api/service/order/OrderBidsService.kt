@@ -24,7 +24,7 @@ class OrderBidsService(
         var versions = emptyList<OrderVersion>()
 
         do {
-            val next = if (versions.isNotEmpty()) filter.withContinuation(toContinuation(versions.last())) else filter
+            val next = if (versions.isNotEmpty()) filter.withContinuation(toContinuation(versions.last(), filter)) else filter
             versions = orderVersionRepository.search(next).collectList().awaitFirst()
 
             val orderHashes = versions.map { it.hash }.toHashSet()
@@ -67,7 +67,11 @@ class OrderBidsService(
         }
     }
 
-    private fun toContinuation(orderVersion: OrderVersion): Continuation.Price {
-        return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash)
+    private fun toContinuation(orderVersion: OrderVersion, filter: PriceOrderVersionFilter): Continuation.Price {
+        if (filter is PriceOrderVersionFilter.BidByItem && filter.currencyId != null) {
+            return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash)
+        } else {
+            return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash)
+        }
     }
 }

@@ -7,6 +7,7 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
@@ -17,7 +18,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Duration
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
@@ -142,10 +146,147 @@ class OrderSearchFt : AbstractIntegrationTest() {
                 order2.maker.toString(),
                 null,
                 PlatformDto.ALL,
-                null, 1, null
+                null, 1, null, null
             ).awaitFirst()
             assertThat(result.orders.size).isEqualTo(1)
         }
+    }
+
+    @Test
+    fun `should find sell-orders by currency and sort asc`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+        val order1 = createOrderFully().copy(
+            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
+            makePrice = BigDecimal.valueOf(1L)
+        )
+        val order2 = createOrderFully().copy(
+            maker = order1.maker,
+            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            makePrice = BigDecimal.valueOf(2L)
+        )
+        val order3 = createOrderFully().copy(
+            maker = order1.maker,
+            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(1)),
+            makePrice = BigDecimal.valueOf(1L)
+        )
+        saveOrder(order3, order2, order1)
+
+        val result = orderClient.getSellOrdersByItemAndByStatus(
+            order1.make.type.token.toString(),
+            order1.make.type.tokenId?.value.toString(),
+            order1.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            null, 1, null, currencyToken.hex()
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].take.value).isEqualTo(1)
+
+        val result2 = orderClient.getSellOrdersByItemAndByStatus(
+            order1.make.type.token.toString(),
+            order1.make.type.tokenId?.value.toString(),
+            order1.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            result.continuation, 2, null, currencyToken.hex()
+        ).awaitFirst()
+        assertThat(result2.orders.size).isEqualTo(1)
+        assertThat(result2.orders[0].take.value).isEqualTo(2)
+        assertThat(result2.continuation).isNull()
+    }
+
+    @Test
+    fun `should find bid-orders by currency and sort desc`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+        val order1V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(1L)
+        )
+        val order2V = createErc721BidOrderVersion().copy(
+            maker = order1V.maker,
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(2L)
+        )
+        saveOrderVersions(order1V, order2V)
+
+        val result = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            order1V.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            null, 1, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].make.value).isEqualTo(2)
+
+        val result2 = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            order1V.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            result.continuation, 2, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result2.orders.size).isEqualTo(1)
+        assertThat(result2.orders[0].make.value).isEqualTo(1)
+        assertThat(result2.continuation).isNull()
+    }
+
+    @Test
+    fun `should find sell-orders by ETH currency`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = Address.ZERO()
+        val order1 = createOrderFully().copy(
+            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(EthAssetType, EthUInt256.of(123)),
+            makePrice = BigDecimal.valueOf(123L)
+        )
+        saveOrder(order1)
+
+        val result = orderClient.getSellOrdersByItemAndByStatus(
+            order1.make.type.token.toString(),
+            order1.make.type.tokenId?.value.toString(),
+            order1.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            null, 1, null, currencyToken.hex()
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].take.value).isEqualTo(123)
+    }
+
+    @Test
+    fun `should find bid-order by ETH currency`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = Address.ZERO()
+        val order1V = createErc721BidOrderVersion().copy(
+            make = Asset(EthAssetType, EthUInt256.of(123)),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(123L)
+        )
+        saveOrderVersions(order1V)
+
+        val result = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            order1V.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            null, 1, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].make.value).isEqualTo(123)
     }
 
     private fun checkOrderDto(orderDto: OrderDto, order: Order) {
@@ -154,5 +295,9 @@ class OrderSearchFt : AbstractIntegrationTest() {
 
     private suspend fun saveOrder(vararg order: Order) {
         order.forEach { orderRepository.save(it) }
+    }
+
+    private suspend fun saveOrderVersions(vararg order: OrderVersion) {
+        order.forEach { orderUpdateService.save(it) }
     }
 }

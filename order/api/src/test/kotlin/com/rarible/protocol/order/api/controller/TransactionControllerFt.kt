@@ -153,6 +153,8 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             createdAt = nowMillis(),
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null
         )

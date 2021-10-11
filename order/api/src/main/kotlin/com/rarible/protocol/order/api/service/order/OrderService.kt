@@ -51,6 +51,8 @@ class OrderService(
             hash = hash,
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null
         ).run { priceUpdateService.withUpdatedUsdPrices(this) }

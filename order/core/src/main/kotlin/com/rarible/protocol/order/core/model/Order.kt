@@ -51,6 +51,8 @@ data class Order(
 
     val makePriceUsd: BigDecimal? = null,
     val takePriceUsd: BigDecimal? = null,
+    var makePrice: BigDecimal? = null,
+    var takePrice: BigDecimal? = null,
     val makeUsd: BigDecimal? = null,
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
@@ -75,6 +77,8 @@ data class Order(
 ) {
     init {
         status = calculateStatus(fill, take, makeStock, cancelled)
+        makePrice = if (make.type.nft) calculatePrice(take.value) else null
+        takePrice = if (take.type.nft) calculatePrice(make.value) else null
     }
 
     fun forV1Tx() = run {
@@ -199,6 +203,10 @@ data class Order(
                 cancelled -> OrderStatus.CANCELLED
                 else -> OrderStatus.INACTIVE
             }
+        }
+
+        private fun calculatePrice(value: EthUInt256): BigDecimal {
+            return value.value.toBigDecimal()
         }
 
         private fun isAlive(start: Long?, end: Long?): Boolean {

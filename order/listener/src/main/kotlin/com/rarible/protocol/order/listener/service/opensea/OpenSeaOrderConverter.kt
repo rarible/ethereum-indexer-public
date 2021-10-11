@@ -47,6 +47,8 @@ class OpenSeaOrderConverter(
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,
             takePriceUsd = usdPrice?.takePriceUsd,
+            makePrice = make.value.value.toBigDecimal(),
+            takePrice = make.value.value.toBigDecimal(),
             makeUsd = usdPrice?.makeUsd,
             takeUsd = usdPrice?.takeUsd,
             platform = Platform.OPEN_SEA

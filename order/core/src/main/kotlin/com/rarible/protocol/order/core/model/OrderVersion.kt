@@ -20,6 +20,8 @@ data class OrderVersion(
     val take: Asset,
     val makePriceUsd: BigDecimal?,
     val takePriceUsd: BigDecimal?,
+    val makePrice: BigDecimal?,
+    val takePrice: BigDecimal?,
     val makeUsd: BigDecimal?,
     val takeUsd: BigDecimal?,
     @Id

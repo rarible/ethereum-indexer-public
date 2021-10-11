@@ -119,6 +119,8 @@ class OrderUpdateService(
             take = take,
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null,
             createdAt = createdAt,

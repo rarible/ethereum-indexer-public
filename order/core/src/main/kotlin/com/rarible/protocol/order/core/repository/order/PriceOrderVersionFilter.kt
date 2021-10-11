@@ -14,6 +14,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     abstract override val limit: Int
 
     abstract fun withContinuation(continuation: Continuation.Price?): PriceOrderVersionFilter
+    abstract infix fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria
 
     data class BidByItem(
         private val contract: Address,
@@ -21,12 +22,13 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         private val maker: Address?,
         private val origin: Address?,
         private val platform: Platform?,
+        val currencyId: Address?,
         private val startDate: Instant?,
         private val endDate: Instant?,
         private val size: Int,
         override val continuation: Continuation.Price?
     ) : PriceOrderVersionFilter() {
-        override val sort = BID_PRICE_SORT
+        override val sort = getSort(currencyId)
         override val limit = size
 
         override fun getCriteria(): Criteria {
@@ -45,6 +47,26 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         override fun withContinuation(continuation: Continuation.Price?): BidByItem {
             return copy(continuation = continuation)
         }
+
+        override fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria {
+            return if (continuation == null) {
+                this
+            } else {
+                if (currencyId == null) {
+                    this.orOperator(
+                        OrderVersion::takePriceUsd lt continuation.afterPrice,
+                        (OrderVersion::takePriceUsd isEqualTo continuation.afterPrice).and("_id")
+                            .lt(continuation.afterId)
+                    )
+                } else {
+                    this.orOperator(
+                        OrderVersion::takePrice lt continuation.afterPrice,
+                        (OrderVersion::takePrice isEqualTo continuation.afterPrice).and("_id")
+                            .lt(continuation.afterId)
+                    )
+                }
+            }
+        }
     }
 
     data class BidByMaker(
@@ -56,7 +78,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         private val size: Int,
         override val continuation: Continuation.Price?
     ) : PriceOrderVersionFilter() {
-        override val sort = BID_PRICE_SORT
+        override val sort = getSort(null)
         override val limit = size
 
         override fun getCriteria(): Criteria {
@@ -73,23 +95,26 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         override fun withContinuation(continuation: Continuation.Price?): BidByMaker {
             return copy(continuation = continuation)
         }
-    }
 
-    protected infix fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria {
-        return if (continuation == null) {
-            this
-        } else {
-            this.orOperator(
-                OrderVersion::takePriceUsd lt continuation.afterPrice,
-                (OrderVersion::takePriceUsd isEqualTo continuation.afterPrice).and("_id").lt(continuation.afterId)
-            )
+        override fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria {
+            return if (continuation == null) {
+                this
+            } else {
+                this.orOperator(
+                    OrderVersion::takePriceUsd lt continuation.afterPrice,
+                    (OrderVersion::takePriceUsd isEqualTo continuation.afterPrice).and("_id").lt(continuation.afterId)
+                )
+            }
         }
     }
 
     internal companion object {
-        val BID_PRICE_SORT: Sort = Sort.by(
-            Sort.Order.desc(OrderVersion::takePriceUsd.name),
-            Sort.Order.desc("_id")
-        )
+        fun getSort(currencyId: Address?): Sort {
+            return if (currencyId == null) {
+                Sort.by(Sort.Order.desc(OrderVersion::takePriceUsd.name), Sort.Order.desc("_id"))
+            } else {
+                Sort.by(Sort.Order.desc(OrderVersion::takePrice.name), Sort.Order.desc("_id"))
+            }
+        }
     }
 }

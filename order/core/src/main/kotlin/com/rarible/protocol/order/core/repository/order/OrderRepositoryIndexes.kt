@@ -21,10 +21,17 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_ITEM_DEFINITION = Index()
+    val SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::makePriceUsd.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
+    val SELL_ORDERS_BY_ITEM_DEFINITION = Index()
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
+        .on(Order::makePrice.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
@@ -66,10 +73,17 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val BIDS_BY_ITEM_DEFINITION = Index()
+    val BIDS_BY_ITEM_DEFINITION_DEPRECATED = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::takePriceUsd.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
+    val BIDS_BY_ITEM_DEFINITION = Index()
+        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
+        .on(Order::takePrice.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
@@ -125,6 +139,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
 
+        SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED,
         SELL_ORDERS_BY_ITEM_DEFINITION,
         SELL_ORDERS_BY_ITEM_PLATFORM_DEFINITION,
 
@@ -134,6 +149,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_MAKER_DEFINITION,
         SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION,
 
+        BIDS_BY_ITEM_DEFINITION_DEPRECATED,
         BIDS_BY_ITEM_DEFINITION,
         BIDS_BY_ITEM_PLATFORM_DEFINITION,
 
