@@ -156,7 +156,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     && this.right.maker == buyerAddress
 
                     && left.type == OrderActivityMatchSideDto.Type.SELL
-                    && right.type == OrderActivityMatchSideDto.Type.BID
+                    && right.type == null
         }
     }
 
