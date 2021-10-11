@@ -42,7 +42,7 @@
         <dev-jna.version>5.7.0</dev-jna.version>
 
         <!-- ============== Plugin versions ============== -->
-        <version.model.generator>1.2.6</version.model.generator>
+        <version.model.generator>1.2.7</version.model.generator>
         <version.client.generator>1.1.4</version.client.generator>
         <version.server.generator>1.0.1</version.server.generator>
 
