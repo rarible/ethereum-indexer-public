@@ -633,6 +633,11 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
+        - name: currencyId
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
@@ -1042,6 +1047,11 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
+        - name: currencyId
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
         - name: startDate
           in: query
           required: false

@@ -76,7 +76,7 @@ class OrderUpdateService(
         logger.info("Fetched makeBalance $makeBalance (knownMakeBalance=$knownMakeBalance, newMakeStock=${withNewMakeStock.makeStock}, oldMakeStock=${order.makeStock})")
 
         val updated = if (order.makeStock == EthUInt256.ZERO && withNewMakeStock.makeStock != EthUInt256.ZERO) {
-            priceUpdateService.updateOrderPrice(withNewMakeStock, nowMillis())
+            priceUpdateService.withUpdatedAllPrices(withNewMakeStock)
         } else {
             withNewMakeStock
         }
@@ -96,7 +96,7 @@ class OrderUpdateService(
                 val onChainOrder = log.data as OnChainOrder
                 val onChainOrderKey = log.toLogEventKey()
                 val orderVersion = onChainOrder.toOrderVersion(onChainOrderKey)
-                    .run { priceUpdateService.withUpdatedUsdPrices(this) }
+                    .run { priceUpdateService.withUpdatedAllPrices(this) }
                 if (log.status == LogEventStatus.CONFIRMED) {
                     if (!orderVersionRepository.existsByOnChainOrderKey(onChainOrderKey).awaitFirst()) {
                         try {
@@ -119,6 +119,8 @@ class OrderUpdateService(
             take = take,
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null,
             createdAt = createdAt,

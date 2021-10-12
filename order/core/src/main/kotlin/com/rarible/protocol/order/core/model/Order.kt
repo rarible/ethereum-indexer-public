@@ -51,6 +51,8 @@ data class Order(
 
     val makePriceUsd: BigDecimal? = null,
     val takePriceUsd: BigDecimal? = null,
+    val makePrice: BigDecimal? = null,
+    val takePrice: BigDecimal? = null,
     val makeUsd: BigDecimal? = null,
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),

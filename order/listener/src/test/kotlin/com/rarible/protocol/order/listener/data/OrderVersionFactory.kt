@@ -17,6 +17,8 @@ fun createOrderVersion(): OrderVersion {
         ),
         makePriceUsd = (1..100L).random().toBigDecimal(),
         takePriceUsd = (1..100L).random().toBigDecimal(),
+        makePrice = (1..100L).random().toBigDecimal(),
+        takePrice = (1..100L).random().toBigDecimal(),
         makeUsd = (1..100L).random().toBigDecimal(),
         takeUsd = (1..100L).random().toBigDecimal(),
         createdAt = nowMillis(),

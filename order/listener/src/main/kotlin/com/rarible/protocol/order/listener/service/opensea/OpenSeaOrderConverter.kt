@@ -47,12 +47,14 @@ class OpenSeaOrderConverter(
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,
             takePriceUsd = usdPrice?.takePriceUsd,
+            makePrice = null,
+            takePrice = null,
             makeUsd = usdPrice?.makeUsd,
             takeUsd = usdPrice?.takeUsd,
             platform = Platform.OPEN_SEA
         ).let {
-            // Recalculate OpenSea's specific hash.
-            it.copy(
+            priceUpdateService.withUpdatedAllPrices(it).copy(
+                // Recalculate OpenSea's specific hash.
                 hash = Order.hash(it)
             )
         }

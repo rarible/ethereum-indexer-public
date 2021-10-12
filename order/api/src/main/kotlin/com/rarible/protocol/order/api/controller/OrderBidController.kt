@@ -46,6 +46,7 @@ class OrderBidController(
             makerAddress,
             originAddress,
             PlatformConverter.convert(platform),
+            null,
             startDate?.toInstant(),
             endDate?.toInstant(),
             requestSize,

@@ -221,7 +221,8 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?
+        status: List<OrderStatusDto>?,
+        currencyId: String?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellByItemDto(
             contract = Address.apply(contract),
@@ -230,7 +231,8 @@ class OrderController(
             origin = safeAddress(origin),
             platform = platform,
             sort = OrderFilterDto.Sort.MAKE_PRICE_ASC,
-            status = convertStatus(status)
+            status = convertStatus(status),
+            currency = currencyId?.let { Address.apply(currencyId) }
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -358,6 +360,7 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
+        currencyId: String?,
         startDate: Long?,
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
@@ -371,6 +374,7 @@ class OrderController(
             makerAddress,
             originAddress,
             PlatformConverter.convert(platform),
+            currencyId?.let { Address.apply(currencyId) },
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
             requestSize,
@@ -464,7 +468,11 @@ class OrderController(
                     Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
                 }
                 OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
-                    Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
+                    if (legacyFilter.currency != null) {
+                        Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)
+                    } else {
+                        Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
+                    }
                 }
             }).toString()
     }
@@ -486,7 +494,7 @@ class OrderController(
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {
-        return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash).toString()
+        return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
 
     private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {

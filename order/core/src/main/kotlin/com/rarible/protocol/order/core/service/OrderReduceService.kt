@@ -146,6 +146,8 @@ class OrderReduceService(
             signature = version.signature,
             makePriceUsd = version.makePriceUsd,
             takePriceUsd = version.takePriceUsd,
+            makePrice = version.makePrice,
+            takePrice = version.takePrice,
             makeUsd = version.makeUsd,
             takeUsd = version.takeUsd,
             platform = version.platform,

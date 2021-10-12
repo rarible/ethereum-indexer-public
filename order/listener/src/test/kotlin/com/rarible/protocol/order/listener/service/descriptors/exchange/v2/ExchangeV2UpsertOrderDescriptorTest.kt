@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
+import java.math.BigDecimal
 import java.math.BigInteger
 
 /**
@@ -111,6 +112,8 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 onChainOrderKey = null,
                 makePriceUsd = null,
                 takePriceUsd = null,
+                makePrice = null,
+                takePrice = null,
                 makeUsd = null,
                 takeUsd = null
             )
@@ -145,7 +148,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             assertEquals(1, versions.size)
             val version = versions.single()
             assertEquals(
-                orderVersion.ignore().copy(createdAt = upsertTimestamp),
+                orderVersion.ignore().copy(createdAt = upsertTimestamp, makePrice = version.makePrice, takePrice = version.takePrice),
                 version.ignore()
             )
         }
@@ -176,7 +179,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                     )
                 )
             )
-            assertEquals(expectedOrder, order?.copy(lastEventId = null))
+            assertEquals(expectedOrder.copy(takePrice = order?.takePrice, makePrice = order?.makePrice), order?.copy(lastEventId = null))
         }
     }
 }

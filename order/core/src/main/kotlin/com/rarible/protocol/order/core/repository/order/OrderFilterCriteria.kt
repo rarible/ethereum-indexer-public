@@ -19,10 +19,20 @@ object OrderFilterCriteria {
         val (criteria, hint) = when (this) {
             is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
             is OrderFilterSellDto -> sell().withNoHint()
-            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker).withNoHint()
+            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency)
+                .withCurrencyHint(
+                    currency,
+                    OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_DEFINITION.indexKeys,
+                    OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys
+                )
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
             is OrderFilterSellByMakerDto -> sellByMaker(maker).withNoHint()
-            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
+            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker)
+                .withCurrencyHint(
+                    currency,
+                    OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys,
+                    OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys
+                )
             is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
 
@@ -31,9 +41,9 @@ object OrderFilterCriteria {
         val query = Query(
             criteria
                 .forPlatform(convert(platform))
-                .scrollTo(continuation, this.sort)
+                .scrollTo(continuation, this.sort, this.currency)
                 .fromOrigin(origin)
-        ).limit(requestLimit).with(sort(this.sort))
+        ).limit(requestLimit).with(sort(this.sort, this.currency))
 
         if (hint != null) {
             query.withHint(hint)
@@ -47,7 +57,7 @@ object OrderFilterCriteria {
         return query
     }
 
-    private fun sort(sort: OrderFilterDto.Sort): Sort {
+    private fun sort(sort: OrderFilterDto.Sort, currency: Address?): Sort {
         return when (sort) {
             OrderFilterDto.Sort.LAST_UPDATE_DESC -> Sort.by(
                 Sort.Direction.DESC,
@@ -59,16 +69,20 @@ object OrderFilterCriteria {
                 Order::lastUpdateAt.name,
                 Order::hash.name
             )
-            OrderFilterDto.Sort.MAKE_PRICE_ASC -> Sort.by(
-                Sort.Direction.ASC,
-                Order::makePriceUsd.name,
-                Order::hash.name
-            )
-            OrderFilterDto.Sort.TAKE_PRICE_DESC -> Sort.by(
-                Sort.Direction.DESC,
-                Order::takePriceUsd.name,
-                Order::hash.name
-            )
+            OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
+                Sort.by(
+                    Sort.Direction.ASC,
+                    (currency?.let { Order::makePrice } ?: Order::makePriceUsd).name,
+                    Order::hash.name
+                )
+            }
+            OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
+                Sort.by(
+                    Sort.Direction.DESC,
+                    (currency?.let { Order::takePrice } ?: Order::takePriceUsd).name,
+                    Order::hash.name
+                )
+            }
         }
     }
 
@@ -78,15 +92,20 @@ object OrderFilterCriteria {
     private fun sellByCollection(collection: Address) =
         sell().and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
 
-    private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-        val c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
+    private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?, currency: Address?) = run {
+        var c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
             .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
 
-        if (maker != null) {
-            c.and(Order::maker.name).`is`(maker)
-        } else {
-            c
+        maker?.let { c = c.and(Order::maker.name).`is`(it) }
+        currency?.let {
+            if (it.equals(Address.ZERO())) { // zero means ETH
+                c = c.and(Order::take / Asset::type / AssetType::token).exists(false)
+            } else {
+                c = c.and(Order::take / Asset::type / AssetType::token).isEqualTo(Address.apply(it))
+            }
         }
+
+        c
     }
 
     private fun sell() =
@@ -118,7 +137,7 @@ object OrderFilterCriteria {
         and(Order::platform).isEqualTo(platform)
     } ?: this
 
-    private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort) =
+    private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort, currency: Address?) =
         when (sort) {
             OrderFilterDto.Sort.LAST_UPDATE_DESC -> {
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
@@ -147,25 +166,45 @@ object OrderFilterCriteria {
             OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
                 val price = Continuation.parse<Continuation.Price>(continuation)
                 price?.let { c ->
-                    this.orOperator(
-                        Order::takePriceUsd lt c.afterPrice,
-                        Criteria().andOperator(
-                            Order::takePriceUsd isEqualTo c.afterPrice,
-                            Order::hash lt c.afterId
+                    if (currency != null) {
+                        this.orOperator(
+                            Order::takePrice lt c.afterPrice,
+                            Criteria().andOperator(
+                                Order::takePrice isEqualTo c.afterPrice,
+                                Order::hash lt c.afterId
+                            )
                         )
-                    )
+                    } else {
+                        this.orOperator(
+                            Order::takePriceUsd lt c.afterPrice,
+                            Criteria().andOperator(
+                                Order::takePriceUsd isEqualTo c.afterPrice,
+                                Order::hash lt c.afterId
+                            )
+                        )
+                    }
                 } ?: this
             }
             OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
                 val price = Continuation.parse<Continuation.Price>(continuation)
                 price?.let { c ->
-                    this.orOperator(
-                        Order::makePriceUsd gt c.afterPrice,
-                        Criteria().andOperator(
-                            Order::makePriceUsd isEqualTo c.afterPrice,
-                            Order::hash gt c.afterId
+                    if (currency != null) {
+                        this.orOperator(
+                            Order::makePrice gt c.afterPrice,
+                            Criteria().andOperator(
+                                Order::makePrice isEqualTo c.afterPrice,
+                                Order::hash gt c.afterId
+                            )
                         )
-                    )
+                    } else { // Deprecated
+                        this.orOperator(
+                            Order::makePriceUsd gt c.afterPrice,
+                            Criteria().andOperator(
+                                Order::makePriceUsd isEqualTo c.afterPrice,
+                                Order::hash gt c.afterId
+                            )
+                        )
+                    }
                 } ?: this
             }
         }
@@ -174,4 +213,15 @@ object OrderFilterCriteria {
 
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
+
+    private fun Criteria.withCurrencyHint(
+        currencyId: Address?,
+        index: Document,
+        legacyIndex: Document
+    ): Pair<Criteria, Document?> {
+        return currencyId?.let { Pair<Criteria, Document?>(this, index) } ?: Pair<Criteria, Document?>(
+            this,
+            legacyIndex
+        )
+    }
 }
