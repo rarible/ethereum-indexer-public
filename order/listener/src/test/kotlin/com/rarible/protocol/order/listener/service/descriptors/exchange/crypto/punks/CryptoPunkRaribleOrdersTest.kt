@@ -113,6 +113,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             createdAt = nowMillis(),
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null,
             signature = null
@@ -254,6 +256,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             createdAt = nowMillis(),
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null,
             signature = null

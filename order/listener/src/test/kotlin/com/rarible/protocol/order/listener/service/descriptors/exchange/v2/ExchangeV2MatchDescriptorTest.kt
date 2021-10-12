@@ -52,6 +52,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             createdAt = nowMillis(),
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null
         )
@@ -149,6 +151,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             createdAt = nowMillis(),
             makePriceUsd = null,
             takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
             makeUsd = null,
             takeUsd = null
         )

@@ -51,14 +51,23 @@ class PriceUpdateService(
         }
     }
 
+    suspend fun withUpdatedAllPrices(orderVersion: OrderVersion): OrderVersion {
+        return withUpdatedUsdPrices(withUpdatedPrices(orderVersion))
+    }
+
     suspend fun withUpdatedUsdPrices(orderVersion: OrderVersion): OrderVersion {
         val usdValue = getAssetsUsdValue(orderVersion.make, orderVersion.take, nowMillis()) ?: return orderVersion
-        return orderVersion.copy(
-            makeUsd = usdValue.makeUsd,
-            takeUsd = usdValue.takeUsd,
-            makePriceUsd = usdValue.makePriceUsd,
-            takePriceUsd = usdValue.takePriceUsd
-        )
+        return orderVersion.withOrderUsdValue(usdValue)
+    }
+
+    suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
+        val normalizedMake = priceNormalizer.normalize(orderVersion.make)
+        val normalizedTake = priceNormalizer.normalize(orderVersion.take)
+        return when {
+            orderVersion.make.type.nft -> orderVersion.copy(makePrice = normalizedTake / normalizedMake)
+            orderVersion.take.type.nft -> orderVersion.copy(takePrice = normalizedMake / normalizedTake)
+            else -> orderVersion
+        }
     }
 
     /**

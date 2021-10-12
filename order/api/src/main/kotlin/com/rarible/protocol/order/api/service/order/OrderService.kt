@@ -55,7 +55,7 @@ class OrderService(
             takePrice = null,
             makeUsd = null,
             takeUsd = null
-        ).run { priceUpdateService.withUpdatedUsdPrices(this) }
+        ).run { priceUpdateService.withUpdatedAllPrices(this) }
     }
 
     suspend fun put(form: OrderFormDto): Order {

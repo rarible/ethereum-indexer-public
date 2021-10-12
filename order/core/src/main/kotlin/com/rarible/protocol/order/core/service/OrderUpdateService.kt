@@ -96,7 +96,7 @@ class OrderUpdateService(
                 val onChainOrder = log.data as OnChainOrder
                 val onChainOrderKey = log.toLogEventKey()
                 val orderVersion = onChainOrder.toOrderVersion(onChainOrderKey)
-                    .run { priceUpdateService.withUpdatedUsdPrices(this) }
+                    .run { priceUpdateService.withUpdatedAllPrices(this) }
                 if (log.status == LogEventStatus.CONFIRMED) {
                     if (!orderVersionRepository.existsByOnChainOrderKey(onChainOrderKey).awaitFirst()) {
                         try {
