@@ -93,12 +93,12 @@ class PriceUpdateService(
             order.make.type.nft -> {
                 val usdRate = getAssetPrice(order.take, at)
                 val usdPrice = usdRate?.let { usdPrice(it, normalizedMake, normalizedTake) }
-                if (usdPrice != null) order.withTakePrice(usdPrice) else order
+                if (usdPrice != null) order.withMakePrice(usdPrice) else order
             }
             order.take.type.nft -> {
                 val usdRate = getAssetPrice(order.make, at)
                 val usdPrice = usdRate?.let { usdPrice(it, normalizedTake, normalizedMake) }
-                if (usdPrice != null) order.withMakePrice(usdPrice) else order
+                if (usdPrice != null) order.withTakePrice(usdPrice) else order
             }
             else -> order
         }

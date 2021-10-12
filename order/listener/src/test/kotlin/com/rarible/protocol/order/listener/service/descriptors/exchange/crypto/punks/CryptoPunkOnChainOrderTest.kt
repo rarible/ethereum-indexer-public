@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import scalether.domain.request.Transaction
+import java.math.BigDecimal
 import java.math.BigInteger
 
 @IntegrationTest
@@ -30,7 +31,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
-        val punkPrice = BigInteger.valueOf(100500)
+        val punkPrice = BigInteger.valueOf(100000)
         val listOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, punkPrice)
             .withSender(sellerSender).execute().verifySuccess().getTimestamp()
 
@@ -60,6 +61,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             pending = emptyList(),
             makePriceUsd = punkPriceUsd,
             takePriceUsd = null,
+            makePrice = BigDecimal("1.00000E-13"),
             makeUsd = null,
             takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
@@ -213,7 +215,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
 
         val (bidderAddress, bidderSender) = newSender()
-        val bidPrice = 100500.toBigInteger()
+        val bidPrice = 100000.toBigInteger()
         depositInitialBalance(bidderAddress, bidPrice)
         val bidTimestamp = cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
             .execute().verifySuccess().getTimestamp()
@@ -245,6 +247,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             pending = emptyList(),
             makePriceUsd = null,
             takePriceUsd = punkPriceUsd,
+            takePrice = BigDecimal("1.00000E-13"),
             makeUsd = punkPriceUsd,
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
