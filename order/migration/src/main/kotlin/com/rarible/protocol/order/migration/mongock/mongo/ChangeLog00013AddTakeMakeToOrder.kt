@@ -57,7 +57,7 @@ class ChangeLog00013AddTakeMakeToOrder {
         var query = Query().with(Sort.by(Sort.Direction.DESC, OrderVersion::createdAt.name))
         template.find<OrderVersion>(query).asFlow().collect { orderVersion ->
             try {
-                val updated = priceUpdateService.withUpdatedPrices(orderVersion)
+                val updated = priceUpdateService.withUpdatedAllPrices(orderVersion)
                 template.save(updated, OrderVersionRepository.COLLECTION).awaitFirstOrNull()
                 counter++
                 if (counter % 10000L == 0L) {

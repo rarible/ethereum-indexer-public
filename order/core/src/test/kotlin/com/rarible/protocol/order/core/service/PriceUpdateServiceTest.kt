@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -29,17 +30,8 @@ internal class PriceUpdateServiceTest {
 
     private val priceUpdateService = PriceUpdateService(Blockchain.ETHEREUM, currencyApi, normalizer)
 
-    @Test
-    fun `should calculate bid value`() = runBlocking<Unit> {
-        val makeAsset = Asset(
-            EthAssetType,
-            EthUInt256.of(BigInteger.valueOf(10).pow(18) * BigInteger.valueOf(20))
-        )
-        val takeAsset = Asset(
-            Erc721AssetType(AddressFactory.create(), EthUInt256.TEN),
-            EthUInt256.ONE
-        )
-
+    @BeforeEach
+    fun setupRate() {
         coEvery {
             currencyApi.getCurrencyRate(
                 eq(BlockchainDto.ETHEREUM),
@@ -54,6 +46,19 @@ internal class PriceUpdateServiceTest {
                 date = nowMillis()
             )
         )
+    }
+
+    @Test
+    fun `should calculate bid value`() = runBlocking<Unit> {
+        val makeAsset = Asset(
+            EthAssetType,
+            EthUInt256.of(BigInteger.valueOf(10).pow(18) * BigInteger.valueOf(20))
+        )
+        val takeAsset = Asset(
+            Erc721AssetType(AddressFactory.create(), EthUInt256.TEN),
+            EthUInt256.ONE
+        )
+
         val usdValue = priceUpdateService.getAssetsUsdValue(makeAsset, takeAsset, nowMillis())
         assertThat(usdValue).isInstanceOf(OrderUsdValue.BidOrder::class.java)
         assertThat(usdValue?.makeUsd.toString()).isEqualTo("80000.000000000000000000")
@@ -70,20 +75,7 @@ internal class PriceUpdateServiceTest {
             EthAssetType,
             EthUInt256.of(BigInteger.valueOf(10).pow(18) * BigInteger.valueOf(10))
         )
-        coEvery {
-            currencyApi.getCurrencyRate(
-                eq(BlockchainDto.ETHEREUM),
-                eq(Address.ZERO().hex()),
-                any()
-            )
-        } returns Mono.just(
-            CurrencyRateDto(
-                fromCurrencyId = "ETH",
-                toCurrencyId = "USD",
-                rate = BigDecimal.valueOf(4000),
-                date = nowMillis()
-            )
-        )
+
         val usdValue = priceUpdateService.getAssetsUsdValue(makeAsset, takeAsset, nowMillis())
         assertThat(usdValue).isInstanceOf(OrderUsdValue.SellOrder::class.java)
         assertThat(usdValue?.makePriceUsd.toString()).isEqualTo("4000.000000000000000000")
@@ -101,7 +93,7 @@ internal class PriceUpdateServiceTest {
             EthUInt256.of(BigInteger.valueOf(10).pow(18) * BigInteger.valueOf(10))
         )
         val orderV = createOrderVersion(makeAsset, takeAsset)
-        val calculatedPrice = priceUpdateService.withUpdatedPrices(orderV)
+        val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
 
         assertEquals(BigDecimal("1.000000000000000000"), calculatedPrice.makePrice)
     }
@@ -117,7 +109,7 @@ internal class PriceUpdateServiceTest {
             EthUInt256.ONE
         )
         val orderV = createOrderVersion(makeAsset, takeAsset)
-        val calculatedPrice = priceUpdateService.withUpdatedPrices(orderV)
+        val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
 
         assertEquals(BigDecimal("20.000000000000000000"), calculatedPrice.takePrice)
     }

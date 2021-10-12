@@ -55,17 +55,17 @@ class PriceUpdateService(
         return withUpdatedUsdPrices(withUpdatedPrices(orderVersion))
     }
 
-    suspend fun withUpdatedUsdPrices(orderVersion: OrderVersion): OrderVersion {
-        val usdValue = getAssetsUsdValue(orderVersion.make, orderVersion.take, nowMillis()) ?: return orderVersion
-        return orderVersion.withOrderUsdValue(usdValue)
-    }
-
     suspend fun withUpdatedUsdPrices(order: Order): Order {
         val usdValue = getAssetsUsdValue(order.make, order.take, nowMillis()) ?: return order
         return order.withOrderUsdValue(usdValue)
     }
 
-    suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
+    private suspend fun withUpdatedUsdPrices(orderVersion: OrderVersion): OrderVersion {
+        val usdValue = getAssetsUsdValue(orderVersion.make, orderVersion.take, nowMillis()) ?: return orderVersion
+        return orderVersion.withOrderUsdValue(usdValue)
+    }
+
+    private suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
         val normalizedMake = priceNormalizer.normalize(orderVersion.make)
         val normalizedTake = priceNormalizer.normalize(orderVersion.take)
         return when {
