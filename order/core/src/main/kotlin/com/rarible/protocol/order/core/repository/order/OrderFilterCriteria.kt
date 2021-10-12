@@ -19,20 +19,10 @@ object OrderFilterCriteria {
         val (criteria, hint) = when (this) {
             is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
             is OrderFilterSellDto -> sell().withNoHint()
-            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency)
-                .withCurrencyHint(
-                    currency,
-                    OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_DEFINITION.indexKeys,
-                    OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys
-                )
+            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
             is OrderFilterSellByMakerDto -> sellByMaker(maker).withNoHint()
-            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker)
-                .withCurrencyHint(
-                    currency,
-                    OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys,
-                    OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys
-                )
+            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
             is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
 
