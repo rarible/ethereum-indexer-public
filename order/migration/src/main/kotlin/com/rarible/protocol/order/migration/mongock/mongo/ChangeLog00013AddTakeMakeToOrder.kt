@@ -33,7 +33,7 @@ class ChangeLog00013AddTakeMakeToOrder {
         val query = Query().with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name))
         template.find<Order>(query, MongoOrderRepository.COLLECTION).asFlow().collect { order ->
             try {
-                val updated = priceUpdateService.withUpdatedUsdPrices(order)
+                val updated = priceUpdateService.withUpdatedAllPrices(order)
                 template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
                 counter++
                 if (counter % 10000L == 0L) {

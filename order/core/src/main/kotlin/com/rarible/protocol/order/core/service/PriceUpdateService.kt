@@ -55,7 +55,11 @@ class PriceUpdateService(
         return withUpdatedUsdPrices(withUpdatedPrices(orderVersion))
     }
 
-    suspend fun withUpdatedUsdPrices(order: Order): Order {
+    suspend fun withUpdatedAllPrices(order: Order): Order {
+        return withUpdatedUsdPrices(withUpdatedPrices(order))
+    }
+
+    private suspend fun withUpdatedUsdPrices(order: Order): Order {
         val usdValue = getAssetsUsdValue(order.make, order.take, nowMillis()) ?: return order
         return order.withOrderUsdValue(usdValue)
     }
@@ -72,6 +76,16 @@ class PriceUpdateService(
             orderVersion.make.type.nft -> orderVersion.copy(makePrice = normalizedTake / normalizedMake)
             orderVersion.take.type.nft -> orderVersion.copy(takePrice = normalizedMake / normalizedTake)
             else -> orderVersion
+        }
+    }
+
+    suspend fun withUpdatedPrices(order: Order): Order {
+        val normalizedMake = priceNormalizer.normalize(order.make)
+        val normalizedTake = priceNormalizer.normalize(order.take)
+        return when {
+            order.make.type.nft -> order.copy(makePrice = normalizedTake / normalizedMake)
+            order.take.type.nft -> order.copy(takePrice = normalizedMake / normalizedTake)
+            else -> order
         }
     }
 
