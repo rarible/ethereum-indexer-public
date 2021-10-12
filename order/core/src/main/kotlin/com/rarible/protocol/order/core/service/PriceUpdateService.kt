@@ -60,6 +60,11 @@ class PriceUpdateService(
         return orderVersion.withOrderUsdValue(usdValue)
     }
 
+    suspend fun withUpdatedUsdPrices(order: Order): Order {
+        val usdValue = getAssetsUsdValue(order.make, order.take, nowMillis()) ?: return order
+        return order.withOrderUsdValue(usdValue)
+    }
+
     suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
         val normalizedMake = priceNormalizer.normalize(orderVersion.make)
         val normalizedTake = priceNormalizer.normalize(orderVersion.take)
@@ -67,40 +72,6 @@ class PriceUpdateService(
             orderVersion.make.type.nft -> orderVersion.copy(makePrice = normalizedTake / normalizedMake)
             orderVersion.take.type.nft -> orderVersion.copy(takePrice = normalizedMake / normalizedTake)
             else -> orderVersion
-        }
-    }
-
-    suspend fun withUpdatedPrices(order: Order): Order {
-        val normalizedMake = priceNormalizer.normalize(order.make)
-        val normalizedTake = priceNormalizer.normalize(order.take)
-        return when {
-            order.make.type.nft -> order.copy(makePrice = normalizedTake / normalizedMake)
-            order.take.type.nft -> order.copy(takePrice = normalizedMake / normalizedTake)
-            else -> order
-        }
-    }
-
-    /**
-     * The price is USD rate of paying value multiplied by ratio of normalized paying value to normalized nft value
-     * E.g. make is 1 NFT, take is 1.5 ETH, 1ETH = $2000. Price is 1.5ETH / 1NFT * $2000 = $3000
-     */
-    suspend fun updateOrderPrice(order: Order, at: Instant): Order {
-        logger.info("Try update prices")
-        val normalizedMake = priceNormalizer.normalize(order.make)
-        val normalizedTake = priceNormalizer.normalize(order.take)
-
-        return when {
-            order.make.type.nft -> {
-                val usdRate = getAssetPrice(order.take, at)
-                val usdPrice = usdRate?.let { usdPrice(it, normalizedMake, normalizedTake) }
-                if (usdPrice != null) order.withMakePrice(usdPrice) else order
-            }
-            order.take.type.nft -> {
-                val usdRate = getAssetPrice(order.make, at)
-                val usdPrice = usdRate?.let { usdPrice(it, normalizedTake, normalizedMake) }
-                if (usdPrice != null) order.withTakePrice(usdPrice) else order
-            }
-            else -> order
         }
     }
 
