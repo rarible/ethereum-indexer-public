@@ -116,14 +116,13 @@ class PropertiesCacheDescriptor(
     private suspend fun parse(body: String): ItemProperties {
         val node = mapper.readTree(body) as ObjectNode
         val image = image(node)
-        val animationUrl = node.getText("animation_url") ?: image
         return ItemProperties(
             name = node.getText("name", "label", "title") ?: "",
             description = node.getText("description"),
             image = image,
             imagePreview = null,
             imageBig = null,
-            animationUrl = animationUrl,
+            animationUrl = node.getText("animation_url"),
             attributes = attributes(node)
         )
     }
