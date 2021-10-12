@@ -70,6 +70,16 @@ class PriceUpdateService(
         }
     }
 
+    suspend fun withUpdatedPrices(order: Order): Order {
+        val normalizedMake = priceNormalizer.normalize(order.make)
+        val normalizedTake = priceNormalizer.normalize(order.take)
+        return when {
+            order.make.type.nft -> order.copy(makePrice = normalizedTake / normalizedMake)
+            order.take.type.nft -> order.copy(takePrice = normalizedMake / normalizedTake)
+            else -> order
+        }
+    }
+
     /**
      * The price is USD rate of paying value multiplied by ratio of normalized paying value to normalized nft value
      * E.g. make is 1 NFT, take is 1.5 ETH, 1ETH = $2000. Price is 1.5ETH / 1NFT * $2000 = $3000

@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
@@ -23,6 +24,7 @@ class ChangeLog00013AddTakeMakeToOrder {
 
     @ChangeSet(id = "ChangeLog00013AddTakeMakeToOrder.orders", order = "1", author = "protocol")
     fun orders(
+        @NonLockGuarded priceUpdateService: PriceUpdateService,
         @NonLockGuarded template: ReactiveMongoTemplate
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
@@ -31,15 +33,9 @@ class ChangeLog00013AddTakeMakeToOrder {
         val query = Query().with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name))
         template.find<Order>(query, MongoOrderRepository.COLLECTION).asFlow().collect { order ->
             try {
-                if (order.make.type.nft) {
-                    val updated = order.copy()
-                    template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
-                    counter++
-                } else if (order.take.type.nft) {
-                    val updated = order.copy()
-                    template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
-                    counter++
-                }
+                val updated = priceUpdateService.withUpdatedPrices(order)
+                template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
+                counter++
                 if (counter % 10000L == 0L) {
                     logger.info("Fixed $counter orders")
                 }
@@ -52,6 +48,7 @@ class ChangeLog00013AddTakeMakeToOrder {
 
     @ChangeSet(id = "ChangeLog00013AddTakeMakeToOrder.orderVersions", order = "2", author = "protocol")
     fun orderVersions(
+        @NonLockGuarded priceUpdateService: PriceUpdateService,
         @NonLockGuarded template: ReactiveMongoTemplate
     ) = runBlocking {
         val logger = LoggerFactory.getLogger(javaClass)
@@ -60,20 +57,14 @@ class ChangeLog00013AddTakeMakeToOrder {
         var query = Query().with(Sort.by(Sort.Direction.DESC, OrderVersion::createdAt.name))
         template.find<OrderVersion>(query).asFlow().collect { orderVersion ->
             try {
-                if (orderVersion.make.type.nft) {
-                    val updated = orderVersion.copy()
-                    template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
-                    counter++
-                } else if (orderVersion.take.type.nft) {
-                    val updated = orderVersion.copy()
-                    template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
-                    counter++
-                }
+                val updated = priceUpdateService.withUpdatedPrices(orderVersion)
+                template.save(updated, OrderVersionRepository.COLLECTION).awaitFirstOrNull()
+                counter++
                 if (counter % 10000L == 0L) {
-                    logger.info("Fixed $counter orders")
+                    logger.info("Fixed $counter order versions")
                 }
             } catch (ex: Exception) {
-                logger.error("Failed to set price for ${orderVersion.hash} order version")
+                logger.error("Failed to set price for ${orderVersion.hash} order versions")
             }
         }
         logger.info("--- Prices were set for $counter orders version ")

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.migration.integration
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
+import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.coEvery
@@ -36,4 +37,8 @@ class TestPropertiesConfiguration {
     @Bean
     @Primary
     fun mockAssetMakeBalanceProvider(): AssetMakeBalanceProvider = mockk()
+
+    @Bean
+    @Primary
+    fun mockProducer(): ProtocolOrderPublisher = mockk()
 }

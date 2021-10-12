@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.migration.integration.AbstractMigrationTest
 import com.rarible.protocol.order.migration.integration.IntegrationTest
 import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00012AddStatusToOrder
@@ -48,18 +49,21 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
     @Autowired
     protected lateinit var orderUpdateService: OrderUpdateService
 
+    @Autowired
+    protected lateinit var priceUpdateService: PriceUpdateService
+
     @Test
     fun `should set prices for orders`() = runBlocking {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val order1 = createOrder().copy(
-            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
-            take = Asset(Erc20AssetType(currencyToken), EthUInt256.of(11))
+            make = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.ONE),
+            take = Asset(Erc20AssetType(currencyToken), EthUInt256.TEN)
         )
         orderRepository.save(order1)
         val order2 = createOrder().copy(
-            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(12)),
-            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN)
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.TEN),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.ONE)
         )
         orderRepository.save(order2)
 
@@ -67,12 +71,12 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         template.updateMulti(Query(), Update().unset("makePrice"), MongoOrderRepository.COLLECTION).awaitFirst()
         template.updateMulti(Query(), Update().unset("takePrice"), MongoOrderRepository.COLLECTION).awaitFirst()
 
-        migration.orders(template)
+        migration.orders(priceUpdateService, template)
         var updatedOrder1 = orderRepository.findById(order1.hash)!!
-        assertEquals(BigDecimal.valueOf(11L), updatedOrder1.makePrice)
+        assertEquals(BigDecimal.valueOf(10L), updatedOrder1.makePrice)
 
         var updatedOrder2 = orderRepository.findById(order2.hash)!!
-        assertEquals(BigDecimal.valueOf(12L), updatedOrder2.takePrice)
+        assertEquals(BigDecimal.valueOf(10L), updatedOrder2.takePrice)
     }
 
     @Test
@@ -80,13 +84,15 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val v1 = createOrderVersion(
-            Asset(Erc20AssetType(currencyToken), EthUInt256.of(13)),
-            Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN)
+            Asset(Erc20AssetType(currencyToken), EthUInt256.TEN),
+            Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.ONE)
         )
         orderUpdateService.save(v1)
 
+        migration.orderVersions(priceUpdateService, template)
+
         var updatedOrder1 = orderVersionRepository.findAll().collectList().awaitFirst()
-        assertEquals(BigDecimal.valueOf(11L), updatedOrder1[0].makePrice)
+        assertEquals(BigDecimal.valueOf(10L), updatedOrder1[0].takePrice)
     }
 
     private fun createOrder(
