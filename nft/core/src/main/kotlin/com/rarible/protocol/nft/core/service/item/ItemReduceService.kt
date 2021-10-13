@@ -133,9 +133,9 @@ class ItemReduceService(
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
         return ownerships
-            .filter { it.owner != Address.ZERO() }
             .map { it.copy(value = maxOf(EthUInt256.of(0), it.value)) }
             .fillValueAndLazyValue()
+            .filter { it.owner != Address.ZERO() }
     }
 
     private fun List<Ownership>.fillValueAndLazyValue(): List<Ownership> {
@@ -293,7 +293,11 @@ class ItemReduceService(
                             } else {
                                 ownership
                             }
-                            event.from -> ownership.copy(value = ownership.value - event.value)
+                            event.from -> if (ownership.owner != Address.ZERO()) {
+                                ownership.copy(value = ownership.value - event.value)
+                            } else {
+                                ownership
+                            }
                             else -> ownership
                         }
                     }
