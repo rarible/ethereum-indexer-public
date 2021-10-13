@@ -12,6 +12,7 @@ paths:
       tags:
         - order-signature-controller
       operationId: validate
+      description: Validation of the order signature
       requestBody:
         content:
           application/json:

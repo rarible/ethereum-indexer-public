@@ -523,6 +523,7 @@ components:
           type: array
           items:
             type: string
+            description: "Type of the NFT activity"
             enum:
               - TRANSFER
               - MINT
@@ -541,12 +542,14 @@ components:
             - "by_user"
         users:
           type: array
+          description: "List of NFT users"
           items:
             $ref: "#/components/schemas/Address"
         types:
           type: array
           items:
             type: string
+            description: "Type of the NFT activity"
             enum:
               - TRANSFER_FROM
               - TRANSFER_TO
@@ -577,6 +580,7 @@ components:
           $ref: "#/components/schemas/BigInteger"
         types:
           type: array
+          description: "Type of the NFT activity"
           items:
             type: string
             enum:
@@ -599,6 +603,7 @@ components:
           $ref: "#/components/schemas/Address"
         types:
           type: array
+          description: "Type of the NFT activity"
           items:
             type: string
             enum:

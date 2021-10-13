@@ -71,19 +71,20 @@ paths:
       parameters:
         - name: continuation
           in: query
-          description: continuation value from previous response
+          description: Continuation value from the previous response
           required: false
           schema:
             type: string
         - name: size
           in: query
-          description: how many items to return
+          description: The number of items to return
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
           in: query
+          description: Sorting by data update time
           required: false
           schema:
             $ref: "#/components/schemas/ActivitySort"
@@ -115,6 +116,7 @@ paths:
       parameters:
         - name: ownershipId
           in: path
+          description: "Address of the NFT ownership"
           required: true
           schema:
             type: string
@@ -139,21 +141,25 @@ paths:
       operationId: getNftOwnershipsByItem
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/BigInteger"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -174,11 +180,13 @@ paths:
       operationId: getNftAllOwnerships
       parameters:
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -298,6 +306,7 @@ paths:
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
