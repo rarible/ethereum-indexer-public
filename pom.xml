@@ -89,6 +89,11 @@
             <!-- ============ Internal dependencies ============ -->
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-model-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-model-nft</artifactId>
                 <version>${project.version}</version>
             </dependency>

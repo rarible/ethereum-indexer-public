@@ -27,6 +27,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Erc20DecimalBalance'
+        '400':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20IndexerApiError'
+        '500':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20IndexerApiError'
 
   /v0.1/tokens/{contract}:
     get:
@@ -47,6 +59,12 @@ paths:
               schema:
                 $ref: '#/components/schemas/Erc20Token'
         '404':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erc20IndexerApiError'
+        '400':
           description: OK
           content:
             application/json:
