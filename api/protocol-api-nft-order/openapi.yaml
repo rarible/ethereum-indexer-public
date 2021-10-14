@@ -556,13 +556,13 @@ paths:
       parameters:
         - name: collection
           in: path
-          description: collection address
+          description: "Address of the NFT collection"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: minter
           in: query
-          description: minter address
+          description: "Minter address"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
@@ -582,10 +582,11 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
-      description: Returns Collection by address
+      description: Returns collection by address
       operationId: getNftOrderCollectionById
       parameters:
         - name: collection
+          description: "Address of the NFT collection"
           in: path
           required: true
           schema:
@@ -608,20 +609,23 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
+      description: Returns all collections by owner
       operationId: searchNftOrderCollectionsByOwner
       parameters:
         - name: owner
           in: query
-          description: owner of searching collections
+          description: "Address of the collection owner"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -643,14 +647,17 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
+      description: Returns all collections
       operationId: searchNftOrderAllCollections
       parameters:
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
