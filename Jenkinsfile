@@ -19,12 +19,12 @@ pipeline {
   stages {
     stage('test') {
       agent any
+//       steps {
+//         sh 'echo skipTests'
+//       }
       steps {
-        sh 'echo skipTests'
+         sh 'mvn clean test -U'
       }
-//      steps {
-//        sh 'mvn clean test -U'
-//      }
       post {
         always {
           script {
