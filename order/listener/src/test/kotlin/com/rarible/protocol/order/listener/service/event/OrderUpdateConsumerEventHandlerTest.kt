@@ -41,13 +41,13 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
         @JvmStatic
         fun nftItemOrders(): Stream<Arguments> = run {
             val token = AddressFactory.create()
-            val toneId = EthUInt256.TEN
+            val tokenId = EthUInt256.TEN
 
             Stream.of(
                 Arguments.arguments(
                     OrderKind.SELL,
                     createOrderVersion().copy(
-                        make = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                        make = Asset(Erc1155AssetType(token, tokenId), EthUInt256.TEN),
                         take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
                         takeUsd = null,
                         makeUsd = null,
@@ -56,7 +56,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                     ),
                     (1..10).map {
                         createOrderVersion().copy(
-                            make = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                            make = Asset(Erc1155AssetType(token, tokenId), EthUInt256.TEN),
                             take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
                             takeUsd = null,
                             makeUsd = null,
@@ -69,7 +69,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                     OrderKind.BID,
                     createOrderVersion().copy(
                         make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-                        take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                        take = Asset(Erc1155AssetType(token, tokenId), EthUInt256.TEN),
                         takeUsd = null,
                         makeUsd = null,
                         takePriceUsd = null,
@@ -78,7 +78,7 @@ internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
                     (1..10).map {
                         createOrderVersion().copy(
                             make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-                            take = Asset(Erc1155AssetType(token, toneId), EthUInt256.TEN),
+                            take = Asset(Erc1155AssetType(token, tokenId), EthUInt256.TEN),
                             takeUsd = null,
                             makeUsd = null,
                             takePriceUsd = null,
