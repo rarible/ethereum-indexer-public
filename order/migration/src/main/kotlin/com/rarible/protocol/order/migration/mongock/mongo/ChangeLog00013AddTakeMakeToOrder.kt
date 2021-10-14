@@ -15,9 +15,8 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Query
-import java.math.BigDecimal
 
 @ChangeLog(order = "000013")
 class ChangeLog00013AddTakeMakeToOrder {
@@ -31,7 +30,7 @@ class ChangeLog00013AddTakeMakeToOrder {
 
         var counter = 0L
         val query = Query().with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name))
-        template.find<Order>(query, MongoOrderRepository.COLLECTION).asFlow().collect { order ->
+        template.query<Order>().matching(query).all().asFlow().collect { order ->
             try {
                 val updated = priceUpdateService.withUpdatedAllPrices(order)
                 template.save(updated, MongoOrderRepository.COLLECTION).awaitFirstOrNull()
@@ -54,8 +53,8 @@ class ChangeLog00013AddTakeMakeToOrder {
         val logger = LoggerFactory.getLogger(javaClass)
 
         var counter = 0L
-        var query = Query().with(Sort.by(Sort.Direction.DESC, OrderVersion::createdAt.name))
-        template.find<OrderVersion>(query).asFlow().collect { orderVersion ->
+        val query = Query().with(Sort.by(Sort.Direction.DESC, OrderVersion::createdAt.name))
+        template.query<OrderVersion>().matching(query).all().asFlow().collect { orderVersion ->
             try {
                 val updated = priceUpdateService.withUpdatedAllPrices(orderVersion)
                 template.save(updated, OrderVersionRepository.COLLECTION).awaitFirstOrNull()
