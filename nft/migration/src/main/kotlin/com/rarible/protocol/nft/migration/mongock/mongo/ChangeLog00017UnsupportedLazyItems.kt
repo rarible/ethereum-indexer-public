@@ -66,6 +66,7 @@ class ChangeLog00017UnsupportedLazyItems {
         publisher: ProtocolNftEventPublisher
     ) {
         mongo.save(item.copy(deleted = true)).awaitSingle()
+        logger.info("Deleted item=${item.id}")
         val msg = NftItemDeleteEventDto(
             UUID.randomUUID().toString(),
             item.id.decimalStringValue,
@@ -88,6 +89,7 @@ class ChangeLog00017UnsupportedLazyItems {
             ), Ownership::class.java
         ).collect { ownership ->
             mongo.remove(ownership).awaitFirstOrNull()
+            logger.info("Deleted ownership=${ownership.id}")
             val msg = NftOwnershipDeleteEventDto(
                 UUID.randomUUID().toString(),
                 ownership.id.decimalStringValue,
@@ -107,6 +109,7 @@ class ChangeLog00017UnsupportedLazyItems {
             ), ItemLazyMint::class.java, LazyNftItemHistoryRepository.COLLECTION
         ).collect { history ->
             mongo.remove(history, LazyNftItemHistoryRepository.COLLECTION).awaitFirstOrNull()
+            logger.info("Deleted history=${history.id}")
         }
     }
 
