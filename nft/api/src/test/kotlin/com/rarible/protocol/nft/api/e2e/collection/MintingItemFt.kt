@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
@@ -14,6 +15,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.crypto.Keys
@@ -29,7 +31,7 @@ class MintingItemFt : SpringContainerBaseTest() {
     private lateinit var tokenRepository: TokenRepository
 
     @Test
-    fun `should get item by id`() = runBlocking<Unit> {
+    fun `shouldn't lazy mint to unsupported collection`() = runBlocking<Unit> {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -42,13 +44,15 @@ class MintingItemFt : SpringContainerBaseTest() {
         val collectionDto = nftCollectionApiClient.getNftCollectionById(contract.id.hex()).awaitFirst()
         assertThat(collectionDto.supportsLazyMint).isFalse()
 
-        // the first 20 bytes must be equal to the creator
         val bs = Binary.apply(creator.bytes().plus(ByteArray(12)))
         val tokenId = Uint256Type.decode(bs, 0).value()
         val lazyItemDto = createNft(contract.id, tokenId, listOf(PartDto(creator, 10000)))
-        val nftResponse = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitSingle()
 
-        assertThat(nftResponse).isNotNull()
+        assertThrows(NftLazyMintControllerApi.ErrorMintNftAsset::class.java) {
+            runBlocking {
+                nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitSingle()
+            }
+        }
     }
 
     private fun createNft(contract: Address, tokenId: BigInteger, creators: List<PartDto>): LazyErc721Dto {
