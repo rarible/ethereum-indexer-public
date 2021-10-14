@@ -53,7 +53,7 @@ class ChangeLog00013AddTakeMakeToOrder {
         val logger = LoggerFactory.getLogger(javaClass)
 
         var counter = 0L
-        val query = Query().with(Sort.by(Sort.Direction.DESC, OrderVersion::createdAt.name))
+        val query = Query().with(Sort.by(Sort.Direction.DESC, "_id"))
         template.query<OrderVersion>().matching(query).all().asFlow().collect { orderVersion ->
             try {
                 val updated = priceUpdateService.withUpdatedAllPrices(orderVersion)
