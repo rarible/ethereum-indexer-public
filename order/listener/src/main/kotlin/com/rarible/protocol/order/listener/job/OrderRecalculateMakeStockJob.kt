@@ -4,6 +4,7 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -30,10 +31,10 @@ class OrderRecalculateMakeStockJob(
 
         logger.info("Starting to update makeStock for orders...")
 
-        val result = orderRepository.resetMakeStockAfter(Instant.now()).awaitFirstOrNull()
-        logger.info("Successfully reset makeStock for ${result?.modifiedCount} documents")
-
-        orderRepository.findActualZeroMakeStock(Instant.now()).collect {
+        merge(
+            orderRepository.findExpiredMakeStock(Instant.now()),
+            orderRepository.findActualZeroMakeStock(Instant.now())
+        ).collect {
             orderUpdateService.updateMakeStock(hash = it.hash)
         }
 
