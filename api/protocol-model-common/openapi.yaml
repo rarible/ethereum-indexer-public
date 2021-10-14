@@ -633,6 +633,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST
@@ -651,12 +652,14 @@ components:
             - "by_user"
         users:
           type: array
+          description: "List of users"
           items:
             $ref: "#/components/schemas/Address"
         types:
           type: array
           items:
             type: string
+            description: "Order activity type by a user"
             enum:
               - MAKE_BID
               - GET_BID
@@ -690,6 +693,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST
@@ -712,6 +716,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST

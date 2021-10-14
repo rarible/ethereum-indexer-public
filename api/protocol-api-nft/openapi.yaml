@@ -367,7 +367,7 @@ paths:
       parameters:
         - name: owner
           in: query
-          description: "ID of the NFT item owner"
+          description: "Address of the item owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
@@ -409,7 +409,7 @@ paths:
       parameters:
         - name: creator
           in: query
-          description: "ID of the NFT item creator"
+          description: "Address of the item creator"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
@@ -623,7 +623,7 @@ paths:
       parameters:
         - name: owner
           in: query
-          description: "ID of the NFT collection owner"
+          description: "Address of the collection owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"

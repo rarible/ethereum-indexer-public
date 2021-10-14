@@ -12,8 +12,10 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderOwnershipById
+      description: Returns order ownership by ownership address
       parameters:
         - name: ownershipId
+          description: "Address of the NFT ownership"
           in: path
           required: true
           schema:
@@ -37,23 +39,28 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderOwnershipsByItem
+      description: Returns order ownership by item address
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/BigInteger"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -72,13 +79,16 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderAllOwnerships
+      description: Returns all orders with ownerships
       parameters:
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -127,8 +137,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemById
+      description: Returns order item by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -152,8 +164,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemMetaById
+      description: Returns order item meta by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -175,8 +189,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderLazyItemById
+      description: Returns lazy order item by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -200,18 +216,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByOwner
+      description: Returns order items by owner
       parameters:
         - name: owner
+          description: "Address of the item owner"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -230,18 +250,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByCreator
+      description: Returns order items by creator
       parameters:
         - name: creator
+          description: "Address of the item creator"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -260,18 +284,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByCollection
+      description: Returns order items by collection address
       parameters:
         - name: collection
+          description: "Address of the NFT collection"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -290,30 +318,36 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderAllItems
+      description: Returns all orders items
       parameters:
         - name: continuation
+          description: "Continuation value from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: showDeleted
+          description: "Include deleted items"
           in: query
           required: false
           schema:
             type: boolean
         - name: lastUpdatedFrom
+          description: "From what time the items were updated. Integer in unix format"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: lastUpdatedTo
+          description: "To what time the items were updated. Integer in unix format"
           in: query
           required: false
           schema:
