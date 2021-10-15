@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.migration.integration
 
+import com.rarible.core.test.ext.KafkaTest
 import com.rarible.core.test.ext.MongoTest
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
@@ -9,6 +10,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 
 @Retention
 @MongoTest
+@KafkaTest
 @AutoConfigureJson
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,

@@ -35,6 +35,8 @@ class LazyNftValidator(
             if (Arrays.equals(firstCreator, tokenId.sliceArray(firstCreator.indices)).not()) {
                 throw ValidationApiException("TokenId $token must start with first creator address")
             }
+        } else {
+            throw ValidationApiException("This collection (${token.id}) doesn't support lazy mint")
         }
 
         val lazyNft = conversionService.convert<LazyNft>(lazyNftDto)
