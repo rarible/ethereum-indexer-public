@@ -9,12 +9,15 @@ import com.rarible.protocol.dto.OrderActivityMatchDto.Type
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -24,7 +27,8 @@ internal class OrderActivityConverterTest {
 
     private val primeNormalizer = PriceNormalizer(mockk())
     private val assetDtoConverter = AssetDtoConverter(primeNormalizer)
-    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter, mockk())
+    private val orderRepository: OrderRepository = mockk()
+    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter, orderRepository)
 
     companion object {
         @JvmStatic
@@ -64,6 +68,11 @@ internal class OrderActivityConverterTest {
                 Arguments.of(event.copy(data = sideMatch.copy(make = eth, take = nft, adhoc = true)), Type.SELL)
             )
         }
+    }
+
+    @BeforeEach
+    fun setup() {
+        every { runBlocking { orderRepository.findById(any()) } } returns mockk()
     }
 
     @ParameterizedTest
