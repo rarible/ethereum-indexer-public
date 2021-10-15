@@ -1,2 +1,5 @@
 jms-brokerUrls: ${rarible.common.jms-brokerUrls}
 eventTopic: ${rarible.common.jms-eventTopic}
+ethereumBlockReindexEnabled: false
+pendingLogsProcessingEnabled: false
+reindexBlocksJobEnabled: false

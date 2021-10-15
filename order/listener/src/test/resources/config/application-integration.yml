@@ -21,3 +21,7 @@ common:
 
 listener:
   load-open-sea-orders: false
+
+ethereumBlockReindexEnabled: false
+pendingLogsProcessingEnabled: false
+reindexBlocksJobEnabled: false

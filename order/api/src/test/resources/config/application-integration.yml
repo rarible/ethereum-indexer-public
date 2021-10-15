@@ -18,3 +18,7 @@ common:
     erc1155-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
 
+ethereumBlockReindexEnabled: false
+pendingLogsProcessingEnabled: false
+reindexBlocksJobEnabled: false
+

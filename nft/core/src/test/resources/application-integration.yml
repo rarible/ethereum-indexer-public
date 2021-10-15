@@ -42,3 +42,7 @@ api:
 ipfs:
   upload_proxy: "https://pinata.rarible.com/upload"
   gateway: "https://rarible.mypinata.cloud/ipfs"
+
+ethereumBlockReindexEnabled: false
+pendingLogsProcessingEnabled: false
+reindexBlocksJobEnabled: false
