@@ -13,6 +13,6 @@ object AddressParser {
     }
 }
 
-fun AddressParser.parseSafely(address: String?): Address? {
+fun AddressParser.parse(address: String?): Address? {
     return if (address != null) parse(address) else null
 }
