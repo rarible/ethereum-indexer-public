@@ -24,7 +24,7 @@ internal class OrderActivityConverterTest {
 
     private val primeNormalizer = PriceNormalizer(mockk())
     private val assetDtoConverter = AssetDtoConverter(primeNormalizer)
-    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter)
+    private val orderActivityConverter = OrderActivityConverter(primeNormalizer, assetDtoConverter, mockk())
 
     companion object {
         @JvmStatic
