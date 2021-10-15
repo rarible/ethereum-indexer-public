@@ -20,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -32,6 +33,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.stream.Stream
 
+@Disabled
 @IntegrationTest
 class OrderVersionControllerFt : AbstractIntegrationTest() {
 
