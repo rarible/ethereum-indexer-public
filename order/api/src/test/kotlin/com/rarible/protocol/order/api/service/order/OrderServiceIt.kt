@@ -4,12 +4,14 @@ import com.rarible.contracts.test.erc1271.TestERC1271
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
+import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.*
@@ -538,31 +540,34 @@ class OrderServiceIt : AbstractOrderIt() {
     @Test
     fun `should fetch lazy NFT data`() = runBlocking<Unit> {
         val (privateKey, _, signer) = generateNewKeys()
-        val sender = createMonoSigningTransactionSender()
-        val erc1271 = TestERC1271.deployAndWait(sender, poller).awaitFirst()
-        erc1271.setReturnSuccessfulValidSignature(true).execute().verifySuccess()
-        val creator = erc1271.address()
 
-        val tokenId = EthUInt256.of("${creator}000000000000000000000001")
+        val tokenId = EthUInt256.of("${signer}000000000000000000000001")
         val randomSignature = Word(Random.nextBytes(32)).sign(privateKey)
         val erc721AssetType = Erc721AssetType(AddressFactory.create(), tokenId)
         val lazyNft = LazyErc721Dto(
             contract = erc721AssetType.token,
             tokenId = tokenId.value,
             uri = "test",
-            creators = listOf(PartDto(creator, 10000)),
+            creators = listOf(PartDto(signer, 10000)),
             royalties = emptyList(),
             signatures = listOf(randomSignature)
         )
         val erc721Order = createOrder(signer, Asset(erc721AssetType, EthUInt256.ONE))
-        val lazyAssetType = Erc721LazyAssetType(
+        var lazyAssetType = Erc721LazyAssetType(
             token = erc721AssetType.token,
             tokenId = tokenId,
             uri = "test",
-            creators = listOf(Part(creator, EthUInt256.Companion.of(10000L))),
+            creators = listOf(Part(signer, EthUInt256.Companion.of(10000L))),
             royalties = emptyList(),
             signatures = lazyNft.signatures
         )
+
+        // set valid signature
+        val nft = LazyAssetTypeToLazyNftConverter.convert(lazyAssetType)
+        val hash = EIP712DomainNftFactory(BigInteger.valueOf(1))
+            .createErc721Domain(erc721AssetType.token).hashToSign(nft.hash())
+        lazyAssetType = lazyAssetType.copy(signatures = listOf(hash.sign(privateKey)))
+
         val realOrder = erc721Order.copy(make = Asset(lazyAssetType, erc721Order.make.value))
         val signature = realOrder.toForm(privateKey).signature
 
@@ -579,7 +584,7 @@ class OrderServiceIt : AbstractOrderIt() {
         every { nftCollectionApi.getNftCollectionById(erc721AssetType.token.hex()) } returns
                 Mono.just(createNftCollectionDto(erc721AssetType.token))
 
-        orderService.put(erc721Order.toForm(privateKey).withSignature(signature))
+        orderService.put(realOrder.toForm(privateKey).withSignature(signature))
 
         val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC), 10, null)
 
