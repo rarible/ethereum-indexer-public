@@ -415,7 +415,7 @@ paths:
             type: integer
             format: int32
         - name: sort
-          escription: "Sorting by data update time"
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -469,7 +469,7 @@ paths:
             type: integer
             format: int32
         - name: sort
-          escription: "Sorting by data update time"
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -516,7 +516,7 @@ paths:
             type: integer
             format: int32
         - name: sort
-          escription: "Sorting by data update time"
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -558,7 +558,7 @@ paths:
             type: integer
             format: int32
         - name: sort
-          escription: "Sorting by data update time"
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
