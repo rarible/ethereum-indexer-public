@@ -70,20 +70,21 @@ paths:
       operationId: getNftActivities
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
-          description: continuation value from previous response
           required: false
           schema:
             type: string
         - name: size
           in: query
-          description: how many items to return
+          description: The number of items to return
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
           in: query
+          description: Sorting by data update time
           required: false
           schema:
             $ref: "#/components/schemas/ActivitySort"
@@ -114,6 +115,7 @@ paths:
       operationId: getNftOwnershipById
       parameters:
         - name: ownershipId
+          description: "ID of the ownership in format: '$contractAddress:$tokenId:$ownerAddress'"
           in: path
           required: true
           schema:
@@ -139,21 +141,25 @@ paths:
       operationId: getNftOwnershipsByItem
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             $ref: "#/components/schemas/BigInteger"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -174,11 +180,13 @@ paths:
       operationId: getNftAllOwnerships
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -298,6 +306,7 @@ paths:
       parameters:
         - name: itemId
           in: path
+          description: "Item identifier, has format `contract:tokenId`"
           required: true
           schema:
             type: string
@@ -358,14 +367,14 @@ paths:
       parameters:
         - name: owner
           in: query
-          description: "ID of the NFT item owner"
+          description: "Address of the item owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -400,14 +409,14 @@ paths:
       parameters:
         - name: creator
           in: query
-          description: "ID of the NFT item creator"
+          description: "Address of the item creator"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -449,7 +458,7 @@ paths:
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -484,7 +493,7 @@ paths:
       parameters:
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -504,16 +513,16 @@ paths:
           schema:
             type: boolean
         - name: lastUpdatedFrom
+          description: "Filter condition to return only items that were updated after this date (unix format)"
           in: query
-          description: "From what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
             format: int64
           example: 1631653245
         - name: lastUpdatedTo
+          description: "Filter condition to return only items that were updated before this date (unix format)"
           in: query
-          description: "To what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
@@ -614,14 +623,14 @@ paths:
       parameters:
         - name: owner
           in: query
-          description: "ID of the NFT collection owner"
+          description: "Address of the collection owner"
           required: true
           schema:
             $ref: "#/components/schemas/Address"
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -656,7 +665,7 @@ paths:
       parameters:
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string

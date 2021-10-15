@@ -478,16 +478,20 @@ components:
           "$ref": "#/components/schemas/BigInteger"
         uri:
           type: string
+          description: "Uniform Resource Identifier of the token"
         creators:
           type: array
+          description: "Addresses of the NFT item creators"
           items:
             "$ref": "#/components/schemas/Part"
         royalties:
           type: array
+          description: "List of royalties"
           items:
             "$ref": "#/components/schemas/Part"
         signatures:
           type: array
+          description: "Digital signatures"
           items:
             "$ref": "#/components/schemas/Binary"
       description: Type of an Asset
@@ -503,10 +507,12 @@ components:
       properties:
         creators:
           type: array
+          description: "Address of the NFT item creators"
           items:
             "$ref": "#/components/schemas/Address"
         signatures:
           type: array
+          description: "Digital signatures"
           items:
             "$ref": "#/components/schemas/Binary"
 

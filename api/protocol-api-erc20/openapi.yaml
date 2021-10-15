@@ -8,18 +8,26 @@ paths:
     get:
       tags:
         - erc20-balance-controller
+      description: Return ERC20 token balance
       operationId: getErc20Balance
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: path
           required: true
           schema:
             $ref: '#/components/schemas/Address'
         - name: owner
+          description: "Address of the ERC20 token owner"
           in: path
           required: true
           schema:
             $ref: '#/components/schemas/Address'
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/erc20/balances/0x60f80121c31a0d46b5279700f9df786054aa5ee5/0x60f80121c31a0d46b5279700f9df786054aa5ee5'
       responses:
         '200':
           description: OK
@@ -32,9 +40,11 @@ paths:
     get:
       tags:
         - erc20-token-controller
+      description: Return ERC20 token balance by ID
       operationId: getErc20TokenById
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: path
           required: true
           schema:

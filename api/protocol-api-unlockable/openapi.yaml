@@ -11,6 +11,7 @@ paths:
       operationId: createLock
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -47,6 +48,7 @@ paths:
       operationId: getLockContent
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -83,6 +85,7 @@ paths:
       operationId: isUnlockable
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:

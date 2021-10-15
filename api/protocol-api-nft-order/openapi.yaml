@@ -12,12 +12,15 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderOwnershipById
+      description: Returns order ownership by ownership address
       parameters:
         - name: ownershipId
+          description: "ID of the ownership in format: '$contractAddress:$tokenId:$ownerAddress'"
           in: path
           required: true
           schema:
             type: string
+          example: 0xf6793da657495ffeff9ee6350824910abc21356c:102351784535720381921822338631028197690494847592883259167987535571146174431591:0xe2490e9f5657cfefb89c12798167ecd194c8e956
       responses:
         '200':
           description: OK
@@ -37,23 +40,28 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderOwnershipsByItem
+      description: Returns order ownership by item address
       parameters:
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/BigInteger"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -72,13 +80,16 @@ paths:
       tags:
         - nft-order-ownership-controller
       operationId: getNftOrderAllOwnerships
+      description: Returns all orders with ownerships
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -127,8 +138,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemById
+      description: Returns order item by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -152,8 +165,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemMetaById
+      description: Returns order item meta by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -175,8 +190,10 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderLazyItemById
+      description: Returns lazy order item by item identifier
       parameters:
         - name: itemId
+          description: "Item identifier, has format `contract:tokenId`"
           in: path
           required: true
           schema:
@@ -200,18 +217,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByOwner
+      description: Returns order items by owner
       parameters:
         - name: owner
+          description: "Address of the item owner"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -230,18 +251,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByCreator
+      description: Returns order items by creator
       parameters:
         - name: creator
+          description: "Address of the item creator"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -260,18 +285,22 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderItemsByCollection
+      description: Returns order items by collection address
       parameters:
         - name: collection
+          description: "Address of the NFT collection"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -290,30 +319,36 @@ paths:
       tags:
         - nft-order-item-controller
       operationId: getNftOrderAllItems
+      description: Returns all orders
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: showDeleted
+          description: "Include deleted items"
           in: query
           required: false
           schema:
             type: boolean
         - name: lastUpdatedFrom
+          description: "Filter condition to return only items that were updated after this date (unix format)"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: lastUpdatedTo
+          description: "Filter condition to return only items that were updated before this date (unix format)"
           in: query
           required: false
           schema:
@@ -334,8 +369,10 @@ paths:
       tags:
         - nft-order-activity-controller
       operationId: getNftOrderActivitiesByUser
+      description: Returns orders event history by user
       parameters:
         - name: type
+          description: "Order activity type"
           in: query
           required: true
           schema:
@@ -343,6 +380,7 @@ paths:
             items:
               $ref: "#/components/schemas/ActivityFilterByUserType"
         - name: user
+          description: "Address of the user"
           in: query
           required: true
           schema:
@@ -350,29 +388,34 @@ paths:
             items:
               "$ref": "#/components/schemas/Address"
         - name: from
+          description: "Lower time border of data (unix format)"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: to
+          description: "Upper time border of data (unix format)"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -390,8 +433,10 @@ paths:
       tags:
         - nft-order-activity-controller
       operationId: getNftOrderActivitiesByItem
+      description: Returns orders event history by item
       parameters:
         - name: type
+          description: "Order activity type"
           in: query
           required: true
           schema:
@@ -399,27 +444,32 @@ paths:
             items:
               $ref: "#/components/schemas/ActivityFilterByItemType"
         - name: contract
+          description: "Address of the contract"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: tokenId
+          description: "Token identifier"
           in: query
           required: true
           schema:
             "$ref": "#/components/schemas/BigInteger"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -437,8 +487,10 @@ paths:
       tags:
         - nft-order-activity-controller
       operationId: getNftOrderActivitiesByCollection
+      description: Returns orders event history by collection
       parameters:
         - name: type
+          description: "Order activity type"
           in: query
           required: true
           schema:
@@ -451,17 +503,20 @@ paths:
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -479,8 +534,10 @@ paths:
       tags:
         - nft-order-activity-controller
       operationId: getNftOrderAllActivities
+      description: Returns all orders event history
       parameters:
         - name: type
+          description: "Order activity type"
           in: query
           required: true
           schema:
@@ -488,17 +545,20 @@ paths:
             items:
               $ref: "#/components/schemas/ActivityFilterAllType"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
             type: integer
             format: int32
         - name: sort
+          description: "Sorting by data update time"
           in: query
           required: false
           schema:
@@ -522,13 +582,13 @@ paths:
       parameters:
         - name: collection
           in: path
-          description: collection address
+          description: "Address of the NFT collection"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: minter
           in: query
-          description: minter address
+          description: "Minter address"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
@@ -548,10 +608,11 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
-      description: Returns Collection by address
+      description: Returns collection by address
       operationId: getNftOrderCollectionById
       parameters:
         - name: collection
+          description: "Address of the NFT collection"
           in: path
           required: true
           schema:
@@ -574,20 +635,23 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
+      description: Returns all collections by owner
       operationId: searchNftOrderCollectionsByOwner
       parameters:
         - name: owner
           in: query
-          description: owner of searching collections
+          description: "Address of the collection owner"
           required: true
           schema:
             "$ref": "#/components/schemas/Address"
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:
@@ -609,14 +673,17 @@ paths:
     get:
       tags:
         - nft-order-collection-controller
+      description: Returns all collections
       operationId: searchNftOrderAllCollections
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
             type: string
         - name: size
+          description: "The number of items to return"
           in: query
           required: false
           schema:

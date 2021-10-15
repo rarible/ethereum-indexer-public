@@ -646,6 +646,7 @@ components:
       properties:
         ids:
           type: array
+          description: "List of the orders hash"
           items:
             $ref: "#/components/schemas/Word"
 
