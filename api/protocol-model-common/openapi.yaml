@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: OpenAPI definition
-  description: Indexers use OpenAPI to describe APIs (and events). Clients (kotlin, typescript etc.) and server controller interfaces are generated automatically using yaml OpenAPI files.
+  description: Indexers use OpenAPI to describe APIs (and events). Clients (Kotlin, TypeScript, etc.) and server controller interfaces automatically generated using YAML OpenAPI files.
   version: v0.1
   license:
     name: MIT
@@ -24,6 +24,9 @@ components:
             - NOT_FOUND
         message:
           type: string
+        status:
+          type: integer
+          default: 404
 
     EthereumApiErrorBadRequest:
       required:
@@ -38,6 +41,9 @@ components:
             - VALIDATION
         message:
           type: string
+        status:
+          type: integer
+          default: 400
 
     EthereumApiErrorServerError:
       required:
@@ -52,6 +58,9 @@ components:
             - UNKNOWN
         message:
           type: string
+        status:
+          type: integer
+          default: 500
 
     Activity:
       type: object
@@ -525,6 +534,7 @@ components:
           type: array
           items:
             type: string
+            description: "Type of the NFT activity"
             enum:
               - TRANSFER
               - MINT
@@ -543,12 +553,14 @@ components:
             - "by_user"
         users:
           type: array
+          description: "List of NFT users"
           items:
             $ref: "#/components/schemas/Address"
         types:
           type: array
           items:
             type: string
+            description: "Type of the NFT activity"
             enum:
               - TRANSFER_FROM
               - TRANSFER_TO
@@ -579,6 +591,7 @@ components:
           $ref: "#/components/schemas/BigInteger"
         types:
           type: array
+          description: "Type of the NFT activity"
           items:
             type: string
             enum:
@@ -601,6 +614,7 @@ components:
           $ref: "#/components/schemas/Address"
         types:
           type: array
+          description: "Type of the NFT activity"
           items:
             type: string
             enum:
@@ -630,6 +644,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST
@@ -648,12 +663,14 @@ components:
             - "by_user"
         users:
           type: array
+          description: "List of users"
           items:
             $ref: "#/components/schemas/Address"
         types:
           type: array
           items:
             type: string
+            description: "Order activity type by user"
             enum:
               - MAKE_BID
               - GET_BID
@@ -687,6 +704,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST
@@ -709,6 +727,7 @@ components:
           type: array
           items:
             type: string
+            description: "Order activity type"
             enum:
               - BID
               - LIST

@@ -183,6 +183,7 @@ class OrderReduceService(
 
     private suspend fun Order.withUpdatedMakeStock(): Order {
         val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
+        logger.info("Make balance $makeBalance for order $hash")
         return withMakeBalance(makeBalance, protocolCommissionProvider.get())
     }
 

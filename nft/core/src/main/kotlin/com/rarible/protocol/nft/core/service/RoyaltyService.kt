@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
+import io.daonomic.rpc.RpcCodeException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
@@ -36,6 +37,10 @@ class RoyaltyService(
                 .call().awaitSingle()
                 .map { Part(it._1, it._2.intValueExact()) }.toList()
                 .also { logger.info("Got royalties for $address:$tokenId: $it") }
+        } catch (e: RpcCodeException) {
+            logger.info("RoyaltiesProvider does not know about royalties for $address:$tokenId, see Jira RPC-109, " +
+                    "returned ${e.message()}")
+            return emptyList()
         } catch (e: Exception) {
             logger.error("Failed to request royalties for $address:$tokenId", e)
             return emptyList()

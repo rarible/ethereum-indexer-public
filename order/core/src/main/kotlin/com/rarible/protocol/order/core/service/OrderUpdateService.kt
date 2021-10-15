@@ -18,6 +18,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 /**
  * Service responsible for inserting or updating order state (see [save]).

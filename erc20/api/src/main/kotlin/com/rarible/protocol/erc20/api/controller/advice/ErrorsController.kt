@@ -31,7 +31,6 @@ class ErrorsController {
             code = Code.VALIDATION,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: ""
         )
-        logWithNecessaryLevel(status, "Web input error: ${error.message}", ex)
         ResponseEntity.status(status).body(error)
     }
 
@@ -42,7 +41,6 @@ class ErrorsController {
             code = ex.code,
             message = ex.message ?: "Missing message in error ${ex.javaClass.name}"
         )
-        logWithNecessaryLevel(ex.status, error.message, ex)
         ResponseEntity.status(ex.status).body(error)
     }
 
@@ -56,9 +54,5 @@ class ErrorsController {
             code = Code.UNKNOWN,
             message = ex.message ?: "Something went wrong"
         )
-    }
-
-    private fun logWithNecessaryLevel(status: HttpStatus, message: String, ex: Exception) {
-        if (status.is5xxServerError) logger.error(message, ex) else logger.warn(message)
     }
 }

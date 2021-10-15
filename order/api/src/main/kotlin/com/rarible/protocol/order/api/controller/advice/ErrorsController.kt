@@ -18,7 +18,6 @@ class ErrorsController {
 
     @ExceptionHandler(OrderIndexerApiException::class)
     fun handleIndexerApiException(ex: OrderIndexerApiException) = mono {
-        logger.warn("Indexer API error while handle request: {}", ex.message)
         ResponseEntity.status(ex.status).body(ex.data)
     }
 

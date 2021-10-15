@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.api.service.mint
 
 import com.rarible.core.common.optimisticLock
+import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -26,7 +27,7 @@ class MintService(
 ) {
     suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): Item = optimisticLock {
         val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItemHistory).awaitFirst()
-        itemReduceService.onLazyItemHistories(savedItemHistory).awaitFirstOrNull()
+        itemReduceService.onLazyItemHistories(savedItemHistory).retryOptimisticLock().awaitFirstOrNull()
 
         val itemId = ItemId(lazyItemHistory.token, lazyItemHistory.tokenId)
         itemRepository.findById(itemId).awaitFirst()
@@ -37,7 +38,7 @@ class MintService(
             ?: throw EntityNotFoundApiException("Item", itemId)
         val log = createLogEvent(lazyMint)
         historyRepository.save(log).awaitFirstOrNull()
-        itemReduceService.onItemHistories(listOf(log)).awaitFirstOrNull()
+        itemReduceService.onItemHistories(listOf(log)).retryOptimisticLock().awaitFirstOrNull()
     }
 
     private fun createLogEvent(data: ItemLazyMint): LogEvent {

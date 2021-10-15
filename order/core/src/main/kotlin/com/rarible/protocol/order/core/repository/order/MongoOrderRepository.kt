@@ -110,14 +110,15 @@ class MongoOrderRepository(
         return template.query<Order>().matching(queue).all().asFlow()
     }
 
-    fun resetMakeStockAfter(now: Instant): Mono<UpdateResult> {
+    fun findExpiredMakeStock(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
                 Order::end exists true,
-                Order::end lt now.toEpochMilli()
+                Order::end lt now.toEpochMilli(),
+                Order::makeStock gt EthUInt256.ZERO
             )
         )
-        return template.updateFirst(query, Update().set(Order::makeStock.name, EthUInt256.ZERO), Order::class.java)
+        return template.query<Order>().matching(query).all().asFlow()
     }
 
     fun findActualZeroMakeStock(now: Instant): Flow<Order> {
