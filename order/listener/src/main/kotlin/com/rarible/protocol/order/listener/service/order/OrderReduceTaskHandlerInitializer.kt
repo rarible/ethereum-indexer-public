@@ -2,11 +2,13 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @ExperimentalCoroutinesApi
 @Component
+@Profile("!integration")
 class OrderReduceTaskHandlerInitializer(
     private val taskService: TaskService
 ) {
