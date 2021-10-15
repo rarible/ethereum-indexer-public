@@ -481,7 +481,7 @@ components:
           description: "Uniform Resource Identifier of the token"
         creators:
           type: array
-          description: "Address of the NFT item creators"
+          description: "Addresses of the NFT item creators"
           items:
             "$ref": "#/components/schemas/Part"
         royalties:
@@ -491,6 +491,7 @@ components:
             "$ref": "#/components/schemas/Part"
         signatures:
           type: array
+          description: "Digital signatures"
           items:
             "$ref": "#/components/schemas/Binary"
       description: Type of an Asset
@@ -511,6 +512,7 @@ components:
             "$ref": "#/components/schemas/Address"
         signatures:
           type: array
+          description: "Digital signatures"
           items:
             "$ref": "#/components/schemas/Binary"
 
@@ -522,7 +524,6 @@ components:
       properties:
         "@type":
           type: string
-          description: "NFT type for lazy minting"
           enum:
             - ERC1155
         supply:
@@ -534,7 +535,6 @@ components:
       properties:
         "@type":
           type: string
-          description: "NFT type for lazy minting"
           enum:
             - ERC721
 

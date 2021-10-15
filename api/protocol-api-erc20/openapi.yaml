@@ -27,7 +27,7 @@ paths:
         - lang: 'cURL'
           source: |
             curl --request GET \
-            --url 'https://ethereum-api-dev.rarible.org/v0.1/erc20/balances/0x60f80121c31a0d46b5279700f9df786054aa5ee5/0x60f80121c31a0d46b5279700f9df786054aa5ee5'
+            --url 'https://ethereum-api.rarible.org/v0.1/erc20/balances/0x60f80121c31a0d46b5279700f9df786054aa5ee5/0x60f80121c31a0d46b5279700f9df786054aa5ee5'
       responses:
         '200':
           description: OK

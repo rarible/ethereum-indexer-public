@@ -70,8 +70,8 @@ paths:
       operationId: getNftActivities
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
-          description: Continuation value from the previous response
           required: false
           schema:
             type: string
@@ -115,8 +115,8 @@ paths:
       operationId: getNftOwnershipById
       parameters:
         - name: ownershipId
+          description: "ID of the ownership in format: '$contractAddress:$tokenId:$ownerAddress'"
           in: path
-          description: "Address of the NFT ownership"
           required: true
           schema:
             type: string
@@ -153,7 +153,7 @@ paths:
           schema:
             $ref: "#/components/schemas/BigInteger"
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -180,7 +180,7 @@ paths:
       operationId: getNftAllOwnerships
       parameters:
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -374,7 +374,7 @@ paths:
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -416,7 +416,7 @@ paths:
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -458,7 +458,7 @@ paths:
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -493,7 +493,7 @@ paths:
       parameters:
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -513,16 +513,16 @@ paths:
           schema:
             type: boolean
         - name: lastUpdatedFrom
+          description: "Filter condition to return only items that were updated after this date (unix format)"
           in: query
-          description: "From what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
             format: int64
           example: 1631653245
         - name: lastUpdatedTo
+          description: "Filter condition to return only items that were updated before this date (unix format)"
           in: query
-          description: "To what time the items were updated. Integer in unix format"
           required: false
           schema:
             type: integer
@@ -630,7 +630,7 @@ paths:
           example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string
@@ -665,7 +665,7 @@ paths:
       parameters:
         - name: continuation
           in: query
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           required: false
           schema:
             type: string

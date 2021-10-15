@@ -244,7 +244,7 @@ paths:
         - lang: 'cURL'
           source: |
             curl --request POST \
-            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/prepareCancelTx'
+            --url 'https://ethereum-api.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/prepareCancelTx'
       responses:
         '200':
           description: OK
@@ -277,7 +277,7 @@ paths:
         - lang: 'cURL'
           source: |
             curl --request GET \
-            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0'
+            --url 'https://ethereum-api.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0'
       responses:
         '200':
           description: OK
@@ -310,7 +310,7 @@ paths:
         - lang: 'cURL'
           source: |
             curl --request GET \
-            --url 'https://ethereum-api-dev.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/updateMakeStock'
+            --url 'https://ethereum-api.rarible.org/v0.1/order/orders/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0/updateMakeStock'
       responses:
         '200':
           description: OK
@@ -381,7 +381,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -455,7 +455,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -502,7 +502,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -570,7 +570,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -629,7 +629,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -685,7 +685,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -732,7 +732,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -782,7 +782,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -823,7 +823,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation value from the previous response"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -881,7 +881,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -928,7 +928,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -950,12 +950,14 @@ paths:
             items:
               $ref: "#/components/schemas/OrderStatus"
         - name: startDate
+          description: "Lower time border of data (unix format)"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: endDate
+          description: "Upper time border of data (unix format)"
           in: query
           required: false
           schema:
@@ -1008,7 +1010,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -1067,7 +1069,7 @@ paths:
           schema:
             $ref: "#/components/schemas/Platform"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -1089,12 +1091,14 @@ paths:
             items:
               $ref: "#/components/schemas/OrderStatus"
         - name: startDate
+          description: "Lower time border of data (unix format)"
           in: query
           required: false
           schema:
             type: integer
             format: int64
         - name: endDate
+          description: "Upper time border of data (unix format)"
           in: query
           required: false
           schema:
@@ -1122,7 +1126,7 @@ paths:
           schema:
             "$ref": "#/components/schemas/OrderSort"
         - name: continuation
-          description: "Continuation token to paginate items search result"
+          description: "Continuation token from the previous response"
           in: query
           required: false
           schema:
@@ -1258,8 +1262,8 @@ paths:
       description: Returns event history with order
       parameters:
         - name: continuation
+          description: "Continuation token from the previous response"
           in: query
-          description: "Continuation token to paginate items search result"
           required: false
           schema:
             type: string
@@ -1304,14 +1308,14 @@ paths:
       description: Aggregate NFT sell order by maker
       parameters:
         - name: startDate
-          description: "Start data update time"
+          description: "Lower time border of data (unix format)"
           in: query
           required: true
           schema:
             type: integer
             format: int64
         - name: endDate
-          description: "End data update time"
+          description: "Upper time border of data (unix format)"
           in: query
           required: true
           schema:
@@ -1346,14 +1350,14 @@ paths:
       description: Aggregate NFT purchase by taker
       parameters:
         - name: startDate
-          description: "Start data update time"
+          description: "Lower time border of data (unix format)"
           in: query
           required: true
           schema:
             type: integer
             format: int64
         - name: endDate
-          description: "End data update time"
+          description: "Upper time border of data (unix format)"
           in: query
           required: true
           schema:
@@ -1388,14 +1392,14 @@ paths:
       description: Aggregate NFT purchase by collection
       parameters:
         - name: startDate
-          description: "Start data update time"
+          description: "Lower time border of data (unix format)"
           in: query
           required: true
           schema:
             type: integer
             format: int64
         - name: endDate
-          description: "End data update time"
+          description: "Upper time border of data (unix format)"
           in: query
           required: true
           schema:

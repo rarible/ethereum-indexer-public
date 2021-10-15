@@ -659,7 +659,7 @@ components:
           type: array
           items:
             type: string
-            description: "Order activity type by a user"
+            description: "Order activity type by user"
             enum:
               - MAKE_BID
               - GET_BID
