@@ -61,11 +61,10 @@ internal class Erc20TokenControllerFt : AbstractFt() {
         contractRepository.save(contract)
 
         val e = assertThrows(Erc20TokenControllerApi.ErrorGetErc20TokenById::class.java, Executable {
-            client.getErc20TokenById(contract.id.toString())
-                .block()
+            client.getErc20TokenById(contract.id.toString()).block()
         })
+        val error = e.on404 as Erc20IndexerApiErrorDto
 
-        val error = e.data as Erc20IndexerApiErrorDto
         assertEquals(HttpStatus.NOT_FOUND.value(), error.status)
         assertEquals(Erc20IndexerApiErrorDto.Code.TOKEN_NOT_FOUND, error.code)
     }
@@ -75,8 +74,7 @@ internal class Erc20TokenControllerFt : AbstractFt() {
     @Test
     fun `get token - token not found`() = runBlocking<Unit> {
         val contractId = AddressFactory.create()
-        val token = client.getErc20TokenById(contractId.toString())
-            .block()
+        val token = client.getErc20TokenById(contractId.toString()).awaitFirst()
 
         assertEquals(contractId, token.id)
         assertEquals("", token.name)
@@ -86,13 +84,11 @@ internal class Erc20TokenControllerFt : AbstractFt() {
     @Test
     fun `get token - incorrect query params`() = runBlocking<Unit> {
         val e = assertThrows(Erc20TokenControllerApi.ErrorGetErc20TokenById::class.java, Executable {
-            client.getErc20TokenById("not an address")
-                .block()
+            client.getErc20TokenById("not an address").block()
         })
+        val error = e.on400
 
-        val error = e.data as Erc20IndexerApiErrorDto
-        // TODO originally here should be 400
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), error.status)
-        assertEquals(Erc20IndexerApiErrorDto.Code.UNKNOWN, error.code)
+        assertEquals(HttpStatus.BAD_REQUEST.value(), error.status)
+        assertEquals(Erc20IndexerApiErrorDto.Code.VALIDATION, error.code)
     }
 }

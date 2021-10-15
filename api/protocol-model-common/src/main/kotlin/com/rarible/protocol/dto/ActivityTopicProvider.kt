@@ -1,7 +1,6 @@
 package com.rarible.protocol.dto
 
 class ActivityTopicProvider {
-
     companion object {
         const val VERSION = "v1"
 
@@ -9,5 +8,4 @@ class ActivityTopicProvider {
             return "protocol.$environment.$blockchain.indexer.nft-order.activity"
         }
     }
-
 }
