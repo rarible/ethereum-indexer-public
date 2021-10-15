@@ -19,6 +19,9 @@ import java.util.*
 /**
  * Kafka consumer responsible for attaching metadata to NFT Item events DTOs (consumed from an internal topic)
  * and forwarding the extended events to the public topic.
+ *
+ * This component is used in the 'nft-indexer-listener' module, which is running a background job (ConsumerWorker)
+ * that is reading from the internal queue and publishes to the public queue.
  */
 @Component
 class InternalItemHandler(
