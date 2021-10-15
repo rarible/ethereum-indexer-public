@@ -17,8 +17,6 @@ class ErrorsController {
 
     @ExceptionHandler(IndexerApiException::class)
     fun handleIndexerApiException(ex: IndexerApiException) = mono {
-        logWithNecessaryLevel(ex.status, ex, "Indexer api error while handle request")
-
         val error = Erc20IndexerApiErrorDto(
             status = ex.status.value(),
             code = ex.code,
@@ -37,13 +35,5 @@ class ErrorsController {
             code = Code.UNKNOWN,
             message = ex.message ?: "Something went wrong"
         )
-    }
-
-    private suspend fun logWithNecessaryLevel(status: HttpStatus, ex: Exception, message: String = "") {
-        if (status.is5xxServerError) {
-            logger.error(message, ex)
-        } else {
-            logger.warn(message, ex)
-        }
     }
 }

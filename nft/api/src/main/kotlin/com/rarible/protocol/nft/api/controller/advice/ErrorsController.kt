@@ -20,7 +20,6 @@ class ErrorsController {
 
     @ExceptionHandler(NftIndexerApiException::class)
     fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
-        logger.warn("Indexer API error while handle request: {}", ex.message)
         ResponseEntity.status(ex.status).body(ex.data)
     }
 

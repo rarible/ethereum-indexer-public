@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.common.toBinary
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.BurnLazyNftFormDto
@@ -14,11 +16,15 @@ import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -39,6 +45,7 @@ import scalether.abi.Uint256Type
 import scalether.domain.Address
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 import java.util.*
 
 @End2EndTest
@@ -46,6 +53,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
+
+    @Autowired
+    private lateinit var nftItemHistoryRepository: NftItemHistoryRepository
 
     @MockkBean
     private lateinit var lazyNftValidator: LazyNftValidator
@@ -55,6 +65,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var itemRepository: ItemRepository
+
+    @Autowired
+    private lateinit var itemReduceService: ItemReduceService
 
     @Test
     fun `should burn mint lazy item`() = runBlocking {
@@ -89,6 +102,104 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val item = itemRepository.findById(itemId).awaitSingle()
         assertTrue(item.deleted)
+    }
+
+    @Test
+    fun `should burn lazy item after minting`() = runBlocking {
+        val privateKey = BigInteger.valueOf(100)
+        val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+
+        // the first 20 bytes must be equal to the creator
+        val bs = Binary.apply(creator.bytes().plus(ByteArray(12)))
+        val tokenId = Uint256Type.decode(bs, 0).value()
+
+        val lazyItemDto = createNft(tokenId, listOf(PartDto(creator, 10000)))
+
+        // lazy mint
+        val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
+        tokenRepository.save(token).awaitFirst()
+
+        val itemId = ItemId(lazyItemDto.contract, EthUInt256(lazyItemDto.tokenId))
+
+        coEvery { lazyNftValidator.validate(any()) } returns ValidationResult.Valid
+
+        val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
+        val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirst()
+
+        // minting
+        val eventMint = ItemTransfer(
+            from = Address.ZERO(),
+            token = itemDto.contract,
+            tokenId = EthUInt256.of(itemDto.tokenId),
+            value = EthUInt256.ONE,
+            owner = creator,
+            date = Instant.now()
+        )
+        val logMint = LogEvent(
+            data = eventMint,
+            address = Address.ZERO(),
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
+            status = LogEventStatus.CONFIRMED,
+            blockNumber = 2,
+            logIndex = 2,
+            index = 2,
+            minorLogIndex = 0
+        )
+        nftItemHistoryRepository.save(logMint).awaitFirstOrNull()
+        val eventCreator = ItemCreators(
+            token = itemDto.contract,
+            tokenId = EthUInt256.of(itemDto.tokenId),
+            creators = lazyMint.creators,
+            date = Instant.now()
+        )
+        val logCreator = LogEvent(
+            data = eventCreator,
+            address = Address.ZERO(),
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
+            status = LogEventStatus.CONFIRMED,
+            blockNumber = 1,
+            logIndex = 1,
+            index = 1,
+            minorLogIndex = 0
+        )
+        nftItemHistoryRepository.save(logCreator).awaitFirstOrNull()
+        itemReduceService.onItemHistories(listOf(logMint, logCreator)).awaitFirstOrNull()
+
+        // checking after minting
+        val item = itemRepository.findById(itemId).awaitSingle()
+        assertEquals(creator, item.owners[0])
+        assertEquals(EthUInt256.ONE, item.supply)
+        assertEquals(EthUInt256.ZERO, item.lazySupply)
+
+        // burn
+        val eventBurn = ItemTransfer(
+            from = creator,
+            token = itemDto.contract,
+            tokenId = EthUInt256.of(itemDto.tokenId),
+            value = EthUInt256.ONE,
+            owner = Address.ZERO(),
+            date = Instant.now()
+        )
+        val logBurn = LogEvent(
+            data = eventBurn,
+            address = Address.ZERO(),
+            topic = ItemReduceService.WORD_ZERO,
+            transactionHash = ItemReduceService.WORD_ZERO,
+            status = LogEventStatus.CONFIRMED,
+            blockNumber = 4,
+            logIndex = Int.MAX_VALUE,
+            index = 4,
+            minorLogIndex = 0
+        )
+        nftItemHistoryRepository.save(logBurn).awaitFirstOrNull()
+        itemReduceService.onItemHistories(listOf(logBurn)).awaitFirstOrNull()
+
+        val deletedItem = itemRepository.findById(itemId).awaitSingle()
+        assertTrue(deletedItem.deleted)
+        assertEquals(EthUInt256.ZERO, deletedItem.supply)
+        assertEquals(EthUInt256.ZERO, deletedItem.lazySupply)
     }
 
     @Test

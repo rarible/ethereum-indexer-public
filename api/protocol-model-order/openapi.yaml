@@ -26,6 +26,7 @@ components:
       type: object
       properties:
         status:
+          default: 400
           type: integer
           format: int32
         code:
@@ -53,6 +54,10 @@ components:
             - ORDER_INVALID_UPDATE
         message:
           type: string
+        status:
+          default: 400
+          type: integer
+          format: int32
 
     AggregationData:
       type: object

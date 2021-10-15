@@ -100,7 +100,7 @@ class OpenSeaCacheDescriptor(
                 .timeout(Duration.ofMillis(requestTimeout))
                 .onErrorResume {
                     if (it is WebClientResponseException) {
-                        logger.warn(marker, "Unable to fetch asset using opensea $token:$tokenId status: ${it.statusCode}")
+                        logger.warn(marker, "Unable to fetch asset using opensea $token:$tokenId status: ${it.rawStatusCode}, message: ${it.statusText}")
                     } else {
                         logger.warn(marker, "Unable to fetch asset using opensea $token:$tokenId", it)
                     }

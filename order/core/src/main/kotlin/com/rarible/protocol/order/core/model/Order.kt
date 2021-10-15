@@ -188,9 +188,12 @@ data class Order(
                 takeValue = takeValue,
                 makeBalance = (makeBalance * EthUInt256.of(10000)) / (fee + EthUInt256.of(10000))
             )
+
+            val calculatedMakeStock = minOf(make, roundedMakeBalance)
+
             return when(orderType) {
-                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> minOf(make, roundedMakeBalance)
-                OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else roundedMakeBalance
+                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> calculatedMakeStock
+                OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
             }
         }
 

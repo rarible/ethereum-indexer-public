@@ -23,12 +23,4 @@ class ErrorsController {
             message = ex.message ?: "Something went wrong"
         )
     }
-
-    private suspend fun logWithNecessaryLevel(status: HttpStatus, ex: Exception, message: String = "") {
-        if (status.is5xxServerError) {
-            logger.error(message, ex)
-        } else {
-            logger.warn(message, ex)
-        }
-    }
 }

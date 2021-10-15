@@ -83,7 +83,6 @@ class TokenReduceService(
                 logger.info("not found token with id ${token.id}. inserting")
                 tokenRepository.save(token)
             }
-            .retryOptimisticLock(3)
     }
 
     companion object {

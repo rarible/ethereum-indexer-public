@@ -4,6 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -12,7 +13,8 @@ import java.math.BigDecimal
 @Component
 class OrderActivityConverter(
     private val priceNormalizer: PriceNormalizer,
-    private val assetDtoConverter: AssetDtoConverter
+    private val assetDtoConverter: AssetDtoConverter,
+    private val orderRepository: OrderRepository
 ) {
 
     suspend fun convert(ar: ActivityResult): OrderActivityDto? {
@@ -35,6 +37,25 @@ class OrderActivityConverter(
 
         return when (data) {
             is OrderSideMatch -> {
+                // TODO: we will re-implement this using a dedicated field in OrderSideMatch event.
+                val leftType = if (orderRepository.findById(data.hash) != null) {
+                    if (data.isBid()) {
+                        OrderActivityMatchSideDto.Type.BID
+                    } else {
+                        OrderActivityMatchSideDto.Type.SELL
+                    }
+                } else {
+                    null
+                }
+                val rightType = if (data.counterHash?.let { orderRepository.findById(it) } != null) {
+                    if (data.isBid()) {
+                        OrderActivityMatchSideDto.Type.SELL
+                    } else {
+                        OrderActivityMatchSideDto.Type.BID
+                    }
+                } else {
+                    null
+                }
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = data.date,
@@ -42,21 +63,13 @@ class OrderActivityConverter(
                         maker = data.maker,
                         asset = assetDtoConverter.convert(data.make),
                         hash = data.hash,
-                        type = if (data.isBid()) {
-                            OrderActivityMatchSideDto.Type.BID
-                        } else {
-                            OrderActivityMatchSideDto.Type.SELL
-                        }
+                        type = leftType
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = data.taker,
                         asset = assetDtoConverter.convert(data.take),
                         hash = data.counterHash ?: Word.apply(ByteArray(32)),
-                        type = if (data.isBid()) {
-                            OrderActivityMatchSideDto.Type.SELL
-                        } else {
-                            OrderActivityMatchSideDto.Type.BID
-                        }
+                        type = rightType
                     ),
                     price = if (data.isBid()) {
                         price(data.make, data.take /* NFT */)

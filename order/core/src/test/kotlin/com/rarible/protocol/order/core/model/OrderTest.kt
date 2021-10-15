@@ -95,6 +95,21 @@ class OrderTest {
     }
 
     @Test
+    fun `stock is 0 when cancelled for OpenSea order`() {
+        Assertions.assertThat(
+            order.copy(
+                type = OrderType.OPEN_SEA_V1,
+                cancelled = true,
+                lastUpdateAt = nowMillis()
+            ).withMakeBalance(
+                makeBalance = EthUInt256.TEN,
+                protocolCommission = EthUInt256.ZERO
+            ).makeStock
+        )
+            .isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
     fun `stock is less than make value when balance is low`() {
         Assertions
             .assertThat(order.withMakeBalance(EthUInt256.of(5), EthUInt256.ZERO).makeStock)

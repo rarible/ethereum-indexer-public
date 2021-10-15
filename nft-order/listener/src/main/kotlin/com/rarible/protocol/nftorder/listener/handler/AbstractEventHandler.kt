@@ -17,7 +17,7 @@ abstract class AbstractEventHandler<T> : ConsumerEventHandler<T> {
                 event, ex.data
             )
         } catch (ex: Exception) {
-            logger.error("Unexpected exception during handling event [{}]", event, ex)
+            logger.error("Unexpected exception during handling event [$event]", ex)
         }
     }
 

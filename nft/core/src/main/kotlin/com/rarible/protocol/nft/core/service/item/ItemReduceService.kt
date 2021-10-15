@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.orNull
+import com.rarible.core.common.retryOptimisticLock
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
@@ -132,9 +133,9 @@ class ItemReduceService(
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
         return ownerships
-            .filter { it.owner != Address.ZERO() }
             .map { it.copy(value = maxOf(EthUInt256.of(0), it.value)) }
             .fillValueAndLazyValue()
+            .filter { it.owner != Address.ZERO() }
     }
 
     private fun List<Ownership>.fillValueAndLazyValue(): List<Ownership> {
@@ -160,8 +161,12 @@ class ItemReduceService(
     }
 
     private fun saveItem(marker: Marker, item: Item, ownerships: List<Ownership>): Mono<Item> {
-        logger.info(marker, "Saving Item $item\nowners: ${ownerships.map { it.owner }}")
-        return itemRepository.save(item.copy(owners = ownerships.map { it.owner }))
+        // TODO: RPN-497 we limit the number of Item.owners to avoid "too big Kafka message" errors.
+        //  Here we use a heuristic: those limited owners will be the ones with the highest balance.
+        //  Anyway we should come up with a better solution of passing huge 'Item.owners'.
+        val withNewOwners = item.copy(owners = ownerships.sortedByDescending { it.value }.map { it.owner })
+        logger.info(marker, "Saving updated item: {}", withNewOwners)
+        return itemRepository.save(withNewOwners)
             .flatMap { savedItem ->
                 eventListenerListener.onItemChanged(savedItem).thenReturn(savedItem)
             }
@@ -288,7 +293,11 @@ class ItemReduceService(
                             } else {
                                 ownership
                             }
-                            event.from -> ownership.copy(value = ownership.value - event.value)
+                            event.from -> if (ownership.owner != Address.ZERO()) {
+                                ownership.copy(value = ownership.value - event.value)
+                            } else {
+                                ownership
+                            }
                             else -> ownership
                         }
                     }

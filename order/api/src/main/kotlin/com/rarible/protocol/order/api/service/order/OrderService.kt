@@ -1,7 +1,12 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LazyErc1155Dto
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.LazyNftDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.order.api.exceptions.OrderDataException
 import com.rarible.protocol.order.api.misc.data
@@ -9,7 +14,17 @@ import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
-import com.rarible.protocol.order.core.model.*
+
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -32,7 +47,7 @@ class OrderService(
 
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
         val maker = form.maker
-        val make = checkLazyNft(AssetConverter.convert(form.make))
+        val make = checkLazyNftMake(maker, AssetConverter.convert(form.make))
         val take = checkLazyNft(AssetConverter.convert(form.take))
         val hash = Order.hashKey(form.maker, make.type, take.type, form.salt)
         val data = OrderDataConverter.convert(form.data)
@@ -82,6 +97,18 @@ class OrderService(
 
     suspend fun findOrders(legacyFilter: OrderFilterDto, size: Int, continuation: String?): List<Order> {
         return orderRepository.search(legacyFilter.toCriteria(continuation, size))
+    }
+
+    private suspend fun checkLazyNftMake(maker: Address, asset: Asset): Asset {
+        val make = checkLazyNft(asset)
+        val makeType = make.type
+        if (makeType is Erc1155LazyAssetType && makeType.creators.first().account == maker) {
+            return make
+        }
+        if (makeType is Erc721LazyAssetType && makeType.creators.first().account == maker) {
+            return make
+        }
+        return asset
     }
 
     private suspend fun checkLazyNft(asset: Asset): Asset {
