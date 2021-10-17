@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.task.TaskRepository
+import com.rarible.core.task.TaskService
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
@@ -30,10 +31,7 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
     private lateinit var taskRepository: TaskRepository
 
     @Autowired
-    private lateinit var orderReduceTaskHandlerInitializer: OrderReduceTaskHandlerInitializer
-
-    @Autowired
-    private lateinit var onChainOrderVersionInsertionTaskHandlerInitializer: OnChainOrderVersionInsertionTaskHandlerInitializer
+    private lateinit var taskService: TaskService
 
     @Test
     internal fun `should insert OrderVersion and reduce on-chain order`() = runBlocking<Unit> {
@@ -67,7 +65,7 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
         exchangeHistoryRepository.save(logEvent).awaitFirst()
 
         // Run order-related tasks.
-        onChainOrderVersionInsertionTaskHandlerInitializer.init()
+        taskService.runTask(OnChainOrderVersionInsertionTaskHandler.TYPE, "")
 
         Wait.waitAssert {
             val task = taskRepository.findByTypeAndParam(
@@ -78,7 +76,7 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
             assertEquals(TaskStatus.COMPLETED, task!!.lastStatus)
         }
 
-        orderReduceTaskHandlerInitializer.init()
+        taskService.runTask(OrderReduceTaskHandler.ORDER_REDUCE, "")
 
         Wait.waitAssert {
             assertTrue(orderVersionRepository.existsByOnChainOrderKey(logEvent.toLogEventKey()).awaitSingle())
