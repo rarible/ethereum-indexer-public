@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -18,7 +17,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 /**
  * Service responsible for inserting or updating order state (see [save]).
@@ -74,7 +72,6 @@ class OrderUpdateService(
 
         val protocolCommission = protocolCommissionProvider.get()
         val withNewMakeStock = order.withMakeBalance(makeBalance, protocolCommission)
-        logger.info("Fetched makeBalance $makeBalance (knownMakeBalance=$knownMakeBalance, newMakeStock=${withNewMakeStock.makeStock}, oldMakeStock=${order.makeStock})")
 
         val updated = if (order.makeStock == EthUInt256.ZERO && withNewMakeStock.makeStock != EthUInt256.ZERO) {
             priceUpdateService.withUpdatedAllPrices(withNewMakeStock)
@@ -83,10 +80,11 @@ class OrderUpdateService(
         }
         return if (order.makeStock != updated.makeStock) {
             val savedOrder = orderRepository.save(updated)
-            logger.info("Updated order ${savedOrder.hash}, makeStock=${savedOrder.makeStock}, makeBalance=$makeBalance")
             orderListener.onOrder(savedOrder)
+            logger.info("Make stock of order ${savedOrder.hash} updated: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
             savedOrder
         } else {
+            logger.info("Make stock of order ${updated.hash} did not change: makeStock=${updated.makeStock}, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
             order
         }
     }
