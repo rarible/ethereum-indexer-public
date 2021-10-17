@@ -12,20 +12,20 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 
 @IntegrationTest
 @FlowPreview
-@Disabled // TODO: enable the test after release. It is flaky.
-internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
+class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
@@ -34,9 +34,15 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
     fun `should update all not canceled balance orders`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
-        val stock = EthUInt256.of(5)
+
         val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
         val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+
+        val oldStock = EthUInt256.of(2)
+        val newStock = EthUInt256.of(5)
+
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns oldStock
 
         val order1 = createOrderVersion().copy(
             maker = targetMaker,
@@ -65,7 +71,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val updatedBalance = mockk<Erc20BalanceDto> {
             every { owner } returns targetMaker
             every { contract } returns targetToken
-            every { balance } returns stock.value
+            every { balance } returns newStock.value
         }
         val event = mockk<Erc20BalanceUpdateEventDto> {
             every { balance } returns updatedBalance
@@ -75,10 +81,10 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             orderBalanceService.handle(event)
 
-            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
-            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(newStock)
+            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(newStock)
+            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ZERO) // because order #3 is a cancelled order.
+            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(oldStock)
         }
     }
 
@@ -86,7 +92,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
     fun `should update all not canceled nft orders`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
         val targetTokenId = EthUInt256.of(2)
-        val stock = EthUInt256.of(5)
+
         val make = Asset(Erc1155AssetType(targetToken, targetTokenId), EthUInt256.TEN)
         val take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
         val maker = AddressFactory.create()
@@ -105,10 +111,18 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             maker = maker,
             make = make,
             take = take
+            // cancelled
         )
         val order4 = createOrderVersion().copy(
             make = make
+            // other maker => different hash
         )
+
+        val oldStock = EthUInt256.ONE
+        val newStock = EthUInt256.of(5)
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns oldStock
+
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
 
@@ -116,7 +130,7 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
             every { owner } returns maker
             every { contract } returns targetToken
             every { tokenId } returns targetTokenId.value
-            every { value } returns stock.value
+            every { value } returns newStock.value
         }
         val event = mockk<NftOwnershipUpdateEventDto> {
             every { ownership } returns updatedOwnership
@@ -125,10 +139,10 @@ internal class OrderBalanceServiceTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             orderBalanceService.handle(event)
 
-            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(stock)
-            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(stock)
-            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
-            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(EthUInt256.ONE)
+            assertThat(orderRepository.findById(order1.hash)?.makeStock).isEqualTo(newStock)
+            assertThat(orderRepository.findById(order2.hash)?.makeStock).isEqualTo(newStock)
+            assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ZERO) // because order #3 is a cancelled order.
+            assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(oldStock)
         }
     }
 }
