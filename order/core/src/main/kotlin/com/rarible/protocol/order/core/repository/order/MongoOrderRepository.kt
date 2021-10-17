@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.mongodb.client.result.UpdateResult
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.*
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.time.Instant
 import java.util.*
@@ -126,8 +124,8 @@ class MongoOrderRepository(
             Criteria().andOperator(
                 Order::start exists true,
                 Order::end exists true,
-                Order::start lte now.toEpochMilli(),
-                Order::end gte now.toEpochMilli(),
+                Order::start lte now.epochSecond,
+                Order::end gte now.epochSecond,
                 Order::makeStock isEqualTo EthUInt256.ZERO
             )
         )
