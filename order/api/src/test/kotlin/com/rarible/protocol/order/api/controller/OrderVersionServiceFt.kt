@@ -4,17 +4,17 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusConverter
-import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.*
+import io.mockk.clearMocks
 import io.mockk.coEvery
-import com.rarible.protocol.order.core.model.BidStatus
-import com.rarible.protocol.order.core.model.OrderVersion
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -347,11 +347,14 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
     }
 
     private suspend fun saveOrders(version: List<OrderVersionBid>) {
-        io.mockk.clearMocks(assetMakeBalanceProvider)
+        clearMocks(assetMakeBalanceProvider)
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
             val order = arg<Order>(0)
+            val totalOrigin = (order.data as? OrderRaribleV2DataV1)?.originFees
+                .orEmpty().sumBy { it.value.value.toInt() }
+            val balance = EthUInt256.of(1000 * (1 + totalOrigin.toDouble() / 10000).toInt())
             when (version.firstOrNull { it.orderVersion.maker == order.maker }?.status) {
-                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
+                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> balance
                 else -> EthUInt256.ZERO
             }
         }
