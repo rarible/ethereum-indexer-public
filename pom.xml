@@ -25,7 +25,7 @@
     </distributionManagement>
 
     <properties>
-        <revision>1.16.0</revision>
+        <revision>1.16.1</revision>
         <nexus.maven.public>http://nexus.rarible.int/repository/maven-public</nexus.maven.public>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
