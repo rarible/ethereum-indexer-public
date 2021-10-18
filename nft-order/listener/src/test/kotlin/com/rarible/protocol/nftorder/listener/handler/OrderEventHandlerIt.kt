@@ -1,20 +1,26 @@
 package com.rarible.protocol.nftorder.listener.handler
 
+import com.rarible.core.client.WebClientResponseProxyException
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.converter.ShortOrderConverter
+import com.rarible.protocol.nftorder.core.repository.MissedCollectionRepository
 import com.rarible.protocol.nftorder.core.service.ItemService
 import com.rarible.protocol.nftorder.core.service.OwnershipService
 import com.rarible.protocol.nftorder.listener.test.IntegrationTest
 import com.rarible.protocol.nftorder.listener.test.data.*
 import io.daonomic.rpc.domain.Word
+import io.mockk.coEvery
+import io.mockk.mockk
 import io.mockk.verify
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.math.BigInteger
 
 @IntegrationTest
@@ -28,6 +34,9 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
 
     @Autowired
     lateinit var ownershipService: OwnershipService
+
+    @Autowired
+    lateinit var missedCollectionRepository: MissedCollectionRepository
 
     /**
      * The largest test case - received order contains both make/take assetTypes with related items.
@@ -220,6 +229,31 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
         Wait.waitAssert {
             assertThat(itemEvents).hasSize(1)
         }
+    }
+
+    @Test
+    fun `should write nonfound item in OpenSea order`() = runWithKafka<Unit> {
+
+        // emulating 404
+        coEvery { nftItemControllerApi.getNftItemById(any()) } throws WebClientResponseProxyException(
+            WebClientResponseException(404, "test", mockk(),  ByteArray(1), mockk())
+        )
+
+        // Starting with item already saved in Mongo with cancelled OpenSea order
+        val itemId = randomItemId()
+        val current = randomOpenSeaV1OrderDto(randomAssetErc20(), randomAddress(), randomAssetErc1155(itemId))
+
+        // Fetching best bid order, which is OpenSeaOrder - and there is no Rarible best order
+        val openSeaBestBid = randomOpenSeaV1OrderDto(itemId)
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE)
+        orderControllerApiMock.mockGetById(openSeaBestBid)
+
+        val updatedOrder = current.copy(hash = current.hash, cancelled = true)
+        orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
+
+        // Ensure we saved missed collection id
+        assertNotNull(missedCollectionRepository.get(itemId.token))
     }
 
     @Test
