@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
@@ -20,14 +19,13 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -77,15 +75,39 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     private lateinit var itemEventConsumer: RaribleKafkaConsumer<NftItemEventDto>
 
+    private val itemEvents = Collections.synchronizedList(ArrayList<NftItemEventDto>())
+    private val ownershipEvents = Collections.synchronizedList(ArrayList<NftOwnershipEventDto>())
+    private lateinit var consumingJobs: List<Job>
+
     @BeforeEach
     fun cleanDatabase() {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
             .then().block()
+    }
 
-        ownershipEventConsumer = createOwnershipEventConsumer()
+    @BeforeEach
+    fun setUpEventConsumers() {
         itemEventConsumer = createItemEventConsumer()
+        ownershipEventConsumer = createOwnershipEventConsumer()
+        consumingJobs = listOf(
+            GlobalScope.launch {
+                itemEventConsumer.receive().collect {
+                    itemEvents += it.value
+                }
+            },
+            GlobalScope.launch {
+                createOwnershipEventConsumer().receive().collect {
+                    ownershipEvents += it.value
+                }
+            }
+        )
+    }
+
+    @AfterEach
+    fun stopConsumers() = runBlocking {
+        consumingJobs.forEach { it.cancelAndJoin() }
     }
 
     suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
@@ -133,19 +155,12 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         itemMeta: NftItemMetaDto,
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<NftItemEventDto>>())
-
-        val job = async {
-            itemEventConsumer
-                .receive()
-                .collect { events.add(it) }
-        }
         Wait.waitAssert {
-            assertThat(events)
+            assertThat(itemEvents)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { messages ->
-                    val filteredEvents = messages.filter { message ->
-                        when (val event = message.value) {
+                .satisfies { events ->
+                    val filteredEvents = events.filter { event ->
+                        when (event) {
                             is NftItemUpdateEventDto -> {
                                 event.item.contract == token
                                         && event.item.tokenId == tokenId.value
@@ -157,10 +172,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                         }
                     }
                     assertThat(filteredEvents).hasSize(1)
-                    assertThat(filteredEvents.single().value).isInstanceOf(eventType)
+                    assertThat(filteredEvents.single()).isInstanceOf(eventType)
                 }
         }
-        job.cancel()
     }
 
     protected suspend fun checkOwnershipEventWasPublished(
@@ -169,36 +183,24 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         owner: Address,
         eventType: Class<out NftOwnershipEventDto>
     ) = coroutineScope {
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<NftOwnershipEventDto>>())
-
-        val job = async {
-            ownershipEventConsumer
-                .receive()
-                .collect { events.add(it) }
-        }
         Wait.waitAssert {
-            assertThat(events)
+            assertThat(ownershipEvents)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { messages ->
-                    val filteredEvents = messages.filter { message ->
-                        when (val event = message.value) {
-                            is NftOwnershipUpdateEventDto -> {
-                                event.ownership.contract == token &&
-                                        event.ownership.tokenId == tokenId.value &&
-                                        event.ownership.owner == owner
-                            }
-                            is NftOwnershipDeleteEventDto -> {
-                                event.ownership.token == token &&
-                                        event.ownership.tokenId == tokenId.value &&
-                                        event.ownership.owner == owner
-                            }
+                .anyMatch { event ->
+                    eventType.isInstance(event) && when (event) {
+                        is NftOwnershipUpdateEventDto -> {
+                            event.ownership.contract == token &&
+                                    event.ownership.tokenId == tokenId.value &&
+                                    event.ownership.owner == owner
+                        }
+                        is NftOwnershipDeleteEventDto -> {
+                            event.ownership.token == token &&
+                                    event.ownership.tokenId == tokenId.value &&
+                                    event.ownership.owner == owner
                         }
                     }
-                    assertThat(filteredEvents).hasSize(1)
-                    assertThat(filteredEvents.single().value).isInstanceOf(eventType)
                 }
         }
-        job.cancel()
     }
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {

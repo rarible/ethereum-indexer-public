@@ -36,6 +36,10 @@
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-model-erc20</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-model-common</artifactId>
+        </dependency>
 
         <!-- =============== Rarible-core ================ -->
         <dependency>

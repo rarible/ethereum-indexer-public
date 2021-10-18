@@ -5,7 +5,6 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -28,12 +27,15 @@ class OrderRecalculateMakeStockJob(
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.resetMakeStockScheduleRate}")
     fun update() = runBlocking {
         if (properties.resetMakeStockEnabled.not()) return@runBlocking
+        update(Instant.now())
+    }
 
+    suspend fun update(now: Instant) {
         logger.info("Starting to update makeStock for orders...")
 
         merge(
-            orderRepository.findExpiredMakeStock(Instant.now()),
-            orderRepository.findActualZeroMakeStock(Instant.now())
+            orderRepository.findExpiredMakeStock(now),
+            orderRepository.findActualZeroMakeStock(now)
         ).collect {
             orderUpdateService.updateMakeStock(hash = it.hash)
         }

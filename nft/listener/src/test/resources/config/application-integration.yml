@@ -26,3 +26,7 @@ common:
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"
+
+ethereumBlockReindexEnabled: false
+pendingLogsProcessingEnabled: false
+reindexBlocksJobEnabled: false

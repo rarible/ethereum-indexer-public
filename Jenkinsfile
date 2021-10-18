@@ -4,6 +4,9 @@ def ETHEREUM_PROPERTIES = [BLOCKCHAIN:"ethereum"]
 // def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
 
 pipeline {
+  parameters {
+    booleanParam(name: 'RUN_TEST', defaultValue: true, description: 'Run tests during build.')
+  }
   agent none
 
   options {
@@ -19,9 +22,11 @@ pipeline {
   stages {
     stage('test') {
       agent any
-//       steps {
-//         sh 'echo skipTests'
-//       }
+      when {
+        expression {
+            return RUN_TEST.toBoolean()
+        }
+      }
       steps {
          sh 'mvn clean test -U'
       }
