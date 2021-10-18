@@ -252,7 +252,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
         val updatedOrder = current.copy(hash = current.hash, cancelled = true)
         orderEventHandler.handle(createOrderUpdateEvent(updatedOrder))
 
-        // Ensure we saved missted collection id
+        // Ensure we saved missed collection id
         assertNotNull(missedCollectionRepository.get(itemId.token))
     }
 
