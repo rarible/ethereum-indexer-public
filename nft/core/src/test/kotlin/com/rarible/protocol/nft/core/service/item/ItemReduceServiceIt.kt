@@ -414,7 +414,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun updateOwnership() = runBlocking {
+    fun `update ownership for ERC1155`() = runBlocking {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -449,6 +449,48 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.of(8), expLazyValue = EthUInt256.ZERO)
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
+    }
+
+    /**
+     * Check that ownership of ERC721 is removed for the previous owner and a new ownership for the new owner is created
+     */
+    @Test
+    fun `ownership transferred for ERC721`() = runBlocking {
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+        val owner = AddressFactory.create()
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
+
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer, token)
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+        checkItem(token, tokenId, EthUInt256.ONE)
+        checkOwnership(owner, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
+
+        val buyer = AddressFactory.create()
+
+        val transferAsBuying = ItemTransfer(buyer, token, tokenId, nowMillis(), owner, EthUInt256.ONE)
+        saveItemHistory(transferAsBuying, token)
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
+        checkItem(token, tokenId, EthUInt256.ONE)
+        checkOwnership(buyer, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
+        checkEmptyOwnership(owner, token, tokenId)
+
+        checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
+        checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
     @Test
@@ -824,13 +866,23 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         }
     }
 
+    private suspend fun checkEmptyOwnership(
+        owner: Address,
+        token: Address,
+        tokenId: EthUInt256
+    ) {
+        val ownershipId = OwnershipId(token, tokenId, owner)
+        val found = ownershipRepository.findById(ownershipId).awaitFirstOrNull()
+        assertThat(found).withFailMessage("Deleted ownership must not be found: $ownershipId").isNull()
+    }
+
     private suspend fun checkOwnership(
         owner: Address,
         token: Address,
         tokenId: EthUInt256,
         expValue: EthUInt256,
         expLazyValue: EthUInt256
-    ) {
+    ) = runBlocking {
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
