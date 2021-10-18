@@ -2,13 +2,9 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.Erc20BalanceDto
-import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
-import com.rarible.protocol.dto.NftOwnershipDto
-import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc1155AssetType
-import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.dto.*
+import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -29,6 +25,9 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
+
+    @Autowired
+    private lateinit var assetBalanceProvider: AssetBalanceProvider
 
     @Test
     fun `should update all not canceled balance orders`() = runBlocking<Unit> {
@@ -144,5 +143,37 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
             assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ZERO) // because order #3 is a cancelled order.
             assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(oldStock)
         }
+    }
+
+    @Test
+    fun `sell order makeStock becomes 0 when make NFT is transferred`() = runBlocking<Unit> {
+        val targetToken = AddressFactory.create()
+        val targetTokenId = EthUInt256.of(2)
+
+        val make = Asset(Erc721AssetType(targetToken, targetTokenId), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256.TEN)
+        val oldOwner = AddressFactory.create()
+
+        val initialStock = EthUInt256.ONE
+        clearMocks(assetMakeBalanceProvider)
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns initialStock
+        val order = orderUpdateService.save(
+            createOrderVersion().copy(
+                maker = oldOwner,
+                make = make,
+                take = take
+            )
+        )
+        assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(initialStock)
+        val deletedOwnership = mockk<NftDeletedOwnershipDto> {
+            every { owner } returns oldOwner
+            every { token } returns targetToken
+            every { tokenId } returns targetTokenId.value
+        }
+        val event = mockk<NftOwnershipDeleteEventDto> {
+            every { ownership } returns deletedOwnership
+        }
+        orderBalanceService.handle(event)
+        assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(EthUInt256.ZERO)
     }
 }

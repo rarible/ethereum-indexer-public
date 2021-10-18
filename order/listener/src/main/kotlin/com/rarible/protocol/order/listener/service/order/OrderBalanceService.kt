@@ -40,7 +40,14 @@ class OrderBalanceService(
                     .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
                     .collect { orderUpdateService.updateMakeStock(it.hash, knownMakeBalance = stock) }
             }
-            is NftOwnershipDeleteEventDto -> Unit
+            is NftOwnershipDeleteEventDto -> {
+                val maker = event.ownership.owner
+                val token = event.ownership.token
+                val tokenId = event.ownership.tokenId
+                orderRepository
+                    .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
+                    .collect { orderUpdateService.updateMakeStock(it.hash, knownMakeBalance = EthUInt256.ZERO) }
+            }
         }
     }
 
