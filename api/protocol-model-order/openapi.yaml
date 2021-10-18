@@ -766,6 +766,23 @@ components:
         continuation:
           type: string
 
+    OrderCurrencies:
+      type: object
+      description: List of distinct currencies in which payments for sell or bid orders were suggested
+      required:
+        - orderType
+        - currencies
+      properties:
+        orderType:
+          type: string
+          enum:
+            - SELL
+            - BID
+        currencies:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetType"
+
     OrderEvent:
       type: object
       required:
