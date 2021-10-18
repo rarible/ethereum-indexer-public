@@ -349,6 +349,16 @@ components:
           type: string
         format:
           type: string
+    NftItemRoyalty:
+      required:
+        - account
+        - value
+      type: object
+      properties:
+        account:
+          "$ref": "#/components/schemas/Address"
+        value:
+          type: integer
     NftDeletedItem:
       required:
         - id
@@ -434,6 +444,13 @@ components:
           "$ref": "#/components/schemas/NftMedia"
         animation:
           "$ref": "#/components/schemas/NftMedia"
+    NftItemRoyaltyList:
+      type: object
+      properties:
+        royalty:
+          type: array
+          items:
+            "$ref": "#/components/schemas/NftItemRoyalty"
     NftMedia:
       required:
         - meta
