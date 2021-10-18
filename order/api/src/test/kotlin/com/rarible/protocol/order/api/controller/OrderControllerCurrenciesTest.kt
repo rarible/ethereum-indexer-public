@@ -11,7 +11,10 @@ import com.rarible.protocol.order.api.data.createOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -22,10 +25,10 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @IntegrationTest
-class OrderCurrenciesControllerTest : AbstractIntegrationTest() {
+class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
 
     @Autowired
-    private lateinit var controller: OrderCurrenciesController
+    private lateinit var controller: OrderController
 
     @Autowired
     private lateinit var assetTypeDtoConverter: AssetTypeDtoConverter
@@ -146,7 +149,7 @@ class OrderCurrenciesControllerTest : AbstractIntegrationTest() {
     }
 
     private suspend fun checkSellCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.bySellOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+        val currenciesDto = controller.currenciesBySellOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.SELL)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }
@@ -154,7 +157,7 @@ class OrderCurrenciesControllerTest : AbstractIntegrationTest() {
     }
 
     private suspend fun checkBidCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.byBidOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+        val currenciesDto = controller.currenciesByBidOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.BID)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }
