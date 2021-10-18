@@ -3,7 +3,9 @@ package com.rarible.protocol.nftorder.listener.service
 import com.rarible.core.client.WebClientResponseProxyException
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nftorder.core.model.ItemId
+import com.rarible.protocol.nftorder.core.model.MissedCollection
 import com.rarible.protocol.nftorder.core.model.OwnershipId
+import com.rarible.protocol.nftorder.core.repository.MissedCollectionRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -12,7 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class OrderEventService(
     private val itemEventService: ItemEventService,
-    private val ownershipEventService: OwnershipEventService
+    private val ownershipEventService: OwnershipEventService,
+    private val missedCollectionRepository: MissedCollectionRepository
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -23,14 +26,20 @@ class OrderEventService(
         val takeItemId = toItemId(order.take.assetType)
 
         val mFuture = makeItemId?.let {
-            async { ignoreApi404 { itemEventService.onItemBestSellOrderUpdated(makeItemId, order, forced) } }
+            async { ignoreApi404(it) {
+                itemEventService.onItemBestSellOrderUpdated(makeItemId, order, forced)
+            } }
         }
         val tFuture = takeItemId?.let {
-            async { ignoreApi404 { itemEventService.onItemBestBidOrderUpdated(takeItemId, order, forced) } }
+            async { ignoreApi404(it) {
+                itemEventService.onItemBestBidOrderUpdated(takeItemId, order, forced)
+            } }
         }
         val oFuture = makeItemId?.let {
             val ownershipId = OwnershipId(makeItemId.token, makeItemId.tokenId, order.maker)
-            async { ignoreApi404 { ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order, forced) } }
+            async { ignoreApi404(it) {
+                ownershipEventService.onOwnershipBestSellOrderUpdated(ownershipId, order, forced)
+            } }
         }
 
         mFuture?.await()
@@ -52,12 +61,12 @@ class OrderEventService(
         }
     }
 
-    private suspend fun ignoreApi404(call: suspend () -> Unit) {
+    private suspend fun ignoreApi404(itemId: ItemId, call: suspend () -> Unit) {
         try {
             call()
         } catch (ex: WebClientResponseProxyException) {
             logger.warn("Received NOT_FOUND code from client, details: {}, message: {}", ex.data, ex.message)
+            missedCollectionRepository.save(MissedCollection(itemId.token))
         }
     }
-
 }
