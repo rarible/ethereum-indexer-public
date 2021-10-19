@@ -546,7 +546,7 @@ paths:
     get:
       tags:
         - nft-item-controller
-      description: Returns the NFT item meta by identifier
+      description: Returns item royalty by identifier
       operationId: getNftItemRoyaltyById
       parameters:
         - name: itemId
@@ -560,7 +560,7 @@ paths:
         - lang: 'cURL'
           source: |
             curl --request GET \
-            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/meta'
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/royalty'
       responses:
         '200':
           description: OK
