@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.api.service.item
 
+import com.rarible.core.cache.CacheService
+import com.rarible.core.cache.get
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
@@ -16,10 +18,12 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RoyaltyCacheDescriptor
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
@@ -27,7 +31,8 @@ import org.springframework.stereotype.Component
 class ItemService(
     private val conversionService: ConversionService,
     private val itemMetaService: ItemMetaService,
-    private val royaltyService: RoyaltyService,
+    private val royaltyCacheDescriptor: RoyaltyCacheDescriptor,
+    private val cacheService: CacheService,
     private val itemRepository: ItemRepository,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
@@ -52,9 +57,11 @@ class ItemService(
             .let { conversionService.convert(it) }
     }
 
-    suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto {
-        val parts = royaltyService.getRoyalty(itemId)
-        return NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
+    suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {
+        val parts = cacheService
+            .get(itemId.toString(), royaltyCacheDescriptor, true)
+            .awaitSingle()
+        NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
     }
 
     suspend fun resetMeta(itemId: ItemId) {
