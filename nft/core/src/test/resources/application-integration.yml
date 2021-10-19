@@ -38,6 +38,8 @@ api:
     cache-timeout: 864000000
     request-timeout: 20000
     media-meta-timeout: 10000
+  royalty:
+    cache-timeout: 600000 # 10 min
 
 ipfs:
   upload_proxy: "https://pinata.rarible.com/upload"
