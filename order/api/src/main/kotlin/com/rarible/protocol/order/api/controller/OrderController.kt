@@ -440,7 +440,7 @@ class OrderController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun currenciesBySellOrdersOfItem(
+    override suspend fun getCurrenciesBySellOrdersOfItem(
         contract: String,
         tokenId: String
     ): ResponseEntity<OrderCurrenciesDto> {
@@ -451,7 +451,7 @@ class OrderController(
         return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.SELL, currencies))
     }
 
-    override suspend fun currenciesByBidOrdersOfItem(
+    override suspend fun getCurrenciesByBidOrdersOfItem(
         contract: String,
         tokenId: String
     ): ResponseEntity<OrderCurrenciesDto> {

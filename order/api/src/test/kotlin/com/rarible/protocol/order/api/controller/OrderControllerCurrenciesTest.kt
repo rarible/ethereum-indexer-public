@@ -149,7 +149,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
     }
 
     private suspend fun checkSellCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.currenciesBySellOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+        val currenciesDto = controller.getCurrenciesBySellOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.SELL)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }
@@ -157,7 +157,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
     }
 
     private suspend fun checkBidCurrencies(vararg currencies: Asset) {
-        val currenciesDto = controller.currenciesByBidOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
+        val currenciesDto = controller.getCurrenciesByBidOrdersOfItem(token.prefixed(), tokenId.toString()).body!!
         assertThat(currenciesDto.orderType).isEqualTo(OrderCurrenciesDto.OrderType.BID)
         assertThat(currenciesDto.currencies.map { it.intern() }).containsExactlyInAnyOrderElementsOf(
             currencies.map { assetTypeDtoConverter.convert(it.type).intern() }

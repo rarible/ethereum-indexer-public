@@ -667,7 +667,7 @@ paths:
     get:
       tags:
         - order-controller
-      operationId: currenciesBySellOrdersOfItem
+      operationId: getCurrenciesBySellOrdersOfItem
       description: Returns currencies taken as payment in all sell orders of the item
       parameters:
         - name: contract
@@ -694,7 +694,7 @@ paths:
     get:
       tags:
         - order-controller
-      operationId: currenciesByBidOrdersOfItem
+      operationId: getCurrenciesByBidOrdersOfItem
       description: Returns currencies made as payment in all bid orders of the item
       parameters:
         - name: contract
