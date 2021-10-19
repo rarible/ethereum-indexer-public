@@ -328,12 +328,15 @@ components:
         date:
           type: string
           format: date-time
+          description: "Data when the item was created"
         pending:
           type: array
+          description: "Pending information about the item"
           items:
             "$ref": "#/components/schemas/ItemTransfer"
         deleted:
           type: boolean
+          description: "Item was deleted or not"
         meta:
           "$ref": "#/components/schemas/NftItemMeta"
     NftItemAttribute:
@@ -407,14 +410,14 @@ components:
       properties:
         total:
           type: integer
-          description: Number of items were found by request
+          description: "The number of items was found by request"
           format: int64
         continuation:
           type: string
-          description: Continuation token to paginate items search result
+          description: "Continuation token from the previous response"
         items:
           type: array
-          description: List of found items
+          description: "List of found items"
           items:
             "$ref": "#/components/schemas/NftItem"
     NftItemMeta:
@@ -424,10 +427,13 @@ components:
       properties:
         name:
           type: string
+          description: "Name of the NFT item"
         description:
           type: string
+          description: "Description of the NFT item"
         attributes:
           type: array
+          description: "Attributes of the NFT item"
           items:
             "$ref": "#/components/schemas/NftItemAttribute"
         image:
@@ -442,10 +448,12 @@ components:
       properties:
         url:
           type: object
+          description: "URL address of the NFT media"
           additionalProperties:
             type: string
         meta:
           type: object
+          description: "Meta of the NFT media"
           additionalProperties:
             "$ref": "#/components/schemas/NftMediaMeta"
     NftMediaMeta:
@@ -455,12 +463,15 @@ components:
       properties:
         type:
           type: string
+          description: "NFT media type"
         width:
           type: integer
           format: int32
+          description: "Width of the NFT media"
         height:
           type: integer
           format: int32
+          description: "Height of the NFT media"
 
     LazyNft:
       type: object

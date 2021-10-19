@@ -20,12 +20,15 @@ components:
       properties:
         code:
           type: string
+          description: "Error type"
           enum:
             - NOT_FOUND
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 404
 
     EthereumApiErrorBadRequest:
@@ -36,13 +39,16 @@ components:
       properties:
         code:
           type: string
+          description: "Error type"
           enum:
             - BAD_REQUEST
             - VALIDATION
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 400
 
     EthereumApiErrorServerError:
@@ -54,12 +60,15 @@ components:
       properties:
         code:
           type: string
+          description: "Error type"
           enum:
             - UNKNOWN
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 500
 
     Activity:
