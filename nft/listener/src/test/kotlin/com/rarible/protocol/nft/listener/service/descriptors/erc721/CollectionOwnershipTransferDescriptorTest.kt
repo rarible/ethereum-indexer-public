@@ -71,8 +71,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
-        val timestamp = token.__ERC721Rarible_init("Test", "TEST", "BASE", "URI")
-            .execute().verifySuccess().getTimestamp()
+        token.__ERC721Rarible_init("Test", "TEST", "BASE", "URI")
+            .execute().verifySuccess()
 
         Wait.waitAssert {
             val histories = nftHistoryRepository.findAllByCollection(token.address()).collectList().awaitFirst()
@@ -80,7 +80,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             // Ownership of the contract is set first, then "CreateERC721Rarible" event is emitted.
             val (ownershipLog, createLog) = histories
             assertEquals(
-                CollectionOwnershipTransferred(token.address(), timestamp, Address.ZERO(), creatorAddress),
+                CollectionOwnershipTransferred(token.address(), Address.ZERO(), creatorAddress),
                 ownershipLog.data as CollectionOwnershipTransferred
             )
             assertThat(createLog.data).isInstanceOf(CreateCollection::class.java)
@@ -119,7 +119,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             val data = histories.last().data
             assertThat(data).isInstanceOf(CollectionOwnershipTransferred::class.java)
             assertEquals(
-                CollectionOwnershipTransferred(token.address(), timestamp, creatorAddress, newOwnerAddress),
+                CollectionOwnershipTransferred(token.address(), creatorAddress, newOwnerAddress),
                 data as CollectionOwnershipTransferred
             )
         }
