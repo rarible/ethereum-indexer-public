@@ -5,7 +5,6 @@ import com.rarible.protocol.contracts.collection.*
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
-import java.time.Instant
 
 enum class CollectionEventType(val topic: Set<Word>) {
     CREATE(
@@ -26,12 +25,10 @@ enum class CollectionEventType(val topic: Set<Word>) {
 
 sealed class CollectionEvent(var type: CollectionEventType) : EventData {
     abstract val id: Address
-    abstract val date: Instant
 }
 
 data class CreateCollection(
     override val id: Address,
-    override val date: Instant,
     val owner: Address,
     val name: String,
     val symbol: String
@@ -39,7 +36,6 @@ data class CreateCollection(
 
 data class CollectionOwnershipTransferred(
     override val id: Address,
-    override val date: Instant,
     val previousOwner: Address,
     val newOwner: Address
 ) : CollectionEvent(CollectionEventType.OWNERSHIP)
