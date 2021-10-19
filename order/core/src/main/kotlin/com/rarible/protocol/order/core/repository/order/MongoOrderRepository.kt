@@ -87,6 +87,31 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
+    override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
+        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
+            .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
+            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        return template.findDistinct<AssetType>(
+            Query(criteria),
+            "${Order::take.name}.${Asset::type.name}",
+            Order::class.java,
+            AssetType::class.java
+        ).asFlow()
+    }
+
+    override fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
+        @Suppress("DuplicatedCode")
+        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
+            .and(Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
+            .and(Order::take / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        return template.findDistinct<AssetType>(
+            Query(criteria),
+            "${Order::make.name}.${Asset::type.name}",
+            Order::class.java,
+            AssetType::class.java
+        ).asFlow()
+    }
+
     override fun findByTargetBalanceAndNotCanceled(maker: Address, token: Address): Flow<Order> {
         val criteria = Criteria.where("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(false)
             .and(Order::maker.name).isEqualTo(maker)

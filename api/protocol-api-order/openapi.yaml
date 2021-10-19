@@ -663,6 +663,60 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  "/v0.1/orders/currencies/bySellOrdersOfItem":
+    get:
+      tags:
+        - order-controller
+      operationId: getCurrenciesBySellOrdersOfItem
+      description: Returns currencies taken as payment in all sell orders of the item
+      parameters:
+        - name: contract
+          description: "Address of the contract"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          description: "Token identifier"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderCurrenciesPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/orders/currencies/byBidOrdersOfItem":
+    get:
+      tags:
+        - order-controller
+      operationId: getCurrenciesByBidOrdersOfItem
+      description: Returns currencies made as payment in all bid orders of the item
+      parameters:
+        - name: contract
+          description: "Address of the contract"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          description: "Token identifier"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+      responses:
+        '200':
+          $ref: "#/components/responses/OrderCurrenciesPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   "/v0.1/orders/sell/byCollection":
     get:
       deprecated: true
@@ -1444,6 +1498,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/OrdersPagination"
+    OrderCurrenciesPage:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/OrderCurrencies"
     OrderBidsPage:
       description: OK
       content:
