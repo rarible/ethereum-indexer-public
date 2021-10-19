@@ -11,7 +11,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
-import java.time.Instant
 
 @Service
 class CollectionOwnershipTransferLogDescriptor : LogEventDescriptor<CollectionOwnershipTransferred> {
@@ -28,7 +27,6 @@ class CollectionOwnershipTransferLogDescriptor : LogEventDescriptor<CollectionOw
         val newOwner = event.newOwner()
         return CollectionOwnershipTransferred(
             id = log.address(),
-            date = Instant.ofEpochSecond(timestamp),
             previousOwner = previousOwner,
             newOwner = newOwner
         ).toMono()

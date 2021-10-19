@@ -201,7 +201,6 @@ class PendingTransactionService(
                 return PendingLog(
                     CreateCollection(
                         id = address,
-                        date = nowMillis(),
                         owner = from,
                         name = it.get()._1(),
                         symbol = it.get()._2()
@@ -215,7 +214,6 @@ class PendingTransactionService(
             if (it.isDefined) {
                 return PendingLog(CreateCollection(
                     id = address,
-                    date = nowMillis(),
                     owner = from,
                     name = it.get()._1(),
                     symbol = it.get()._2()
@@ -226,7 +224,6 @@ class PendingTransactionService(
             if (it.isDefined) {
                 return PendingLog(CreateCollection(
                     id = address,
-                    date = nowMillis(),
                     owner = from,
                     name = it.get()._1(),
                     symbol = it.get()._2()
@@ -237,7 +234,6 @@ class PendingTransactionService(
             if (it.isDefined) {
                 return PendingLog(CreateCollection(
                     id = address,
-                    date = nowMillis(),
                     owner = from,
                     name = it.get()._1(),
                     symbol = it.get()._2()

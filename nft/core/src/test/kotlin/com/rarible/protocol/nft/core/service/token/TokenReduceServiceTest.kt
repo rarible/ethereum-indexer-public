@@ -25,11 +25,10 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         val collectionId = randomAddress()
         prepareStorage(
             CreateCollection(
-                collectionId,
-                nowMillis(),
-                randomAddress(),
-                "Test",
-                "TEST"
+                id = collectionId,
+                owner = randomAddress(),
+                name = "Test",
+                symbol = "TEST"
             )
         )
         val token = tokenReduceService.updateToken(collectionId)
@@ -47,7 +46,6 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         prepareStorage(
             CreateCollection(
                 collectionId,
-                nowMillis(),
                 previousOwner,
                 "Test",
                 "TEST"
@@ -61,7 +59,6 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         prepareStorage(
             CollectionOwnershipTransferred(
                 collectionId,
-                nowMillis(),
                 previousOwner,
                 newOwner
             )
@@ -89,8 +86,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                     logIndex = 0,
                     minorLogIndex = 0,
                     index = 0,
-                    createdAt = event.date,
-                    updatedAt = event.date
+                    createdAt = nowMillis(),
+                    updatedAt = nowMillis()
                 )
             ).awaitFirst()
         }
