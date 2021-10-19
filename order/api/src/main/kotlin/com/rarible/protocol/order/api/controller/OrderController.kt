@@ -7,15 +7,13 @@ import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
-import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
-import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
-import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.converters.dto.*
 import com.rarible.protocol.order.core.converters.model.*
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
@@ -23,6 +21,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -34,6 +33,8 @@ import java.time.Instant
 @RestController
 class OrderController(
     private val orderService: OrderService,
+    private val orderRepository: OrderRepository,
+    private val assetTypeDtoConverter: AssetTypeDtoConverter,
     private val orderInvertService: OrderInvertService,
     private val prepareTxService: PrepareTxService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
@@ -437,6 +438,28 @@ class OrderController(
             nextContinuation
         )
         return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getCurrenciesBySellOrdersOfItem(
+        contract: String,
+        tokenId: String
+    ): ResponseEntity<OrderCurrenciesDto> {
+        val currencies = orderRepository.findTakeTypesOfSellOrders(
+            Address.apply(contract),
+            EthUInt256.of(BigInteger(tokenId))
+        ).map { assetTypeDtoConverter.convert(it) }.toList()
+        return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.SELL, currencies))
+    }
+
+    override suspend fun getCurrenciesByBidOrdersOfItem(
+        contract: String,
+        tokenId: String
+    ): ResponseEntity<OrderCurrenciesDto> {
+        val currencies = orderRepository.findMakeTypesOfBidOrders(
+            Address.apply(contract),
+            EthUInt256.of(BigInteger(tokenId))
+        ).map { assetTypeDtoConverter.convert(it) }.toList()
+        return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.BID, currencies))
     }
 
     private suspend fun searchOrders(

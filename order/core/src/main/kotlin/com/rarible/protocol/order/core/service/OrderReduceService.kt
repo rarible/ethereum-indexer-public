@@ -204,7 +204,8 @@ class OrderReduceService(
             append("fill=${saved.fill}, ")
             append("cancelled=${saved.cancelled}, ")
             append("signature=${saved.signature}, ")
-            append("pendingSize=${saved.pending.size}")
+            append("pendingSize=${saved.pending.size},")
+            append("status=${saved.status}")
         })
         return saved
     }

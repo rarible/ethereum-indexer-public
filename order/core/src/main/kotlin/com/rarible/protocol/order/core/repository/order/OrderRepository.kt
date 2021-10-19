@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,10 @@ interface OrderRepository {
     fun findByTargetBalanceAndNotCanceled(maker: Address, token: Address): Flow<Order>
 
     fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order>
+
+    fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
+
+    fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
 
     suspend fun createIndexes()
 
