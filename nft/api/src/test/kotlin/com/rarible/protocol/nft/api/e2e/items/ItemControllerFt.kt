@@ -3,27 +3,46 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
+import com.rarible.core.cache.Cache
+import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.web3j.utils.Numeric
+import reactor.core.publisher.Mono
+import scala.Tuple2
 import scalether.domain.AddressFactory
+import scalether.domain.response.TransactionReceipt
+import scalether.transaction.MonoGasPriceProvider
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
+import java.math.BigInteger
+import java.util.*
 import java.util.stream.Stream
 
 @End2EndTest
@@ -37,6 +56,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
+
+    @Autowired
+    protected lateinit var nftIndexerProperties: NftIndexerProperties
 
     @Autowired
     private lateinit var mapper : ObjectMapper
@@ -223,6 +245,51 @@ class ItemControllerFt : SpringContainerBaseTest() {
         }
     }
 
+    @Test
+    fun `should get royalty by itemId from contract`() = runBlocking {
+        val item = createItem()
+
+        // set royalty
+        val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val userSender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+        val royaltyContract = RoyaltiesRegistry.deployAndWait(userSender, poller).awaitFirst()
+        nftIndexerProperties.royaltyRegistryAddress = royaltyContract.address().prefixed()
+        royaltyContract.__RoyaltiesRegistry_init().execute().verifySuccess()
+
+        val royalty = Tuple2.apply(AddressFactory.create(), BigInteger.ONE)
+        royaltyContract
+            .setRoyaltiesByTokenAndTokenId(item.token, item.tokenId.value, listOf(royalty).toTypedArray())
+            .execute().verifySuccess()
+
+        // get from api
+        val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
+        assertEquals(NftItemRoyaltyListDto(listOf(NftItemRoyaltyDto(royalty._1, royalty._2.intValueExact()))), dto)
+
+        // check cache
+        val cache = mongo.findById(item.id.toString(), Cache::class.java, "cache_royalty").awaitSingle()
+        assertEquals(listOf(Part(royalty._1, royalty._2.intValueExact())), cache.data)
+    }
+
+    @Test
+    fun `should get royalty by itemId from cache`() = runBlocking {
+        val item = createItem()
+
+        // set royalty
+        val royalty = Tuple2.apply(AddressFactory.create(), BigInteger.ONE)
+        val cache = Cache(item.id.toString(), listOf(Part(royalty._1, royalty._2.intValueExact())), Date())
+        mongo.save(cache, "cache_royalty").awaitSingle()
+
+        // get from api
+        val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
+        assertEquals(NftItemRoyaltyListDto(listOf(NftItemRoyaltyDto(royalty._1, royalty._2.intValueExact()))), dto)
+    }
+
     @ParameterizedTest
     @MethodSource("lazyNft")
     fun `should get lazy item by id`(itemLazyMint: ItemLazyMint) = runBlocking<Unit> {
@@ -251,5 +318,29 @@ class ItemControllerFt : SpringContainerBaseTest() {
             }
             else -> throw IllegalArgumentException("Unexpected token standard ${itemLazyMint.standard}")
         }
+    }
+
+    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
+        val receipt = waitReceipt()
+        Assertions.assertTrue(receipt.success())
+        return receipt
+    }
+
+    protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
+        val value = this.awaitFirstOrNull()
+        require(value != null) { "txHash is null" }
+        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
+    }
+
+    // restoring address after tests
+    private lateinit var royaltyRegistryAddress: String
+
+    @BeforeEach
+    fun remember() {
+        royaltyRegistryAddress = nftIndexerProperties.royaltyRegistryAddress
+    }
+    @AfterEach
+    fun cleanup() {
+        nftIndexerProperties.royaltyRegistryAddress = royaltyRegistryAddress
     }
 }

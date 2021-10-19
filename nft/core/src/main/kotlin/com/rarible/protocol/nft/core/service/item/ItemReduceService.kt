@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.orNull
-import com.rarible.core.common.retryOptimisticLock
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
@@ -124,7 +123,7 @@ class ItemReduceService(
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = pair.first
         if (item.royalties.isEmpty()) {
-            val royalty = royaltyService.getRoyalty(item.token, item.tokenId)
+            val royalty = royaltyService.getRoyaltyDeprecated(item.token, item.tokenId)
             Pair(item.copy(royalties = royalty), pair.second)
         } else {
             pair

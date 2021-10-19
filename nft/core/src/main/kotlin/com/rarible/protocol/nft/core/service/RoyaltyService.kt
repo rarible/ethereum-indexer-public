@@ -25,26 +25,13 @@ class RoyaltyService(
     //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
     //  2) item doesn't have any royalties at all
     //  Currently, we request royalties from the contract in both cases.
-    suspend fun getRoyalty(address: Address, tokenId: EthUInt256): List<Part> {
+    suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
         val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
             return cachedRoyalties.royalty
         }
         logger.info("Requesting royalties $address:$tokenId")
-        val royalties = try {
-            val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
-            provider.getRoyalties(address, tokenId.value)
-                .call().awaitSingle()
-                .map { Part(it._1, it._2.intValueExact()) }.toList()
-                .also { logger.info("Got royalties for $address:$tokenId: $it") }
-        } catch (e: RpcCodeException) {
-            logger.info("RoyaltiesProvider does not know about royalties for $address:$tokenId, see Jira RPC-109, " +
-                    "returned ${e.message()}")
-            return emptyList()
-        } catch (e: Exception) {
-            logger.error("Failed to request royalties for $address:$tokenId", e)
-            return emptyList()
-        }
+        val royalties = getByToken(address, tokenId)
         if (royalties.isNotEmpty()) {
             return royaltyRepository.save(
                 Royalty(
@@ -55,6 +42,23 @@ class RoyaltyService(
             ).awaitSingle().royalty
         }
         return emptyList()
+    }
+
+    suspend fun getByToken(address: Address, tokenId: EthUInt256): List<Part> = try {
+        val provider = IRoyaltiesProvider(Address.apply(nftIndexerProperties.royaltyRegistryAddress), sender)
+        provider.getRoyalties(address, tokenId.value)
+            .call().awaitSingle()
+            .map { Part(it._1, it._2.intValueExact()) }.toList()
+            .also { logger.info("Got royalties for $address:$tokenId: $it") }
+    } catch (e: RpcCodeException) {
+        logger.info(
+            "RoyaltiesProvider does not know about royalties for $address:$tokenId, see Jira RPC-109, " +
+                    "returned ${e.message()}"
+        )
+        emptyList()
+    } catch (e: Exception) {
+        logger.error("Failed to request royalties for $address:$tokenId", e)
+        emptyList()
     }
 
     companion object {

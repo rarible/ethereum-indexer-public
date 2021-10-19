@@ -43,6 +43,11 @@ class ItemController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
+        val result = itemService.getRoyalty(conversionService.convert(itemId))
+        return ResponseEntity.ok(result)
+    }
+
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
         itemService.resetMeta(conversionService.convert(itemId))
         return ResponseEntity.noContent().build()
