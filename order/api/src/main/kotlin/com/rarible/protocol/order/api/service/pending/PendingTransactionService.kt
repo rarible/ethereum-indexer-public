@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.v2.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -158,7 +159,36 @@ class PendingTransactionService(
                 }
             }
             ExchangeV2.matchOrdersSignature().id().prefixed() -> {
-                null //TODO: need to support
+                val it = ExchangeV2.matchOrdersSignature().`in`().decode(data, 0).value()
+
+                val owner = it._1()._1()
+                val salt = it._1()._5()
+                val makeAssetType = it._1()._2()._1().toAssetType()
+                val takeAssetType = it._1()._4()._1().toAssetType()
+                val order = findOrder(makeAssetType, takeAssetType, owner, salt)
+                val counterHash = Order.hashKey(from, takeAssetType, makeAssetType, BigInteger.ZERO)
+                val takeValue = it._3()._2()._2()
+
+                order?.let {
+                    val event = OrderSideMatch(
+                        hash = it.hash,
+                        counterHash = counterHash,
+                        fill = EthUInt256.of(takeValue),
+                        make = order.make,
+                        take = order.take,
+                        maker = owner,
+                        taker = from,
+                        side = OrderSide.LEFT,
+                        makeValue = null,
+                        takeValue = null,
+                        makeUsd = null,
+                        takeUsd = null,
+                        makePriceUsd = null,
+                        takePriceUsd = null,
+                        source = HistorySource.RARIBLE
+                    )
+                    PendingLog(event, MatchEvent.id())
+                }
             }
             else -> null
         }

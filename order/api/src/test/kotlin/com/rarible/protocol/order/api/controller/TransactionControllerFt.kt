@@ -17,12 +17,10 @@ import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.pending.PendingTransactionService
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -184,18 +182,6 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
     @Test
     fun `should create pending transaction for cancel - v2`() = runBlocking<Unit> {
-        val beneficiary = Address.THREE()
-
-        val buyerFeeSignerPrivateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-
-        val buyerFeeSigner = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            buyerFeeSignerPrivateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
-
         val state = ExchangeStateV1.deployAndWait(userSender, poller).block()!!
         val proxy = TransferProxy.deployAndWait(userSender, poller).block()!!
         val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(userSender, poller).block()!!
@@ -215,7 +201,6 @@ class TransactionControllerFt : AbstractIntegrationTest() {
         val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
         val taker = AddressFactory.create()
 
-        // Cancel(orderKeyHash, order.maker, order.makeAsset.assetType, order.takeAsset.assetType);
         val orderKey = Tuple9(
             sender.from(),
             Tuple2(makeAssetType.forTx(), BigInteger.ONE),
