@@ -2,12 +2,15 @@ package com.rarible.protocol.order.api.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.common.nowMillis
+import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.test.data.randomWord
+import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.client.NoopWebClientCustomizer
+import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
@@ -25,19 +28,26 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
+import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
+import java.math.BigInteger
 import java.net.URI
 import javax.annotation.PostConstruct
 
@@ -89,20 +99,16 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         return openEthereumTest.monoTransactionPoller()
     }
 
-    private fun createEthereum(): MonoEthereum {
-        return openEthereumTest.ethereum()
-    }
-
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirst()
         require(value != null) { "txHash is null" }
-        return createEthereum().ethGetTransactionReceipt(value).awaitFirst().get()
+        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
         val receipt = waitReceipt()
         Assertions.assertTrue(receipt.success()) {
-            val result = createEthereum().executeRaw(
+            val result = ethereum.executeRaw(
                 Request(
                     1, "trace_replayTransaction", Lists.toScala(
                         receipt.transactionHash().toString(),
@@ -138,6 +144,25 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
             )
         ).awaitFirst()
         orderReduceService.updateOrder(orderHash)
+    }
+
+    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
+        val (privateKey, _, address) = generateNewKeys(privateKey0)
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+        return Triple(address, sender, privateKey)
+    }
+
+    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+        return NewKeys(privateKey, publicKey, signer)
     }
 
     protected lateinit var orderClient: OrderControllerApi

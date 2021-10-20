@@ -403,25 +403,6 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
         to = to()
     )
 
-    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
-        val (privateKey, _, address) = generateNewKeys(privateKey0)
-        val sender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
-        return Triple(address, sender, privateKey)
-    }
-
-    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
-        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
-        val publicKey = Sign.publicKeyFromPrivate(privateKey)
-        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
-        return NewKeys(privateKey, publicKey, signer)
-    }
-
     @TestConfiguration
     class TestAssetTypeServiceConfiguration {
         @Bean

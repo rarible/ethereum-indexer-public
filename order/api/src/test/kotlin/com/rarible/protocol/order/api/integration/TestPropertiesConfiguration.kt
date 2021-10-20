@@ -14,10 +14,12 @@ import com.rarible.protocol.order.api.data.createNftItemDto
 import com.rarible.protocol.order.api.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
+import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.apache.commons.lang3.RandomUtils
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
@@ -30,6 +32,11 @@ import java.math.BigDecimal
 
 @TestConfiguration
 class TestPropertiesConfiguration {
+
+    @Bean
+    fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
+        return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
+    }
 
     @Bean
     @Primary
