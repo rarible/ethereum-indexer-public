@@ -39,7 +39,7 @@ class ReindexTokenRoyaltiesHandler(
 
         return itemRepository.findTokenItems(reindexParam.token, from?.let { EthUInt256.of(it) })
             .map { item ->
-                royaltyService.getRoyalty(item.token, item.tokenId)
+                royaltyService.getRoyaltyDeprecated(item.token, item.tokenId)
                 item.tokenId
             }.map { it.toString() }
     }

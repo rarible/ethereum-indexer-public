@@ -110,8 +110,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         token.__ERC721Rarible_init("Test", "TEST", "BASE", "URI").execute().verifySuccess()
 
         val (newOwnerAddress, _) = newSender()
-        val timestamp = token.transferOwnership(newOwnerAddress).withSender(creatorSender).execute()
-            .verifySuccess().getTimestamp()
+        token.transferOwnership(newOwnerAddress).withSender(creatorSender)
+            .execute().verifySuccess()
 
         Wait.waitAssert {
             val histories = nftHistoryRepository.findAllByCollection(token.address()).collectList().awaitFirst()

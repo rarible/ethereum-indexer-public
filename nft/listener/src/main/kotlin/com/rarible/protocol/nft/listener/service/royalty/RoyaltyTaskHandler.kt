@@ -25,7 +25,7 @@ class RoyaltyTaskHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         return itemRepository.findFromByToken(from?.let { Address.apply(it) } ?: Address.ZERO())
             .map { item ->
-                royaltyService.getRoyalty(item.token, item.tokenId)
+                royaltyService.getRoyaltyDeprecated(item.token, item.tokenId)
                 item.token
             }.map { it.prefixed() }
     }

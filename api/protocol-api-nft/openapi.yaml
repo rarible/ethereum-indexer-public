@@ -541,6 +541,38 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+
+  "/v0.1/items/{itemId}/royalty":
+    get:
+      tags:
+        - nft-item-controller
+      description: Returns item royalty by identifier
+      operationId: getNftItemRoyaltyById
+      parameters:
+        - name: itemId
+          in: path
+          description: "Item identifier, has format `contract:tokenId`"
+          required: true
+          schema:
+            type: string
+          example: 0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/nft/items/0x60f80121c31a0d46b5279700f9df786054aa5ee5:717802/royalty'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NftItemRoyaltyList"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
   ###################### Collections ######################
 
   "/v0.1/collections/{collection}/generate_token_id":

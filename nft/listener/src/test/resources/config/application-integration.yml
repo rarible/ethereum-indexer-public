@@ -21,6 +21,10 @@ parityWebSocketUrls: ${rarible.common.parityWebSocketUrls}
 jms-brokerUrls: ${rarible.common.jms-brokerUrls}
 eventTopic: ${rarible.common.jms-eventTopic}
 
+api:
+  royalty:
+    cache-timeout: 600000 # 10 min
+
 common:
   kafka-replica-set: ${kafka.hosts}
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
