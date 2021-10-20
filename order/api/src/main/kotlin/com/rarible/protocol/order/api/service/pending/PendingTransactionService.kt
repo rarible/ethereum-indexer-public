@@ -5,12 +5,11 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
-import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
-import com.rarible.protocol.contracts.exchange.v2.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
-import com.rarible.protocol.contracts.exchange.v2.MatchEvent
+import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -19,7 +18,6 @@ import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
-import scala.Tuple4
 import scalether.domain.Address
 import java.math.BigInteger
 import com.rarible.protocol.contracts.exchange.v1.CancelEvent as CancelEventV1
