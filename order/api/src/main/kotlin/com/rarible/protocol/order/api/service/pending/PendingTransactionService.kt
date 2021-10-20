@@ -163,11 +163,16 @@ class PendingTransactionService(
 
                 val owner = it._1()._1()
                 val salt = it._1()._5()
-                val makeAssetType = it._1()._2()._1().toAssetType()
-                val takeAssetType = it._1()._4()._1().toAssetType()
+
+                val make = it._1()._2()
+                val makeAssetType = make._1().toAssetType()
+
+                val take = it._3()._2()
+                val takeAssetType = take._1().toAssetType()
+
                 val order = findOrder(makeAssetType, takeAssetType, owner, salt)
                 val counterHash = Order.hashKey(from, takeAssetType, makeAssetType, BigInteger.ZERO)
-                val takeValue = it._3()._2()._2()
+                val takeValue = take._2()
 
                 order?.let {
                     val event = OrderSideMatch(
@@ -179,8 +184,8 @@ class PendingTransactionService(
                         maker = owner,
                         taker = from,
                         side = OrderSide.LEFT,
-                        makeValue = null,
-                        takeValue = null,
+                        makeValue = make._2().toBigDecimal(),
+                        takeValue = take._2().toBigDecimal(),
                         makeUsd = null,
                         takeUsd = null,
                         makePriceUsd = null,
