@@ -14,8 +14,24 @@ sealed class TokenTaskParam {
             ReindexTokenItemsTaskParams::class -> ReindexTokenItemsTaskParams.fromParamString(param)
             ReduceTokenItemsTaskParams::class -> ReduceTokenItemsTaskParams.fromParamString(param)
             ReindexTokenItemRoyaltiesTaskParam::class -> ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
+            ReindexTokenTaskParams::class -> ReindexTokenTaskParams.fromParamString(param)
+            ReduceTokenTaskParams::class -> ReduceTokenTaskParams.fromParamString(param)
             else -> error("Unknown param type $paramType")
         } as P
+    }
+}
+
+data class ReindexTokenTaskParams(
+    override val tokens: List<Address>
+) : TokenTaskParam() {
+
+    override fun toParamString(): String = tokens.joinToString(",") { it.prefixed() }
+
+    companion object {
+        const val ADMIN_REINDEX_TOKEN = "ADMIN_REINDEX_TOKEN"
+
+        fun fromParamString(param: String): ReindexTokenTaskParams =
+            ReindexTokenTaskParams(param.split(",").map { Address.apply(param) })
     }
 }
 
@@ -40,6 +56,18 @@ data class ReindexTokenItemsTaskParams(
                 parts[1].split(",").map { Address.apply(it) }
             )
         }
+    }
+}
+
+data class ReduceTokenTaskParams(val oneToken: Address) : TokenTaskParam() {
+    override val tokens: List<Address> get() = listOf(oneToken)
+    override fun toParamString(): String = oneToken.prefixed()
+
+    companion object {
+        const val ADMIN_REDUCE_TOKEN = "ADMIN_REDUCE_TOKEN"
+
+        fun fromParamString(param: String): ReduceTokenTaskParams =
+            ReduceTokenTaskParams(Address.apply(param))
     }
 }
 

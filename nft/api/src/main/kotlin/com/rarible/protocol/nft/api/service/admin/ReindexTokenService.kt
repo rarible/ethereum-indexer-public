@@ -36,6 +36,16 @@ class ReindexTokenService(
             taskRepository.findByType(ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES).toList()
     }
 
+    suspend fun createReindexTokenTask(tokens: List<Address>, fromBlock: Long?): Task {
+        val params = ReindexTokenTaskParams(tokens)
+        checkOtherTasksAreNotProcessingTheSameTokens(params, ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
+        return saveTask(
+            params = params.toParamString(),
+            type = ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN,
+            state = fromBlock
+        )
+    }
+
     suspend fun createReindexTokenItemsTask(tokens: List<Address>, fromBlock: Long?): Task {
         val tokenStandardMap = tokens.toSet().map { it to tokenRegistrationService.getTokenStandard(it).awaitFirst() }
         val standards = tokenStandardMap.map { it.second }.toSet()
@@ -53,6 +63,12 @@ class ReindexTokenService(
             type = ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
             state = fromBlock
         )
+    }
+
+    suspend fun createReduceTokenTask(token: Address): Task {
+        val params = ReduceTokenTaskParams(token)
+        checkOtherTasksAreNotProcessingTheSameTokens(params, ReduceTokenTaskParams.ADMIN_REDUCE_TOKEN)
+        return saveTask(params.toParamString(), ReduceTokenTaskParams.ADMIN_REDUCE_TOKEN, state = null)
     }
 
     suspend fun createReduceTokenItemsTask(token: Address): Task {

@@ -38,6 +38,18 @@ class AdminController(
     }
 
     @GetMapping(
+        value = ["/admin/nft/collections/tasks/reindexToken"],
+        produces = ["application/json"]
+    )
+    suspend fun createReindexTokenTask(
+        @RequestParam(value = "collection", required = true) collection: List<Address>,
+        @RequestParam(value = "fromBlock", required = false) fromBlock: Long?
+    ): ResponseEntity<AdminTaskDto> {
+        val task = reindexTokenService.createReindexTokenTask(collection, fromBlock)
+        return ResponseEntity.ok().body(convert(task))
+    }
+
+    @GetMapping(
         value = ["/admin/nft/collections/tasks/reindexItems"],
         produces = ["application/json"]
     )
@@ -46,6 +58,17 @@ class AdminController(
         @RequestParam(value = "fromBlock", required = false) fromBlock: Long?
     ): ResponseEntity<AdminTaskDto> {
         val task = reindexTokenService.createReindexTokenItemsTask(collection, fromBlock)
+        return ResponseEntity.ok().body(convert(task))
+    }
+
+    @GetMapping(
+        value = ["/admin/nft/collections/tasks/reduceToken"],
+        produces = ["application/json"]
+    )
+    suspend fun createReduceTokenTask(
+        @RequestParam(value = "collection", required = true) collection: Address
+    ): ResponseEntity<AdminTaskDto> {
+        val task = reindexTokenService.createReduceTokenTask(collection)
         return ResponseEntity.ok().body(convert(task))
     }
 
