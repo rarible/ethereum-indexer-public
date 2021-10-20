@@ -30,7 +30,7 @@ paths:
               schema:
                 "$ref": "#/components/schemas/Lock"
         '400':
-          description: "Bad Request"
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -67,7 +67,7 @@ paths:
               schema:
                 type: string
         '400':
-          description: Internal Server Error
+          description: Bad Request
           content:
             application/json:
               schema:
