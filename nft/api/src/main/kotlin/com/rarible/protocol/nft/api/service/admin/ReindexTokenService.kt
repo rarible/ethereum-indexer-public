@@ -47,44 +47,40 @@ class ReindexTokenService(
             throw IllegalArgumentException("Reindex support only $SUPPORTED_REINDEX_TOKEN_STANDARD, but you have ${formatToString(tokenStandardMap)}")
         }
         val params = ReindexTokenItemsTaskParams(standards.first(), tokens)
-        checkOtherReindexTokenItemsTasks(params)
-        return saveTask(params.toParamString(), ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS, state = fromBlock)
+        checkOtherTasksAreNotProcessingTheSameTokens(params, ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
+        return saveTask(
+            params = params.toParamString(),
+            type = ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
+            state = fromBlock
+        )
     }
 
     suspend fun createReduceTokenItemsTask(token: Address): Task {
         val params = ReduceTokenItemsTaskParams(token)
-        checkOtherTasks(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+        checkOtherTasksAreNotProcessingTheSameTokens(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
         return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS, state = null)
     }
 
     suspend fun createReindexTokenItemRoyaltiesTask(token: Address): Task {
         val params = ReindexTokenItemRoyaltiesTaskParam(token)
-        checkOtherTasks(params, ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES)
-        return saveTask(params.toParamString(), ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES, state = null)
+        checkOtherTasksAreNotProcessingTheSameTokens(
+            params,
+            ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
+        )
+        return saveTask(
+            params = params.toParamString(),
+            type = ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES,
+            state = null
+        )
     }
 
-    private suspend fun checkOtherReindexTokenItemsTasks(params: ReindexTokenItemsTaskParams) {
-        taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).collect { task ->
-            if (task.lastStatus != TaskStatus.COMPLETED) {
-                val existingTokensBeingIndexedNow = ReindexTokenItemsTaskParams
-                    .fromParamString(task.param)
-                    .tokens
-                    .filter { it in params.tokens }
-
-                if (existingTokensBeingIndexedNow.isNotEmpty()) {
-                    throw IllegalArgumentException("Tokens $existingTokensBeingIndexedNow already reindexing in other task ${task.id}")
-                }
-            }
-        }
-    }
-
-    private suspend fun checkOtherTasks(params: TokenTaskParam, type: String) {
+    private suspend fun checkOtherTasksAreNotProcessingTheSameTokens(params: TokenTaskParam, type: String) {
         taskRepository.findByType(type).collect { task ->
             if (task.lastStatus != TaskStatus.COMPLETED) {
-                val existedToken = TokenTaskParam.fromParamString(task.param)
-
-                if (existedToken == params.token) {
-                    throw IllegalArgumentException("Token $existedToken is already being indexed in other task ${task.id}, type $task")
+                val tokensBeingIndexed = TokenTaskParam.fromParamString(params::class, task.param)
+                    .tokens.filter { it in params.tokens }
+                if (tokensBeingIndexed.isNotEmpty()) {
+                    throw IllegalArgumentException("Tokens $tokensBeingIndexed are already being indexed in another task ${task.id}: $task")
                 }
             }
         }

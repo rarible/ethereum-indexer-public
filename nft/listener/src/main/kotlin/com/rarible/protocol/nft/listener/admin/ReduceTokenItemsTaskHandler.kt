@@ -30,7 +30,7 @@ class ReduceTokenItemsTaskHandler(
 
     override suspend fun isAbleToRun(param: String): Boolean {
         val taskParams = ReduceTokenItemsTaskParams.fromParamString(param)
-        return taskParams.token !in findTokensBeingIndexedNow()
+        return taskParams.oneToken !in findTokensBeingIndexedNow()
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
@@ -38,7 +38,7 @@ class ReduceTokenItemsTaskHandler(
         val itemId = from?.let { ItemId.parseId(it) }
 
         return itemReduceService
-            .update(token = params.token, tokenId = null, from = itemId)
+            .update(token = params.oneToken, tokenId = null, from = itemId)
             .map { it.stringValue }
             .asFlow()
     }

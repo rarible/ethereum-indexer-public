@@ -61,7 +61,7 @@ class ReindexTokenServiceTest {
         assertThat(task.state).isNull()
 
         with(ReduceTokenItemsTaskParams.fromParamString(task.param)) {
-            assertThat(token).isEqualTo(token)
+            assertThat(tokens).isEqualTo(tokens)
         }
     }
 
@@ -78,7 +78,7 @@ class ReindexTokenServiceTest {
         assertThat(task.state).isNull()
 
         with(ReindexTokenItemRoyaltiesTaskParam.fromParamString(task.param)) {
-            assertThat(token).isEqualTo(token)
+            assertThat(tokens).isEqualTo(tokens)
         }
     }
 

@@ -37,7 +37,7 @@ class ReindexTokenRoyaltiesHandler(
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val reindexParam = ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
 
-        return itemRepository.findTokenItems(reindexParam.token, from?.let { EthUInt256.of(it) })
+        return itemRepository.findTokenItems(reindexParam.oneToken, from?.let { EthUInt256.of(it) })
             .map { item ->
                 royaltyService.getRoyaltyDeprecated(item.token, item.tokenId)
                 item.tokenId
