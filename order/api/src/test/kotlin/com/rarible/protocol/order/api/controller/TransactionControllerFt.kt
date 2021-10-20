@@ -182,20 +182,10 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
     @Test
     fun `should create pending transaction for cancel - v2`() = runBlocking<Unit> {
-        val state = ExchangeStateV1.deployAndWait(userSender, poller).block()!!
-        val proxy = TransferProxy.deployAndWait(userSender, poller).block()!!
-        val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(userSender, poller).block()!!
-        val erc20Proxy = ERC20TransferProxy.deployAndWait(userSender, poller).block()!!
         val contract = ExchangeV2.deployAndWait(
             userSender,
             poller
         ).awaitSingle()
-
-        state.addOperator(contract.address()).execute().verifySuccess()
-        proxy.addOperator(contract.address()).execute().verifySuccess()
-        proxyForDeprecated.addOperator(contract.address()).execute().verifySuccess()
-        erc20Proxy.addOperator(contract.address()).execute().verifySuccess()
-        token.setApprovalForAll(proxy.address(), true).execute().verifySuccess()
 
         val makeAssetType = Erc1155AssetType(token.address(), EthUInt256.of(tokenId))
         val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
