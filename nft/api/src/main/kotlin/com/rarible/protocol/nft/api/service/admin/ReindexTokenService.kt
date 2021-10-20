@@ -3,11 +3,7 @@ package com.rarible.protocol.nft.api.service.admin
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
-import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -35,10 +31,12 @@ class ReindexTokenService(
     }
 
     suspend fun getTokenTasks(): List<Task> {
-        return taskRepository.findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN).toList()
+        return taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).toList() +
+            taskRepository.findByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS).toList() +
+            taskRepository.findByType(ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES).toList()
     }
 
-    suspend fun createReindexTokenTask(tokens: List<Address>, fromBlock: Long?): Task {
+    suspend fun createReindexTokenItemsTask(tokens: List<Address>, fromBlock: Long?): Task {
         val tokenStandardMap = tokens.toSet().map { it to tokenRegistrationService.getTokenStandard(it).awaitFirst() }
         val standards = tokenStandardMap.map { it.second }.toSet()
 
@@ -48,9 +46,9 @@ class ReindexTokenService(
         if (standards.first() !in SUPPORTED_REINDEX_TOKEN_STANDARD) {
             throw IllegalArgumentException("Reindex support only $SUPPORTED_REINDEX_TOKEN_STANDARD, but you have ${formatToString(tokenStandardMap)}")
         }
-        val params = ReindexTokenTaskParams(standards.first(), tokens)
-        checkOtherReindexTokenTasks(params)
-        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, state = fromBlock)
+        val params = ReindexTokenItemsTaskParams(standards.first(), tokens)
+        checkOtherReindexTokenItemsTasks(params)
+        return saveTask(params.toParamString(), ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS, state = fromBlock)
     }
 
     suspend fun createReduceTokenItemsTask(token: Address): Task {
@@ -59,22 +57,22 @@ class ReindexTokenService(
         return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS, state = null)
     }
 
-    suspend fun createReindexRoyaltiesTask(token: Address): Task {
-        val params = ReindexTokenRoyaltiesTaskParam(token)
-        checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
-        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, state = null)
+    suspend fun createReindexTokenItemRoyaltiesTask(token: Address): Task {
+        val params = ReindexTokenItemRoyaltiesTaskParam(token)
+        checkOtherTasks(params, ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES)
+        return saveTask(params.toParamString(), ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES, state = null)
     }
 
-    private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
-        taskRepository.findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN).collect { task ->
+    private suspend fun checkOtherReindexTokenItemsTasks(params: ReindexTokenItemsTaskParams) {
+        taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).collect { task ->
             if (task.lastStatus != TaskStatus.COMPLETED) {
-                val existedReindexTokens = ReindexTokenTaskParams
+                val existingTokensBeingIndexedNow = ReindexTokenItemsTaskParams
                     .fromParamString(task.param)
                     .tokens
                     .filter { it in params.tokens }
 
-                if (existedReindexTokens.isNotEmpty()) {
-                    throw IllegalArgumentException("Tokens $existedReindexTokens already reindexing in other task ${task.id}")
+                if (existingTokensBeingIndexedNow.isNotEmpty()) {
+                    throw IllegalArgumentException("Tokens $existingTokensBeingIndexedNow already reindexing in other task ${task.id}")
                 }
             }
         }
@@ -86,7 +84,7 @@ class ReindexTokenService(
                 val existedToken = TokenTaskParam.fromParamString(task.param)
 
                 if (existedToken == params.token) {
-                    throw IllegalArgumentException("Token $existedToken already in other task ${task.id}, type $task")
+                    throw IllegalArgumentException("Token $existedToken is already being indexed in other task ${task.id}, type $task")
                 }
             }
         }

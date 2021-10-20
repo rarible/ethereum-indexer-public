@@ -26,12 +26,12 @@ data class ReduceTokenItemsTaskParams(override val token: Address) : TokenTaskPa
     }
 }
 
-data class ReindexTokenRoyaltiesTaskParam(override val token: Address) : TokenTaskParam() {
+data class ReindexTokenItemRoyaltiesTaskParam(override val token: Address) : TokenTaskParam() {
     companion object {
-        const val ADMIN_REINDEX_TOKEN_ROYALTIES = "ADMIN_REINDEX_TOKEN_ROYALTIES"
+        const val ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES = "ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES"
 
-        fun fromParamString(param: String): ReindexTokenRoyaltiesTaskParam {
-            return ReindexTokenRoyaltiesTaskParam(TokenTaskParam.fromParamString(param))
+        fun fromParamString(param: String): ReindexTokenItemRoyaltiesTaskParam {
+            return ReindexTokenItemRoyaltiesTaskParam(TokenTaskParam.fromParamString(param))
         }
     }
 }

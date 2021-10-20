@@ -4,16 +4,23 @@ import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
+/**
+ * Background job that reduces all items of a token (specified by `param`).
+ * This can be run only after [ReindexTokenItemsTaskHandler] is finished for this token.
+ */
 @Component
-class ReduceTokenTaskHandler(
+class ReduceTokenItemsTaskHandler(
     private val taskRepository: TempTaskRepository,
     private val itemReduceService: ItemReduceService
 ) : TaskHandler<String> {
@@ -23,7 +30,7 @@ class ReduceTokenTaskHandler(
 
     override suspend fun isAbleToRun(param: String): Boolean {
         val taskParams = ReduceTokenItemsTaskParams.fromParamString(param)
-        return verifyAllReindexTokenTaskCompleted(taskParams)
+        return taskParams.token !in findTokensBeingIndexedNow()
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
@@ -36,15 +43,11 @@ class ReduceTokenTaskHandler(
             .asFlow()
     }
 
-    private suspend fun verifyAllReindexTokenTaskCompleted(params: ReduceTokenItemsTaskParams): Boolean {
-        return params.token !in findReindexingTokens()
-    }
-
-    private suspend fun findReindexingTokens(): List<Address> {
+    private suspend fun findTokensBeingIndexedNow(): List<Address> {
         return taskRepository
-            .findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
+            .findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
             .filter { it.lastStatus != TaskStatus.COMPLETED }
-            .map { ReindexTokenTaskParams.fromParamString(it.param).tokens }
+            .map { ReindexTokenItemsTaskParams.fromParamString(it.param).tokens }
             .toList()
             .flatten()
     }

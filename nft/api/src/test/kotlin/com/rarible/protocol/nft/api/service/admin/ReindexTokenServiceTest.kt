@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.api.service.admin
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
-import com.rarible.protocol.nft.core.model.ReindexTokenRoyaltiesTaskParam
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -35,14 +35,14 @@ class ReindexTokenServiceTest {
         mockTokenRegistrationService(token1, TokenStandard.ERC721)
         mockTokenRegistrationService(token2, TokenStandard.ERC721)
         mockTokenRepositorySave()
-        mockTaskRepositoryFindNothingByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
+        mockTaskRepositoryFindNothingByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
 
-        val task = service.createReindexTokenTask(listOf(token1, token2), 100)
+        val task = service.createReindexTokenItemsTask(listOf(token1, token2), 100)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isEqualTo(100L)
 
-        with(ReindexTokenTaskParams.fromParamString(task.param)) {
+        with(ReindexTokenItemsTaskParams.fromParamString(task.param)) {
             assertThat(tokens).isEqualTo(listOf(token1, token2))
             assertThat(standard).isEqualTo(TokenStandard.ERC721)
         }
@@ -66,18 +66,18 @@ class ReindexTokenServiceTest {
     }
 
     @Test
-    fun `should create toke royalties task`() = runBlocking<Unit> {
+    fun `should create token items royalties reindex task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
         mockTokenRepositorySave()
-        mockTaskRepositoryFindNothingByType(ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
+        mockTaskRepositoryFindNothingByType(ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES)
 
-        val task = service.createReindexRoyaltiesTask(targetToken)
+        val task = service.createReindexTokenItemRoyaltiesTask(targetToken)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isNull()
 
-        with(ReindexTokenRoyaltiesTaskParam.fromParamString(task.param)) {
+        with(ReindexTokenItemRoyaltiesTaskParam.fromParamString(task.param)) {
             assertThat(token).isEqualTo(token)
         }
     }
@@ -102,12 +102,12 @@ class ReindexTokenServiceTest {
         val targetToken = AddressFactory.create()
 
         mockTaskRepositoryFindRunningTask(
-            ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES,
-            ReindexTokenRoyaltiesTaskParam(targetToken).toParamString()
+            ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES,
+            ReindexTokenItemRoyaltiesTaskParam(targetToken).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexRoyaltiesTask(targetToken)
+                service.createReindexTokenItemRoyaltiesTask(targetToken)
             }
         }
     }
@@ -121,12 +121,12 @@ class ReindexTokenServiceTest {
         mockTokenRegistrationService(existToke, TokenStandard.ERC1155)
 
         mockTaskRepositoryFindRunningTask(
-            ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN,
-            ReindexTokenTaskParams(TokenStandard.ERC1155, listOf(existToke)).toParamString()
+            ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
+            ReindexTokenItemsTaskParams(TokenStandard.ERC1155, listOf(existToke)).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexTokenTask(listOf(targetToken, existToke), 1)
+                service.createReindexTokenItemsTask(listOf(targetToken, existToke), 1)
             }
         }
     }

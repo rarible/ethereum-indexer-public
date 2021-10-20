@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.model
 
 import scalether.domain.Address
 
-data class ReindexTokenTaskParams(
+data class ReindexTokenItemsTaskParams(
     val standard: TokenStandard,
     val tokens: List<Address>
 ) {
@@ -12,13 +12,13 @@ data class ReindexTokenTaskParams(
 
     companion object {
         val SUPPORTED_REINDEX_TOKEN_STANDARD: Set<TokenStandard> = setOf(TokenStandard.ERC721, TokenStandard.ERC1155)
-        const val ADMIN_REINDEX_TOKEN = "ADMIN_REINDEX_TOKEN"
+        const val ADMIN_REINDEX_TOKEN_ITEMS = "ADMIN_REINDEX_TOKEN_ITEMS"
 
-        fun fromParamString(param: String): ReindexTokenTaskParams {
+        fun fromParamString(param: String): ReindexTokenItemsTaskParams {
             val parts = param.split(":")
             require(parts.size == 2) { "Wrong param string" }
 
-            return ReindexTokenTaskParams(
+            return ReindexTokenItemsTaskParams(
                 TokenStandard.valueOf(parts[0]),
                 parts[1].split(",").map { Address.apply(it) }
             )
