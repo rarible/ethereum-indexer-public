@@ -12,6 +12,8 @@ import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
+import com.rarible.protocol.order.api.data.generateNewKeys
+import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.setField
@@ -210,6 +212,88 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             taker = AddressFactory.create(),
             make = Asset(type = makeAssetType, value = EthUInt256.TEN),
             take = Asset(type = takeAssetType, value = EthUInt256.TEN),
+            type = OrderType.RARIBLE_V1,
+            salt = EthUInt256.of(salt),
+            data = OrderDataLegacy(0),
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null
+        )
+        setField(pendingTransactionService, "exchangeContracts", hashSetOf(contract.address()))
+
+        orderUpdateService.save(orderVersion)
+
+        processTransaction(receipt)
+
+        val history = exchangeHistoryRepository.findLogEvents(orderVersion.hash, null).collectList().awaitFirst()
+        assertThat(history).hasSize(1)
+        assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
+
+        val savedOrder = orderRepository.findById(orderVersion.hash)
+        assertThat(savedOrder?.pending).hasSize(1)
+        assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderCancel::class.java)
+    }
+
+    @Test
+    fun `should create pending transaction for matchOrders - v2`() = runBlocking<Unit> {
+        val (makePrivateKey, _, maker) = generateNewKeys()
+        val (takePrivateKey, _, taker) = generateNewKeys()
+
+        val contract = ExchangeV2.deployAndWait(
+            userSender,
+            poller
+        ).awaitSingle()
+
+        val makeAssetType = Erc1155AssetType(token.address(), EthUInt256.of(tokenId))
+        val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
+        val make = Asset(type = makeAssetType, value = EthUInt256.TEN)
+        val take = Asset(type = takeAssetType, value = EthUInt256.TEN)
+        val start = BigInteger.ZERO
+        val end = BigInteger.ONE
+        val orderData = OrderRaribleV2DataV1(listOf(), listOf())
+
+        val orderLeft = Tuple9(
+            maker,
+            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+            taker,
+            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
+            salt,
+            start,
+            end,
+            ByteArray(1),
+            orderData.toEthereum().bytes()
+        )
+        val orderRight = Tuple9(
+            maker,
+            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
+            taker,
+            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+            salt,
+            start,
+            end,
+            ByteArray(1),
+            orderData.toEthereum().bytes()
+        )
+
+        val makeSign = Order.raribleExchangeV2Hash(maker, make, taker, take, salt, start.toLong(), end.toLong(), orderData).sign(makePrivateKey)
+        val takeSign = Order.raribleExchangeV2Hash(taker, take, maker, make, salt, start.toLong(), end.toLong(), orderData).sign(takePrivateKey)
+
+        val receipt = contract.matchOrders(
+            orderLeft, makeSign.bytes(),
+            orderRight, takeSign.bytes()).withSender(sender).execute().verifySuccess()
+
+        val orderVersion = OrderVersion(
+            maker = sender.from(),
+            taker = AddressFactory.create(),
+            make = make,
+            take = take,
             type = OrderType.RARIBLE_V1,
             salt = EthUInt256.of(salt),
             data = OrderDataLegacy(0),
