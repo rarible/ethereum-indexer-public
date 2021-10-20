@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.common.deprecated.TransferProxyForDeprecat
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
+import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
@@ -21,6 +22,8 @@ import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -33,8 +36,10 @@ import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import scala.Tuple2
 import scala.Tuple3
 import scala.Tuple4
+import scala.Tuple9
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.response.Transaction
@@ -165,6 +170,88 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
         coEvery { assetTypeService.toAssetType(eq(makeAssetType.token), eq(makeAssetType.tokenId)) } returns makeAssetType
         coEvery { assetTypeService.toAssetType(eq(takeAssetType.token), eq(takeAssetType.tokenId)) } returns takeAssetType
+
+        processTransaction(receipt)
+
+        val history = exchangeHistoryRepository.findLogEvents(orderVersion.hash, null).collectList().awaitFirst()
+        assertThat(history).hasSize(1)
+        assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
+
+        val savedOrder = orderRepository.findById(orderVersion.hash)
+        assertThat(savedOrder?.pending).hasSize(1)
+        assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderCancel::class.java)
+    }
+
+    @Test
+    fun `should create pending transaction for cancel - v2`() = runBlocking<Unit> {
+        val beneficiary = Address.THREE()
+
+        val buyerFeeSignerPrivateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
+
+        val buyerFeeSigner = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            buyerFeeSignerPrivateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+
+        val state = ExchangeStateV1.deployAndWait(userSender, poller).block()!!
+        val proxy = TransferProxy.deployAndWait(userSender, poller).block()!!
+        val proxyForDeprecated = TransferProxyForDeprecated.deployAndWait(userSender, poller).block()!!
+        val erc20Proxy = ERC20TransferProxy.deployAndWait(userSender, poller).block()!!
+        val contract = ExchangeV2.deployAndWait(
+            userSender,
+            poller
+        ).awaitSingle()
+
+        state.addOperator(contract.address()).execute().verifySuccess()
+        proxy.addOperator(contract.address()).execute().verifySuccess()
+        proxyForDeprecated.addOperator(contract.address()).execute().verifySuccess()
+        erc20Proxy.addOperator(contract.address()).execute().verifySuccess()
+        token.setApprovalForAll(proxy.address(), true).execute().verifySuccess()
+
+        val makeAssetType = Erc1155AssetType(token.address(), EthUInt256.of(tokenId))
+        val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
+        val taker = AddressFactory.create()
+
+        // Cancel(orderKeyHash, order.maker, order.makeAsset.assetType, order.takeAsset.assetType);
+        val orderKey = Tuple9(
+            sender.from(),
+            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+            taker,
+            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
+            salt,
+            BigInteger.ZERO,
+            BigInteger.ONE,
+            ByteArray(1),
+            ByteArray(1)
+        )
+
+        val receipt = contract.cancel(orderKey).withSender(sender).execute().verifySuccess()
+
+        val orderVersion = OrderVersion(
+            maker = sender.from(),
+            taker = AddressFactory.create(),
+            make = Asset(type = makeAssetType, value = EthUInt256.TEN),
+            take = Asset(type = takeAssetType, value = EthUInt256.TEN),
+            type = OrderType.RARIBLE_V1,
+            salt = EthUInt256.of(salt),
+            data = OrderDataLegacy(0),
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null
+        )
+        setField(pendingTransactionService, "exchangeContracts", hashSetOf(contract.address()))
+
+        orderUpdateService.save(orderVersion)
 
         processTransaction(receipt)
 

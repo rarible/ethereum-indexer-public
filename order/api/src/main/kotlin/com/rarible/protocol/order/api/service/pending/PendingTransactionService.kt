@@ -7,6 +7,7 @@ import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
+import com.rarible.protocol.contracts.exchange.v2.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
 import com.rarible.protocol.order.core.model.*
@@ -137,7 +138,24 @@ class PendingTransactionService(
                 }
             }
             ExchangeV2.cancelSignature().id().prefixed() -> {
-                null //TODO: need to support
+                val it = ExchangeV2.cancelSignature().`in`().decode(data, 0).value()
+
+                val owner = it._1()
+                val salt = it._5()
+                val makeAssetType = it._2()._1().toAssetType()
+                val takeAssetType = it._4()._1().toAssetType()
+                val order = findOrder(makeAssetType, takeAssetType, owner, salt)
+
+                order?.let {
+                    val event = OrderCancel(
+                        hash = order.hash,
+                        maker = order.maker,
+                        make = order.make,
+                        take = order.take,
+                        source = HistorySource.RARIBLE
+                    )
+                    PendingLog(event, CancelEvent.id())
+                }
             }
             ExchangeV2.matchOrdersSignature().id().prefixed() -> {
                 null //TODO: need to support

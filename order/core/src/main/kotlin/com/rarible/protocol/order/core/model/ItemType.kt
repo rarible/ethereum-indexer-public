@@ -34,7 +34,7 @@ enum class ItemType(
     CANCEL(
         topic= setOf(
             com.rarible.protocol.contracts.exchange.v1.CancelEvent.id(),
-            com.rarible.protocol.contracts.exchange.v2.events.CancelEvent.id(),
+            com.rarible.protocol.contracts.exchange.v2.CancelEvent.id(),
             com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated.id(),
             OrderCancelledEvent.id(),
             PunkNoLongerForSaleEvent.id(),
