@@ -23,10 +23,10 @@ rarible:
       enabled: true
   core:
     apm:
-			agent:
-				enabled: true
-				server: http://elk_apm-server:8200
-				packages: org.rarible.ethereum.erc20.api
+      agent:
+        enabled: true
+        server: http://elk_apm-server:8200
+        packages: org.rarible.ethereum.erc20.api
     filter:
       cors:
         enabled: true
