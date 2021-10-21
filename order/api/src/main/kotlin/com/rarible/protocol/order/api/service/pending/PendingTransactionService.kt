@@ -8,6 +8,8 @@ import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -44,15 +46,15 @@ class PendingTransactionService(
         data: Binary
     ): List<LogEvent> {
         return if (to != null && exchangeContracts.contains(to)) {
-            processTxToExchange(from, id, data).map { (event, topic) ->
+            processTxToExchange(from, id, data).mapIndexed { index, pendingLog ->
                 LogEvent(
-                    data = event,
+                    data = pendingLog.eventData,
                     address = to,
-                    topic = topic,
+                    topic = pendingLog.topic,
                     transactionHash = hash,
                     status = LogEventStatus.PENDING,
                     index = 0,
-                    minorLogIndex = 0
+                    minorLogIndex = index
                 )
             }
         } else {
@@ -137,10 +139,80 @@ class PendingTransactionService(
                 }
             }
             ExchangeV2.cancelSignature().id().prefixed() -> {
-                null //TODO: need to support
+                val it = ExchangeV2.cancelSignature().`in`().decode(data, 0).value()
+
+                val owner = it._1()
+                val salt = it._5()
+                val makeAssetType = it._2()._1().toAssetType()
+                val make = Asset(makeAssetType, EthUInt256.of(it._2()._2()))
+                val takeAssetType = it._4()._1().toAssetType()
+                val take = Asset(takeAssetType, EthUInt256.of(it._4()._2()))
+
+                val event = OrderCancel(
+                    hash = Order.hashKey(owner, makeAssetType, takeAssetType, salt),
+                    maker = owner,
+                    make = make,
+                    take = take,
+                    source = HistorySource.RARIBLE
+                )
+                PendingLog(event, CancelEvent.id())
             }
             ExchangeV2.matchOrdersSignature().id().prefixed() -> {
-                null //TODO: need to support
+                val it = ExchangeV2.matchOrdersSignature().`in`().decode(data, 0).value()
+
+                val maker = it._1()._1()
+                val make = it._1()._2()
+                val makeAssetType = make._1().toAssetType()
+                val makeValue = make._2()
+                val makeSalt = it._1()._5()
+
+                val taker = it._3()._1()
+                val take = it._3()._2()
+                val takeAssetType = take._1().toAssetType()
+                val takeValue = take._2()
+                val takeSalt = it._3()._5()
+
+                val hash = Order.hashKey(maker, makeAssetType, takeAssetType, makeSalt)
+                val counterHash = Order.hashKey(taker, takeAssetType, makeAssetType, takeSalt)
+
+                return listOf(
+                    PendingLog(OrderSideMatch(
+                        hash = hash,
+                        counterHash = counterHash,
+                        fill = EthUInt256.of(takeValue),
+                        make = Asset(makeAssetType, EthUInt256.of(makeValue)),
+                        take = Asset(takeAssetType, EthUInt256.of(takeValue)),
+                        maker = maker,
+                        taker = taker,
+                        side = OrderSide.LEFT,
+                        makeValue = null,
+                        takeValue = null,
+                        makeUsd = null,
+                        takeUsd = null,
+                        makePriceUsd = null,
+                        takePriceUsd = null,
+                        source = HistorySource.RARIBLE,
+                        adhoc = makeSalt == BigInteger.ZERO
+                    ), MatchEvent.id()),
+                    PendingLog(OrderSideMatch(
+                        hash = counterHash,
+                        counterHash = hash,
+                        fill = EthUInt256.of(makeValue),
+                        make = Asset(takeAssetType, EthUInt256.of(takeValue)),
+                        take = Asset(makeAssetType, EthUInt256.of(makeValue)),
+                        maker = taker,
+                        taker = maker,
+                        side = OrderSide.RIGHT,
+                        makeValue = null,
+                        takeValue = null,
+                        makeUsd = null,
+                        takeUsd = null,
+                        makePriceUsd = null,
+                        takePriceUsd = null,
+                        source = HistorySource.RARIBLE,
+                        adhoc = takeSalt == BigInteger.ZERO
+                    ), MatchEvent.id())
+                )
             }
             else -> null
         }
