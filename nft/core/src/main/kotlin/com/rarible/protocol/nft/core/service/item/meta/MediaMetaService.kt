@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.google.common.io.ByteStreams
+import com.google.common.io.CountingInputStream
 import com.google.common.net.InternetDomainName
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
+import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.net.*
@@ -118,8 +120,21 @@ class MediaMetaService(
             conn.readTimeout = timeout
             conn.connectTimeout = timeout
             conn.setRequestProperty("user-agent", "curl/7.73.0")
-            conn.inputStream.let { ByteStreams.limit(it, maxLoadedContentSize)  }.use { get(it) }
+            conn.inputStream.limited(url).use { get(it) }
         }.blockingToMono()
+    }
+
+    private fun InputStream.limited(url: String): InputStream {
+        val limitedStream = ByteStreams.limit(this, maxLoadedContentSize)
+        val countingStream = CountingInputStream(limitedStream)
+        return object : FilterInputStream(countingStream) {
+            override fun close() {
+                if (countingStream.count > maxLoadedContentSize / 2) {
+                    logger.warn("Suspiciously many bytes ${countingStream.count} are read from the content input stream for $url")
+                }
+                super.close()
+            }
+        }
     }
 
     private fun get(ins: InputStream): Triple<Int, Int, IIOMetadata> {
