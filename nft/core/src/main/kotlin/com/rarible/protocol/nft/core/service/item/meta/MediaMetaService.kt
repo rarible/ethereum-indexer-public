@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.google.common.io.ByteStreams
 import com.google.common.net.InternetDomainName
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
@@ -28,7 +29,8 @@ import javax.imageio.metadata.IIOMetadata
 @Component
 class MediaMetaService(
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
-    @Value("\${api.properties.media-meta-timeout}") private val timeout: Int
+    @Value("\${api.properties.media-meta-timeout}") private val timeout: Int,
+    @Value("\${api.properties.media-meta-max-loaded-content-size:10000000}") private val maxLoadedContentSize: Long
 ): CacheDescriptor<MediaMeta> {
 
     private val client = WebClient.builder()
@@ -116,7 +118,7 @@ class MediaMetaService(
             conn.readTimeout = timeout
             conn.connectTimeout = timeout
             conn.setRequestProperty("user-agent", "curl/7.73.0")
-            conn.inputStream.use { get(it) }
+            conn.inputStream.let { ByteStreams.limit(it, maxLoadedContentSize)  }.use { get(it) }
         }.blockingToMono()
     }
 
