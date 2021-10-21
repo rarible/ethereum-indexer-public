@@ -4,6 +4,7 @@ import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.deprecated.TransferProxyForDeprecated
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
@@ -27,6 +28,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,19 +68,20 @@ class TransactionControllerFt : AbstractIntegrationTest() {
         lateinit var token: TestERC1155
         lateinit var buyToken: TestERC1155
 
+        lateinit var exchangeV2Contract: ExchangeV2
+        lateinit var eip712Domain: EIP712Domain
+
         private val salt = BigInteger.TEN
         private val tokenId = BigInteger.ONE
         private val buyTokenId = BigInteger.TEN
     }
 
     @BeforeEach
-    fun before() {
-        val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-
+    fun before() = runBlocking {
         userSender = MonoSigningTransactionSender(
             ethereum,
             MonoSimpleNonceProvider(ethereum),
-            privateKey,
+            Numeric.toBigInt(RandomUtils.nextBytes(32)),
             BigInteger.valueOf(8000000),
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
@@ -91,12 +94,33 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
 
-        token = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
-        buyToken = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").block()!!
+        token = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").awaitFirst()
+        buyToken = TestERC1155.deployAndWait(userSender, poller, "ipfs:/").awaitFirst()
+
+        val transferProxy = TransferProxy.deployAndWait(userSender, poller).awaitSingle()
+        exchangeV2Contract = ExchangeV2.deployAndWait(userSender, poller).awaitSingle()
+        exchangeV2Contract.__ExchangeV2_init(
+            transferProxy.address(),
+            Address.ZERO(),
+            BigInteger.ZERO,
+            Address.ZERO(),
+            Address.ZERO()
+        ).execute().verifySuccess()
+
+        transferProxy.addOperator(exchangeV2Contract.address()).execute().verifySuccess()
+        token.setApprovalForAll(transferProxy.address(), true).withSender(userSender).execute().verifySuccess()
+        buyToken.setApprovalForAll(transferProxy.address(), true).withSender(userSender).execute().verifySuccess()
+
+        eip712Domain = EIP712Domain(
+            name = "Exchange",
+            version = "2",
+            chainId = BigInteger.valueOf(17),
+            verifyingContract = exchangeV2Contract.address()
+        )
     }
 
     @Test
-    fun `should create pending transaction for cancel`() = runBlocking<Unit> {
+    fun `should create pending transaction for cancel - v1`() = runBlocking<Unit> {
         val beneficiary = Address.THREE()
 
         val buyerFeeSignerPrivateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
@@ -184,37 +208,36 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
     @Test
     fun `should create pending transaction for cancel - v2`() = runBlocking<Unit> {
-        val contract = ExchangeV2.deployAndWait(
-            userSender,
-            poller
-        ).awaitSingle()
-
         val makeAssetType = Erc1155AssetType(token.address(), EthUInt256.of(tokenId))
         val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
+        val make = Asset(type = makeAssetType, value = EthUInt256.TEN)
+        val take = Asset(type = takeAssetType, value = EthUInt256.TEN)
+        val maker = sender.from()
         val taker = AddressFactory.create()
+        val data = OrderRaribleV2DataV1(emptyList(), emptyList())
 
-        val orderKey = Tuple9(
-            sender.from(),
-            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+        val orderTuple = Tuple9(
+            maker,
+            Tuple2(makeAssetType.forTx(), make.value.value),
             taker,
-            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
+            Tuple2(takeAssetType.forTx(), take.value.value),
             salt,
             BigInteger.ZERO,
-            BigInteger.ONE,
-            ByteArray(1),
-            ByteArray(1)
+            BigInteger.ZERO,
+            data.getDataVersion(),
+            data.toEthereum().bytes()
         )
 
-        val receipt = contract.cancel(orderKey).withSender(sender).execute().verifySuccess()
+        val receipt = exchangeV2Contract.cancel(orderTuple).withSender(sender).execute().verifySuccess()
 
         val orderVersion = OrderVersion(
-            maker = sender.from(),
-            taker = AddressFactory.create(),
-            make = Asset(type = makeAssetType, value = EthUInt256.TEN),
-            take = Asset(type = takeAssetType, value = EthUInt256.TEN),
-            type = OrderType.RARIBLE_V1,
+            maker = maker,
+            taker = taker,
+            make = make,
+            take = take,
+            type = OrderType.RARIBLE_V2,
             salt = EthUInt256.of(salt),
-            data = OrderDataLegacy(0),
+            data = data,
             start = null,
             end = null,
             signature = null,
@@ -226,7 +249,7 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             makeUsd = null,
             takeUsd = null
         )
-        setField(pendingTransactionService, "exchangeContracts", hashSetOf(contract.address()))
+        setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
 
         orderUpdateService.save(orderVersion)
 
@@ -246,57 +269,78 @@ class TransactionControllerFt : AbstractIntegrationTest() {
         val (makePrivateKey, _, maker) = generateNewKeys()
         val (takePrivateKey, _, taker) = generateNewKeys()
 
-        val contract = ExchangeV2.deployAndWait(
-            userSender,
-            poller
-        ).awaitSingle()
-
         val makeAssetType = Erc1155AssetType(token.address(), EthUInt256.of(tokenId))
         val takeAssetType = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId))
         val make = Asset(type = makeAssetType, value = EthUInt256.TEN)
         val take = Asset(type = takeAssetType, value = EthUInt256.TEN)
-        val start = BigInteger.ZERO
-        val end = BigInteger.ONE
+
+        token.mint(maker, tokenId, make.value.value, byteArrayOf()).execute().verifySuccess()
+        buyToken.mint(taker, buyTokenId, take.value.value, byteArrayOf()).execute().verifySuccess()
+
+        assertEquals(make.value.value, token.balanceOf(maker, tokenId).call().awaitFirst())
+        assertEquals(take.value.value, buyToken.balanceOf(taker, buyTokenId).call().awaitFirst())
+
         val orderData = OrderRaribleV2DataV1(listOf(), listOf())
 
         val orderLeft = Tuple9(
             maker,
-            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+            Tuple2(makeAssetType.forTx(), make.value.value),
             taker,
-            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
+            Tuple2(takeAssetType.forTx(), take.value.value),
             salt,
-            start,
-            end,
-            ByteArray(1),
+            BigInteger.ZERO,
+            BigInteger.ZERO,
+            orderData.getDataVersion(),
             orderData.toEthereum().bytes()
         )
         val orderRight = Tuple9(
-            maker,
-            Tuple2(takeAssetType.forTx(), BigInteger.ONE),
             taker,
-            Tuple2(makeAssetType.forTx(), BigInteger.ONE),
+            Tuple2(takeAssetType.forTx(), take.value.value),
+            maker,
+            Tuple2(makeAssetType.forTx(), make.value.value),
             salt,
-            start,
-            end,
-            ByteArray(1),
+            BigInteger.ZERO,
+            BigInteger.ZERO,
+            orderData.getDataVersion(),
             orderData.toEthereum().bytes()
         )
 
-        val makeSign = Order.raribleExchangeV2Hash(maker, make, taker, take, salt, start.toLong(), end.toLong(), orderData).sign(makePrivateKey)
-        val takeSign = Order.raribleExchangeV2Hash(taker, take, maker, make, salt, start.toLong(), end.toLong(), orderData).sign(takePrivateKey)
+        val leftSign = eip712Domain.hashToSign(Order.raribleExchangeV2Hash(
+            maker = maker,
+            make = make,
+            taker = taker,
+            take = take,
+            salt = salt,
+            start = 0,
+            end = 0,
+            data = orderData
+        )).sign(makePrivateKey)
+        val rightSign = eip712Domain.hashToSign(Order.raribleExchangeV2Hash(
+            maker = taker,
+            make = take,
+            taker = maker,
+            take = make,
+            salt = salt,
+            start = 0,
+            end = 0,
+            data = orderData
+        )).sign(takePrivateKey)
 
-        val receipt = contract.matchOrders(
-            orderLeft, makeSign.bytes(),
-            orderRight, takeSign.bytes()).withSender(sender).execute().verifySuccess()
+        val receipt = exchangeV2Contract.matchOrders(
+            orderLeft,
+            leftSign.bytes(),
+            orderRight,
+            rightSign.bytes()
+        ).withSender(userSender).execute().verifySuccess()
 
         val orderVersion = OrderVersion(
-            maker = sender.from(),
-            taker = AddressFactory.create(),
+            maker = maker,
+            taker = taker,
             make = make,
             take = take,
-            type = OrderType.RARIBLE_V1,
+            type = OrderType.RARIBLE_V2,
             salt = EthUInt256.of(salt),
-            data = OrderDataLegacy(0),
+            data = orderData,
             start = null,
             end = null,
             signature = null,
@@ -308,7 +352,7 @@ class TransactionControllerFt : AbstractIntegrationTest() {
             makeUsd = null,
             takeUsd = null
         )
-        setField(pendingTransactionService, "exchangeContracts", hashSetOf(contract.address()))
+        setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
 
         orderUpdateService.save(orderVersion)
 
@@ -320,13 +364,13 @@ class TransactionControllerFt : AbstractIntegrationTest() {
 
         val savedOrder = orderRepository.findById(orderVersion.hash)
         assertThat(savedOrder?.pending).hasSize(1)
-        assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderCancel::class.java)
+        assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderSideMatch::class.java)
     }
 
     private suspend fun processTransaction(receipt: TransactionReceipt) {
         val tx = ethereum.ethGetTransactionByHash(receipt.transactionHash()).awaitFirst().get()
 
-        val transactions = transactionApi.createOrderPendingTransaction(tx.toRequest()).collectList().block()
+        val transactions = transactionApi.createOrderPendingTransaction(tx.toRequest()).collectList().awaitFirst()
 
         assertThat(transactions).hasSize(1)
 
