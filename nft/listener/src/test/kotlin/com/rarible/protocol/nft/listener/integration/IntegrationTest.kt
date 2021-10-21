@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.integration
 import com.rarible.core.test.ext.EthereumTest
 import com.rarible.core.test.ext.KafkaTest
 import com.rarible.core.test.ext.MongoTest
+import com.rarible.core.test.ext.RedisTest
 import org.springframework.boot.test.autoconfigure.json.AutoConfigureJson
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
@@ -12,6 +13,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @Retention
 @MongoTest
 @KafkaTest
+@RedisTest
 @EthereumTest
 @AutoConfigureJson
 @SpringBootTest(
