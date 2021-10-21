@@ -27,6 +27,12 @@ mongock:
     - com.rarible.protocol.erc20.listener.mongock.mongo
 
 rarible:
+	core:
+    apm:
+			agent:
+				enabled: true
+				server: http://elk_apm-server:8200
+				packages: org.rarible.ethereum.erc20.listener
   blockchain:
     monitoring:
       blockchain: ${listener.blockchain}
