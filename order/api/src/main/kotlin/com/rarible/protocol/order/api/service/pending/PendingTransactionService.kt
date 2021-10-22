@@ -53,15 +53,15 @@ class PendingTransactionService(
                 cryptoPunksAddress == to -> processTxToCryptoPunks(from, id, data)
                 else -> emptyList()
             }
-            logs?.let { it.map { (event, topic) ->
+            logs?.let { it.mapIndexed { index, pendingLog ->
                 LogEvent(
-                    data = event,
+                    data = pendingLog.eventData,
                     address = to,
-                    topic = topic,
+                    topic = pendingLog.topic,
                     transactionHash = hash,
                     status = LogEventStatus.PENDING,
                     index = 0,
-                    minorLogIndex = 0
+                    minorLogIndex = index
                 ) } }
         } else {
             emptyList()
