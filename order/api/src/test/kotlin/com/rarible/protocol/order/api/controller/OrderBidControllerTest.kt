@@ -29,6 +29,12 @@ internal class OrderBidControllerTest {
     }
 
     @Test
+    fun `test query dates parsed with 1 or 3 digits ms`() {
+        val response = queryBids("2021-06-29T10:00:00.001Z", "2021-06-30T10:00:00.5Z")
+        assertEquals(200, response.statusCodeValue)
+    }
+
+    @Test
     fun `test query dates not parsed`() {
         assertThrows<HttpClientErrorException> {
             queryBids("That's not a date", "And that's too")
