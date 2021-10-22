@@ -66,12 +66,6 @@ class TokenRegistrationService(
             }
     }
 
-    fun updateErc721Features(): Mono<Void> {
-        return tokenRepository.findByStandard(TokenStandard.ERC721)
-            .concatMap { updateFeatures(it) }
-            .then()
-    }
-
     fun updateFeatures(token: Token): Mono<Token> {
         logger.info("updateFeatures ${token.id}")
         return fetchFeatures(token.id)
@@ -159,7 +153,7 @@ class TokenRegistrationService(
             .flatMap { isErc165InterfaceSupported(address, it) }
             .filter { it }
             .collectList()
-            .flatMap { if (it.isNotEmpty()) Mono.just(feature) else Mono.empty()  }
+            .flatMap { if (it.isNotEmpty()) Mono.just(feature) else Mono.empty() }
     }
 
     private fun isErc165InterfaceSupported(address: Address, ifaceId: Binary): Mono<Boolean> {
