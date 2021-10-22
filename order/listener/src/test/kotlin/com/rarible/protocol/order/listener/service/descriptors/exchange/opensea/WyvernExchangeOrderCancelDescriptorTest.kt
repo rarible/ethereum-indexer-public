@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.dto.OrderActivityCancelListDto
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
@@ -117,7 +116,11 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
             val canceledOrder = orderRepository.findById(sellOrder.hash)
             assertThat(canceledOrder?.cancelled).isTrue()
 
-            checkActivityWasPublished(sellOrder, OrderCancelledEvent.id(), OrderActivityCancelListDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityCancelListDto::class.java) {
+                    assertThat(hash).isEqualTo(sellOrder.hash)
+                }
+            }
         }
     }
 }

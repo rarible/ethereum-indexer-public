@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
 import com.rarible.protocol.dto.OrderActivityCancelListDto
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -52,7 +51,11 @@ class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
             assertThat(canceledOrder?.cancelled).isTrue()
             assertThat(canceledOrder?.makeStock).isEqualTo(EthUInt256.ZERO)
 
-            checkActivityWasPublished(order, CancelEvent.id(), OrderActivityCancelListDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityCancelListDto::class.java) {
+                    assertThat(it.hash).isEqualTo(order.hash)
+                }
+            }
         }
     }
 }

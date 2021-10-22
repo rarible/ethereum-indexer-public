@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
-import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomWord
@@ -14,7 +13,8 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
@@ -31,15 +31,13 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
@@ -109,10 +107,28 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
 
+    private lateinit var consumingJob: Job
+
+    private val activities = Collections.synchronizedList(ArrayList<ActivityDto>())
+
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()
         require(value != null) { "txHash is null" }
         return ethereum.ethGetTransactionReceipt(value).block()!!.get()
+    }
+
+    @BeforeEach
+    fun startConsumers() {
+        consumingJob = GlobalScope.launch {
+            consumer
+                .receive()
+                .collect { activities.add(it.value) }
+        }
+    }
+
+    @AfterEach
+    fun stopConsumers() = runBlocking {
+        consumingJob.cancelAndJoin()
     }
 
     @BeforeEach
@@ -274,42 +290,11 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         orderUpdateService.updateMakeStock(orderHash, knownMakeBalance = makeBalance)
     }
 
-    protected suspend fun checkActivityWasPublished(orderLeft: Order, topic: Word, activityType: Class<out OrderActivityDto>) = coroutineScope {
-        val logEvent = exchangeHistoryRepository.findLogEvents(orderLeft.hash, null).awaitFirst()
-        assertThat(logEvent.topic).isEqualTo(topic)
-
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<ActivityDto>>())
-
-        val job = async {
-            consumer
-                .receive()
-                .collect { events.add(it) }
-        }
-        try {
-            Wait.waitAssert {
-                assertThat(events)
-                    .hasSizeGreaterThanOrEqualTo(1)
-                    .satisfies {
-                        val event = it.firstOrNull { event -> event.value.id == logEvent.id.toString() }
-                        val activity = event?.value
-                        assertThat(activity?.javaClass).isEqualTo(activityType)
-
-                        when (activity) {
-                            is OrderActivityMatchDto -> {
-                                assertThat(activity.left.hash).isEqualTo(orderLeft.hash)
-                            }
-                            is OrderActivityCancelBidDto -> {
-                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                            }
-                            is OrderActivityCancelListDto -> {
-                                assertThat(activity.hash).isEqualTo(orderLeft.hash)
-                            }
-                            else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
-                        }
-                    }
-            }
-        } finally {
-            job.cancelAndJoin()
+    protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {
+        Wait.waitAssert {
+            assertThat(activities)
+                .hasSizeGreaterThanOrEqualTo(1)
+                .anySatisfy { it.asserter() }
         }
     }
 }

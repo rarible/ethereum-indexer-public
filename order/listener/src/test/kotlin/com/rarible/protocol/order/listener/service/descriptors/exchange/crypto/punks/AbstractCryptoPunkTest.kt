@@ -1,28 +1,20 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
-import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
 import java.time.temporal.ChronoField
-import java.util.*
 
 @FlowPreview
 abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
@@ -63,27 +55,6 @@ abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
             }
             val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.tokenId.value).awaitSingle()
             if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO
-        }
-    }
-
-    protected fun checkActivityWasPublished(predicate: ActivityDto.() -> Boolean) =
-        checkPublishedActivities { activities ->
-            Assertions.assertTrue(activities.any(predicate)) {
-                "Searched-for activity is not found in\n" + activities.joinToString("\n")
-            }
-        }
-
-    protected fun checkPublishedActivities(assertBlock: suspend (List<ActivityDto>) -> Unit) = runBlocking {
-        val activities = Collections.synchronizedList(arrayListOf<ActivityDto>())
-        val job = async {
-            consumer.receive().filter { it.value.date >= lastKafkaInstant }.collect { activities.add(it.value) }
-        }
-        try {
-            Wait.waitAssert {
-                assertBlock(activities)
-            }
-        } finally {
-            job.cancelAndJoin()
         }
     }
 

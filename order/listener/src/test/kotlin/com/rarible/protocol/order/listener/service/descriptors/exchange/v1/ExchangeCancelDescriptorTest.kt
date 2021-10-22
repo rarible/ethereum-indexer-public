@@ -7,7 +7,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.deprecated.TransferProxyForDeprecated
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
-import com.rarible.protocol.contracts.exchange.v1.CancelEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.dto.OrderActivityCancelBidDto
@@ -144,7 +143,11 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
             val completed = state.getCompleted(orderKey).awaitFirst()
             assertThat(completed?.toString()).isEqualTo("115792089237316195423570985008687907853269984665640564039457584007913129639935")
 
-            checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), CancelEvent.id(), OrderActivityCancelBidDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityCancelBidDto::class.java) {
+                    assertThat(it.hash).isEqualTo(orderLeftVersion.hash)
+                }
+            }
         }
     }
 }
