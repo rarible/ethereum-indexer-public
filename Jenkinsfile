@@ -19,12 +19,12 @@ pipeline {
   stages {
     stage('test') {
       agent any
-      steps {
-        sh 'echo skipTests'
-      }
 //       steps {
-//          sh 'mvn clean test -U'
+//         sh 'echo skipTests'
 //       }
+      steps {
+         sh 'mvn clean test -U'
+      }
 //       post {
 //         always {
 //           junit allowEmptyResults: true, testResults: '**/surefire-reports/*.xml'
