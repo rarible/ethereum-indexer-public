@@ -113,7 +113,7 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         depositInitialBalance(buyerAddress, punkPrice)
         val receipt = cryptoPunksMarket.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
 
-        setField(pendingTransactionService, "cryptoPunkAddress", cryptoPunksMarket.address())
+        setField(pendingTransactionService, "cryptoPunksAddress", cryptoPunksMarket.address())
         processTransaction(receipt, 2)
 
         val makeHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
@@ -175,7 +175,7 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         cryptoPunksMarket.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
         cryptoPunksMarket.withdraw().withSender(sellerSender).execute().verifySuccess()
 
-        setField(pendingTransactionService, "cryptoPunkAddress", cryptoPunksMarket.address())
+        setField(pendingTransactionService, "cryptoPunksAddress", cryptoPunksMarket.address())
 
         // Bid the punk back.
         cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(sellerSender).withValue(punkPrice).execute()
