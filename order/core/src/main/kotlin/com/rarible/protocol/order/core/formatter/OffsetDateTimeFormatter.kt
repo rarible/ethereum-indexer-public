@@ -14,7 +14,7 @@ class OffsetDateTimeFormatter : Formatter<OffsetDateTime?> {
 
     private val requestDateTimeParser = DateTimeFormatterBuilder()
         .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
-        .appendPattern("[.SSSSSSSSS][.SSSSSS][.SSS]")
+        .appendPattern("[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]")
         .appendOffset("+HH:mm", "Z")
         .toFormatter()
         .withZone(ZoneOffset.UTC)
