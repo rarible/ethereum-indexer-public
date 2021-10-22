@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
+import com.rarible.contracts.ownable.Ownable
 import com.rarible.core.common.*
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
@@ -80,13 +81,22 @@ class TokenRegistrationService(
 
     private fun fetchToken(address: Address): Mono<Token> {
         val nft = IERC721(address, sender)
+        val ownable = Ownable(address, sender)
         return Mono.zip(
             nft.name().emptyIfError(),
             nft.symbol().emptyIfError(),
             fetchFeatures(address),
-            fetchStandard(address)
-        ).map { (name, symbol, features, standard) ->
-            Token(address, name = name.orElse(""), symbol = symbol.orNull(), features = features, standard = standard)
+            fetchStandard(address),
+            ownable.owner().call().emptyIfError()
+        ).map { (name, symbol, features, standard, owner) ->
+            Token(
+                id = address,
+                name = name.orElse(""),
+                symbol = symbol.orNull(),
+                features = features,
+                standard = standard,
+                owner = owner.orNull()
+            )
         }
     }
 

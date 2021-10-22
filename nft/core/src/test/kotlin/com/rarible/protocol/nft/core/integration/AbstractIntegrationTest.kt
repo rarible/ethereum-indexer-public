@@ -4,6 +4,7 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -23,6 +24,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -31,12 +33,19 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
+import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
+import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.response.TransactionReceipt
+import scalether.transaction.MonoGasPriceProvider
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
+import java.math.BigInteger
 import java.util.*
 
 @FlowPreview
@@ -213,5 +222,24 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
         return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
+    }
+
+    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
+        val (privateKey, _, address) = generateNewKeys(privateKey0)
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000),
+            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+        )
+        return Triple(address, sender, privateKey)
+    }
+
+    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+        return NewKeys(privateKey, publicKey, signer)
     }
 }

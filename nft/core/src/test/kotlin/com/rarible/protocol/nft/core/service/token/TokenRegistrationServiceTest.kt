@@ -1,64 +1,52 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
+import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
-import io.daonomic.rpc.RpcCodeException
-import io.daonomic.rpc.domain.Error
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import reactor.core.publisher.Mono
-import scala.Option
-import scalether.domain.Address
-import scalether.domain.AddressFactory
-import scalether.transaction.MonoTransactionSender
-import java.io.IOException
+import org.springframework.beans.factory.annotation.Autowired
 
-internal class TokenRegistrationServiceTest {
-    private val tokenRepository = mockk<TokenRepository>()
-    private val sender = mockk<MonoTransactionSender>()
-    private val tokenRegistrationService = TokenRegistrationService(tokenRepository, sender)
+@IntegrationTest
+internal class TokenRegistrationServiceTest : AbstractIntegrationTest() {
+
+    @Autowired
+    lateinit var tokenRegistrationService: TokenRegistrationService
 
     @Test
-    fun `should return NONE toke standard on RpcCodeException`() = runBlocking<Unit> {
-        every { sender.call(any()) } returns Mono.error(RpcCodeException("", Error(1, "", Option.empty())))
-
-        val token = AddressFactory.create()
-        val standard = tokenRegistrationService.fetchStandard(token).awaitFirst()
-
-        assertThat(standard).isEqualTo(TokenStandard.NONE)
-    }
-
-    @Test
-    fun `should return NONE toke standard on IllegalArgumentException`() = runBlocking<Unit> {
-        every { sender.call(any()) } returns Mono.error(IllegalArgumentException(""))
-
-        val token = AddressFactory.create()
-        val standard = tokenRegistrationService.fetchStandard(token).awaitFirst()
-
-        assertThat(standard).isEqualTo(TokenStandard.NONE)
-    }
-
-    @Test
-    fun `should throw exception on other error`() = runBlocking<Unit> {
-        every { sender.call(any()) } returns Mono.error(IOException())
-
-        val token = AddressFactory.create()
-        assertThrows<IOException> {
-            runBlocking { tokenRegistrationService.fetchStandard(token).awaitFirst() }
-        }
-    }
-
-    @Test
-    fun `should return standard on well known token`() = runBlocking<Unit> {
-        every { sender.call(any()) } returns Mono.error(IllegalArgumentException())
-
-        val (token, standard) = TokenRegistrationService.WELL_KNOWN_TOKENS_WITHOUT_ERC165.entries.first()
-        val fetchedStandard = tokenRegistrationService.fetchStandard(token).awaitFirst()
-        assertThat(fetchedStandard).isEqualTo(standard)
+    fun `register ERC721 token`() = runBlocking<Unit> {
+        val adminSender = newSender().second
+        val erc721 = ERC721Rarible.deployAndWait(adminSender, poller).awaitFirst()
+        erc721.__ERC721Rarible_init(
+            "Name",
+            "Symbol",
+            "baseURI",
+            "contractURI"
+        ).execute().verifySuccess()
+        val token = tokenRegistrationService.register(erc721.address()).awaitFirst()
+        val expectedToken = Token(
+            id = erc721.address(),
+            name = "Name",
+            symbol = "Symbol",
+            owner = adminSender.from(),
+            status = ContractStatus.CONFIRMED,
+            features = setOf(
+                TokenFeature.APPROVE_FOR_ALL,
+                TokenFeature.BURN,
+                TokenFeature.MINT_AND_TRANSFER
+            ),
+            standard = TokenStandard.ERC721
+        )
+        assertThat(token).isEqualToIgnoringGivenFields(
+            expectedToken,
+            Token::lastEventId.name,
+            Token::version.name
+        )
     }
 }
