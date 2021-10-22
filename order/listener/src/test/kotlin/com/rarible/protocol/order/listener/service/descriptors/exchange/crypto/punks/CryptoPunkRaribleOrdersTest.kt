@@ -192,38 +192,33 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(sellMake, right.take)
         }
 
-        checkPublishedActivities { activities ->
-            assertEquals(2, activities.size) {
-                activities.joinToString("\n") { it.toString() }
-            }
+        checkActivityWasPublished {
+            val listActivity = this
+            assertTrue(this is OrderActivityListDto)
+            listActivity as OrderActivityListDto
+            assertEquals(sellOrder.hash, listActivity.hash)
+            assertEquals(OrderActivityDto.Source.RARIBLE, listActivity.source)
+        }
 
-            val (listActivity, matchActivity) = activities
-            run {
-                assertTrue(listActivity is OrderActivityListDto)
-                listActivity as OrderActivityListDto
-                assertEquals(sellOrder.hash, listActivity.hash)
-                assertEquals(OrderActivityDto.Source.RARIBLE, listActivity.source)
-            }
-
-            run {
-                assertTrue(matchActivity is OrderActivityMatchDto)
-                matchActivity as OrderActivityMatchDto
-                assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
-                assertEquals(sellOrder.hash, matchActivity.left.hash)
-                assertEquals(sellerAddress, matchActivity.left.maker)
-                assertEquals(
-                    AssetDto(
-                        CryptoPunksAssetTypeDto(
-                            cryptoPunksMarket.address(),
-                            punkIndex.toInt()
-                        ), BigInteger.ONE, BigDecimal.ONE
-                    ), matchActivity.left.asset
-                )
-                assertEquals(buyOrderHash, matchActivity.right.hash)
-                assertEquals(buyerAddress, matchActivity.right.maker)
-                assertTrue(matchActivity.right.asset.assetType is EthAssetTypeDto)
-                assertEquals(punkPrice, matchActivity.right.asset.value)
-            }
+        checkActivityWasPublished {
+            val matchActivity = this
+            assertTrue(matchActivity is OrderActivityMatchDto)
+            matchActivity as OrderActivityMatchDto
+            assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
+            assertEquals(sellOrder.hash, matchActivity.left.hash)
+            assertEquals(sellerAddress, matchActivity.left.maker)
+            assertEquals(
+                AssetDto(
+                    CryptoPunksAssetTypeDto(
+                        cryptoPunksMarket.address(),
+                        punkIndex.toInt()
+                    ), BigInteger.ONE, BigDecimal.ONE
+                ), matchActivity.left.asset
+            )
+            assertEquals(buyOrderHash, matchActivity.right.hash)
+            assertEquals(buyerAddress, matchActivity.right.maker)
+            assertTrue(matchActivity.right.asset.assetType is EthAssetTypeDto)
+            assertEquals(punkPrice, matchActivity.right.asset.value)
         }
     }
 
@@ -336,35 +331,31 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertEquals(bidMake.value, right.fill)
         }
 
-        checkPublishedActivities { activities ->
-            assertEquals(2, activities.size) {
-                activities.joinToString(separator = "\n") { it.toString() }
-            }
-            val (bidActivity, matchActivity) = activities
-            run {
-                assertTrue(bidActivity is OrderActivityBidDto)
-                bidActivity as OrderActivityBidDto
-                assertEquals(bidOrder.hash, bidActivity.hash)
-            }
+        checkActivityWasPublished {
+            val bidActivity = this
+            assertTrue(bidActivity is OrderActivityBidDto)
+            bidActivity as OrderActivityBidDto
+            assertEquals(bidOrder.hash, bidActivity.hash)
+        }
 
-            run {
-                assertTrue(matchActivity is OrderActivityMatchDto)
-                matchActivity as OrderActivityMatchDto
-                assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
-                assertEquals(bidOrder.hash, matchActivity.left.hash)
-                assertEquals(bidderAddress, matchActivity.left.maker)
-                assertTrue(matchActivity.left.asset.assetType is Erc20AssetTypeDto)
+        checkActivityWasPublished {
+            val matchActivity = this
+            assertTrue(matchActivity is OrderActivityMatchDto)
+            matchActivity as OrderActivityMatchDto
+            assertEquals(OrderActivityDto.Source.RARIBLE, matchActivity.source)
+            assertEquals(bidOrder.hash, matchActivity.left.hash)
+            assertEquals(bidderAddress, matchActivity.left.maker)
+            assertTrue(matchActivity.left.asset.assetType is Erc20AssetTypeDto)
 
-                assertEquals(
-                    AssetDto(
-                        CryptoPunksAssetTypeDto(
-                            cryptoPunksMarket.address(),
-                            punkIndex.toInt()
-                        ), BigInteger.ONE, BigDecimal.ONE
-                    ), matchActivity.right.asset
-                )
-                assertEquals(ownerAddress, matchActivity.right.maker)
-            }
+            assertEquals(
+                AssetDto(
+                    CryptoPunksAssetTypeDto(
+                        cryptoPunksMarket.address(),
+                        punkIndex.toInt()
+                    ), BigInteger.ONE, BigDecimal.ONE
+                ), matchActivity.right.asset
+            )
+            assertEquals(ownerAddress, matchActivity.right.maker)
         }
     }
 }

@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
@@ -127,7 +126,11 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertTrue(right?.adhoc!!)
             assertTrue(left?.counterAdhoc!!)
 
-            checkActivityWasPublished(orderLeftVersion.toOrderExactFields(), MatchEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                    assertThat(left.hash).isEqualTo(orderLeftVersion.hash)
+                }
+            }
         }
     }
 

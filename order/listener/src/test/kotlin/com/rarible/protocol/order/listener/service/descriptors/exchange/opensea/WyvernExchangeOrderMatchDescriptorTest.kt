@@ -3,7 +3,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.model.*
@@ -18,7 +17,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -156,7 +154,11 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             assertFalse(right?.adhoc!!)
             assertFalse(right?.counterAdhoc!!)
 
-            checkActivityWasPublished(sellOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                    assertThat(left.hash).isEqualTo(sellOrder.hash)
+                }
+            }
         }
     }
 
@@ -275,7 +277,11 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             val filledOrder = orderRepository.findById(buyOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.ONE)
 
-            checkActivityWasPublished(buyOrder, OrdersMatchedEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                    assertThat(it.left.hash).isEqualTo(buyOrder.hash)
+                }
+            }
         }
     }
 }

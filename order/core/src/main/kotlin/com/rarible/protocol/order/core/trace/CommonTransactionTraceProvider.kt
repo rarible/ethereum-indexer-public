@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.java.Lists
+import kotlin.math.pow
 
 class CommonTransactionTraceProvider(
     private val ethereum: MonoEthereum
@@ -27,10 +28,10 @@ class CommonTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult? {
+    override suspend fun getTransactionTrace(transactionHash: Word): SimpleTraceResult {
         try {
             val request = Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
-            val attempts = 5
+            val attempts = 8
             for (attempt in 0 until attempts) {
                 try {
                     val response = ethereum.executeRaw(request).awaitFirst()
@@ -48,11 +49,9 @@ class CommonTransactionTraceProvider(
                 } catch (e: Throwable) {
                     logger.error("Error attempt $attempt/$attempts to fetch trace of $transactionHash", e)
                 }
-                delay(100)
+                delay(200 * 2.0.pow(attempt.toDouble() + 1).toLong())
             }
-            // TODO: temporarily disable.
-            //  error("Failed to fetch trace by hash $transactionHash in $attempts attempts")
-            return null
+            error("Failed to fetch trace by hash $transactionHash in $attempts attempts")
         } catch (ex: Throwable) {
             logger.error("Can't fetch trace by hash $transactionHash")
             throw ex

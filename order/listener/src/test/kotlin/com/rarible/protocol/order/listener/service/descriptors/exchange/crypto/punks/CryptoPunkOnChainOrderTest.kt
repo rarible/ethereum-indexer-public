@@ -71,17 +71,18 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         assertThat(listOrder).isEqualTo(expectedListOrder)
 
         checkActivityWasPublished {
-            this is OrderActivityListDto &&
-                    date == listOrderTimestamp &&
-                    source == OrderActivityDto.Source.CRYPTO_PUNKS &&
-                    hash == expectedListOrder.hash &&
-                    maker == expectedListOrder.maker &&
-                    this.make.assetType is CryptoPunksAssetTypeDto &&
-                    this.make.value == expectedListOrder.make.value.value &&
-                    this.take.assetType is EthAssetTypeDto &&
-                    this.take.value == expectedListOrder.take.value.value &&
-                    price == punkPrice.toBigDecimal(18) &&
-                    this.priceUsd == punkPriceUsd
+            assertThat(this).isInstanceOfSatisfying(OrderActivityListDto::class.java) {
+                assertThat(it.date).isEqualTo(listOrderTimestamp)
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(expectedListOrder.hash)
+                assertThat(it.maker).isEqualTo(expectedListOrder.maker)
+                assertThat(it.make.assetType).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+                assertThat(it.make.value).isEqualTo(expectedListOrder.make.value.value)
+                assertThat(it.take.assetType).isInstanceOf(EthAssetTypeDto::class.java)
+                assertThat(it.take.value).isEqualTo(expectedListOrder.take.value.value)
+                assertThat(it.price).isEqualTo(punkPrice.toBigDecimal(18))
+                assertThat(it.priceUsd).isEqualTo(punkPriceUsd)
+            }
         }
 
         val (buyerAddress, buyerSender) = newSender()
@@ -155,16 +156,17 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         checkActivityWasPublished {
-            this is OrderActivityMatchDto
-                    && this.source == OrderActivityDto.Source.CRYPTO_PUNKS
-                    && this.left.hash == listOrder.hash
-                    && this.left.maker == sellerAddress
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.left.hash).isEqualTo(listOrder.hash)
+                assertThat(it.left.maker).isEqualTo(sellerAddress)
 
-                    && this.right.hash == Order.hashKey(buyerAddress, take.type, make.type, listOrder.salt.value)
-                    && this.right.maker == buyerAddress
+                assertThat(it.right.hash).isEqualTo(Order.hashKey(buyerAddress, take.type, make.type, listOrder.salt.value))
+                assertThat(it.right.maker).isEqualTo(buyerAddress)
 
-                    && left.type == OrderActivityMatchSideDto.Type.SELL
-                    && right.type == null
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+                assertThat(it.right.type).isEqualTo(null)
+            }
         }
     }
 
@@ -199,12 +201,13 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         checkActivityWasPublished {
-            this is OrderActivityCancelListDto &&
-                    this.source == OrderActivityDto.Source.CRYPTO_PUNKS &&
-                    this.hash == listOrder.hash &&
-                    this.maker == sellerAddress &&
-                    this.make is CryptoPunksAssetTypeDto &&
-                    this.take is EthAssetTypeDto
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelListDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(listOrder.hash)
+                assertThat(it.maker).isEqualTo(sellerAddress)
+                assertThat(it.make).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+                assertThat(it.take).isInstanceOf(EthAssetTypeDto::class.java)
+            }
         }
     }
 
@@ -257,15 +260,16 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         assertThat(bidOrder).isEqualTo(expectedBidOrder)
 
         checkActivityWasPublished {
-            this is OrderActivityBidDto
-                    && this.hash == bidOrder.hash
-                    && this.maker == bidderAddress
-                    && this.make.assetType is EthAssetTypeDto
-                    && this.make.value == bidPrice
-                    && this.take.assetType is CryptoPunksAssetTypeDto
-                    && this.source == OrderActivityDto.Source.CRYPTO_PUNKS
-                    && this.price == bidPrice.toBigDecimal(18)
-                    && this.priceUsd == punkPriceUsd
+            assertThat(this).isInstanceOfSatisfying(OrderActivityBidDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.maker).isEqualTo(bidderAddress)
+                assertThat(it.make.assetType).isInstanceOf(EthAssetTypeDto::class.java)
+                assertThat(it.make.value).isEqualTo(bidPrice)
+                assertThat(it.take.assetType).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+                assertThat(it.price).isEqualTo(bidPrice.toBigDecimal(18))
+                assertThat(it.priceUsd).isEqualTo(punkPriceUsd)
+            }
         }
 
         val preparedAcceptBidTx = prepareTxService.prepareTransaction(
@@ -339,13 +343,14 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         checkActivityWasPublished {
-            this is OrderActivityMatchDto
-                    && this.source == OrderActivityDto.Source.CRYPTO_PUNKS
-                    && this.left.hash == Order.hashKey(ownerAddress, bidTake.type, bidMake.type, bidOrder.salt.value)
-                    && this.left.maker == ownerAddress
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.left.hash).isEqualTo(Order.hashKey(ownerAddress, bidTake.type, bidMake.type, bidOrder.salt.value))
+                assertThat(it.left.maker).isEqualTo(ownerAddress)
 
-                    && this.right.hash == bidOrder.hash
-                    && this.right.maker == bidderAddress
+                assertThat(it.right.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.right.maker).isEqualTo(bidderAddress)
+            }
         }
     }
 
@@ -383,12 +388,13 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         checkActivityWasPublished {
-            this is OrderActivityCancelBidDto &&
-                    this.source == OrderActivityDto.Source.CRYPTO_PUNKS &&
-                    this.hash == bidOrder.hash &&
-                    this.maker == bidderAddress &&
-                    this.make is EthAssetTypeDto &&
-                    this.take is CryptoPunksAssetTypeDto
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelBidDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.maker).isEqualTo(bidderAddress)
+                assertThat(it.make).isInstanceOf(EthAssetTypeDto::class.java)
+                assertThat(it.take).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+            }
         }
     }
 

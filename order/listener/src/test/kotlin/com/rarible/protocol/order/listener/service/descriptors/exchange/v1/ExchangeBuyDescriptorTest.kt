@@ -8,7 +8,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.deprecated.TransferProxyForDeprecated
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
-import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.dto.OrderActivityMatchDto
@@ -204,7 +203,11 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             assertFalse(buy.adhoc!!)
             assertTrue(buy.counterAdhoc!!)
 
-            checkActivityWasPublished(orderLeft, BuyEvent.id(), OrderActivityMatchDto::class.java)
+            checkActivityWasPublished {
+                assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                    assertThat(orderLeft.hash).isEqualTo(it.left.hash)
+                }
+            }
         }
     }
 }

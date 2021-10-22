@@ -99,7 +99,7 @@ class PropertiesCacheDescriptor(
     fun getFromBase64(uri: String): Mono<ItemProperties> {
         val str = base64MimeToString(uri)
         logger.info("Decoding properties from base64: $str")
-        return mono { parse(str) }
+        return mono { parse(uri, str) }
     }
 
     fun getByUri(uri: String): Mono<ItemProperties> {
@@ -109,11 +109,14 @@ class PropertiesCacheDescriptor(
             .bodyToMono<String>()
             .flatMap {
                 logger.info("Got properties from $uri")
-                mono { parse(it) }
+                mono { parse(uri, it) }
             }
     }
 
-    private suspend fun parse(body: String): ItemProperties {
+    private suspend fun parse(uri: String, body: String): ItemProperties {
+        if (body.length > 1_000_000) {
+            logger.warn("Suspiciously big item properties ${body.length} for $uri")
+        }
         val node = mapper.readTree(body) as ObjectNode
         val image = image(node)
         return ItemProperties(

@@ -4,6 +4,8 @@ spring:
       uri: mongodb://${mongodb.hosts}
       database: ${mongodb.database}
 
+redisUri: ${redis.uri}
+
 parityUrls: ${node.hosts}
 parityWebSocketUrls: ${node.webSocketHosts}
 

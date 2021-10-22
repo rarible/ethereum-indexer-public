@@ -31,6 +31,8 @@ rarible:
       enabled: true
     read-only-transaction-sender:
       enabled: true
+  cache:
+    use-locks: true
 
 ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50
