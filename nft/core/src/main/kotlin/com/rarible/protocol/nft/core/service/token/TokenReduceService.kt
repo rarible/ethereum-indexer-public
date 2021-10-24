@@ -63,7 +63,8 @@ class TokenReduceService(
                     features = features,
                     standard = standard,
                     status = maxOf(token.status, status),
-                    lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
+                    lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString()),
+                    isRaribleContract = true
                 )
             }
             is CollectionOwnershipTransferred -> token.copy(
