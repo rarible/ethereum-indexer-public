@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.migration.integration
 
+import com.rarible.core.cache.CacheService
 import com.rarible.core.lock.LockService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
@@ -73,6 +74,9 @@ class TestPropertiesConfiguration {
     fun lockService(): LockService {
         return mockk()
     }
+
+    @Bean
+    fun cacheService(): CacheService = mockk()
 
     @Bean
     fun propertyCacheDescriptor(): PropertiesCacheDescriptor {

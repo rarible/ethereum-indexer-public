@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.migration.integration
 
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import kotlinx.coroutines.FlowPreview
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,6 +17,12 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var nftIndexerProperties: NftIndexerProperties
+
+    @Autowired
+    lateinit var tokenRepository: TokenRepository
+
+    @Autowired
+    lateinit var nftHistoryRepository: NftHistoryRepository
 
     @BeforeEach
     fun cleanDatabase() {
