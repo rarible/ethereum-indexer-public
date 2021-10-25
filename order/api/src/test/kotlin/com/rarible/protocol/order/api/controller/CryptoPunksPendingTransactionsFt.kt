@@ -134,6 +134,7 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
     @Test
     fun `acceptBid crypto punk which is on sale`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
+        val (buyerAddress, buyerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
 
@@ -147,10 +148,10 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         val punkPriceUsd = punkPrice.toBigDecimal(18) * 3000.toBigDecimal()
 
         val orderVersion = OrderVersion(
-            maker = sellerAddress,
+            maker = buyerAddress,
             taker = null,
-            make = make,
-            take = take,
+            make = take,
+            take = make,
             type = OrderType.CRYPTO_PUNKS,
             salt = CRYPTO_PUNKS_SALT,
             data = OrderCryptoPunksData,
@@ -169,20 +170,15 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
 
         orderUpdateService.save(orderVersion)
 
-        // Sell the punk.
-        val (buyerAddress, buyerSender) = newSender()
-        depositInitialBalance(buyerAddress, punkPrice)
-        cryptoPunksMarket.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
-        cryptoPunksMarket.withdraw().withSender(sellerSender).execute().verifySuccess()
-
         setField(pendingTransactionService, "cryptoPunksAddress", cryptoPunksMarket.address())
 
-        // Bid the punk back.
-        cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(sellerSender).withValue(punkPrice).execute()
+        // Bid the punk
+        depositInitialBalance(buyerAddress, punkPrice)
+        cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute()
             .verifySuccess()
 
         // The new owner accepts the bid.
-        val receipt = cryptoPunksMarket.acceptBidForPunk(punkIndex, punkPrice).withSender(buyerSender).execute().verifySuccess()
+        val receipt = cryptoPunksMarket.acceptBidForPunk(punkIndex, punkPrice).withSender(sellerSender).execute().verifySuccess()
 
         processTransaction(receipt, 2)
 

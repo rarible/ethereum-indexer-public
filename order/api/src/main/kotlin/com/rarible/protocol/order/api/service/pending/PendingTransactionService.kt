@@ -86,7 +86,7 @@ class PendingTransactionService(
                 val data = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
                 val id = data._1()
                 val price = data._2()
-                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(id))
+                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(id))
                 order?.let {
                     val make = it.make.copy(value = EthUInt256.of(price))
                     val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
@@ -117,7 +117,7 @@ class PendingTransactionService(
                 takeUsd = null,
                 makePriceUsd = null,
                 takePriceUsd = null,
-                source = HistorySource.RARIBLE,
+                source = HistorySource.CRYPTO_PUNKS,
                 adhoc = adhocLeft,
                 counterAdhoc = !adhocLeft
             ), PunkBoughtEvent.id()),
@@ -136,7 +136,7 @@ class PendingTransactionService(
                 takeUsd = null,
                 makePriceUsd = null,
                 takePriceUsd = null,
-                source = HistorySource.RARIBLE,
+                source = HistorySource.CRYPTO_PUNKS,
                 adhoc = !adhocLeft,
                 counterAdhoc = adhocLeft
             ), PunkBoughtEvent.id())
