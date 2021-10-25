@@ -17,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 
@@ -28,7 +29,7 @@ class ReindexTokenServiceTest {
     private val service = ReindexTokenService(tokenRegistrationService, tokenRepository, taskRepository)
 
     @Test
-    fun `should create toke reindex task`() = runBlocking<Unit> {
+    fun `should create token reindex task`() = runBlocking<Unit> {
         val token1 = AddressFactory.create()
         val token2 = AddressFactory.create()
 
@@ -37,7 +38,7 @@ class ReindexTokenServiceTest {
         mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
 
-        val task = service.createReindexTokenTask(listOf(token1, token2), 100)
+        val task = service.createReindexTokenTask(listOf(token1, token2), 100, false)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isEqualTo(100L)
@@ -49,13 +50,13 @@ class ReindexTokenServiceTest {
     }
 
     @Test
-    fun `should create toke reduce task`() = runBlocking<Unit> {
+    fun `should create token reduce task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
         mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
 
-        val task = service.createReduceTokenItemsTask(targetToken)
+        val task = service.createReduceTokenItemsTask(targetToken, false)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isNull()
@@ -66,13 +67,37 @@ class ReindexTokenServiceTest {
     }
 
     @Test
-    fun `should create toke royalties task`() = runBlocking<Unit> {
+    fun `should create token reduce task forcibly`() = runBlocking<Unit> {
+        val targetToken = AddressFactory.create()
+
+        mockTaskRepositoryFindRunningTask(
+            ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
+            ReduceTokenItemsTaskParams(targetToken).toParamString()
+        )
+        mockTaskRepositoryFindCompletedTask(
+            ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
+            ReduceTokenItemsTaskParams(targetToken).toParamString()
+        )
+        mockTokenRepositorySave()
+
+        val task = service.createReduceTokenItemsTask(targetToken, true)
+        assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
+        assertThat(task.running).isEqualTo(false)
+        assertThat(task.state).isNull()
+
+        with(ReduceTokenItemsTaskParams.fromParamString(task.param)) {
+            assertThat(token).isEqualTo(token)
+        }
+    }
+
+    @Test
+    fun `should create token royalties task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
         mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
 
-        val task = service.createReindexRoyaltiesTask(targetToken)
+        val task = service.createReindexRoyaltiesTask(targetToken, false)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isNull()
@@ -92,7 +117,7 @@ class ReindexTokenServiceTest {
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReduceTokenItemsTask(targetToken)
+                service.createReduceTokenItemsTask(targetToken, false)
             }
         }
     }
@@ -107,7 +132,7 @@ class ReindexTokenServiceTest {
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexRoyaltiesTask(targetToken)
+                service.createReindexRoyaltiesTask(targetToken, false)
             }
         }
     }
@@ -115,18 +140,18 @@ class ReindexTokenServiceTest {
     @Test
     fun `should throw exception if reindex token task exist`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
-        val existToke = AddressFactory.create()
+        val existToken = AddressFactory.create()
 
         mockTokenRegistrationService(targetToken, TokenStandard.ERC1155)
-        mockTokenRegistrationService(existToke, TokenStandard.ERC1155)
+        mockTokenRegistrationService(existToken, TokenStandard.ERC1155)
 
         mockTaskRepositoryFindRunningTask(
             ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN,
-            ReindexTokenTaskParams(TokenStandard.ERC1155, listOf(existToke)).toParamString()
+            ReindexTokenTaskParams(TokenStandard.ERC1155, listOf(existToken)).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexTokenTask(listOf(targetToken, existToke), 1)
+                service.createReindexTokenTask(listOf(targetToken, existToken), 1, false)
             }
         }
     }
@@ -156,5 +181,16 @@ class ReindexTokenServiceTest {
                 )
             )
         }
+    }
+
+    private fun mockTaskRepositoryFindCompletedTask(type: String, param: String) {
+        coEvery { taskRepository.findByTypeAndParam(eq(type), eq(param)) } returns Mono.just(
+            Task(
+                type = type,
+                running = true,
+                lastStatus = TaskStatus.COMPLETED,
+                param = param
+            )
+        )
     }
 }
