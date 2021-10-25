@@ -108,7 +108,7 @@ class ReindexTokenService(
         return try {
             if (force) {
                 val found = taskRepository.findByTypeAndParam(task.type, task.param).awaitFirstOrNull()
-                found?.let { taskRepository.save(task.copy(
+                found?.let { taskRepository.save(it.copy(
                     state = task.state,
                     running = task.running,
                     lastStatus = task.lastStatus)) } ?: throw IllegalArgumentException("Reindex task doesn't exist")

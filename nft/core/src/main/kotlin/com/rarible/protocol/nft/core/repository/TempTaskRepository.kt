@@ -23,7 +23,7 @@ class TempTaskRepository(
         return template.find<Task>(Query.query(criteria)).asFlow()
     }
 
-    fun findByTypeAndParam(type: String, param: String): Mono<Task?> {
+    fun findByTypeAndParam(type: String, param: String): Mono<Task> {
         val query = Query(
             Criteria().andOperator(
                 Task::type isEqualTo type,
