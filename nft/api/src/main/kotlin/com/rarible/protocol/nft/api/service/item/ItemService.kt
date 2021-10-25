@@ -3,12 +3,7 @@ package com.rarible.protocol.nft.api.service.item
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.convert
-import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemFilterDto
-import com.rarible.protocol.dto.NftItemMetaDto
-import com.rarible.protocol.dto.NftItemRoyaltyDto
-import com.rarible.protocol.dto.NftItemRoyaltyListDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
@@ -16,7 +11,6 @@ import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RoyaltyCacheDescriptor
 import kotlinx.coroutines.async
@@ -46,7 +40,7 @@ class ItemService(
 
     suspend fun getLazy(itemId: ItemId): LazyNftDto {
         return lazyNftItemHistoryRepository
-            .findById(itemId).awaitFirstOrNull()
+            .findLazyMintById(itemId).awaitFirstOrNull()
             ?.let { conversionService.convert<LazyNftDto>(it) }
             ?: throw EntityNotFoundApiException("Lazy Item", itemId)
     }

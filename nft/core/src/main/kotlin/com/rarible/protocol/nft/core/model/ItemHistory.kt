@@ -13,7 +13,6 @@ import com.rarible.protocol.contracts.test.crypto.punks.PunkTransferEvent
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.AccessType
-import org.springframework.data.annotation.Id
 import scalether.domain.Address
 import java.time.Instant
 import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent as PunkAssignEvent
@@ -69,6 +68,8 @@ data class ItemCreators(
     override var owner: Address? = null
 }
 
+sealed class LazyItemHistory(type: ItemType) : ItemHistory(type)
+
 data class ItemLazyMint(
     override val token: Address,
     override val tokenId: EthUInt256,
@@ -79,23 +80,18 @@ data class ItemLazyMint(
     val creators: List<Part>,
     val royalties: List<Part>,
     val signatures: List<Binary>
-) : ItemHistory(ItemType.LAZY_MINT) {
+) : LazyItemHistory(ItemType.LAZY_MINT) {
     @get:AccessType(AccessType.Type.PROPERTY)
     override var owner: Address = creators.first().account
-
-    @get:Id
-    @get:AccessType(AccessType.Type.PROPERTY)
-    var id: String = ItemId(token, tokenId).stringValue
 }
 
 data class BurnItemLazyMint(
     val from: Address,
     override val token: Address,
     override val tokenId: EthUInt256,
-    val value: EthUInt256
-) : ItemHistory(ItemType.BURN_LAZY_MINT) {
+    val value: EthUInt256,
+    override val date: Instant
+) : LazyItemHistory(ItemType.BURN_LAZY_MINT) {
     override val owner: Address
         get() = Address.ZERO()
-    override val date: Instant
-        get() = Instant.now()
 }

@@ -23,13 +23,9 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -295,7 +291,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     fun `should get lazy item by id`(itemLazyMint: ItemLazyMint) = runBlocking<Unit> {
         lazyNftItemHistoryRepository.save(itemLazyMint).awaitFirst()
 
-        val lazyItemDto = nftItemApiClient.getNftLazyItemById(itemLazyMint.id).awaitFirst()
+        val lazyItemDto = nftItemApiClient.getNftLazyItemById(ItemId(itemLazyMint.token, itemLazyMint.tokenId).stringValue).awaitFirst()
 
         assertThat(lazyItemDto.contract).isEqualTo(itemLazyMint.token)
         assertThat(lazyItemDto.tokenId).isEqualTo(itemLazyMint.tokenId.value)

@@ -63,7 +63,14 @@ class PropertiesCacheDescriptor(
             logger.info(marker, "get properties $id")
 
             id.parseTokenId()
-                .let { (address, tokenId) -> getUri(address, tokenId).map { it.replace("{id}", EthUInt256.of(tokenId).toString()) } }
+                .let { (address, tokenId) ->
+                    getUri(address, tokenId).map {
+                        it.replace(
+                            "{id}",
+                            EthUInt256.of(tokenId).toString()
+                        )
+                    }
+                }
                 .flatMap { uri ->
                     logger.info(marker, "got uri: $uri")
                     when {
@@ -154,7 +161,7 @@ class PropertiesCacheDescriptor(
 
     fun getUri(token: Address, tokenId: BigInteger): Mono<String> {
         //todo тест на получение lazy item properties
-        return lazyNftItemHistoryRepository.findById(ItemId(token, EthUInt256(tokenId)))
+        return lazyNftItemHistoryRepository.findLazyMintById(ItemId(token, EthUInt256(tokenId)))
             .map { it.uri }
             .switchIfEmpty {
                 tokenRepository.findById(token).toOptional()

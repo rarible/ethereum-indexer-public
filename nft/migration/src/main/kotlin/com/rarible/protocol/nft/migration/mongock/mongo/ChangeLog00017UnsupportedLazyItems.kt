@@ -7,11 +7,7 @@ import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.nft.core.converters.dto.DeletedItemDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.DeletedOwnershipDtoConverter
-import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.changock.migration.api.annotations.NonLockGuarded
@@ -22,11 +18,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.gt
-import org.springframework.data.mongodb.core.query.isEqualTo
-import org.springframework.data.mongodb.core.query.nin
+import org.springframework.data.mongodb.core.query.*
 import java.util.*
 
 @ChangeLog(order = "00017")
@@ -103,13 +95,13 @@ class ChangeLog00017UnsupportedLazyItems {
         mongo.find(
             Query(
                 Criteria().andOperator(
-                    ItemLazyMint::token isEqualTo item.token,
-                    ItemLazyMint::tokenId isEqualTo item.tokenId
+                    LazyItemHistory::token isEqualTo item.token,
+                    LazyItemHistory::tokenId isEqualTo item.tokenId
                 )
-            ), ItemLazyMint::class.java, LazyNftItemHistoryRepository.COLLECTION
+            ), LazyItemHistory::class.java, LazyNftItemHistoryRepository.COLLECTION
         ).collect { history ->
             mongo.remove(history, LazyNftItemHistoryRepository.COLLECTION).awaitFirstOrNull()
-            logger.info("Deleted history=${history.id}")
+            logger.info("Deleted history=${history.token}:${history.tokenId}")
         }
     }
 
