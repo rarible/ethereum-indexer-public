@@ -43,9 +43,10 @@ class AdminController(
     )
     suspend fun createReindexTokenTask(
         @RequestParam(value = "collection", required = true) collection: List<Address>,
-        @RequestParam(value = "fromBlock", required = false) fromBlock: Long?
+        @RequestParam(value = "fromBlock", required = false) fromBlock: Long?,
+        @RequestParam(value = "force", required = false) force: Boolean?
     ): ResponseEntity<AdminTaskDto> {
-        val task = reindexTokenService.createReindexTokenTask(collection, fromBlock)
+        val task = reindexTokenService.createReindexTokenTask(collection, fromBlock, force ?: false)
         return ResponseEntity.ok().body(convert(task))
     }
 
@@ -54,9 +55,10 @@ class AdminController(
         produces = ["application/json"]
     )
     suspend fun createReduceTokenItemsTask(
-        @RequestParam(value = "collection", required = true) collection: Address
+        @RequestParam(value = "collection", required = true) collection: Address,
+        @RequestParam(value = "force", required = false) force: Boolean?
     ): ResponseEntity<AdminTaskDto> {
-        val task = reindexTokenService.createReduceTokenItemsTask(collection)
+        val task = reindexTokenService.createReduceTokenItemsTask(collection, force ?: false)
         return ResponseEntity.ok().body(convert(task))
     }
 
@@ -65,9 +67,10 @@ class AdminController(
         produces = ["application/json"]
     )
     suspend fun createReindexRoyaltiesTask(
-        @RequestParam(value = "collection", required = true) collection: Address
+        @RequestParam(value = "collection", required = true) collection: Address,
+        @RequestParam(value = "force", required = false) force: Boolean?
     ): ResponseEntity<AdminTaskDto> {
-        val task = reindexTokenService.createReindexRoyaltiesTask(collection)
+        val task = reindexTokenService.createReindexRoyaltiesTask(collection, force ?: false)
         return ResponseEntity.ok().body(convert(task))
     }
 

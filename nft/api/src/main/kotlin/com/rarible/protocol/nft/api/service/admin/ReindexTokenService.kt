@@ -38,7 +38,7 @@ class ReindexTokenService(
         return taskRepository.findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN).toList()
     }
 
-    suspend fun createReindexTokenTask(tokens: List<Address>, fromBlock: Long?): Task {
+    suspend fun createReindexTokenTask(tokens: List<Address>, fromBlock: Long?, force: Boolean): Task {
         val tokenStandardMap = tokens.toSet().map { it to tokenRegistrationService.getTokenStandard(it).awaitFirst() }
         val standards = tokenStandardMap.map { it.second }.toSet()
 
@@ -49,20 +49,20 @@ class ReindexTokenService(
             throw IllegalArgumentException("Reindex support only $SUPPORTED_REINDEX_TOKEN_STANDARD, but you have ${formatToString(tokenStandardMap)}")
         }
         val params = ReindexTokenTaskParams(standards.first(), tokens)
-        checkOtherReindexTokenTasks(params)
-        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, state = fromBlock)
+        if (!force) checkOtherReindexTokenTasks(params)
+        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, false, state = fromBlock)
     }
 
-    suspend fun createReduceTokenItemsTask(token: Address): Task {
+    suspend fun createReduceTokenItemsTask(token: Address, force: Boolean): Task {
         val params = ReduceTokenItemsTaskParams(token)
-        checkOtherTasks(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
-        return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS, state = null)
+        if (!force) checkOtherTasks(params, ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
+        return saveTask(params.toParamString(), ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS, force, state = null)
     }
 
-    suspend fun createReindexRoyaltiesTask(token: Address): Task {
+    suspend fun createReindexRoyaltiesTask(token: Address, force: Boolean): Task {
         val params = ReindexTokenRoyaltiesTaskParam(token)
-        checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
-        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, state = null)
+        if (!force) checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
+        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, false, state = null)
     }
 
     private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
@@ -92,7 +92,7 @@ class ReindexTokenService(
         }
     }
 
-    private suspend fun saveTask(params: String, type: String, state: Any?): Task {
+    private suspend fun saveTask(params: String, type: String, force: Boolean, state: Any?): Task {
         return saveTask(
             Task(
                 type = type,
@@ -100,13 +100,21 @@ class ReindexTokenService(
                 state = state,
                 running = false,
                 lastStatus = TaskStatus.NONE
-            )
+            ), force
         )
     }
 
-    private suspend fun saveTask(task: Task): Task {
+    private suspend fun saveTask(task: Task, force: Boolean): Task {
         return try {
-            taskRepository.save(task)
+            if (force) {
+                val found = taskRepository.findByTypeAndParam(task.type, task.param).awaitFirstOrNull()
+                found?.let { taskRepository.save(it.copy(
+                    state = task.state,
+                    running = task.running,
+                    lastStatus = task.lastStatus)) } ?: throw IllegalArgumentException("Reindex task doesn't exist")
+            } else {
+                taskRepository.save(task)
+            }
         } catch (ex: Exception) {
             when (ex) {
                 is OptimisticLockingFailureException, is DuplicateKeyException -> {
