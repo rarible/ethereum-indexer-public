@@ -38,6 +38,13 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 platform?.let { OrderVersion::platform isEqualTo it },
+                currencyId?.let {
+                    if (it == Address.ZERO()) { // zero means ETH
+                        OrderVersion::make / Asset::type / AssetType::token exists false
+                    } else {
+                        OrderVersion::make / Asset::type / AssetType::token isEqualTo it
+                    }
+                },
                 startDate?.let { OrderVersion::createdAt gte it },
                 endDate?.let { OrderVersion::createdAt lte it }
             )

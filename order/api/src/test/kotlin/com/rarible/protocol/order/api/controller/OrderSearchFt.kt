@@ -289,6 +289,37 @@ class OrderSearchFt : AbstractIntegrationTest() {
         assertThat(result.orders[0].make.value).isEqualTo(123)
     }
 
+    @Test
+    fun `should find bid-order by currency`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+        val order1V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(123)),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(123L)
+        )
+        saveOrderVersions(order1V)
+        val order1VEth = createErc721BidOrderVersion().copy(
+            maker = order1V.maker,
+            make = Asset(EthAssetType, EthUInt256.of(123)),
+            take = order1V.take,
+            takePrice = BigDecimal.valueOf(123L)
+        )
+        saveOrderVersions(order1VEth)
+
+        val result = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            order1V.maker.toString(),
+            null,
+            PlatformDto.ALL,
+            null, 2, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].make.value).isEqualTo(123)
+    }
+
     private fun checkOrderDto(orderDto: OrderDto, order: Order) {
         assertThat(orderDto.hash).isEqualTo(order.hash)
     }
