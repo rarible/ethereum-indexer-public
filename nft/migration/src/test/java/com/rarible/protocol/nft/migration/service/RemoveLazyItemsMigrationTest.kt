@@ -43,9 +43,6 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
     private lateinit var itemRepository: ItemRepository
 
     @Autowired
-    private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
-
-    @Autowired
     private lateinit var ownershipService: OwnershipService
     @Autowired
     private lateinit var historyRepository: NftItemHistoryRepository
@@ -80,7 +77,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         // lazy item in non lazy collection
         val lazyItem = createItemLazyMint(contract.id)
         val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItem).awaitSingle()
-        itemReduceService.onLazyItemHistories(savedItemHistory).awaitFirstOrNull()
+        itemReduceService.update(savedItemHistory.token, savedItemHistory.tokenId).awaitFirstOrNull()
         assertFalse(item(lazyItem).deleted)
 
         // non lazy item in non lazy collection
@@ -97,7 +94,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         // lazy item in non lazy collection
         val lazyItem2Lazy = createItemLazyMint(lazyContract.id)
         val savedLazyItem2Lazy = lazyNftItemHistoryRepository.save(lazyItem2Lazy).awaitSingle()
-        itemReduceService.onLazyItemHistories(savedLazyItem2Lazy).awaitFirstOrNull()
+        itemReduceService.update(savedLazyItem2Lazy.token, savedLazyItem2Lazy.tokenId).awaitFirstOrNull()
         assertFalse(item(lazyItem2Lazy).deleted)
 
         // check ownerships

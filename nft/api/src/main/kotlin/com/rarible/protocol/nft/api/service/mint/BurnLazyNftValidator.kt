@@ -1,8 +1,9 @@
 package com.rarible.protocol.nft.api.service.mint
 
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.nft.api.exceptions.*
 import com.rarible.protocol.dto.BurnLazyNftFormDto
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.exceptions.ValidationApiException
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Word
@@ -16,7 +17,7 @@ class BurnLazyNftValidator(
     private val signService: ERC1271SignService
 ) {
     suspend fun validate(itemId: ItemId, msg: String, burnLazyNftDto: BurnLazyNftFormDto) {
-        val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirstOrNull()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
             ?: throw EntityNotFoundApiException("Item", itemId)
 
         val mintCreators = lazyMint.creators.map { it.account }

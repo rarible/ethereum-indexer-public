@@ -47,25 +47,13 @@ class ItemReduceService(
                 .filter { skipTokens.allowReducing(it.token, it.tokenId) }
                 .flatMap { Flux.just(Pair(it.token, it.tokenId)) }
                 .distinct()
-                .flatMap { (token, tokenId) ->
-                    logger.info(marker, "onItemHistories processing token=$token tokenId=$tokenId")
-                    update(token, tokenId)
-                }
+                .flatMap { update(token = it.first, tokenId = it.second) }
                 .then()
         }
     }
 
-    fun onLazyItemHistories(lazyItemHistory: ItemLazyMint): Mono<Void> {
-        val token = lazyItemHistory.token
-        val tokenId = lazyItemHistory.tokenId
-
-        return LoggingUtils.withMarker { marker ->
-            logger.info(marker, "onLazyItemHistories processing token=$token, tokenId=$tokenId")
-            update(token, tokenId).then()
-        }
-    }
-
     fun update(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemId> {
+        logger.info("Update token=$token, tokenId=$tokenId")
         val mergedHistories = Flux.mergeOrdered(
             compareBy<HistoryLog>(
                 { it.item.token.toString() },
@@ -318,7 +306,7 @@ class ItemReduceService(
     }
 
     private fun findLazyItemsHistory(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<HistoryLog> {
-        return lazyHistoryRepository.findItemsHistory(token, tokenId, from).map {
+        return lazyHistoryRepository.find(token, tokenId, from).map {
             HistoryLog(
                 item = it,
                 log = LogEvent(
