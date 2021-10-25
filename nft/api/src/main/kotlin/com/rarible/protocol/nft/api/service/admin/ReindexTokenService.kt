@@ -50,7 +50,7 @@ class ReindexTokenService(
         }
         val params = ReindexTokenTaskParams(standards.first(), tokens)
         if (!force) checkOtherReindexTokenTasks(params)
-        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, false, state = fromBlock)
+        return saveTask(params.toParamString(), ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN, force, state = fromBlock)
     }
 
     suspend fun createReduceTokenItemsTask(token: Address, force: Boolean): Task {
@@ -62,7 +62,7 @@ class ReindexTokenService(
     suspend fun createReindexRoyaltiesTask(token: Address, force: Boolean): Task {
         val params = ReindexTokenRoyaltiesTaskParam(token)
         if (!force) checkOtherTasks(params, ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
-        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, false, state = null)
+        return saveTask(params.toParamString(), ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES, force, state = null)
     }
 
     private suspend fun checkOtherReindexTokenTasks(params: ReindexTokenTaskParams) {
