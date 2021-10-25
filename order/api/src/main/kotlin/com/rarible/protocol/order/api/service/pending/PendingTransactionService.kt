@@ -91,7 +91,7 @@ class PendingTransactionService(
                     val make = it.make.copy(value = EthUInt256.of(price))
                     val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
                     val counterHash = Order.hashKey(it.maker, make.type, it.take.type, it.salt.value)
-                    punkOrders(hash, counterHash, it.maker, from, make, it.take, true)
+                    punkOrders(hash, counterHash, from, it.maker, it.take, make, true)
                 }
             }
             else -> null
@@ -99,7 +99,7 @@ class PendingTransactionService(
         return pendingLogs ?: listOf()
     }
 
-    private fun punkOrders(hash: Word, counterHash: Word, maker: Address, taker: Address,
+    private fun punkOrders(hash: Word, counterHash: Word, bidder: Address, seller: Address,
                            make: Asset, take: Asset, adhocLeft: Boolean): List<PendingLog> {
         return listOf(
             PendingLog(OrderSideMatch(
@@ -108,8 +108,8 @@ class PendingTransactionService(
                 fill = take.value,
                 make = make,
                 take = take,
-                maker = maker,
-                taker = taker,
+                maker = bidder,
+                taker = seller,
                 side = OrderSide.LEFT,
                 makeValue = null,
                 takeValue = null,
@@ -127,8 +127,8 @@ class PendingTransactionService(
                 fill = make.value,
                 make = take,
                 take = make,
-                maker = taker,
-                taker = maker,
+                maker = seller,
+                taker = bidder,
                 side = OrderSide.RIGHT,
                 makeValue = null,
                 takeValue = null,
