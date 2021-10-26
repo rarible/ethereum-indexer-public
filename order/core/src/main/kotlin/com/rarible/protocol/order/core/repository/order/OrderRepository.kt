@@ -40,6 +40,10 @@ interface OrderRepository {
 
     fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
 
+    suspend fun findByMake(token: Address, tokenId: EthUInt256): Order?
+
+    suspend fun findByTake(token: Address, tokenId: EthUInt256): Order?
+
     fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
 
     suspend fun createIndexes()

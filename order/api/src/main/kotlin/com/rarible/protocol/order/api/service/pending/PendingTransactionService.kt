@@ -5,6 +5,8 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
+import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
@@ -37,6 +39,8 @@ class PendingTransactionService(
         exchangeContractAddresses.v2
     ).toSet()
 
+    private val cryptoPunksAddress = exchangeContractAddresses.cryptoPunks
+
     override suspend fun process(
         hash: Word,
         from: Address,
@@ -45,8 +49,13 @@ class PendingTransactionService(
         id: Binary,
         data: Binary
     ): List<LogEvent> {
-        return if (to != null && exchangeContracts.contains(to)) {
-            processTxToExchange(from, id, data).mapIndexed { index, pendingLog ->
+        return if (to != null) {
+            val logs = when {
+                exchangeContracts.contains(to) -> processTxToExchange(from, id, data)
+                cryptoPunksAddress == to -> processTxToCryptoPunks(from, id, data)
+                else -> emptyList()
+            }
+            logs?.let { it.mapIndexed { index, pendingLog ->
                 LogEvent(
                     data = pendingLog.eventData,
                     address = to,
@@ -55,11 +64,83 @@ class PendingTransactionService(
                     status = LogEventStatus.PENDING,
                     index = 0,
                     minorLogIndex = index
-                )
-            }
+                ) } }
         } else {
             emptyList()
         }
+    }
+
+    private suspend fun processTxToCryptoPunks(from: Address, id: Binary, data: Binary): List<PendingLog> {
+        logger.info("Process tx to cryptopunks market: from=$from, id=$id, data=$data")
+        val pendingLogs = when (id.prefixed()) {
+            CryptoPunksMarket.buyPunkSignature().id().prefixed() -> {
+                val id = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
+                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(id))
+                order?.let {
+                    val hash = Order.hashKey(it.maker, it.make.type, it.take.type, it.salt.value)
+                    val counterHash = Order.hashKey(from, it.take.type, it.make.type, it.salt.value)
+                    punkOrders(hash, counterHash, it.maker, from, it.make, it.take, false)
+                }
+            }
+            CryptoPunksMarket.acceptBidForPunkSignature().id().prefixed() -> {
+                val data = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
+                val id = data._1()
+                val price = data._2()
+                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(id))
+                order?.let {
+                    val make = it.make.copy(value = EthUInt256.of(price))
+                    val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
+                    val counterHash = Order.hashKey(it.maker, make.type, it.take.type, it.salt.value)
+                    punkOrders(hash, counterHash, from, it.maker, it.take, make, true)
+                }
+            }
+            else -> null
+        }
+        return pendingLogs ?: listOf()
+    }
+
+    private fun punkOrders(hash: Word, counterHash: Word, bidder: Address, seller: Address,
+                           make: Asset, take: Asset, adhocLeft: Boolean): List<PendingLog> {
+        return listOf(
+            PendingLog(OrderSideMatch(
+                hash = hash,
+                counterHash = counterHash,
+                fill = take.value,
+                make = make,
+                take = take,
+                maker = bidder,
+                taker = seller,
+                side = OrderSide.LEFT,
+                makeValue = null,
+                takeValue = null,
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null,
+                source = HistorySource.CRYPTO_PUNKS,
+                adhoc = adhocLeft,
+                counterAdhoc = !adhocLeft
+            ), PunkBoughtEvent.id()),
+            PendingLog(OrderSideMatch(
+                hash = counterHash,
+                counterHash = hash,
+                fill = make.value,
+                make = take,
+                take = make,
+                maker = seller,
+                taker = bidder,
+                side = OrderSide.RIGHT,
+                makeValue = null,
+                takeValue = null,
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null,
+                source = HistorySource.CRYPTO_PUNKS,
+                adhoc = !adhocLeft,
+                counterAdhoc = adhocLeft
+            ), PunkBoughtEvent.id())
+        )
     }
 
     private suspend fun processTxToExchange(from: Address, id: Binary, data: Binary): List<PendingLog> {
