@@ -91,7 +91,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         )
         tokenRepository.save(lazyContract).awaitFirst()
 
-        // lazy item in non lazy collection
+        // lazy item in lazy collection
         val lazyItem2Lazy = createItemLazyMint(lazyContract.id)
         val savedLazyItem2Lazy = lazyNftItemHistoryRepository.save(lazyItem2Lazy).awaitSingle()
         itemReduceService.update(savedLazyItem2Lazy.token, savedLazyItem2Lazy.tokenId).awaitFirstOrNull()

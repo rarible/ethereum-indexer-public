@@ -12,7 +12,9 @@ import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.test.crypto.punks.PunkTransferEvent
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import org.bson.types.ObjectId
 import org.springframework.data.annotation.AccessType
+import org.springframework.data.annotation.Id
 import scalether.domain.Address
 import java.time.Instant
 import com.rarible.protocol.contracts.test.crypto.punks.AssignEvent as PunkAssignEvent
@@ -68,7 +70,10 @@ data class ItemCreators(
     override var owner: Address? = null
 }
 
-sealed class LazyItemHistory(type: ItemType) : ItemHistory(type)
+sealed class LazyItemHistory(type: ItemType) : ItemHistory(type) {
+    @Id
+    var id: String = ObjectId().toString()
+}
 
 data class ItemLazyMint(
     override val token: Address,
