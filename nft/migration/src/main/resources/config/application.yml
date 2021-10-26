@@ -25,6 +25,8 @@ rarible:
       enabled: true
     read-only-transaction-sender:
       enabled: true
+  cache:
+    use-locks: false
 
 mongock:
   change-logs-scan-package:

@@ -68,7 +68,7 @@ class ItemPropertiesServiceTest {
     @BeforeEach
     private fun before() {
         every { tokenRepository.findById(any()) } returns Mono.empty()
-        every { lazyNftItemHistoryRepository.findById(any()) } returns Mono.empty()
+        every { lazyNftItemHistoryRepository.findLazyMintById(any()) } returns Mono.empty()
         every { temporaryItemPropertiesRepository.findById(any<String>()) } returns Mono.empty()
     }
 

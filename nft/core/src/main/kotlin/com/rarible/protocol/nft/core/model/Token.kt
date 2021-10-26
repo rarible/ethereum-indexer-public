@@ -23,7 +23,8 @@ data class Token(
     @Version
     val version: Long? = null,
 
-    val minters: List<Address> = emptyList()
+    // Better off would be to introduce a TokenVersion enum (RPN-1264).
+    val isRaribleContract: Boolean = false
 ) {
     companion object {
         fun empty() = Token(

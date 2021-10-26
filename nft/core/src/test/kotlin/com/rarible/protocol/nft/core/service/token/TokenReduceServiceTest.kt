@@ -6,20 +6,72 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.CollectionEvent
-import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
-import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.*
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
+import reactor.kotlin.core.publisher.toMono
 import scalether.domain.AddressFactory
 
 @IntegrationTest
 class TokenReduceServiceTest : AbstractIntegrationTest() {
+
+    @Autowired
+    lateinit var tokenRegistrationService: TokenRegistrationService
+
+    @Test
+    fun `change owner for a token registered via service`() = runBlocking<Unit> {
+        val id = randomAddress()
+        val previousOwner = randomAddress()
+        val newOwner = randomAddress()
+        tokenRegistrationService.getOrSaveToken(id) {
+            Token(
+                id = id,
+                owner = previousOwner,
+                name = "Name",
+                symbol = "Symbol",
+                standard = TokenStandard.ERC721
+            ).toMono()
+        }.awaitFirst()
+
+        tokenHistoryRepository.save(
+            LogEvent(
+                CollectionOwnershipTransferred(
+                    id = id,
+                    previousOwner = previousOwner,
+                    newOwner = newOwner
+                ),
+                address = id,
+                topic = OwnershipTransferredEvent.id(),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0
+            )
+        ).awaitFirst()
+
+        val updated = tokenReduceService.updateToken(id)
+        assertThat(updated).isEqualToIgnoringGivenFields(
+            Token(
+                id = id,
+                owner = newOwner,
+                name = "Name",
+                symbol = "Symbol",
+                standard = TokenStandard.ERC721
+            ),
+            Token::lastEventId.name,
+            Token::version.name
+        )
+    }
+
     @Test
     fun `should not change lastEventId`() = runBlocking<Unit> {
         val collectionId = randomAddress()
@@ -40,7 +92,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should change lastEventId is a new event is added`() = runBlocking<Unit> {
+    fun `should change lastEventId if a new event is added`() = runBlocking<Unit> {
         val collectionId = randomAddress()
         val previousOwner = randomAddress()
         prepareStorage(

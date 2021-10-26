@@ -1,9 +1,7 @@
 package com.rarible.protocol.nft.core.service.token
 
-import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.listener.log.domain.LogEventStatus.CONFIRMED
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -25,27 +23,33 @@ class TokenReduceService(
 
     suspend fun updateToken(address: Address): Token? = update(address).awaitFirstOrNull()
 
-    fun update(address: Address?): Flux<Token> =
-        tokenHistoryRepository.findAllByCollection(address)
+    private fun update(address: Address): Flux<Token> {
+        // We handle tokens registered via TokenRegistrationService as well.
+        val registeredToken = tokenRepository.findById(address)
+        return tokenHistoryRepository.findAllByCollection(address)
             .windowUntilChanged { (it.data as CollectionEvent).id }
-            .concatMap { updateOneToken(it) }
+            .concatMap { updateOneToken(registeredToken, it) }
+    }
 
-    private fun updateOneToken(logs: Flux<LogEvent>): Mono<Token> {
-        return logs.reduce(Token.empty()) { token, log -> reduce(token, log) }
-            .flatMap {
-                logger.info("reduce result: $it")
-                if (it.id != Address.ZERO()) {
-                    insertOrUpdate(it)
-                } else {
-                    Mono.empty()
+    private fun updateOneToken(registeredToken: Mono<Token>, logs: Flux<LogEvent>): Mono<Token> {
+        return registeredToken.defaultIfEmpty(Token.empty()).flatMap { initialToken ->
+            // Recalculate the lastEventId from zero.
+            logs.reduce(initialToken.copy(lastEventId = null)) { token, log -> reduce(token, log) }
+                .flatMap {
+                    logger.info("reduce result: $it")
+                    if (it.id != Address.ZERO()) {
+                        insertOrUpdate(it)
+                    } else {
+                        Mono.empty()
+                    }
                 }
-            }
+        }
     }
 
     private fun reduce(token: Token, log: LogEvent): Token {
         val status = when (log.status) {
             LogEventStatus.PENDING -> ContractStatus.PENDING
-            CONFIRMED -> ContractStatus.CONFIRMED
+            LogEventStatus.CONFIRMED -> ContractStatus.CONFIRMED
             else -> ContractStatus.ERROR
         }
         return when (val data = log.data as CollectionEvent) {
@@ -59,7 +63,8 @@ class TokenReduceService(
                     features = features,
                     standard = standard,
                     status = maxOf(token.status, status),
-                    lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString())
+                    lastEventId = accumulateEventId(token.lastEventId, log.id.toHexString()),
+                    isRaribleContract = true
                 )
             }
             is CollectionOwnershipTransferred -> token.copy(

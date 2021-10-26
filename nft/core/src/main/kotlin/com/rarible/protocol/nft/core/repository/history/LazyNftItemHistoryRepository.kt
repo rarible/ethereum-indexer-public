@@ -1,11 +1,12 @@
 package com.rarible.protocol.nft.core.repository.history
 
+import com.rarible.core.common.filterIsInstance
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.LazyItemHistory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
-import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import reactor.core.publisher.Flux
@@ -15,21 +16,28 @@ import scalether.domain.Address
 class LazyNftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {
-    fun save(lazyItemHistory: ItemLazyMint): Mono<ItemLazyMint> {
+    fun save(lazyItemHistory: LazyItemHistory): Mono<LazyItemHistory> {
         return mongo.save(lazyItemHistory, COLLECTION)
     }
 
-    fun remove(lazyItemHistory: ItemLazyMint): Mono<Boolean> {
+    fun remove(lazyItemHistory: LazyItemHistory): Mono<Boolean> {
         return mongo.remove(lazyItemHistory, COLLECTION).map { it.wasAcknowledged() }
     }
 
-    fun findById(lazyMintId: ItemId): Mono<ItemLazyMint> {
-        return mongo.findById(lazyMintId.stringValue, COLLECTION)
+    fun findLazyMintById(itemId: ItemId): Mono<ItemLazyMint> {
+        return find(
+            token = itemId.token,
+            tokenId = itemId.tokenId
+        ).filterIsInstance<ItemLazyMint>().singleOrEmpty()
     }
 
-    fun findItemsHistory(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemLazyMint> {
+    fun find(
+        token: Address? = null,
+        tokenId: EthUInt256? = null,
+        from: ItemId? = null
+    ): Flux<LazyItemHistory> {
         val c = tokenCriteria(token, tokenId, from)
-        return mongo.find(Query(c).with(LOG_SORT_ASC), ItemLazyMint::class.java, COLLECTION)
+        return mongo.find(Query(c).with(LOG_SORT_ASC), LazyItemHistory::class.java, COLLECTION)
     }
 
     private fun tokenCriteria(token: Address?, tokenId: EthUInt256?, from: ItemId? = null): Criteria {
@@ -53,10 +61,10 @@ class LazyNftItemHistoryRepository(
     companion object {
         const val COLLECTION = "lazy_nft_item_history"
 
-        val DATA_TOKEN = ItemLazyMint::token.name
-        val DATA_TOKEN_ID = ItemLazyMint::tokenId.name
+        val DATA_TOKEN = LazyItemHistory::token.name
+        val DATA_TOKEN_ID = LazyItemHistory::tokenId.name
 
-        val LOG_SORT_ASC: Sort = Sort.by(DATA_TOKEN, DATA_TOKEN_ID)
+        val LOG_SORT_ASC: Sort = Sort.by(DATA_TOKEN, DATA_TOKEN_ID, "_id")
     }
 }
 

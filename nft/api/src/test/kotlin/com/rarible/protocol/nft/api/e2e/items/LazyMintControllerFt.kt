@@ -108,8 +108,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             assertThat(creatorDto.value).isEqualTo(lazyItemDto.creators[index].value)
         }
 
-        val lazyMint = lazyNftItemHistoryRepository.findById(itemId).awaitFirst()
-        assertThat(lazyMint.id).isEqualTo(itemId.stringValue)
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertThat(lazyMint.token).isEqualTo(lazyItemDto.contract)
         assertThat(lazyMint.tokenId.value).isEqualTo(lazyItemDto.tokenId)
 

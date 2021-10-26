@@ -2,18 +2,8 @@ package com.rarible.protocol.nft.migration.service
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemHistory
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceSkipTokens
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
-import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -33,9 +23,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -52,13 +40,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
     private val migration = ChangeLog00017UnsupportedLazyItems()
 
     @Autowired
-    private lateinit var tokenRepository: TokenRepository
-
-    @Autowired
     private lateinit var itemRepository: ItemRepository
-
-    @Autowired
-    private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 
     @Autowired
     private lateinit var ownershipService: OwnershipService
@@ -95,7 +77,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         // lazy item in non lazy collection
         val lazyItem = createItemLazyMint(contract.id)
         val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItem).awaitSingle()
-        itemReduceService.onLazyItemHistories(savedItemHistory).awaitFirstOrNull()
+        itemReduceService.update(savedItemHistory.token, savedItemHistory.tokenId).awaitFirstOrNull()
         assertFalse(item(lazyItem).deleted)
 
         // non lazy item in non lazy collection
@@ -109,10 +91,10 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         )
         tokenRepository.save(lazyContract).awaitFirst()
 
-        // lazy item in non lazy collection
+        // lazy item in lazy collection
         val lazyItem2Lazy = createItemLazyMint(lazyContract.id)
         val savedLazyItem2Lazy = lazyNftItemHistoryRepository.save(lazyItem2Lazy).awaitSingle()
-        itemReduceService.onLazyItemHistories(savedLazyItem2Lazy).awaitFirstOrNull()
+        itemReduceService.update(savedLazyItem2Lazy.token, savedLazyItem2Lazy.tokenId).awaitFirstOrNull()
         assertFalse(item(lazyItem2Lazy).deleted)
 
         // check ownerships

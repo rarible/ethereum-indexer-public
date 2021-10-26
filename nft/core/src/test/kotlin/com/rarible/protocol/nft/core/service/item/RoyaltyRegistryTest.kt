@@ -10,19 +10,15 @@ import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomUtils
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scala.Tuple2
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import scalether.transaction.MonoGasPriceProvider
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
@@ -39,16 +35,7 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
-        // set royalty
-        val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-
-        val userSender = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+        val userSender = newSender().second
         val royaltyContract = RoyaltiesRegistry.deployAndWait(userSender, poller).awaitFirst()
         nftIndexerProperties.royaltyRegistryAddress = royaltyContract.address().prefixed()
         royaltyContract.__RoyaltiesRegistry_init().execute().verifySuccess()
