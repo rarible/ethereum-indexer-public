@@ -5,8 +5,8 @@ import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
+import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -16,13 +16,14 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
 class WyvernExchangeOrderCancelDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val openSeaOrderProvider: OpenSeaOrderProvider,
-    private val openSeaOrderEventConverter: OpenSeaOrderEventConverter
+    private val openSeaOrderEventConverter: OpenSeaOrderEventConverter,
+    private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderCancel> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -33,21 +34,16 @@ class WyvernExchangeOrderCancelDescriptor(
 
     override val topic: Word = OrderCancelledEvent.id()
 
-    override fun convert(log: Log, timestamp: Long): Publisher<OrderCancel> {
-        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderCancel> {
+        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, date: Instant): List<OrderCancel> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val transactionHash =  log.transactionHash()
         logger.info("Got OrderCancel event, tx=$transactionHash")
 
-        val order = openSeaOrderProvider.getCancelOrderByTransactionHash(transactionHash)
-
-        return if (order != null) {
-            openSeaOrderEventConverter.convert(order, date)
-        } else {
-            emptyList()
-        }
+        val order = openSeaOrderParser.parseCancelOrder(transaction.input().prefixed())
+        return openSeaOrderEventConverter.convert(order, date)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

@@ -17,6 +17,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -30,7 +31,7 @@ class ExchangeV2CancelDescriptor(
 
     override val topic: Word = CancelEvent.id()
 
-    override fun convert(log: Log, timestamp: Long): Publisher<OrderCancel> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderCancel> {
         return mono { listOfNotNull(convert(log, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
     }
 

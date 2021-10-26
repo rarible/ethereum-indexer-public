@@ -8,6 +8,7 @@ import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
 import reactor.core.publisher.Flux
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.util.*
 
 @ExperimentalCoroutinesApi
@@ -15,7 +16,7 @@ interface Erc20LogEventDescriptor<T : Erc20TokenHistory> : LogEventDescriptor<T>
     override val collection: String
         get() = Erc20TransferHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, timestamp: Long): Publisher<T> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<T> {
         return mono { convert(log, Date(timestamp * 1000)) }.flatMapMany { Flux.fromIterable(it) }
     }
 

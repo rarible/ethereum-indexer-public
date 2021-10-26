@@ -11,13 +11,14 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 
 @Service
 class CollectionOwnershipTransferLogDescriptor : LogEventDescriptor<CollectionOwnershipTransferred> {
 
     override val topic: Word = OwnershipTransferredEvent.id()
 
-    override fun convert(log: Log, timestamp: Long): Publisher<CollectionOwnershipTransferred> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<CollectionOwnershipTransferred> {
         if (log.topics().length() != 3) {
             // Ignore similar events without indexed fields.
             return Mono.empty()

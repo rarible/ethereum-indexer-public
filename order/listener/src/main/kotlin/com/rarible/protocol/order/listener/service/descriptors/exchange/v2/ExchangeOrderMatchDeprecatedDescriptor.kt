@@ -10,7 +10,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.service.order.SideMatchTransactionProvider
+import com.rarible.protocol.order.listener.service.order.RaribleExchangeV2OrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -19,6 +19,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -27,7 +28,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     private val orderRepository: OrderRepository,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val sideMatchTransactionProvider: SideMatchTransactionProvider
+    private val raribleOrderParser: RaribleExchangeV2OrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val exchangeContract = exchangeContractAddresses.v2
@@ -37,11 +38,11 @@ class ExchangeOrderMatchDeprecatedDescriptor(
 
     override val topic: Word = MatchEventDeprecated.id()
 
-    override fun convert(log: Log, timestamp: Long): Publisher<OrderSideMatch> {
-        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderSideMatch> {
+        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = MatchEventDeprecated.apply(log)
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())
@@ -56,11 +57,11 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val rightTake = Asset(leftOrder.make.type, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
-        val transactionOrders = sideMatchTransactionProvider.getMatchedOrdersByTransactionHash(log.transactionHash())
-        val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
-        val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
-        val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
-        val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
+        val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.input().prefixed())
+        val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders.left.data)
+        val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders.right.data)
+        val leftAdhoc = transactionOrders.left.salt == EthUInt256.ZERO
+        val rightAdhoc = transactionOrders.right.salt == EthUInt256.ZERO
 
         return listOf(
             OrderSideMatch(

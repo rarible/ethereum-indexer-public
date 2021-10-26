@@ -5,7 +5,6 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitSingle
@@ -17,13 +16,13 @@ import scalether.domain.Address
 import scalether.domain.request.LogFilter
 import scalether.domain.request.TopicFilter
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
 @Service
 class CryptoPunkNoLongerForSaleLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceProvider: TransactionTraceProvider,
     private val ethereum: MonoEthereum
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
@@ -33,21 +32,13 @@ class CryptoPunkNoLongerForSaleLogDescriptor(
 
     override val topic: Word = PunkNoLongerForSaleEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         if (shouldIgnoreThisLog(log)) {
             return emptyList()
         }
         val noLongerForSaleEvent = PunkNoLongerForSaleEvent.apply(log)
         val punkIndex = EthUInt256(noLongerForSaleEvent.punkIndex())
-        val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
-        if (transactionTrace == null) {
-            logger.info(
-                "Transaction trace is not available for ${log.transactionHash()} " +
-                        "for sell cancellation of punk #${punkIndex.value}"
-            )
-            return emptyList()
-        }
-        val ownerAddress = transactionTrace.from
+        val ownerAddress = transaction.from()
         val marketAddress = log.address()
         val orderHash = Order.hashKey(
             maker = ownerAddress,

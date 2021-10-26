@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 
 @Service
 class CreateERC1155RaribleUserLogDescriptor : LogEventDescriptor<CreateCollection> {
@@ -17,7 +18,7 @@ class CreateERC1155RaribleUserLogDescriptor : LogEventDescriptor<CreateCollectio
 
     override val topic: Word = CreateERC1155RaribleUserEvent.id()
 
-    override fun convert(log: Log, timestamp: Long): Mono<CreateCollection> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Mono<CreateCollection> {
         val e = CreateERC1155RaribleUserEvent.apply(log)
 
         return CreateCollection(

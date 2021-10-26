@@ -5,8 +5,8 @@ import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
+import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -16,13 +16,14 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
 class WyvernExchangeOrderMatchDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val openSeaOrderProvider: OpenSeaOrderProvider,
-    private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter
+    private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,
+    private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -33,22 +34,17 @@ class WyvernExchangeOrderMatchDescriptor(
 
     override val topic: Word = OrdersMatchedEvent.id()
 
-    override fun convert(log: Log, timestamp: Long): Publisher<OrderSideMatch> {
-        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderSideMatch> {
+        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val transactionHash =  log.transactionHash()
         logger.info("Got OrdersMatchedEvent, tx=$transactionHash")
 
-        val orders = openSeaOrderProvider.getMatchedOrdersByTransactionHash(transactionHash)
-
-        return if (orders != null) {
-            val event = OrdersMatchedEvent.apply(log)
-            openSeaOrdersSideMatcher.convert(orders, event.price(), date)
-        } else {
-            emptyList()
-        }
+        val orders = openSeaOrderParser.parseMatchedOrders(transaction.input().prefixed())
+        val event = OrdersMatchedEvent.apply(log)
+        return openSeaOrdersSideMatcher.convert(orders, event.price(), date)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

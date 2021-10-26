@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
@@ -29,7 +30,7 @@ class ExchangeBuyDescriptor(
 
     override val topic: Word = BuyEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = BuyEvent.apply(log)
 
         val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()));
