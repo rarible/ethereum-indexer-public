@@ -3,3 +3,9 @@ eventTopic: ${rarible.common.jms-eventTopic}
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
+
+rarible:
+  core:
+    apm:
+      agent:
+        enabled: false

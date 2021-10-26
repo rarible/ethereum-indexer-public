@@ -12,6 +12,10 @@ rarible:
   common:
     elasticPrefix: dev_
     elasticNode: localhost:9200
+  core:
+    apm:
+      agent:
+        enabled: false
 
 mongoUrls: localhost
 mongoDatabase: rarible
