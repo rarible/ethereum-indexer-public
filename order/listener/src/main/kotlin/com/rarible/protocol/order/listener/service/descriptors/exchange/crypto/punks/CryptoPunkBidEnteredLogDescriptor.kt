@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -24,7 +25,7 @@ class CryptoPunkBidEnteredLogDescriptor(
 
     override val topic: Word = PunkBidEnteredEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val punkBidEnteredEvent = PunkBidEnteredEvent.apply(log)
         val bidPrice = punkBidEnteredEvent.value()
         val punkIndex = punkBidEnteredEvent.punkIndex()

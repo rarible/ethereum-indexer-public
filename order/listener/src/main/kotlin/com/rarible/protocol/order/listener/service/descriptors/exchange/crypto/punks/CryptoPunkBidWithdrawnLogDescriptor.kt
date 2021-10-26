@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -21,7 +22,7 @@ class CryptoPunkBidWithdrawnLogDescriptor(
 
     override val topic: Word = PunkBidWithdrawnEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderCancel> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val bidWithdrawnEvent = PunkBidWithdrawnEvent.apply(log)
         val punkIndex = EthUInt256(bidWithdrawnEvent.punkIndex())
         val bidderAddress = bidWithdrawnEvent.fromAddress()

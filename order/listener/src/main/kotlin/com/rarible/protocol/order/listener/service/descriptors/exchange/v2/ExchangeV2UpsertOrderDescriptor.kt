@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -33,7 +34,7 @@ class ExchangeV2UpsertOrderDescriptor(
         return listOf(exchangeContract).toMono()
     }
 
-    override fun convert(log: Log, timestamp: Long): Publisher<OnChainOrder> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OnChainOrder> {
         val event = UpsertOrderEvent.apply(log)
         val order = event.order()
         val date = Instant.ofEpochSecond(timestamp)

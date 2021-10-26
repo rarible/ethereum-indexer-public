@@ -6,31 +6,27 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
 class CryptoPunkOfferedLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val traceProvider: TransactionTraceProvider,
     private val priceUpdateService: PriceUpdateService
 ) : ItemExchangeHistoryLogEventDescriptor<OnChainOrder> {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
 
     override val topic: Word = PunkOfferedEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OnChainOrder> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OnChainOrder> {
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
         if (grantedBuyer == transferProxyAddresses.cryptoPunksTransferProxy) {
@@ -51,16 +47,8 @@ class CryptoPunkOfferedLogDescriptor(
 */
         val minPrice = punkOfferedEvent.minValue()
         val punkIndex = EthUInt256(punkOfferedEvent.punkIndex())
-        val transactionTrace = traceProvider.getTransactionTrace(log.transactionHash())
-        if (transactionTrace == null) {
-            logger.info(
-                "Transaction trace is not available for ${log.transactionHash()} " +
-                        "for offering of punk #${punkOfferedEvent.punkIndex()}"
-            )
-            return emptyList()
-        }
         val marketAddress = log.address()
-        val sellerAddress = transactionTrace.from
+        val sellerAddress = transaction.from()
         val make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(minPrice))
         val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())

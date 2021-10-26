@@ -6,9 +6,7 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
-import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
@@ -19,6 +17,7 @@ import scalether.domain.Address
 import scalether.domain.request.LogFilter
 import scalether.domain.request.TopicFilter
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
@@ -26,8 +25,7 @@ import java.time.Instant
 class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val ethereum: MonoEthereum,
-    private val traceProvider: TransactionTraceProvider
+    private val ethereum: MonoEthereum
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
     private val logger = LoggerFactory.getLogger(CryptoPunkBoughtLogDescriptor::class.java)
@@ -36,7 +34,7 @@ class CryptoPunkBoughtLogDescriptor(
 
     override val topic: Word = PunkBoughtEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderExchangeHistory> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val punkBoughtEvent = PunkBoughtEvent.apply(log)
         val marketAddress = log.address()
         val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkBoughtEvent.punkIndex()))
@@ -48,9 +46,8 @@ class CryptoPunkBoughtLogDescriptor(
             return emptyList()
         }
         val calledFunctionSignature = getCalledFunctionSignature(punkBoughtEvent)
-        val transactionTrace = traceProvider.getTransactionTrace(punkBoughtEvent.log().transactionHash())
-        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transactionTrace)
-        val externalOrderExecutedOnRarible = isExternalOrderExecutedOnRarible(transactionTrace)
+        val punkPrice = getPunkPrice(punkBoughtEvent, calledFunctionSignature, transaction)
+        val externalOrderExecutedOnRarible = isExternalOrderExecutedOnRarible(transaction)
         val sellOrderHash = Order.hashKey(
             maker = sellerAddress,
             makeAssetType = cryptoPunksAssetType,
@@ -116,9 +113,8 @@ class CryptoPunkBoughtLogDescriptor(
         )
     }
 
-    private fun isExternalOrderExecutedOnRarible(transactionTrace: SimpleTraceResult?): Boolean {
-        transactionTrace ?: return false
-        return transactionTrace.input.endsWith(Platform.CRYPTO_PUNKS.id.hex())
+    private fun isExternalOrderExecutedOnRarible(transaction: Transaction): Boolean {
+        return transaction.input().prefixed().endsWith(Platform.CRYPTO_PUNKS.id.hex())
     }
 
     private fun getCalledFunctionSignature(punkBoughtEvent: PunkBoughtEvent): String {
@@ -134,7 +130,7 @@ class CryptoPunkBoughtLogDescriptor(
     private fun getPunkPrice(
         punkBoughtEvent: PunkBoughtEvent,
         calledFunctionSignature: String,
-        transactionTrace: SimpleTraceResult?
+        transaction: Transaction
     ): BigInteger {
         if (punkBoughtEvent.value() != BigInteger.ZERO || calledFunctionSignature != CryptoPunksMarket.acceptBidForPunkSignature()
                 .name()
@@ -146,12 +142,8 @@ class CryptoPunkBoughtLogDescriptor(
         // We consider that "minPrice" == "bid.value". Of course this may not be true:
         // 1) Seller might have set "minPrice = 0" when he saw the punk bid, which he was ready to accept.
         // 2) There might have been another bid with bigger "bid.value" appeared before the "acceptBidForPunk" transaction was accepted.
-        if (transactionTrace == null) {
-            logger.warn("Unable to get transaction trace for ${punkBoughtEvent.log().transactionHash()}")
-            return BigInteger.ZERO
-        }
         val decodedInput = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(
-            Binary.apply(transactionTrace.input),
+            transaction.input(),
             CryptoPunksMarket.acceptBidForPunkSignature().id().length()
         )
         return decodedInput.value()._2 // "minPrice" parameter.

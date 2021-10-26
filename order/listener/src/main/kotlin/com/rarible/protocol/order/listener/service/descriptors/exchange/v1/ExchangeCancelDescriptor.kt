@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -26,7 +27,7 @@ class ExchangeCancelDescriptor(
 
     override val topic: Word = CancelEvent.id()
 
-    override suspend fun convert(log: Log, date: Instant): List<OrderCancel> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val event = CancelEvent.apply(log)
 
         val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()));
