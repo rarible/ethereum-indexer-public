@@ -1,6 +1,14 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.CryptoPunkOrderDto
+import com.rarible.protocol.dto.LegacyOrderDto
+import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderCryptoPunksDataDto
+import com.rarible.protocol.dto.OrderDataLegacyDto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.CompositeBid
@@ -25,6 +33,8 @@ class CompositeBidConverter(
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
@@ -48,6 +58,8 @@ class CompositeBidConverter(
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
@@ -71,6 +83,8 @@ class CompositeBidConverter(
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
@@ -94,6 +108,8 @@ class CompositeBidConverter(
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
                 taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
