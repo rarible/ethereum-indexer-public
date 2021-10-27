@@ -63,7 +63,8 @@ class ExchangeBuyDescriptor(
                 takePriceUsd = usdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 adhoc = adhoc,
-                counterAdhoc = counterAdhoc
+                counterAdhoc = counterAdhoc,
+                date = date
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -82,7 +83,8 @@ class ExchangeBuyDescriptor(
                 takePriceUsd = usdValue?.makePriceUsd,
                 source = HistorySource.RARIBLE,
                 adhoc = counterAdhoc,
-                counterAdhoc = adhoc
+                counterAdhoc = adhoc,
+                date = date
             )
         )
     }

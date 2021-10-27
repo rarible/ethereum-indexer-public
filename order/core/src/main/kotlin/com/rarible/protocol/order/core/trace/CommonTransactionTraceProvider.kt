@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.java.Lists
+import java.math.BigInteger
 import kotlin.math.pow
 
 class CommonTransactionTraceProvider(
