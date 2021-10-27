@@ -39,7 +39,8 @@ class ExchangeCancelDescriptor(
                 make = Asset(makeAssetType, EthUInt256.ZERO),
                 take = Asset(takeAssetType, EthUInt256.ZERO),
                 maker = event.owner(),
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                date = date
             )
         )
     }

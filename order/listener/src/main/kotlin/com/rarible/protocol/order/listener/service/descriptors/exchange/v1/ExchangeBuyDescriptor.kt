@@ -58,7 +58,8 @@ class ExchangeBuyDescriptor(
                 takeValue = prizeNormalizer.normalize(take),
                 makePriceUsd = usdValue?.makePriceUsd,
                 takePriceUsd = usdValue?.takePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                date = date
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -75,7 +76,8 @@ class ExchangeBuyDescriptor(
                 takeValue = prizeNormalizer.normalize(make),
                 makePriceUsd = usdValue?.takePriceUsd,
                 takePriceUsd = usdValue?.makePriceUsd,
-                source = HistorySource.RARIBLE
+                source = HistorySource.RARIBLE,
+                date = date
             )
         )
     }
