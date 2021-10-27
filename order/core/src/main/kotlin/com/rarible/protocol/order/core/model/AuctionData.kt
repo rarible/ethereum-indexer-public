@@ -10,7 +10,7 @@ sealed class AuctionData {
     abstract val version: AuctionDataVersion
 }
 
-data class AuctionDataV1(
+data class RaribleAuctionV1DataV1(
     val originFees: List<Part>,
     val duration: Duration,
     val startTime: Instant,

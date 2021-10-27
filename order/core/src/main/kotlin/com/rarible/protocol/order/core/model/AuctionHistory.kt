@@ -6,84 +6,60 @@ import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.time.Instant
 
-sealed class AuctionHistory(var type: AuctionHistoryType) : EventData {
+sealed class AuctionHistory(
+    val type: AuctionHistoryType
+) : EventData {
     abstract val hash: Word
     abstract val date: Instant
+    abstract val contract: Address
 }
 
-sealed class OnChainAuction : AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION) {
-    abstract val seller: Address
-    abstract val buyer: Address?
-    abstract val sell: Asset
-    abstract val buy: AssetType
-    abstract val lastBid: Bid
-    abstract val startTime: Instant
-    abstract val endTime: Instant
-    abstract val minimalStep: EthUInt256
-    abstract val minimalPrice: EthUInt256
-    abstract val data: AuctionData
-    abstract val createdAt: Instant
+data class OnChainAuction(
+    val seller: Address,
+    val buyer: Address?,
+    val sell: Asset,
+    val buy: AssetType,
+    val lastBid: Bid?,
+    val startTime: Instant,
+    val endTime: Instant,
+    val minimalStep: EthUInt256,
+    val minimalPrice: EthUInt256,
+    val data: AuctionData,
+    val createdAt: Instant,
+    val auctionId: EthUInt256,
+    val protocolFee: EthUInt256,
+    override val hash: Word,
+    override val contract: Address,
+    override val date: Instant = createdAt
+): AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
 
-    data class OnChainRaribleAuctionV1(
-        override val hash: Word,
-        val auctionId: EthUInt256,
-        override val seller: Address,
-        override val buyer: Address?,
-        override val sell: Asset,
-        override val buy: AssetType,
-        override val lastBid: BidV1,
-        override val startTime: Instant,
-        override val endTime: Instant,
-        override val minimalStep: EthUInt256,
-        override val minimalPrice: EthUInt256,
-        override val data: AuctionDataV1,
-        override val createdAt: Instant,
-        override val date: Instant = createdAt,
-        val protocolFee: EthUInt256,
-        val auction: Address
-    ) : OnChainAuction()
-}
+data class BidPlaced(
+    val bid: BidV1,
+    val endTime: Instant,
+    val auctionId: EthUInt256,
+    override val hash: Word,
+    override val contract: Address,
+    override val date: Instant
+) : AuctionHistory(AuctionHistoryType.BID_PLACED)
 
-sealed class BidPlaced : AuctionHistory(AuctionHistoryType.BID_PLACED) {
-    abstract val bid: Bid
-
-    data class BidPlacedRaribleV1(
-        override val hash: Word,
-        val auctionId: EthUInt256,
-        val auction: Address,
-        override val bid: BidV1,
-        val endTime: Instant,
-        override val date: Instant
-    ) : BidPlaced()
-}
-
-sealed class AuctionFinished : AuctionHistory(AuctionHistoryType.AUCTION_FINISHED) {
-
-    data class AuctionFinishedRaribleV1(
-        override val hash: Word,
-        val auctionId: EthUInt256,
-        val auction: Address,
-        override val date: Instant
-    ) : AuctionFinished()
-}
+data class AuctionFinished(
+    val auctionId: EthUInt256,
+    override val hash: Word,
+    override val contract: Address,
+    override val date: Instant
+) : AuctionHistory(AuctionHistoryType.AUCTION_FINISHED)
 
 
-sealed class AuctionBuyOut : AuctionHistory(AuctionHistoryType.AUCTION_BUY_OUT) {
+data class AuctionBuyOut(
+    val auctionId: EthUInt256,
+    override val hash: Word,
+    override val contract: Address,
+    override val date: Instant
+) : AuctionHistory(AuctionHistoryType.AUCTION_BUY_OUT)
 
-    data class AuctionBuyOutRaribleV1(
-        override val hash: Word,
-        val auctionId: EthUInt256,
-        val auction: Address,
-        override val date: Instant
-    ) : AuctionBuyOut()
-}
-
-sealed class AuctionCancelled : AuctionHistory(AuctionHistoryType.AUCTION_CANCELLED) {
-
-    data class AuctionCancelledRaribleV1(
-        override val hash: Word,
-        val auctionId: EthUInt256,
-        val auction: Address,
-        override val date: Instant
-    ) : AuctionCancelled()
-}
+data class AuctionCancelled(
+    val auctionId: EthUInt256,
+    override val hash: Word,
+    override val contract: Address,
+    override val date: Instant
+) : AuctionHistory(AuctionHistoryType.AUCTION_CANCELLED)
