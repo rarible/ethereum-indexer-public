@@ -19,11 +19,6 @@ enum class AuctionHistoryType(val topic: Set<Word>) {
             UpsertOrderEvent.id()
         )
     ),
-    AUCTION_BUY_OUT(
-        topic = setOf(
-            UpsertOrderEvent.id()
-        )
-    ),
     AUCTION_CANCELLED(
         topic = setOf(
             UpsertOrderEvent.id()

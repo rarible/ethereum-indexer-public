@@ -15,6 +15,7 @@ sealed class AuctionHistory(
 }
 
 data class OnChainAuction(
+    val auctionType: AuctionType,
     val seller: Address,
     val buyer: Address?,
     val sell: Asset,
@@ -49,13 +50,6 @@ data class AuctionFinished(
     override val date: Instant
 ) : AuctionHistory(AuctionHistoryType.AUCTION_FINISHED)
 
-
-data class AuctionBuyOut(
-    val auctionId: EthUInt256,
-    override val hash: Word,
-    override val contract: Address,
-    override val date: Instant
-) : AuctionHistory(AuctionHistoryType.AUCTION_BUY_OUT)
 
 data class AuctionCancelled(
     val auctionId: EthUInt256,

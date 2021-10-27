@@ -23,6 +23,7 @@ data class Auction(
     val endTime: Instant,
     val minimalStep: EthUInt256,
     val minimalPrice: EthUInt256,
+    val finished: Boolean,
     val canceled: Boolean,
     val data: AuctionData,
     val createdAt: Instant,
