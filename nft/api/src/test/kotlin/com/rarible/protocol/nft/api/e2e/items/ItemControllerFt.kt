@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
@@ -38,6 +39,7 @@ import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
 
@@ -109,6 +111,36 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(metaDto.attributes!![0].value).isEqualTo(itemProperties.attributes[0].value)
         assertThat(metaDto.attributes!![1].key).isEqualTo(itemProperties.attributes[1].key)
         assertThat(metaDto.attributes!![1].value).isEqualTo(itemProperties.attributes[1].value)
+    }
+
+    @Test
+    @Disabled // this test use real request ipfs
+    fun `should get item meta image`() = runBlocking<Unit> {
+        val item = createItem()
+        lazyNftItemHistoryRepository.save(ItemLazyMint(
+            token = item.token,
+            tokenId = item.tokenId,
+            creators = listOf(Part(AddressFactory.create(), 1000)),
+            value = EthUInt256.ONE,
+            date = Instant.now(),
+            uri = "/ipfs/QmXDQX1RcE7zkxFE3ah727DZnQBg5wztdBx2br4wsyRrZm",
+            standard = TokenStandard.ERC721,
+            royalties = listOf(),
+            signatures = listOf()
+        )).awaitFirstOrNull()
+
+        val metaDto = nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitSingle()
+
+        assertEquals(NftItemMetaDto(
+            name = "test - видео без обложки",
+            description = "",
+            attributes = listOf(),
+            image = null,
+            animation = NftMediaDto(
+                url = mapOf("ORIGINAL" to "ipfs://ipfs/QmVw7dtKv4r7KxRJouxZZTndWviwFXSjA7QhYDmQESSdFY/animation.mp4"),
+                meta = mapOf("ORIGINAL" to NftMediaMetaDto("video/mp4", null, null))
+            )
+        ), metaDto)
     }
 
     @Test

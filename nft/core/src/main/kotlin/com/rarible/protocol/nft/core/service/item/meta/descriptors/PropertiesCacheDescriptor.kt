@@ -137,7 +137,7 @@ class PropertiesCacheDescriptor(
         )
     }
 
-    suspend fun image(node: ObjectNode): String {
+    suspend fun image(node: ObjectNode): String? {
         val imageNode = node.getText("image") ?: ""
         val imageUrl = node.getText("image", "image_url") ?: ""
         return when {
@@ -147,7 +147,7 @@ class PropertiesCacheDescriptor(
             }
             imageUrl.isNotEmpty() -> imageUrl
             imageNode.isNotEmpty() -> imageNode
-            else -> ""
+            else -> null
         }
     }
 
