@@ -101,7 +101,7 @@ class PriceUpdateService(
             val rate =
                 currencyApi.getCurrencyRate(convert(blockchain), address.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
             if (rate == null) {
-                logger.warn("Currency api didn't respond any value")
+                logger.warn("Currency api didn't respond any value for $blockchain: $address")
             }
             rate
         }
