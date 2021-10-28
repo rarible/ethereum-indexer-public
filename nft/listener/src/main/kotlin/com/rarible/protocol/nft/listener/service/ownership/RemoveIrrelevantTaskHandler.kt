@@ -23,7 +23,9 @@ import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.ne
 import org.springframework.stereotype.Component
 
 @Component
@@ -40,28 +42,28 @@ class RemoveIrrelevantTaskHandler(
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        val q = from?.let {
-            val criteria = Criteria().run { Ownership::id gt OwnershipId.parseId(from) }
-            Query().addCriteria(criteria)
-        } ?: Query()
-        q.with(Sort.by(Sort.Direction.ASC, Ownership::id.name))
-        return mongo.query<Ownership>().matching(q).all().asFlow()
+        val criteria = from?.let { Ownership::id gt OwnershipId.parseId(from) } ?: Criteria()
+        val query = Query(Criteria().andOperator(
+            criteria,
+            Ownership::value ne EthUInt256.ZERO.toString(),
+            Ownership::lazyValue inValues listOf(null, EthUInt256.ZERO.toString()),
+            Ownership::pending isEqualTo listOf()
+        )).with(Sort.by(Sort.Direction.ASC, Ownership::id.name))
+        return mongo.query<Ownership>().matching(query).all().asFlow()
             .onEach(this::processOwnership)
             .map { it.id.toString() }
     }
 
     suspend fun processOwnership(ownership: Ownership) {
-        if (ownership.lazyValue == EthUInt256.ZERO && ownership.value > EthUInt256.ZERO && ownership.pending.isEmpty()) {
-            val criteria = Criteria().andOperator(
-                LogEvent::data / ItemHistory::token isEqualTo ownership.token,
-                LogEvent::data / ItemHistory::tokenId isEqualTo ownership.tokenId,
-                LogEvent::data / ItemHistory::owner isEqualTo ownership.owner
-            )
-            val tx = mongo.find(Query(criteria), LogEvent::class.java, NftItemHistoryRepository.COLLECTION).awaitFirstOrNull()
-            if (null == tx) {
-                ownershipRepository.deleteById(ownership.id).awaitFirstOrNull()
-                logger.info("Deleted ownership: ${ownership.id}")
-            }
+        val criteria = Criteria().andOperator(
+            LogEvent::data / ItemHistory::token isEqualTo ownership.token,
+            LogEvent::data / ItemHistory::tokenId isEqualTo ownership.tokenId,
+            LogEvent::data / ItemHistory::owner isEqualTo ownership.owner
+        )
+        val tx = mongo.find(Query(criteria), LogEvent::class.java, NftItemHistoryRepository.COLLECTION).awaitFirstOrNull()
+        if (null == tx) {
+            ownershipRepository.deleteById(ownership.id).awaitFirstOrNull()
+            logger.info("Deleted ownership: ${ownership.id}")
         }
     }
 

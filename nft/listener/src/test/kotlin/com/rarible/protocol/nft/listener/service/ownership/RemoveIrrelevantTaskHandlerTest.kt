@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.erc721.rarible.user.CreateERC721RaribleUserEvent
@@ -16,6 +17,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -63,6 +65,16 @@ class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
         assertNotNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
     }
 
+    @Test
+    fun `shouldn't remove ownership with pending`() = runBlocking {
+        val owner = ownership().copy(pending = listOf(itemTransfer()))
+        ownershipRepository.save(owner).awaitFirstOrNull()
+        assertNotNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
+
+        handler.runLongTask(null, "").collect()
+        assertNotNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
+    }
+
     fun ownership(): Ownership {
         return Ownership(
             token = randomAddress(),
@@ -94,5 +106,14 @@ class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
             minorLogIndex = 0
         )
     }
+
+    fun itemTransfer() = ItemTransfer(
+        owner = randomAddress(),
+        token = randomAddress(),
+        tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 2)),
+        date = nowMillis(),
+        from = randomAddress(),
+        value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+    )
 }
 
