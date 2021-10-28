@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.service
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -175,6 +176,25 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val updatedOrder = orderReduceService.updateOrder(hash)!!
         assertThat(updatedOrder.lastEventId).isNotNull()
         assertThat(updatedOrder.lastEventId).isNotEqualTo(order.lastEventId)
+    }
+
+    @Test
+    internal fun `take of order version was updated`() = runBlocking<Unit> {
+        val make = Asset(Erc721AssetType(randomAddress(), EthUInt256.of(42)), EthUInt256.ONE)
+        val take = Asset(Erc20AssetType(randomAddress()), EthUInt256.of(10))
+        val orderVersion = createOrderVersion().copy(make = make, take = take)
+        val hash = orderVersion.hash
+        val saved = orderUpdateService.save(orderVersion)
+        assertThat(saved.take.value).isEqualTo(take.value)
+        assertThat(orderRepository.findById(hash)?.take?.value).isEqualTo(take.value)
+        val newTakeValue = EthUInt256.Companion.of(5)
+        val updated = orderUpdateService.save(
+            orderVersion.copy(
+                take = orderVersion.take.copy(value = newTakeValue)
+            )
+        )
+        assertThat(updated.take.value).isEqualTo(newTakeValue)
+        assertThat(orderRepository.findById(hash)?.take?.value).isEqualTo(newTakeValue)
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
