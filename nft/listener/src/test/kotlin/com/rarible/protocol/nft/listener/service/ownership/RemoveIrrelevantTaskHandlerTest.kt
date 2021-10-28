@@ -10,11 +10,13 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.erc721.rarible.user.CreateERC721RaribleUserEvent
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -22,6 +24,8 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import scalether.domain.Address
 import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
@@ -73,6 +77,17 @@ class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
 
         handler.runLongTask(null, "").collect()
         assertNotNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
+    }
+
+    @Test
+    fun `should remove old ownerships without lazy field`() = runBlocking {
+        val owner = ownership()
+        ownershipRepository.save(owner).awaitFirstOrNull()
+        mongo.updateMulti(Query(), Update().unset("lazyValue"), OwnershipRepository.COLLECTION).awaitFirst()
+        assertNotNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
+
+        handler.runLongTask(null, "").collect()
+        assertNull(ownershipRepository.findById(owner.id).awaitFirstOrNull())
     }
 
     fun ownership(): Ownership {
