@@ -14,6 +14,7 @@ import java.time.Instant
 @Document("auction")
 data class Auction(
     val type: AuctionType,
+    val status: AuctionStatus,
     val seller: Address,
     val buyer: Address?,
     val sell: Asset,

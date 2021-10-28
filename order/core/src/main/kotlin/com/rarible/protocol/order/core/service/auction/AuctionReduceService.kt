@@ -107,6 +107,7 @@ class AuctionReduceService(
 
         private val EMPTY_ACTION = Auction(
             type = AuctionType.RARIBLE_V1,
+            status = AuctionStatus.ACTIVE,
             seller = Address.ZERO(),
             buyer = null,
             sell = Asset(EthAssetType, EthUInt256.ZERO),
@@ -120,6 +121,7 @@ class AuctionReduceService(
             canceled = false,
             data = RaribleAuctionV1DataV1(
                 originFees = emptyList(),
+                payouts = emptyList(),
                 duration = Duration.ZERO,
                 startTime = Instant.EPOCH,
                 buyOutPrice = EthUInt256.ZERO

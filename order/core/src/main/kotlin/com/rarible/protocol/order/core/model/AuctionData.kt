@@ -12,9 +12,10 @@ sealed class AuctionData {
 
 data class RaribleAuctionV1DataV1(
     val originFees: List<Part>,
+    val payouts: List<Part>,
     val duration: Duration,
     val startTime: Instant,
-    val buyOutPrice: EthUInt256
+    val buyOutPrice: EthUInt256?
 ) : AuctionData() {
 
     @get:Transient
