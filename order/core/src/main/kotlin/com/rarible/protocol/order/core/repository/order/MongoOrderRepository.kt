@@ -2,7 +2,11 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.Order
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -10,8 +14,22 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.*
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.exists
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.gte
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.lte
+import org.springframework.data.mongodb.core.query.ne
 import scalether.domain.Address
 import java.time.Instant
 import java.util.*
@@ -88,8 +106,7 @@ class MongoOrderRepository(
     }
 
     override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
-        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
-            .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
+        val criteria = (Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
             .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return template.findDistinct<AssetType>(
             Query(criteria),
@@ -101,8 +118,7 @@ class MongoOrderRepository(
 
     override fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
         @Suppress("DuplicatedCode")
-        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
-            .and(Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
+        val criteria = (Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
             .and(Order::take / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return template.findDistinct<AssetType>(
             Query(criteria),
