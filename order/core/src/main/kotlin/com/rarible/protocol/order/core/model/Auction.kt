@@ -20,8 +20,7 @@ data class Auction(
     val sell: Asset,
     val buy: AssetType,
     val lastBid: Bid?,
-    val startTime: Instant,
-    val endTime: Instant,
+    val endTime: Instant?,
     val minimalStep: EthUInt256,
     val minimalPrice: EthUInt256,
     val finished: Boolean,
@@ -46,15 +45,19 @@ data class Auction(
     companion object {
         fun hashKey(auction: Auction): Word {
             return when (auction.type) {
-                AuctionType.RARIBLE_V1 -> Tuples.keccak256(
-                    Tuples.raribleAuctionKeyHashType().encode(
-                        Tuple2(
-                            auction.contract,
-                            auction.auctionId.value
-                        )
+                AuctionType.RARIBLE_V1 -> raribleV1HashKey(auction.contract, auction.auctionId)
+            }
+        }
+
+        fun raribleV1HashKey(auction: Address, auctionId: EthUInt256): Word {
+            return Tuples.keccak256(
+                Tuples.raribleAuctionKeyHashType().encode(
+                    Tuple2(
+                        auction,
+                        auctionId.value
                     )
                 )
-            }
+            )
         }
     }
 }

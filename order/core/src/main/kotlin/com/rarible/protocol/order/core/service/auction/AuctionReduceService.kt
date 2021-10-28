@@ -18,14 +18,13 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import java.time.Duration
 import java.time.Instant
 
 @Component
 class AuctionReduceService(
     private val auctionHistoryRepository: AuctionHistoryRepository
 ) {
-    private val logger: Logger = LoggerFactory.getLogger(AuctionReduceService::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun updateAuction(auctionHash: Word): Auction? = update(auctionHash = auctionHash).awaitFirstOrNull()
 
@@ -70,7 +69,6 @@ class AuctionReduceService(
                 sell = history.sell,
                 buy = history.buy,
                 lastBid = history.lastBid,
-                startTime = history.startTime,
                 endTime = history.endTime,
                 minimalStep = history.minimalStep,
                 minimalPrice = history.minimalPrice,
@@ -113,7 +111,6 @@ class AuctionReduceService(
             sell = Asset(EthAssetType, EthUInt256.ZERO),
             buy = EthAssetType,
             lastBid = null,
-            startTime = Instant.EPOCH,
             endTime = Instant.EPOCH,
             minimalStep = EthUInt256.ZERO,
             minimalPrice = EthUInt256.ZERO,
@@ -122,8 +119,8 @@ class AuctionReduceService(
             data = RaribleAuctionV1DataV1(
                 originFees = emptyList(),
                 payouts = emptyList(),
-                duration = Duration.ZERO,
-                startTime = Instant.EPOCH,
+                duration = EthUInt256.ZERO,
+                startTime = EthUInt256.ZERO,
                 buyOutPrice = EthUInt256.ZERO
             ),
             createdAt = Instant.EPOCH,

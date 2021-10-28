@@ -21,8 +21,7 @@ data class OnChainAuction(
     val sell: Asset,
     val buy: AssetType,
     val lastBid: Bid?,
-    val startTime: Instant,
-    val endTime: Instant,
+    val endTime: Instant?,
     val minimalStep: EthUInt256,
     val minimalPrice: EthUInt256,
     val data: AuctionData,
@@ -31,7 +30,7 @@ data class OnChainAuction(
     val protocolFee: EthUInt256,
     override val hash: Word,
     override val contract: Address,
-    override val date: Instant = createdAt
+    override val date: Instant
 ): AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
 
 data class BidPlaced(
