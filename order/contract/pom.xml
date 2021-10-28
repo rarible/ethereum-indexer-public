@@ -114,8 +114,8 @@
                             <type>MONO</type>
                         </contract>
                         <contract>
-                            <truffle>src/main/truffle/auction/rarible/AuctionHouse.json</truffle>
-                            <packageName>com.rarible.protocol.contracts.auction.rarible</packageName>
+                            <truffle>src/main/truffle/auction/v1/AuctionHouse.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.auction.v1</packageName>
                             <type>MONO</type>
                         </contract>
                     </contracts>
