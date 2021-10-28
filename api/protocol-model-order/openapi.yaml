@@ -1152,3 +1152,36 @@ components:
         data:
           $ref: "#/components/schemas/RaribleAuctionV1DataV1"
 
+    AuctionEvent:
+      type: object
+      required:
+        - eventId
+        - auctionId
+      properties:
+        eventId:
+          type: string
+        orderId:
+          type: string
+      oneOf:
+        - "$ref": "#/components/schemas/AuctionUpdateEvent"
+        - "$ref": "#/components/schemas/AuctionDeleteEvent"
+
+    AuctionUpdateEvent:
+      type: object
+      required:
+        - auction
+      properties:
+        type:
+          type: string
+          enum:
+            - UPDATE
+        auction:
+          "$ref": "#/components/schemas/Auction"
+
+    AuctionDeleteEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - DELETE
