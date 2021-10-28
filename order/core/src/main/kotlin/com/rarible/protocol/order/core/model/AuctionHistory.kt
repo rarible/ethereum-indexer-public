@@ -34,8 +34,8 @@ data class OnChainAuction(
 ): AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
 
 data class BidPlaced(
-    val bid: BidV1,
-    val endTime: Instant,
+    val bid: Bid,
+    val endTime: EthUInt256,
     val auctionId: EthUInt256,
     override val hash: Word,
     override val contract: Address,
@@ -43,12 +43,22 @@ data class BidPlaced(
 ) : AuctionHistory(AuctionHistoryType.BID_PLACED)
 
 data class AuctionFinished(
+    val seller: Address,
+    val buyer: Address?,
+    val sell: Asset,
+    val buy: AssetType,
+    val lastBid: Bid?,
+    val endTime: Instant?,
+    val minimalStep: EthUInt256,
+    val minimalPrice: EthUInt256,
+    val data: AuctionData,
+    val createdAt: Instant,
     val auctionId: EthUInt256,
+    val protocolFee: EthUInt256,
     override val hash: Word,
     override val contract: Address,
     override val date: Instant
 ) : AuctionHistory(AuctionHistoryType.AUCTION_FINISHED)
-
 
 data class AuctionCancelled(
     val auctionId: EthUInt256,

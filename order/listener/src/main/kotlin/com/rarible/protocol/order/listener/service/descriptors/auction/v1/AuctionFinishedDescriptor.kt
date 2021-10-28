@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.auction.v1.AuctionCreatedEvent
+import com.rarible.protocol.contracts.auction.v1.AuctionFinishedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
@@ -10,21 +10,20 @@ import scalether.domain.response.Log
 import java.time.Instant
 
 @Service
-class AuctionCreatedDescriptor(
+class AuctionFinishedDescriptor(
     auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
-) : AbstractAuctionDescriptor<OnChainAuction>(auctionContractAddresses) {
+) : AbstractAuctionDescriptor<AuctionFinished>(auctionContractAddresses) {
 
-    override val topic: Word = AuctionCreatedEvent.id()
+    override val topic: Word = AuctionFinishedEvent.id()
 
-    override fun convert(log: Log, date: Instant): List<OnChainAuction> {
-        val event = AuctionCreatedEvent.apply(log)
+    override fun convert(log: Log, date: Instant): List<AuctionFinished> {
+        val event = AuctionFinishedEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
         val auction = parseContractAuction(event.auction())
 
         return listOf(
-            OnChainAuction(
-                auctionType = AuctionType.RARIBLE_V1,
+            AuctionFinished(
                 seller = auction.seller,
                 buyer = auction.buyer,
                 sell = auction.sell,
@@ -44,4 +43,3 @@ class AuctionCreatedDescriptor(
         )
     }
 }
-
