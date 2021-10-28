@@ -12,16 +12,20 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.contracts.erc1155.rarible.factory.Create1155RaribleProxyEvent
+import com.rarible.protocol.contracts.erc1155.rarible.factory.ERC1155RaribleFactoryC2
+import com.rarible.protocol.contracts.erc1155.rarible.factory.user.Create1155RaribleUserProxyEvent
+import com.rarible.protocol.contracts.erc1155.rarible.factory.user.ERC1155RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc1155.v1.CreateERC1155_v1Event
 import com.rarible.protocol.contracts.erc1155.v1.RaribleUserToken
 import com.rarible.protocol.contracts.erc721.rarible.factory.Create721RaribleProxyEvent
 import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
+import com.rarible.protocol.contracts.erc721.rarible.factory.user.Create721RaribleUserProxyEvent
 import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
-import com.rarible.protocol.nft.core.model.FactoryCreateCollection
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
@@ -51,7 +55,12 @@ class PendingTransactionService(
     logEventService: LogEventService
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
 
-    private fun factories() = listOf<Address>(Address.apply(properties.factory.erc721Rarible))
+    private fun factories() = setOf(
+        Address.apply(properties.factory.erc721Rarible),
+        Address.apply(properties.factory.erc721RaribleUser),
+        Address.apply(properties.factory.erc1155Rarible),
+        Address.apply(properties.factory.erc1155RaribleUser)
+    )
 
     override suspend fun process(
         hash: Word,
@@ -63,12 +72,10 @@ class PendingTransactionService(
     ) : List<LogEvent> {
         logger.info("processing tx $hash to: $to data: $data")
 
-        val pendingLogs = if (to == null) {
-            tryToProcessCollectionCreate(from, nonce, id, data)
-        } else if (factories().contains(to)) {
-            tryToProcessFactoryCreate(from, id, data)
-        } else {
-            tryToProcessTokenTransfer(from, to, id, data)
+        val pendingLogs = when {
+            to == null -> tryToProcessCollectionCreate(from, nonce, id, data)
+            factories().contains(to) -> tryToProcessFactoryCreate(from, id, data)
+            else -> tryToProcessTokenTransfer(from, to, id, data)
         }
         return pendingLogs.map { (event, address, topic) ->
             LogEvent(
@@ -119,6 +126,48 @@ class PendingTransactionService(
                     name = name,
                     symbol = symbol
                 ), address, Create721RaribleProxyEvent.id()
+            )
+        }
+        checkTx(id, data, ERC721RaribleUserFactoryC2.createTokenSignature())?.let {
+            val provider = ERC721RaribleUserFactoryC2(Address.apply(properties.factory.erc721RaribleUser), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5(), it._6()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create721RaribleUserProxyEvent.id()
+            )
+        }
+        checkTx(id, data, ERC1155RaribleFactoryC2.createTokenSignature())?.let {
+            val provider = ERC1155RaribleFactoryC2(Address.apply(properties.factory.erc1155Rarible), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create1155RaribleProxyEvent.id()
+            )
+        }
+        checkTx(id, data, ERC1155RaribleUserFactoryC2.createTokenSignature())?.let {
+            val provider = ERC1155RaribleUserFactoryC2(Address.apply(properties.factory.erc1155RaribleUser), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5(), it._6()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create1155RaribleUserProxyEvent.id()
             )
         }
         return null

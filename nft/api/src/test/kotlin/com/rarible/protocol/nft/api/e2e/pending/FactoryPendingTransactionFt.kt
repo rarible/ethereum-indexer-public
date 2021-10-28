@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
 import com.rarible.protocol.contracts.erc721.rarible.factory.beacon.ERC721RaribleBeaconMinimal
 import com.rarible.protocol.contracts.erc721.rarible.factory.token.ERC721RaribleMinimal
@@ -108,7 +109,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         )
         val transferAddress = randomAddress()
         val lazyAddress = randomAddress()
-        val token = ERC721RaribleMinimal.deployAndWait(userSender, poller).awaitSingle()
+        val token = ERC721Rarible.deployAndWait(userSender, poller).awaitSingle()
         val beacon = ERC721RaribleBeaconMinimal.deployAndWait(userSender, poller, token.address()).awaitSingle()
         val factory = ERC721RaribleFactoryC2.deployAndWait(userSender, poller,
             beacon.address(), transferAddress, lazyAddress).awaitSingle()
