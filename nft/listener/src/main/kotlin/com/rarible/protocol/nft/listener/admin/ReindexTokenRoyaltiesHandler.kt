@@ -8,7 +8,7 @@ import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
-import com.rarible.protocol.nft.core.model.ReindexTokenRoyaltiesTaskParam
+import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import io.daonomic.rpc.domain.Word
@@ -25,7 +25,7 @@ class ReindexTokenRoyaltiesHandler(
 ) : TaskHandler<String> {
 
     override val type: String
-        get() = ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES
+        get() = ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
 
     override suspend fun isAbleToRun(param: String): Boolean {
         return verifyAllCompleted(
@@ -35,9 +35,9 @@ class ReindexTokenRoyaltiesHandler(
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        val reindexParam = ReindexTokenRoyaltiesTaskParam.fromParamString(param)
+        val reindexParam = ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
 
-        return itemRepository.findTokenItems(reindexParam.token, from?.let { EthUInt256.of(it) })
+        return itemRepository.findTokenItems(reindexParam.oneToken, from?.let { EthUInt256.of(it) })
             .map { item ->
                 royaltyService.getRoyaltyDeprecated(item.token, item.tokenId)
                 item.tokenId

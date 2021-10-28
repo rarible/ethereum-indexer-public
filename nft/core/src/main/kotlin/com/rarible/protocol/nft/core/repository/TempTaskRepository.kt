@@ -6,10 +6,8 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
-import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
-import reactor.core.publisher.Mono
 
 class TempTaskRepository(
     private val template: ReactiveMongoOperations
@@ -18,18 +16,14 @@ class TempTaskRepository(
         return template.save(task).awaitFirst()
     }
 
-    fun findByType(type: String): Flow<Task> {
-        val criteria = Task::type isEqualTo type
+    fun findByType(type: String, param: String? = null): Flow<Task> {
+        val criteria = (Task::type isEqualTo type).let {
+            if (param != null) {
+                it.andOperator(Task::param isEqualTo param)
+            } else {
+                it
+            }
+        }
         return template.find<Task>(Query.query(criteria)).asFlow()
-    }
-
-    fun findByTypeAndParam(type: String, param: String): Mono<Task> {
-        val query = Query(
-            Criteria().andOperator(
-                Task::type isEqualTo type,
-                Task::param isEqualTo param
-            )
-        )
-        return template.findOne<Task>(query, Task::class.java)
     }
 }

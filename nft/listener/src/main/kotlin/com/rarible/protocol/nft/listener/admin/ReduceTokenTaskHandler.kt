@@ -2,45 +2,46 @@ package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskStatus
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
+import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import kotlinx.coroutines.flow.*
+import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
+/**
+ * Background job that reduces token (specified by `param`).
+ * This can be run only after [ReindexTokenTaskHandler] is finished for this token.
+ */
 @Component
 class ReduceTokenTaskHandler(
     private val taskRepository: TempTaskRepository,
-    private val itemReduceService: ItemReduceService
+    private val tokenReduceService: TokenReduceService
 ) : TaskHandler<String> {
 
     override val type: String
-        get() = ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS
+        get() = ReduceTokenTaskParams.ADMIN_REDUCE_TOKEN
 
     override suspend fun isAbleToRun(param: String): Boolean {
-        val taskParams = ReduceTokenItemsTaskParams.fromParamString(param)
-        return verifyAllReindexTokenTaskCompleted(taskParams)
+        val taskParams = ReduceTokenTaskParams.fromParamString(param)
+        val tokensBeingIndexedNow = findTokensBeingIndexedNow()
+        return taskParams.oneToken !in tokensBeingIndexedNow
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        val params = ReduceTokenItemsTaskParams.fromParamString(param)
-        val itemId = from?.let { ItemId.parseId(it) }
-
-        return itemReduceService
-            .update(token = params.token, tokenId = null, from = itemId)
-            .map { it.stringValue }
+        val params = ReduceTokenTaskParams.fromParamString(param)
+        return tokenReduceService
+            .update(address = params.oneToken)
+            .map { it.id.prefixed() }
             .asFlow()
     }
 
-    private suspend fun verifyAllReindexTokenTaskCompleted(params: ReduceTokenItemsTaskParams): Boolean {
-        return params.token !in findReindexingTokens()
-    }
-
-    private suspend fun findReindexingTokens(): List<Address> {
+    private suspend fun findTokensBeingIndexedNow(): List<Address> {
         return taskRepository
             .findByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
             .filter { it.lastStatus != TaskStatus.COMPLETED }
