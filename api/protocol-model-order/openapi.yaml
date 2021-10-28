@@ -1070,56 +1070,6 @@ components:
         buyOutPrice:
           $ref: "#/components/schemas/BigDecimal"
 
-    AuctionBid:
-      type: object
-      required:
-        - amount
-      properties:
-        amount:
-          $ref: "#/components/schemas/BigInteger"
-      oneOf:
-        - "$ref": "#/components/schemas/RaribleAuctionV1BidV1"
-
-    RaribleAuctionV1BidV1:
-      type: object
-      required:
-        - data
-      properties:
-        type:
-          type: string
-          description: "Type of the auction bid"
-          enum:
-            - RARIBLE_AUCTION_V1_BID_V1
-        data:
-          $ref: "#/components/schemas/RaribleAuctionV1BidDataV1"
-
-    AuctionBidData:
-      type: object
-      oneOf:
-        - "$ref": "#/components/schemas/RaribleAuctionV1BidDataV1"
-
-    RaribleAuctionV1BidDataV1:
-      type: object
-      required:
-        - originFees
-        - payouts
-      properties:
-        dataType:
-          type: string
-          description: "Data type of the auction bid data"
-          enum:
-            - RARIBLE_AUCTION_V1_BID_DATA_V1
-        originFees:
-          type: array
-          description: "Value of the origin fees for the auction bid data"
-          items:
-            "$ref": "#/components/schemas/Part"
-        payouts:
-          type: array
-          description: "Value of the payouts for the auction bid data"
-          items:
-            "$ref": "#/components/schemas/Part"
-
     AuctionStatus:
       type: string
       enum:
