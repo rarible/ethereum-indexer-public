@@ -14,9 +14,14 @@ import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.contracts.erc1155.v1.CreateERC1155_v1Event
 import com.rarible.protocol.contracts.erc1155.v1.RaribleUserToken
+import com.rarible.protocol.contracts.erc721.rarible.factory.Create721RaribleProxyEvent
+import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
+import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.FactoryCreateCollection
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
@@ -25,9 +30,11 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Service
 import org.web3j.rlp.Utils
 import scalether.domain.Address
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken as MintableOwnableTokenV2
 import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken as MintableOwnableTokenV3
@@ -36,11 +43,15 @@ import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as Mintable
 @ExperimentalCoroutinesApi
 @Service
 class PendingTransactionService(
+    private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val itemPropertiesService: ItemPropertiesService,
+    private val properties: NftIndexerProperties,
     blockProcessor: BlockProcessor,
     logEventService: LogEventService
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
+
+    private fun factories() = listOf<Address>(Address.apply(properties.factory.erc721Rarible))
 
     override suspend fun process(
         hash: Word,
@@ -54,6 +65,8 @@ class PendingTransactionService(
 
         val pendingLogs = if (to == null) {
             tryToProcessCollectionCreate(from, nonce, id, data)
+        } else if (factories().contains(to)) {
+            tryToProcessFactoryCreate(from, id, data)
         } else {
             tryToProcessTokenTransfer(from, to, id, data)
         }
@@ -80,9 +93,35 @@ class PendingTransactionService(
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
         val input = id.add(data)
-        val pendingLog =  processTxToCreate(from, nonce, input)
+        val pendingLog = processTxToCreate(from, nonce, input)
 
         return listOfNotNull(pendingLog)
+    }
+
+    private suspend fun tryToProcessFactoryCreate(from: Address, id: Binary, data: Binary): List<PendingLog> {
+        val pendingLog = processTxToFactory(from, id, data)
+
+        return listOfNotNull(pendingLog)
+    }
+
+    private suspend fun processTxToFactory(from: Address, id: Binary, data: Binary): PendingLog? {
+        logger.info("Process tx to factory from:$from id:$id data:$data")
+
+        checkTx(id, data, ERC721RaribleFactoryC2.createTokenSignature())?.let {
+            val provider = ERC721RaribleFactoryC2(Address.apply(properties.factory.erc721Rarible), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create721RaribleProxyEvent.id()
+            )
+        }
+        return null
     }
 
     private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): PendingLog? {
@@ -187,6 +226,10 @@ class PendingTransactionService(
                     value = EthUInt256(it._3())
                 ), to, TransferSingleEvent.id()
             )
+        }
+        checkTx(id, data, ERC721RaribleFactoryC2.createTokenSignature())?.let {
+
+            return null
         }
         return null
     }
