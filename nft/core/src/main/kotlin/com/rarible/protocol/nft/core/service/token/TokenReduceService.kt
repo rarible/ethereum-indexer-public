@@ -23,7 +23,7 @@ class TokenReduceService(
 
     suspend fun updateToken(address: Address): Token? = update(address).awaitFirstOrNull()
 
-    private fun update(address: Address): Flux<Token> {
+    fun update(address: Address): Flux<Token> {
         // We handle tokens registered via TokenRegistrationService as well.
         val registeredToken = tokenRepository.findById(address)
         return tokenHistoryRepository.findAllByCollection(address)

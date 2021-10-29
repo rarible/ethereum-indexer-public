@@ -3,7 +3,9 @@ package com.rarible.protocol.nft.listener.admin
 import com.rarible.core.task.TaskService
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams.Companion.ADMIN_REDUCE_TOKEN_ITEMS
-import com.rarible.protocol.nft.core.model.ReindexTokenRoyaltiesTaskParam.Companion.ADMIN_REINDEX_TOKEN_ROYALTIES
+import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams.Companion.ADMIN_REDUCE_TOKEN
+import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam.Companion.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.ADMIN_REINDEX_TOKEN_ITEMS
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.ADMIN_REINDEX_TOKEN
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,8 +30,10 @@ class AdminTaskHandlersInitializer(
     fun init() = runBlocking<Unit> {
         listOf(
             ADMIN_REINDEX_TOKEN,
+            ADMIN_REDUCE_TOKEN,
+            ADMIN_REINDEX_TOKEN_ITEMS,
             ADMIN_REDUCE_TOKEN_ITEMS,
-            ADMIN_REINDEX_TOKEN_ROYALTIES
+            ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
         ).forEach { type -> run(type) }
     }
 

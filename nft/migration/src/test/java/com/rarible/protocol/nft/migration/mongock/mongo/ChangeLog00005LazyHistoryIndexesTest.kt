@@ -4,28 +4,47 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.LazyItemHistory
-import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
+import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
+import org.springframework.data.annotation.AccessType
+import org.springframework.data.annotation.Id
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
+import org.springframework.data.mongodb.core.mapping.Document
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
+import scalether.domain.Address
+import java.time.Instant
 
 @IntegrationTest
 class ChangeLog00005LazyHistoryIndexesTest : AbstractIntegrationTest() {
 
     private val changeLog = ChangeLog00005LazyHistoryIndexes()
+
+    @Document(value = LazyNftItemHistoryRepository.COLLECTION)
+    data class OldFormatItemLazyMint(
+        val token: Address,
+        val tokenId: EthUInt256,
+        val value: EthUInt256,
+        val date: Instant,
+        val uri: String,
+        val standard: TokenStandard,
+        val creators: List<Part>,
+        val royalties: List<Part>,
+        val signatures: List<Binary>
+    ) {
+        @get:Id
+        @get:AccessType(AccessType.Type.PROPERTY)
+        var id: String = ItemId(token, tokenId).stringValue
+    }
 
     @Test
     fun `migration test`() = runBlocking<Unit> {
@@ -41,7 +60,7 @@ class ChangeLog00005LazyHistoryIndexesTest : AbstractIntegrationTest() {
         ).awaitFirst()
 
         mongo.save(
-            ChangeLog00005LazyHistoryIndexes.OldItemLazyMint(
+            OldFormatItemLazyMint(
                 token = token,
                 tokenId = tokenId,
                 value = EthUInt256(randomBigInt()),
@@ -61,15 +80,11 @@ class ChangeLog00005LazyHistoryIndexesTest : AbstractIntegrationTest() {
             LazyNftItemHistoryRepository.COLLECTION
         ).awaitFirst()
 
-        changeLog.makeIdSurrogate(mongoTemplate)
         changeLog.extendTokenTokenIdIndexWithId(mongoTemplate)
 
         val itemHistory = lazyNftItemHistoryRepository.find(token, tokenId).single().awaitFirst()
         assertThat(itemHistory).isInstanceOf(ItemLazyMint::class.java)
 
-        val collection = mongo.getCollection(LazyNftItemHistoryRepository.COLLECTION).awaitFirst()
-        val newId = collection.find().awaitFirst()["_id"].toString()
-        assertThat(ObjectId.isValid(newId)).withFailMessage(newId)
         val nextIndexes =
             mongo.indexOps(LazyNftItemHistoryRepository.COLLECTION).indexInfo
                 .map { it.name }.collectList().awaitFirst().toSet()

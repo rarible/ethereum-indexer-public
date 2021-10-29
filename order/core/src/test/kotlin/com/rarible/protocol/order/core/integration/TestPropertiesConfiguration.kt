@@ -101,6 +101,7 @@ class TestPropertiesConfiguration {
 
 
     @Bean
+    @Primary
     fun testCurrencyApi(): CurrencyControllerApi = object : CurrencyControllerApi() {
         override fun getCurrencyRate(blockchain: BlockchainDto, address: String?, at: Long?): Mono<CurrencyRateDto> {
             return CurrencyRateDto(

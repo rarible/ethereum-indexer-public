@@ -16,8 +16,14 @@ class TempTaskRepository(
         return template.save(task).awaitFirst()
     }
 
-    fun findByType(type: String): Flow<Task> {
-        val criteria = Task::type isEqualTo type
+    fun findByType(type: String, param: String? = null): Flow<Task> {
+        val criteria = (Task::type isEqualTo type).let {
+            if (param != null) {
+                it.andOperator(Task::param isEqualTo param)
+            } else {
+                it
+            }
+        }
         return template.find<Task>(Query.query(criteria)).asFlow()
     }
 }

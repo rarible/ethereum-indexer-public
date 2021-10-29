@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
@@ -64,7 +65,7 @@ class RoyaltyTaskHandlerTest : AbstractIntegrationTest() {
             .verifySuccess()
 
         val address = handler.runLongTask(null, "").firstOrNull()
-        assertEquals(item.token.prefixed(), address)
+        assertEquals(item.token, Address.apply(address))
 
         // check royalty in the cache
         assertEquals(1, royaltyRepository.count().awaitFirst())
