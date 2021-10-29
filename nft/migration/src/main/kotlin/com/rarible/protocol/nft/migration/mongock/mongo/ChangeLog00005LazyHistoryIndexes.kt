@@ -21,6 +21,7 @@ class ChangeLog00005LazyHistoryIndexes {
         author = "protocol"
     )
     fun extendTokenTokenIdIndexWithId(template: MongockTemplate) = runBlocking {
+        return@runBlocking
         val indexOps = template.indexOps(LazyNftItemHistoryRepository.COLLECTION)
         val existingIndexes = indexOps.indexInfo.map { it.name }
         logger.info("Existing indexes: $existingIndexes")
