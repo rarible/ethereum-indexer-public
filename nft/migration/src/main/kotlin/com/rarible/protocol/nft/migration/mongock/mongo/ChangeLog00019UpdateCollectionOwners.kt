@@ -32,12 +32,13 @@ class ChangeLog00019UpdateCollectionOwners {
         logger.info("Started updating collection owners")
         var seen = 0
         nftHistoryRepository.findAllByCollection(null).collect { logEvent ->
+            seen++
             val ownershipTransfer = logEvent.data as? CollectionOwnershipTransferred ?: return@collect
             try {
-                val token = tokenRepository.findById(ownershipTransfer.id).awaitFirstOrNull()
-                if (token != null && token.owner != ownershipTransfer.newOwner) {
-                    logger.info("Updating owner of ${ownershipTransfer.id} from ${token.owner} to ${ownershipTransfer.newOwner} (seen $seen)")
-                    optimisticLock {
+                optimisticLock {
+                    val token = tokenRepository.findById(ownershipTransfer.id).awaitFirstOrNull()
+                    if (token != null && token.owner != ownershipTransfer.newOwner) {
+                        logger.info("Updating owner of ${ownershipTransfer.id} from ${token.owner} to ${ownershipTransfer.newOwner} (seen $seen)")
                         tokenRepository.save(token.copy(owner = ownershipTransfer.newOwner)).awaitFirstOrNull()
                     }
                 }
