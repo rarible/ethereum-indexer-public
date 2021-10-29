@@ -72,12 +72,6 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
     private lateinit var propertiesCacheDescriptor: PropertiesCacheDescriptor
 
     @Autowired
-    private lateinit var pendingTransactionService: PendingTransactionService
-
-    @Autowired
-    private lateinit var  ipfsService: IpfsService
-
-    @Autowired
     private lateinit var nftIndexerProperties: NftIndexerProperties
 
     private val temporaryProperties = ItemProperties(
@@ -93,7 +87,6 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
     fun cleanup() = runBlocking<Unit> {
         tokenRepository.drop().awaitFirstOrNull()
 
-        every { ipfsService.resolveIpfsUrl(any()) } returns "Test"
         every { propertiesCacheDescriptor.getByUri(any()) } returns Mono.just(temporaryProperties)
     }
 
@@ -191,32 +184,5 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         @Autowired
         private lateinit var nftIndexerProperties: NftIndexerProperties
 
-        @Bean
-        @Primary
-        fun mockItemPropertiesService(
-            mockkPropertiesCacheDescriptor: PropertiesCacheDescriptor,
-            temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository,
-            mockkIpfsService: IpfsService
-        ): ItemPropertiesService {
-            return ItemPropertiesService(
-                propertiesCacheDescriptor = mockkPropertiesCacheDescriptor,
-                temporaryItemPropertiesRepository = temporaryItemPropertiesRepository,
-                ipfsService = mockkIpfsService,
-                kittiesCacheDescriptor = mockk(),
-                lootCacheDescriptor = mockk(),
-                yInsureCacheDescriptor = mockk(),
-                hegicCacheDescriptor = mockk(),
-                hashmasksCacheDescriptor = mockk(),
-                waifusionCacheDescriptor = mockk(),
-                openSeaCacheDescriptor = mockk(),
-                yInsureAddress = Address.FOUR().toString(),
-                hegicAddress = Address.FOUR().toString(),
-                hashmasksAddress = Address.FOUR().toString(),
-                waifusionAddress = Address.FOUR().toString(),
-                cacheService = null,
-                properties = nftIndexerProperties,
-                cryptoPunksMetaService = mockk()
-            )
-        }
     }
 }

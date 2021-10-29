@@ -276,10 +276,6 @@ class PendingTransactionService(
                 ), to, TransferSingleEvent.id()
             )
         }
-        checkTx(id, data, ERC721RaribleFactoryC2.createTokenSignature())?.let {
-
-            return null
-        }
         return null
     }
 
