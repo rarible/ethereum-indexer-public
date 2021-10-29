@@ -23,7 +23,7 @@ class AuctionHistoryRepository(
         return template.save(logEvent, COLLECTION)
     }
 
-    fun findLogEvents(hash: Word?, from: Word?): Flux<LogEvent> {
+    fun findLogEvents(hash: Word?, from: Word? = null): Flux<LogEvent> {
         val criteria = when {
             hash != null -> LogEvent::data / AuctionHistory::hash isEqualTo hash
             from != null -> LogEvent::data / AuctionHistory::hash gt from

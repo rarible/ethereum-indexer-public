@@ -1,12 +1,15 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.data.randomAuction
 import com.rarible.protocol.order.listener.data.randomAuctionV1DataV1
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -22,6 +25,7 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
             seller = seller,
             sell = Asset(erc721AssetType, EthUInt256.ONE),
             buy = EthAssetType,
+            contract = auctionHouse.address(),
             data = randomAuctionV1DataV1().copy(
                 duration = Duration.ofHours(1).let { EthUInt256.of(it.seconds) }
             )
@@ -35,6 +39,13 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
                 forTx._5(),
                 forTx._6()
             ).withSender(userSender1).execute().verifySuccess()
+        }
+        Wait.waitAssert {
+            val events = auctionHistoryRepository.findLogEvents(hash = adhocAuction.hash).collectList().awaitFirst()
+            assertThat(events).hasSize(1)
+
+//            val auction = auctionRepository.findById(adhocAuction.hash)
+//            assertThat(auction).isNotNull
         }
     }
 }

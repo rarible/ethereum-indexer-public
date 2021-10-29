@@ -10,6 +10,8 @@ import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import io.daonomic.rpc.domain.Binary
@@ -40,6 +42,10 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     protected lateinit var privateKey1: BigInteger
     protected lateinit var privateKey2: BigInteger
 
+    @Autowired
+    protected lateinit var auctionHistoryRepository: AuctionHistoryRepository
+    @Autowired
+    protected lateinit var auctionRepository: AuctionRepository
     @Autowired
     private lateinit var auctionCreatedDescriptor: AuctionCreatedDescriptor
     @Autowired
