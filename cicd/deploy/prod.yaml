@@ -1,0 +1,46 @@
+global:
+  network: mainnet
+
+protocol-ethereum-erc20-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
+
+protocol-ethereum-erc20-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
+
+protocol-ethereum-gateway:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+
+protocol-ethereum-order-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 256
+
+protocol-ethereum-order-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
+
+protocol-ethereum-nft-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 1536
+      max_direct_memory_megabytes: 256
+
+protocol-ethereum-nft-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024

@@ -1,0 +1,20 @@
+global:
+  network: rinkeby
+protocol-ethereum-erc20-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 3096
+      max_direct_memory_megabytes: 1024
+
+protocol-ethereum-order-api:
+  replicas: 3
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
+
+protocol-ethereum-nft-api:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256

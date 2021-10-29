@@ -1,0 +1,178 @@
+global:
+  blockchain: ethereum
+  network: mainnet
+protocol-ethereum-erc20-api:
+  image:
+    repository: protocol-ethereum-erc20-api
+  replicas: 2
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+
+protocol-ethereum-erc20-listener:
+  image:
+    repository: protocol-ethereum-erc20-listener
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 256
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-ethereum-gateway:
+  image:
+    repository: protocol-ethereum-gateway
+  replicas: 2
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - 'proxy'
+
+protocol-ethereum-order-api:
+  image:
+    repository: protocol-ethereum-order-api
+  replicas: 2
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-ethereum-order-listener:
+  image:
+    repository: protocol-ethereum-order-api
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 768
+      max_direct_memory_megabytes: 128
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-ethereum-order-migration:
+  image:
+    repository: protocol-ethereum-order-migration
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-ethereum-unlockable-api:
+  image:
+    repository: protocol-ethereum-unlockable-api
+  replicas: 2
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+
+protocol-ethereum-nft-api:
+  image:
+    repository: protocol-ethereum-nft-api
+  replicas: 2
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-ethereum-nft-listener:
+  image:
+    repository: protocol-ethereum-nft-listener
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 768
+      max_direct_memory_megabytes: 128
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'

@@ -1,0 +1,40 @@
+apiVersion: v2
+name: protocol-ethereum
+version: 0.1.0
+dependencies:
+- name: rarible-helm-chart
+  alias: protocol-ethereum-erc20-listener
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-erc20-api
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-gateway
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-order-api
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-order-listener
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-order-migration
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-unlockable-api
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-nft-api
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: protocol-ethereum-nft-listener
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
