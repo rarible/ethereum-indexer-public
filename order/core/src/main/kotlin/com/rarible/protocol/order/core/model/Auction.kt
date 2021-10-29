@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.Tuple2
+import scala.Tuple6
 import scalether.domain.Address
 import java.time.Instant
 
@@ -41,6 +42,15 @@ data class Auction(
     var hash: Word
         get() = _id
         set(_) {}
+
+    fun forTx() = Tuple6(
+        sell.forTx(),
+        buy.forTx(),
+        minimalStep.value,
+        minimalPrice.value,
+        data.getDataVersion(),
+        data.toEthereum().bytes()
+    )
 
     companion object {
         fun hashKey(auction: Auction): Word {

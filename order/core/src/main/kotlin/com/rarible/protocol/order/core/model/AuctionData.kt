@@ -4,10 +4,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
 import org.springframework.data.annotation.Transient
+import scala.Tuple5
 import java.math.BigInteger
 
 sealed class AuctionData {
     abstract val version: AuctionDataVersion
+
+    fun getDataVersion(): ByteArray? = version.ethDataType.bytes()
+
+    abstract fun toEthereum(): Binary
 
     companion object {
         fun decode(data: Binary, version: Binary): AuctionData {
@@ -39,6 +44,18 @@ data class RaribleAuctionV1DataV1(
     @get:Transient
     override val version: AuctionDataVersion
         get() = AuctionDataVersion.RARIBLE_AUCTION_V1_DATA_V1
+
+    override fun toEthereum(): Binary {
+        return Tuples.auctionDataV1Type().encode(
+            Tuple5(
+                payouts.map { it.toEthereum() }.toTypedArray(),
+                originFees.map { it.toEthereum() }.toTypedArray(),
+                duration.value,
+                startTime?.value ?: BigInteger.ZERO,
+                buyOutPrice?.value ?: BigInteger.ZERO
+            )
+        )
+    }
 }
 
 enum class AuctionDataVersion(val ethDataType: Binary) {
