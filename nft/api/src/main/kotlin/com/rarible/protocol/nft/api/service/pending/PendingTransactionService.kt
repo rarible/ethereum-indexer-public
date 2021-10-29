@@ -55,12 +55,11 @@ class PendingTransactionService(
     logEventService: LogEventService
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
 
-    private fun factories() = setOf(
-        Address.apply(properties.factory.erc721Rarible),
-        Address.apply(properties.factory.erc721RaribleUser),
-        Address.apply(properties.factory.erc1155Rarible),
-        Address.apply(properties.factory.erc1155RaribleUser)
-    )
+    private fun erc721Factory() = setOf(Address.apply(properties.factory.erc721Rarible),
+        Address.apply(properties.factory.erc721RaribleUser))
+
+    private fun erc1155Factory() = setOf(Address.apply(properties.factory.erc1155Rarible),
+        Address.apply(properties.factory.erc1155RaribleUser))
 
     override suspend fun process(
         hash: Word,
@@ -74,7 +73,8 @@ class PendingTransactionService(
 
         val pendingLogs = when {
             to == null -> tryToProcessCollectionCreate(from, nonce, id, data)
-            factories().contains(to) -> tryToProcessFactoryCreate(from, id, data)
+            erc721Factory().contains(to) -> listOfNotNull(processTxToERC721Factory(from, id, data))
+            erc1155Factory().contains(to) -> listOfNotNull(processTxToERC1155Factory(from, id, data))
             else -> tryToProcessTokenTransfer(from, to, id, data)
         }
         return pendingLogs.map { (event, address, topic) ->
@@ -105,14 +105,8 @@ class PendingTransactionService(
         return listOfNotNull(pendingLog)
     }
 
-    private suspend fun tryToProcessFactoryCreate(from: Address, id: Binary, data: Binary): List<PendingLog> {
-        val pendingLog = processTxToFactory(from, id, data)
-
-        return listOfNotNull(pendingLog)
-    }
-
-    private suspend fun processTxToFactory(from: Address, id: Binary, data: Binary): PendingLog? {
-        logger.info("Process tx to factory from:$from id:$id data:$data")
+    private suspend fun processTxToERC721Factory(from: Address, id: Binary, data: Binary): PendingLog? {
+        logger.info("Process tx to ERC721factory from:$from id:$id data:$data")
 
         checkTx(id, data, ERC721RaribleFactoryC2.createTokenSignature())?.let {
             val provider = ERC721RaribleFactoryC2(Address.apply(properties.factory.erc721Rarible), sender)
@@ -142,6 +136,12 @@ class PendingTransactionService(
                 ), address, Create721RaribleUserProxyEvent.id()
             )
         }
+        return null
+    }
+
+    private suspend fun processTxToERC1155Factory(from: Address, id: Binary, data: Binary): PendingLog? {
+        logger.info("Process tx to ERC1155factory from:$from id:$id data:$data")
+
         checkTx(id, data, ERC1155RaribleFactoryC2.createTokenSignature())?.let {
             val provider = ERC1155RaribleFactoryC2(Address.apply(properties.factory.erc1155Rarible), sender)
             val name = it._1()
