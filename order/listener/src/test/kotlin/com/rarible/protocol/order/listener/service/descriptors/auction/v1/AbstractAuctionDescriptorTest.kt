@@ -1,19 +1,22 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.contracts.test.erc20.TestERC20
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.AuctionHouse
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
-import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
+import com.rarible.protocol.order.listener.data.randomAuction
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import kotlinx.coroutines.FlowPreview
 import org.apache.commons.lang3.RandomUtils
+import org.apache.kafka.clients.producer.internals.Sender
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,6 +26,8 @@ import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
+import java.time.Duration
+import java.time.Instant
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
@@ -111,5 +116,45 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         val tokenId = BigInteger.valueOf((0L..10000).random())
         token721.mint(sender.from(), tokenId).execute().verifySuccess()
         return Erc721AssetType(token721.address(), EthUInt256.of(tokenId))
+    }
+
+    protected suspend fun withStartedAuction(
+        sender: MonoSigningTransactionSender,
+        action: suspend (Auction) -> Unit
+    ) {
+        val erc721AssetType = mintErc721(sender)
+        val seller = sender.from()
+
+        val adhocAuction = randomAuction().copy(
+            seller = seller,
+            sell = Asset(erc721AssetType, EthUInt256.ONE),
+            buy = EthAssetType,
+            minimalStep = EthUInt256.of(1),
+            minimalPrice = EthUInt256.of(1),
+            data = RaribleAuctionV1DataV1(
+                originFees = listOf(
+                    Part(randomAddress(), EthUInt256.of(5000)),
+                    Part(randomAddress(), EthUInt256.of(5000))
+                ),
+                payouts = listOf(
+                    Part(randomAddress(), EthUInt256.of(5000)),
+                    Part(randomAddress(), EthUInt256.of(5000))
+                ),
+                duration = Duration.ofHours(1).let { EthUInt256.of(it.seconds) },
+                startTime = EthUInt256.of(Instant.now().epochSecond + 60),
+                buyOutPrice = EthUInt256.TEN
+            )
+        )
+        adhocAuction.forTx().let { forTx ->
+            auctionHouse.startAuction(
+                forTx._1(),
+                forTx._2(),
+                forTx._3(),
+                forTx._4(),
+                forTx._5(),
+                forTx._6()
+            ).withSender(userSender1).execute().verifySuccess()
+        }
+        action(adhocAuction)
     }
 }
