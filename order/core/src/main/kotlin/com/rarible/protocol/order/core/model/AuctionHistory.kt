@@ -7,7 +7,7 @@ import scalether.domain.Address
 import java.time.Instant
 
 sealed class AuctionHistory(
-    val type: AuctionHistoryType
+    var type: AuctionHistoryType
 ) : EventData {
     abstract val hash: Word
     abstract val date: Instant

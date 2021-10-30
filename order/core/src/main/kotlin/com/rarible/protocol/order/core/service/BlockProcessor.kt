@@ -17,7 +17,11 @@ class BlockProcessor(
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
-        val orderHashes = logs.map { (it.data as OrderExchangeHistory).hash }.distinct()
+        val orderHashes = logs
+            .map { log -> log.data }
+            .filterIsInstance<OrderExchangeHistory>()
+            .map { orderHistory -> orderHistory.hash }.distinct()
+
         val run = mono {
             orderUpdateService.saveOrRemoveOnChainOrderVersions(logs)
             for (orderHash in orderHashes) {

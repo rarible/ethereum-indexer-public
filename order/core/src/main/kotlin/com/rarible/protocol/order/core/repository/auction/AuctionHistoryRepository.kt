@@ -23,6 +23,11 @@ class AuctionHistoryRepository(
         return template.save(logEvent, COLLECTION)
     }
 
+    fun findByType(type: AuctionHistoryType): Flux<LogEvent> {
+        val query = Query(LogEvent::topic inValues type.topic)
+        return template.find(query, COLLECTION)
+    }
+
     fun findLogEvents(hash: Word?, from: Word? = null): Flux<LogEvent> {
         val criteria = when {
             hash != null -> LogEvent::data / AuctionHistory::hash isEqualTo hash

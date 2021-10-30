@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.auction.v1.AuctionCreatedEvent
+import com.rarible.protocol.contracts.auction.v1.event.AuctionCreatedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word

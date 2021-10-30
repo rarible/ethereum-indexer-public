@@ -43,7 +43,7 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
         fun parseContractAuction(auction: Tuple11<Tuple2<Tuple2<ByteArray, ByteArray>, BigInteger>, Tuple2<ByteArray, ByteArray>, Tuple3<BigInteger, ByteArray, ByteArray>, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray>): ContractAuction {
             val sell = Asset(auction._1()._1().toAssetType(), EthUInt256(auction._1()._2()))
             val buy = auction._2().toAssetType()
-            val lastBid = auction._3().takeUnless { bid -> bid._2().isEmpty() }?.toAuctionBid()
+            val lastBid = auction._3().takeUnless { bid -> bid._1() == BigInteger.ZERO }?.toAuctionBid()
             val seller = auction._4()
             val buyer = auction._5().takeUnless { buyer -> buyer == Address.ZERO() }
             val endTime = auction._6().takeUnless { endTime -> endTime == BigInteger.ZERO }

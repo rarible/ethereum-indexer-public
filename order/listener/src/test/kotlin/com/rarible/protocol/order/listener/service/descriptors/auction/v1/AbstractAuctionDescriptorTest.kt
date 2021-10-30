@@ -1,12 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.contracts.test.erc20.TestERC20
-import com.rarible.contracts.test.erc721.TestERC721
-import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.contracts.auction.v1.AuctionHouse
 import com.rarible.protocol.contracts.common.TransferProxy
+import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -14,16 +12,13 @@ import com.rarible.protocol.order.core.repository.auction.AuctionHistoryReposito
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
-import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.testcontainers.shaded.com.github.dockerjava.core.dockerfile.DockerfileStatement
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
-import scalether.domain.Address
-import scalether.domain.request.Transaction
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
@@ -31,6 +26,8 @@ import java.math.BigInteger
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
+    protected val logger = LoggerFactory.getLogger(javaClass)
+
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender
     protected lateinit var token1: TestERC20
@@ -76,7 +73,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         )
         token1 = TestERC20.deployAndWait(sender, poller, "Test1", "TST1").block()!!
         token2 = TestERC20.deployAndWait(sender, poller, "Test2", "TST2").block()!!
-        token721 = TestERC721.deployAndWait(sender, poller, "Test", "TST").block()!!
+        token721 = TestERC721.deployAndWait(sender, poller).block()!!
         transferProxy = TransferProxy.deployAndWait(sender, poller).block()!!
         erc20TransferProxy = ERC20TransferProxy.deployAndWait(sender, poller).block()!!
         val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).block()!!
@@ -110,9 +107,9 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         setField(descriptor, "auctionContract", auctionHouse.address())
     }
 
-    protected fun mintErc721(from: Address): Erc721AssetType {
-        val tokenId = randomBigInt()
-        token721.mint(from, tokenId, "test url").execute().verifySuccess()
+    protected fun mintErc721(sender: MonoSigningTransactionSender): Erc721AssetType {
+        val tokenId = BigInteger.valueOf((0L..10000).random())
+        token721.mint(sender.from(), tokenId).execute().verifySuccess()
         return Erc721AssetType(token721.address(), EthUInt256.of(tokenId))
     }
 }

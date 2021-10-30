@@ -18,14 +18,13 @@ import java.time.Duration
 internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should create auction`() = runBlocking<Unit> {
+        val erc721AssetType = mintErc721(userSender1)
         val seller = userSender1.from()
-        val erc721AssetType = mintErc721(seller)
 
         val adhocAuction = randomAuction().copy(
             seller = seller,
             sell = Asset(erc721AssetType, EthUInt256.ONE),
             buy = EthAssetType,
-            contract = auctionHouse.address(),
             data = randomAuctionV1DataV1().copy(
                 duration = Duration.ofHours(1).let { EthUInt256.of(it.seconds) }
             )
@@ -41,11 +40,8 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
             ).withSender(userSender1).execute().verifySuccess()
         }
         Wait.waitAssert {
-            val events = auctionHistoryRepository.findLogEvents(hash = adhocAuction.hash).collectList().awaitFirst()
+            val events = auctionHistoryRepository.findByType(AuctionHistoryType.ON_CHAIN_AUCTION).collectList().awaitFirst()
             assertThat(events).hasSize(1)
-
-//            val auction = auctionRepository.findById(adhocAuction.hash)
-//            assertThat(auction).isNotNull
         }
     }
 }

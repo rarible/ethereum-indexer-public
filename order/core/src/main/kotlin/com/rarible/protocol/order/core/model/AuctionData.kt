@@ -15,7 +15,7 @@ sealed class AuctionData {
     abstract fun toEthereum(): Binary
 
     companion object {
-        fun decode(data: Binary, version: Binary): AuctionData {
+        fun decode(version: Binary, data: Binary): AuctionData {
             return when (version) {
                 AuctionDataVersion.RARIBLE_AUCTION_V1_DATA_V1.ethDataType -> {
                     val decoded = Tuples.auctionDataV1Type().decode(data, 0)

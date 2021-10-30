@@ -1,12 +1,13 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.protocol.contracts.auction.v1.event.AuctionCreatedEvent
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import io.daonomic.rpc.domain.Word
 
 enum class AuctionHistoryType(val topic: Set<Word>) {
     ON_CHAIN_AUCTION(
         topic = setOf(
-            UpsertOrderEvent.id()
+            AuctionCreatedEvent.id()
         )
     ),
     BID_PLACED(

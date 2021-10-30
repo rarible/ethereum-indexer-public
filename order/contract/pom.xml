@@ -94,6 +94,11 @@
                             <type>MONO</type>
                         </contract>
                         <contract>
+                            <truffle>src/main/truffle/common/erc721//TestERC721.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.common.erc721</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
                             <truffle>src/main/truffle/exchange/cryptoPunks/CryptoPunksMarket.json</truffle>
                             <packageName>com.rarible.protocol.contracts.exchange.crypto.punks</packageName>
                             <type>MONO</type>

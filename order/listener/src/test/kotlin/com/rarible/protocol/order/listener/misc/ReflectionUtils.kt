@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.misc
 
+import org.springframework.util.ReflectionUtils
 import java.lang.reflect.Field
 
 fun setField(target: Any, fieldName: String, value: Any) {

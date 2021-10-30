@@ -7,7 +7,11 @@ import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionHistoryType
+import com.rarible.protocol.order.core.model.AuctionType
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.trace.TracePackage
@@ -50,7 +54,8 @@ class CoreConfiguration {
 
     @Bean
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService = LogEventService(
-        ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION },
+        ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION } +
+        AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION },
         mongo
     )
 }
