@@ -2,7 +2,9 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.contracts.auction.v1.AuctionHouse
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
@@ -15,10 +17,10 @@ import com.rarible.protocol.order.listener.data.randomAuction
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.reactive.awaitFirst
 import org.apache.commons.lang3.RandomUtils
-import org.apache.kafka.clients.producer.internals.Sender
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -31,8 +33,6 @@ import java.time.Instant
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
-    protected val logger = LoggerFactory.getLogger(javaClass)
-
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender
     protected lateinit var token1: TestERC20
@@ -46,14 +46,19 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     @Autowired
     protected lateinit var auctionHistoryRepository: AuctionHistoryRepository
+
     @Autowired
     protected lateinit var auctionRepository: AuctionRepository
+
     @Autowired
     private lateinit var auctionCreatedDescriptor: AuctionCreatedDescriptor
+
     @Autowired
     private lateinit var auctionBidDescriptor: AuctionBidDescriptor
+
     @Autowired
     private lateinit var auctionFinishedDescriptor: AuctionFinishedDescriptor
+
     @Autowired
     private lateinit var auctionCancelDescriptor: AuctionCancelDescriptor
 
@@ -112,21 +117,20 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         setField(descriptor, "auctionContract", auctionHouse.address())
     }
 
-    protected fun mintErc721(sender: MonoSigningTransactionSender): Erc721AssetType {
+    private fun mintErc721(sender: MonoSigningTransactionSender): Erc721AssetType {
         val tokenId = BigInteger.valueOf((0L..10000).random())
         token721.mint(sender.from(), tokenId).execute().verifySuccess()
         return Erc721AssetType(token721.address(), EthUInt256.of(tokenId))
     }
 
     protected suspend fun withStartedAuction(
-        sender: MonoSigningTransactionSender,
-        action: suspend (Auction) -> Unit
+        seller: MonoSigningTransactionSender,
+        startTime: EthUInt256 = EthUInt256.of(Instant.now().epochSecond + 60),
+        checkAction: suspend (StartedAuction) -> Unit
     ) {
-        val erc721AssetType = mintErc721(sender)
-        val seller = sender.from()
+        val erc721AssetType = mintErc721(seller)
 
-        val adhocAuction = randomAuction().copy(
-            seller = seller,
+        val auctionParameters = AuctionStartParameters(
             sell = Asset(erc721AssetType, EthUInt256.ONE),
             buy = EthAssetType,
             minimalStep = EthUInt256.of(1),
@@ -141,11 +145,11 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
                     Part(randomAddress(), EthUInt256.of(5000))
                 ),
                 duration = Duration.ofHours(1).let { EthUInt256.of(it.seconds) },
-                startTime = EthUInt256.of(Instant.now().epochSecond + 60),
+                startTime = startTime,
                 buyOutPrice = EthUInt256.TEN
             )
         )
-        adhocAuction.forTx().let { forTx ->
+        auctionParameters.forTx().let { forTx ->
             auctionHouse.startAuction(
                 forTx._1(),
                 forTx._2(),
@@ -154,7 +158,38 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
                 forTx._5(),
                 forTx._6()
             ).withSender(userSender1).execute().verifySuccess()
+
         }
-        action(adhocAuction)
+
+        var events: List<LogEvent> = emptyList()
+        Wait.waitAssert {
+            events = auctionHistoryRepository.findByType(AuctionHistoryType.ON_CHAIN_AUCTION).collectList().awaitFirst()
+            Assertions.assertThat(events).hasSize(1)
+        }
+        val chainAuction = events.map { event -> event.data as OnChainAuction }.single()
+        checkAction(StartedAuction(auctionParameters, chainAuction))
+    }
+
+    protected data class StartedAuction(
+        val startedParams: AuctionStartParameters,
+        val chainAuction: OnChainAuction
+    )
+
+    protected class AuctionStartParameters(
+        val sell: Asset,
+        val buy: AssetType,
+        val minimalStep: EthUInt256,
+        val minimalPrice: EthUInt256,
+        val data: AuctionData
+    ) {
+        fun forTx() = run {
+            randomAuction().copy(
+                sell = sell,
+                buy = buy,
+                minimalStep = minimalStep,
+                minimalPrice = minimalPrice,
+                data = data
+            ).forTx()
+        }
     }
 }

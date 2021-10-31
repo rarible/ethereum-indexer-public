@@ -54,6 +54,9 @@ object Tuples {
   val auctionDataV1Type =
     Tuple1Type(Tuple5Type(VarArrayType(addressUintType), VarArrayType(addressUintType), Uint256Type, Uint256Type, Uint256Type))
 
+  val auctionBidDataV1Type =
+    Tuple2Type(VarArrayType(addressUintType), VarArrayType(addressUintType))
+
   private val lazy721MessageType =
     Tuple5Type(Uint256Type, StringType, VarArrayType(Tuple2Type(AddressType, Uint256Type)), VarArrayType(Tuple2Type(AddressType, Uint256Type)), VarArrayType(BytesType))
 

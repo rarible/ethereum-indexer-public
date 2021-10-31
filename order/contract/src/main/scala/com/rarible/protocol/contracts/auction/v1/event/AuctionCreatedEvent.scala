@@ -4,7 +4,6 @@ import io.daonomic.rpc.domain.Word
 import scalether.abi.{AddressType, Bytes4Type, BytesType, Event, Uint256Type}
 import scalether.abi.tuple.{Tuple11Type, Tuple1Type, Tuple2Type, Tuple3Type}
 import scalether.domain._
-import scalether.domain.request.TopicFilter.simple
 import scalether.domain.request.{LogFilter, TopicFilter}
 
 import java.math.BigInteger
