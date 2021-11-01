@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.*
 import org.bson.Document
+import org.checkerframework.checker.units.qual.C
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -102,9 +103,19 @@ object OrderFilterCriteria {
         Criteria.where("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
 
     private fun bidByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-        val criteria = Criteria
-            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
-            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
+//        val criteria = Criteria
+//            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+//            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
+//            .orOperator(Criteria
+//                .where("${Order::take.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
+//                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token))
+
+        val criteria = Criteria().orOperator(
+            Criteria.where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId),
+            Criteria.where("${Order::take.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+        )
 
         if (maker != null) {
             criteria.and(Order::maker.name).isEqualTo(maker)

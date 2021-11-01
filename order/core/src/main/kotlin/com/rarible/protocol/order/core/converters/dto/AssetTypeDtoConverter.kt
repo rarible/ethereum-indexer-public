@@ -45,6 +45,9 @@ object AssetTypeDtoConverter : Converter<AssetType, AssetTypeDto> {
                 contract = source.token,
                 punkId = source.tokenId.value.toInt()
             )
+            is CollectionAssetType -> CollectionAssetTypeDto(
+                contract = source.token
+            )
         }
     }
 }

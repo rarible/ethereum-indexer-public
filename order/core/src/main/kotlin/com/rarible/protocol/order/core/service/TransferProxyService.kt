@@ -24,6 +24,7 @@ class TransferProxyService(
             is Erc1155LazyAssetType -> transferProxyAddresses.erc1155LazyTransferProxy
             is CryptoPunksAssetType -> transferProxyAddresses.cryptoPunksTransferProxy
             is GenerativeArtAssetType -> null
+            is CollectionAssetType -> null
             is EthAssetType -> null
         }
     }

@@ -79,7 +79,7 @@ class ProtocolOrderPublisher(
             is Erc1155LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
             is Erc721LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
             is CryptoPunksAssetTypeDto -> ItemId(contract, punkId.toBigInteger()).toString()
-            is EthAssetTypeDto, is Erc20AssetTypeDto, is GenerativeArtAssetTypeDto -> null
+            is EthAssetTypeDto, is Erc20AssetTypeDto, is GenerativeArtAssetTypeDto, is CollectionAssetTypeDto -> null
         }
 
     private val Platform.needPublish: Boolean
