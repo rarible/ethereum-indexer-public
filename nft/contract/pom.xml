@@ -132,6 +132,21 @@
                             <packageName>com.rarible.protocol.contracts.erc721.rarible</packageName>
                             <type>MONO</type>
                         </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc721/rarible/factory/ERC721RaribleFactoryC2.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc721.rarible.factory</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc721/rarible/factory/ERC721RaribleUserFactoryC2.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc721.rarible.factory.user</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc721/rarible/factory/ERC721RaribleBeaconMinimal.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc721.rarible.factory.beacon</packageName>
+                            <type>MONO</type>
+                        </contract>
                         <!--ERC-1155-->
                         <contract>
                             <truffle>src/main/truffle/erc1155/sale/ERC1155Sale_v1.json</truffle>
@@ -166,6 +181,21 @@
                         <contract>
                             <truffle>src/main/truffle/erc1155/rarible/ERC1155Rarible.json</truffle>
                             <packageName>com.rarible.protocol.contracts.erc1155.rarible</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc1155/rarible/factory/ERC1155RaribleFactoryC2.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc1155.rarible.factory</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc1155/rarible/factory/ERC1155RaribleUserFactoryC2.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc1155.rarible.factory.user</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc1155/rarible/factory/ERC1155RaribleBeacon.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc1155.rarible.factory.beacon</packageName>
                             <type>MONO</type>
                         </contract>
                         <contract>

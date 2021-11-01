@@ -5,3 +5,8 @@ logging:
     org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
 common:
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
+  factory:
+    erc721Rarible: "0x2e6fAFAD2Af251Add7400cBD98C4620772692c49"
+    erc721RaribleUser: "0xCc228ecb71B3456AeCb35D2dE66E228DAFd7Ae2d"
+    erc1155Rarible: "0xbF90b7F8d59BE6D08dBd47fF984a22877996E91F"
+    erc1155RaribleUser: "0x71Cf04F4f75eEb3262B1AB7D8438432EC4a30ee4"

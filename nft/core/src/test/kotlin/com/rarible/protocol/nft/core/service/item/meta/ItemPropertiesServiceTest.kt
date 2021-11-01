@@ -40,7 +40,7 @@ class ItemPropertiesServiceTest {
     private val propertiesCacheDescriptor = PropertiesCacheDescriptor(sender, tokenRepository, lazyNftItemHistoryRepository, ipfsService, 86400, 20000)
     private val kittiesCacheDescriptor = KittiesCacheDescriptor(86400)
     private val lootCacheDescriptor = LootCacheDescriptor(86400, sender, mapper, ipfsService)
-    private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "", "")
+    private val properties = NftIndexerProperties("", Blockchain.ETHEREUM, "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB", "", "", mockk())
     private val yInsureCacheDescriptor = YInsureCacheDescriptor(sender, "0x181aea6936b407514ebfc0754a37704eb8d98f91", 86400, "0x1776651F58a17a50098d31ba3C3cD259C1903f7A", "http://localhost:8080")
     private val hegicCacheDescriptor = HegicCacheDescriptor(sender, "0xcb9ebae59738d9dadc423adbde66c018777455a4", 86400, "http://localhost:8080")
     private val hashmasksCacheDescriptor = HashmasksCacheDescriptor(sender, "0xc2c747e0f7004f9e8817db2ca4997657a7746928", 86400)

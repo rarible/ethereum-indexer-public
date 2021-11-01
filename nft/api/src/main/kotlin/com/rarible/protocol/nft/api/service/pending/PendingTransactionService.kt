@@ -12,10 +12,19 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.contracts.erc1155.rarible.factory.Create1155RaribleProxyEvent
+import com.rarible.protocol.contracts.erc1155.rarible.factory.ERC1155RaribleFactoryC2
+import com.rarible.protocol.contracts.erc1155.rarible.factory.user.Create1155RaribleUserProxyEvent
+import com.rarible.protocol.contracts.erc1155.rarible.factory.user.ERC1155RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc1155.v1.CreateERC1155_v1Event
 import com.rarible.protocol.contracts.erc1155.v1.RaribleUserToken
+import com.rarible.protocol.contracts.erc721.rarible.factory.Create721RaribleProxyEvent
+import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
+import com.rarible.protocol.contracts.erc721.rarible.factory.user.Create721RaribleUserProxyEvent
+import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -25,9 +34,11 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Service
 import org.web3j.rlp.Utils
 import scalether.domain.Address
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken as MintableOwnableTokenV2
 import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken as MintableOwnableTokenV3
@@ -36,11 +47,23 @@ import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as Mintable
 @ExperimentalCoroutinesApi
 @Service
 class PendingTransactionService(
+    private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val itemPropertiesService: ItemPropertiesService,
+    private val properties: NftIndexerProperties,
     blockProcessor: BlockProcessor,
     logEventService: LogEventService
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
+
+    private fun erc721Factory() = setOf(
+        Address.apply(properties.factory.erc721Rarible),
+        Address.apply(properties.factory.erc721RaribleUser)
+    )
+
+    private fun erc1155Factory() = setOf(
+        Address.apply(properties.factory.erc1155Rarible),
+        Address.apply(properties.factory.erc1155RaribleUser)
+    )
 
     override suspend fun process(
         hash: Word,
@@ -49,13 +72,14 @@ class PendingTransactionService(
         to: Address?,
         id: Binary,
         data: Binary
-    ) : List<LogEvent> {
+    ): List<LogEvent> {
         logger.info("processing tx $hash to: $to data: $data")
 
-        val pendingLogs = if (to == null) {
-            tryToProcessCollectionCreate(from, nonce, id, data)
-        } else {
-            tryToProcessTokenTransfer(from, to, id, data)
+        val pendingLogs = when {
+            to == null -> tryToProcessCollectionCreate(from, nonce, id, data)
+            erc721Factory().contains(to) -> listOfNotNull(processTxToERC721Factory(from, id, data))
+            erc1155Factory().contains(to) -> listOfNotNull(processTxToERC1155Factory(from, id, data))
+            else -> tryToProcessTokenTransfer(from, to, id, data)
         }
         return pendingLogs.map { (event, address, topic) ->
             LogEvent(
@@ -70,8 +94,13 @@ class PendingTransactionService(
         }
     }
 
-    private suspend fun tryToProcessTokenTransfer(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog> {
-        val pendingLog =  tokenRepository
+    private suspend fun tryToProcessTokenTransfer(
+        from: Address,
+        to: Address,
+        id: Binary,
+        data: Binary
+    ): List<PendingLog> {
+        val pendingLog = tokenRepository
             .findById(to).awaitFirstOrNull()
             ?.let { processTxToToken(from, to, id, data) }
 
@@ -80,9 +109,77 @@ class PendingTransactionService(
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
         val input = id.add(data)
-        val pendingLog =  processTxToCreate(from, nonce, input)
+        val pendingLog = processTxToCreate(from, nonce, input)
 
         return listOfNotNull(pendingLog)
+    }
+
+    private suspend fun processTxToERC721Factory(from: Address, id: Binary, data: Binary): PendingLog? {
+        logger.info("Process tx to ERC721factory from:$from id:$id data:$data")
+
+        checkTx(id, data, ERC721RaribleFactoryC2.createTokenSignature())?.let {
+            val provider = ERC721RaribleFactoryC2(Address.apply(properties.factory.erc721Rarible), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create721RaribleProxyEvent.id()
+            )
+        }
+        checkTx(id, data, ERC721RaribleUserFactoryC2.createTokenSignature())?.let {
+            val provider = ERC721RaribleUserFactoryC2(Address.apply(properties.factory.erc721RaribleUser), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5(), it._6()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create721RaribleUserProxyEvent.id()
+            )
+        }
+        return null
+    }
+
+    private suspend fun processTxToERC1155Factory(from: Address, id: Binary, data: Binary): PendingLog? {
+        logger.info("Process tx to ERC1155factory from:$from id:$id data:$data")
+
+        checkTx(id, data, ERC1155RaribleFactoryC2.createTokenSignature())?.let {
+            val provider = ERC1155RaribleFactoryC2(Address.apply(properties.factory.erc1155Rarible), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create1155RaribleProxyEvent.id()
+            )
+        }
+        checkTx(id, data, ERC1155RaribleUserFactoryC2.createTokenSignature())?.let {
+            val provider = ERC1155RaribleUserFactoryC2(Address.apply(properties.factory.erc1155RaribleUser), sender)
+            val name = it._1()
+            val symbol = it._2()
+            val address = provider.getAddress(name, symbol, it._3(), it._4(), it._5(), it._6()).awaitSingle()
+            return PendingLog(
+                CreateCollection(
+                    id = address,
+                    owner = from,
+                    name = name,
+                    symbol = symbol
+                ), address, Create1155RaribleUserProxyEvent.id()
+            )
+        }
+        return null
     }
 
     private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): PendingLog? {
@@ -212,32 +309,38 @@ class PendingTransactionService(
         }
         MintableOwnableTokenV3.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateEvent.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateEvent.id()
+                )
             }
         }
         MintableOwnableTokenV4.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC721_v4Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC721_v4Event.id()
+                )
             }
         }
         RaribleUserToken.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC1155_v1Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC1155_v1Event.id()
+                )
             }
         }
         return null

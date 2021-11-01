@@ -2,3 +2,8 @@ api:
   chain-id: 4
 common:
   openseaLazyMintAddress: "0x88b48f654c30e99bc2e4a1559b4dcf1ad93fa656"
+  factory:
+    erc721Rarible: "0x31575E4426d195f6082aDdcD44e97cB4CEa1291C"
+    erc721RaribleUser: "0xe5bF86F2FC1e0C704A8b2C095aD92C59100C63Ac"
+    erc1155Rarible: "0x3Df4035EC62B97b5e3B5f160Cb84dCe4A9CB545D"
+    erc1155RaribleUser: "0x5a5773ac6b87f15dF215A78BEfdce478C33D8418"
