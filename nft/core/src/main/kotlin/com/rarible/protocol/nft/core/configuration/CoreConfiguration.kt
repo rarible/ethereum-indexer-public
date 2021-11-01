@@ -21,8 +21,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 class CoreConfiguration {
     @Bean
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService {
-        val nftItemHistoryTopics = (ItemType.TRANSFER.topic + ItemType.ROYALTY.topic + ItemType.CREATORS.topic
-                + ItemType.FACTORY.topic)
+        val nftItemHistoryTopics = (ItemType.TRANSFER.topic + ItemType.ROYALTY.topic + ItemType.CREATORS.topic)
             .associateWith { NftItemHistoryRepository.COLLECTION }
 
         val nftHistoryTopics = CollectionEventType.values().flatMap { it.topic }

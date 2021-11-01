@@ -6,10 +6,6 @@ import com.rarible.contracts.erc721.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.contracts.creators.CreatorsEvent
-import com.rarible.protocol.contracts.erc1155.rarible.factory.Create1155RaribleProxyEvent
-import com.rarible.protocol.contracts.erc1155.rarible.factory.user.Create1155RaribleUserProxyEvent
-import com.rarible.protocol.contracts.erc721.rarible.factory.Create721RaribleProxyEvent
-import com.rarible.protocol.contracts.erc721.rarible.factory.user.Create721RaribleUserProxyEvent
 import com.rarible.protocol.contracts.royalties.RoyaltiesSetEvent
 import com.rarible.protocol.contracts.royalties.SecondarySaleFeesEvent
 import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
@@ -34,12 +30,6 @@ enum class ItemType(val topic: Set<Word>) {
     )),
     ROYALTY(setOf(SecondarySaleFeesEvent.id(), RoyaltiesSetEvent.id())),
     CREATORS(setOf(CreatorsEvent.id())),
-    FACTORY(setOf(
-        Create721RaribleProxyEvent.id(),
-        Create721RaribleUserProxyEvent.id(),
-        Create1155RaribleProxyEvent.id(),
-        Create1155RaribleUserProxyEvent.id()
-    )),
     LAZY_MINT(setOf()),
     BURN_LAZY_MINT(setOf())
 }
