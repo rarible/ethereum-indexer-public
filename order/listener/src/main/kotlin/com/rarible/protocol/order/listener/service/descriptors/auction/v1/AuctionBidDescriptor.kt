@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -16,7 +17,7 @@ class AuctionBidDescriptor(
 
     override val topic: Word = BidPlacedEvent.id()
 
-    override fun convert(log: Log, date: Instant): List<BidPlaced> {
+    override fun convert(log: Log, transaction: Transaction, date: Instant): List<BidPlaced> {
         val event = BidPlacedEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
@@ -25,6 +26,7 @@ class AuctionBidDescriptor(
 
         return listOf(
             BidPlaced(
+                buyer = transaction.from(),
                 bid = bid,
                 endTime = endTime,
                 date = date,

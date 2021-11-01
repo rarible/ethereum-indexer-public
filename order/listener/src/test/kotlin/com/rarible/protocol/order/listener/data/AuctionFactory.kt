@@ -20,7 +20,7 @@ fun randomAuction(): Auction {
         minimalStep = EthUInt256.ZERO,
         minimalPrice = EthUInt256.ZERO,
         finished = false,
-        canceled = false,
+        cancelled = false,
         data = randomAuctionV1DataV1(),
         createdAt = Instant.EPOCH,
         lastUpdatedAy = Instant.EPOCH,

@@ -7,6 +7,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
@@ -22,7 +23,8 @@ import java.time.Instant
 
 @Component
 class AuctionReduceService(
-    private val auctionHistoryRepository: AuctionHistoryRepository
+    private val auctionHistoryRepository: AuctionHistoryRepository,
+    private val auctionRepository: AuctionRepository
 ) {
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -57,39 +59,30 @@ class AuctionReduceService(
             logger.info("Auction ${lastSeenUpdate?.auctionHash} has not been reduced, none OnChainAuction event ware found")
             return@mono EMPTY_ACTION
         }
-        result
+        updateAuctionWithState(result)
     }
 
     private fun Auction.withUpdate(auctionUpdate: AuctionUpdate): Auction {
         return when (val history = auctionUpdate.history) {
-            is OnChainAuction -> copy(
+            is OnChainAuction -> withBaseAuction(history).copy(
                 type = history.auctionType,
-                seller = history.seller,
-                buyer = history.buyer,
-                sell = history.sell,
-                buy = history.buy,
-                lastBid = history.lastBid,
-                endTime = history.endTime,
-                minimalStep = history.minimalStep,
-                minimalPrice = history.minimalPrice,
                 finished = false,
-                canceled = false,
-                data = history.data,
+                cancelled = false,
                 lastUpdatedAy = history.date,
                 createdAt = history.date,
                 auctionId = history.auctionId,
-                protocolFee = history.protocolFee,
                 contract = auctionUpdate.contract
             )
             is BidPlaced -> copy(
+                buyer = history.buyer,
                 lastBid = history.bid,
                 lastUpdatedAy = history.date
             )
             is AuctionCancelled -> copy(
-                canceled = true,
+                cancelled = true,
                 lastUpdatedAy = history.date
             )
-            is AuctionFinished -> copy(
+            is AuctionFinished -> withBaseAuction(history).copy(
                 finished = true,
                 lastUpdatedAy = history.date
             )
@@ -98,6 +91,34 @@ class AuctionReduceService(
 
     private fun Auction.withPending(auctionUpdate: AuctionUpdate): Auction {
         return copy(pending = pending + auctionUpdate.history)
+    }
+
+    private fun Auction.withBaseAuction(baseAuction: BaseAuction): Auction {
+        return copy(
+            seller = baseAuction.seller,
+            buyer = baseAuction.buyer,
+            sell =  baseAuction.sell,
+            buy = baseAuction.buy,
+            lastBid = baseAuction.lastBid,
+            endTime = baseAuction.endTime,
+            minimalStep = baseAuction.minimalStep,
+            minimalPrice = baseAuction.minimalPrice,
+            data = baseAuction.data,
+            protocolFee = baseAuction.protocolFee
+        )
+    }
+
+    private suspend fun updateAuctionWithState(auction: Auction): Auction {
+        val saved = auctionRepository.save(auction.withCalculatedSate())
+        logger.info(buildString {
+            append("Updated auction: ")
+            append("hash=${saved.hash}, ")
+            append("finished=${saved.finished}, ")
+            append("cancelled=${saved.cancelled}, ")
+            append("status=${saved.status}, ")
+            append("pendingSize=${saved.pending.size},")
+        })
+        return saved
     }
 
     companion object {
@@ -115,7 +136,7 @@ class AuctionReduceService(
             minimalStep = EthUInt256.ZERO,
             minimalPrice = EthUInt256.ZERO,
             finished = false,
-            canceled = false,
+            cancelled = false,
             data = RaribleAuctionV1DataV1(
                 originFees = emptyList(),
                 payouts = emptyList(),

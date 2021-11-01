@@ -16,24 +16,25 @@ import java.time.Instant
 data class Auction(
     val type: AuctionType,
     val status: AuctionStatus,
-    val seller: Address,
-    val buyer: Address?,
-    val sell: Asset,
-    val buy: AssetType,
-    val lastBid: Bid?,
-    val endTime: Instant?,
-    val minimalStep: EthUInt256,
-    val minimalPrice: EthUInt256,
+    override val seller: Address,
+    override val buyer: Address?,
+    override val sell: Asset,
+    override val buy: AssetType,
+    override val lastBid: Bid?,
+    override val endTime: Instant?,
+    override val minimalStep: EthUInt256,
+    override val minimalPrice: EthUInt256,
+    override val data: AuctionData,
+    override val protocolFee: EthUInt256,
     val finished: Boolean,
-    val canceled: Boolean,
-    val data: AuctionData,
+    val cancelled: Boolean,
     val createdAt: Instant,
     val lastUpdatedAy: Instant,
     val auctionId: EthUInt256,
-    val protocolFee: EthUInt256,
     val contract: Address,
     val pending: List<AuctionHistory>
-) {
+) : BaseAuction {
+
     @Transient
     private val _id: Word = hashKey(this)
 
@@ -51,6 +52,14 @@ data class Auction(
         data.getDataVersion(),
         data.toEthereum().bytes()
     )
+
+    fun withCalculatedSate(): Auction {
+        return when {
+            cancelled -> copy(status = AuctionStatus.CANCELLED)
+            finished -> copy(status = AuctionStatus.FINISHED)
+            else -> copy(status = AuctionStatus.ACTIVE)
+        }
+    }
 
     companion object {
         fun hashKey(auction: Auction): Word {

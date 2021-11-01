@@ -38,9 +38,10 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
                 val events = auctionHistoryRepository.findByType(AuctionHistoryType.BID_PLACED).collectList().awaitFirst()
                 Assertions.assertThat(events).hasSize(1)
 
-                val cancelEvent = events.map { event -> event.data as BidPlaced }.single()
-                Assertions.assertThat(cancelEvent.auctionId).isEqualTo(chainAuction.auctionId)
-                Assertions.assertThat(cancelEvent.bid).isEqualTo(bid)
+                val bidEvent = events.map { event -> event.data as BidPlaced }.single()
+                Assertions.assertThat(bidEvent.auctionId).isEqualTo(chainAuction.auctionId)
+                Assertions.assertThat(bidEvent.bid).isEqualTo(bid)
+                Assertions.assertThat(bidEvent.buyer).isEqualTo(userSender2.from())
             }
         }
     }
