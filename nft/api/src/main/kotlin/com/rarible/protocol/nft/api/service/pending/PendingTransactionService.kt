@@ -55,11 +55,15 @@ class PendingTransactionService(
     logEventService: LogEventService
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
 
-    private fun erc721Factory() = setOf(Address.apply(properties.factory.erc721Rarible),
-        Address.apply(properties.factory.erc721RaribleUser))
+    private fun erc721Factory() = setOf(
+        Address.apply(properties.factory.erc721Rarible),
+        Address.apply(properties.factory.erc721RaribleUser)
+    )
 
-    private fun erc1155Factory() = setOf(Address.apply(properties.factory.erc1155Rarible),
-        Address.apply(properties.factory.erc1155RaribleUser))
+    private fun erc1155Factory() = setOf(
+        Address.apply(properties.factory.erc1155Rarible),
+        Address.apply(properties.factory.erc1155RaribleUser)
+    )
 
     override suspend fun process(
         hash: Word,
@@ -68,7 +72,7 @@ class PendingTransactionService(
         to: Address?,
         id: Binary,
         data: Binary
-    ) : List<LogEvent> {
+    ): List<LogEvent> {
         logger.info("processing tx $hash to: $to data: $data")
 
         val pendingLogs = when {
@@ -90,8 +94,13 @@ class PendingTransactionService(
         }
     }
 
-    private suspend fun tryToProcessTokenTransfer(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog> {
-        val pendingLog =  tokenRepository
+    private suspend fun tryToProcessTokenTransfer(
+        from: Address,
+        to: Address,
+        id: Binary,
+        data: Binary
+    ): List<PendingLog> {
+        val pendingLog = tokenRepository
             .findById(to).awaitFirstOrNull()
             ?.let { processTxToToken(from, to, id, data) }
 
@@ -300,32 +309,38 @@ class PendingTransactionService(
         }
         MintableOwnableTokenV3.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateEvent.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateEvent.id()
+                )
             }
         }
         MintableOwnableTokenV4.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC721_v4Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC721_v4Event.id()
+                )
             }
         }
         RaribleUserToken.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC1155_v1Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC1155_v1Event.id()
+                )
             }
         }
         return null
