@@ -1,7 +1,17 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.BurnLazyNftFormDto
+import com.rarible.protocol.dto.LazyNftDto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemFilterAllDto
+import com.rarible.protocol.dto.NftItemFilterByCollectionDto
+import com.rarible.protocol.dto.NftItemFilterByCreatorDto
+import com.rarible.protocol.dto.NftItemFilterByOwnerDto
+import com.rarible.protocol.dto.NftItemFilterDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftItemRoyaltyListDto
+import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMIT
 import com.rarible.protocol.nft.api.service.item.ItemService
@@ -53,7 +63,24 @@ class ItemController(
         return ResponseEntity.noContent().build()
     }
 
-    override suspend fun deleteLazyMintNftAsset(itemId: String, burnLazyNftFormDto: BurnLazyNftFormDto): ResponseEntity<Unit> {
+    override suspend fun deleteLazyMintNftAsset(
+        itemId: String,
+        burnLazyNftFormDto: BurnLazyNftFormDto
+    ): ResponseEntity<Unit> {
+        return deleteLazyMintNftAssetInternal(itemId, burnLazyNftFormDto)
+    }
+
+    override suspend fun deleteLazyMintNftAssetDeprecated(
+        itemId: String,
+        burnLazyNftFormDto: BurnLazyNftFormDto
+    ): ResponseEntity<Unit> {
+        return deleteLazyMintNftAssetInternal(itemId, burnLazyNftFormDto)
+    }
+
+    private suspend fun deleteLazyMintNftAssetInternal(
+        itemId: String,
+        burnLazyNftFormDto: BurnLazyNftFormDto
+    ): ResponseEntity<Unit> {
         val item: ItemId = conversionService.convert(itemId)
         burnLazyNftValidator.validate(item, BURN_MSG.format(item.tokenId.value), burnLazyNftFormDto)
         mintService.burnLazyMint(item)
