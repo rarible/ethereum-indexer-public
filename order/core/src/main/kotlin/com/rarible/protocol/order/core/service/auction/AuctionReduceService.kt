@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import scalether.util.Hash
 import java.time.Instant
 
 @Component
@@ -63,6 +64,8 @@ class AuctionReduceService(
     }
 
     private fun Auction.withUpdate(auctionUpdate: AuctionUpdate): Auction {
+        val lastEventId = accumulateEventId(lastEventId, auctionUpdate.eventId)
+
         return when (val history = auctionUpdate.history) {
             is OnChainAuction -> withBaseAuction(history).copy(
                 type = history.auctionType,
@@ -71,12 +74,14 @@ class AuctionReduceService(
                 lastUpdatedAy = history.date,
                 createdAt = history.date,
                 auctionId = history.auctionId,
-                contract = auctionUpdate.contract
+                contract = auctionUpdate.contract,
+                lastEventId = lastEventId
             )
             is BidPlaced -> copy(
                 buyer = history.buyer,
                 lastBid = history.bid,
-                lastUpdatedAy = history.date
+                lastUpdatedAy = history.date,
+                lastEventId = lastEventId
             )
             is AuctionCancelled -> copy(
                 cancelled = true,
@@ -84,7 +89,8 @@ class AuctionReduceService(
             )
             is AuctionFinished -> withBaseAuction(history).copy(
                 finished = true,
-                lastUpdatedAy = history.date
+                lastUpdatedAy = history.date,
+                lastEventId = lastEventId
             )
         }
     }
@@ -121,6 +127,10 @@ class AuctionReduceService(
         return saved
     }
 
+    private fun accumulateEventId(lastEventId: String?, eventId: String): String {
+        return Hash.sha3((lastEventId ?: "") + eventId)
+    }
+
     companion object {
         private val EMPTY_AUCTION_HASH = 0.toBigInteger().toWord()
 
@@ -146,6 +156,7 @@ class AuctionReduceService(
             ),
             createdAt = Instant.EPOCH,
             lastUpdatedAy = Instant.EPOCH,
+            lastEventId = null,
             auctionId = EthUInt256.ZERO,
             protocolFee = EthUInt256.ZERO,
             contract = Address.ZERO(),
@@ -157,6 +168,7 @@ class AuctionReduceService(
             val logStatus get() = logEvent.status
             val history get() = logEvent.data.toAuctionHistory()
             val auctionHash get() = history.hash
+            val eventId: String get() = logEvent.id.toHexString()
 
             private fun EventData.toAuctionHistory(): AuctionHistory {
                 return requireNotNull(this as? AuctionHistory) { "Unexpected auction history type ${this::class}" }

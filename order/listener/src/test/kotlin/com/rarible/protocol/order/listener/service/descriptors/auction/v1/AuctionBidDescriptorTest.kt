@@ -42,6 +42,11 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
                 Assertions.assertThat(bidEvent.auctionId).isEqualTo(chainAuction.auctionId)
                 Assertions.assertThat(bidEvent.bid).isEqualTo(bid)
                 Assertions.assertThat(bidEvent.buyer).isEqualTo(userSender2.from())
+
+                val auction = auctionRepository.findById(chainAuction.hash)
+                Assertions.assertThat(auction).isNotNull
+                Assertions.assertThat(auction?.finished).isFalse()
+                Assertions.assertThat(auction?.cancelled).isFalse()
             }
         }
     }

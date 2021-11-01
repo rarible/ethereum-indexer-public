@@ -21,6 +21,11 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
             assertThat(chainAuction.buy).isEqualTo(params.buy)
             assertThat(chainAuction.lastBid).isNull()
             assertThat(chainAuction.data).isEqualTo(params.data)
+
+            val auction = auctionRepository.findById(chainAuction.hash)
+            assertThat(auction).isNotNull
+            assertThat(auction?.finished).isFalse()
+            assertThat(auction?.cancelled).isFalse()
         }
     }
 }

@@ -24,6 +24,7 @@ fun randomAuction(): Auction {
         data = randomAuctionV1DataV1(),
         createdAt = Instant.EPOCH,
         lastUpdatedAy = Instant.EPOCH,
+        lastEventId = null,
         auctionId = EthUInt256.ZERO,
         protocolFee = EthUInt256.ZERO,
         contract = Address.ZERO(),

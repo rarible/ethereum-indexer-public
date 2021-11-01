@@ -24,6 +24,11 @@ internal class AuctionCancelDescriptorTest : AbstractAuctionDescriptorTest() {
 
                 val cancelEvent = events.map { event -> event.data as AuctionCancelled }.single()
                 Assertions.assertThat(cancelEvent.auctionId).isEqualTo(chainAuction.auctionId)
+
+                val auction = auctionRepository.findById(chainAuction.hash)
+                Assertions.assertThat(auction).isNotNull
+                Assertions.assertThat(auction?.finished).isTrue()
+                Assertions.assertThat(auction?.cancelled).isTrue()
             }
         }
     }

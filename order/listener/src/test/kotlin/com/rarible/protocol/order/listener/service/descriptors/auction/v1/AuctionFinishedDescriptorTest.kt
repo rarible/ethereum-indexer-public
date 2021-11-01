@@ -7,7 +7,7 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @FlowPreview
@@ -20,11 +20,15 @@ internal class AuctionFinishedDescriptorTest : AbstractAuctionDescriptorTest() {
 
             Wait.waitAssert {
                 val events = auctionHistoryRepository.findByType(AuctionHistoryType.AUCTION_FINISHED).collectList().awaitFirst()
-                Assertions.assertThat(events).hasSize(1)
+                assertThat(events).hasSize(1)
 
                 val finishEvent = events.map { event -> event.data as AuctionFinished }.single()
-                Assertions.assertThat(finishEvent.auctionId).isEqualTo(chainAuction.auctionId)
-                Assertions.assertThat(finishEvent.hash).isEqualTo(chainAuction.hash)
+                assertThat(finishEvent.auctionId).isEqualTo(chainAuction.auctionId)
+                assertThat(finishEvent.hash).isEqualTo(chainAuction.hash)
+
+                val auction = auctionRepository.findById(chainAuction.hash)
+                assertThat(auction).isNotNull
+                assertThat(auction?.finished).isTrue()
             }
         }
     }

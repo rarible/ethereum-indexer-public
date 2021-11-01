@@ -30,6 +30,7 @@ data class Auction(
     val cancelled: Boolean,
     val createdAt: Instant,
     val lastUpdatedAy: Instant,
+    val lastEventId: String?,
     val auctionId: EthUInt256,
     val contract: Address,
     val pending: List<AuctionHistory>
