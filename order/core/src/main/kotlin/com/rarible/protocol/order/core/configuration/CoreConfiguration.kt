@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.configuration
 
+import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
+import com.rarible.core.reduce.service.ReduceService
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
@@ -12,8 +14,12 @@ import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.AuctionType
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.Package
+import com.rarible.protocol.order.core.service.auction.AuctionReduceService
+import com.rarible.protocol.order.core.service.auction.AuctionReducer
 import com.rarible.protocol.order.core.trace.TracePackage
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
@@ -58,4 +64,21 @@ class CoreConfiguration {
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION },
         mongo
     )
+
+    @Bean
+    fun auctionReduceService(
+        balanceReducer: AuctionReducer,
+        eventRepository: AuctionHistoryRepository,
+        snapshotRepository: AuctionSnapshotRepository,
+        auctionRepository: AuctionRepository,
+        properties: OrderIndexerProperties
+    ): AuctionReduceService {
+        return ReduceService(
+            reducer = balanceReducer,
+            eventRepository = eventRepository,
+            snapshotRepository = snapshotRepository,
+            dataRepository = auctionRepository,
+            snapshotStrategy = BlockchainSnapshotStrategy(properties.blockCountBeforeSnapshot)
+        )
+    }
 }

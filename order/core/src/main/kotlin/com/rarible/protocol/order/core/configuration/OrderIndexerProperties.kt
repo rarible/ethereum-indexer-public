@@ -28,7 +28,8 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val publish: PublishProperties = PublishProperties(),
     @NestedConfigurationProperty
-    val featureFlags: FeatureFlags = FeatureFlags()
+    val featureFlags: FeatureFlags = FeatureFlags(),
+    val blockCountBeforeSnapshot: Int = 12
 ) {
     data class ExchangeContractAddresses(
         val v1: Address,
