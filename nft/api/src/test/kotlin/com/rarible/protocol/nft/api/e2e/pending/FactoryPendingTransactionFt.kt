@@ -1,18 +1,18 @@
 package com.rarible.protocol.nft.api.e2e.pending
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
-import com.rarible.protocol.contracts.erc1155.rarible.factory.Create1155RaribleProxyEvent
 import com.rarible.protocol.contracts.erc1155.rarible.factory.ERC1155RaribleFactoryC2
 import com.rarible.protocol.contracts.erc1155.rarible.factory.beacon.ERC1155RaribleBeacon
-import com.rarible.protocol.contracts.erc1155.rarible.factory.user.Create1155RaribleUserProxyEvent
 import com.rarible.protocol.contracts.erc1155.rarible.factory.user.ERC1155RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
-import com.rarible.protocol.contracts.erc721.rarible.factory.Create721RaribleProxyEvent
 import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
 import com.rarible.protocol.contracts.erc721.rarible.factory.beacon.ERC721RaribleBeaconMinimal
-import com.rarible.protocol.contracts.erc721.rarible.factory.user.Create721RaribleUserProxyEvent
 import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUser
 import com.rarible.protocol.dto.CreateTransactionRequestDto
@@ -83,7 +83,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         val receipt = factory.createToken("NAME", "SYMBOL", "uri", "uri", BigInteger.ONE).execute().verifySuccess()
         val contract = factory.getAddress("NAME", "SYMBOL", "uri", "uri", BigInteger.ONE).awaitSingle()
 
-        processTransaction(receipt, contract, Create721RaribleProxyEvent.id())
+        processTransaction(receipt, contract, CreateERC721RaribleEvent.id())
     }
 
     @Test
@@ -101,7 +101,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         val receipt = factory.createToken("NAME", "SYMBOL", "uri", "uri", emptyArray(), BigInteger.ONE).execute().verifySuccess()
         val contract = factory.getAddress("NAME", "SYMBOL", "uri", "uri", emptyArray(), BigInteger.ONE).awaitSingle()
 
-        processTransaction(receipt, contract, Create721RaribleUserProxyEvent.id())
+        processTransaction(receipt, contract, CreateERC721RaribleUserEvent.id())
     }
 
     @Test
@@ -122,7 +122,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         val receipt = factory.createToken("NAME", "SYMBOL", "uri", "uri", BigInteger.ONE).execute().verifySuccess()
         val contract = factory.getAddress("NAME", "SYMBOL", "uri", "uri", BigInteger.ONE).awaitSingle()
 
-        processTransaction(receipt, contract, Create1155RaribleProxyEvent.id())
+        processTransaction(receipt, contract, CreateERC1155RaribleEvent.id())
     }
 
     @Test
@@ -141,7 +141,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
         val receipt = factory.createToken("NAME", "SYMBOL", "uri", "uri", emptyArray(), BigInteger.ONE).execute().verifySuccess()
         val contract = factory.getAddress("NAME", "SYMBOL", "uri", "uri", emptyArray(), BigInteger.ONE).awaitSingle()
 
-        processTransaction(receipt, contract, Create1155RaribleUserProxyEvent.id())
+        processTransaction(receipt, contract, CreateERC1155RaribleUserEvent.id())
     }
 
     private suspend fun processTransaction(receipt: TransactionReceipt, contract: Address, id: Word) {

@@ -12,6 +12,10 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
 import com.rarible.protocol.contracts.erc1155.rarible.factory.Create1155RaribleProxyEvent
 import com.rarible.protocol.contracts.erc1155.rarible.factory.ERC1155RaribleFactoryC2
 import com.rarible.protocol.contracts.erc1155.rarible.factory.user.Create1155RaribleUserProxyEvent
@@ -128,7 +132,7 @@ class PendingTransactionService(
                     owner = from,
                     name = name,
                     symbol = symbol
-                ), address, Create721RaribleProxyEvent.id()
+                ), address, CreateERC721RaribleEvent.id()
             )
         }
         checkTx(id, data, ERC721RaribleUserFactoryC2.createTokenSignature())?.let {
@@ -142,7 +146,7 @@ class PendingTransactionService(
                     owner = from,
                     name = name,
                     symbol = symbol
-                ), address, Create721RaribleUserProxyEvent.id()
+                ), address, CreateERC721RaribleUserEvent.id()
             )
         }
         return null
@@ -162,7 +166,7 @@ class PendingTransactionService(
                     owner = from,
                     name = name,
                     symbol = symbol
-                ), address, Create1155RaribleProxyEvent.id()
+                ), address, CreateERC1155RaribleEvent.id()
             )
         }
         checkTx(id, data, ERC1155RaribleUserFactoryC2.createTokenSignature())?.let {
@@ -176,7 +180,7 @@ class PendingTransactionService(
                     owner = from,
                     name = name,
                     symbol = symbol
-                ), address, Create1155RaribleUserProxyEvent.id()
+                ), address, CreateERC1155RaribleUserEvent.id()
             )
         }
         return null
