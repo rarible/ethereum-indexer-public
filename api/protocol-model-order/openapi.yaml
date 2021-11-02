@@ -1043,6 +1043,18 @@ components:
       oneOf:
         - "$ref": "#/components/schemas/RaribleAuctionV1DataV1"
 
+    AuctionsPagination:
+      type: object
+      required:
+        - auctions
+      properties:
+        auctions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Auction"
+        continuation:
+          type: string
+
     RaribleAuctionV1DataV1:
       type: object
       required:
