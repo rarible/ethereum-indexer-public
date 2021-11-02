@@ -84,9 +84,7 @@ object OrderFilterCriteria {
         sell().and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
 
     private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?, currency: Address?) = run {
-        var c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
-            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
-        // TODO: add here
+        var c = tokenCondition(token, tokenId)
 
         maker?.let { c = c.and(Order::maker.name).`is`(it) }
         currency?.let {
@@ -100,14 +98,14 @@ object OrderFilterCriteria {
         c
     }
 
-    private fun tokenCondition(): Criteria {
+    private fun tokenCondition(token: Address, tokenId: EthUInt256): Criteria {
         val forToken = listOfNotNull(
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            OrderVersionFilter.takeNftTokenIdKey isEqualTo tokenId
+            Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId
         )
         val forCollection = listOfNotNull(
-            OrderVersionFilter.takeNftContractKey isEqualTo contract,
-            OrderVersionFilter.takeNftTokenIdKey exists false
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Order::make / Asset::type / NftAssetType::tokenId exists false
         )
         return Criteria().orOperator(
             Criteria().andOperator(*forToken.toTypedArray()),
