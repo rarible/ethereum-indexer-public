@@ -51,7 +51,7 @@ class PendingTransactionService(
         to: Address?,
         id: Binary,
         data: Binary
-    ) : List<LogEvent> {
+    ): List<LogEvent> {
         logger.info("processing tx $hash to: $to data: $data")
 
         val pendingLogs = if (to == null) {
@@ -72,129 +72,151 @@ class PendingTransactionService(
         }
     }
 
-    private suspend fun tryToProcessTokenTransfer(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog> {
-        val pendingLog =  tokenRepository
+    private suspend fun tryToProcessTokenTransfer(
+        from: Address,
+        to: Address,
+        id: Binary,
+        data: Binary
+    ): List<PendingLog> {
+        val pendingLog = tokenRepository
             .findById(to).awaitFirstOrNull()
             ?.let { processTxToToken(from, to, id, data) }
 
-        return listOfNotNull(pendingLog)
+        return pendingLog ?: listOf()
     }
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
         val input = id.add(data)
-        val pendingLog =  processTxToCreate(from, nonce, input)
+        val pendingLog = processTxToCreate(from, nonce, input)
 
         return listOfNotNull(pendingLog)
     }
 
-    private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): PendingLog? {
+    private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._2()}", it._3()).awaitFirstOrNull()
-            return PendingLog(
-                ItemTransfer(
-                    owner = it._1(),
-                    token = to,
-                    tokenId = EthUInt256(it._2()),
-                    date = nowMillis(),
-                    from = it._1(),
-                    value = EthUInt256.ONE
-                ), to, TransferEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = it._1(),
+                        token = to,
+                        tokenId = EthUInt256(it._2()),
+                        date = nowMillis(),
+                        from = it._1(),
+                        value = EthUInt256.ONE
+                    ), to, TransferEvent.id()
+                )
             )
         }
         checkTx(id, data, IERC721.transferFromSignature())?.let {
-            return PendingLog(
-                ItemTransfer(
-                    owner = it._2(),
-                    token = to,
-                    tokenId = EthUInt256(it._3()),
-                    date = nowMillis(),
-                    from = it._1(),
-                    value = EthUInt256.ONE
-                ), to, TransferEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = it._2(),
+                        token = to,
+                        tokenId = EthUInt256(it._3()),
+                        date = nowMillis(),
+                        from = it._1(),
+                        value = EthUInt256.ONE
+                    ), to, TransferEvent.id()
+                )
             )
         }
         checkTx(id, data, Signatures.erc721V3mintSignature())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._5()).awaitFirstOrNull()
-            return PendingLog(
-                ItemTransfer(
-                    owner = from,
-                    token = to,
-                    tokenId = EthUInt256(it._1()),
-                    date = nowMillis(),
-                    from = Address.ZERO(),
-                    value = EthUInt256.ONE
-                ), to, TransferEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = from,
+                        token = to,
+                        tokenId = EthUInt256(it._1()),
+                        date = nowMillis(),
+                        from = Address.ZERO(),
+                        value = EthUInt256.ONE
+                    ), to, TransferEvent.id()
+                )
             )
         }
         checkTx(id, data, Signatures.erc721V4mintSignature())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._6()).awaitFirstOrNull()
-            return PendingLog(
-                ItemTransfer(
-                    owner = from,
-                    token = to,
-                    tokenId = EthUInt256(it._1()),
-                    date = nowMillis(),
-                    from = Address.ZERO(),
-                    value = EthUInt256.ONE
-                ), to, TransferEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = from,
+                        token = to,
+                        tokenId = EthUInt256(it._1()),
+                        date = nowMillis(),
+                        from = Address.ZERO(),
+                        value = EthUInt256.ONE
+                    ), to, TransferEvent.id()
+                )
             )
         }
         checkTx(id, data, IERC721.burnSignature())?.let {
-            return PendingLog(
-                ItemTransfer(
-                    owner = Address.ZERO(),
-                    token = to,
-                    tokenId = EthUInt256(it),
-                    date = nowMillis(),
-                    from = from,
-                    value = EthUInt256.ONE
-                ), to, TransferEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = Address.ZERO(),
+                        token = to,
+                        tokenId = EthUInt256(it),
+                        date = nowMillis(),
+                        from = from,
+                        value = EthUInt256.ONE
+                    ), to, TransferEvent.id()
+                )
             )
         }
         checkTx(id, data, IERC1155.safeTransferFromSignature())?.let {
-            return PendingLog(
-                ItemTransfer(
-                    owner = it._2(),
-                    token = to,
-                    tokenId = EthUInt256(it._3()),
-                    date = nowMillis(),
-                    from = it._1(),
-                    value = EthUInt256(it._4())
-                ), to, TransferSingleEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = it._2(),
+                        token = to,
+                        tokenId = EthUInt256(it._3()),
+                        date = nowMillis(),
+                        from = it._1(),
+                        value = EthUInt256(it._4())
+                    ), to, TransferSingleEvent.id()
+                )
             )
         }
         checkTx(id, data, Signatures.erc1155MintSignatureV1())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._7()).awaitFirstOrNull()
-            return PendingLog(
-                ItemTransfer(
-                    owner = from,
-                    token = to,
-                    tokenId = EthUInt256(it._1()),
-                    date = nowMillis(),
-                    from = Address.ZERO(),
-                    value = EthUInt256(it._6())
-                ), to, TransferSingleEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = from,
+                        token = to,
+                        tokenId = EthUInt256(it._1()),
+                        date = nowMillis(),
+                        from = Address.ZERO(),
+                        value = EthUInt256(it._6())
+                    ), to, TransferSingleEvent.id()
+                )
             )
         }
         checkTx(id, data, IERC1155.burnSignature())?.let {
-            return PendingLog(
-                ItemTransfer(
-                    owner = Address.ZERO(),
-                    token = to,
-                    tokenId = EthUInt256(it._2()),
-                    date = nowMillis(),
-                    from = from,
-                    value = EthUInt256(it._3())
-                ), to, TransferSingleEvent.id()
+            return listOf(
+                PendingLog(
+                    ItemTransfer(
+                        owner = Address.ZERO(),
+                        token = to,
+                        tokenId = EthUInt256(it._2()),
+                        date = nowMillis(),
+                        from = from,
+                        value = EthUInt256(it._3())
+                    ), to, TransferSingleEvent.id()
+                )
             )
         }
         checkTx(id, data, ERC721Rarible.mintAndTransferSignature())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
-            return PendingLog(
+            val creator = it._1()._3()[0]._1()
+            val mint = PendingLog(
                 ItemTransfer(
-                    owner = it._1()._3()[0]._1(), // the first creator
+                    owner = creator,
                     token = to,
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
@@ -202,12 +224,29 @@ class PendingTransactionService(
                     value = EthUInt256.ONE
                 ), to, TransferEvent.id()
             )
+            if (creator == it._2()) {
+                return listOf(mint)
+            } else {
+                return listOf(mint,
+                    PendingLog(
+                        ItemTransfer(
+                            owner = it._2(),
+                            token = to,
+                            tokenId = EthUInt256(it._1()._1()),
+                            date = nowMillis(),
+                            from = creator,
+                            value = EthUInt256.ONE
+                        ), to, TransferEvent.id()
+                    )
+                )
+            }
         }
         checkTx(id, data, ERC1155Rarible.mintAndTransferSignature())?.let {
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
-            return PendingLog(
+            val creator = it._1()._4()[0]._1()
+            val mint = PendingLog(
                 ItemTransfer(
-                    owner = it._1()._4()[0]._1(),  // the first creator
+                    owner = creator,
                     token = to,
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
@@ -215,6 +254,22 @@ class PendingTransactionService(
                     value = EthUInt256.of(it._3())
                 ), to, TransferSingleEvent.id()
             )
+            if (creator == it._2()) {
+                return listOf(mint)
+            } else {
+                return listOf(mint,
+                    PendingLog(
+                        ItemTransfer(
+                            owner = it._2(),
+                            token = to,
+                            tokenId = EthUInt256(it._1()._1()),
+                            date = nowMillis(),
+                            from = creator,
+                            value = EthUInt256.of(it._3())
+                        ), to, TransferSingleEvent.id()
+                    )
+                )
+            }
         }
         return null
     }
@@ -240,32 +295,38 @@ class PendingTransactionService(
         }
         MintableOwnableTokenV3.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateEvent.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateEvent.id()
+                )
             }
         }
         MintableOwnableTokenV4.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC721_v4Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC721_v4Event.id()
+                )
             }
         }
         RaribleUserToken.checkConstructorTx(input).let {
             if (it.isDefined) {
-                return PendingLog(CreateCollection(
-                    id = address,
-                    owner = from,
-                    name = it.get()._1(),
-                    symbol = it.get()._2()
-                ), address, CreateERC1155_v1Event.id())
+                return PendingLog(
+                    CreateCollection(
+                        id = address,
+                        owner = from,
+                        name = it.get()._1(),
+                        symbol = it.get()._2()
+                    ), address, CreateERC1155_v1Event.id()
+                )
             }
         }
         return null
