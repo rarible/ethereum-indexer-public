@@ -1,15 +1,14 @@
 package com.rarible.protocol.nft.api.service.mint
 
-import com.rarible.core.common.convert
-import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.ValidationResult
+import com.rarible.ethereum.sign.service.InvalidSignatureException
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.exceptions.ValidationApiException
+import com.rarible.protocol.nft.core.converters.model.LazyNftDtoToDaonomicLazyNftConverter
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import scalether.abi.Uint256Type
 import java.util.*
@@ -18,7 +17,6 @@ import com.rarible.ethereum.nft.validation.LazyNftValidator as DaonomicLazyNftVa
 @Component
 class LazyNftValidator(
     private val delegate: DaonomicLazyNftValidator,
-    private val conversionService: ConversionService,
     private val tokenRepository: TokenRepository
 ) {
     suspend fun validate(lazyNftDto: LazyNftDto) {
@@ -39,9 +37,15 @@ class LazyNftValidator(
             throw ValidationApiException("This collection (${token.id}) doesn't support lazy mint")
         }
 
-        val lazyNft = conversionService.convert<LazyNft>(lazyNftDto)
+        val lazyNft = LazyNftDtoToDaonomicLazyNftConverter.convert(lazyNftDto)
 
-        val errorMessage = when (val result = delegate.validate(lazyNft)) {
+        val result = try {
+            delegate.validate(lazyNft)
+        } catch (e: InvalidSignatureException) {
+            throw ValidationApiException(e.message ?: "Invalid structure of signature")
+        }
+
+        val errorMessage = when (result) {
             ValidationResult.Valid -> return
             ValidationResult.InvalidCreatorAndSignatureSize -> "Invalid creator and signature size"
             ValidationResult.NotUniqCreators -> "All creators must be uniq"
