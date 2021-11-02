@@ -12,8 +12,12 @@ import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.misc.SignUtils
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.toEth
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -21,6 +25,8 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesCacheDescriptor
+import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -30,6 +36,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -45,6 +52,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import scalether.domain.response.TransactionReceipt
+import scalether.java.Lists
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
@@ -150,6 +158,34 @@ class PendingTransactionFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `should mintAndTransfer when minter == creator`() = runBlocking<Unit> {
+        val tx = CreateTransactionRequestDto(
+            hash = Word.apply("0xf6bdeff6eb8aaddece60810dd6b71ad4c80ed0a735d49b305ee85a5351bf7fca"),
+            from = Address.apply("0x19d2a55f2bd362a9e09f674b722782329f63f3fb"),
+            nonce = 81,
+            to = Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            input = Binary.apply("0x22a775b6000000000000000000000000000000000000000000000000000000000000004000000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb19d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")
+        )
+        tokenRepository.save(Token(Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
+        val eventLogs = nftTransactionApiClient.createNftPendingTransaction(tx).collectList().awaitFirst()
+        assertEquals(1, eventLogs.size)
+    }
+
+    @Test
+    fun `should mintAndTransfer when minter != creator`() = runBlocking<Unit> {
+        val tx = CreateTransactionRequestDto(
+            hash = Word.apply("0xf6bdeff6eb8aaddece60810dd6b71ad4c80ed0a735d49b305ee85a5351bf7fca"),
+            from = Address.apply("0xeb19d2a55f2bd362a9e09f674b722782329f63f3"),
+            nonce = 81,
+            to = Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            input = Binary.apply("0x22a775b60000000000000000000000000000000000000000000000000000000000000040000000000000000000000000eb19d2a55f2bd362a9e09f674b722782329f63f3eb19d2a55f2bd362a9e09f674b722782329f63f300000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")
+        )
+        tokenRepository.save(Token(Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
+        val eventLogs = nftTransactionApiClient.createNftPendingTransaction(tx).collectList().awaitFirst()
+        assertEquals(2, eventLogs.size)
+    }
+
+    @Test
     fun createCollectionTransaction() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val signer = Address.apply(RandomUtils.nextBytes(20))
@@ -198,7 +234,15 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
         val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success())
+        Assertions.assertTrue(receipt.success()) {
+            val result = ethereum.executeRaw(
+                Request(1, "trace_replayTransaction", Lists.toScala(
+                    receipt.transactionHash().toString(),
+                    Lists.toScala("trace", "stateDiff")
+                ), "2.0")
+            ).block()!!
+            "traces: ${result.result().get()}"
+        }
         return receipt
     }
 
