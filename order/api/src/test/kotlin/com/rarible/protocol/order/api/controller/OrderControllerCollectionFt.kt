@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.OrderCurrenciesDto
+import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createEthAsset
 import com.rarible.protocol.order.api.data.createOrderVersion
@@ -63,14 +64,41 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `test collection`() = runBlocking<Unit> {
+    fun `should return bid order`() = runBlocking<Unit> {
         val maker = randomAddress()
         val make = Asset(EthAssetType, EthUInt256.ONE)
         val take = Asset(CollectionAssetType(token), EthUInt256.ONE)
         val orderV1 = createOrderVersion(make, take).copy(maker = maker)
         saveOrderVersions(orderV1)
 
-        val dto = controller.getOrderBidsByItem(token.hex(), tokenId.toString(), null, null, null, null, null)
+        val dto = controller.getOrderBidsByItemAndByStatus(
+            token.hex(),
+            tokenId.toString(),
+            listOf(OrderStatusDto.ACTIVE),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+        assertEquals(1, dto.body.orders.size)
+    }
+
+    @Test
+    fun `should return sell order`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val make = Asset(CollectionAssetType(token), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256.ONE)
+        val orderV1 = createOrderVersion(make, take).copy(maker = maker)
+        saveOrderVersions(orderV1)
+
+        val dto = controller.getSellOrdersByItemAndByStatus(
+            token.hex(), tokenId.toString(), null, null, null, null, null, listOf(OrderStatusDto.ACTIVE),
+            null
+        )
         assertEquals(1, dto.body.orders.size)
     }
 

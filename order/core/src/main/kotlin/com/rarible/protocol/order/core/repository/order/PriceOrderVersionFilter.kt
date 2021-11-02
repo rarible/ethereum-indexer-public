@@ -33,8 +33,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
 
         override fun getCriteria(): Criteria {
             val criteria = listOfNotNull(
-                takeNftContractKey isEqualTo contract,
-                takeNftTokenIdKey isEqualTo tokenId,
+                tokenCondition(),
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 platform?.let { OrderVersion::platform isEqualTo it },
@@ -49,6 +48,21 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
                 endDate?.let { OrderVersion::createdAt lte it }
             )
             return Criteria().andOperator(*criteria.toTypedArray()) scrollTo continuation
+        }
+
+        private fun tokenCondition(): Criteria {
+            val forToken = listOfNotNull(
+                takeNftContractKey isEqualTo contract,
+                takeNftTokenIdKey isEqualTo tokenId
+            )
+            val forCollection = listOfNotNull(
+                takeNftContractKey isEqualTo contract,
+                takeNftTokenIdKey exists false
+            )
+            return Criteria().orOperator(
+                Criteria().andOperator(*forToken.toTypedArray()),
+                Criteria().andOperator(*forCollection.toTypedArray())
+            )
         }
 
         override fun withContinuation(continuation: Continuation.Price?): BidByItem {

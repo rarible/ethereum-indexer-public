@@ -86,6 +86,7 @@ object OrderFilterCriteria {
     private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?, currency: Address?) = run {
         var c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
             .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        // TODO: add here
 
         maker?.let { c = c.and(Order::maker.name).`is`(it) }
         currency?.let {
@@ -97,6 +98,21 @@ object OrderFilterCriteria {
         }
 
         c
+    }
+
+    private fun tokenCondition(): Criteria {
+        val forToken = listOfNotNull(
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            OrderVersionFilter.takeNftTokenIdKey isEqualTo tokenId
+        )
+        val forCollection = listOfNotNull(
+            OrderVersionFilter.takeNftContractKey isEqualTo contract,
+            OrderVersionFilter.takeNftTokenIdKey exists false
+        )
+        return Criteria().orOperator(
+            Criteria().andOperator(*forToken.toTypedArray()),
+            Criteria().andOperator(*forCollection.toTypedArray())
+        )
     }
 
     private fun sell() =
