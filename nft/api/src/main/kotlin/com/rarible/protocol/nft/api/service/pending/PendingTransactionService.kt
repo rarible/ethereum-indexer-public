@@ -194,11 +194,11 @@ class PendingTransactionService(
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
             return PendingLog(
                 ItemTransfer(
-                    owner = it._2(),
+                    owner = it._1()._3()[0]._1(), // the first creator
                     token = to,
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
-                    from = it._2(),
+                    from = Address.ZERO(),
                     value = EthUInt256.ONE
                 ), to, TransferEvent.id()
             )
@@ -207,13 +207,13 @@ class PendingTransactionService(
             itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
             return PendingLog(
                 ItemTransfer(
-                    owner = it._2(),
+                    owner = it._1()._4()[0]._1(),  // the first creator
                     token = to,
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
-                    from = it._2(),
+                    from = Address.ZERO(),
                     value = EthUInt256.of(it._3())
-                ), to, TransferEvent.id()
+                ), to, TransferSingleEvent.id()
             )
         }
         return null
