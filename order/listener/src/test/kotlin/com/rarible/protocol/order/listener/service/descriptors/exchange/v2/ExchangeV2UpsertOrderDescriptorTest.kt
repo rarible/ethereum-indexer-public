@@ -165,6 +165,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 is Erc721AssetType -> 0
                 is Erc721LazyAssetType -> 0
                 is CryptoPunksAssetType -> 0
+                is CollectionAssetType -> 0
                 is EthAssetType -> 18
             }
 

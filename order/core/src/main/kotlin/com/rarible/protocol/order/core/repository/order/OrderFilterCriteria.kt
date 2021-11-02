@@ -103,13 +103,6 @@ object OrderFilterCriteria {
         Criteria.where("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
 
     private fun bidByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-//        val criteria = Criteria
-//            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
-//            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
-//            .orOperator(Criteria
-//                .where("${Order::take.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
-//                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token))
-
         val criteria = Criteria().orOperator(
             Criteria.where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
                 .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId),

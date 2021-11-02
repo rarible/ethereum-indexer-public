@@ -25,6 +25,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,7 +71,7 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
         saveOrderVersions(orderV1)
 
         val dto = controller.getOrderBidsByItem(token.hex(), tokenId.toString(), null, null, null, null, null)
-        assertNotNull(dto)
+        assertEquals(1, dto.body.orders.size)
     }
 
     private suspend fun checkSellCurrencies(vararg currencies: Asset) {
