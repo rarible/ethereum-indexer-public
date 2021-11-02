@@ -1533,6 +1533,12 @@ paths:
       description: Returns all auctions by specified parameters
       operationId: getAuctionsAll
       parameters:
+        - name: sort
+          description: "Sorting by target criteria"
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/AuctionSort"
         - name: status
           description: "The auction status"
           in: query
@@ -1655,6 +1661,12 @@ paths:
           required: false
           schema:
             $ref: "#/components/schemas/Address"
+        - name: sort
+          description: "Sorting by target criteria"
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/AuctionSort"
         - name: origin
           description: "Address of the consumer to receive the commission for order"
           in: query
@@ -1668,7 +1680,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/OrderStatus"
+              $ref: "#/components/schemas/AuctionStatus"
         - name: currencyId
           in: query
           required: false
@@ -1709,10 +1721,16 @@ paths:
       operationId: getAuctionsByCollection
       description: Returns all auctions by collection
       parameters:
-        - name: collection
+        - name: contract
           description: "Address of the NFT collection"
           in: query
           required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: seller
+          description: "The maker of the order"
+          in: query
+          required: false
           schema:
             $ref: "#/components/schemas/Address"
         - name: origin

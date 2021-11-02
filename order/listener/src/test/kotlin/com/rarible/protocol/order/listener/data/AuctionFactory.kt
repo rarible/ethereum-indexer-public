@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.time.Instant
 
 fun randomAuction(): Auction {
@@ -28,7 +29,9 @@ fun randomAuction(): Auction {
         auctionId = EthUInt256.ZERO,
         protocolFee = EthUInt256.ZERO,
         contract = Address.ZERO(),
-        pending = emptyList()
+        pending = emptyList(),
+        buyPrice = BigDecimal.ZERO,
+        buyPriceUsd = BigDecimal.ZERO
     )
 }
 

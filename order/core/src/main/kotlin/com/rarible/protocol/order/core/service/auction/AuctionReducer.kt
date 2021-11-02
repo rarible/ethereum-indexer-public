@@ -11,6 +11,7 @@ import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.util.Hash
+import java.math.BigDecimal
 import java.time.Instant
 
 @Component
@@ -125,6 +126,8 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             auctionId = EthUInt256.ZERO,
             protocolFee = EthUInt256.ZERO,
             contract = Address.ZERO(),
+            buyPrice = null,
+            buyPriceUsd = null,
             pending = emptyList()
         )
 

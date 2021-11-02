@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import scala.Tuple2
 import scala.Tuple6
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.time.Instant
 
 @Document("auction")
@@ -33,7 +34,9 @@ data class Auction(
     val lastEventId: String?,
     val auctionId: EthUInt256,
     val contract: Address,
-    val pending: List<AuctionHistory>
+    val pending: List<AuctionHistory>,
+    val buyPrice: BigDecimal?,
+    val buyPriceUsd: BigDecimal?
 ) : BaseAuction {
 
     @Transient

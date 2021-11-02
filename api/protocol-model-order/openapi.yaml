@@ -1038,6 +1038,13 @@ components:
     ObjectNode:
       type: object
 
+    AuctionSort:
+      type: string
+      enum:
+        - LAST_UPDATE_ASC
+        - LAST_UPDATE_DESC
+        - BUY_PRICE_ASC
+
     AuctionData:
       type: object
       oneOf:
@@ -1108,7 +1115,7 @@ components:
         - minimalStep
         - minimalPrice
         - createdAt
-        - lastUpdatedAy
+        - lastUpdatedAt
         - status
         - hash
       properties:
@@ -1133,9 +1140,13 @@ components:
         createdAt:
           type: string
           format: date-time
-        lastUpdateAt:
+        lastUpdatedAt:
           type: string
           format: date-time
+        buyPrice:
+          $ref: "#/components/schemas/BigDecimal"
+        buyPriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
         pending:
           type: array
           items:
