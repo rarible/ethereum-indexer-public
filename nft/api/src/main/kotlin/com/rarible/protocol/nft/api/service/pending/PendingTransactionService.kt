@@ -12,8 +12,10 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.contracts.Signatures
+import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.v1.CreateERC1155_v1Event
 import com.rarible.protocol.contracts.erc1155.v1.RaribleUserToken
+import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -186,6 +188,32 @@ class PendingTransactionService(
                     from = from,
                     value = EthUInt256(it._3())
                 ), to, TransferSingleEvent.id()
+            )
+        }
+        checkTx(id, data, ERC721Rarible.mintAndTransferSignature())?.let {
+            itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
+            return PendingLog(
+                ItemTransfer(
+                    owner = it._2(),
+                    token = to,
+                    tokenId = EthUInt256(it._1()._1()),
+                    date = nowMillis(),
+                    from = it._2(),
+                    value = EthUInt256.ONE
+                ), to, TransferEvent.id()
+            )
+        }
+        checkTx(id, data, ERC1155Rarible.mintAndTransferSignature())?.let {
+            itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
+            return PendingLog(
+                ItemTransfer(
+                    owner = it._2(),
+                    token = to,
+                    tokenId = EthUInt256(it._1()._1()),
+                    date = nowMillis(),
+                    from = it._2(),
+                    value = EthUInt256.of(it._3())
+                ), to, TransferEvent.id()
             )
         }
         return null
