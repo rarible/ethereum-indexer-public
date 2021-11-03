@@ -44,3 +44,7 @@ fun createErc1155LazyAssetType(): Erc1155LazyAssetType {
         royalties = emptyList()
     )
 }
+
+fun createCollectionAssetType() = CollectionAssetType(
+    token = AddressFactory.create()
+)
