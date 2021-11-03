@@ -32,7 +32,7 @@ components:
           format: int32
         code:
           type: string
-          description: "Error type"
+          description: "Error type. `BAD_REQUEST` - incorrect format of input data, `VALIDATION` - input data format is correct, but its content doesn't meet requirements of API call, `INCORRECT_ORDER_DATA` - asset type specified in the wrong way"
           enum:
             - BAD_REQUEST
             - VALIDATION
@@ -49,6 +49,7 @@ components:
       properties:
         code:
           type: string
+          description: "Error type. `INCORRECT_SIGNATURE` - incorrect signature, `INCORRECT_ORDER_DATA` - asset type specified in the wrong way, `INCORRECT_LAZY_ASSET` - lazy minting asset specified in the wrong way, `ORDER_CANCELED` - the specified order has been canceled, `ORDER_INVALID_UPDATE` - the order has been updated incorrectly"
           enum:
             - INCORRECT_SIGNATURE
             - INCORRECT_ORDER_DATA
@@ -764,7 +765,7 @@ components:
       properties:
         orders:
           type: array
-          description: "Orders array of different types"
+          description: "Orders list"
           items:
             $ref: "#/components/schemas/Order"
         continuation:

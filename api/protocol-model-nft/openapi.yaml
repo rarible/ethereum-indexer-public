@@ -47,7 +47,7 @@ components:
           description: "Collection symbol"
         features:
           type: array
-          description: "Collection functions"
+          description: "Set of supported features for this collection"
           items:
             type: string
             enum:
@@ -306,7 +306,7 @@ components:
       properties:
         id:
           type: string
-          description: Item identifier, has format "contract:tokenId"
+          description: Item identifier, has format '${contract}:${tokenId}'
         contract:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -366,7 +366,7 @@ components:
       properties:
         id:
           type: string
-          description: Item identifier, has format "contract:tokenId"
+          description: Item identifier, has format '${contract}:${tokenId}'
         token:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -415,7 +415,7 @@ components:
       properties:
         total:
           type: integer
-          description: "The number of items was found by request"
+          description: "The total number of items satisfy the query"
           format: int64
         continuation:
           type: string
@@ -472,11 +472,11 @@ components:
         width:
           type: integer
           format: int32
-          description: "Width of the NFT media"
+          description: "Width of the NFT image/video"
         height:
           type: integer
           format: int32
-          description: "Height of the NFT media"
+          description: "Height of the NFT image/video"
 
     LazyNft:
       type: object
@@ -564,7 +564,7 @@ components:
       properties:
         id:
           type: string
-          description: Ownership identifier, has format "token:tokenId:owner"
+          description: Ownership identifier, has format '${token}:${tokenId}:${owner}'
         token:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -586,7 +586,7 @@ components:
       properties:
         id:
           type: string
-          description: Ownership identifier, has format "token:tokenId:owner"
+          description: Ownership identifier, has format '${token}:${tokenId}:${owner}'
         contract:
           "$ref": "#/components/schemas/Address"
         tokenId:

@@ -39,7 +39,7 @@ components:
       properties:
         code:
           type: string
-          description: "Error type"
+          description: "Error type. `BAD_REQUEST` - incorrect format of input data, `VALIDATION` - input data format is correct, but its content doesn't meet requirements of API call"
           enum:
             - BAD_REQUEST
             - VALIDATION
@@ -83,7 +83,7 @@ components:
         date:
           type: string
           format: date-time
-          description: "Date and time of the activity"
+          description: "Date and time when the event, related to activity, happened"
       oneOf:
         - $ref: "#/components/schemas/OrderActivity"
         - $ref: "#/components/schemas/NftActivity"

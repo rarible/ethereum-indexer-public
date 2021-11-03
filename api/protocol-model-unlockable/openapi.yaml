@@ -17,7 +17,7 @@ components:
           type: string
         itemId:
           type: string
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
         content:
           type: string
         author:

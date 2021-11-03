@@ -141,7 +141,7 @@ paths:
       description: Returns order item by item identifier
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:
@@ -168,7 +168,7 @@ paths:
       description: Returns order item meta by item identifier
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:
@@ -193,7 +193,7 @@ paths:
       description: Returns lazy order item by item identifier
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:
