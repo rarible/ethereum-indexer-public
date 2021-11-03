@@ -223,7 +223,7 @@ data class CryptoPunksAssetType(
     }
 }
 
-data class CollectionAssetType(val token: Address) : AssetType(COLLECTION, AddressType.encode(token), false) {
+data class CollectionAssetType(val token: Address) : AssetType(COLLECTION, AddressType.encode(token), true) {
     constructor(data: Binary) : this(AddressType.decode(data, 0).value())
 }
 
