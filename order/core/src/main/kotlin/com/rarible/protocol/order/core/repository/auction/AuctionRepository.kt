@@ -2,15 +2,19 @@ package com.rarible.protocol.order.core.repository.auction
 
 import com.rarible.core.mongo.util.div
 import com.rarible.core.reduce.repository.DataRepository
+import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.Document
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
+import scalether.domain.Address
 
 class AuctionRepository(
     private val template: ReactiveMongoTemplate
@@ -42,11 +46,38 @@ class AuctionRepository(
         }
         val query = Query(
             criteria
-        )
+                .forPlatform(platform)
+                .forStatus(status)
+                .fromOrigin(origin)
+                .fromCurrency(origin)
+                .scrollTo(continuation, sort, currency)
+        ).limit(size).with(sort(sort, currency))
+
         if (hint != null) {
             query.withHint(hint)
         }
-        return query.limit(size)
+        return query
+    }
+
+    private infix fun Criteria.fromOrigin(origin: Address?) = origin?.let {
+        and(Auction::data / RaribleAuctionV1DataV1::originFees)
+            .elemMatch(Criteria.where(Part::account.name).isEqualTo(origin))
+    } ?: this
+
+    private infix fun Criteria.fromCurrency(currency: Address?) = currency?.let {
+        and(Auction::buy / Erc20AssetType::token).isEqualTo(currency)
+    } ?: this
+
+    private infix fun Criteria.forPlatform(platform: List<Platform>) = let {
+        if (platform.isNotEmpty()) and(Auction::platform).inValues(platform) else this
+    }
+
+    private infix fun Criteria.forStatus(status: List<AuctionStatus>?) = let {
+        when {
+            status == null || status.isEmpty() -> this
+            status.isSingleton -> and(Auction::status).isEqualTo(status.single())
+            else -> and(Auction::status).inValues(status)
+        }
     }
 
     private fun AuctionFilter.ByItem.getCriteria(): Criteria {
@@ -72,9 +103,79 @@ class AuctionRepository(
         return (Auction::seller).isEqualTo(seller)
     }
 
-    private fun AuctionFilter.All.getCriteria(): Criteria {
+    private fun getCriteria(): Criteria {
         return Criteria()
     }
+
+    private fun sort(sort: AuctionFilter.AuctionSort, currency: Address?): Sort {
+        return when (sort) {
+            AuctionFilter.AuctionSort.LAST_UPDATE_ASC -> Sort.by(
+                Sort.Direction.DESC,
+                Auction::lastUpdatedAy.name,
+                Auction::hash.name
+            )
+            AuctionFilter.AuctionSort.LAST_UPDATE_DESC -> Sort.by(
+                Sort.Direction.ASC,
+                Auction::lastUpdatedAy.name,
+                Auction::hash.name
+            )
+            AuctionFilter.AuctionSort.BUY_PRICE_ASC -> Sort.by(
+                Sort.Direction.ASC,
+                (currency?.let { Auction::buyPrice } ?: Auction::buyPriceUsd).name,
+                Auction::hash.name
+            )
+        }
+    }
+
+    private fun Criteria.scrollTo(continuation: String?, sort: AuctionFilter.AuctionSort, currency: Address?) =
+        when (sort) {
+            AuctionFilter.AuctionSort.LAST_UPDATE_DESC -> {
+                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                lastDate?.let { c ->
+                    this.orOperator(
+                        Auction::lastUpdatedAy lt c.afterDate,
+                        Criteria().andOperator(
+                            Auction::lastUpdatedAy isEqualTo c.afterDate,
+                            Auction::hash lt c.afterId
+                        )
+                    )
+                } ?: this
+            }
+            AuctionFilter.AuctionSort.LAST_UPDATE_ASC -> {
+                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                lastDate?.let { c ->
+                    this.orOperator(
+                        Auction::lastUpdatedAy gt c.afterDate,
+                        Criteria().andOperator(
+                            Auction::lastUpdatedAy isEqualTo c.afterDate,
+                            Auction::hash gt c.afterId
+                        )
+                    )
+                } ?: this
+            }
+            AuctionFilter.AuctionSort.BUY_PRICE_ASC -> {
+                val price = Continuation.parse<Continuation.Price>(continuation)
+                price?.let { c ->
+                    if (currency != null) {
+                        this.orOperator(
+                            Auction::buyPrice lt c.afterPrice,
+                            Criteria().andOperator(
+                                Auction::buyPrice isEqualTo c.afterPrice,
+                                Auction::hash lt c.afterId
+                            )
+                        )
+                    } else {
+                        this.orOperator(
+                            Auction::buyPriceUsd lt c.afterPrice,
+                            Criteria().andOperator(
+                                Auction::buyPriceUsd isEqualTo c.afterPrice,
+                                Auction::hash lt c.afterId
+                            )
+                        )
+                    }
+                } ?: this
+            }
+        }
 
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
 

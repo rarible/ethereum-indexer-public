@@ -151,8 +151,8 @@ class AuctionController(
     private fun convert(source: List<AuctionStatusDto>?): List<AuctionStatus>? =
         source?.map { AuctionStatusConverter.convert(it) }
 
-    private fun convert(source: PlatformDto?): Platform? =
-        source?.let { PlatformConverter.convert(it) }
+    private fun convert(source: PlatformDto?): List<Platform> =
+        source?.let { PlatformConverter.convert(it) }?.let { listOf(it) } ?: emptyList()
 
     private fun convert(source: Auction): AuctionDto =
         AuctionDtoConverter.convert(source)

@@ -36,7 +36,8 @@ data class Auction(
     val contract: Address,
     val pending: List<AuctionHistory>,
     val buyPrice: BigDecimal?,
-    val buyPriceUsd: BigDecimal?
+    val buyPriceUsd: BigDecimal?,
+    val platform: Platform
 ) : BaseAuction {
 
     @Transient

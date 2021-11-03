@@ -31,7 +31,8 @@ fun randomAuction(): Auction {
         contract = Address.ZERO(),
         pending = emptyList(),
         buyPrice = BigDecimal.ZERO,
-        buyPriceUsd = BigDecimal.ZERO
+        buyPriceUsd = BigDecimal.ZERO,
+        platform = Platform.RARIBLE
     )
 }
 
