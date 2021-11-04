@@ -5,7 +5,7 @@ import com.rarible.protocol.dto.AuctionDto
 object AuctionContinuation {
     object ByLastUpdatedAndId : ContinuationFactory<AuctionDto, DateIdContinuation> {
         override fun getContinuation(entity: AuctionDto): DateIdContinuation {
-            return DateIdContinuation(entity.lastUpdatedAt, entity.hash.prefixed())
+            return DateIdContinuation(entity.lastUpdateAt, entity.hash.prefixed())
         }
     }
 

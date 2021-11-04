@@ -26,7 +26,8 @@ import scalether.domain.Address
 @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
 @RestController
 class AuctionController(
-    private val auctionService: AuctionService
+    private val auctionService: AuctionService,
+    private val auctionDtoConverter: AuctionDtoConverter
 ) : AuctionControllerApi {
 
     override suspend fun getAuctionByHash(hash: String): ResponseEntity<AuctionDto> {
@@ -127,7 +128,7 @@ class AuctionController(
         continuation: String?
     ): AuctionsPaginationDto {
         val safeSize = PageSize.AUCTION.limit(size)
-        val auctions = auctionService.search(filter, safeSize, continuation).map(::convert)
+        val auctions = auctionService.search(filter, safeSize, continuation).map { convert(it) }
         return Paging(convert(filter), auctions).getPage(safeSize).let { page ->
             AuctionsPaginationDto(
                 auctions = page.entities,
@@ -154,8 +155,8 @@ class AuctionController(
     private fun convert(source: PlatformDto?): List<Platform> =
         source?.let { PlatformConverter.convert(it) }?.let { listOf(it) } ?: emptyList()
 
-    private fun convert(source: Auction): AuctionDto =
-        AuctionDtoConverter.convert(source)
+    private suspend fun convert(source: Auction): AuctionDto =
+        auctionDtoConverter.convert(source)
 
     private fun convert(filter: AuctionFilter): ContinuationFactory<AuctionDto, Continuation> {
         return when (filter.sort) {

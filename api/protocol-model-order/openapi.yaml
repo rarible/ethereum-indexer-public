@@ -1084,6 +1084,9 @@ components:
           description: "Value of the payouts for the auction"
           items:
             "$ref": "#/components/schemas/Part"
+        startTime:
+          type: string
+          format: date-time
         duration:
           $ref: "#/components/schemas/BigInteger"
         buyOutPrice:
@@ -1110,12 +1113,10 @@ components:
         - seller
         - sell
         - buy
-        - startTime
-        - endTime
         - minimalStep
         - minimalPrice
         - createdAt
-        - lastUpdatedAt
+        - lastUpdateAt
         - status
         - hash
       properties:
@@ -1127,9 +1128,6 @@ components:
           $ref: "#/components/schemas/Asset"
         buy:
           $ref: "#/components/schemas/AssetType"
-        startTime:
-          type: string
-          format: date-time
         endTime:
           type: string
           format: date-time
@@ -1140,7 +1138,7 @@ components:
         createdAt:
           type: string
           format: date-time
-        lastUpdatedAt:
+        lastUpdateAt:
           type: string
           format: date-time
         buyPrice:

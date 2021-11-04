@@ -5,6 +5,8 @@ import com.rarible.core.reduce.repository.DataRepository
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository.AuctionIndexes.ALL_INDEXES
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository.AuctionIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -12,6 +14,7 @@ import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -20,8 +23,18 @@ class AuctionRepository(
     private val template: ReactiveMongoTemplate
 ) : DataRepository<Auction> {
 
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            template.indexOps(Auction::class.java).ensureIndex(index).awaitFirst()
+        }
+    }
+
+    suspend fun save(data: Auction): Auction {
+        return template.save(data).awaitFirst()
+    }
+
     override suspend fun saveReduceResult(data: Auction) {
-        template.save(data).awaitFirst()
+        save(data)
     }
 
     suspend fun findById(hash: Word): Auction? {
@@ -39,7 +52,7 @@ class AuctionRepository(
 
     private fun AuctionFilter.toQuery(continuation: String?, size: Int): Query {
         val (criteria, hint) = when (this) {
-            is AuctionFilter.All -> getCriteria().withNoHint()
+            is AuctionFilter.All -> getCriteria() withHint BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
             is AuctionFilter.ByItem -> getCriteria().withNoHint()
             is AuctionFilter.ByCollection -> getCriteria().withNoHint()
             is AuctionFilter.BySeller -> getCriteria().withNoHint()
@@ -49,7 +62,7 @@ class AuctionRepository(
                 .forPlatform(platform)
                 .forStatus(status)
                 .fromOrigin(origin)
-                .fromCurrency(origin)
+                .fromCurrency(currency)
                 .scrollTo(continuation, sort, currency)
         ).limit(size).with(sort(sort, currency))
 
@@ -109,14 +122,14 @@ class AuctionRepository(
 
     private fun sort(sort: AuctionFilter.AuctionSort, currency: Address?): Sort {
         return when (sort) {
-            AuctionFilter.AuctionSort.LAST_UPDATE_ASC -> Sort.by(
+            AuctionFilter.AuctionSort.LAST_UPDATE_DESC -> Sort.by(
                 Sort.Direction.DESC,
-                Auction::lastUpdatedAy.name,
+                Auction::lastUpdateAt.name,
                 Auction::hash.name
             )
-            AuctionFilter.AuctionSort.LAST_UPDATE_DESC -> Sort.by(
+            AuctionFilter.AuctionSort.LAST_UPDATE_ASC -> Sort.by(
                 Sort.Direction.ASC,
-                Auction::lastUpdatedAy.name,
+                Auction::lastUpdateAt.name,
                 Auction::hash.name
             )
             AuctionFilter.AuctionSort.BUY_PRICE_ASC -> Sort.by(
@@ -133,9 +146,9 @@ class AuctionRepository(
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
-                        Auction::lastUpdatedAy lt c.afterDate,
+                        Auction::lastUpdateAt lt c.afterDate,
                         Criteria().andOperator(
-                            Auction::lastUpdatedAy isEqualTo c.afterDate,
+                            Auction::lastUpdateAt isEqualTo c.afterDate,
                             Auction::hash lt c.afterId
                         )
                     )
@@ -145,9 +158,9 @@ class AuctionRepository(
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
-                        Auction::lastUpdatedAy gt c.afterDate,
+                        Auction::lastUpdateAt gt c.afterDate,
                         Criteria().andOperator(
-                            Auction::lastUpdatedAy isEqualTo c.afterDate,
+                            Auction::lastUpdateAt isEqualTo c.afterDate,
                             Auction::hash gt c.afterId
                         )
                     )
@@ -180,5 +193,16 @@ class AuctionRepository(
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
 
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
+
+    private object AuctionIndexes {
+        val BY_LAST_UPDATE_AND_ID_DEFINITION: Index = Index()
+            .on(Auction::lastUpdateAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
+        val ALL_INDEXES = listOf(
+            BY_LAST_UPDATE_AND_ID_DEFINITION
+        )
+    }
 }
 
