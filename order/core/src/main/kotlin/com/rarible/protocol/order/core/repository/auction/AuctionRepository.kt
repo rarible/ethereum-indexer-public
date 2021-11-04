@@ -171,18 +171,18 @@ class AuctionRepository(
                 price?.let { c ->
                     if (currency != null) {
                         this.orOperator(
-                            Auction::buyPrice lt c.afterPrice,
+                            Auction::buyPrice gt c.afterPrice,
                             Criteria().andOperator(
                                 Auction::buyPrice isEqualTo c.afterPrice,
-                                Auction::hash lt c.afterId
+                                Auction::hash gt c.afterId
                             )
                         )
                     } else {
                         this.orOperator(
-                            Auction::buyPriceUsd lt c.afterPrice,
+                            Auction::buyPriceUsd gt c.afterPrice,
                             Criteria().andOperator(
                                 Auction::buyPriceUsd isEqualTo c.afterPrice,
-                                Auction::hash lt c.afterId
+                                Auction::hash gt c.afterId
                             )
                         )
                     }

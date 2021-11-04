@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
@@ -29,8 +30,8 @@ fun randomAuction(): Auction {
         protocolFee = EthUInt256.ZERO,
         contract = randomAddress(),
         pending = emptyList(),
-        buyPrice = BigDecimal.ZERO,
-        buyPriceUsd = BigDecimal.ZERO,
+        buyPrice = randomBigDecimal(),
+        buyPriceUsd = randomBigDecimal(),
         platform = Platform.RARIBLE
     )
 }

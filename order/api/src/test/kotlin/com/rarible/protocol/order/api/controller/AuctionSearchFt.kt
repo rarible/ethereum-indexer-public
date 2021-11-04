@@ -7,6 +7,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.randomAuction
+import com.rarible.protocol.order.api.data.randomAuctionV1DataV1
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 import com.rarible.protocol.order.api.integration.IntegrationTest
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.math.BigDecimal
 import java.time.Duration
 import java.util.stream.Stream
 
@@ -109,6 +111,25 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                     emptyList<Auction>()
                 ),
                 run {
+                    val origin = randomAddress()
+                    val data = randomAuctionV1DataV1().copy(originFees = listOf(Part(origin, EthUInt256.ONE)))
+
+                    Arguments.of(
+                        FetchParams(origin = origin.prefixed(), sort = AuctionSortDto.LAST_UPDATE_DESC),
+                        fetchAllMethod,
+                        listOf(
+                            randomAuction().copy(data = data, lastUpdateAt = now + Duration.ofMinutes(4)),
+                            randomAuction().copy(data = data, lastUpdateAt = now + Duration.ofMinutes(3)),
+                            randomAuction().copy(data = data, lastUpdateAt = now + Duration.ofMinutes(2)),
+                            randomAuction().copy(data = data, lastUpdateAt = now + Duration.ofMinutes(1)),
+                            randomAuction().copy(data = data, lastUpdateAt = now + Duration.ofMinutes(0))
+                        ),
+                        listOf(
+                            randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(4))
+                        )
+                    )
+                },
+                run {
                     val contract = randomAddress()
                     val tokenId = randomBigInt()
                     val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
@@ -125,6 +146,47 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                         listOf(
                             randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(4)),
                             randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(3))
+                        )
+                    )
+                },
+                run {
+                    val contract = randomAddress()
+                    val tokenId = randomBigInt()
+                    val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
+                    Arguments.of(
+                        FetchParams(contract = contract.prefixed(), tokenId = tokenId.toString(), sort = AuctionSortDto.BUY_PRICE_ASC),
+                        fetchByItemMethod,
+                        listOf(
+                            randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(1)),
+                            randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(2)),
+                            randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(3)),
+                            randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(4)),
+                            randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(5))
+                        ),
+                        listOf(
+                            randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(4)),
+                            randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(3))
+                        )
+                    )
+                },
+                run {
+                    val contract = randomAddress()
+                    val tokenId = randomBigInt()
+                    val buyAsset = Erc20AssetType(randomAddress())
+                    val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
+                    Arguments.of(
+                        FetchParams(contract = contract.prefixed(), tokenId = tokenId.toString(), currencyId = buyAsset.token.prefixed(), sort = AuctionSortDto.BUY_PRICE_ASC),
+                        fetchByItemMethod,
+                        listOf(
+                            randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(1)),
+                            randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(2)),
+                            randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(3)),
+                            randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(4)),
+                            randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(5))
+                        ),
+                        listOf(
+                            randomAuction().copy(sell = sell, buyPrice = BigDecimal.valueOf(1)),
+                            randomAuction().copy(sell = sell, buyPrice = BigDecimal.valueOf(2))
                         )
                     )
                 },
