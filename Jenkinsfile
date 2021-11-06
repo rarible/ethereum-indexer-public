@@ -66,7 +66,7 @@ pipeline {
       agent any
       when {
         allOf {
-          anyOf { branch 'develop'; branch 'master'; branch 'RPN-803-multi-chain-pipeline'; branch 'release/*'; }
+          anyOf { branch 'develop'; branch 'master'; branch 'RPN-803-multi-chain-pipeline' }
           expression {
             input message: "Deploy to dev?"
             return true
