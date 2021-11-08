@@ -9,17 +9,15 @@ import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
-import com.rarible.protocol.order.core.model.AuctionHistory
 import com.rarible.protocol.order.core.model.AuctionHistoryType
-import com.rarible.protocol.order.core.model.AuctionType
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
-import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
+import com.rarible.protocol.order.core.service.auction.AuctionUpdateService
 import com.rarible.protocol.order.core.trace.TracePackage
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
@@ -70,14 +68,14 @@ class CoreConfiguration {
         balanceReducer: AuctionReducer,
         eventRepository: AuctionHistoryRepository,
         snapshotRepository: AuctionSnapshotRepository,
-        auctionRepository: AuctionRepository,
+        auctionUpdateService: AuctionUpdateService,
         properties: OrderIndexerProperties
     ): AuctionReduceService {
         return ReduceService(
             reducer = balanceReducer,
             eventRepository = eventRepository,
             snapshotRepository = snapshotRepository,
-            dataRepository = auctionRepository,
+            updateService = auctionUpdateService,
             snapshotStrategy = BlockchainSnapshotStrategy(properties.blockCountBeforeSnapshot)
         )
     }

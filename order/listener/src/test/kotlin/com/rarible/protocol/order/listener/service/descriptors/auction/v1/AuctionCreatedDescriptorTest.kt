@@ -1,8 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
+import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -26,6 +28,7 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
             assertThat(auction).isNotNull
             assertThat(auction?.finished).isFalse()
             assertThat(auction?.cancelled).isFalse()
+            assertThat(auction?.status).isEqualTo(AuctionStatus.ACTIVE)
         }
     }
 }

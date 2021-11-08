@@ -21,10 +21,8 @@ import java.math.BigInteger
 import java.time.Instant
 
 abstract class AbstractAuctionDescriptor<T : EventData>(
-    auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
+    private val auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
 ) : LogEventDescriptor<T> {
-
-    private val auctionContract = auctionContractAddresses.v1
 
     override val collection: String
         get() = AuctionHistoryRepository.COLLECTION
@@ -36,7 +34,7 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
     protected abstract fun convert(log: Log, transaction: Transaction, date: Instant): List<T>
 
     override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(auctionContract))
+        return Mono.just(listOf(auctionContractAddresses.v1))
     }
 
     protected companion object {
@@ -46,7 +44,9 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
             }
         }
 
-        fun parseContractAuction(auction: Tuple11<Tuple2<Tuple2<ByteArray, ByteArray>, BigInteger>, Tuple2<ByteArray, ByteArray>, Tuple3<BigInteger, ByteArray, ByteArray>, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray>): ContractAuction {
+        fun parseContractAuction(
+            auction: Tuple11<Tuple2<Tuple2<ByteArray, ByteArray>, BigInteger>, Tuple2<ByteArray, ByteArray>, Tuple3<BigInteger, ByteArray, ByteArray>, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray>
+        ): ContractAuction {
             val sell = Asset(auction._1()._1().toAssetType(), EthUInt256(auction._1()._2()))
             val buy = auction._2().toAssetType()
             val lastBid = auction._3().takeUnless { bid -> bid._1() == BigInteger.ZERO }?.toAuctionBid()

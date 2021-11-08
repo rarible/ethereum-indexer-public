@@ -49,16 +49,7 @@ data class Auction(
         get() = _id
         set(_) {}
 
-    fun forTx() = Tuple6(
-        sell.forTx(),
-        buy.forTx(),
-        minimalStep.value,
-        minimalPrice.value,
-        data.getDataVersion(),
-        data.toEthereum().bytes()
-    )
-
-    fun withCalculatedSate(): Auction {
+    fun withCalculatedState(): Auction {
         return when {
             cancelled -> copy(status = AuctionStatus.CANCELLED)
             finished -> copy(status = AuctionStatus.FINISHED)

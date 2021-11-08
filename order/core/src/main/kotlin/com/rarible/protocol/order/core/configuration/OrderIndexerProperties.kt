@@ -40,7 +40,7 @@ data class OrderIndexerProperties(
     )
 
     data class AuctionContractAddresses(
-        val v1: Address
+        var v1: Address
     )
 
     data class TransferProxyAddresses(

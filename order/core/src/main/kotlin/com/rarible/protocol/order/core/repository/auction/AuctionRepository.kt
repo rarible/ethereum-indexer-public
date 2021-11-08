@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.repository.auction
 
 import com.rarible.core.mongo.util.div
-import com.rarible.core.reduce.repository.DataRepository
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.*
@@ -21,7 +20,7 @@ import scalether.domain.Address
 
 class AuctionRepository(
     private val template: ReactiveMongoTemplate
-) : DataRepository<Auction> {
+) {
 
     suspend fun createIndexes() {
         ALL_INDEXES.forEach { index ->
@@ -31,10 +30,6 @@ class AuctionRepository(
 
     suspend fun save(data: Auction): Auction {
         return template.save(data).awaitFirst()
-    }
-
-    override suspend fun saveReduceResult(data: Auction) {
-        save(data)
     }
 
     suspend fun findById(hash: Word): Auction? {
