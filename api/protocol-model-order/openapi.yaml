@@ -1037,3 +1037,151 @@ components:
 
     ObjectNode:
       type: object
+
+    AuctionData:
+      type: object
+      oneOf:
+        - "$ref": "#/components/schemas/RaribleAuctionV1DataV1"
+
+    RaribleAuctionV1DataV1:
+      type: object
+      required:
+        - originFees
+        - payouts
+        - duration
+      properties:
+        dataType:
+          type: string
+          description: "Data type of the auction"
+          enum:
+            - RARIBLE_AUCTION_V1_DATA_V1
+        originFees:
+          type: array
+          description: "Value of the origin fees for the auction"
+          items:
+            "$ref": "#/components/schemas/Part"
+        payouts:
+          type: array
+          description: "Value of the payouts for the auction"
+          items:
+            "$ref": "#/components/schemas/Part"
+        duration:
+          $ref: "#/components/schemas/BigInteger"
+        buyOutPrice:
+          $ref: "#/components/schemas/BigDecimal"
+
+    AuctionStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - CANCELLED
+        - FINISHED
+
+    AuctionHistory:
+      type: object
+      required:
+        - hash
+      properties:
+        hash:
+          $ref: "#/components/schemas/Word"
+
+    Auction:
+      type: object
+      required:
+        - seller
+        - sell
+        - buy
+        - startTime
+        - endTime
+        - minimalStep
+        - minimalPrice
+        - createdAt
+        - lastUpdatedAy
+        - status
+        - hash
+      properties:
+        seller:
+          $ref: "#/components/schemas/Address"
+        buyer:
+          $ref: "#/components/schemas/Address"
+        sell:
+          $ref: "#/components/schemas/Asset"
+        buy:
+          $ref: "#/components/schemas/AssetType"
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        minimalStep:
+          $ref: "#/components/schemas/BigDecimal"
+        minimalPrice:
+          $ref: "#/components/schemas/BigDecimal"
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdateAt:
+          type: string
+          format: date-time
+        pending:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuctionHistory"
+        status:
+          $ref: "#/components/schemas/AuctionStatus"
+        hash:
+          $ref: "#/components/schemas/Word"
+      oneOf:
+        - "$ref": "#/components/schemas/RaribleAuctionV1"
+
+    RaribleAuctionV1:
+      type: object
+      required:
+        - auctionId
+        - data
+      properties:
+        type:
+          type: string
+          enum:
+            - RARIBLE_AUCTION_V1
+        auctionId:
+          $ref: "#/components/schemas/BigInteger"
+        lastBid:
+          $ref: "#/components/schemas/RaribleAuctionV1BidV1"
+        data:
+          $ref: "#/components/schemas/RaribleAuctionV1DataV1"
+
+    AuctionEvent:
+      type: object
+      required:
+        - eventId
+        - auctionId
+      properties:
+        eventId:
+          type: string
+        orderId:
+          type: string
+      oneOf:
+        - "$ref": "#/components/schemas/AuctionUpdateEvent"
+        - "$ref": "#/components/schemas/AuctionDeleteEvent"
+
+    AuctionUpdateEvent:
+      type: object
+      required:
+        - auction
+      properties:
+        type:
+          type: string
+          enum:
+            - UPDATE
+        auction:
+          "$ref": "#/components/schemas/Auction"
+
+    AuctionDeleteEvent:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - DELETE

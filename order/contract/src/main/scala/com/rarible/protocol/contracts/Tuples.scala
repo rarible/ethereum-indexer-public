@@ -24,6 +24,9 @@ object Tuples {
   val orderKeyHashType =
     Tuple4Type(AddressType, Bytes32Type, Bytes32Type, Uint256Type)
 
+  val raribleAuctionKeyHashType =
+    Tuple2Type(AddressType, Uint256Type)
+
   val orderHashType =
     Tuple10Type(Bytes32Type, AddressType, Bytes32Type, AddressType, Bytes32Type, Uint256Type, Uint256Type, Uint256Type, Bytes4Type, Bytes32Type)
 

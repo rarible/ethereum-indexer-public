@@ -1,13 +1,9 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
-import com.rarible.protocol.contracts.Tuples.keccak256
 import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Transient
 import scala.Tuple2
-import scala.Tuple3
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -96,21 +92,3 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     CRYPTO_PUNKS
 }
 
-data class Part(
-    val account: Address,
-    val value: EthUInt256
-) {
-    fun toEthereum() = Tuple2(account, value.value)
-
-    fun hash() = hash(this)
-
-    companion object {
-        private val TYPE_HASH: Word = keccak256("Part(address account,uint256 value)")
-
-        fun hash(part: Part): Word = keccak256(Tuples.partHashType().encode(Tuple3(
-            TYPE_HASH.bytes(),
-            part.account,
-            part.value.value
-        )))
-    }
-}

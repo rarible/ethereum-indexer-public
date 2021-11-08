@@ -113,6 +113,11 @@
                             <packageName>com.rarible.protocol.contracts.exchange.crypto.punks</packageName>
                             <type>MONO</type>
                         </contract>
+                        <contract>
+                            <truffle>src/main/truffle/auction/v1/AuctionHouse.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.auction.v1</packageName>
+                            <type>MONO</type>
+                        </contract>
                     </contracts>
                 </configuration>
             </plugin>

@@ -351,6 +351,122 @@ components:
         from:
           $ref: "#/components/schemas/Address"
 
+    AuctionActivity:
+      type: object
+      required:
+        - id
+        - date
+        - source
+      properties:
+        id:
+          type: string
+        date:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum:
+            - RARIBLE
+      oneOf:
+        - $ref: "#/components/schemas/AuctionActivityOpen"
+        - $ref: "#/components/schemas/AuctionActivityBid"
+        - $ref: "#/components/schemas/AuctionActivityFinish"
+        - $ref: "#/components/schemas/AuctionActivityCancel"
+
+    AuctionActivityOpen:
+      type: object
+      required:
+        - "@type"
+        - hash
+        - seller
+        - sell
+        - buy
+        - startTime
+        - endTime
+        - minimalStep
+        - minimalPrice
+        - transactionHash
+        - blockHash
+        - blockNumber
+        - logIndex
+      properties:
+        "@type":
+          type: string
+          enum:
+            - "open"
+        seller:
+          $ref: "#/components/schemas/Address"
+        sell:
+          $ref: "#/components/schemas/Asset"
+        buy:
+          $ref: "#/components/schemas/AssetType"
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        minimalStep:
+          $ref: "#/components/schemas/BigDecimal"
+        minimalPrice:
+          $ref: "#/components/schemas/BigDecimal"
+        hash:
+          $ref: "#/components/schemas/Word"
+
+    AuctionActivityBid:
+      type: object
+      required:
+        - "@type"
+        - hash
+        - bid
+        - transactionHash
+        - blockHash
+        - blockNumber
+        - logIndex
+      properties:
+        "@type":
+          type: string
+          enum:
+            - "bid"
+        hash:
+          $ref: "#/components/schemas/Word"
+        bid:
+          $ref: "#/components/schemas/AuctionBid"
+
+    AuctionActivityFinish:
+      type: object
+      required:
+        - "@type"
+        - hash
+        - transactionHash
+        - blockHash
+        - blockNumber
+        - logIndex
+      properties:
+        "@type":
+          type: string
+          enum:
+            - "finish"
+        hash:
+          $ref: "#/components/schemas/Word"
+
+    AuctionActivityCancel:
+      type: object
+      required:
+        - "@type"
+        - hash
+        - transactionHash
+        - blockHash
+        - blockNumber
+        - logIndex
+      properties:
+        "@type":
+          type: string
+          enum:
+            - "cancel"
+        hash:
+          $ref: "#/components/schemas/Word"
+
     Activities:
       type: object
       required:
@@ -965,6 +1081,57 @@ components:
           $ref: "#/components/schemas/BigInteger"
         valueDecimal:
           $ref: "#/components/schemas/BigDecimal"
+
+    AuctionBid:
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          $ref: "#/components/schemas/BigInteger"
+      oneOf:
+        - "$ref": "#/components/schemas/RaribleAuctionV1BidV1"
+
+    RaribleAuctionV1BidV1:
+      type: object
+      required:
+        - data
+      properties:
+        type:
+          type: string
+          description: "Type of the auction bid"
+          enum:
+            - RARIBLE_AUCTION_V1_BID_V1
+        data:
+          $ref: "#/components/schemas/RaribleAuctionV1BidDataV1"
+
+    AuctionBidData:
+      type: object
+      oneOf:
+        - "$ref": "#/components/schemas/RaribleAuctionV1BidDataV1"
+
+    RaribleAuctionV1BidDataV1:
+      type: object
+      required:
+        - originFees
+        - payouts
+      properties:
+        dataType:
+          type: string
+          description: "Data type of the auction bid data"
+          enum:
+            - RARIBLE_AUCTION_V1_BID_DATA_V1
+        originFees:
+          type: array
+          description: "Value of the origin fees for the auction bid data"
+          items:
+            "$ref": "#/components/schemas/Part"
+        payouts:
+          type: array
+          description: "Value of the payouts for the auction bid data"
+          items:
+            "$ref": "#/components/schemas/Part"
+
 
     Part:
       required:
