@@ -3,9 +3,22 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.elemMatch
+import org.springframework.data.mongodb.core.query.exists
+import org.springframework.data.mongodb.core.query.gte
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.lte
 import scalether.domain.Address
 import java.time.Instant
 
@@ -21,7 +34,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         private val tokenId: EthUInt256,
         private val maker: Address?,
         private val origin: Address?,
-        private val platform: Platform?,
+        private val platforms: List<Platform>,
         val currencyId: Address?,
         private val startDate: Instant?,
         private val endDate: Instant?,
@@ -37,7 +50,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
                 takeNftTokenIdKey isEqualTo tokenId,
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
-                platform?.let { OrderVersion::platform isEqualTo it },
+                if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
                 currencyId?.let {
                     if (it == Address.ZERO()) { // zero means ETH
                         OrderVersion::make / Asset::type / AssetType::token exists false
@@ -79,7 +92,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     data class BidByMaker(
         private val maker: Address?,
         private val origin: Address?,
-        private val platform: Platform?,
+        private val platforms: List<Platform>,
         private val startDate: Instant?,
         private val endDate: Instant?,
         private val size: Int,
@@ -92,7 +105,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
             val criteria = listOfNotNull(
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
-                platform?.let { OrderVersion::platform isEqualTo it },
+                if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
                 startDate?.let { OrderVersion::createdAt gte it },
                 endDate?.let { OrderVersion::createdAt lte it }
             )

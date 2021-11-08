@@ -1,18 +1,52 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.dto.InvertOrderFormDto
+import com.rarible.protocol.dto.LegacyOrderFormDto
+import com.rarible.protocol.dto.OrderCurrenciesDto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderFilterAllDto
+import com.rarible.protocol.dto.OrderFilterBidByItemDto
+import com.rarible.protocol.dto.OrderFilterBidByMakerDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
+import com.rarible.protocol.dto.OrderFilterSellByItemDto
+import com.rarible.protocol.dto.OrderFilterSellByMakerDto
+import com.rarible.protocol.dto.OrderFilterSellDto
+import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.OrderIdsDto
+import com.rarible.protocol.dto.OrderSortDto
+import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.OrdersPaginationDto
+import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.PrepareOrderTxFormDto
+import com.rarible.protocol.dto.PrepareOrderTxResponseDto
+import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.converters.dto.*
-import com.rarible.protocol.order.core.converters.model.*
+import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
+import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
+import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
+import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.converters.model.AssetConverter
+import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
+import com.rarible.protocol.order.core.converters.model.OrderToFormDtoConverter
+import com.rarible.protocol.order.core.converters.model.PartConverter
+import com.rarible.protocol.order.core.converters.model.PlatformConverter
+import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import com.rarible.protocol.order.core.service.OrderInvertService
@@ -37,7 +71,7 @@ class OrderController(
     private val assetTypeDtoConverter: AssetTypeDtoConverter,
     private val orderInvertService: OrderInvertService,
     private val prepareTxService: PrepareTxService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val platformFeaturedFilter: PlatformFeaturedFilter,
     private val orderDtoConverter: OrderDtoConverter,
     private val assetDtoConverter: AssetDtoConverter,
     private val orderToFormDtoConverter: OrderToFormDtoConverter,
@@ -50,7 +84,8 @@ class OrderController(
         form: InvertOrderFormDto
     ): ResponseEntity<OrderFormDto> {
         val order = orderService.get(Word.apply(hash))
-        val inverted = orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
+        val inverted =
+            orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
         return ResponseEntity.ok(orderToFormDtoConverter.convert(inverted))
     }
 
@@ -154,7 +189,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterAllDto(
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -170,7 +205,8 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterAllDto(
             sort = convert(sort),
-            status = convertStatus(status)
+            status = convertStatus(status),
+            platforms = safePlatforms(null)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -184,7 +220,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellDto(
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -206,7 +242,7 @@ class OrderController(
             tokenId = BigInteger(tokenId),
             maker = safeAddress(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.MAKE_PRICE_ASC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -230,7 +266,7 @@ class OrderController(
             tokenId = BigInteger(tokenId),
             maker = safeAddress(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.MAKE_PRICE_ASC,
             status = convertStatus(status),
             currency = currencyId?.let { Address.apply(currencyId) }
@@ -249,7 +285,7 @@ class OrderController(
         val filter = OrderFilterSellByCollectionDto(
             collection = Address.apply(collection),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -268,7 +304,7 @@ class OrderController(
         val filter = OrderFilterSellByCollectionDto(
             collection = Address.apply(collection),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = convertStatus(status)
         )
@@ -286,7 +322,7 @@ class OrderController(
         val filter = OrderFilterSellByMakerDto(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -305,7 +341,7 @@ class OrderController(
         val filter = OrderFilterSellByMakerDto(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = convertStatus(status)
         )
@@ -322,7 +358,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellDto(
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = convertStatus(status)
         )
@@ -344,7 +380,7 @@ class OrderController(
             tokenId = BigInteger(tokenId),
             maker = safeAddress(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.TAKE_PRICE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -374,7 +410,7 @@ class OrderController(
             EthUInt256.of(tokenId),
             makerAddress,
             originAddress,
-            PlatformConverter.convert(platform),
+            safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             currencyId?.let { Address.apply(currencyId) },
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
@@ -394,7 +430,7 @@ class OrderController(
         val filter = OrderFilterBidByMakerDto(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
-            platform = platform,
+            platforms = safePlatforms(platform),
             sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
@@ -414,12 +450,12 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = size.limit()
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
-        val makerAddress = if (maker == null) null else Address.apply(maker)
+        val makerAddress = Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
         val filter = PriceOrderVersionFilter.BidByMaker(
             makerAddress,
             originAddress,
-            PlatformConverter.convert(platform),
+            safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
             requestSize,
@@ -428,7 +464,11 @@ class OrderController(
         return searchBids(status, filter, requestSize)
     }
 
-    suspend fun searchBids(status: List<OrderStatusDto>, filter: PriceOrderVersionFilter, requestSize: Int): ResponseEntity<OrdersPaginationDto> {
+    suspend fun searchBids(
+        status: List<OrderStatusDto>,
+        filter: PriceOrderVersionFilter,
+        requestSize: Int
+    ): ResponseEntity<OrdersPaginationDto> {
         val statuses = status.map { BidStatusReverseConverter.convert(it) }
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
@@ -469,9 +509,10 @@ class OrderController(
     ): OrdersPaginationDto {
         val requestSize = size.limit()
 
-        val result = orderService.findOrders(filter.featured(featureFlags), requestSize, continuation)
+        val result = orderService.findOrders(filter, requestSize, continuation)
 
-        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
+        val nextContinuation =
+            if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
 
         return OrdersPaginationDto(
             result.map { orderDtoConverter.convert(it) },
@@ -497,11 +538,15 @@ class OrderController(
                         Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
                     }
                 }
-            }).toString()
+        }).toString()
     }
 
     private fun safeAddress(value: String?): Address? {
         return if (value == null) null else Address.apply(value)
+    }
+
+    private fun safePlatforms(platform: PlatformDto?): List<PlatformDto> {
+        return platformFeaturedFilter.filter(platform)
     }
 
     private fun convert(source: List<PartDto>): List<Part> {
@@ -518,21 +563,5 @@ class OrderController(
 
     private fun toContinuation(orderVersion: OrderVersion): String {
         return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash).toString()
-    }
-
-    private fun OrderFilterDto.featured(featureFlags: OrderIndexerProperties.FeatureFlags): OrderFilterDto {
-        return  if (platform == null && featureFlags.showAllOrdersByDefault) {
-            when (this) {
-                is OrderFilterAllDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterBidByItemDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterBidByMakerDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterSellByCollectionDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterSellByItemDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterSellByMakerDto -> copy(platform = PlatformDto.ALL)
-                is OrderFilterSellDto -> copy(platform = PlatformDto.ALL)
-            }
-        } else {
-            this
-        }
     }
 }

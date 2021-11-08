@@ -9,6 +9,7 @@ import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
 import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
+import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
@@ -21,6 +22,7 @@ import java.time.OffsetDateTime
 @RestController
 class OrderBidController(
     private val orderBidsService: OrderBidsService,
+    private val platformFeaturedFilter: PlatformFeaturedFilter,
     private val bidDtoConverter: BidDtoConverter
 ) : OrderBidControllerApi {
 
@@ -45,7 +47,7 @@ class OrderBidController(
             EthUInt256.of(tokenId),
             makerAddress,
             originAddress,
-            PlatformConverter.convert(platform),
+            safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             null,
             startDate?.toInstant(),
             endDate?.toInstant(),
@@ -61,6 +63,10 @@ class OrderBidController(
             nextContinuation
         )
         return ResponseEntity.ok(result)
+    }
+
+    private fun safePlatforms(platform: PlatformDto?): List<PlatformDto> {
+        return platformFeaturedFilter.filter(platform)
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {

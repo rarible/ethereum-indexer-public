@@ -6,11 +6,11 @@ import org.springframework.core.convert.converter.Converter
 
 object PlatformConverter : Converter<PlatformDto, Platform> {
     override fun convert(source: PlatformDto?): Platform? {
-        return when (source ?: PlatformDto.RARIBLE) {
+        return when (source) {
             PlatformDto.RARIBLE -> Platform.RARIBLE
             PlatformDto.OPEN_SEA -> Platform.OPEN_SEA
             PlatformDto.CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
-            PlatformDto.ALL -> null
+            PlatformDto.ALL, null -> null
         }
     }
 }
