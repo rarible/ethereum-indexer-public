@@ -22,11 +22,14 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val exchangeContractAddresses: ExchangeContractAddresses,
     @NestedConfigurationProperty
+    val auctionContractAddresses: AuctionContractAddresses,
+    @NestedConfigurationProperty
     val transferProxyAddresses: TransferProxyAddresses,
     @NestedConfigurationProperty
     val publish: PublishProperties = PublishProperties(),
     @NestedConfigurationProperty
-    val featureFlags: FeatureFlags = FeatureFlags()
+    val featureFlags: FeatureFlags = FeatureFlags(),
+    val blockCountBeforeSnapshot: Int = 12
 ) {
     data class ExchangeContractAddresses(
         val v1: Address,
@@ -34,6 +37,10 @@ data class OrderIndexerProperties(
         val v2: Address,
         val openSeaV1: Address,
         var cryptoPunks: Address
+    )
+
+    data class AuctionContractAddresses(
+        val v1: Address
     )
 
     data class TransferProxyAddresses(

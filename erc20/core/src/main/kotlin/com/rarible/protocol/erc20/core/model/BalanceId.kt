@@ -1,12 +1,11 @@
 package com.rarible.protocol.erc20.core.model
 
-import com.rarible.core.reduce.model.DataKey
 import scalether.domain.Address
 
 data class BalanceId(
     val token: Address,
     val owner: Address
-) : DataKey {
+) {
 
     val stringValue: String
         get() = "$token:$owner"
