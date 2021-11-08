@@ -49,7 +49,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
                 type = history.auctionType,
                 finished = false,
                 cancelled = false,
-                lastUpdatedAy = history.date,
+                lastUpdateAt = history.date,
                 createdAt = history.date,
                 auctionId = history.auctionId,
                 contract = auctionUpdate.contract,
@@ -58,16 +58,16 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             is BidPlaced -> copy(
                 buyer = history.buyer,
                 lastBid = history.bid,
-                lastUpdatedAy = history.date,
+                lastUpdateAt = history.date,
                 lastEventId = lastEventId
             )
             is AuctionCancelled -> copy(
                 cancelled = true,
-                lastUpdatedAy = history.date
+                lastUpdateAt = history.date
             )
             is AuctionFinished -> withBaseAuction(history).copy(
                 finished = true,
-                lastUpdatedAy = history.date,
+                lastUpdateAt = history.date,
                 lastEventId = lastEventId
             )
         }
@@ -120,11 +120,14 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
                 buyOutPrice = EthUInt256.ZERO
             ),
             createdAt = Instant.EPOCH,
-            lastUpdatedAy = Instant.EPOCH,
+            lastUpdateAt = Instant.EPOCH,
             lastEventId = null,
             auctionId = EthUInt256.ZERO,
             protocolFee = EthUInt256.ZERO,
+            platform = Platform.RARIBLE,
             contract = Address.ZERO(),
+            buyPrice = null,
+            buyPriceUsd = null,
             pending = emptyList()
         )
 

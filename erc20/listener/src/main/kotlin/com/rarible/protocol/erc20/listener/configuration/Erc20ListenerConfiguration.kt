@@ -12,7 +12,7 @@ import com.rarible.protocol.erc20.core.listener.KafkaErc20BalanceEventListener
 import com.rarible.protocol.erc20.core.producer.ProtocolEventPublisher
 import com.rarible.protocol.erc20.listener.Erc20ListenerApplication
 import com.rarible.protocol.erc20.listener.service.balance.BalanceReducer
-import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceDataRepository
+import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceUpdateService
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceEventRepository
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -43,14 +43,14 @@ class Erc20ListenerConfiguration {
         balanceReducer: BalanceReducer,
         eventRepository: Erc20BalanceReduceEventRepository,
         snapshotRepository: BalanceSnapshotRepository,
-        dataRepository: Erc20BalanceReduceDataRepository,
+        erc20BalanceUpdateService: Erc20BalanceUpdateService,
         properties: Erc20ListenerProperties
     ): Erc20BalanceReduceService {
         return ReduceService(
             reducer = balanceReducer,
             eventRepository = eventRepository,
             snapshotRepository = snapshotRepository,
-            dataRepository = dataRepository,
+            updateService = erc20BalanceUpdateService,
             snapshotStrategy = BlockchainSnapshotStrategy(properties.blockCountBeforeSnapshot)
         )
     }

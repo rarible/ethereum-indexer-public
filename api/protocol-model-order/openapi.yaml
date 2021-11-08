@@ -1038,10 +1038,29 @@ components:
     ObjectNode:
       type: object
 
+    AuctionSort:
+      type: string
+      enum:
+        - LAST_UPDATE_ASC
+        - LAST_UPDATE_DESC
+        - BUY_PRICE_ASC
+
     AuctionData:
       type: object
       oneOf:
         - "$ref": "#/components/schemas/RaribleAuctionV1DataV1"
+
+    AuctionsPagination:
+      type: object
+      required:
+        - auctions
+      properties:
+        auctions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Auction"
+        continuation:
+          type: string
 
     RaribleAuctionV1DataV1:
       type: object
@@ -1065,6 +1084,9 @@ components:
           description: "Value of the payouts for the auction"
           items:
             "$ref": "#/components/schemas/Part"
+        startTime:
+          type: string
+          format: date-time
         duration:
           $ref: "#/components/schemas/BigInteger"
         buyOutPrice:
@@ -1091,12 +1113,10 @@ components:
         - seller
         - sell
         - buy
-        - startTime
-        - endTime
         - minimalStep
         - minimalPrice
         - createdAt
-        - lastUpdatedAy
+        - lastUpdateAt
         - status
         - hash
       properties:
@@ -1108,9 +1128,6 @@ components:
           $ref: "#/components/schemas/Asset"
         buy:
           $ref: "#/components/schemas/AssetType"
-        startTime:
-          type: string
-          format: date-time
         endTime:
           type: string
           format: date-time
@@ -1124,6 +1141,10 @@ components:
         lastUpdateAt:
           type: string
           format: date-time
+        buyPrice:
+          $ref: "#/components/schemas/BigDecimal"
+        buyPriceUsd:
+          $ref: "#/components/schemas/BigDecimal"
         pending:
           type: array
           items:

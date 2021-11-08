@@ -48,16 +48,6 @@ class AuctionHistoryRepository(
             .asFlow()
     }
 
-    fun findLogEvents(hash: Word?, from: Word? = null): Flux<LogEvent> {
-        val criteria = when {
-            hash != null -> LogEvent::data / AuctionHistory::hash isEqualTo hash
-            from != null -> LogEvent::data / AuctionHistory::hash gt from
-            else -> Criteria()
-        }
-        val query = Query(criteria).with(LOG_SORT_ASC)
-        return template.find(query, COLLECTION)
-    }
-
     fun findAll(): Flux<LogEvent> {
         return template.findAll(COLLECTION)
     }

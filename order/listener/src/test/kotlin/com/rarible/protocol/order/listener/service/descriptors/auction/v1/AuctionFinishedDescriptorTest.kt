@@ -29,6 +29,7 @@ internal class AuctionFinishedDescriptorTest : AbstractAuctionDescriptorTest() {
                 val auction = auctionRepository.findById(chainAuction.hash)
                 assertThat(auction).isNotNull
                 assertThat(auction?.finished).isTrue()
+                assertThat(auction?.cancelled).isTrue()
             }
         }
     }

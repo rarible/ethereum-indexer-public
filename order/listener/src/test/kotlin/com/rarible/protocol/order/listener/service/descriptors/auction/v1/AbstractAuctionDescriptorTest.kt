@@ -10,10 +10,10 @@ import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
-import com.rarible.protocol.order.listener.data.randomAuction
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import kotlinx.coroutines.FlowPreview
@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import scala.Tuple6
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
@@ -45,6 +46,9 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     protected lateinit var privateKey2: BigInteger
 
     @Autowired
+    protected lateinit var auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
+
+    @Autowired
     protected lateinit var auctionHistoryRepository: AuctionHistoryRepository
 
     @Autowired
@@ -64,23 +68,15 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     @BeforeEach
     fun before() {
-        privateKey1 = Numeric.toBigInt(RandomUtils.nextBytes(32))
-        privateKey2 = Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val newSender1 = newSender()
+        val newSender2 = newSender()
 
-        userSender1 = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey1,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
-        userSender2 = MonoSigningTransactionSender(
-            ethereum,
-            MonoSimpleNonceProvider(ethereum),
-            privateKey2,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+        privateKey1 = newSender1.third
+        privateKey2 = newSender2.third
+
+        userSender1 = newSender1.second
+        userSender2 = newSender2.second
+
         token1 = TestERC20.deployAndWait(sender, poller, "Test1", "TST1").block()!!
         token2 = TestERC20.deployAndWait(sender, poller, "Test2", "TST2").block()!!
         token721 = TestERC721.deployAndWait(sender, poller).block()!!
@@ -105,16 +101,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         token721.setApprovalForAll(transferProxy.address(), true).withSender(userSender1).execute().verifySuccess()
         token721.setApprovalForAll(transferProxy.address(), true).withSender(userSender2).execute().verifySuccess()
 
-        listOf(
-            auctionCreatedDescriptor,
-            auctionBidDescriptor,
-            auctionFinishedDescriptor,
-            auctionCancelDescriptor
-        ).forEach(::setAuctionContract)
-    }
-
-    private fun setAuctionContract(descriptor: AbstractAuctionDescriptor<*>) {
-        setField(descriptor, "auctionContract", auctionHouse.address())
+        auctionContractAddresses.v1 = auctionHouse.address()
     }
 
     private fun mintErc721(sender: MonoSigningTransactionSender): Erc721AssetType {
@@ -182,14 +169,13 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         val minimalPrice: EthUInt256,
         val data: AuctionData
     ) {
-        fun forTx() = run {
-            randomAuction().copy(
-                sell = sell,
-                buy = buy,
-                minimalStep = minimalStep,
-                minimalPrice = minimalPrice,
-                data = data
-            ).forTx()
-        }
+        fun forTx() = Tuple6(
+            sell.forTx(),
+            buy.forTx(),
+            minimalStep.value,
+            minimalPrice.value,
+            data.getDataVersion(),
+            data.toEthereum().bytes()
+        )
     }
 }

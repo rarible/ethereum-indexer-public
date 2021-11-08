@@ -1490,6 +1490,291 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
+  ####################### Auctions-Search API ########################
+
+  "/v0.1/auctions/{hash}":
+    get:
+      tags:
+        - auction-controller
+      description: Returns the auction by hash
+      operationId: getAuctionByHash
+      parameters:
+        - name: hash
+          description: "Hash of the auction"
+          in: path
+          required: true
+          schema:
+            type: string
+          example: 0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0
+      x-codeSamples:
+        - lang: 'cURL'
+          source: |
+            curl --request GET \
+            --url 'https://ethereum-api.rarible.org/v0.1/auction/auctions/0x38a2616dcff042fa157b2d5389171fe6f1d92c9dc3c85b7465a7e60948bf3ba0'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Auction"
+        '404':
+          $ref: "#/components/responses/EntityNotFound"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/auctions/all":
+    get:
+      deprecated: true
+      tags:
+        - auction-controller
+      description: Returns all auctions by specified parameters
+      operationId: getAuctionsAll
+      parameters:
+        - name: sort
+          description: "Sorting by target criteria"
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/AuctionSort"
+        - name: status
+          description: "The auction status"
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AuctionStatus"
+        - name: origin
+          description: "Address of the consumer to receive the commission for auction"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          description: "The platform where the auction was created"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          description: "Continuation token from the previous response"
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          description: "The number of auctions to return"
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/AuctionPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/auctions/bySeller":
+    get:
+      tags:
+        - auction-controller
+      operationId: getAuctionsBySeller
+      description: Returns all auctions by seller
+      parameters:
+        - name: seller
+          description: "The seller of the auction"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: status
+          description: "The auction status"
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AuctionStatus"
+        - name: origin
+          description: "Address of the consumer to receive the commission for auction"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          description: "The platform where the auction was created"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          description: "Continuation token from the previous response"
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          description: "The number of items to return"
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/AuctionPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/auctions/byItem":
+    get:
+      tags:
+        - auction-controller
+      operationId: getAuctionsByItem
+      description: Returns all auctions by item
+      parameters:
+        - name: contract
+          description: "Address of the contract"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: tokenId
+          description: "Token identifier"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BigInteger"
+        - name: seller
+          description: "The maker of the order"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: sort
+          description: "Sorting by target criteria"
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/AuctionSort"
+        - name: origin
+          description: "Address of the consumer to receive the commission for order"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: status
+          description: "The auction status"
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AuctionStatus"
+        - name: currencyId
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: platform
+          description: "The platform where the order was created"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          description: "Continuation token from the previous response"
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          description: "The number of items to return"
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/AuctionPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
+  "/v0.1/auctions/byCollection":
+    get:
+      tags:
+        - auction-controller
+      operationId: getAuctionsByCollection
+      description: Returns all auctions by collection
+      parameters:
+        - name: contract
+          description: "Address of the NFT collection"
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: seller
+          description: "The maker of the order"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: origin
+          description: "Address of the consumer to receive the commission for auction"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Address"
+        - name: status
+          description: "The order status"
+          in: query
+          required: false
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AuctionStatus"
+        - name: platform
+          description: "The platform where the auction was created"
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/Platform"
+        - name: continuation
+          description: "Continuation token from the previous response"
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: size
+          description: "The number of items to return"
+          in: query
+          required: false
+          schema:
+            minimum: 1
+            type: integer
+            format: int32
+      responses:
+        '200':
+          $ref: "#/components/responses/AuctionPage"
+        '400':
+          $ref: "#/components/responses/BadRequest"
+        '500':
+          $ref: "#/components/responses/ServerError"
+
 components:
   responses:
     OrderPage:
@@ -1518,6 +1803,12 @@ components:
             type: array
             items:
               $ref: "#/components/schemas/AggregationData"
+    AuctionPage:
+      description: OK
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AuctionsPagination"
 
     OrderUpdateApiError:
       description: OK

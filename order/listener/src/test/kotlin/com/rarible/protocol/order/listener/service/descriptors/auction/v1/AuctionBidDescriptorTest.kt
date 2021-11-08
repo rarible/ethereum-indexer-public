@@ -47,6 +47,7 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
                 Assertions.assertThat(auction).isNotNull
                 Assertions.assertThat(auction?.finished).isFalse()
                 Assertions.assertThat(auction?.cancelled).isFalse()
+                Assertions.assertThat(auction?.status).isEqualTo(AuctionStatus.ACTIVE)
             }
         }
     }
