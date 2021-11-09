@@ -29,7 +29,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             }
             else -> auction
         }
-        return AuctionReduceSnapshot(hash, result, event.mark)
+        return AuctionReduceSnapshot(hash, result.withCalculatedState(), event.mark)
     }
 
     override fun getDataKeyFromEvent(event: AuctionReduceEvent): Word {

@@ -40,7 +40,8 @@ class AuctionCreatedDescriptor(
                 date = date,
                 contract = contract,
                 auctionId = auctionId,
-                hash = Auction.raribleV1HashKey(contract, auctionId)
+                hash = Auction.raribleV1HashKey(contract, auctionId),
+                source = HistorySource.RARIBLE
             )
         )
     }

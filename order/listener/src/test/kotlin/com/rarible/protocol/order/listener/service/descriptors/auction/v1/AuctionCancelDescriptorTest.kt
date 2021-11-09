@@ -10,6 +10,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import java.time.Duration
 
 @FlowPreview
 @IntegrationTest

@@ -14,7 +14,7 @@ class AuctionUpdateService(
 
     override suspend fun update(data: Auction) {
         if (data.deleted.not()) {
-            val updatedAuction = auctionRepository.save(data.withCalculatedState())
+            val updatedAuction = auctionRepository.save(data)
             auctionListeners.forEach { listener -> listener.onAuctionUpdate(updatedAuction) }
         } else {
             auctionRepository.remove(data.hash)

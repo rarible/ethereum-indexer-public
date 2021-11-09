@@ -382,8 +382,6 @@ components:
         - seller
         - sell
         - buy
-        - startTime
-        - endTime
         - minimalStep
         - minimalPrice
         - transactionHash
@@ -407,6 +405,8 @@ components:
         endTime:
           type: string
           format: date-time
+        duration:
+          $ref: "#/components/schemas/BigInteger"
         minimalStep:
           $ref: "#/components/schemas/BigDecimal"
         minimalPrice:
@@ -1125,7 +1125,7 @@ components:
         - amount
       properties:
         amount:
-          $ref: "#/components/schemas/BigInteger"
+          $ref: "#/components/schemas/BigDecimal"
       oneOf:
         - "$ref": "#/components/schemas/RaribleAuctionV1BidV1"
 
