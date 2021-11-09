@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.remove
 import scalether.domain.Address
 
 class AuctionRepository(
@@ -28,8 +29,13 @@ class AuctionRepository(
         }
     }
 
-    suspend fun save(data: Auction): Auction {
-        return template.save(data).awaitFirst()
+    suspend fun save(auction: Auction): Auction {
+        return template.save(auction).awaitFirst()
+    }
+
+    suspend fun remove(hash: Word) {
+        val criteria = Criteria.where("_id").isEqualTo(hash)
+        template.remove<Auction>(Query(criteria)).awaitFirst()
     }
 
     suspend fun findById(hash: Word): Auction? {

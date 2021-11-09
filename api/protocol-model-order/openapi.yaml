@@ -1181,7 +1181,7 @@ components:
       properties:
         eventId:
           type: string
-        orderId:
+        auctionId:
           type: string
       oneOf:
         - "$ref": "#/components/schemas/AuctionUpdateEvent"

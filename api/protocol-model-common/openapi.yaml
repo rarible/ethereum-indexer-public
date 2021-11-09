@@ -76,6 +76,7 @@ components:
       oneOf:
         - $ref: "#/components/schemas/OrderActivity"
         - $ref: "#/components/schemas/NftActivity"
+        - $ref: "#/components/schemas/AuctionActivity"
 
     OrderActivityMatchSide:
       type: object
@@ -410,6 +411,15 @@ components:
           $ref: "#/components/schemas/BigDecimal"
         minimalPrice:
           $ref: "#/components/schemas/BigDecimal"
+        transactionHash:
+          $ref: "#/components/schemas/Word"
+        blockHash:
+          $ref: "#/components/schemas/Word"
+        blockNumber:
+          type: integer
+          format: int64
+        logIndex:
+          type: integer
         hash:
           $ref: "#/components/schemas/Word"
 
@@ -432,6 +442,15 @@ components:
           $ref: "#/components/schemas/Word"
         bid:
           $ref: "#/components/schemas/AuctionBid"
+        transactionHash:
+          $ref: "#/components/schemas/Word"
+        blockHash:
+          $ref: "#/components/schemas/Word"
+        blockNumber:
+          type: integer
+          format: int64
+        logIndex:
+          type: integer
 
     AuctionActivityFinish:
       type: object
@@ -449,6 +468,15 @@ components:
             - "finish"
         hash:
           $ref: "#/components/schemas/Word"
+        transactionHash:
+          $ref: "#/components/schemas/Word"
+        blockHash:
+          $ref: "#/components/schemas/Word"
+        blockNumber:
+          type: integer
+          format: int64
+        logIndex:
+          type: integer
 
     AuctionActivityCancel:
       type: object
@@ -466,6 +494,15 @@ components:
             - "cancel"
         hash:
           $ref: "#/components/schemas/Word"
+        transactionHash:
+          $ref: "#/components/schemas/Word"
+        blockHash:
+          $ref: "#/components/schemas/Word"
+        blockNumber:
+          type: integer
+          format: int64
+        logIndex:
+          type: integer
 
     Activities:
       type: object

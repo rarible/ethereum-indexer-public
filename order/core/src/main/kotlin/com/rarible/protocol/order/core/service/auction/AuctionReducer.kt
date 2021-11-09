@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -97,8 +96,6 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
     }
 
     companion object {
-        private val EMPTY_AUCTION_HASH = 0.toBigInteger().toWord()
-
         private val EMPTY_ACTION = Auction(
             type = AuctionType.RARIBLE_V1,
             status = AuctionStatus.ACTIVE,
@@ -112,6 +109,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             minimalPrice = EthUInt256.ZERO,
             finished = false,
             cancelled = false,
+            deleted = false,
             data = RaribleAuctionV1DataV1(
                 originFees = emptyList(),
                 payouts = emptyList(),

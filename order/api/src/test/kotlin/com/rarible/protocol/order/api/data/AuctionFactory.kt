@@ -5,7 +5,6 @@ import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.*
-import java.math.BigDecimal
 import java.time.Instant
 
 fun randomAuction(): Auction {
@@ -22,6 +21,7 @@ fun randomAuction(): Auction {
         minimalPrice = EthUInt256.ZERO,
         finished = false,
         cancelled = false,
+        deleted = false,
         data = randomAuctionV1DataV1(),
         createdAt = Instant.EPOCH,
         lastUpdateAt = Instant.EPOCH,

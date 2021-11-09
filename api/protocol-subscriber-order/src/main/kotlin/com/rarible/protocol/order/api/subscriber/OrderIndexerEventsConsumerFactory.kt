@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.subscriber
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.dto.AuctionEventDto
 import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.dto.OrderIndexerTopicProvider
@@ -19,7 +20,7 @@ class OrderIndexerEventsConsumerFactory(
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = OrderEventDto::class.java,
             consumerGroup = consumerGroup,
-            defaultTopic = OrderIndexerTopicProvider.getUpdateTopic(environment, blockchain.value),
+            defaultTopic = OrderIndexerTopicProvider.getOrderUpdateTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
     }
@@ -31,6 +32,17 @@ class OrderIndexerEventsConsumerFactory(
             valueClass = NftOrdersPriceUpdateEventDto::class.java,
             consumerGroup = consumerGroup,
             defaultTopic = OrderIndexerTopicProvider.getPriceUpdateTopic(environment, blockchain.value),
+            bootstrapServers = brokerReplicaSet
+        )
+    }
+
+    fun createAuctionEventsConsumer(consumerGroup: String, blockchain: Blockchain): RaribleKafkaConsumer<AuctionEventDto> {
+        return RaribleKafkaConsumer(
+            clientId = "${createClientIdPrefix(blockchain)}.order-indexer-auction-events-consumer",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = AuctionEventDto::class.java,
+            consumerGroup = consumerGroup,
+            defaultTopic = OrderIndexerTopicProvider.getAuctionUpdateTopic(environment, blockchain.value),
             bootstrapServers = brokerReplicaSet
         )
     }
