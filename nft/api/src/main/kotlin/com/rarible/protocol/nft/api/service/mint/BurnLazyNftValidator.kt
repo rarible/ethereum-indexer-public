@@ -20,21 +20,19 @@ class BurnLazyNftValidator(
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
             ?: throw EntityNotFoundApiException("Item", itemId)
 
-        val mintCreators = lazyMint.creators.map { it.account }
-        val burnCreators = burnLazyNftDto.creators
+        val mintCreator = lazyMint.creators.map { it.account }.first()
+        val burnCreator = burnLazyNftDto.creators.first()
 
-        if (setOf(mintCreators) != setOf(burnCreators)) {
+        if (mintCreator != burnCreator) {
             throw ValidationApiException("Incorrect creators for $itemId")
         }
 
-        burnCreators.indices.forEach { i ->
-            val address = burnLazyNftDto.creators[i]
-            val signature = burnLazyNftDto.signatures[i]
-            val hash = Word(Hash.sha3(ERC1271SignService.addStart(msg).bytes()))
-            val recovered = signService.recover(hash, signature)
-            if (address != recovered) {
-                throw ValidationApiException("Incorrect signature for $itemId")
-            }
+        // It's enough to check only the first creator
+        val signature = burnLazyNftDto.signatures.first()
+        val hash = Word(Hash.sha3(ERC1271SignService.addStart(msg).bytes()))
+        val recovered = signService.recover(hash, signature)
+        if (burnCreator != recovered) {
+            throw ValidationApiException("Incorrect signature for $itemId")
         }
     }
 }
