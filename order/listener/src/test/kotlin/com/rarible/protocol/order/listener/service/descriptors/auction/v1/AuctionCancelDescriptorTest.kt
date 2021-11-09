@@ -1,6 +1,9 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.core.test.wait.Wait
+import com.rarible.protocol.dto.AuctionActivityCancelDto
+import com.rarible.protocol.dto.AuctionActivityFinishDto
+import com.rarible.protocol.dto.AuctionUpdateEventDto
 import com.rarible.protocol.order.core.model.AuctionCancelled
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.AuctionStatus
@@ -32,6 +35,16 @@ internal class AuctionCancelDescriptorTest : AbstractAuctionDescriptorTest() {
                 Assertions.assertThat(auction?.finished).isTrue()
                 Assertions.assertThat(auction?.cancelled).isTrue()
                 Assertions.assertThat(auction?.status).isEqualTo(AuctionStatus.CANCELLED)
+            }
+            checkAuctionEventWasPublished {
+                Assertions.assertThat(this).isInstanceOfSatisfying(AuctionUpdateEventDto::class.java) {
+                    Assertions.assertThat(it.auctionId).isEqualTo(chainAuction.hash.toString())
+                }
+            }
+            checkActivityWasPublished {
+                Assertions.assertThat(this).isInstanceOfSatisfying(AuctionActivityCancelDto::class.java) {
+                    Assertions.assertThat(it.hash).isEqualTo(chainAuction.hash)
+                }
             }
         }
     }

@@ -3,6 +3,8 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.AuctionActivityBidDto
+import com.rarible.protocol.dto.AuctionUpdateEventDto
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
@@ -48,6 +50,16 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
                 Assertions.assertThat(auction?.finished).isFalse()
                 Assertions.assertThat(auction?.cancelled).isFalse()
                 Assertions.assertThat(auction?.status).isEqualTo(AuctionStatus.ACTIVE)
+            }
+            checkAuctionEventWasPublished {
+                Assertions.assertThat(this).isInstanceOfSatisfying(AuctionUpdateEventDto::class.java) {
+                    Assertions.assertThat(it.auctionId).isEqualTo(chainAuction.hash.toString())
+                }
+            }
+            checkActivityWasPublished {
+                Assertions.assertThat(this).isInstanceOfSatisfying(AuctionActivityBidDto::class.java) {
+                    Assertions.assertThat(it.hash).isEqualTo(chainAuction.hash)
+                }
             }
         }
     }

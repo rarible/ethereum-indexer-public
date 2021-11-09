@@ -20,6 +20,8 @@ common:
     erc721-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     erc1155-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
+  publish:
+    publishAuctionActivity: true
 
 listener:
   load-open-sea-orders: false
