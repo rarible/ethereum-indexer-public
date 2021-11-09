@@ -98,17 +98,12 @@ object OrderFilterCriteria {
     }
 
     private fun tokenCondition(token: Address, tokenId: EthUInt256): Criteria {
-        val forToken = listOfNotNull(
+        return Criteria().andOperator(
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId
-        )
-        val forCollection = listOfNotNull(
-            Order::make / Asset::type / NftAssetType::token isEqualTo token,
-            Order::make / Asset::type / NftAssetType::tokenId exists false
-        )
-        return Criteria().orOperator(
-            Criteria().andOperator(*forToken.toTypedArray()),
-            Criteria().andOperator(*forCollection.toTypedArray())
+            Criteria().orOperator(
+                Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                Order::make / Asset::type / NftAssetType::tokenId exists false
+            )
         )
     }
 
