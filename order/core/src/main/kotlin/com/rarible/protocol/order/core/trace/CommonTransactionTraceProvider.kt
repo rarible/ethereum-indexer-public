@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.java.Lists
-import java.math.BigInteger
 import kotlin.math.pow
 
 class CommonTransactionTraceProvider(
@@ -68,7 +67,7 @@ class CommonTransactionTraceProvider(
             val to = requireNotNull(action.to) { "To can't be null" }
             val input = requireNotNull(action.input) { "Input can't be null" }
             val valueHexString = requireNotNull(action.value) { "Value can't be null" }
-            val output = trace.result?.output ?: "0x"
+            val output = trace.result?.output
             return SimpleTraceResult(
                 type = type,
                 from = from,
