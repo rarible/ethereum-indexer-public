@@ -1,15 +1,37 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.dto.OrderFilterAllDto
+import com.rarible.protocol.dto.OrderFilterBidByItemDto
+import com.rarible.protocol.dto.OrderFilterBidByMakerDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
+import com.rarible.protocol.dto.OrderFilterSellByItemDto
+import com.rarible.protocol.dto.OrderFilterSellByMakerDto
+import com.rarible.protocol.dto.OrderFilterSellDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.limit
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 
 object OrderFilterCriteria {
@@ -17,7 +39,7 @@ object OrderFilterCriteria {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
-            is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
+            is OrderFilterAllDto -> Criteria().withNoHint()
             is OrderFilterSellDto -> sell().withNoHint()
             is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
@@ -30,7 +52,7 @@ object OrderFilterCriteria {
 
         val query = Query(
             criteria
-                .forPlatform(convert(platform))
+                .forPlatform(platforms.mapNotNull { convert(it) })
                 .scrollTo(continuation, this.sort, this.currency)
                 .fromOrigin(origin)
         ).limit(requestLimit).with(sort(this.sort, this.currency))
@@ -123,9 +145,13 @@ object OrderFilterCriteria {
             .elemMatch(Criteria.where(Part::account.name).`is`(origin))
     } ?: this
 
-    private infix fun Criteria.forPlatform(platform: Platform?) = platform?.let {
-        and(Order::platform).isEqualTo(platform)
-    } ?: this
+    private infix fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
+        return if (platforms.isEmpty()) {
+            this
+        } else {
+            and(Order::platform).inValues(platforms)
+        }
+    }
 
     private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort, currency: Address?) =
         when (sort) {
@@ -199,19 +225,8 @@ object OrderFilterCriteria {
             }
         }
 
-    private fun convert(platform: PlatformDto?): Platform? = PlatformConverter.convert(platform)
+    private fun convert(platform: PlatformDto): Platform? = PlatformConverter.convert(platform)
 
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
-
-    private fun Criteria.withCurrencyHint(
-        currencyId: Address?,
-        index: Document,
-        legacyIndex: Document
-    ): Pair<Criteria, Document?> {
-        return currencyId?.let { Pair<Criteria, Document?>(this, index) } ?: Pair<Criteria, Document?>(
-            this,
-            legacyIndex
-        )
-    }
 }
