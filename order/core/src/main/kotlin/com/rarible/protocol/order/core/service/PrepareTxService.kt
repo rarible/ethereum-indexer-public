@@ -121,8 +121,14 @@ class PrepareTxService(
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
         val orderRight = order.invert(form.maker, form.amount)
-            .copy(data = OrderRaribleV2DataV1(form.payouts.toPartList(), form.originFees.toPartList()))
+            .copy(data = order.data.withNewPayoutsAndOriginFees(form.payouts.toPartList(), form.originFees.toPartList()))
         return prepareTxFor2Orders(order, orderRight)
+    }
+
+    private fun OrderData.withNewPayoutsAndOriginFees(newPayouts: List<Part>, newOriginFees: List<Part>) = when (this) {
+        is OrderRaribleV2DataV1 -> copy(payouts = newPayouts, originFees = newOriginFees)
+        is OrderRaribleV2DataV2 -> copy(payouts = newPayouts, originFees = newOriginFees)
+        else -> this
     }
 
     private fun prepareTxForOpenSeaV1(
@@ -321,7 +327,12 @@ class PrepareTxService(
         order: Order,
         orderRight: Order
     ): PrepareTxResponse {
-        val fee = (orderRight.data as OrderRaribleV2DataV1).originFees.map { it.value.value.toInt() }.sum() + protocolCommission
+        val originFees = when (orderRight.data) {
+            is OrderRaribleV2DataV1 -> orderRight.data.originFees
+            is OrderRaribleV2DataV2 -> orderRight.data.originFees
+            else -> error("Unsupported data for the right order: ${orderRight.data}")
+        }
+        val fee = originFees.map { it.value.value.toInt() }.sum() + protocolCommission
         logger.info("inverted order: $orderRight")
 
         val data = ExchangeV2.matchOrdersSignature().encode(

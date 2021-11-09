@@ -10,10 +10,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import scala.Tuple10
-import scala.Tuple3
-import scala.Tuple4
-import scala.Tuple9
+import scala.*
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -66,7 +63,7 @@ data class Order(
     val lastEventId: String? = null,
 
     @Id
-    val hash: Word = hashKey(maker, make.type, take.type, salt.value),
+    val hash: Word = hashKey(maker, make.type, take.type, salt.value, data),
 
     /**
      * TODO: we need this field only temporarily, until the "OrderReduceService" refactoring commit is released and is proven to be stable.
@@ -125,22 +122,6 @@ data class Order(
         )
     }
 
-    fun withNewValues(
-        make: EthUInt256,
-        take: EthUInt256,
-        makeStock: EthUInt256,
-        signature: Binary?,
-        updateAt: Instant
-    ): Order {
-        return copy(
-            make = this.make.copy(value = make),
-            take = this.take.copy(value = take),
-            makeStock = makeStock,
-            signature = signature,
-            lastUpdateAt = maxOf(lastUpdateAt, updateAt)
-        )
-    }
-
     fun withOrderUsdValue(usdValue: OrderUsdValue): Order {
         return copy(
             takePriceUsd = usdValue.takePriceUsd,
@@ -150,13 +131,13 @@ data class Order(
         )
     }
 
-    fun withTakePrice(price: BigDecimal?): Order {
-        return copy(takePriceUsd = price)
-    }
-
-    fun withMakePrice(price: BigDecimal?): Order {
-        return copy(makePriceUsd = price)
-    }
+    /**
+     * If `true`, the [fill] applies to the [take] side, otherwise to the [make] side.
+     *
+     * Historically, all Rarible V2 orders were by take side.
+     * Later DataV2 was introduced with "isMakeFill" flag to support the fill by make.
+     */
+    val isMakeFillOrder: Boolean get() = (data as? OrderRaribleV2DataV2)?.isMakeFill == true
 
     companion object {
         /**
@@ -180,7 +161,7 @@ data class Order(
             if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !isAlive(start, end)) {
                 return EthUInt256.ZERO
             }
-            val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled)
+            val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled, data)
             val fee = if (feeSide == FeeSide.MAKE) calculateFee(data, protocolCommission) else EthUInt256.ZERO
 
             val roundedMakeBalance = calculateRoundedMakeBalance(
@@ -217,10 +198,15 @@ data class Order(
             makeValue: EthUInt256,
             takeValue: EthUInt256,
             fill: EthUInt256,
-            cancelled: Boolean
+            cancelled: Boolean,
+            data: OrderData
         ): Pair<EthUInt256, EthUInt256> {
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
+            } else if ((data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+                val make = makeValue - fill
+                val take = make * takeValue / makeValue
+                make to take
             } else {
                 val take = takeValue - fill
                 val make = take * makeValue / takeValue
@@ -231,6 +217,7 @@ data class Order(
         private fun calculateFee(data: OrderData, protocolCommission: EthUInt256): EthUInt256 {
             return when (data) {
                 is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
+                is OrderRaribleV2DataV2 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
                 is OrderCryptoPunksData -> EthUInt256.ZERO
@@ -447,17 +434,40 @@ data class Order(
             )
         }
 
-        fun hashKey(maker: Address, makeAssetType: AssetType, takeAssetType: AssetType, salt: BigInteger): Word =
-            keccak256(
-                Tuples.orderKeyHashType().encode(
-                    Tuple4(
-                        maker,
-                        AssetType.hash(makeAssetType).bytes(),
-                        AssetType.hash(takeAssetType).bytes(),
-                        salt
+        fun hashKey(
+            maker: Address,
+            makeAssetType: AssetType,
+            takeAssetType: AssetType,
+            salt: BigInteger,
+            data: OrderData? = null
+        ): Word = when (data) {
+            is OrderRaribleV2DataV2 -> {
+                // For RaribleV2 DataV2 hash contains the data bytes.
+                keccak256(
+                    Tuples.orderKeyHashTypeDataV2().encode(
+                        Tuple5(
+                            maker,
+                            AssetType.hash(makeAssetType).bytes(),
+                            AssetType.hash(takeAssetType).bytes(),
+                            salt,
+                            data.toEthereum().bytes()
+                        )
                     )
                 )
-            )
+            }
+            else -> {
+                keccak256(
+                    Tuples.orderKeyHashTypeDataV1().encode(
+                        Tuple4(
+                            maker,
+                            AssetType.hash(makeAssetType).bytes(),
+                            AssetType.hash(takeAssetType).bytes(),
+                            salt
+                        )
+                    )
+                )
+            }
+        }
 
         private val TYPE_HASH =
             keccak256("Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)")
@@ -481,16 +491,13 @@ fun Order.invert(maker: Address, amount: BigInteger, newSalt: Word = zeroWord())
     this.copy(
         maker = maker,
         taker = this.maker,
-        make = take,
-        take = make,
-        hash = Order.hashKey(maker, take.type, make.type, salt.value),
-        salt = EthUInt256.of(newSalt)
-    ).withNewValues(
-        make = EthUInt256(makeValue),
-        take = EthUInt256(takeValue),
+        make = take.copy(value = EthUInt256(makeValue)),
+        take = make.copy(value = EthUInt256(takeValue)),
+        hash = Order.hashKey(maker, take.type, make.type, salt.value, data),
+        salt = EthUInt256.of(newSalt),
         makeStock = EthUInt256.ZERO,
         signature = null,
-        updateAt = nowMillis()
+        lastUpdateAt = nowMillis()
     )
 }
 

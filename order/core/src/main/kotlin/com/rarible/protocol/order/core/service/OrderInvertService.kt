@@ -33,10 +33,18 @@ class OrderInvertService(
         amount: BigInteger,
         salt: Word,
         originFees: List<Part>
-    ): Order {
-        return order
-            .invert(maker, amount, salt)
-            .copy(data = OrderRaribleV2DataV1(emptyList(), originFees) )
+    ): Order = order
+        .invert(maker, amount, salt)
+        .let {
+            it.copy(
+                data = it.data.withOriginFees(originFees)
+            )
+        }
+
+    private fun OrderData.withOriginFees(newFees: List<Part>) = when (this) {
+        is OrderRaribleV2DataV1 -> copy(originFees = newFees)
+        is OrderRaribleV2DataV2 -> copy(originFees = newFees)
+        else -> this
     }
 
     private fun invertOpenSeaV1(

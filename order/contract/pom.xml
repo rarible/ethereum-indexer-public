@@ -63,6 +63,11 @@
                             <type>MONO</type>
                         </contract>
                         <contract>
+                            <truffle>src/main/truffle/exchange/v2/onChain/ExchangeV2.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.exchange.v2.onChain</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
                             <truffle>src/main/truffle/common/royalties/TestRoyaltiesProvider.json</truffle>
                             <packageName>com.rarible.protocol.contracts.royalties</packageName>
                             <type>MONO</type>

@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.order.RaribleExchangeV2OrderParser
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher
@@ -43,6 +43,10 @@ class ExchangeV2UpsertOrderDescriptor(
         val make = Asset(order._2()._1().toAssetType(), EthUInt256(order._2()._2()))
         val take = Asset(order._4()._1().toAssetType(), EthUInt256(order._4()._2))
         val salt = EthUInt256(order._5())
+        val orderData = raribleExchangeV2OrderParser.convertOrderData(
+            version = Binary.apply(order._8()),
+            data = Binary.apply(order._9())
+        )
         return OnChainOrder(
             maker = maker,
             make = make,
@@ -54,13 +58,10 @@ class ExchangeV2UpsertOrderDescriptor(
             salt = salt,
             start = order._6().toLong().takeUnless { it == 0L },
             end = order._7()?.toLong().takeUnless { it == 0L },
-            data = raribleExchangeV2OrderParser.convertOrderData(
-                version = Binary.apply(order._8()),
-                data = Binary.apply(order._9())
-            ),
+            data = orderData,
             signature = null,
             priceUsd = null,
-            hash = Order.hashKey(maker, make.type, take.type, salt.value)
+            hash = Order.hashKey(maker, make.type, take.type, salt.value, orderData)
         ).toMono()
     }
 }

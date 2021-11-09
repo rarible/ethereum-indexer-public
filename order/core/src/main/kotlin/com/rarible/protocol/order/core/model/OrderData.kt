@@ -4,6 +4,7 @@ import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
 import org.springframework.data.annotation.Transient
 import scala.Tuple2
+import scala.Tuple3
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -26,10 +27,12 @@ data class OrderDataLegacy(
     override fun toEthereum(wrongEncode: Boolean): Binary = Tuples.orderDataLegacyType().encode(fee.toBigInteger())
 }
 
+sealed class OrderRaribleV2Data : OrderData()
+
 data class OrderRaribleV2DataV1(
     val payouts: List<Part>,
     val originFees: List<Part>
-) : OrderData() {
+) : OrderRaribleV2Data() {
 
     @get:Transient
     override val version: OrderDataVersion
@@ -49,6 +52,26 @@ data class OrderRaribleV2DataV1(
                 originFees.map { it.toEthereum() }.toTypedArray()
             )
         )
+    }
+}
+
+data class OrderRaribleV2DataV2(
+    val payouts: List<Part>,
+    val originFees: List<Part>,
+    val isMakeFill: Boolean
+) : OrderRaribleV2Data() {
+
+    @get:Transient
+    override val version: OrderDataVersion
+        get() = OrderDataVersion.RARIBLE_V2_DATA_V2
+
+    override fun toEthereum(wrongEncode: Boolean): Binary {
+        val tuple3 = Tuple3(
+            payouts.map { it.toEthereum() }.toTypedArray(),
+            originFees.map { it.toEthereum() }.toTypedArray(),
+            if (isMakeFill) BigInteger.ONE else BigInteger.ZERO
+        )
+        return Tuples.orderDataV2Type().encode(tuple3)
     }
 }
 
@@ -88,6 +111,7 @@ object OrderCryptoPunksData : OrderData() {
 enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
+    RARIBLE_V2_DATA_V2(id("V2")),
     OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
     CRYPTO_PUNKS
 }

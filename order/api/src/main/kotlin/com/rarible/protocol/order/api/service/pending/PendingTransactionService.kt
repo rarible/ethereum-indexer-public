@@ -13,10 +13,19 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.block.OrderBlockProcessor
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
+import com.rarible.protocol.order.core.service.block.OrderBlockProcessor
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -28,6 +37,7 @@ import com.rarible.protocol.contracts.exchange.v1.CancelEvent as CancelEventV1
 class PendingTransactionService(
     private val assetTypeService: AssetTypeService,
     private val orderRepository: OrderRepository,
+    private val raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser,
     exchangeContractAddresses: ExchangeContractAddresses,
     logEventService: LogEventService,
     blockProcessor: OrderBlockProcessor
@@ -74,8 +84,8 @@ class PendingTransactionService(
         logger.info("Process tx to cryptopunks market: from=$from, id=$id, data=$data")
         val pendingLogs = when (id.prefixed()) {
             CryptoPunksMarket.buyPunkSignature().id().prefixed() -> {
-                val id = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
-                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(id))
+                val punkId = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
+                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(punkId))
                 order?.let {
                     val hash = Order.hashKey(it.maker, it.make.type, it.take.type, it.salt.value)
                     val counterHash = Order.hashKey(from, it.take.type, it.make.type, it.salt.value)
@@ -83,10 +93,10 @@ class PendingTransactionService(
                 }
             }
             CryptoPunksMarket.acceptBidForPunkSignature().id().prefixed() -> {
-                val data = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
-                val id = data._1()
-                val price = data._2()
-                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(id))
+                val inputData = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
+                val punkId = inputData._1()
+                val price = inputData._2()
+                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(punkId))
                 order?.let {
                     val make = it.make.copy(value = EthUInt256.of(price))
                     val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
@@ -228,9 +238,10 @@ class PendingTransactionService(
                 val make = Asset(makeAssetType, EthUInt256.of(it._2()._2()))
                 val takeAssetType = it._4()._1().toAssetType()
                 val take = Asset(takeAssetType, EthUInt256.of(it._4()._2()))
+                val orderData = raribleExchangeV2OrderParser.convertOrderData(Binary.apply(it._8()), Binary.apply(it._9()))
 
                 val event = OrderCancel(
-                    hash = Order.hashKey(owner, makeAssetType, takeAssetType, salt),
+                    hash = Order.hashKey(owner, makeAssetType, takeAssetType, salt, orderData),
                     maker = owner,
                     make = make,
                     take = take,
@@ -246,15 +257,17 @@ class PendingTransactionService(
                 val makeAssetType = make._1().toAssetType()
                 val makeValue = make._2()
                 val makeSalt = it._1()._5()
+                val makeData = raribleExchangeV2OrderParser.convertOrderData(Binary.apply(it._1()._8()), Binary.apply(it._1()._9()))
 
                 val taker = it._3()._1()
                 val take = it._3()._2()
                 val takeAssetType = take._1().toAssetType()
                 val takeValue = take._2()
                 val takeSalt = it._3()._5()
+                val takeData = raribleExchangeV2OrderParser.convertOrderData(Binary.apply(it._3()._8()), Binary.apply(it._3()._9()))
 
-                val hash = Order.hashKey(maker, makeAssetType, takeAssetType, makeSalt)
-                val counterHash = Order.hashKey(taker, takeAssetType, makeAssetType, takeSalt)
+                val hash = Order.hashKey(maker, makeAssetType, takeAssetType, makeSalt, makeData)
+                val counterHash = Order.hashKey(taker, takeAssetType, makeAssetType, takeSalt, takeData)
 
                 return listOf(
                     PendingLog(OrderSideMatch(
@@ -273,7 +286,8 @@ class PendingTransactionService(
                         makePriceUsd = null,
                         takePriceUsd = null,
                         source = HistorySource.RARIBLE,
-                        adhoc = makeSalt == BigInteger.ZERO
+                        adhoc = makeSalt == BigInteger.ZERO,
+                        data = makeData
                     ), MatchEvent.id()),
                     PendingLog(OrderSideMatch(
                         hash = counterHash,
@@ -291,7 +305,8 @@ class PendingTransactionService(
                         makePriceUsd = null,
                         takePriceUsd = null,
                         source = HistorySource.RARIBLE,
-                        adhoc = takeSalt == BigInteger.ZERO
+                        adhoc = takeSalt == BigInteger.ZERO,
+                        data = takeData
                     ), MatchEvent.id())
                 )
             }
@@ -307,7 +322,7 @@ class PendingTransactionService(
         owner: Address,
         salt: BigInteger
     ): Order? {
-        val hash = Order.hashKey(owner, makeAssetType, takeAssetType, salt)
+        val hash = Order.hashKey(owner, makeAssetType, takeAssetType, salt, data = null /* Legacy */)
         return orderRepository.findById(hash)
     }
 

@@ -57,6 +57,7 @@ fun OrderVersion.withTakeNft(token: Address, tokenId: EthUInt256): OrderVersion 
 fun OrderVersion.withOrigin(origin: Address): OrderVersion {
     return when (val versionData = data) {
         is OrderRaribleV2DataV1 -> copy(data = versionData.copy(originFees = listOf(Part(origin, EthUInt256.of(10000)))))
+        is OrderRaribleV2DataV2 -> copy(data = versionData.copy(originFees = listOf(Part(origin, EthUInt256.of(10000)))))
         else -> throw IllegalArgumentException("Unsupported data type ${data.javaClass} to set origin")
     }
 }

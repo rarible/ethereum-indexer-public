@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.listener.service.order
+package com.rarible.protocol.order.core.service
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
+import java.math.BigInteger
 
 @Component
 class RaribleExchangeV2OrderParser {
@@ -48,6 +49,17 @@ class RaribleExchangeV2OrderParser {
                 OrderRaribleV2DataV1(
                     payouts = payouts,
                     originFees = originFees
+                )
+            }
+            OrderDataVersion.RARIBLE_V2_DATA_V2.ethDataType -> {
+                val decoded = Tuples.orderDataV2Type().decode(data, 0).value()
+                val payouts = decoded._1().map { it.toPart() }
+                val originFees = decoded._2().map { it.toPart() }
+                val isMakeFill = decoded._3().compareTo(BigInteger.ZERO) > 0
+                OrderRaribleV2DataV2(
+                    payouts = payouts,
+                    originFees = originFees,
+                    isMakeFill = isMakeFill
                 )
             }
             else -> throw IllegalArgumentException("Unsupported order data version $version")

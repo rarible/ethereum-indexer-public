@@ -14,6 +14,11 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 val originFees = convert(source.originFees)
                 OrderRaribleV2DataV1(payouts = payouts, originFees = originFees)
             }
+            is OrderRaribleV2DataV2Dto -> {
+                val payouts = convert(source.payouts)
+                val originFees = convert(source.originFees)
+                OrderRaribleV2DataV2(payouts = payouts, originFees = originFees, isMakeFill = source.isMakeFill)
+            }
             is OrderDataLegacyDto -> {
                 OrderDataLegacy(source.fee)
             }

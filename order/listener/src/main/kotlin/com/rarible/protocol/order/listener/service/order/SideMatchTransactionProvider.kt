@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory

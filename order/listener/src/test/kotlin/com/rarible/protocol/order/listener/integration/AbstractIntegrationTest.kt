@@ -11,13 +11,18 @@ import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -31,9 +36,15 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -56,7 +67,11 @@ import scalether.domain.AddressFactory
 import scalether.domain.request.Transaction
 import scalether.domain.response.TransactionReceipt
 import scalether.java.Lists
-import scalether.transaction.*
+import scalether.transaction.MonoGasPriceProvider
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
+import scalether.transaction.MonoTransactionPoller
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
 import java.util.*
@@ -99,6 +114,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+
+    @Autowired
+    protected lateinit var erc1271SignService: ERC1271SignService
 
     @Autowired
     lateinit var currencyApi: CurrencyControllerApi
@@ -162,6 +180,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
             }
             EthUInt256.ONE
         }
+
+        clearMocks(erc1271SignService)
+        coEvery { erc1271SignService.isSigner(any(), any() as Word, any()) } returns true
     }
 
     @PostConstruct

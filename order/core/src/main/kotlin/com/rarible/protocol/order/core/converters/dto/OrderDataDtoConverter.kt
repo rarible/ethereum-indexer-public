@@ -10,6 +10,7 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
     override fun convert(source: OrderData): OrderDataDto {
         return when(source) {
             is OrderRaribleV2DataV1 -> RaribleV2DataV1DtoConverter.convert(source)
+            is OrderRaribleV2DataV2 -> RaribleV2DataV2DtoConverter.convert(source)
             is OrderDataLegacy -> RaribleLegacyDataDtoConverter.convert(source)
             is OrderOpenSeaV1DataV1 -> OpenSeaV1DataV1DtoConverter.convert(source)
             is OrderCryptoPunksData -> OrderCryptoPunksDataDtoConverter.convert(source)

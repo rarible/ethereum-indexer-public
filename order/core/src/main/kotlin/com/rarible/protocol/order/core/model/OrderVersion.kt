@@ -29,16 +29,14 @@ data class OrderVersion(
     val onChainOrderKey: LogEventKey? = null,
     val createdAt: Instant = nowMillis(),
     val platform: Platform = Platform.RARIBLE,
-    // TODO: Default values here are needed only before the 1st migration ChangeLog00011AddAllFieldsFromOrderToOrderVersion is run
-    // to read the old OrderVersions from the database. After that we should remove the default values.
-    val type: OrderType = OrderType.RARIBLE_V2,
-    val salt: EthUInt256 = EthUInt256.ZERO,
-    val start: Long? = null,
-    val end: Long? = null,
-    val data: OrderData = OrderRaribleV2DataV1(emptyList(), emptyList()),
-    val signature: Binary? = null,
+    val type: OrderType,
+    val salt: EthUInt256,
+    val start: Long?,
+    val end: Long?,
+    val data: OrderData,
+    val signature: Binary?,
 
-    val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value)
+    val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value, data)
 ) {
     fun isBid(): Boolean = take.type.nft
 

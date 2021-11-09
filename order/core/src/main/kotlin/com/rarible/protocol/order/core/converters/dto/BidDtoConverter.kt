@@ -52,7 +52,7 @@ class BidDtoConverter(
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
-                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataV1Dto,
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataDto,
                 makeBalance = BigInteger.ZERO
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderBidDto(

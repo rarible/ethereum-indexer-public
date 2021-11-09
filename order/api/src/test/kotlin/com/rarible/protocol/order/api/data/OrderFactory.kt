@@ -55,7 +55,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             taker = taker,
             take = OrderFormAssetDtoConverter.convert(take),
             salt = salt.value,
-            data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataV1Dto,
+            data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataDto,
             start = start,
             end = end,
             signature = eip712Domain.hashToSign(Order.hash(this)).sign(privateKey)
