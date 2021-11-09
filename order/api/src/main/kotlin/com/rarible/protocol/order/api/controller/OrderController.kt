@@ -27,6 +27,7 @@ import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
 import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
@@ -71,13 +72,15 @@ class OrderController(
     private val assetTypeDtoConverter: AssetTypeDtoConverter,
     private val orderInvertService: OrderInvertService,
     private val prepareTxService: PrepareTxService,
-    private val platformFeaturedFilter: PlatformFeaturedFilter,
     private val orderDtoConverter: OrderDtoConverter,
     private val assetDtoConverter: AssetDtoConverter,
     private val orderToFormDtoConverter: OrderToFormDtoConverter,
     private val orderBidsService: OrderBidsService,
-    private val compositeBidConverter: CompositeBidConverter
+    private val compositeBidConverter: CompositeBidConverter,
+    orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
+
+    private val platformFeaturedFilter = PlatformFeaturedFilter(orderIndexerProperties.featureFlags)
 
     override suspend fun invertOrder(
         hash: String,

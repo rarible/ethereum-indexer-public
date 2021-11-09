@@ -6,6 +6,7 @@ import com.rarible.protocol.dto.OrderBidStatusDto
 import com.rarible.protocol.dto.OrderBidsPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.service.order.OrderBidsService
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
 import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
@@ -22,9 +23,11 @@ import java.time.OffsetDateTime
 @RestController
 class OrderBidController(
     private val orderBidsService: OrderBidsService,
-    private val platformFeaturedFilter: PlatformFeaturedFilter,
-    private val bidDtoConverter: BidDtoConverter
+    private val bidDtoConverter: BidDtoConverter,
+    orderIndexerProperties: OrderIndexerProperties
 ) : OrderBidControllerApi {
+
+    private val platformFeaturedFilter = PlatformFeaturedFilter(orderIndexerProperties.featureFlags)
 
     override suspend fun getBidsByItem(
         contract: String,

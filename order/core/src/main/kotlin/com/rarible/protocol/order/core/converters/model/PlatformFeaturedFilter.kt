@@ -2,14 +2,10 @@ package com.rarible.protocol.order.core.converters.model
 
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import org.springframework.stereotype.Component
 
-@Component
 class PlatformFeaturedFilter(
-    properties: OrderIndexerProperties
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
-
-    private val featureFlags = properties.featureFlags
 
     private val allPlatforms = PlatformDto.values().filter { it != PlatformDto.ALL }.toList()
 
