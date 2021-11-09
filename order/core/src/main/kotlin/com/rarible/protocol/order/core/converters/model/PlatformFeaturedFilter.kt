@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component
 
 @Component
 class PlatformFeaturedFilter(
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    properties: OrderIndexerProperties
 ) {
+
+    private val featureFlags = properties.featureFlags
 
     private val allPlatforms = PlatformDto.values().filter { it != PlatformDto.ALL }.toList()
 
