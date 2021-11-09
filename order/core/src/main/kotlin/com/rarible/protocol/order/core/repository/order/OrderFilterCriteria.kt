@@ -83,8 +83,7 @@ object OrderFilterCriteria {
         sell().and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
 
     private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?, currency: Address?) = run {
-        var c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
-            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        var c = tokenCondition(token, tokenId)
 
         maker?.let { c = c.and(Order::maker.name).`is`(it) }
         currency?.let {
@@ -98,13 +97,31 @@ object OrderFilterCriteria {
         c
     }
 
+    private fun tokenCondition(token: Address, tokenId: EthUInt256): Criteria {
+        val forToken = listOfNotNull(
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId
+        )
+        val forCollection = listOfNotNull(
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Order::make / Asset::type / NftAssetType::tokenId exists false
+        )
+        return Criteria().orOperator(
+            Criteria().andOperator(*forToken.toTypedArray()),
+            Criteria().andOperator(*forCollection.toTypedArray())
+        )
+    }
+
     private fun sell() =
         Criteria.where("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
 
     private fun bidByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-        val criteria = Criteria
-            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
-            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
+        val criteria = Criteria().orOperator(
+            Criteria.where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId),
+            Criteria.where("${Order::take.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+        )
 
         if (maker != null) {
             criteria.and(Order::maker.name).isEqualTo(maker)

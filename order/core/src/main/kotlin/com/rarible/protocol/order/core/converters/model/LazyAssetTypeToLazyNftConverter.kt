@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.converters.model
 import com.rarible.ethereum.nft.model.LazyERC1155
 import com.rarible.ethereum.nft.model.LazyERC721
 import com.rarible.ethereum.nft.model.LazyNft
+import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.order.core.model.*
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
@@ -33,7 +34,7 @@ object LazyAssetTypeToLazyNftConverter : Converter<AssetType, LazyNft> {
                     royalties = source.royalties.map { convert(it) }
                 )
             }
-            is Erc1155AssetType, is Erc20AssetType, is Erc721AssetType, is CryptoPunksAssetType, is GenerativeArtAssetType, EthAssetType -> {
+            is Erc1155AssetType, is Erc20AssetType, is Erc721AssetType, is CryptoPunksAssetType, is GenerativeArtAssetType, EthAssetType, is CollectionAssetType -> {
                 throw IllegalArgumentException("Assert $source is not lazy to convert to lazy nft")
             }
         }

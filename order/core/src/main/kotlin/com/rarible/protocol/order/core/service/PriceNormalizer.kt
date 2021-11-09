@@ -36,6 +36,7 @@ class PriceNormalizer(
             is Erc721LazyAssetType -> 0
             is CryptoPunksAssetType -> 0
             is GenerativeArtAssetType -> 0
+            is CollectionAssetType -> 0
         }
     }
 

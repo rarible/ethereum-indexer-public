@@ -464,6 +464,28 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
+            },
+            run {
+                val token = AddressFactory.create()
+
+                Arguments.of(
+                    listOf(
+                        createErc721ListOrderVersion()
+                            .withMakeToken(token)
+                            .withCreatedAt(now.plus(2, ChronoUnit.MINUTES)),
+                        createCollectionOrderVersion()
+                            .withMakeToken(token)
+                            .withCreatedAt(now.plus(1, ChronoUnit.MINUTES))
+                    ),
+                    listOf(
+                        createErc721BidOrderVersion(), createErc1155BidOrderVersion(), createErc721BidOrderVersion()
+                    ),
+                    OrderActivityFilterByCollectionDto(
+                        token,
+                        listOf(OrderActivityFilterByCollectionDto.Types.LIST)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
             }
         )
 

@@ -796,6 +796,7 @@ components:
         - $ref: "#/components/schemas/Erc721LazyAssetType"
         - $ref: "#/components/schemas/Erc1155LazyAssetType"
         - $ref: "#/components/schemas/CryptoPunksAssetType"
+        - $ref: "#/components/schemas/CollectionAssetType"
         - $ref: "#/components/schemas/GenerativeArtAssetType"
 
     EthAssetType:
@@ -952,6 +953,19 @@ components:
           $ref: "#/components/schemas/Address"
         punkId:
           type: integer
+
+    CollectionAssetType:
+      required:
+        - assetClass
+        - contract
+      type: object
+      properties:
+        assetClass:
+          type: string
+          enum:
+            - "COLLECTION"
+        contract:
+          $ref: "#/components/schemas/Address"
 
     Asset:
       type: object

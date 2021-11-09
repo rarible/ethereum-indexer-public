@@ -43,6 +43,9 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
                 token = source.contract,
                 tokenId = EthUInt256.of(source.punkId)
             )
+            is CollectionAssetTypeDto -> CollectionAssetType(
+                token = source.contract
+            )
         }
     }
 }
