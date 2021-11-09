@@ -24,6 +24,7 @@ fun createOrder(
     maker: Address = AddressFactory.create(),
     taker: Address? = AddressFactory.create(),
     make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+    take: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
     start: Long? = null,
     end: Long? = null
 ): Order {
@@ -31,7 +32,7 @@ fun createOrder(
         maker = maker,
         taker = taker,
         make = make,
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        take = take,
         makeStock = make.value,
         type = OrderType.RARIBLE_V2,
         fill = EthUInt256.ZERO,

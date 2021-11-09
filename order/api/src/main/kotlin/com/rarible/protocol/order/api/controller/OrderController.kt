@@ -318,12 +318,13 @@ class OrderController(
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
-        status: List<OrderStatusDto>?
+        status: List<OrderStatusDto>?,
+        sort: OrderSortDto?
     ): ResponseEntity<OrdersPaginationDto> {
         val filter = OrderFilterSellDto(
             origin = safeAddress(origin),
             platform = platform,
-            sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
+            sort = convert(sort),
             status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
@@ -512,8 +513,8 @@ class OrderController(
         return source?.map { OrderStatusDto.valueOf(it.name) } ?: listOf()
     }
 
-    private fun convert(source: OrderSortDto?): OrderFilterDto.Sort {
-        return source?.let { OrderSortDtoConverter.convert(it) } ?: OrderFilterDto.Sort.LAST_UPDATE_DESC
+    private fun convert(source: OrderSortDto?, default: OrderFilterDto.Sort = OrderFilterDto.Sort.LAST_UPDATE_DESC): OrderFilterDto.Sort {
+        return source?.let { OrderSortDtoConverter.convert(it) } ?: default
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {

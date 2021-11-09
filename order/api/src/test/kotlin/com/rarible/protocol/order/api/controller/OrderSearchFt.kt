@@ -7,6 +7,8 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.api.data.createErc20Asset
+import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
@@ -58,6 +60,42 @@ class OrderSearchFt : AbstractIntegrationTest() {
         }
 
         @JvmStatic
+        fun sellOrders(): Stream<Arguments> = run {
+            val now = nowMillis()
+            val make = createErc721Asset()
+            val take = createErc20Asset()
+
+            Stream.of(
+                Arguments.of(
+                    OrderSortDto.LAST_UPDATE_ASC,
+                    listOf(
+                        createOrderFully(make = make, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(0)),
+                        createOrderFully(make = make, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(1)),
+                        createOrderFully(make = make, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(2)),
+                        createOrderFully(make = make, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(3)),
+                        createOrderFully(make = make, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(4))
+                    ),
+                    listOf(
+                        createOrderFully(make = take, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(0))
+                    )
+                ),
+                Arguments.of(
+                    OrderSortDto.LAST_UPDATE_DESC,
+                    listOf(
+                        createOrderFully().copy(make = make, take = take, lastUpdateAt = now + Duration.ofMinutes(4)),
+                        createOrderFully().copy(make = make, take = take, lastUpdateAt = now + Duration.ofMinutes(3)),
+                        createOrderFully().copy(make = make, take = take, lastUpdateAt = now + Duration.ofMinutes(2)),
+                        createOrderFully().copy(make = make, take = take, lastUpdateAt = now + Duration.ofMinutes(1)),
+                        createOrderFully().copy(make = make, take = take, lastUpdateAt = now + Duration.ofMinutes(0))
+                    ),
+                    listOf(
+                        createOrderFully(make = take, take = take).copy(lastUpdateAt = now + Duration.ofMinutes(4))
+                    )
+                )
+            )
+        }
+
+        @JvmStatic
         fun orders4All(): Stream<Arguments> = run {
             val order: () -> Order = { createOrderFully().copy(makeStock = EthUInt256.ZERO) }
             val inactiveOrder = order()
@@ -88,6 +126,35 @@ class OrderSearchFt : AbstractIntegrationTest() {
             var continuation: String? = null
             do {
                 val result = orderClient.getOrdersAllByStatus(sort, continuation, 2, null).awaitFirst()
+                assertThat(result.orders).hasSizeLessThanOrEqualTo(2)
+
+                allOrders.addAll(result.orders)
+                continuation = result.continuation
+            } while (continuation != null)
+
+            assertThat(allOrders).hasSize(orders.size)
+
+            allOrders.forEachIndexed { index, orderDto ->
+                checkOrderDto(orderDto, orders[index])
+            }
+        }
+    }
+
+    @ParameterizedTest
+    @MethodSource("sellOrders")
+    fun `should find all sell orders with sort`(
+        sort: OrderSortDto,
+        orders: List<Order>,
+        other: List<Order>
+    ) = runBlocking<Unit> {
+        saveOrder(*(orders + orders).shuffled().toTypedArray())
+
+        Wait.waitAssert {
+            val allOrders = mutableListOf<OrderDto>()
+
+            var continuation: String? = null
+            do {
+                val result = orderClient.getSellOrdersByStatus(null, null, continuation, 2, null, sort).awaitFirst()
                 assertThat(result.orders).hasSizeLessThanOrEqualTo(2)
 
                 allOrders.addAll(result.orders)
