@@ -11,7 +11,7 @@ data class SimpleTraceResult(
     val from: Address,
     val to: Address,
     val input: String,
-    val output: String,
+    val output: String?,
     @JsonProperty("value")
     val valueHexString: String
 ) {

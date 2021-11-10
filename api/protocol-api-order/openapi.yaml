@@ -903,6 +903,12 @@ paths:
             type: array
             items:
               $ref: "#/components/schemas/OrderStatus"
+        - name: sort
+          description: "Sorting by last update"
+          in: query
+          required: false
+          schema:
+            "$ref": "#/components/schemas/OrderSort"
       responses:
         '200':
           $ref: "#/components/responses/OrderPage"
