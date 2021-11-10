@@ -28,7 +28,7 @@ pipeline {
         }
       }
       steps {
-         sh 'mvn clean test -U'
+         sh 'mvn clean test'
       }
       post {
         always {
@@ -58,6 +58,7 @@ pipeline {
           env.IMAGE_TAG = "${env.BRANCH_NAME.replace('release/', '')}-${env.BUILD_NUMBER}"
           env.VERSION = "${env.IMAGE_TAG}"
         }
+        sh 'mvn clean package -DskipTests'
         publishDockerImages(env.PREFIX, env.CREDENTIALS_ID, env.IMAGE_TAG)
       }
     }
