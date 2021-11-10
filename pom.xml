@@ -37,7 +37,7 @@
         <mockserver.version>1.15.3</mockserver.version>
 
         <ethereum-openapi.version>1.18.1</ethereum-openapi.version>
-        <rarible-core.version>1.4.3</rarible-core.version>
+        <rarible-core.version>1.4.4</rarible-core.version>
         <rarible-ethereum.version>1.3.1</rarible-ethereum.version>
         <rarible-currency.version>1.4.5</rarible-currency.version>
 
