@@ -35,6 +35,10 @@
 
         <!-- =============== Rarible-core ================ -->
         <dependency>
+            <groupId>com.rarible.ethereum</groupId>
+            <artifactId>rarible-ethereum-starter</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-lock-redis</artifactId>
         </dependency>

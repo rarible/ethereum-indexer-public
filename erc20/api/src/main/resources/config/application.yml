@@ -27,8 +27,10 @@ rarible:
         enabled: true
         server: http://elk_apm-server:8200
         packages: org.rarible.ethereum.erc20.api
-    filter:
-      cors:
+      web:
+        filter:
+          enabled: true
+      annotation:
         enabled: true
     contract:
       enabled: true
