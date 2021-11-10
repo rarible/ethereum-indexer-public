@@ -1,7 +1,10 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.kafka.RaribleKafkaProducer
+import com.rarible.protocol.dto.AuctionEventDto
 import com.rarible.protocol.order.core.producer.ProducerFactory
+import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -27,6 +30,15 @@ class ProducerConfiguration(
             orderEventProducer = producerFactory.createOrderEventsProducer(),
             ordersPriceUpdateEventProducer = producerFactory.createOrderPriceUpdateEventsProducer(),
             globalOrderEventProducer = producerFactory.createGlobalOrderEventsProducer(),
+            publishProperties = properties.publish
+        )
+    }
+
+    @Bean
+    fun protocolAuctionPublisher(producerFactory: ProducerFactory): ProtocolAuctionPublisher {
+        return ProtocolAuctionPublisher(
+            auctionActivityProducer = producerFactory.createAuctionActivitiesProducer(),
+            auctionEventProducer = producerFactory.createAuctionEventsProducer(),
             publishProperties = properties.publish
         )
     }

@@ -12,3 +12,4 @@ object ActivitySortConverter : Converter<ActivitySortDto, ActivitySort> {
         }
     }
 }
+

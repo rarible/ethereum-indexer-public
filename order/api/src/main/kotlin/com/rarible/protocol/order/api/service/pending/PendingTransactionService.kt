@@ -15,7 +15,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.BlockProcessor
+import com.rarible.protocol.order.core.service.block.OrderBlockProcessor
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -30,7 +30,7 @@ class PendingTransactionService(
     private val orderRepository: OrderRepository,
     exchangeContractAddresses: ExchangeContractAddresses,
     logEventService: LogEventService,
-    blockProcessor: BlockProcessor
+    blockProcessor: OrderBlockProcessor
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
 
     private val exchangeContracts = listOfNotNull(

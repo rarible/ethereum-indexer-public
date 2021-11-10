@@ -3,6 +3,9 @@ package com.rarible.protocol.order.core.configuration
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.order.core.repository.Package
+import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.currency.CurrencyRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
@@ -42,5 +45,20 @@ class RepositoryConfiguration(
     @Bean
     fun openSeaFetchStateRepository(): OpenSeaFetchStateRepository {
         return OpenSeaFetchStateRepository(template)
+    }
+
+    @Bean
+    fun auctionRepository(): AuctionRepository {
+        return AuctionRepository(template)
+    }
+
+    @Bean
+    fun auctionHistoryRepository(): AuctionHistoryRepository {
+        return AuctionHistoryRepository(template)
+    }
+
+    @Bean
+    fun auctionSnapshotRepository(): AuctionSnapshotRepository {
+        return AuctionSnapshotRepository(template)
     }
 }
