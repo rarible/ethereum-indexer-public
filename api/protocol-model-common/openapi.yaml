@@ -403,7 +403,7 @@ components:
         "@type":
           type: string
           enum:
-            - "open"
+            - "auction_open"
         seller:
           $ref: "#/components/schemas/Address"
         sell:
@@ -448,7 +448,7 @@ components:
         "@type":
           type: string
           enum:
-            - "bid"
+            - "auction_bid"
         hash:
           $ref: "#/components/schemas/Word"
         bid:
@@ -476,7 +476,7 @@ components:
         "@type":
           type: string
           enum:
-            - "finish"
+            - "auction_finish"
         hash:
           $ref: "#/components/schemas/Word"
         transactionHash:
@@ -502,7 +502,7 @@ components:
         "@type":
           type: string
           enum:
-            - "cancel"
+            - "auction_cancel"
         hash:
           $ref: "#/components/schemas/Word"
         transactionHash:

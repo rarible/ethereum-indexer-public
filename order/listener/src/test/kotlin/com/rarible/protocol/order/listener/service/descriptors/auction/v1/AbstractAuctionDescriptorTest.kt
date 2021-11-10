@@ -30,13 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import scala.Tuple6
 import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
-import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
 import java.util.*
 import javax.annotation.PostConstruct
-import kotlin.contracts.contract
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
@@ -60,18 +58,6 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     @Autowired
     protected lateinit var auctionRepository: AuctionRepository
 
-    @Autowired
-    private lateinit var auctionCreatedDescriptor: AuctionCreatedDescriptor
-
-    @Autowired
-    private lateinit var auctionBidDescriptor: AuctionBidDescriptor
-
-    @Autowired
-    private lateinit var auctionFinishedDescriptor: AuctionFinishedDescriptor
-
-    @Autowired
-    private lateinit var auctionCancelDescriptor: AuctionCancelDescriptor
-
     private val auctionEvents = Collections.synchronizedList(ArrayList<AuctionEventDto>())
 
     private lateinit var auctionEventConsumer: RaribleKafkaConsumer<AuctionEventDto>
@@ -80,7 +66,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     @PostConstruct
     fun init() {
-        auctionEventConsumer = createConsumer()
+        auctionEventConsumer = createAuctionConsumer()
     }
 
     @BeforeEach
@@ -198,7 +184,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    private fun createConsumer(): RaribleKafkaConsumer<AuctionEventDto> {
+    private fun createAuctionConsumer(): RaribleKafkaConsumer<AuctionEventDto> {
         return RaribleKafkaConsumer(
             clientId = "test-consumer-auction-activity",
             consumerGroup = "test-group-auction-activity",
