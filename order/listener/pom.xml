@@ -31,15 +31,15 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-subscriber-erc20-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-subscriber-nft-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-subscriber-order-starter</artifactId>
         </dependency>
         <dependency>
@@ -47,11 +47,11 @@
             <artifactId>protocol-client-currency-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-erc20</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-nft</artifactId>
         </dependency>
 

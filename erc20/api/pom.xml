@@ -29,15 +29,15 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-api-erc20</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-erc20</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-common</artifactId>
         </dependency>
 
@@ -118,7 +118,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-erc20</artifactId>
             <scope>test</scope>
         </dependency>

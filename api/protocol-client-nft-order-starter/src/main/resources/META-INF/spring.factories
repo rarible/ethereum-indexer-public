@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.rarible.protocol.nftorder.api.client.autoconfigure.NftOrderApiClientAutoConfiguration

@@ -52,7 +52,7 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-order</artifactId>
         </dependency>
         <dependency>
@@ -60,7 +60,7 @@
             <artifactId>protocol-client-currency-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-erc20-starter</artifactId>
         </dependency>
 

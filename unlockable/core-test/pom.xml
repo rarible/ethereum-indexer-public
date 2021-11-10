@@ -20,7 +20,7 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-nft</artifactId>
         </dependency>
 

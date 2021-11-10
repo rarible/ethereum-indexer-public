@@ -1,5 +1,0 @@
-{
-  "Address": "scalether.domain.Address",
-  "Binary": "io.daonomic.rpc.domain.Binary",
-  "ObjectNode": "com.fasterxml.jackson.databind.node.ObjectNode"
-}

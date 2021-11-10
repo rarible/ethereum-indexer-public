@@ -45,34 +45,28 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>gateway-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-nft-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-order-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-erc20-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-unlockable-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-nft-order-starter</artifactId>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- ================== Spring =================== -->

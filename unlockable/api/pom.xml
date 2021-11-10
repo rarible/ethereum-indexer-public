@@ -29,11 +29,11 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-api-unlockable</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-nft-starter</artifactId>
         </dependency>
 
@@ -72,7 +72,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-unlockable</artifactId>
             <scope>test</scope>
         </dependency>

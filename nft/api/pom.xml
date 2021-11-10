@@ -29,7 +29,7 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-api-nft</artifactId>
         </dependency>
 
@@ -100,7 +100,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-nft</artifactId>
             <scope>test</scope>
         </dependency>

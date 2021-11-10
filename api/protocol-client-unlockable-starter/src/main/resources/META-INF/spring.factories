@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.rarible.protocol.unlockable.api.client.autoconfigure.UnlockableApiClientAutoConfiguration

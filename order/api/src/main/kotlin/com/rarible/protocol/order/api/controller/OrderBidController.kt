@@ -18,7 +18,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.math.BigDecimal
-import java.time.OffsetDateTime
+import java.time.Instant
 
 @RestController
 class OrderBidController(
@@ -36,8 +36,8 @@ class OrderBidController(
         maker: String?,
         origin: String?,
         platform: PlatformDto?,
-        startDate: OffsetDateTime?,
-        endDate: OffsetDateTime?,
+        startDate: Instant?,
+        endDate: Instant?,
         continuation: String?,
         size: Int?
     ): ResponseEntity<OrderBidsPaginationDto> {
@@ -52,8 +52,8 @@ class OrderBidController(
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             null,
-            startDate?.toInstant(),
-            endDate?.toInstant(),
+            startDate,
+            endDate,
             requestSize,
             priceContinuation
         )
@@ -75,4 +75,5 @@ class OrderBidController(
     private fun toContinuation(orderVersion: OrderVersion): String {
         return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
+
 }

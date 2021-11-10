@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.rarible.protocol.erc20.api.subscriber.autoconfigure.Erc20IndexerEventsSubscriberAutoConfiguration
