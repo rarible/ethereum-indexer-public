@@ -27,7 +27,8 @@ class AuctionCancelDescriptor(
                 auctionId = auctionId,
                 date = date,
                 contract = contract,
-                hash = Auction.raribleV1HashKey(contract, auctionId)
+                hash = Auction.raribleV1HashKey(contract, auctionId),
+                source = HistorySource.RARIBLE
             )
         )
     }

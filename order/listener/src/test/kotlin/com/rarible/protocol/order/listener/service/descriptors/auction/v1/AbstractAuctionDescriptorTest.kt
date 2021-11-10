@@ -1,7 +1,10 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.contracts.test.erc20.TestERC20
+import com.rarible.core.kafka.RaribleKafkaConsumer
+import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.ext.KafkaTestExtension
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -10,27 +13,30 @@ import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
-import org.apache.commons.lang3.RandomUtils
+import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import org.web3j.utils.Numeric
-import reactor.core.publisher.Mono
 import scala.Tuple6
-import scalether.transaction.MonoGasPriceProvider
+import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
+import java.util.*
+import javax.annotation.PostConstruct
+import kotlin.contracts.contract
 
 @FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
@@ -65,6 +71,31 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var auctionCancelDescriptor: AuctionCancelDescriptor
+
+    private val auctionEvents = Collections.synchronizedList(ArrayList<AuctionEventDto>())
+
+    private lateinit var auctionEventConsumer: RaribleKafkaConsumer<AuctionEventDto>
+
+    private lateinit var auctionEventConsumingJob: Job
+
+    @PostConstruct
+    fun init() {
+        auctionEventConsumer = createConsumer()
+    }
+
+    @BeforeEach
+    fun startAuctionConsumers() {
+        auctionEventConsumingJob = GlobalScope.launch {
+            auctionEventConsumer
+                .receive()
+                .collect { auctionEvents.add(it.value) }
+        }
+    }
+
+    @AfterEach
+    fun stopAuctionConsumers() = runBlocking {
+        auctionEventConsumingJob.cancelAndJoin()
+    }
 
     @BeforeEach
     fun before() {
@@ -118,6 +149,8 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         val erc721AssetType = mintErc721(seller)
 
         val auctionParameters = AuctionStartParameters(
+            contract = auctionHouse.address(),
+            seller = userSender1.from(),
             sell = Asset(erc721AssetType, EthUInt256.ONE),
             buy = EthAssetType,
             minimalStep = EthUInt256.of(1),
@@ -157,12 +190,34 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
         checkAction(StartedAuction(auctionParameters, chainAuction))
     }
 
+    protected suspend fun checkAuctionEventWasPublished(asserter: AuctionEventDto.() -> Unit) = coroutineScope {
+        Wait.waitAssert {
+            Assertions.assertThat(auctionEvents)
+                .hasSizeGreaterThanOrEqualTo(1)
+                .anySatisfy { it.asserter() }
+        }
+    }
+
+    private fun createConsumer(): RaribleKafkaConsumer<AuctionEventDto> {
+        return RaribleKafkaConsumer(
+            clientId = "test-consumer-auction-activity",
+            consumerGroup = "test-group-auction-activity",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = AuctionEventDto::class.java,
+            defaultTopic = OrderIndexerTopicProvider.getAuctionUpdateTopic(application.name, orderIndexerProperties.blockchain.name.toLowerCase()),
+            bootstrapServers = KafkaTestExtension.kafkaContainer.kafkaBoostrapServers(),
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+        )
+    }
+
     protected data class StartedAuction(
         val startedParams: AuctionStartParameters,
         val chainAuction: OnChainAuction
     )
 
     protected class AuctionStartParameters(
+        val contract: Address,
+        val seller: Address,
         val sell: Asset,
         val buy: AssetType,
         val minimalStep: EthUInt256,
@@ -177,5 +232,74 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
             data.getDataVersion(),
             data.toEthereum().bytes()
         )
+
+        fun toExpectedOnChainAuction(
+            createdAt: Instant,
+            endTime: Instant? = null,
+            auctionId: EthUInt256 = EthUInt256.ONE,
+            auctionType: AuctionType = AuctionType.RARIBLE_V1,
+            source: HistorySource = HistorySource.RARIBLE
+        ): OnChainAuction {
+            return OnChainAuction(
+                auctionType = auctionType,
+                seller = seller,
+                buyer = null,
+                sell = sell,
+                buy = buy,
+                lastBid = null,
+                endTime = endTime,
+                minimalStep = minimalStep,
+                minimalPrice = minimalPrice,
+                data = data,
+                protocolFee = EthUInt256.ZERO,
+                createdAt = createdAt,
+                auctionId = auctionId,
+                hash = when (auctionType) {
+                    AuctionType.RARIBLE_V1 -> Auction.raribleV1HashKey(contract, auctionId)
+                },
+                contract = contract,
+                date = createdAt,
+                source = source
+            )
+        }
+
+        fun toExpectedAuction(
+            createdAt: Instant,
+            endTime: Instant? = null,
+            auctionId: EthUInt256 = EthUInt256.ONE,
+            lastEventId: String? = null,
+            auctionStatus: AuctionStatus = AuctionStatus.ACTIVE,
+            auctionType: AuctionType = AuctionType.RARIBLE_V1,
+            platform: Platform = Platform.RARIBLE,
+            finished: Boolean = false,
+            cancelled: Boolean = false
+        ): Auction {
+            return Auction(
+                type = auctionType,
+                status = auctionStatus,
+                seller = seller,
+                buyer = null,
+                sell = sell,
+                buy = buy,
+                lastBid = null,
+                endTime = endTime,
+                minimalStep = minimalStep,
+                minimalPrice = minimalPrice,
+                data = data,
+                protocolFee = EthUInt256.ZERO,
+                finished = finished,
+                cancelled = cancelled,
+                deleted = false,
+                createdAt = createdAt,
+                lastUpdateAt = createdAt,
+                lastEventId = lastEventId,
+                auctionId = auctionId,
+                contract = contract,
+                pending = emptyList(),
+                buyPrice = null,
+                buyPriceUsd = null,
+                platform = platform
+            )
+        }
     }
 }

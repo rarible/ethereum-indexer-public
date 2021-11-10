@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.event
 
-import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
@@ -16,22 +15,16 @@ import com.rarible.protocol.order.listener.data.createNftOwnershipDto
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.time.Duration
 import java.util.*
 
+@FlowPreview
 @IntegrationTest
 internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
-
     @Test
     fun handleErc20Event() = runBlocking {
         val producer = RaribleKafkaProducer(

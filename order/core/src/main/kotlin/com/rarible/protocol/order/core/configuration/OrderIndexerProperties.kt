@@ -52,7 +52,8 @@ data class OrderIndexerProperties(
     )
 
     data class PublishProperties(
-        val publishOpenSeaOrdersToCommonTopic: Boolean = false
+        val publishOpenSeaOrdersToCommonTopic: Boolean = false,
+        val publishAuctionActivity: Boolean = false
     )
 
     data class FeatureFlags(

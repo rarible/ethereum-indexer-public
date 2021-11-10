@@ -12,6 +12,7 @@ sealed class AuctionHistory(
     abstract val hash: Word
     abstract val date: Instant
     abstract val contract: Address
+    abstract val source: HistorySource
 }
 
 data class OnChainAuction(
@@ -30,7 +31,8 @@ data class OnChainAuction(
     val auctionId: EthUInt256,
     override val hash: Word,
     override val contract: Address,
-    override val date: Instant
+    override val date: Instant,
+    override val source: HistorySource
 ): BaseAuction, AuctionHistory(AuctionHistoryType.ON_CHAIN_AUCTION)
 
 data class BidPlaced(
@@ -40,7 +42,8 @@ data class BidPlaced(
     val auctionId: EthUInt256,
     override val hash: Word,
     override val contract: Address,
-    override val date: Instant
+    override val date: Instant,
+    override val source: HistorySource
 ) : AuctionHistory(AuctionHistoryType.BID_PLACED)
 
 data class AuctionFinished(
@@ -58,12 +61,14 @@ data class AuctionFinished(
     val auctionId: EthUInt256,
     override val hash: Word,
     override val contract: Address,
-    override val date: Instant
+    override val date: Instant,
+    override val source: HistorySource
 ) : BaseAuction, AuctionHistory(AuctionHistoryType.AUCTION_FINISHED)
 
 data class AuctionCancelled(
     val auctionId: EthUInt256,
     override val hash: Word,
     override val contract: Address,
-    override val date: Instant
+    override val date: Instant,
+    override val source: HistorySource
 ) : AuctionHistory(AuctionHistoryType.AUCTION_CANCELLED)

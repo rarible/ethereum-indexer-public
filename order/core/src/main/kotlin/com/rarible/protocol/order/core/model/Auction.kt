@@ -29,6 +29,7 @@ data class Auction(
     override val protocolFee: EthUInt256,
     val finished: Boolean,
     val cancelled: Boolean,
+    val deleted: Boolean,
     val createdAt: Instant,
     val lastUpdateAt: Instant,
     val lastEventId: String?,

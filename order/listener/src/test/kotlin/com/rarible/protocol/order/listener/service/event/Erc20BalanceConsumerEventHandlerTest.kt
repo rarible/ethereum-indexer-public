@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.event
 
-import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
@@ -10,7 +9,6 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.listener.data.createOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -19,16 +17,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.time.Duration
 import java.util.*
 
 @IntegrationTest
 internal class Erc20BalanceConsumerEventHandlerTest : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
-
     @Test
     fun handleErc20Event() = runBlocking {
         val producer = RaribleKafkaProducer(

@@ -68,7 +68,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var sender: MonoTransactionSender
 
     @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
+    protected lateinit var application: ApplicationEnvironmentInfo
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations

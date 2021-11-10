@@ -11,7 +11,8 @@ import java.time.Instant
 @Component
 class AuctionDtoConverter(
     private val priceNormalizer: PriceNormalizer,
-    private val assetDtoConverter: AssetDtoConverter
+    private val assetDtoConverter: AssetDtoConverter,
+    private val auctionBidDtoConverter: AuctionBidDtoConverter
 ) {
     suspend fun convert(source: Auction): AuctionDto {
         return when (source.type) {
@@ -31,6 +32,9 @@ class AuctionDtoConverter(
                 status = AuctionStatusDtoConverter.convert(source.status),
                 hash = source.hash,
                 auctionId = source.auctionId.value,
+                lastBid = source.lastBid?.let { lastBid ->
+                    auctionBidDtoConverter.convert(source.buy, lastBid) as RaribleAuctionV1BidV1Dto
+                },
                 data = convert(source.buy, source.data) as RaribleAuctionV1DataV1Dto
             )
         }
@@ -56,3 +60,4 @@ class AuctionDtoConverter(
         return priceNormalizer.normalize(assetType, value)
     }
 }
+
