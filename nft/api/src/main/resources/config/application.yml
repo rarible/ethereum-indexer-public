@@ -23,7 +23,7 @@ rarible:
       agent:
         enabled: true
         server: http://elk_apm-server:8200
-        packages: org.rarible.ethereum.erc20.api
+        packages: com.rarible.protocol.nft.api
       web:
         filter:
           enabled: true
