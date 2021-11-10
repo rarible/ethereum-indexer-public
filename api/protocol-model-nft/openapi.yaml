@@ -32,6 +32,7 @@ components:
           "$ref": "#/components/schemas/Address"
         type:
           type: string
+          description: "Collection type"
           enum:
             - ERC721
             - ERC1155
@@ -40,10 +41,13 @@ components:
           "$ref": "#/components/schemas/Address"
         name:
           type: string
+          description: "Collection name"
         symbol:
           type: string
+          description: "Collection symbol"
         features:
           type: array
+          description: "Set of supported features for this collection"
           items:
             type: string
             enum:
@@ -55,9 +59,10 @@ components:
               - MINT_AND_TRANSFER
         supportsLazyMint:
           type: boolean
+          description: "Does the collection support lazy mint or not"
         minters:
           type: array
-          description: List of addresses that can mint items in this collection
+          description: "List of addresses that can mint items in this collection"
           items:
             "$ref": "#/components/schemas/Address"
 
@@ -301,7 +306,7 @@ components:
       properties:
         id:
           type: string
-          description: Item identifier, has format "contract:tokenId"
+          description: Item identifier, has format '${contract}:${tokenId}'
         contract:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -328,12 +333,15 @@ components:
         date:
           type: string
           format: date-time
+          description: "Data when the item was created"
         pending:
           type: array
+          description: "Pending information about the item"
           items:
             "$ref": "#/components/schemas/ItemTransfer"
         deleted:
           type: boolean
+          description: "Item was deleted or not"
         meta:
           "$ref": "#/components/schemas/NftItemMeta"
     NftItemAttribute:
@@ -368,7 +376,7 @@ components:
       properties:
         id:
           type: string
-          description: Item identifier, has format "contract:tokenId"
+          description: Item identifier, has format '${contract}:${tokenId}'
         token:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -417,14 +425,14 @@ components:
       properties:
         total:
           type: integer
-          description: Number of items were found by request
+          description: "The total number of items satisfy the query"
           format: int64
         continuation:
           type: string
-          description: Continuation token to paginate items search result
+          description: "Continuation token from the previous response"
         items:
           type: array
-          description: List of found items
+          description: "List of found items"
           items:
             "$ref": "#/components/schemas/NftItem"
     NftItemMeta:
@@ -434,10 +442,13 @@ components:
       properties:
         name:
           type: string
+          description: "Name of the NFT item"
         description:
           type: string
+          description: "Description of the NFT item"
         attributes:
           type: array
+          description: "Attributes of the NFT item"
           items:
             "$ref": "#/components/schemas/NftItemAttribute"
         image:
@@ -459,10 +470,12 @@ components:
       properties:
         url:
           type: object
+          description: "URL address of the NFT media"
           additionalProperties:
             type: string
         meta:
           type: object
+          description: "Meta of the NFT media"
           additionalProperties:
             "$ref": "#/components/schemas/NftMediaMeta"
     NftMediaMeta:
@@ -472,12 +485,15 @@ components:
       properties:
         type:
           type: string
+          description: "NFT media type"
         width:
           type: integer
           format: int32
+          description: "Width of the NFT image/video"
         height:
           type: integer
           format: int32
+          description: "Height of the NFT image/video"
 
     LazyNft:
       type: object
@@ -565,7 +581,7 @@ components:
       properties:
         id:
           type: string
-          description: Ownership identifier, has format "token:tokenId:owner"
+          description: Ownership identifier, has format '${token}:${tokenId}:${owner}'
         token:
           "$ref": "#/components/schemas/Address"
         tokenId:
@@ -587,7 +603,7 @@ components:
       properties:
         id:
           type: string
-          description: Ownership identifier, has format "token:tokenId:owner"
+          description: Ownership identifier, has format '${token}:${tokenId}:${owner}'
         contract:
           "$ref": "#/components/schemas/Address"
         tokenId:

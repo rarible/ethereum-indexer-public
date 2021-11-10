@@ -17,6 +17,7 @@ components:
           type: string
         itemId:
           type: string
+          description: "Item identifier, has format `${contract}:${tokenId}`"
         content:
           type: string
         author:
@@ -26,6 +27,7 @@ components:
         unlockDate:
           type: string
           format: date-time
+          description: "Date and time when the content will be unlocked"
         version:
           type: integer
           format: int64
@@ -58,14 +60,17 @@ components:
         status:
           type: integer
           format: int32
+          description: "HTTP status code"
         code:
           type: string
+          description: "Error type"
           enum:
             - UNKNOWN
             - LOCK_EXISTS
             - OWNERHIP_ERROR
         message:
           type: string
+          description: "Error message"
 
     UnlockableEvent:
       required:

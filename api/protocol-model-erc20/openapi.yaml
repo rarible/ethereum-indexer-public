@@ -49,8 +49,10 @@ components:
       properties:
         status:
           type: integer
+          description: "HTTP status code"
         code:
           type: string
+          description: "Error type"
           enum:
             - UNKNOWN
             - VALIDATION
@@ -58,6 +60,7 @@ components:
             - BALANCE_NOT_FOUND
         message:
           type: string
+          description: "Error message"
 
     Erc20BalanceEvent:
       type: object

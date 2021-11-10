@@ -211,7 +211,7 @@ paths:
       parameters:
         - name: itemId
           in: path
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           required: true
           schema:
             type: string
@@ -242,7 +242,7 @@ paths:
       parameters:
         - name: itemId
           in: path
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           required: true
           schema:
             type: string
@@ -269,7 +269,7 @@ paths:
       parameters:
         - name: itemId
           in: path
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           required: true
           schema:
             type: string
@@ -302,7 +302,7 @@ paths:
       parameters:
         - name: itemId
           in: path
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           required: true
           schema:
             type: string
@@ -330,7 +330,7 @@ paths:
       parameters:
         - name: itemId
           in: path
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           required: true
           schema:
             type: string

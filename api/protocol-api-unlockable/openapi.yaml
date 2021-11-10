@@ -11,7 +11,7 @@ paths:
       operationId: createLock
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:
@@ -30,7 +30,7 @@ paths:
               schema:
                 "$ref": "#/components/schemas/Lock"
         '400':
-          description: "Bad Request"
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -48,7 +48,7 @@ paths:
       operationId: getLockContent
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:
@@ -67,7 +67,7 @@ paths:
               schema:
                 type: string
         '400':
-          description: Internal Server Error
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -85,7 +85,7 @@ paths:
       operationId: isUnlockable
       parameters:
         - name: itemId
-          description: "Item identifier, has format `contract:tokenId`"
+          description: "Item identifier, has format `${contract}:${tokenId}`"
           in: path
           required: true
           schema:

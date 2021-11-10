@@ -36,13 +36,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Erc20DecimalBalance'
         '400':
-          description: OK
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Erc20IndexerApiError'
         '500':
-          description: OK
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -69,19 +69,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Erc20Token'
         '404':
-          description: OK
+          description: Not Found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Erc20IndexerApiError'
         '400':
-          description: OK
+          description: Bad Request
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Erc20IndexerApiError'
         '500':
-          description: OK
+          description: Internal Server Error
           content:
             application/json:
               schema:

@@ -20,12 +20,15 @@ components:
       properties:
         code:
           type: string
+          description: "Error type"
           enum:
             - NOT_FOUND
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 404
 
     EthereumApiErrorBadRequest:
@@ -36,13 +39,16 @@ components:
       properties:
         code:
           type: string
+          description: "Error type. `BAD_REQUEST` - incorrect format of input data, `VALIDATION` - input data format is correct, but its content doesn't meet requirements of API call"
           enum:
             - BAD_REQUEST
             - VALIDATION
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 400
 
     EthereumApiErrorServerError:
@@ -54,12 +60,15 @@ components:
       properties:
         code:
           type: string
+          description: "Error type"
           enum:
             - UNKNOWN
         message:
           type: string
+          description: "Error message"
         status:
           type: integer
+          description: "HTTP status code"
           default: 500
 
     Activity:
@@ -70,9 +79,11 @@ components:
       properties:
         id:
           type: string
+          description: "Activity identifier"
         date:
           type: string
           format: date-time
+          description: "Date and time when the event, related to activity, happened"
       oneOf:
         - $ref: "#/components/schemas/OrderActivity"
         - $ref: "#/components/schemas/NftActivity"
@@ -358,8 +369,10 @@ components:
       properties:
         continuation:
           type: string
+          description: "Continuation token from the previous response"
         items:
           type: array
+          description: "Items array"
           items:
             $ref: "#/components/schemas/Activity"
 
@@ -1023,6 +1036,7 @@ components:
           $ref: "#/components/schemas/Word"
         status:
           type: string
+          description: "Order transaction status"
           enum:
             - PENDING
             - CONFIRMED
