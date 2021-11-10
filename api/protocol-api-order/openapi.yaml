@@ -1520,13 +1520,13 @@ components:
               $ref: "#/components/schemas/AggregationData"
 
     OrderUpdateApiError:
-      description: OK
+      description: Bad Request
       content:
         application/json:
           schema:
             $ref: "#/components/schemas/EthereumOrderUpdateApiError"
     OrderDataApiError:
-      description: OK
+      description: Bad Request
       content:
         application/json:
           schema:

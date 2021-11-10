@@ -47,7 +47,7 @@ components:
       properties:
         id:
           type: string
-          description: "Item identifier, has format \"token:tokenId\""
+          description: "Item identifier, has format '${token}:${tokenId}'"
         contract:
           $ref: "#/components/schemas/Address"
         tokenId:
@@ -154,7 +154,7 @@ components:
       properties:
         id:
           type: string
-          description: "Ownership identifier, has format \"token:tokenId:owner\""
+          description: "Ownership identifier, has format '${token}:${tokenId}:${owner}'"
         contract:
           $ref: "#/components/schemas/Address"
         tokenId:
