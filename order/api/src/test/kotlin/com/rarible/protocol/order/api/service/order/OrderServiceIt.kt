@@ -5,16 +5,40 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.dto.Erc20DecimalBalanceDto
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
+import com.rarible.protocol.dto.OrderFilterSellByItemDto
+import com.rarible.protocol.dto.OrderFilterSellByMakerDto
+import com.rarible.protocol.dto.OrderFilterSellDto
+import com.rarible.protocol.dto.OrderIdsDto
+import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.api.data.createNftCollectionDto
+import com.rarible.protocol.order.api.data.createNftItemDto
+import com.rarible.protocol.order.api.data.createNftOwnershipDto
+import com.rarible.protocol.order.api.data.createOrder
+import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.PlatformDtoConverter
 import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftConverter
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -586,7 +610,11 @@ class OrderServiceIt : AbstractOrderIt() {
 
         orderService.put(realOrder.toForm(privateKey).withSignature(signature))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC), 10, null)
+        val orders = orderService.findOrders(
+            OrderFilterSellDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            10,
+            null
+        )
 
         assertThat(orders).hasSize(1)
         assertThat(orders.first().make.type)
@@ -603,7 +631,11 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc20Order.toForm(privateKey))
         orderService.put(erc721Order.toForm(privateKey))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC), 10, null)
+        val orders = orderService.findOrders(
+            OrderFilterSellDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            10,
+            null
+        )
 
         assertThat(orders).hasSize(1)
     }
@@ -621,7 +653,11 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order1.toForm(privateKey))
         orderService.put(erc721Order2.toForm(privateKey))
 
-        val orders = orderService.findOrders(OrderFilterSellDto(origin, null, OrderFilterDto.Sort.LAST_UPDATE_DESC), 10, null)
+        val orders = orderService.findOrders(
+            OrderFilterSellDto(origin, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            10,
+            null
+        )
 
         assertThat(orders).hasSize(1)
     }
@@ -641,7 +677,16 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey2))
 
         val orders =
-            orderService.findOrders(OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null,  null, signer2), 10, null)
+            orderService.findOrders(
+                OrderFilterSellByMakerDto(
+                    null,
+                    emptyList(),
+                    OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                    null,
+                    null,
+                    signer2
+                ), 10, null
+            )
 
         assertThat(orders).hasSize(1)
     }
@@ -669,7 +714,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMakerDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10, null
             )
 
@@ -679,7 +724,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, null, OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMakerDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10,
                 continuation.toString()
             )
@@ -707,7 +752,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val orders1 = orderService.findOrders(
             OrderFilterSellByCollectionDto(
                 null,
-                null,
+                emptyList(),
                 OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
                 collection1
             ), 10, null
@@ -717,7 +762,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val orders2 = orderService.findOrders(
             OrderFilterSellByCollectionDto(
                 null,
-                null,
+                emptyList(),
                 OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
                 collection2
             ), 10, null
@@ -751,7 +796,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 tokenId = tokenId1.value,
                 sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
                 origin = null,
-                platform = null,
+                platforms = emptyList(),
                 maker = null
             ), 10, null
         )
@@ -763,7 +808,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 tokenId = tokenId2.value,
                 sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
                 origin = null,
-                platform = null,
+                platforms = emptyList(),
                 maker = null
             ), 10, null
         )

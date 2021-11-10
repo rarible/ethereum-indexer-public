@@ -45,7 +45,7 @@ class OrderUpdateConsumerEventHandler(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
                 sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
-                platform = null,
+                platforms = emptyList(),
                 maker = null,
                 origin = null
             )
@@ -53,7 +53,7 @@ class OrderUpdateConsumerEventHandler(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
                 sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
-                platform = null,
+                platforms = emptyList(),
                 maker = null,
                 origin = null
             )
@@ -72,6 +72,5 @@ class OrderUpdateConsumerEventHandler(
         is Erc721LazyAssetTypeDto -> ItemId(contract, tokenId)
         is Erc20AssetTypeDto, is EthAssetTypeDto, is GenerativeArtAssetTypeDto, is CollectionAssetTypeDto -> null
     }
-
 }
 

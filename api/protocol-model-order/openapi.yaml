@@ -854,11 +854,14 @@ components:
       type: object
       required:
         - sort
+        - platforms
       properties:
         origin:
           "$ref": "#/components/schemas/Address"
-        platform:
-          "$ref": "#/components/schemas/Platform"
+        platforms:
+          type: array
+          items:
+            "$ref": "#/components/schemas/Platform"
         sort:
           type: string
           enum:

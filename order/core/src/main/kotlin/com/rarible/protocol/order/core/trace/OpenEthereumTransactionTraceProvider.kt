@@ -70,7 +70,7 @@ class OpenEthereumTransactionTraceProvider(
             )
 
             data class Result(
-                val output: String
+                val output: String?
             )
         }
     }

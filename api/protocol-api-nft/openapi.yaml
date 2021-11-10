@@ -293,12 +293,8 @@ paths:
         '500':
           $ref: "#/components/responses/ServerError"
 
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/NftIndexerApiError"
-    delete:
+  "/v0.1/items/{itemId}/lazy/delete":
+    post:
       tags:
         - nft-item-controller
       description: Delete Lazy mint of NFT

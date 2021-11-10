@@ -24,7 +24,7 @@ internal class OrderRepositoryServiceTest : AbstractIntegrationTest() {
             orderRepository.save(createOrder())
         }
         Wait.waitAssert {
-            val filter = OrderFilterAllDto(sort = OrderFilterDto.Sort.LAST_UPDATE_DESC)
+            val filter = OrderFilterAllDto(sort = OrderFilterDto.Sort.LAST_UPDATE_DESC, platforms = emptyList())
             val collectedOrders = mutableListOf<Order>()
 
             orderRepositoryService.search(filter, 3).collect {
