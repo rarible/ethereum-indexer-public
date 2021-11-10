@@ -19,7 +19,7 @@ class AuctionListener(
         publish(
             AuctionUpdateEventDto(
                 eventId = auction.lastEventId ?: UUID.randomUUID().toString(),
-                auctionId = auction.hash.toString(),
+                auctionId = auction.hash.prefixed(),
                 auction = auctionDtoConverter.convert(auction)
             )
         )
@@ -28,7 +28,7 @@ class AuctionListener(
     suspend fun onAuctionDelete(hash: Word) {
         publish(
             AuctionDeleteEventDto(
-                eventId = hash.hex(),
+                eventId = hash.prefixed(),
                 auctionId = hash.hex()
             )
         )
