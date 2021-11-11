@@ -57,10 +57,6 @@ class LazyNftValidator(
             throw ValidationApiException(e.message ?: "Invalid structure of signature")
         }
 
-        if (!allowMinting(lazyNftDto)) {
-            throw ValidationApiException("It isn't allowed to lazy mint")
-        }
-
         val errorMessage = when (result) {
             ValidationResult.Valid -> return
             ValidationResult.InvalidCreatorAndSignatureSize -> "Invalid creator and signature size"
@@ -68,6 +64,10 @@ class LazyNftValidator(
             is ValidationResult.InvalidCreatorSignature -> "Invalid signatures for creators ${result.creators}"
         }
         throw ValidationApiException(errorMessage)
+
+        if (!allowMinting(lazyNftDto)) {
+            throw ValidationApiException("It isn't allowed to lazy mint")
+        }
     }
 
     private suspend fun allowMinting(lazyNftDto: LazyNftDto) = when (lazyNftDto) {
