@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.service.mint
 
+import com.rarible.contracts.interfaces.erc1155.lazymint.IERC1155LazyMint
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.ethereum.sign.service.InvalidSignatureException
@@ -17,6 +18,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scala.Tuple2
 import scala.Tuple5
+import scala.Tuple6
 import scalether.abi.Uint256Type
 import scalether.transaction.MonoTransactionSender
 import java.util.*
@@ -74,7 +76,7 @@ class LazyNftValidator(
         else -> throw ValidationApiException("Standard doesn't support yet")
     }
 
-    private suspend fun allowMintingERC721(lazyNftDto: LazyNftDto): Boolean {
+    private suspend fun allowMintingERC721(lazyNftDto: LazyErc721Dto): Boolean {
         val contract = IERC721LazyMint(lazyNftDto.contract, sender)
         val creators = lazyNftDto.creators.map { Tuple2(it.account, it.value.toBigInteger()) }
         val royalties = lazyNftDto.royalties.map { Tuple2(it.account, it.value.toBigInteger()) }
@@ -96,7 +98,26 @@ class LazyNftValidator(
         return true
     }
 
-    private suspend fun allowMintingERC1155(lazyNftDto: LazyNftDto): Boolean {
+    private suspend fun allowMintingERC1155(lazyNftDto: LazyErc1155Dto): Boolean {
+        val contract = IERC1155LazyMint(lazyNftDto.contract, sender)
+        val creators = lazyNftDto.creators.map { Tuple2(it.account, it.value.toBigInteger()) }
+        val royalties = lazyNftDto.royalties.map { Tuple2(it.account, it.value.toBigInteger()) }
+        val signatures = lazyNftDto.signatures.map { it.bytes() }
+        val mintData = Tuple6(
+            lazyNftDto.tokenId,
+            lazyNftDto.uri,
+            lazyNftDto.supply,
+            creators.toTypedArray(),
+            royalties.toTypedArray(),
+            signatures.toTypedArray()
+        )
+        try {
+            contract.mintAndTransfer(mintData, lazyNftDto.creators.first().account, lazyNftDto.supply)
+                .withFrom(lazyNftDto.creators.first().account)
+                .call().awaitFirstOrNull()
+        } catch (e: Exception) {
+            return false
+        }
         return true
     }
 }
