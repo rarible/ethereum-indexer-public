@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.erc20.core.model.BalanceId
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import kotlinx.coroutines.reactive.awaitFirst
@@ -9,6 +10,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.stereotype.Component
 
 @Component
+@CaptureSpan(type = "db")
 class Erc20BalanceRepository(
     private val template: ReactiveMongoTemplate
 ) {
