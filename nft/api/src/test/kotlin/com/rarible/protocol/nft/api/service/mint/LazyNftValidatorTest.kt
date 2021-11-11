@@ -33,7 +33,7 @@ class LazyNftValidatorTest {
     private val delegate: com.rarible.ethereum.nft.validation.LazyNftValidator = mockk()
     private val tokenRepository: TokenRepository = mockk()
 
-    private val validator: LazyNftValidator = LazyNftValidator(delegate, tokenRepository)
+    private val validator: LazyNftValidator = LazyNftValidator(delegate, tokenRepository, mockk())
 
     @BeforeEach
     fun beforeEach() {
