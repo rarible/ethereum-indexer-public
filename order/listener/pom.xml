@@ -43,7 +43,7 @@
             <artifactId>protocol-subscriber-order-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.currency</groupId>
             <artifactId>protocol-client-currency-starter</artifactId>
         </dependency>
         <dependency>

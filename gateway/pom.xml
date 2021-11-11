@@ -108,9 +108,9 @@
 
         <!-- ================== Test ===================== -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>gateway-client</artifactId>
-            <version>${project.version}</version>
+            <version>${rarible.protocol.ethereum.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

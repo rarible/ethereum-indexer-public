@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.util.*
 
-class OffsetDateTimeFormatter : Formatter<OffsetDateTime?> {
+class InstantFormatter : Formatter<Instant?> {
 
     private val requestDateTimeParser = DateTimeFormatterBuilder()
         .appendPattern("yyyy-MM-dd'T'HH:mm:ss")
@@ -28,19 +28,19 @@ class OffsetDateTimeFormatter : Formatter<OffsetDateTime?> {
     }
 
     @Throws(ParseException::class)
-    override fun parse(text: String?, locale: Locale): OffsetDateTime? {
+    override fun parse(text: String?, locale: Locale): Instant? {
         if (text == null) {
             return null
         }
         return try {
-            OffsetDateTime.parse(text, requestDateTimeParser)
+            OffsetDateTime.parse(text, requestDateTimeParser).toInstant()
         } catch (ex: Throwable) {
             val date = legacyDateTimeFormatter.get().parse(text)
-            OffsetDateTime.ofInstant(Instant.ofEpochMilli(date.time), ZoneOffset.UTC)
+            Instant.ofEpochMilli(date.time)
         }
     }
 
-    override fun print(dateTime: OffsetDateTime?, locale: Locale): String? {
+    override fun print(dateTime: Instant?, locale: Locale): String? {
         return if (dateTime == null) {
             null
         } else {

@@ -2,15 +2,17 @@ package com.rarible.protocol.order.core.formatter
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.ZoneOffset
 import java.util.*
 
-internal class OffsetDateTimeFormatterTest {
+internal class InstantFormatterTest {
 
-    private val formatter = OffsetDateTimeFormatter()
+    private val formatter = InstantFormatter()
 
     @Test
     fun `parse asctime date`() {
-        val date = formatter.parse("Tue Jun 29 10:00:00 GMT 2021", Locale.ENGLISH)!!
+        val instant = formatter.parse("Tue Jun 29 10:00:00 GMT 2021", Locale.ENGLISH)!!
+        val date = instant.atOffset(ZoneOffset.UTC)
         assertEquals(29, date.dayOfMonth)
         assertEquals(6, date.monthValue)
         assertEquals(10, date.hour)
@@ -18,7 +20,8 @@ internal class OffsetDateTimeFormatterTest {
 
     @Test
     fun `parse iso date`() {
-        val date = formatter.parse("2021-06-29T10:00:00Z", Locale.ENGLISH)!!
+        val instant = formatter.parse("2021-06-29T10:00:00Z", Locale.ENGLISH)!!
+        val date = instant.atOffset(ZoneOffset.UTC)
         assertEquals(29, date.dayOfMonth)
         assertEquals(6, date.monthValue)
         assertEquals(10, date.hour)

@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.model
 
 import java.math.BigDecimal
-import java.time.OffsetDateTime
 import java.util.*
 
 data class OrderUpdate(

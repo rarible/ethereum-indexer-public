@@ -10,15 +10,10 @@
     <parent>
         <groupId>com.rarible</groupId>
         <artifactId>rarible-parent-pom</artifactId>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
     </parent>
 
     <repositories>
-        <repository>
-            <id>nexus-maven-public</id>
-            <name>nexus-maven-public</name>
-            <url>http://nexus.rarible.int/repository/maven-public/</url>
-        </repository>
         <repository>
             <id>nexus-ext-maven-public</id>
             <name>nexus-ext-maven-public</name>
@@ -27,19 +22,18 @@
     </repositories>
 
     <properties>
-        <revision>1.18-SNAPSHOT</revision>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <revision>1.18.0</revision>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-gateway.version>2.2.6.RELEASE</spring-cloud-gateway.version>
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <ethereum-openapi.version>1.18.4</ethereum-openapi.version>
-        <rarible-core.version>1.4.7</rarible-core.version>
-        <rarible-ethereum.version>1.3.4</rarible-ethereum.version>
-        <rarible-currency.version>1.4.5</rarible-currency.version>
+        <rarible.ethereum.version>1.3.5</rarible.ethereum.version>
+        <rarible.core.version>1.4.7</rarible.core.version>
+
+        <rarible.protocol.ethereum.version>1.18.5</rarible.protocol.ethereum.version>
+        <rarible.protocol.currency.version>1.18.2</rarible.protocol.currency.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
 
@@ -60,35 +54,35 @@
             <dependency>
                 <groupId>com.rarible.core</groupId>
                 <artifactId>rarible-core-parent</artifactId>
-                <version>${rarible-core.version}</version>
+                <version>${rarible.core.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.rarible.ethereum</groupId>
                 <artifactId>rarible-ethereum-parent</artifactId>
-                <version>${rarible-ethereum.version}</version>
+                <version>${rarible.ethereum.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.rarible.protocol.ethereum</groupId>
                 <artifactId>rarible-ethereum-openapi</artifactId>
-                <version>${ethereum-openapi.version}</version>
+                <version>${rarible.protocol.ethereum.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
 
             <!-- ============ External dependencies ============ -->
             <dependency>
-                <groupId>com.rarible.protocol</groupId>
+                <groupId>com.rarible.protocol.currency</groupId>
                 <artifactId>protocol-client-currency-starter</artifactId>
-                <version>${rarible-currency.version}</version>
+                <version>${rarible.protocol.currency.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.rarible.protocol</groupId>
+                <groupId>com.rarible.protocol.currency</groupId>
                 <artifactId>protocol-model-currency</artifactId>
-                <version>${rarible-currency.version}</version>
+                <version>${rarible.protocol.currency.version}</version>
             </dependency>
 
             <!-- ================== Other =================== -->
