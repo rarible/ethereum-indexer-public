@@ -33,7 +33,9 @@ class ActivityVersionFilterConverter(
                 when (it) {
                     OrderActivityFilterAllDto.Types.LIST -> ActivityOrderVersionFilter.AllList(sort, continuation)
                     OrderActivityFilterAllDto.Types.BID -> ActivityOrderVersionFilter.AllBid(sort, continuation)
-                    OrderActivityFilterAllDto.Types.MATCH -> null
+                    OrderActivityFilterAllDto.Types.MATCH,
+                    OrderActivityFilterAllDto.Types.CANCEL_BID,
+                    OrderActivityFilterAllDto.Types.CANCEL_LIST -> null
                 }
             }
             is OrderActivityFilterByUserDto -> {
@@ -77,7 +79,9 @@ class ActivityVersionFilterConverter(
                                 }
                         }
                         OrderActivityFilterByUserDto.Types.SELL,
-                        OrderActivityFilterByUserDto.Types.BUY -> emptyList()
+                        OrderActivityFilterByUserDto.Types.BUY,
+                        OrderActivityFilterByUserDto.Types.CANCEL_LIST,
+                        OrderActivityFilterByUserDto.Types.CANCEL_BID -> emptyList()
                     }
                 }
             }
@@ -95,7 +99,9 @@ class ActivityVersionFilterConverter(
                         EthUInt256.of(source.tokenId),
                         continuation
                     )
-                    OrderActivityFilterByItemDto.Types.MATCH -> null
+                    OrderActivityFilterByItemDto.Types.MATCH,
+                    OrderActivityFilterByItemDto.Types.CANCEL_LIST,
+                    OrderActivityFilterByItemDto.Types.CANCEL_BID -> null
                 }
             }
             is OrderActivityFilterByCollectionDto -> source.types.mapNotNull {
@@ -110,7 +116,9 @@ class ActivityVersionFilterConverter(
                         source.contract,
                         continuation
                     )
-                    OrderActivityFilterByCollectionDto.Types.MATCH -> null
+                    OrderActivityFilterByCollectionDto.Types.MATCH,
+                    OrderActivityFilterByCollectionDto.Types.CANCEL_BID,
+                    OrderActivityFilterByCollectionDto.Types.CANCEL_LIST -> null
                 }
             }
         }

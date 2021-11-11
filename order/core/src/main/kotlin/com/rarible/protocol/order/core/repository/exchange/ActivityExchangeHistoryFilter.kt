@@ -37,6 +37,14 @@ sealed class ActivityExchangeHistoryFilter {
         }
     }
 
+    class AllCanceledSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
+
+        override fun getCriteria(): Criteria {
+            return (makeNftKey isEqualTo true canceled true).scrollTo(sort, continuation)
+        }
+    }
+
     protected infix fun Criteria.canceled(isCancel: Boolean): Criteria =
         if (isCancel) {
             and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.CANCEL)
@@ -132,6 +140,25 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         }
     }
 
+    class ByUserCanceledSell(
+        override val sort: ActivitySort,
+        users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        private val continuation: Continuation?
+    ) : UserActivityExchangeHistoryFilter(users) {
+
+        override val hint: Document =
+            if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
+            else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
+
+        override fun getCriteria(): Criteria {
+            return AllCanceledSell(sort,null).getCriteria().andOperator(makerCriteria)
+                .dateBoundary(sort, continuation, from, to)
+                .scrollTo(sort, continuation)
+        }
+    }
+
     class ByUserBuy(
         override val sort: ActivitySort,
         users: List<Address>,
@@ -176,6 +203,16 @@ sealed class CollectionActivityExchangeHistoryFilter : ActivityExchangeHistoryFi
                 .scrollTo(sort, continuation)
         }
     }
+
+    data class ByCollectionCanceledSell(override val sort: ActivitySort, private val contract: Address, private val continuation: Continuation?) : CollectionActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.COLLECTION_SELL_DEFINITION.indexKeys
+
+        override fun getCriteria(): Criteria {
+            val makeNftContractCriteria = makeNftContractKey isEqualTo contract
+            return AllCanceledSell(sort, null).getCriteria().andOperator(makeNftContractCriteria)
+                .scrollTo(sort, continuation)
+        }
+    }
 }
 
 sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHistoryFilter() {
@@ -202,6 +239,17 @@ sealed class ItemActivityExchangeHistoryFilter : CollectionActivityExchangeHisto
             val takeNftContractCriteria = takeNftContractKey isEqualTo contract
             val takeNftTokenIdCriteria = takeNftTokenIdKey isEqualTo tokenId
             return (Criteria().andOperator(takeNftContractCriteria, takeNftTokenIdCriteria) canceled true)
+                .scrollTo(sort, continuation)
+        }
+    }
+
+    data class ByItemCanceledSell(override val sort: ActivitySort, private val contract: Address, private val tokenId: EthUInt256, private val continuation: Continuation?) : ItemActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION.indexKeys
+
+        override fun getCriteria(): Criteria {
+            val makeNftContractCriteria = makeNftContractKey isEqualTo contract
+            val makeNftTokenIdCriteria = makeNftTokenIdKey isEqualTo tokenId
+            return (Criteria().andOperator(makeNftContractCriteria, makeNftTokenIdCriteria) canceled true)
                 .scrollTo(sort, continuation)
         }
     }

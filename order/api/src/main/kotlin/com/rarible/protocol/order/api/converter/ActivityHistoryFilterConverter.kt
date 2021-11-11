@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.OrderActivityFilterAllDto.Types.*
 import com.rarible.protocol.order.api.configuration.OrderIndexerApiProperties
 import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
 import com.rarible.protocol.order.core.repository.exchange.CollectionActivityExchangeHistoryFilter
@@ -10,7 +11,6 @@ import com.rarible.protocol.order.core.repository.exchange.UserActivityExchangeH
 import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.stereotype.Component
 import java.time.Instant
-
 
 @Component
 class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
@@ -27,13 +27,20 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
         return when (source) {
             is OrderActivityFilterAllDto -> source.types.flatMap {
                 when (it) {
-                    OrderActivityFilterAllDto.Types.MATCH -> listOf(
+                    MATCH -> listOf(
                         ActivityExchangeHistoryFilter.AllSell(sort, continuation)
                     )
-                    OrderActivityFilterAllDto.Types.BID -> listOf(
+                    BID -> listOf(
+                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
                         ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
                     )
-                    OrderActivityFilterAllDto.Types.LIST -> emptyList()
+                    CANCEL_BID -> listOf(
+                        ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
+                    )
+                    CANCEL_LIST -> listOf(
+                        ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation)
+                    )
+                    LIST -> emptyList()
                 }
             }
             is OrderActivityFilterByUserDto -> {
@@ -49,7 +56,14 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                             UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, from, to, continuation)
                         )
                         OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
+                            //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
                             UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, from, to, continuation)
+                        )
+                        OrderActivityFilterByUserDto.Types.CANCEL_BID -> listOf(
+                            UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, from, to, continuation)
+                        )
+                        OrderActivityFilterByUserDto.Types.CANCEL_LIST -> listOf(
+                            UserActivityExchangeHistoryFilter.ByUserCanceledSell(sort, users, from, to, continuation)
                         )
                         OrderActivityFilterByUserDto.Types.LIST,
                         OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
@@ -62,7 +76,14 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                         ItemActivityExchangeHistoryFilter.ByItemSell(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
                     OrderActivityFilterByItemDto.Types.BID -> listOf(
+                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
                         ItemActivityExchangeHistoryFilter.ByItemCanceledBid(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
+                    )
+                    OrderActivityFilterByItemDto.Types.CANCEL_BID -> listOf(
+                        ItemActivityExchangeHistoryFilter.ByItemCanceledBid(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
+                    )
+                    OrderActivityFilterByItemDto.Types.CANCEL_LIST -> listOf(
+                        ItemActivityExchangeHistoryFilter.ByItemCanceledSell(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
                     OrderActivityFilterByItemDto.Types.LIST -> emptyList()
                 }
@@ -73,7 +94,14 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                         CollectionActivityExchangeHistoryFilter.ByCollectionSell(sort, source.contract, continuation)
                     )
                     OrderActivityFilterByCollectionDto.Types.BID -> listOf(
+                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
                         CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(sort, source.contract, continuation)
+                    )
+                    OrderActivityFilterByCollectionDto.Types.CANCEL_BID -> listOf(
+                        CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(sort, source.contract, continuation)
+                    )
+                    OrderActivityFilterByCollectionDto.Types.CANCEL_LIST -> listOf(
+                        CollectionActivityExchangeHistoryFilter.ByCollectionCanceledSell(sort, source.contract, continuation)
                     )
                     OrderActivityFilterByCollectionDto.Types.LIST -> emptyList()
                 }
