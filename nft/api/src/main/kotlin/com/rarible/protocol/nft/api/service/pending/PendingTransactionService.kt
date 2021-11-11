@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc1155.TransferSingleEvent
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.erc721.TransferEvent
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
@@ -32,6 +33,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.span.SpanType
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -48,6 +50,7 @@ import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as Mintable
 
 @ExperimentalCoroutinesApi
 @Service
+@CaptureSpan(type = SpanType.SERVICE, subtype = "pending-transaction")
 class PendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

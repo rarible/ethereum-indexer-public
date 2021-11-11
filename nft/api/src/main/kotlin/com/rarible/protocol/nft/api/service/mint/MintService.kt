@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.service.mint
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -10,11 +11,13 @@ import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "mint")
 class MintService(
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val itemRepository: ItemRepository,

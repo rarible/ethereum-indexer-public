@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -12,6 +14,8 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Mono
 
+
+@CaptureSpan(type = SpanType.DB, subtype = "crypto-punks")
 class OwnershipRepository(
     private val mongo: ReactiveMongoOperations
 ) {

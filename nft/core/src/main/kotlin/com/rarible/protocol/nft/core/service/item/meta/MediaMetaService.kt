@@ -3,11 +3,13 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.google.common.io.ByteStreams
 import com.google.common.io.CountingInputStream
 import com.google.common.net.InternetDomainName
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.blockingToMono
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.MediaMeta
+import com.rarible.protocol.nft.core.span.SpanType
 import com.sun.imageio.plugins.bmp.BMPMetadata
 import com.sun.imageio.plugins.gif.GIFImageMetadata
 import com.sun.imageio.plugins.jpeg.JPEGMetadata
@@ -29,6 +31,7 @@ import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "media-meta")
 class MediaMetaService(
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int,

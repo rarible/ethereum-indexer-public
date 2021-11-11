@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.core.repository
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Royalty
+import com.rarible.protocol.nft.core.span.SpanType
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.query.Criteria
@@ -10,7 +12,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
-
+@CaptureSpan(type = SpanType.DB, subtype = "royalty")
 class RoyaltyRepository(
     private val mongo: ReactiveMongoOperations
 ) {

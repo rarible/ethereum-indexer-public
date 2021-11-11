@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.KnownOrigin.KnownOrigin
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -7,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemCreator
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.KNOWN_ORIGIN_TOKEN
 import com.rarible.protocol.nft.core.repository.ItemCreatorRepository
+import com.rarible.protocol.nft.core.span.SpanType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -18,6 +20,7 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 @Service
+@CaptureSpan(type = SpanType.SERVICE, subtype = "item-creator")
 class ItemCreatorService(
     sender: MonoTransactionSender,
     private val itemCreatorRepository: ItemCreatorRepository,

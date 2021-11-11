@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.service.colllection
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -7,6 +8,7 @@ import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -18,6 +20,7 @@ import scalether.util.Hex
 import java.math.BigInteger
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "collection-api")
 class CollectionService(
     operator: OperatorProperties,
     private val tokenRegistrationService: TokenRegistrationService,

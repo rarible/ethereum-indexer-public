@@ -1,10 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.quotation.QuotationData
 import com.rarible.protocol.contracts.external.yinsure.YInsure
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.span.SpanType
 import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -15,6 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "yinsure-descriptor")
 class YInsureCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.yinsure.address}") yInsureAddress: String,
