@@ -8,12 +8,8 @@ import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
-import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUser
-import com.rarible.protocol.dto.LazyErc1155Dto
-import com.rarible.protocol.dto.LazyErc721Dto
-import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createLazyErc1155Dto
@@ -36,7 +32,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.crypto.Keys
@@ -73,7 +68,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(2_000_000),
+            BigInteger.valueOf(8000000),
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
     }
@@ -98,7 +93,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
     @Test
     fun `should only owner mints ERC721User`() = runBlocking<Unit> {
-        val contract = ERC721RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()
+        val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
@@ -116,7 +111,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
     @Test
     fun `shouldn't random user mints ERC721User`() = runBlocking<Unit> {
-        val contract = ERC721RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()
+        val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = randomAddress()
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
