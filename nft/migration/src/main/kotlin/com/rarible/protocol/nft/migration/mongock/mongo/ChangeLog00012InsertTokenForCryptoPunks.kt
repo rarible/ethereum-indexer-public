@@ -17,12 +17,14 @@ import scalether.domain.Address
 @ChangeLog(order = "00012")
 class ChangeLog00012InsertTokenForCryptoPunks {
 
-    @ChangeSet(id = "ChangeLog00012UpdateTokeFeatures.insertTokenForCryptoPunks", order = "1", author = "protocol")
+    // TODO: disable "runAlways=true" when the CryptoPunks contract is finally released.
+    @ChangeSet(id = "ChangeLog00012InsertTokenForCryptoPunks.insertTokenForCryptoPunks", runAlways = true, order = "1", author = "protocol")
     fun insertTokenForCryptoPunks(
         @NonLockGuarded tokenRegistrationService: TokenRegistrationService,
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties
     ) = runBlocking<Unit> {
         val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
+        if (address == Address.ZERO()) return@runBlocking
         val token = Token(
             address,
             name = "CRYPTOPUNKS",
