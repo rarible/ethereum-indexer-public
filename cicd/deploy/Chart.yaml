@@ -1,40 +1,40 @@
 apiVersion: v2
-name: protocol-ethereum
+name: protocol
 version: 0.1.0
 dependencies:
 - name: rarible-helm-chart
-  alias: protocol-ethereum-erc20-listener
+  alias: protocol-erc20-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-erc20-api
+  alias: protocol-erc20-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-gateway
+  alias: protocol-gateway
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-api
+  alias: protocol-order-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-listener
+  alias: protocol-order-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-migration
+  alias: protocol-order-migration
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-unlockable-api
+  alias: protocol-unlockable-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-nft-api
+  alias: protocol-nft-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-nft-listener
+  alias: protocol-nft-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0

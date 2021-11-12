@@ -1,9 +1,9 @@
 global:
   blockchain: ethereum
   network: mainnet
-protocol-ethereum-erc20-api:
+protocol-erc20-api:
   image:
-    repository: protocol-ethereum-erc20-api
+    repository: ethereum-indexer-erc20-api
   replicas: 2
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -21,9 +21,9 @@ protocol-ethereum-erc20-api:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
 
-protocol-ethereum-erc20-listener:
+protocol-erc20-listener:
   image:
-    repository: protocol-ethereum-erc20-listener
+    repository: ethereum-indexer-erc20-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
@@ -39,9 +39,9 @@ protocol-ethereum-erc20-listener:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-ethereum-gateway:
+protocol-gateway:
   image:
-    repository: protocol-ethereum-gateway
+    repository: ethereum-indexer-gateway
   replicas: 2
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -60,9 +60,9 @@ protocol-ethereum-gateway:
     - '{{ include "service.appEnv" $ }}-backend'
     - 'proxy'
 
-protocol-ethereum-order-api:
+protocol-order-api:
   image:
-    repository: protocol-ethereum-order-api
+    repository: ethereum-indexer-order-api
   replicas: 2
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -82,9 +82,9 @@ protocol-ethereum-order-api:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-ethereum-order-listener:
+protocol-order-listener:
   image:
-    repository: protocol-ethereum-order-api
+    repository: ethereum-indexer-order-api
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
@@ -100,9 +100,9 @@ protocol-ethereum-order-listener:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-ethereum-order-migration:
+protocol-order-migration:
   image:
-    repository: protocol-ethereum-order-migration
+    repository: ethereum-indexer-order-migration
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
@@ -118,9 +118,9 @@ protocol-ethereum-order-migration:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-ethereum-unlockable-api:
+protocol-unlockable-api:
   image:
-    repository: protocol-ethereum-unlockable-api
+    repository: ethereum-indexer-unlockable-api
   replicas: 2
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -138,9 +138,9 @@ protocol-ethereum-unlockable-api:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
 
-protocol-ethereum-nft-api:
+protocol-nft-api:
   image:
-    repository: protocol-ethereum-nft-api
+    repository: ethereum-indexer-nft-api
   replicas: 2
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -159,9 +159,9 @@ protocol-ethereum-nft-api:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-ethereum-nft-listener:
+protocol-nft-listener:
   image:
-    repository: protocol-ethereum-nft-listener
+    repository: ethereum-indexer-nft-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
