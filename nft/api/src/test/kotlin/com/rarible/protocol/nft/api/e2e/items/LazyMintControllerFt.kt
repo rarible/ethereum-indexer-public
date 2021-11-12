@@ -114,7 +114,6 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         checkItemDto(lazyItemDto, itemDto)
     }
 
-    @Disabled
     @Test
     fun `shouldn't random user mints ERC721User`() = runBlocking<Unit> {
         val contract = ERC721RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()

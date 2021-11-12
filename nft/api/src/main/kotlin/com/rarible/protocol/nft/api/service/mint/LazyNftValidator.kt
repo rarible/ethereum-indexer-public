@@ -2,9 +2,9 @@ package com.rarible.protocol.nft.api.service.mint
 
 import com.rarible.contracts.interfaces.erc1155.lazymint.IERC1155LazyMint
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.contracts.interfaces.erc721.lazymint.IERC721LazyMint
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.ethereum.sign.service.InvalidSignatureException
-import com.rarible.protocol.contracts.erc721.rarible.`interface`.IERC721LazyMint
 import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
@@ -57,6 +57,10 @@ class LazyNftValidator(
             throw ValidationApiException(e.message ?: "Invalid structure of signature")
         }
 
+        if (!allowMinting(lazyNftDto)) {
+            throw ValidationApiException("It isn't allowed to lazy mint")
+        }
+
         val errorMessage = when (result) {
             ValidationResult.Valid -> return
             ValidationResult.InvalidCreatorAndSignatureSize -> "Invalid creator and signature size"
@@ -64,10 +68,6 @@ class LazyNftValidator(
             is ValidationResult.InvalidCreatorSignature -> "Invalid signatures for creators ${result.creators}"
         }
         throw ValidationApiException(errorMessage)
-
-        if (!allowMinting(lazyNftDto)) {
-            throw ValidationApiException("It isn't allowed to lazy mint")
-        }
     }
 
     private suspend fun allowMinting(lazyNftDto: LazyNftDto) = when (lazyNftDto) {
