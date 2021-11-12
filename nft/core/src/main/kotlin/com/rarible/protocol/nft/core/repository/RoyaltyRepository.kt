@@ -9,9 +9,11 @@ import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
 @CaptureSpan(type = SpanType.DB, subtype = "royalty")
 class RoyaltyRepository(
     private val mongo: ReactiveMongoOperations

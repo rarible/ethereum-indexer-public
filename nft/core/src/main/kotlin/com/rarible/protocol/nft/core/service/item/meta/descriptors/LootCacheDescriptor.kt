@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "loot-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "loot-descriptor")
 class LootCacheDescriptor(
     @Value("\${api.loot.cache-timeout}") private val cacheTimeout: Long,
     val sender: MonoTransactionSender,

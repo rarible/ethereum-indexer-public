@@ -11,10 +11,12 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
 @CaptureSpan(type = SpanType.DB, subtype = "lazy-nft-item-history")
 class LazyNftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations

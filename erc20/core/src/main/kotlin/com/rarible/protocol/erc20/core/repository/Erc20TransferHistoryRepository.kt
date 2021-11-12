@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.mapNotNull
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
+@CaptureSpan(type = "db", subtype = "erc20-transfer-history")
 class Erc20TransferHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) {

@@ -8,7 +8,9 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 
+@Component
 class TempTaskRepository(
     private val template: ReactiveMongoOperations
 ) {

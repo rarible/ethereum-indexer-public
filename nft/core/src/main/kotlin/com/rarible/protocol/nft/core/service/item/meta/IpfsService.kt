@@ -1,8 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.configuration.IpfsProperties
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +16,6 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "ipfs")
 class IpfsService(
     @Value("\${api.ipfs-url}") private val ipfsUrl: String,
     private val ipfsProperties: IpfsProperties

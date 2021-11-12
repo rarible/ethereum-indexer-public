@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "hegic-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "hegic-descriptor")
 class HegicCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.hegic.address}") hegicAddress: String,

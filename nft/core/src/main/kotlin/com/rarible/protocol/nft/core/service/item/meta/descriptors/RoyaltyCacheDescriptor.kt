@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "royalty-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "royalty-descriptor")
 class RoyaltyCacheDescriptor(
     private val royaltyService: RoyaltyService,
     @Value("\${api.royalty.cache-timeout}") private val cacheTimeout: Long

@@ -12,10 +12,11 @@ import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
-
-@CaptureSpan(type = SpanType.DB, subtype = "crypto-punks")
+@Component
+@CaptureSpan(type = SpanType.DB, subtype = "ownership")
 class OwnershipRepository(
     private val mongo: ReactiveMongoOperations
 ) {

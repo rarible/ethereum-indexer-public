@@ -37,7 +37,7 @@ import java.math.BigInteger
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "properties-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "properties-descriptor")
 class PropertiesCacheDescriptor(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

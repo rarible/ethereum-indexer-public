@@ -7,10 +7,12 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.span.SpanType
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.*
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
 @CaptureSpan(type = SpanType.DB, subtype = "token")
 class TokenRepository(
     private val mongo: ReactiveMongoOperations

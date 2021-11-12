@@ -31,7 +31,7 @@ import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "media-meta")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "media-meta")
 class MediaMetaService(
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int,

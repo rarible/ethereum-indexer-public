@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = "db")
+@CaptureSpan(type = "db", subtype = "erc20-balance")
 class Erc20BalanceRepository(
     private val template: ReactiveMongoTemplate
 ) {

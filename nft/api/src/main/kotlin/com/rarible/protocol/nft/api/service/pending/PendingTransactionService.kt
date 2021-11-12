@@ -50,7 +50,6 @@ import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as Mintable
 
 @ExperimentalCoroutinesApi
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "pending-transaction")
 class PendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

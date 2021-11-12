@@ -14,7 +14,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "waifusion-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "waifusion-descriptor")
 class WaifusionCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.waifusion.address}") waifusionAddress: String,

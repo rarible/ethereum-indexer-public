@@ -14,7 +14,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = SpanType.SERVICE, subtype = "hashmasks-descriptor")
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "hashmasks-descriptor")
 class HashmasksCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.hashmasks.address}") hashmasksAddress: String,
