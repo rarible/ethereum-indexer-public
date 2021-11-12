@@ -123,7 +123,7 @@
                             <type>MONO</type>
                         </contract>
                         <contract>
-                            <truffle>src/main/truffle/erc721/rarible/ERC721RaribleUser.json</truffle>
+                            <truffle>src/main/truffle/erc721/rarible/ERC721RaribleUserMinimal.json</truffle>
                             <packageName>com.rarible.protocol.contracts.erc721.rarible.user</packageName>
                             <type>MONO</type>
                         </contract>

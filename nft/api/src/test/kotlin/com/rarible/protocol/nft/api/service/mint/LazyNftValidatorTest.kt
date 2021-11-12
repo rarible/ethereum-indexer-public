@@ -26,18 +26,21 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import scalether.abi.Uint256Type
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 class LazyNftValidatorTest {
 
     private val delegate: com.rarible.ethereum.nft.validation.LazyNftValidator = mockk()
     private val tokenRepository: TokenRepository = mockk()
+    private val sender: MonoTransactionSender = mockk()
 
-    private val validator: LazyNftValidator = LazyNftValidator(delegate, tokenRepository)
+    private val validator: LazyNftValidator = LazyNftValidator(delegate, tokenRepository, sender)
 
     @BeforeEach
     fun beforeEach() {
         clearMocks(delegate, tokenRepository)
+        coEvery { sender.call(any()) } returns Mono.empty()
     }
 
     @Test

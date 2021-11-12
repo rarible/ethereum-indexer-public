@@ -14,7 +14,7 @@ import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
 import com.rarible.protocol.contracts.erc721.rarible.factory.beacon.ERC721RaribleBeaconMinimal
 import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
-import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUser
+import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
@@ -88,7 +88,7 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
 
     @Test
     fun `should create log for ERC721RaribleUserFactory`() = runBlocking<Unit> {
-        val token = ERC721RaribleUser.deployAndWait(userSender, poller).awaitSingle()
+        val token = ERC721RaribleUserMinimal.deployAndWait(userSender, poller).awaitSingle()
         val beacon = ERC721RaribleBeaconMinimal.deployAndWait(userSender, poller, token.address()).awaitSingle()
         val factory = ERC721RaribleUserFactoryC2.deployAndWait(userSender, poller, beacon.address()).awaitSingle()
         setField(nftIndexerProperties, "factory", NftIndexerProperties.FactoryAddresses(

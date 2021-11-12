@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.listener.service.descriptors.erc721
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
-import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUser
+import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
@@ -76,7 +76,7 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
             MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
         )
 
-        val token = ERC721RaribleUser.deployAndWait(userSender, poller).awaitFirst()
+        val token = ERC721RaribleUserMinimal.deployAndWait(userSender, poller).awaitFirst()
         token.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", arrayOf()).execute().verifySuccess()
 
         Wait.waitAssert {
