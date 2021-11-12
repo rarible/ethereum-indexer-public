@@ -9,17 +9,21 @@ import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LazyErc1155Dto
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.LazyNftDto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
-import com.rarible.protocol.nft.api.e2e.data.createLazyErc1155Dto
-import com.rarible.protocol.nft.api.e2e.data.createLazyErc721Dto
+import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -38,12 +42,15 @@ import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import scalether.domain.AddressFactory
 import scalether.domain.response.TransactionReceipt
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
+import java.util.*
+import java.util.concurrent.ThreadLocalRandom
 
 @End2EndTest
 class LazyMintControllerFt : SpringContainerBaseTest() {
@@ -165,6 +172,25 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `shouldn't random user mints ERC1155User`() = runBlocking<Unit> {
+        val contract = ERC1155RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()
+        contract.__ERC1155RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
+        val creator = randomAddress()
+        val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
+
+        val lazyItemDto = createLazyErc1155Dto().copy(
+            contract = contract.address(),
+            tokenId = tokenId.value,
+            creators = listOf(PartDto(creator, 10000)))
+
+        val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
+        tokenRepository.save(token).awaitFirst()
+        assertThatThrownBy {
+            runBlocking { nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst() }
+        }
+    }
+
+    @Test
     fun `should get bad request if token id not start with first creator address`() = runBlocking<Unit> {
         val lazyNftDto = createLazyErc721Dto()
         val token = createToken().copy(id = lazyNftDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
@@ -224,6 +250,34 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
                 .hasFieldOrPropertyWithValue(Part::account.name, lazyItemDto.royalties[index].account)
                 .hasFieldOrPropertyWithValue(Part::value.name, lazyItemDto.royalties[index].value)
         }
+    }
+
+    private fun createLazyErc721Dto(): LazyErc721Dto {
+        val token = createAddress()
+        val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+        return LazyErc721Dto(
+            contract = token,
+            tokenId = tokenId.value,
+            uri = UUID.randomUUID().toString(),
+            creators = listOf(PartDto(AddressFactory.create(), 5000)),
+            royalties = listOf(PartDto(AddressFactory.create(), 5000)),
+            signatures = listOf(Binary.empty())
+        )
+    }
+
+    private fun createLazyErc1155Dto(): LazyErc1155Dto {
+        val token = createAddress()
+        val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+
+        return LazyErc1155Dto(
+            contract = token,
+            tokenId = tokenId.value,
+            uri = UUID.randomUUID().toString(),
+            supply = BigInteger.TEN,
+            creators = listOf(PartDto(AddressFactory.create(), 5000)),
+            royalties = listOf(PartDto(AddressFactory.create(), 5000)),
+            signatures = listOf(Binary.empty())
+        )
     }
 
     private suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
