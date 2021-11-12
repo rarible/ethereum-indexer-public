@@ -1,8 +1,16 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.dto.OrderFilterAllDto
+import com.rarible.protocol.dto.OrderFilterBidByItemDto
+import com.rarible.protocol.dto.OrderFilterBidByMakerDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
+import com.rarible.protocol.dto.OrderFilterSellByItemDto
+import com.rarible.protocol.dto.OrderFilterSellByMakerDto
+import com.rarible.protocol.dto.OrderFilterSellDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.limit
@@ -17,7 +25,7 @@ object OrderFilterCriteria {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
-            is OrderFilterAllDto -> Criteria() withHint OrderRepositoryIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION.indexKeys
+            is OrderFilterAllDto -> Criteria().withNoHint()
             is OrderFilterSellDto -> sell().withNoHint()
             is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
@@ -30,7 +38,7 @@ object OrderFilterCriteria {
 
         val query = Query(
             criteria
-                .forPlatform(convert(platform))
+                .forPlatform(platforms.mapNotNull { convert(it) })
                 .scrollTo(continuation, this.sort, this.currency)
                 .fromOrigin(origin)
         ).limit(requestLimit).with(sort(this.sort, this.currency))
@@ -83,8 +91,7 @@ object OrderFilterCriteria {
         sell().and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
 
     private fun sellByItem(token: Address, tokenId: EthUInt256, maker: Address?, currency: Address?) = run {
-        var c = (Order::make / Asset::type / NftAssetType::token isEqualTo token)
-            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        var c = tokenCondition(token, tokenId)
 
         maker?.let { c = c.and(Order::maker.name).`is`(it) }
         currency?.let {
@@ -98,13 +105,26 @@ object OrderFilterCriteria {
         c
     }
 
+    private fun tokenCondition(token: Address, tokenId: EthUInt256): Criteria {
+        return Criteria().andOperator(
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Criteria().orOperator(
+                Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                Order::make / Asset::type / NftAssetType::tokenId exists false
+            )
+        )
+    }
+
     private fun sell() =
         Criteria.where("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
 
     private fun bidByItem(token: Address, tokenId: EthUInt256, maker: Address?) = run {
-        val criteria = Criteria
-            .where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
-            .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId)
+        val criteria = Criteria().orOperator(
+            Criteria.where("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").isEqualTo(tokenId),
+            Criteria.where("${Order::take.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
+                .and("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(token)
+        )
 
         if (maker != null) {
             criteria.and(Order::maker.name).isEqualTo(maker)
@@ -123,9 +143,13 @@ object OrderFilterCriteria {
             .elemMatch(Criteria.where(Part::account.name).`is`(origin))
     } ?: this
 
-    private infix fun Criteria.forPlatform(platform: Platform?) = platform?.let {
-        and(Order::platform).isEqualTo(platform)
-    } ?: this
+    private infix fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
+        return if (platforms.isEmpty()) {
+            this
+        } else {
+            and(Order::platform).inValues(platforms)
+        }
+    }
 
     private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort, currency: Address?) =
         when (sort) {
@@ -199,19 +223,8 @@ object OrderFilterCriteria {
             }
         }
 
-    private fun convert(platform: PlatformDto?): Platform? = PlatformConverter.convert(platform)
+    private fun convert(platform: PlatformDto): Platform? = PlatformConverter.convert(platform)
 
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
-
-    private fun Criteria.withCurrencyHint(
-        currencyId: Address?,
-        index: Document,
-        legacyIndex: Document
-    ): Pair<Criteria, Document?> {
-        return currencyId?.let { Pair<Criteria, Document?>(this, index) } ?: Pair<Criteria, Document?>(
-            this,
-            legacyIndex
-        )
-    }
 }

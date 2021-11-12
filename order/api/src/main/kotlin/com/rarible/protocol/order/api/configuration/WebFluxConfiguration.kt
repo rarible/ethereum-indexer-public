@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.api.configuration
 
-import com.rarible.protocol.order.core.formatter.OffsetDateTimeFormatter
+import com.rarible.protocol.order.core.formatter.InstantFormatter
 import org.springframework.context.annotation.Configuration
 import org.springframework.format.FormatterRegistry
 import org.springframework.web.reactive.config.WebFluxConfigurer
@@ -9,7 +9,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer
 class WebFluxConfiguration : WebFluxConfigurer {
 
     override fun addFormatters(registry: FormatterRegistry) {
-        registry.addFormatter(OffsetDateTimeFormatter())
+        registry.addFormatter(InstantFormatter())
     }
 
 }

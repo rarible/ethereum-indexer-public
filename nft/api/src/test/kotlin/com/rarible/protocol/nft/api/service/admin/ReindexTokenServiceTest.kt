@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.api.service.admin
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
-import com.rarible.protocol.nft.core.model.ReindexTokenRoyaltiesTaskParam
-import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -28,57 +28,79 @@ class ReindexTokenServiceTest {
     private val service = ReindexTokenService(tokenRegistrationService, tokenRepository, taskRepository)
 
     @Test
-    fun `should create toke reindex task`() = runBlocking<Unit> {
+    fun `should create token reindex task`() = runBlocking<Unit> {
         val token1 = AddressFactory.create()
         val token2 = AddressFactory.create()
 
         mockTokenRegistrationService(token1, TokenStandard.ERC721)
         mockTokenRegistrationService(token2, TokenStandard.ERC721)
         mockTokenRepositorySave()
-        mockTaskRepositoryFindNothingByType(ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN)
+        mockTaskRepositoryFindNothingByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS)
 
-        val task = service.createReindexTokenTask(listOf(token1, token2), 100)
+        val task = service.createReindexTokenItemsTask(listOf(token1, token2), 100, false)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isEqualTo(100L)
 
-        with(ReindexTokenTaskParams.fromParamString(task.param)) {
+        with(ReindexTokenItemsTaskParams.fromParamString(task.param)) {
             assertThat(tokens).isEqualTo(listOf(token1, token2))
             assertThat(standard).isEqualTo(TokenStandard.ERC721)
         }
     }
 
     @Test
-    fun `should create toke reduce task`() = runBlocking<Unit> {
+    fun `should create token reduce task`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
         mockTokenRepositorySave()
         mockTaskRepositoryFindNothingByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS)
 
-        val task = service.createReduceTokenItemsTask(targetToken)
+        val task = service.createReduceTokenItemsTask(targetToken, false)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isNull()
 
         with(ReduceTokenItemsTaskParams.fromParamString(task.param)) {
-            assertThat(token).isEqualTo(token)
+            assertThat(tokens).isEqualTo(tokens)
         }
     }
 
     @Test
-    fun `should create toke royalties task`() = runBlocking<Unit> {
+    fun `should create token reduce task forcibly`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
+        mockTaskRepositoryFindTask(
+            ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
+            ReduceTokenItemsTaskParams(targetToken).toParamString(),
+            running = false,
+            lastStatus = TaskStatus.COMPLETED
+        )
         mockTokenRepositorySave()
-        mockTaskRepositoryFindNothingByType(ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES)
 
-        val task = service.createReindexRoyaltiesTask(targetToken)
+        val task = service.createReduceTokenItemsTask(targetToken, true)
         assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
         assertThat(task.running).isEqualTo(false)
         assertThat(task.state).isNull()
 
-        with(ReindexTokenRoyaltiesTaskParam.fromParamString(task.param)) {
-            assertThat(token).isEqualTo(token)
+        with(ReduceTokenItemsTaskParams.fromParamString(task.param)) {
+            assertThat(oneToken).isEqualTo(targetToken)
+        }
+    }
+
+    @Test
+    fun `should create token items royalties reindex task`() = runBlocking<Unit> {
+        val targetToken = AddressFactory.create()
+
+        mockTokenRepositorySave()
+        mockTaskRepositoryFindNothingByType(ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES)
+
+        val task = service.createReindexTokenItemRoyaltiesTask(targetToken, false)
+        assertThat(task.lastStatus).isEqualTo(TaskStatus.NONE)
+        assertThat(task.running).isEqualTo(false)
+        assertThat(task.state).isNull()
+
+        with(ReindexTokenItemRoyaltiesTaskParam.fromParamString(task.param)) {
+            assertThat(tokens).isEqualTo(tokens)
         }
     }
 
@@ -86,13 +108,13 @@ class ReindexTokenServiceTest {
     fun `should throw exception if reduce token task exist`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
-        mockTaskRepositoryFindRunningTask(
+        mockTaskRepositoryFindTask(
             ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS,
             ReduceTokenItemsTaskParams(targetToken).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReduceTokenItemsTask(targetToken)
+                service.createReduceTokenItemsTask(targetToken, false)
             }
         }
     }
@@ -101,13 +123,13 @@ class ReindexTokenServiceTest {
     fun `should throw exception if reindex royalties token task exist`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
 
-        mockTaskRepositoryFindRunningTask(
-            ReindexTokenRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ROYALTIES,
-            ReindexTokenRoyaltiesTaskParam(targetToken).toParamString()
+        mockTaskRepositoryFindTask(
+            ReindexTokenItemRoyaltiesTaskParam.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES,
+            ReindexTokenItemRoyaltiesTaskParam(targetToken).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexRoyaltiesTask(targetToken)
+                service.createReindexTokenItemRoyaltiesTask(targetToken, false)
             }
         }
     }
@@ -115,18 +137,18 @@ class ReindexTokenServiceTest {
     @Test
     fun `should throw exception if reindex token task exist`() = runBlocking<Unit> {
         val targetToken = AddressFactory.create()
-        val existToke = AddressFactory.create()
+        val existToken = AddressFactory.create()
 
         mockTokenRegistrationService(targetToken, TokenStandard.ERC1155)
-        mockTokenRegistrationService(existToke, TokenStandard.ERC1155)
+        mockTokenRegistrationService(existToken, TokenStandard.ERC1155)
 
-        mockTaskRepositoryFindRunningTask(
-            ReindexTokenTaskParams.ADMIN_REINDEX_TOKEN,
-            ReindexTokenTaskParams(TokenStandard.ERC1155, listOf(existToke)).toParamString()
+        mockTaskRepositoryFindTask(
+            ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS,
+            ReindexTokenItemsTaskParams(TokenStandard.ERC1155, listOf(existToken)).toParamString()
         )
         assertThrows<IllegalArgumentException> {
             runBlocking {
-                service.createReindexTokenTask(listOf(targetToken, existToke), 1)
+                service.createReindexTokenItemsTask(listOf(targetToken, existToken), 1, false)
             }
         }
     }
@@ -136,25 +158,30 @@ class ReindexTokenServiceTest {
     }
 
     private fun mockTokenRepositorySave() {
-        coEvery { taskRepository.save(any()) } coAnswers {
-            it.invocation.args.first() as Task
-        }
+        coEvery { taskRepository.save(any()) } coAnswers { firstArg() }
     }
 
     private fun mockTaskRepositoryFindNothingByType(type: String) {
         coEvery { taskRepository.findByType(eq(type)) } returns flow {  }
     }
 
-    private fun mockTaskRepositoryFindRunningTask(type: String, param: String) {
-        coEvery { taskRepository.findByType(eq(type)) } returns flow {
+    private fun mockTaskRepositoryFindTask(
+        type: String,
+        param: String,
+        running: Boolean = true,
+        lastStatus: TaskStatus = TaskStatus.NONE
+    ) {
+        val flow = flow {
             emit(
                 Task(
                     type = type,
-                    running = true,
-                    lastStatus = TaskStatus.NONE,
+                    running = running,
+                    lastStatus = lastStatus,
                     param = param
                 )
             )
         }
+        coEvery { taskRepository.findByType(eq(type), eq(param)) } returns flow
+        coEvery { taskRepository.findByType(eq(type)) } returns flow
     }
 }

@@ -23,3 +23,8 @@ fun createErc1155Asset(assetType: Erc1155AssetType = createErc1155AssetType()) =
     assetType,
     EthUInt256.of((2L..1000L).random())
 )
+
+fun createCollectionAsset(assetType: CollectionAssetType = createCollectionAssetType() ) = Asset(
+    assetType,
+    EthUInt256.ONE
+)

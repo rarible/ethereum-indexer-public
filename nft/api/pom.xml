@@ -29,11 +29,15 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-api-nft</artifactId>
         </dependency>
 
         <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-apm-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-lock-redis</artifactId>
@@ -100,7 +104,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-nft</artifactId>
             <scope>test</scope>
         </dependency>

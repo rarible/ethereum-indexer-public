@@ -1,2 +1,0 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.rarible.protocol.order.api.subscriber.autoconfigure.OrderIndexerEventsSubscriberAutoConfiguration

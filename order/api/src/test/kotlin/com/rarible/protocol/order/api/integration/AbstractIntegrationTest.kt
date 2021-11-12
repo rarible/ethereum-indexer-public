@@ -17,6 +17,7 @@ import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.api.client.*
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -90,6 +91,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var orderVersionRepository: OrderVersionRepository
+
+    @Autowired
+    protected lateinit var auctionRepository: AuctionRepository
 
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()
@@ -171,6 +175,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     protected lateinit var orderActivityClient: OrderActivityControllerApi
     protected lateinit var orderBidsClient: OrderBidControllerApi
     protected lateinit var transactionApi: OrderTransactionControllerApi
+    protected lateinit var auctionClient: AuctionControllerApi
 
     @LocalServerPort
     private var port: Int = 0
@@ -194,6 +199,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         orderVersionRepository.dropIndexes()
         exchangeHistoryRepository.createIndexes()
         exchangeHistoryRepository.dropIndexes()
+        auctionRepository.createIndexes()
     }
 
     @PostConstruct
@@ -207,5 +213,6 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         encodeClient = clientsFactory.createOrderEncodeApiClient(Blockchain.ETHEREUM.name)
         orderAggregationApi = clientsFactory.createOrderAggregationApiClient(Blockchain.ETHEREUM.name)
         transactionApi = clientsFactory.createOrderTransactionApiClient(Blockchain.ETHEREUM.name)
+        auctionClient = clientsFactory.createAuctionApiClient(Blockchain.ETHEREUM.name)
     }
 }

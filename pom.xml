@@ -10,42 +10,34 @@
     <parent>
         <groupId>com.rarible</groupId>
         <artifactId>rarible-parent-pom</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.1.1</version>
     </parent>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>nexus-snapshots</id>
-            <url>http://nexus.rarible.int/repository/maven-snapshots/</url>
-        </snapshotRepository>
+    <repositories>
         <repository>
-            <id>nexus-releases</id>
-            <url>http://nexus.rarible.int/repository/maven-releases/</url>
+            <id>nexus-ext-maven-public</id>
+            <name>nexus-ext-maven-public</name>
+            <url>https://repo.rarible.org/repository/maven-public/</url>
         </repository>
-    </distributionManagement>
+    </repositories>
 
     <properties>
-        <revision>1.17-SNAPSHOT</revision>
-        <nexus.maven.public>http://nexus.rarible.int/repository/maven-public</nexus.maven.public>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+        <revision>1.18.0</revision>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-gateway.version>2.2.6.RELEASE</spring-cloud-gateway.version>
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible-core.version>1.3.19</rarible-core.version>
-        <rarible-ethereum.version>1.2.0</rarible-ethereum.version>
-        <rarible-currency.version>1.4.5</rarible-currency.version>
+        <rarible.ethereum.version>1.3.5</rarible.ethereum.version>
+        <rarible.core.version>1.4.8</rarible.core.version>
+
+        <rarible.protocol.ethereum.version>1.18.6</rarible.protocol.ethereum.version>
+        <rarible.protocol.currency.version>1.18.2</rarible.protocol.currency.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
 
         <!-- ============== Plugin versions ============== -->
-        <version.model.generator>1.2.7</version.model.generator>
-        <version.client.generator>1.1.4</version.client.generator>
-        <version.server.generator>1.0.1</version.server.generator>
-
         <version.plugin.clean>3.1.0</version.plugin.clean>
         <version.plugin.source>3.2.1</version.plugin.source>
         <version.plugin.compiler>3.5.1</version.plugin.compiler>
@@ -62,155 +54,35 @@
             <dependency>
                 <groupId>com.rarible.core</groupId>
                 <artifactId>rarible-core-parent</artifactId>
-                <version>${rarible-core.version}</version>
+                <version>${rarible.core.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.rarible.ethereum</groupId>
                 <artifactId>rarible-ethereum-parent</artifactId>
-                <version>${rarible-ethereum.version}</version>
+                <version>${rarible.ethereum.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol.ethereum</groupId>
+                <artifactId>rarible-ethereum-openapi</artifactId>
+                <version>${rarible.protocol.ethereum.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
 
             <!-- ============ External dependencies ============ -->
             <dependency>
-                <groupId>com.rarible.protocol</groupId>
+                <groupId>com.rarible.protocol.currency</groupId>
                 <artifactId>protocol-client-currency-starter</artifactId>
-                <version>${rarible-currency.version}</version>
+                <version>${rarible.protocol.currency.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.rarible.protocol</groupId>
+                <groupId>com.rarible.protocol.currency</groupId>
                 <artifactId>protocol-model-currency</artifactId>
-                <version>${rarible-currency.version}</version>
-            </dependency>
-
-            <!-- ============ Internal dependencies ============ -->
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-nft</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-api-nft</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-nft</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-order</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-erc20</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-unlockable</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-api-order</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-common</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-api-unlockable</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-order</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-nft-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-erc20-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-subscriber-erc20-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-subscriber-nft-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-api-erc20</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-erc20</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-api-nft-order</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-model-nft-order</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-unlockable</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-unlockable-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-order-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-client-nft-order-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-subscriber-order-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-subscriber-unlockable-starter</artifactId>
-                <version>${project.version}</version>
+                <version>${rarible.protocol.currency.version}</version>
             </dependency>
 
             <!-- ================== Other =================== -->
@@ -292,7 +164,6 @@
         </profile>
     </profiles>
     <modules>
-        <module>api</module>
         <module>erc20</module>
         <module>nft</module>
         <module>order</module>

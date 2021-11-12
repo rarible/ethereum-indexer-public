@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.retryOptimisticLock
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -9,6 +10,7 @@ import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "block-processor")
 class BlockProcessor(
     private val itemReduceService: ItemReduceService,
     private val tokenUpdateService: TokenUpdateService

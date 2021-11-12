@@ -1,7 +1,13 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.ethereum.listener.log.domain.EventData
-import com.rarible.protocol.contracts.collection.*
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
+import com.rarible.protocol.contracts.collection.CreateERC1155_v1Event
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
+import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
+import com.rarible.protocol.contracts.collection.CreateERC721_v4Event
+import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address

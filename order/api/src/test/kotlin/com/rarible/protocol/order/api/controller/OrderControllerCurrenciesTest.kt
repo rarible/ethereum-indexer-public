@@ -87,7 +87,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `sell currencies - ignore inactive orders`() = runBlocking<Unit> {
+    fun `sell currencies - include inactive orders`() = runBlocking<Unit> {
         val currency = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE)
         val inactiveCurrency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(sellMake, currency))
@@ -97,7 +97,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
         saveOrderVersions(inactiveVersion)
 
-        checkSellCurrencies(currency)
+        checkSellCurrencies(currency, inactiveCurrency)
     }
 
     @Test
@@ -135,7 +135,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `bid currencies - ignore inactive orders`() = runBlocking<Unit> {
+    fun `bid currencies - include inactive orders`() = runBlocking<Unit> {
         val currency = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE)
         val inactiveCurrency = Asset(EthAssetType, EthUInt256.ONE)
         saveOrderVersions(createOrderVersion(currency, bidTake))
@@ -145,7 +145,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
         saveOrderVersions(inactiveVersion)
 
-        checkBidCurrencies(currency)
+        checkBidCurrencies(currency, inactiveCurrency)
     }
 
     private suspend fun checkSellCurrencies(vararg currencies: Asset) {

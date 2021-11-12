@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.convert
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
@@ -12,6 +13,7 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
+import com.rarible.protocol.nft.core.span.SpanType
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import java.util.*
@@ -24,6 +26,7 @@ import java.util.*
  * that is reading from the internal queue and publishes to the public queue.
  */
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "internal-item")
 class InternalItemHandler(
     private val itemMetaService: ItemMetaService,
     private val conversionService: ConversionService,

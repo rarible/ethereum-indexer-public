@@ -1,9 +1,11 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.waifus.Waifus
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.span.SpanType
 import org.apache.commons.lang3.time.DateUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -12,6 +14,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "waifusion-descriptor")
 class WaifusionCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.waifusion.address}") waifusionAddress: String,

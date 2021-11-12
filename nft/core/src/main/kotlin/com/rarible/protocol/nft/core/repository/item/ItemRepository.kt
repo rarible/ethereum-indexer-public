@@ -1,8 +1,10 @@
 package com.rarible.protocol.nft.core.repository.item
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -14,9 +16,12 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
+@CaptureSpan(type = SpanType.DB, subtype = "item")
 class ItemRepository(
     private val mongo: ReactiveMongoOperations
 ) {

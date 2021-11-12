@@ -88,8 +88,7 @@ class MongoOrderRepository(
     }
 
     override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
-        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
-            .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
+        val criteria = (Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
             .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return template.findDistinct<AssetType>(
             Query(criteria),
@@ -101,8 +100,7 @@ class MongoOrderRepository(
 
     override fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
         @Suppress("DuplicatedCode")
-        val criteria = (Order::status isEqualTo OrderStatus.ACTIVE)
-            .and(Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
+        val criteria = (Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
             .and(Order::take / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return template.findDistinct<AssetType>(
             Query(criteria),

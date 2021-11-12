@@ -8,6 +8,9 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 
 object OrderRepositoryIndexes {
+
+    // --------------------- getSellOrders ---------------------//
+    //TODO add same indices with 'status' field
     private val SELL_ORDERS_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::createdAt.name, Sort.Direction.ASC)
@@ -21,21 +24,23 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED = Index()
+    // --------------------- getSellOrdersByItem ---------------------//
+    //TODO for some reason this index heavily used in prod
+    val SELL_ORDERS_BY_ITEM_SORT_BY_USD_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::makePriceUsd.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val SELL_ORDERS_BY_ITEM_DEFINITION = Index()
+    val SELL_ORDERS_BY_ITEM_SORT_BY_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::makePrice.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_ITEM_PLATFORM_DEFINITION = Index()
+    private val SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -43,6 +48,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- getSellOrdersByCollection ---------------------//
     private val SELL_ORDERS_BY_COLLECTION_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
@@ -58,6 +64,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- getSellOrdersByMaker ---------------------//
     private val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -73,6 +80,8 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- getBidsByItem ---------------------//
+    //
     val BIDS_BY_ITEM_DEFINITION_DEPRECATED = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
@@ -95,6 +104,9 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- getBidsByMaker ---------------------//
+    // TODO these indices have 0 usage in prod, need to check them
+
     private val BIDS_BY_MAKER_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -110,14 +122,33 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- getAllOrders ---------------------//
+    // TODO has 0 usage in prod, functionality can be covered by BY_LAST_UPDATE_AND_ID_DEFINITION
     private val BY_LAST_UPDATE_DEFINITION = Index()
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .background()
 
+    // TODO most probably should be removed - we're query all orders only with specified status (ACTIVE)
     val BY_LAST_UPDATE_AND_ID_DEFINITION = Index()
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
+
+    val BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION = Index()
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
+    val BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
+    // --------------------- Other ---------------------//
+    // TODO these indices have 0 usage in prod, need to check them
 
     val BY_MAKE_STOCK_DEFINITION = Index()
         // orders with non-zero makeStock should be first
@@ -139,9 +170,9 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
 
-        SELL_ORDERS_BY_ITEM_DEFINITION_DEPRECATED,
-        SELL_ORDERS_BY_ITEM_DEFINITION,
-        SELL_ORDERS_BY_ITEM_PLATFORM_DEFINITION,
+        SELL_ORDERS_BY_ITEM_SORT_BY_USD_PRICE_DEFINITION,
+        SELL_ORDERS_BY_ITEM_SORT_BY_PRICE_DEFINITION,
+        SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION,
 
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION,
@@ -157,9 +188,11 @@ object OrderRepositoryIndexes {
         BIDS_BY_MAKER_PLATFORM_DEFINITION,
 
         BY_LAST_UPDATE_DEFINITION,
-        BY_MAKE_STOCK_DEFINITION,
         BY_LAST_UPDATE_AND_ID_DEFINITION,
+        BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
+        BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
+        BY_MAKE_STOCK_DEFINITION,
         BY_END_START_AND_MAKE_STOCK
     )
 }

@@ -464,6 +464,28 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
+            },
+            run {
+                val token = AddressFactory.create()
+
+                Arguments.of(
+                    listOf(
+                        createErc721ListOrderVersion()
+                            .withMakeToken(token)
+                            .withCreatedAt(now.plus(2, ChronoUnit.MINUTES)),
+                        createCollectionOrderVersion()
+                            .withMakeToken(token)
+                            .withCreatedAt(now.plus(1, ChronoUnit.MINUTES))
+                    ),
+                    listOf(
+                        createErc721BidOrderVersion(), createErc1155BidOrderVersion(), createErc721BidOrderVersion()
+                    ),
+                    OrderActivityFilterByCollectionDto(
+                        token,
+                        listOf(OrderActivityFilterByCollectionDto.Types.LIST)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
             }
         )
 
@@ -1116,6 +1138,177 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
                     OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.BID)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            //Data for cancel_sell and cancel_bid
+            Arguments.of(
+                listOf(
+                    createLogEvent(orderErc1155SellCancel().copy(date = now.minus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellCancel().copy(date = now.minus(2, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721SellCancel().copy(date = now.minus(3, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721SellCancel().copy(date = now.minus(4, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721SellCancel().copy(date = now.minus(5, ChronoUnit.MINUTES)))
+                ),
+                listOf(
+                    createLogEvent(orderErc721SellSideMatch().copy(date = now.plus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155BidCancel().copy(date = now.minus(1, ChronoUnit.MINUTES)))
+                ),
+                listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.CANCEL_LIST)),
+                ActivitySortDto.LATEST_FIRST
+            ),
+            Arguments.of(
+                listOf(
+                    createLogEvent(orderErc1155BidCancel().copy(date = now.minus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155BidCancel().copy(date = now.minus(2, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721BidCancel().copy(date = now.minus(3, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721BidCancel().copy(date = now.minus(4, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721BidCancel().copy(date = now.minus(5, ChronoUnit.MINUTES)))
+                ),
+                listOf(
+                    createLogEvent(orderErc721SellSideMatch().copy(date = now.plus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellCancel().copy(date = now.minus(1, ChronoUnit.MINUTES)))
+                ),
+                listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.CANCEL_BID)),
+                ActivitySortDto.LATEST_FIRST
+            ),
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc1155BidCancel().copy(maker = maker, date = now.minus(2, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByUserDto(listOf(maker), listOf(OrderActivityFilterByUserDto.Types.CANCEL_LIST)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val maker = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().copy(maker = maker, date = now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc721SellCancel().copy(maker = maker, date = now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc1155SellCancel().copy(maker = maker, date = now.minus(2, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByUserDto(listOf(maker), listOf(OrderActivityFilterByUserDto.Types.CANCEL_BID)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val token = AddressFactory.create()
+                val tokenId = EthUInt256.of((1L..1000L).random())
+
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.CANCEL_LIST)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val token = AddressFactory.create()
+                val tokenId = EthUInt256.of((1L..1000L).random())
+
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeNft(token, tokenId).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc1155SellSideMatch()),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeNft(token, tokenId).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByItemDto(token, tokenId.value, listOf(OrderActivityFilterByItemDto.Types.CANCEL_BID)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val token = AddressFactory.create()
+
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc1155SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_LIST)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            run {
+                val token = AddressFactory.create()
+
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.minus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.minus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721BidCancel().withTakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(
+                        createLogEvent(orderErc1155SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc1155SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.plus(0, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
+                    ),
+                    listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_BID)),
                     ActivitySortDto.LATEST_FIRST
                 )
             }

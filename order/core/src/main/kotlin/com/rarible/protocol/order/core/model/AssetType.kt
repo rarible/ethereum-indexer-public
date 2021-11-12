@@ -49,6 +49,7 @@ sealed class AssetType(
         val ERC1155_LAZY = id("ERC1155_LAZY")
         val CRYPTO_PUNKS = id("CRYPTO_PUNKS")
         val GEN_ART = id("GEN_ART")
+        val COLLECTION = id("COLLECTION")
 
         val AssetType.isLazy: Boolean
             get() = this.type == ERC1155_LAZY || this.type == ERC721_LAZY
@@ -222,6 +223,10 @@ data class CryptoPunksAssetType(
     }
 }
 
+data class CollectionAssetType(val token: Address) : AssetType(COLLECTION, AddressType.encode(token), true) {
+    constructor(data: Binary) : this(AddressType.decode(data, 0).value())
+}
+
 fun List<Bytes>.hash(): ByteArray = keccak256(fold(ByteArray(0)) { acc, next -> acc + next.bytes() }).bytes()
 
 private fun List<Binary>.toEthereum() = map { it.bytes() }.toTypedArray()
@@ -246,6 +251,7 @@ fun Tuple2<ByteArray, ByteArray>.toAssetType() =
         AssetType.ERC1155_LAZY -> Erc1155LazyAssetType.apply(Binary(_2()))
         AssetType.CRYPTO_PUNKS -> CryptoPunksAssetType.apply(Binary(_2()))
         AssetType.GEN_ART -> GenerativeArtAssetType(Binary(_2()))
+        AssetType.COLLECTION -> GenerativeArtAssetType(Binary(_2()))
         else -> throw IllegalArgumentException("asset type not supported: $type")
     }
 

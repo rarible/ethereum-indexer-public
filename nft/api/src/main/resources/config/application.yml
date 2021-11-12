@@ -18,6 +18,17 @@ spring:
     web-application-type: reactive
 
 rarible:
+  core:
+    apm:
+      agent:
+        enabled: true
+        server: http://elk_apm-server:8200
+        packages: com.rarible.protocol.nft.api
+      web:
+        filter:
+          enabled: true
+      annotation:
+        enabled: true
   ethereum:
     converter:
       enabled: true

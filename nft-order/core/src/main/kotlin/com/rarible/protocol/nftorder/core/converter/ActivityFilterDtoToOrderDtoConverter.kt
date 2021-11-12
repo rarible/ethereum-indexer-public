@@ -15,6 +15,8 @@ object ActivityFilterDtoToOrderDtoConverter {
                         ActivityFilterAllTypeDto.TRANSFER,
                         ActivityFilterAllTypeDto.MINT,
                         ActivityFilterAllTypeDto.BURN -> null
+                        ActivityFilterAllTypeDto.CANCEL_BID -> null
+                        ActivityFilterAllTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterAllDto(orderTypes) else null
@@ -28,6 +30,8 @@ object ActivityFilterDtoToOrderDtoConverter {
                         ActivityFilterByCollectionTypeDto.TRANSFER,
                         ActivityFilterByCollectionTypeDto.MINT,
                         ActivityFilterByCollectionTypeDto.BURN -> null
+                        ActivityFilterByCollectionTypeDto.CANCEL_BID -> null
+                        ActivityFilterByCollectionTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterByCollectionDto(source.contract, orderTypes) else null
@@ -41,6 +45,8 @@ object ActivityFilterDtoToOrderDtoConverter {
                         ActivityFilterByItemTypeDto.TRANSFER,
                         ActivityFilterByItemTypeDto.MINT,
                         ActivityFilterByItemTypeDto.BURN -> null
+                        ActivityFilterByItemTypeDto.CANCEL_BID -> null
+                        ActivityFilterByItemTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (orderTypes.isNotEmpty()) OrderActivityFilterByItemDto(
@@ -61,6 +67,8 @@ object ActivityFilterDtoToOrderDtoConverter {
                         ActivityFilterByUserTypeDto.TRANSFER_TO,
                         ActivityFilterByUserTypeDto.MINT,
                         ActivityFilterByUserTypeDto.BURN -> null
+                        ActivityFilterByUserTypeDto.CANCEL_BID -> null
+                        ActivityFilterByUserTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) OrderActivityFilterByUserDto(source.users, nftTypes, source.from, source.to) else null

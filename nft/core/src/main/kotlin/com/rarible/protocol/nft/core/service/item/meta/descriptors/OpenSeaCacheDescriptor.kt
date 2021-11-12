@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
@@ -10,6 +11,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
 import com.rarible.protocol.nft.core.service.item.meta.toProperties
+import com.rarible.protocol.nft.core.span.SpanType
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -33,6 +35,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @Service
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "open-descriptor")
 class OpenSeaCacheDescriptor(
     @Value("\${api.opensea.url:}") private val openseaUrl: String,
     @Value("\${api.opensea.api-key:}") private val openseaApiKey: String,

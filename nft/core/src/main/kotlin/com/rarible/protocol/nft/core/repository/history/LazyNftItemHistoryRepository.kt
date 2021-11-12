@@ -1,18 +1,23 @@
 package com.rarible.protocol.nft.core.repository.history
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.filterIsInstance
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.LazyItemHistory
+import com.rarible.protocol.nft.core.span.SpanType
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
+@CaptureSpan(type = SpanType.DB, subtype = "lazy-nft-item-history")
 class LazyNftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {

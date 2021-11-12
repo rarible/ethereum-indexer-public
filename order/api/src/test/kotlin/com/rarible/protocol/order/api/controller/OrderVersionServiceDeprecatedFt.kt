@@ -31,7 +31,6 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneOffset
 import java.util.stream.Stream
 
 @Disabled
@@ -144,8 +143,8 @@ class OrderVersionControllerDepricatedFt : AbstractIntegrationTest() {
             params.maker?.hex(),
             params.origin?.hex(),
             params.platform,
-            params.startDate?.atOffset(ZoneOffset.UTC),
-            params.endDate?.atOffset(ZoneOffset.UTC),
+            params.startDate,
+            params.endDate,
             null,
             null
         ).awaitFirst()

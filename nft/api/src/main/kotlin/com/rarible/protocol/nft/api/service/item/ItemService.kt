@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.service.item
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.convert
@@ -13,6 +14,7 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RoyaltyCacheDescriptor
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -22,6 +24,7 @@ import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "item-api")
 class ItemService(
     private val conversionService: ConversionService,
     private val itemMetaService: ItemMetaService,

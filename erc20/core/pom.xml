@@ -32,6 +32,10 @@
         </dependency>
         <dependency>
             <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-apm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-application</artifactId>
         </dependency>
         <dependency>
@@ -49,7 +53,7 @@
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
+            <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-model-erc20</artifactId>
         </dependency>
 

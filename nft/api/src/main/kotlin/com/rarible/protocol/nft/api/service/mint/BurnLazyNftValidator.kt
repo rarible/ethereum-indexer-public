@@ -1,17 +1,20 @@
 package com.rarible.protocol.nft.api.service.mint
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.exceptions.ValidationApiException
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.span.SpanType
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.util.Hash
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "burn-lazy-nft-validator")
 class BurnLazyNftValidator(
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val signService: ERC1271SignService
@@ -20,21 +23,19 @@ class BurnLazyNftValidator(
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
             ?: throw EntityNotFoundApiException("Item", itemId)
 
-        val mintCreators = lazyMint.creators.map { it.account }
-        val burnCreators = burnLazyNftDto.creators
+        val mintCreator = lazyMint.creators.map { it.account }.first()
+        val burnCreator = burnLazyNftDto.creators.first()
 
-        if (setOf(mintCreators) != setOf(burnCreators)) {
+        if (mintCreator != burnCreator) {
             throw ValidationApiException("Incorrect creators for $itemId")
         }
 
-        burnCreators.indices.forEach { i ->
-            val address = burnLazyNftDto.creators[i]
-            val signature = burnLazyNftDto.signatures[i]
-            val hash = Word(Hash.sha3(ERC1271SignService.addStart(msg).bytes()))
-            val recovered = signService.recover(hash, signature)
-            if (address != recovered) {
-                throw ValidationApiException("Incorrect signature for $itemId")
-            }
+        // It's enough to check only the first creator
+        val signature = burnLazyNftDto.signatures.first()
+        val hash = Word(Hash.sha3(ERC1271SignService.addStart(msg).bytes()))
+        val recovered = signService.recover(hash, signature)
+        if (burnCreator != recovered) {
+            throw ValidationApiException("Incorrect signature for $itemId")
         }
     }
 }

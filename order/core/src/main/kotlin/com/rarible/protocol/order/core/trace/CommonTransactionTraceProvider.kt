@@ -67,7 +67,7 @@ class CommonTransactionTraceProvider(
             val to = requireNotNull(action.to) { "To can't be null" }
             val input = requireNotNull(action.input) { "Input can't be null" }
             val valueHexString = requireNotNull(action.value) { "Value can't be null" }
-            val output = trace.result?.output ?: "0x"
+            val output = trace.result?.output
             return SimpleTraceResult(
                 type = type,
                 from = from,
@@ -99,7 +99,7 @@ class CommonTransactionTraceProvider(
         )
 
         data class Result(
-            val output: String
+            val output: String?
         )
     }
 }

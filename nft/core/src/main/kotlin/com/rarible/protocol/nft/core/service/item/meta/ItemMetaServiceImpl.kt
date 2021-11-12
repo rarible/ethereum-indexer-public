@@ -1,8 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -11,6 +13,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "item-meta")
 class ItemMetaServiceImpl(
     private val itemPropertiesService: ItemPropertiesService,
     private val contentMetaService: ContentMetaService

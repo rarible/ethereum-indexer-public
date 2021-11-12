@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.service.ownership
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipFilterDto
@@ -9,11 +10,13 @@ import com.rarible.protocol.nft.api.service.item.OwnershipFilterCriteria.toCrite
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
+@CaptureSpan(type = SpanType.SERVICE, subtype = "ownership-api")
 class OwnershipApiService(
     private val conversionService: ConversionService,
     private val ownershipRepository: OwnershipRepository

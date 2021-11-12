@@ -24,6 +24,9 @@ object Tuples {
   val orderKeyHashType =
     Tuple4Type(AddressType, Bytes32Type, Bytes32Type, Uint256Type)
 
+  val raribleAuctionKeyHashType =
+    Tuple2Type(AddressType, Uint256Type)
+
   val orderHashType =
     Tuple10Type(Bytes32Type, AddressType, Bytes32Type, AddressType, Bytes32Type, Uint256Type, Uint256Type, Uint256Type, Bytes4Type, Bytes32Type)
 
@@ -47,6 +50,12 @@ object Tuples {
 
   val orderDataLegacyType =
     Tuple1Type(Uint256Type)
+
+  val auctionDataV1Type =
+    Tuple1Type(Tuple5Type(VarArrayType(addressUintType), VarArrayType(addressUintType), Uint256Type, Uint256Type, Uint256Type))
+
+  val auctionBidDataV1Type =
+    Tuple1Type(Tuple2Type(VarArrayType(addressUintType), VarArrayType(addressUintType)))
 
   private val lazy721MessageType =
     Tuple5Type(Uint256Type, StringType, VarArrayType(Tuple2Type(AddressType, Uint256Type)), VarArrayType(Tuple2Type(AddressType, Uint256Type)), VarArrayType(BytesType))

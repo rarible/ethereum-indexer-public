@@ -9,9 +9,10 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
 @IntegrationTest
-class LogEventServiceTest: AbstractIntegrationTest() {
+class LogEventServiceTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var service: LogEventService
+
     @Autowired
     private lateinit var descriptors: List<LogEventDescriptor<*>>
 

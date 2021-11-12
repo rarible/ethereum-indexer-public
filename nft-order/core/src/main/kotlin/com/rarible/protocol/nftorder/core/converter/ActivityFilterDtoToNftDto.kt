@@ -15,6 +15,8 @@ object ActivityFilterDtoToNftDto {
                         ActivityFilterAllTypeDto.BID,
                         ActivityFilterAllTypeDto.LIST,
                         ActivityFilterAllTypeDto.SELL -> null
+                        ActivityFilterAllTypeDto.CANCEL_BID -> null
+                        ActivityFilterAllTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterAllDto(nftTypes) else null
@@ -28,6 +30,8 @@ object ActivityFilterDtoToNftDto {
                         ActivityFilterByCollectionTypeDto.BID,
                         ActivityFilterByCollectionTypeDto.LIST,
                         ActivityFilterByCollectionTypeDto.MATCH -> null
+                        ActivityFilterByCollectionTypeDto.CANCEL_BID -> null
+                        ActivityFilterByCollectionTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByCollectionDto(source.contract, nftTypes) else null
@@ -41,6 +45,8 @@ object ActivityFilterDtoToNftDto {
                         ActivityFilterByItemTypeDto.BID,
                         ActivityFilterByItemTypeDto.LIST,
                         ActivityFilterByItemTypeDto.MATCH -> null
+                        ActivityFilterByItemTypeDto.CANCEL_BID -> null
+                        ActivityFilterByItemTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByItemDto(
@@ -61,6 +67,8 @@ object ActivityFilterDtoToNftDto {
                         ActivityFilterByUserTypeDto.BUY,
                         ActivityFilterByUserTypeDto.LIST,
                         ActivityFilterByUserTypeDto.SELL -> null
+                        ActivityFilterByUserTypeDto.CANCEL_BID -> null
+                        ActivityFilterByUserTypeDto.CANCEL_LIST -> null
                     }
                 }
                 if (nftTypes.isNotEmpty()) NftActivityFilterByUserDto(source.users, nftTypes, source.from, source.to) else null

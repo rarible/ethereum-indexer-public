@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.core.repository
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.mapNotNull
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.erc20.core.model.Erc20HistoryLog
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
+@CaptureSpan(type = "db", subtype = "erc20-approval-history")
 class Erc20ApprovalHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) {

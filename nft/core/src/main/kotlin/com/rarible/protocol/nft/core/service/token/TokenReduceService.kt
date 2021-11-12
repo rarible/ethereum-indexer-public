@@ -1,10 +1,12 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,6 +18,7 @@ import scalether.domain.Address
 import scalether.util.Hash
 
 @Service
+@CaptureSpan(type = SpanType.SERVICE, subtype = "token-reduce")
 class TokenReduceService(
     private val tokenRepository: TokenRepository,
     private val tokenHistoryRepository: NftHistoryRepository
@@ -23,7 +26,7 @@ class TokenReduceService(
 
     suspend fun updateToken(address: Address): Token? = update(address).awaitFirstOrNull()
 
-    private fun update(address: Address): Flux<Token> {
+    fun update(address: Address): Flux<Token> {
         // We handle tokens registered via TokenRegistrationService as well.
         val registeredToken = tokenRepository.findById(address)
         return tokenHistoryRepository.findAllByCollection(address)

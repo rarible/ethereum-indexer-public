@@ -2,12 +2,14 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.*
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -22,6 +24,7 @@ import reactor.core.publisher.Mono
 import scalether.transaction.MonoTransactionSender
 
 @Component
+//@CaptureSpan(type = SpanType.SERVICE, subtype = "loot-descriptor")
 class LootCacheDescriptor(
     @Value("\${api.loot.cache-timeout}") private val cacheTimeout: Long,
     val sender: MonoTransactionSender,

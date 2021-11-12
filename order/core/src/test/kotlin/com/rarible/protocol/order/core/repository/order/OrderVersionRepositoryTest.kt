@@ -72,7 +72,7 @@ internal class OrderVersionRepositoryTest {
             tokenId,
             null,
             null,
-            null,
+            emptyList(),
             null,
             null,
             null,

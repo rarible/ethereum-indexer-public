@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.repository.history
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -8,10 +10,13 @@ import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
+@Component
+@CaptureSpan(type = SpanType.DB, subtype = "nft-history")
 class NftHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {
