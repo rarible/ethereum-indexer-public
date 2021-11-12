@@ -1,4 +1,4 @@
-@Library('shared-library@v20211111-1')
+@Library('shared-library@new-cicd')
 
 def pipelineConfig = [
     "stackName": "protocol-etherium",
