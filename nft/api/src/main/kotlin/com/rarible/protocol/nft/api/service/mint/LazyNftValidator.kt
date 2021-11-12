@@ -57,7 +57,9 @@ class LazyNftValidator(
             throw ValidationApiException(e.message ?: "Invalid structure of signature")
         }
 
-        if (!allowMinting(lazyNftDto)) {
+        try {
+            checkOwner(lazyNftDto)
+        } catch (e: InvalidSignatureException) {
             throw ValidationApiException("It isn't allowed to lazy mint")
         }
 
@@ -70,13 +72,13 @@ class LazyNftValidator(
         throw ValidationApiException(errorMessage)
     }
 
-    private suspend fun allowMinting(lazyNftDto: LazyNftDto) = when (lazyNftDto) {
-        is LazyErc721Dto -> allowMintingERC721(lazyNftDto)
-        is LazyErc1155Dto -> allowMintingERC1155(lazyNftDto)
+    private suspend fun checkOwner(lazyNftDto: LazyNftDto) = when (lazyNftDto) {
+        is LazyErc721Dto -> checkOwnerERC721(lazyNftDto)
+        is LazyErc1155Dto -> checkOwnerERC1155(lazyNftDto)
         else -> throw ValidationApiException("Standard doesn't support yet")
     }
 
-    private suspend fun allowMintingERC721(lazyNftDto: LazyErc721Dto): Boolean {
+    private suspend fun checkOwnerERC721(lazyNftDto: LazyErc721Dto) {
         val contract = IERC721LazyMint(lazyNftDto.contract, sender)
         val creators = lazyNftDto.creators.map { Tuple2(it.account, it.value.toBigInteger()) }
         val royalties = lazyNftDto.royalties.map { Tuple2(it.account, it.value.toBigInteger()) }
@@ -88,17 +90,12 @@ class LazyNftValidator(
             royalties.toTypedArray(),
             signatures.toTypedArray()
         )
-        try {
-            contract.mintAndTransfer(mintData, lazyNftDto.creators.first().account)
-                .withFrom(lazyNftDto.creators.first().account)
-                .call().awaitFirstOrNull()
-        } catch (e: Exception) {
-            return false
-        }
-        return true
+        contract.mintAndTransfer(mintData, lazyNftDto.creators.first().account)
+            .withFrom(lazyNftDto.creators.first().account)
+            .call().awaitFirstOrNull()
     }
 
-    private suspend fun allowMintingERC1155(lazyNftDto: LazyErc1155Dto): Boolean {
+    private suspend fun checkOwnerERC1155(lazyNftDto: LazyErc1155Dto) {
         val contract = IERC1155LazyMint(lazyNftDto.contract, sender)
         val creators = lazyNftDto.creators.map { Tuple2(it.account, it.value.toBigInteger()) }
         val royalties = lazyNftDto.royalties.map { Tuple2(it.account, it.value.toBigInteger()) }
@@ -111,13 +108,8 @@ class LazyNftValidator(
             royalties.toTypedArray(),
             signatures.toTypedArray()
         )
-        try {
-            contract.mintAndTransfer(mintData, lazyNftDto.creators.first().account, lazyNftDto.supply)
-                .withFrom(lazyNftDto.creators.first().account)
-                .call().awaitFirstOrNull()
-        } catch (e: Exception) {
-            return false
-        }
-        return true
+        contract.mintAndTransfer(mintData, lazyNftDto.creators.first().account, lazyNftDto.supply)
+            .withFrom(lazyNftDto.creators.first().account)
+            .call().awaitFirstOrNull()
     }
 }
