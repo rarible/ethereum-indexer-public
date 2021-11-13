@@ -1,14 +1,19 @@
 package com.rarible.protocol.nft.core.producer
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.model.OwnershipId
+import org.springframework.stereotype.Component
 
+@Component
+@CaptureSpan(type = SpanType.EXT, subtype = "event")
 class ProtocolNftEventPublisher(
     private val collectionEventProducer: RaribleKafkaProducer<NftCollectionEventDto>,
-    private val itemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
-    private val internalItemEventProducer: RaribleKafkaProducer<NftItemEventDto>,
+    private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
+    private val internalItemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>
 ) {
@@ -35,7 +40,7 @@ class ProtocolNftEventPublisher(
             headers = itemEventHeaders,
             id = event.eventId
         )
-        itemEventProducer.send(message).ensureSuccess()
+        itemEventsProducer.send(message).ensureSuccess()
     }
 
     suspend fun publishInternalItem(event: NftItemEventDto) {
@@ -45,7 +50,7 @@ class ProtocolNftEventPublisher(
             headers = itemEventHeaders,
             id = event.eventId
         )
-        internalItemEventProducer.send(message).ensureSuccess()
+        internalItemEventsProducer.send(message).ensureSuccess()
     }
 
     suspend fun publish(event: NftOwnershipEventDto) {

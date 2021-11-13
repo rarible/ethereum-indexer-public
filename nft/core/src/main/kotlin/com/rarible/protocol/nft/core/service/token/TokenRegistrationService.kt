@@ -5,6 +5,7 @@ import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.*
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
@@ -12,7 +13,6 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import com.rarible.protocol.nft.core.span.SpanType
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
 import org.slf4j.Logger
@@ -29,7 +29,7 @@ import scalether.transaction.MonoTransactionSender
 import java.util.*
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "token-registration")
+@CaptureSpan(type = SpanType.APP, subtype = "token")
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender

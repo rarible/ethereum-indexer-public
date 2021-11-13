@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.repository.history
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.misc.div
@@ -9,7 +10,6 @@ import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepositoryIndexes.ALL_INDEXES
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "nft-item-history")
+@CaptureSpan(type = SpanType.DB, subtype = "item")
 class NftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {

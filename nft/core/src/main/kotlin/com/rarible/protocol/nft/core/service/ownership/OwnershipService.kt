@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.ownership
 
-import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.common.orNull
 import com.rarible.core.common.toOptional
 import com.rarible.ethereum.domain.EthUInt256
@@ -8,7 +7,6 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.OwnershipSaveResult
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.span.SpanType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
@@ -17,7 +15,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "ownership")
 class OwnershipService(
     private val ownershipRepository: OwnershipRepository
 ) {

@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.repository.history
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations

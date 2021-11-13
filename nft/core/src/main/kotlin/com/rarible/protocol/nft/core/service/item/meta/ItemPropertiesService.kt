@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
@@ -10,7 +11,6 @@ import com.rarible.protocol.nft.core.model.TemporaryItemProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.*
-import com.rarible.protocol.nft.core.span.SpanType
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -23,7 +23,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "item-properties")
+@CaptureSpan(type = SpanType.APP, subtype = "meta")
 class ItemPropertiesService(
     private val propertiesCacheDescriptor: PropertiesCacheDescriptor,
     private val kittiesCacheDescriptor: KittiesCacheDescriptor,

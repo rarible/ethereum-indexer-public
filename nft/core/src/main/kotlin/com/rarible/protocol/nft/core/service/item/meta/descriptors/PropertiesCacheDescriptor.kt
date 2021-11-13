@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -19,7 +20,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.item.meta.*
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.time.DateUtils
@@ -37,7 +37,7 @@ import java.math.BigInteger
 import java.time.Duration
 
 @Component
-//@CaptureSpan(type = SpanType.SERVICE, subtype = "properties-descriptor")
+@CaptureSpan(type = SpanType.EXT, subtype = "meta")
 class PropertiesCacheDescriptor(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.orNull
 import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
@@ -13,7 +14,6 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
-import com.rarible.protocol.nft.core.span.SpanType
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -26,7 +26,7 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "item-reduce")
+@CaptureSpan(type = SpanType.APP, subtype = "item")
 class ItemReduceService(
     private val itemRepository: ItemRepository,
     private val ownershipService: OwnershipService,

@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.repository.item
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -25,7 +25,6 @@ import scalether.domain.Address
 class ItemRepository(
     private val mongo: ReactiveMongoOperations
 ) {
-
     fun save(item: Item): Mono<Item> {
         return mongo.save(item)
     }

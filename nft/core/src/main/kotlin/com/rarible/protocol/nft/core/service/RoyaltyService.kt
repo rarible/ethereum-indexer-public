@@ -1,13 +1,13 @@
 package com.rarible.protocol.nft.core.service
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
-import com.rarible.protocol.nft.core.span.SpanType
 import io.daonomic.rpc.RpcCodeException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -17,7 +17,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "royalty")
+@CaptureSpan(type = SpanType.APP, subtype = "royalty")
 class RoyaltyService(
     private val sender: MonoTransactionSender,
     private val nftIndexerProperties: NftIndexerProperties,

@@ -1,12 +1,12 @@
 package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
-import com.rarible.protocol.nft.core.span.SpanType
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import scalether.domain.Address
 import scalether.util.Hash
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "token-reduce")
+@CaptureSpan(type = SpanType.APP, subtype = "token")
 class TokenReduceService(
     private val tokenRepository: TokenRepository,
     private val tokenHistoryRepository: NftHistoryRepository

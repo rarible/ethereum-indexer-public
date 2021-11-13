@@ -3,13 +3,13 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
-import com.rarible.protocol.nft.core.span.SpanType
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 @Component
-//@CaptureSpan(type = SpanType.SERVICE, subtype = "kitties-descriptor")
+@CaptureSpan(type = SpanType.EXT, subtype = "meta")
 class KittiesCacheDescriptor(
     @Value("\${api.kitties.cache-timeout}") private val cacheTimeout: Long
 ) : CacheDescriptor<ItemProperties> {

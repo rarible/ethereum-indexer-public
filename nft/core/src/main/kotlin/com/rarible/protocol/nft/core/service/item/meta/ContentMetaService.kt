@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.orNull
@@ -9,14 +10,12 @@ import com.rarible.core.common.toOptional
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.MediaMeta
-import com.rarible.protocol.nft.core.span.SpanType
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.whenComplete
 
 @Service
-@CaptureSpan(type = SpanType.SERVICE, subtype = "content-meta")
 class ContentMetaService(
     private val mapper: ObjectMapper,
     private val mediaMetaService: MediaMetaService,
@@ -44,6 +43,7 @@ class ContentMetaService(
         }
     }
 
+    @CaptureSpan(SpanType.APP, "meta")
     fun resetByProperties(properties: ItemProperties): Mono<Void> {
         return listOfNotNull(
             properties.image,
