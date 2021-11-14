@@ -9,14 +9,14 @@ import scalether.domain.Address
  * [databaseKey] may be used as a database ID for storing objects.
  */
 data class LogEventKey(
-    val transactionHash: Word,
     val blockNumber: Long?,
+    val transactionHash: Word,
     val topic: Word,
+    val address: Address,
     val index: Int,
     val minorLogIndex: Int,
-    val contractAddress: Address,
 
-    val databaseKey: String = "${transactionHash.hex()}.$blockNumber.${topic.hex()}.$index.$minorLogIndex.${contractAddress.hex()}"
+    val databaseKey: String = "$blockNumber.${transactionHash.hex()}.${topic.hex()}.${address.hex()}.$index.$minorLogIndex"
 ) : Comparable<LogEventKey> {
     override fun compareTo(other: LogEventKey): Int {
         if ((blockNumber == null) xor (other.blockNumber == null)) {
@@ -32,11 +32,11 @@ data class LogEventKey(
 }
 
 fun LogEvent.toLogEventKey() = LogEventKey(
-    transactionHash = transactionHash,
     blockNumber = blockNumber,
+    transactionHash = transactionHash,
     topic = topic,
+    address = address,
     index = index,
-    minorLogIndex = minorLogIndex,
-    contractAddress = address
+    minorLogIndex = minorLogIndex
 )
 
