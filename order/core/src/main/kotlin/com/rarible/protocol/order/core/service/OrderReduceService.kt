@@ -43,11 +43,10 @@ class OrderReduceService(
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
-            orderUpdateComparator,
+            compareBy { it.date },
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash)
                 .map { OrderUpdate.ByOrderVersion(it) },
             exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash)
-                .filter { it.data !is OnChainOrder }
                 .map { OrderUpdate.ByLogEvent(it) }
         )
             .windowUntilChanged { it.orderHash }
@@ -73,36 +72,69 @@ class OrderReduceService(
     }
 
     private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
-        var lastSeenUpdate: OrderUpdate? = null
+        // Fields used for logging only.
+        var seenRevertedOnChainOrder = false
+        var seenOrderHash: Word? = null
 
         val result = updates.asFlow().fold(emptyOrder) { order, update ->
-            lastSeenUpdate = update
+            seenOrderHash = update?.orderHash
             when (update) {
-                is OrderUpdate.ByOrderVersion -> updateWith(
-                    order,
-                    update.orderVersion,
-                    update.eventId
-                )
-                is OrderUpdate.ByLogEvent -> order.updateWith(
-                    update.logEvent.status,
-                    update.logEvent.data.toExchangeHistory(),
-                    update.eventId
-                )
+                is OrderUpdate.ByOrderVersion -> {
+                    if (update.orderVersion.onChainOrderKey != null) {
+                        // On-chain order versions are processed via the OnChainOrder LogEvent-s in the next when-branch.
+                        order
+                    } else {
+                        order.updateWith(update.orderVersion, update.eventId)
+                    }
+                }
+                is OrderUpdate.ByLogEvent -> {
+                    val exchangeHistory = update.logEvent.data.toExchangeHistory()
+                    if (exchangeHistory is OnChainOrder
+                        && update.logEvent.status != LogEventStatus.CONFIRMED
+                        && update.logEvent.status != LogEventStatus.PENDING
+                    ) {
+                        seenRevertedOnChainOrder = true
+                    }
+                    order.updateWith(update.logEvent, exchangeHistory, update.eventId)
+                }
             }
         }
+        /*
+        Resulting order may have EMPTY_ORDER_HASH in two cases:
+        1) There were neither OrderVersion-s (for API versions) nor OnChainOrder-s (for on-chain orders) for this hash.
+           => We don't have enough data to construct an order.
+        2) There were some OnChainOrder-s, but they were reverted.
+           => We have to remove the order from the database.
+         */
         if (result.hash == EMPTY_ORDER_HASH) {
-            logger.info("Order ${lastSeenUpdate?.orderHash} has not been reduced, none OrderVersion ware found")
+            logger.info(buildString {
+                append("Order $seenOrderHash reduce ended up with empty order: ")
+                append(
+                    if (seenRevertedOnChainOrder) {
+                        "the on-chain order was reverted"
+                    } else {
+                        "there were no OrderVersion-s for this hash"
+                    }
+                )
+            })
+            if (seenOrderHash != null) {
+                // Remove the possibly reverted order from the OrderRepository.
+                orderRepository.remove(seenOrderHash!!)
+            }
             return@mono emptyOrder
         }
         updateOrderWithState(result)
     }
 
-    private fun Order.updateWith(
-        logEventStatus: LogEventStatus,
+    private suspend fun Order.updateWith(
+        logEvent: LogEvent,
         orderExchangeHistory: OrderExchangeHistory,
         eventId: String
     ): Order {
-        return when (logEventStatus) {
+        if (orderExchangeHistory is OnChainOrder) {
+            return updateWithOnChainOrder(logEvent, orderExchangeHistory, eventId)
+        }
+        return when (logEvent.status) {
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> copy(
@@ -115,56 +147,67 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
-                is OnChainOrder -> error("OnChainOrder events must have been processed earlier.")
+                is OnChainOrder -> error("Must have been processed above")
             }
             else -> this
         }
     }
 
-    private suspend fun updateWith(
-        accumulator: Order,
-        version: OrderVersion,
+    private suspend fun Order.updateWithOnChainOrder(
+        logEvent: LogEvent,
+        onChainOrder: OnChainOrder,
         eventId: String
     ): Order {
-        val previous = if (version.onChainOrderKey != null) {
-            // On-chain orders can be re-opened, so we must start from the empty state again, even if there were previous events.
-            emptyOrder
+        val onChainOrderKey = logEvent.toLogEventKey()
+        return if (logEvent.status == LogEventStatus.CONFIRMED || logEvent.status == LogEventStatus.PENDING) {
+            val orderVersion = onChainOrder.toOrderVersion()
+                .copy(onChainOrderKey = onChainOrderKey)
+                .let { priceUpdateService.withUpdatedAllPrices(it) }
+            orderVersionRepository.saveOnChainOrderIfNotExists(onChainOrderKey, orderVersion)
+            // On-chain orders can be re-opened, so we start from the empty state.
+            emptyOrder.updateWith(orderVersion, eventId)
+                .copy(pending = if (logEvent.status == LogEventStatus.PENDING) listOf(onChainOrder) else emptyList())
         } else {
-            accumulator
+            orderVersionRepository.deleteByOnChainOrderKey(onChainOrderKey).awaitFirstOrNull()
+            // Skip this reverted log.
+            this
         }
-
-        return Order(
-            maker = version.maker,
-            taker = version.taker,
-            make = version.make,
-            take = version.take,
-            type = version.type,
-            salt = version.salt,
-            start = version.start,
-            end = version.end,
-            data = version.data,
-            signature = version.signature,
-            makePriceUsd = version.makePriceUsd,
-            takePriceUsd = version.takePriceUsd,
-            makePrice = version.makePrice,
-            takePrice = version.takePrice,
-            makeUsd = version.makeUsd,
-            takeUsd = version.takeUsd,
-            platform = version.platform,
-            hash = version.hash,
-
-            createdAt = previous.createdAt.takeUnless { it == Instant.EPOCH } ?: version.createdAt,
-            lastUpdateAt = version.createdAt,
-
-            lastEventId = accumulateEventId(accumulator.lastEventId, eventId),
-
-            priceHistory = getUpdatedPriceHistoryRecords(previous, version),
-            fill = previous.fill,
-            cancelled = previous.cancelled,
-            makeStock = previous.makeStock,
-            pending = previous.pending
-        )
     }
+
+    private suspend fun Order.updateWith(
+        version: OrderVersion,
+        eventId: String
+    ): Order = Order(
+        maker = version.maker,
+        taker = version.taker,
+        make = version.make,
+        take = version.take,
+        type = version.type,
+        salt = version.salt,
+        start = version.start,
+        end = version.end,
+        data = version.data,
+        signature = version.signature,
+        makePriceUsd = version.makePriceUsd,
+        takePriceUsd = version.takePriceUsd,
+        makePrice = version.makePrice,
+        takePrice = version.takePrice,
+        makeUsd = version.makeUsd,
+        takeUsd = version.takeUsd,
+        platform = version.platform,
+        hash = version.hash,
+
+        createdAt = createdAt.takeUnless { it == Instant.EPOCH } ?: version.createdAt,
+        lastUpdateAt = version.createdAt,
+
+        lastEventId = accumulateEventId(lastEventId, eventId),
+
+        priceHistory = getUpdatedPriceHistoryRecords(this, version),
+        fill = fill,
+        cancelled = cancelled,
+        makeStock = makeStock,
+        pending = pending
+    )
 
     private suspend fun getUpdatedPriceHistoryRecords(
         previous: Order,
@@ -241,32 +284,6 @@ class OrderReduceService(
 
         private fun accumulateEventId(lastEventId: String?, eventId: String): String {
             return Hash.sha3((lastEventId ?: "") + eventId)
-        }
-
-        private val wordComparator = Comparator<Word> r@{ w1, w2 ->
-            val w1Bytes = w1.bytes()
-            val w2Bytes = w2.bytes()
-            for (i in 0 until minOf(w1Bytes.size, w2Bytes.size)) {
-                if (w1Bytes[i] != w2Bytes[i]) {
-                    return@r w1Bytes[i].compareTo(w2Bytes[i])
-                }
-            }
-            return@r w1Bytes.size.compareTo(w2Bytes.size)
-        }
-
-        private fun OrderUpdate.toLogEventKey() = when (this) {
-            is OrderUpdate.ByLogEvent -> logEvent.toLogEventKey()
-            is OrderUpdate.ByOrderVersion -> orderVersion.onChainOrderKey
-        }
-
-        private val orderUpdateComparator: Comparator<OrderUpdate> = Comparator r@{ u1, u2 ->
-            wordComparator.compare(u1.orderHash, u2.orderHash).takeUnless { it == 0 }?.let { return@r it }
-            val k1 = u1.toLogEventKey()
-            val k2 = u2.toLogEventKey()
-            if (k1 == null || k2 == null) {
-                return@r u1.date.compareTo(u2.date)
-            }
-            return@r k1.compareTo(k2)
         }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)

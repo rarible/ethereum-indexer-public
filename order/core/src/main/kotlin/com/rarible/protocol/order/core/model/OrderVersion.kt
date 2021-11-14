@@ -77,3 +77,43 @@ fun OrderVersion.toOrderExactFields() = Order(
     platform = platform
 )
 
+fun OrderVersion.toOnChainOrder() = OnChainOrder(
+    maker = maker,
+    taker = taker,
+    make = make,
+    take = take,
+    createdAt = createdAt,
+    platform = platform,
+    orderType = type,
+    salt = salt,
+    start = start,
+    end = end,
+    data = data,
+    signature = signature,
+    hash = hash,
+    priceUsd = makePriceUsd ?: takePriceUsd
+)
+
+fun OnChainOrder.toOrderVersion() =
+    OrderVersion(
+        maker = maker,
+        taker = taker,
+        make = make,
+        take = take,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        makePrice = null,
+        takePrice = null,
+        makeUsd = null,
+        takeUsd = null,
+        createdAt = createdAt,
+        platform = platform,
+        type = orderType,
+        salt = salt,
+        start = start,
+        end = end,
+        data = data,
+        signature = signature,
+        hash = hash
+    )
+
