@@ -199,7 +199,7 @@ data class Order(
         ): Pair<EthUInt256, EthUInt256> {
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
-            } else if ((data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+            } else if (data.isMakeFillOrder) {
                 val make = makeValue - fill
                 val take = make * takeValue / makeValue
                 make to take
