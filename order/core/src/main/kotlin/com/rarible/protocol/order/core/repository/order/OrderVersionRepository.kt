@@ -11,7 +11,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.dao.DuplicateKeyException
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
@@ -109,15 +108,6 @@ class OrderVersionRepository(
 
     fun findById(id: ObjectId): Mono<OrderVersion> {
         return template.findById(id)
-    }
-
-    suspend fun saveOnChainOrderIfNotExists(onChainOrderKey: LogEventKey, orderVersion: OrderVersion) {
-        if (!existsByOnChainOrderKey(onChainOrderKey).awaitFirst()) {
-            try {
-                save(orderVersion).awaitFirst()
-            } catch (ignored: DuplicateKeyException) {
-            }
-        }
     }
 
     fun existsByOnChainOrderKey(key: LogEventKey): Mono<Boolean> {

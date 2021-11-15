@@ -15,10 +15,12 @@ import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -163,7 +165,12 @@ class OrderReduceService(
             val orderVersion = onChainOrder.toOrderVersion()
                 .copy(onChainOrderKey = onChainOrderKey)
                 .let { priceUpdateService.withUpdatedAllPrices(it) }
-            orderVersionRepository.saveOnChainOrderIfNotExists(onChainOrderKey, orderVersion)
+            if (!orderVersionRepository.existsByOnChainOrderKey(onChainOrderKey).awaitFirst()) {
+                try {
+                    orderVersionRepository.save(orderVersion).awaitFirst()
+                } catch (ignored: DuplicateKeyException) {
+                }
+            }
             // On-chain orders can be re-opened, so we start from the empty state.
             emptyOrder.updateWith(orderVersion, eventId)
                 .copy(pending = if (logEvent.status == LogEventStatus.PENDING) listOf(onChainOrder) else emptyList())
