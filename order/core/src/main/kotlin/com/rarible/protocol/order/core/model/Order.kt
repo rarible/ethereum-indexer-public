@@ -482,14 +482,20 @@ data class Order(
     }
 }
 
-fun Order.invert(maker: Address, amount: BigInteger, newSalt: Word = zeroWord()): Order = run {
+fun Order.invert(
+    maker: Address,
+    amount: BigInteger,
+    newSalt: Word = zeroWord(),
+    newData: OrderData = this.data
+): Order = run {
     val (makeValue, takeValue) = calculateAmounts(make.value.value, take.value.value, amount, isBid())
     this.copy(
         maker = maker,
         taker = this.maker,
         make = take.copy(value = EthUInt256(makeValue)),
         take = make.copy(value = EthUInt256(takeValue)),
-        hash = Order.hashKey(maker, take.type, make.type, salt.value, data),
+        data = newData,
+        hash = Order.hashKey(maker, take.type, make.type, salt.value, newData),
         salt = EthUInt256.of(newSalt),
         makeStock = EthUInt256.ZERO,
         signature = null,

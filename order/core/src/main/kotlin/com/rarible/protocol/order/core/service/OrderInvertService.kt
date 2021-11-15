@@ -43,13 +43,7 @@ class OrderInvertService(
         amount: BigInteger,
         salt: Word,
         originFees: List<Part>
-    ): Order = order
-        .invert(maker, amount, salt)
-        .let {
-            it.copy(
-                data = it.data.withOriginFees(originFees)
-            )
-        }
+    ): Order = order.invert(maker, amount, salt, newData = order.data.withOriginFees(originFees))
 
     private fun OrderData.withOriginFees(newFees: List<Part>) = when (this) {
         is OrderRaribleV2DataV1 -> copy(originFees = newFees)
@@ -84,9 +78,15 @@ class OrderInvertService(
         if (applyResult.isValid().not()) {
             throw IllegalArgumentException("Illegal data to revert order, callData doesn't matched")
         }
-        return order
-            .invert(maker, amount, salt)
-            .run { copy(data = invertedData, hash = Order.hash(this), start = nowMillis().epochSecond - 1, end = null) }
+        return order.invert(maker, amount, salt, newData = invertedData)
+            .run {
+                copy(
+                    // Recalculate OpenSea-specific hash
+                    hash = Order.hash(this),
+                    start = nowMillis().epochSecond - 1,
+                    end = null
+                )
+            }
     }
 
     private fun invertCallData(

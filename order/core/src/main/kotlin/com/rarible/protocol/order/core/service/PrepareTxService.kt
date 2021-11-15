@@ -141,8 +141,11 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
-        val orderRight = order.invert(form.maker, form.amount)
-            .copy(data = order.data.withNewPayoutsAndOriginFees(form.payouts.toPartList(), form.originFees.toPartList()))
+        val orderRight = order.invert(
+            maker = form.maker,
+            amount = form.amount,
+            newData = order.data.withNewPayoutsAndOriginFees(form.payouts.toPartList(), form.originFees.toPartList())
+        )
         return prepareTxFor2Orders(order, orderRight)
     }
 
