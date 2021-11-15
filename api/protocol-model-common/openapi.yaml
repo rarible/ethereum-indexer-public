@@ -941,7 +941,7 @@ components:
       required:
         - assetClass
         - contract
-        - punkId
+        - tokenId
       type: object
       properties:
         assetClass:
@@ -950,7 +950,7 @@ components:
             - "CRYPTO_PUNKS"
         contract:
           $ref: "#/components/schemas/Address"
-        punkId:
+        tokenId:
           type: integer
 
     Asset:
