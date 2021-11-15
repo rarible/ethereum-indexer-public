@@ -19,11 +19,11 @@ class OpenSeaOrderProvider(
     private val openSeaContract = properties.exchangeContractAddresses.openSeaV1
 
     suspend fun getMatchedOrdersByTransactionHash(transactionHash: Word): OpenSeaMatchedOrders? {
-        return getTransactionTrace(transactionHash) { openSeaOrderParser.safeParseMatchedOrders(it) }
+        return getTransactionTrace(transactionHash) { openSeaOrderParser.parseMatchedOrders(it) }
     }
 
     suspend fun getCancelOrderByTransactionHash(transactionHash: Word): OpenSeaTransactionOrder? {
-        return getTransactionTrace(transactionHash) { openSeaOrderParser.safeParseCancelOrder(it) }
+        return getTransactionTrace(transactionHash) { openSeaOrderParser.parseCancelOrder(it) }
     }
 
     private suspend fun <T> getTransactionTrace(transactionHash: Word, converter: (input: Binary) -> T): T? {

@@ -8,14 +8,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser {
-    fun safeParseMatchedOrders(input: Binary): OpenSeaMatchedOrders? {
-        return if (WyvernExchange.atomicMatch_Signature().id() == input.methodSignatureId())
-            parseMatchedOrders(input)
-        else null
-    }
+    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders? {
+        val signature = WyvernExchange.atomicMatch_Signature()
+        if (signature.id() != input.methodSignatureId()) return null
 
-    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders {
-        val decoded = WyvernExchange.atomicMatch_Signature().`in`().decode(input, 4)
+        val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()
         val uints = decoded.value()._2()
         val feeMethodsSidesKindsHowToCalls = decoded.value()._3()
@@ -84,14 +81,11 @@ class OpenSeaOrderParser {
         )
     }
 
-    fun safeParseCancelOrder(input: Binary): OpenSeaTransactionOrder? {
-        return if (WyvernExchange.cancelOrder_Signature().id() == input.methodSignatureId())
-            parseCancelOrder(input)
-        else null
-    }
+    fun parseCancelOrder(input: Binary): OpenSeaTransactionOrder? {
+        val signature = WyvernExchange.cancelOrder_Signature()
+        if (signature.id() != input.methodSignatureId()) return null
 
-    fun parseCancelOrder(input: Binary): OpenSeaTransactionOrder {
-        val decoded = WyvernExchange.cancelOrder_Signature().`in`().decode(input, 4)
+        val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()
         val uints = decoded.value()._2()
         val feeMethod = decoded.value()._3()

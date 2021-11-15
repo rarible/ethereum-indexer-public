@@ -92,7 +92,7 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
 
         val input = prepareTxService.prepareTxFor2Orders(orderLeft, orderRight).transaction.data
 
-        val result = raribleExchangeV2OrderParser.safeParseMatchedOrders(input)
+        val result = raribleExchangeV2OrderParser.parseMatchedOrders(input)
         assertThat(result).isNotNull
         assertThat(result!!.left.data).isEqualTo(leftData)
         assertThat(result.right.data).isEqualTo(rightData)
@@ -102,7 +102,7 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
     @Test
     fun `should safe parse invalid order match transaction input`() = runBlocking<Unit> {
         val input = "0x23445435656464".toBinary()
-        val result = raribleExchangeV2OrderParser.safeParseMatchedOrders(input)
+        val result = raribleExchangeV2OrderParser.parseMatchedOrders(input)
         assertThat(result).isNull()
     }
 }

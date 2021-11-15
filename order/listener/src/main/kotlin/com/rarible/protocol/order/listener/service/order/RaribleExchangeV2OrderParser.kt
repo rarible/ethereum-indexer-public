@@ -11,14 +11,11 @@ import org.springframework.stereotype.Component
 
 @Component
 class RaribleExchangeV2OrderParser {
-    fun safeParseMatchedOrders(input: Binary): RaribleMatchedOrders? {
-        return if (ExchangeV2.matchOrdersSignature().id() == input.methodSignatureId())
-            parseMatchedOrders(input)
-        else null
-    }
+    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders? {
+        val signature = ExchangeV2.matchOrdersSignature()
+        if (signature.id() != input.methodSignatureId()) return null
 
-    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
-        val decoded = ExchangeV2.matchOrdersSignature().`in`().decode(input, 4)
+        val decoded = signature.`in`().decode(input, 4)
 
         return RaribleMatchedOrders(
             left = SimpleOrder(

@@ -18,7 +18,7 @@ class SideMatchTransactionProvider(
     private val exchangeContract = properties.exchangeContractAddresses.v2
 
     suspend fun getMatchedOrdersByTransactionHash(transactionHash: Word): RaribleMatchedOrders? {
-        return getTransactionTrace(transactionHash) { raribleOrderParser.safeParseMatchedOrders(it) }
+        return getTransactionTrace(transactionHash) { raribleOrderParser.parseMatchedOrders(it) }
     }
 
     private suspend fun <T> getTransactionTrace(transactionHash: Word, converter: (input: Binary) -> T): T? {

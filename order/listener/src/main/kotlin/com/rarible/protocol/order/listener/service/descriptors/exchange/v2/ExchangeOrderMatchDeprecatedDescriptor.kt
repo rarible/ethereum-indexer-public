@@ -57,7 +57,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val rightTake = Asset(leftOrder.make.type, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
-        val transactionOrders = raribleOrderParser.safeParseMatchedOrders(transaction.input())
+        val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.input())
         val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
         val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
