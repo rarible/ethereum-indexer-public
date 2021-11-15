@@ -15,7 +15,24 @@ import com.rarible.protocol.order.core.misc.fixV
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.misc.toSignatureData
 import com.rarible.protocol.order.core.misc.toTuple
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.PrepareTxResponse
+import com.rarible.protocol.order.core.model.PreparedTx
+import com.rarible.protocol.order.core.model.invert
+import com.rarible.protocol.order.core.model.isBid
+import com.rarible.protocol.order.core.model.token
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -23,7 +40,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
-import scala.*
+import scala.Tuple11
+import scala.Tuple12
+import scala.Tuple2
+import scala.Tuple4
+import scala.Tuple6
 import scalether.domain.Address
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
@@ -120,8 +141,11 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
-        val orderRight = order.invert(form.maker, form.amount)
-            .copy(data = order.data.withNewPayoutsAndOriginFees(form.payouts.toPartList(), form.originFees.toPartList()))
+        val orderRight = order.invert(
+            maker = form.maker,
+            amount = form.amount,
+            newData = order.data.withNewPayoutsAndOriginFees(form.payouts.toPartList(), form.originFees.toPartList())
+        )
         return prepareTxFor2Orders(order, orderRight)
     }
 
