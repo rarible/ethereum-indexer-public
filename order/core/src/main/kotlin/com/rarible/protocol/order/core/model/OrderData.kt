@@ -116,3 +116,10 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     CRYPTO_PUNKS
 }
 
+/**
+ * If `true`, the [Order.fill] applies to the [Order.take] side, otherwise to the [Order.make] side.
+ *
+ * Historically, all Rarible V2 orders were by take side.
+ * Later DataV2 was introduced with "isMakeFill" flag to support the fill by make.
+ */
+val OrderData.isMakeFillOrder: Boolean get() = this is OrderRaribleV2DataV2 && this.isMakeFill

@@ -201,12 +201,6 @@ class OrderTest {
     }
 
     @Test
-    fun `isMakeFill order flag`() {
-        assertThat(createOrder().isMakeFillOrder).isFalse()
-        assertThat(createOrder().withMakeFill().isMakeFillOrder).isTrue()
-    }
-
-    @Test
     fun `V2 take-fill order - stock is 0 when the order is filled`() {
         assertThat(
             createOrder().copy(

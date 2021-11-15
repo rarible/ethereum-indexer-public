@@ -6,7 +6,18 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.isSingleton
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.isMakeFillOrder
+import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -63,13 +74,13 @@ class ExchangeOrderMatchDescriptor(
         val leftAdhoc = transactionOrders.left.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders.right.salt == EthUInt256.ZERO
 
-        val leftFill = if ((transactionOrders.left.data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+        val leftFill = if (transactionOrders.left.data.isMakeFillOrder) {
             EthUInt256(event.newRightFill())
         } else {
             EthUInt256(event.newLeftFill())
         }
 
-        val rightFill = if ((transactionOrders.right.data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+        val rightFill = if (transactionOrders.right.data.isMakeFillOrder) {
             EthUInt256(event.newLeftFill())
         } else {
             EthUInt256(event.newRightFill())

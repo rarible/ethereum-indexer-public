@@ -135,14 +135,6 @@ data class Order(
         )
     }
 
-    /**
-     * If `true`, the [fill] applies to the [take] side, otherwise to the [make] side.
-     *
-     * Historically, all Rarible V2 orders were by take side.
-     * Later DataV2 was introduced with "isMakeFill" flag to support the fill by make.
-     */
-    val isMakeFillOrder: Boolean get() = (data as? OrderRaribleV2DataV2)?.isMakeFill == true
-
     companion object {
         /**
          * Maximum size of [priceHistory]
@@ -207,7 +199,7 @@ data class Order(
         ): Pair<EthUInt256, EthUInt256> {
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
-            } else if ((data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+            } else if (data.isMakeFillOrder) {
                 val make = makeValue - fill
                 val take = make * takeValue / makeValue
                 make to take
