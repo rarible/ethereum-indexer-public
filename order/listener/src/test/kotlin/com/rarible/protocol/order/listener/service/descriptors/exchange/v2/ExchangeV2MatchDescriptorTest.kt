@@ -105,6 +105,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             )
         ).verifySuccess()
 
+        assertThat(exchange.fills(sellOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.valueOf(4))
+
         Wait.waitAssert {
             val historyItems = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH)
                 .collectList().awaitFirst()
@@ -205,6 +207,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             )
         ).verifySuccess()
 
+        assertThat(exchange.fills(bidOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.valueOf(4))
+
         Wait.waitAssert {
             val historyItems = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH)
                 .collectList().awaitFirst()
@@ -287,6 +291,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 null
             )
         ).verifySuccess()
+
+        assertThat(exchange.fills(bidOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.ONE)
 
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH).collectList().awaitFirst()
@@ -391,6 +397,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 null
             )
         ).verifySuccess()
+
+        assertThat(exchange.fills(bidOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.ONE)
 
         // Assert the payouts are made.
         assertThat(token1.balanceOf(rightPayout).call().awaitFirst()).isEqualTo(BigInteger.valueOf(10))
