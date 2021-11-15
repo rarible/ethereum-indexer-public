@@ -2,7 +2,7 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.core.common.nowMillis
-import com.rarible.ethereum.common.NewKeys
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.sign.domain.EIP712Domain
@@ -20,7 +20,20 @@ import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.pending.PendingTransactionService
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.LegacyAssetTypeClass
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.toOnChainOrder
+import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -38,8 +51,6 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.context.annotation.Primary
-import org.web3j.crypto.Keys
-import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
@@ -53,6 +64,7 @@ import scalether.domain.response.TransactionReceipt
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
+import java.math.BigDecimal
 import java.math.BigInteger
 
 @IntegrationTest
@@ -204,6 +216,8 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 chainId = BigInteger.valueOf(17),
                 verifyingContract = exchangeV2Contract.address()
             )
+
+            setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
         }
 
         @Test
@@ -252,7 +266,6 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 makeUsd = null,
                 takeUsd = null
             )
-            setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
 
             orderUpdateService.save(orderVersion)
 
@@ -360,7 +373,6 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 makeUsd = null,
                 takeUsd = null
             )
-            setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
 
             orderUpdateService.save(orderVersion)
 
@@ -379,6 +391,99 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
             val savedOrder = orderRepository.findById(orderVersion.hash)
             assertThat(savedOrder?.pending).hasSize(1)
             assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderSideMatch::class.java)
+        }
+
+        @Test
+        fun `should create pending transaction for on-chain order - v2`() = runBlocking<Unit> {
+            val (maker, makerSender) = newSender()
+            val taker = randomAddress()
+
+            val salt = BigInteger.TEN
+            val tokenId = BigInteger.ONE
+            val buyTokenId = BigInteger.TEN
+
+            val make = Asset(type = Erc1155AssetType(token.address(), EthUInt256.of(tokenId)), value = EthUInt256.TEN)
+            val take = Asset(type = Erc1155AssetType(buyToken.address(), EthUInt256.of(buyTokenId)), value = EthUInt256.TEN)
+
+            token.mint(maker, tokenId, make.value.value, byteArrayOf()).withSender(makerSender).execute().verifySuccess()
+            token.setApprovalForAll(transferProxy.address(), true).withSender(makerSender).execute().verifySuccess()
+            assertEquals(make.value.value, token.balanceOf(maker, tokenId).call().awaitFirst())
+
+            val orderData = OrderRaribleV2DataV1(listOf(), listOf())
+
+            val start = BigInteger.valueOf(10)
+            val end =  BigInteger.valueOf(0) // Means end = null => infinite order.
+            val orderTuple = Tuple9(
+                maker,
+                Tuple2(make.type.forTx(), make.value.value),
+                taker,
+                Tuple2(take.type.forTx(), take.value.value),
+                salt,
+                start,
+                end,
+                orderData.getDataVersion(),
+                orderData.toEthereum().bytes()
+            )
+            val receipt = exchangeV2Contract.upsertOrder(orderTuple).withSender(makerSender).execute().verifySuccess()
+            val orderVersion = OrderVersion(
+                maker = maker,
+                taker = taker,
+                make = make,
+                take = take,
+                type = OrderType.RARIBLE_V2,
+                salt = EthUInt256.of(salt),
+                data = orderData,
+                start = start.toLong().takeUnless { it == 0L },
+                end = end.toLong().takeUnless { it == 0L },
+                signature = null,
+                createdAt = nowMillis(),
+                makePriceUsd = null,
+                takePriceUsd = null,
+                makePrice = null,
+                takePrice = null,
+                makeUsd = null,
+                takeUsd = null
+            )
+
+            // Imitate the makeStock = 10
+            coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns make.value
+            processTransaction(receipt)
+
+            val orderHash = Order.hashKey(maker, make.type, take.type, salt)
+            val history = exchangeHistoryRepository.findLogEvents(orderHash, null).collectList().awaitFirst()
+            assertThat(history).hasSize(1)
+            assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
+            assertThat(history.single().data)
+                .isEqualToIgnoringGivenFields(
+                    orderVersion.toOnChainOrder(),
+                    // For pending logs these dates are not bound to blockchain timestamp (and they are equal to Instant.now())
+                    OnChainOrder::date.name,
+                    OnChainOrder::createdAt.name
+                )
+
+            val pendingLogDate = (history.single().data as OnChainOrder).date
+            val savedOrder = orderRepository.findById(orderVersion.hash)
+            assertThat(savedOrder?.copy()).isEqualToIgnoringGivenFields(
+                orderVersion.toOrderExactFields().copy(
+                    pending = listOf(orderVersion.toOnChainOrder().copy(
+                        createdAt = pendingLogDate,
+                        date = pendingLogDate
+                    )),
+                    priceHistory = listOf(
+                        OrderPriceHistoryRecord(
+                            date = pendingLogDate,
+                            makeValue = BigDecimal.valueOf(10),
+                            takeValue = BigDecimal.valueOf(10)
+                        )
+                    ),
+                    makePrice = BigDecimal.valueOf(1),
+                    createdAt = pendingLogDate,
+                    lastUpdateAt = pendingLogDate
+                ),
+                // Non-primary fields that are hard to calculate.
+                Order::lastEventId.name,
+                Order::version.name
+            )
         }
     }
 
@@ -403,6 +508,7 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
         to = to()
     )
 
+    // TODO: do not re-create Spring test context for this test. Move this mocked bean to the base Test configuration.
     @TestConfiguration
     class TestAssetTypeServiceConfiguration {
         @Bean

@@ -2,7 +2,6 @@ package com.rarible.protocol.order.api.integration
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.common.nowMillis
-import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.Blockchain
@@ -10,11 +9,18 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.client.NoopWebClientCustomizer
-import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
-import com.rarible.protocol.order.api.client.*
+import com.rarible.protocol.order.api.client.AuctionControllerApi
+import com.rarible.protocol.order.api.client.FixedOrderIndexerApiServiceUriProvider
+import com.rarible.protocol.order.api.client.OrderActivityControllerApi
+import com.rarible.protocol.order.api.client.OrderAggregationControllerApi
+import com.rarible.protocol.order.api.client.OrderBidControllerApi
+import com.rarible.protocol.order.api.client.OrderControllerApi
+import com.rarible.protocol.order.api.client.OrderEncodeControllerApi
+import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
+import com.rarible.protocol.order.api.client.OrderTransactionControllerApi
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
@@ -50,6 +56,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.net.URI
+import java.time.Instant
 import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
@@ -124,6 +131,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         }
         return receipt
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     protected suspend fun cancelOrder(orderHash: Word) {
         exchangeHistoryRepository.save(

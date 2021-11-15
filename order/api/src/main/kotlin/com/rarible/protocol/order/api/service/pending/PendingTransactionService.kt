@@ -12,11 +12,21 @@ import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
+import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.block.OrderBlockProcessor
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
+import com.rarible.protocol.order.core.service.block.OrderBlockProcessor
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -29,6 +39,7 @@ class PendingTransactionService(
     private val assetTypeService: AssetTypeService,
     private val orderRepository: OrderRepository,
     exchangeContractAddresses: ExchangeContractAddresses,
+    private val raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser,
     logEventService: LogEventService,
     blockProcessor: OrderBlockProcessor
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
@@ -49,33 +60,31 @@ class PendingTransactionService(
         id: Binary,
         data: Binary
     ): List<LogEvent> {
-        return if (to != null) {
-            val logs = when {
-                exchangeContracts.contains(to) -> processTxToExchange(from, id, data)
-                cryptoPunksAddress == to -> processTxToCryptoPunks(from, id, data)
-                else -> emptyList()
-            }
-            logs?.let { it.mapIndexed { index, pendingLog ->
-                LogEvent(
-                    data = pendingLog.eventData,
-                    address = to,
-                    topic = pendingLog.topic,
-                    transactionHash = hash,
-                    status = LogEventStatus.PENDING,
-                    index = 0,
-                    minorLogIndex = index
-                ) } }
-        } else {
-            emptyList()
+        if (to == null) return emptyList()
+        val logs = when {
+            exchangeContracts.contains(to) -> processTxToExchange(from, id, data)
+            cryptoPunksAddress == to -> processTxToCryptoPunks(from, id, data)
+            else -> emptyList()
+        }
+        return logs.mapIndexed { index, pendingLog ->
+            LogEvent(
+                data = pendingLog.eventData,
+                address = to,
+                topic = pendingLog.topic,
+                transactionHash = hash,
+                status = LogEventStatus.PENDING,
+                index = 0,
+                minorLogIndex = index
+            )
         }
     }
 
     private suspend fun processTxToCryptoPunks(from: Address, id: Binary, data: Binary): List<PendingLog> {
-        logger.info("Process tx to cryptopunks market: from=$from, id=$id, data=$data")
+        logger.info("Process tx to crypto punks market: from=$from, id=$id, data=$data")
         val pendingLogs = when (id.prefixed()) {
             CryptoPunksMarket.buyPunkSignature().id().prefixed() -> {
-                val id = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
-                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(id))
+                val punkId = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
+                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(punkId))
                 order?.let {
                     val hash = Order.hashKey(it.maker, it.make.type, it.take.type, it.salt.value)
                     val counterHash = Order.hashKey(from, it.take.type, it.make.type, it.salt.value)
@@ -83,10 +92,10 @@ class PendingTransactionService(
                 }
             }
             CryptoPunksMarket.acceptBidForPunkSignature().id().prefixed() -> {
-                val data = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
-                val id = data._1()
-                val price = data._2()
-                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(id))
+                val bidData = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
+                val punkId = bidData._1()
+                val price = bidData._2()
+                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(punkId))
                 order?.let {
                     val make = it.make.copy(value = EthUInt256.of(price))
                     val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
@@ -294,6 +303,10 @@ class PendingTransactionService(
                         adhoc = takeSalt == BigInteger.ZERO
                     ), MatchEvent.id())
                 )
+            }
+            ExchangeV2.upsertOrderSignature().id().prefixed() -> {
+                val onChainOrderVersion = raribleExchangeV2OrderParser.parseOnChainOrder(data)
+                PendingLog(onChainOrderVersion, UpsertOrderEvent.id())
             }
             else -> null
         }
