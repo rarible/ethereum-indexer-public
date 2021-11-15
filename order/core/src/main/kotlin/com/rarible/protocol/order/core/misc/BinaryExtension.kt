@@ -20,3 +20,7 @@ fun Binary.clearAfter(offset: Int): Binary {
 fun Binary?.orEmpty(): Binary {
     return this ?: Binary.apply()
 }
+
+fun Binary.methodSignatureId(): Binary? = if (length() >= 4) slice(0, 4) else null
+
+fun String.toBinary(): Binary = Binary.apply(this)

@@ -4,6 +4,7 @@ import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.test.data.randomInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
@@ -17,6 +18,7 @@ import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -88,10 +90,19 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
         )
         coEvery { erc1271SignService.isSigner(any(), any<Word>(), any()) } returns isSigner
 
-        val input = prepareTxService.prepareTxFor2Orders(orderLeft, orderRight).transaction.data.prefixed()
+        val input = prepareTxService.prepareTxFor2Orders(orderLeft, orderRight).transaction.data
 
-        val result = raribleExchangeV2OrderParser.parseMatchedOrders(input)
-        assertThat(result.left.data).isEqualTo(leftData)
+        val result = raribleExchangeV2OrderParser.safeParseMatchedOrders(input)
+        assertThat(result).isNotNull
+        assertThat(result!!.left.data).isEqualTo(leftData)
         assertThat(result.right.data).isEqualTo(rightData)
+    }
+
+
+    @Test
+    fun `should safe parse invalid order match transaction input`() = runBlocking<Unit> {
+        val input = "0x23445435656464".toBinary()
+        val result = raribleExchangeV2OrderParser.safeParseMatchedOrders(input)
+        assertThat(result).isNull()
     }
 }

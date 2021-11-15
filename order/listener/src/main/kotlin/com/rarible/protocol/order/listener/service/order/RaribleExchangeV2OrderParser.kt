@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import io.daonomic.rpc.domain.Binary
@@ -10,8 +11,14 @@ import org.springframework.stereotype.Component
 
 @Component
 class RaribleExchangeV2OrderParser {
-    fun parseMatchedOrders(input: String): RaribleMatchedOrders {
-        val decoded = ExchangeV2.matchOrdersSignature().`in`().decode(Binary.apply(input), 4)
+    fun safeParseMatchedOrders(input: Binary): RaribleMatchedOrders? {
+        return if (ExchangeV2.matchOrdersSignature().id() == input.methodSignatureId())
+            parseMatchedOrders(input)
+        else null
+    }
+
+    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
+        val decoded = ExchangeV2.matchOrdersSignature().`in`().decode(input, 4)
 
         return RaribleMatchedOrders(
             left = SimpleOrder(

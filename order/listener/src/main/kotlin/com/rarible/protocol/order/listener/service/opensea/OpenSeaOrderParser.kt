@@ -1,14 +1,21 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser {
-    fun parseMatchedOrders(input: String): OpenSeaMatchedOrders {
-        val decoded = WyvernExchange.atomicMatch_Signature().`in`().decode(Binary.apply(input), 4)
+    fun safeParseMatchedOrders(input: Binary): OpenSeaMatchedOrders? {
+        return if (WyvernExchange.atomicMatch_Signature().id() == input.methodSignatureId())
+            parseMatchedOrders(input)
+        else null
+    }
+
+    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders {
+        val decoded = WyvernExchange.atomicMatch_Signature().`in`().decode(input, 4)
         val addrs = decoded.value()._1()
         val uints = decoded.value()._2()
         val feeMethodsSidesKindsHowToCalls = decoded.value()._3()
@@ -77,8 +84,14 @@ class OpenSeaOrderParser {
         )
     }
 
-    fun parseCancelOrder(input: String): OpenSeaTransactionOrder {
-        val decoded = WyvernExchange.cancelOrder_Signature().`in`().decode(Binary.apply(input), 4)
+    fun safeParseCancelOrder(input: Binary): OpenSeaTransactionOrder? {
+        return if (WyvernExchange.cancelOrder_Signature().id() == input.methodSignatureId())
+            parseCancelOrder(input)
+        else null
+    }
+
+    fun parseCancelOrder(input: Binary): OpenSeaTransactionOrder {
+        val decoded = WyvernExchange.cancelOrder_Signature().`in`().decode(input, 4)
         val addrs = decoded.value()._1()
         val uints = decoded.value()._2()
         val feeMethod = decoded.value()._3()
