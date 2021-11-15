@@ -19,7 +19,8 @@ protocol-erc20-api:
     order: start-first
   networks:
     common:
-    - '{{ include "service.appEnv" $ }}-backend'
+      '{{ include "service.appEnv" $ }}-backend':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-erc20-api' ]
 
 protocol-erc20-listener:
   image:
@@ -79,12 +80,14 @@ protocol-order-api:
     order: start-first
   networks:
     common:
-    - '{{ include "service.appEnv" $ }}-backend'
-    - '{{ .Values.global.network }}-ethereum'
+      '{{ include "service.appEnv" $ }}-backend':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-order-api' ]
+      '{{ include "service.appEnv" $ }}-ethereum':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-order-api' ]
 
 protocol-order-listener:
   image:
-    repository: ethereum-indexer-order-api
+    repository: ethereum-indexer-order-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
@@ -135,8 +138,8 @@ protocol-unlockable-api:
   updateConfig:
     order: start-first
   networks:
-    common:
-    - '{{ include "service.appEnv" $ }}-backend'
+    '{{ include "service.appEnv" $ }}-backend':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-unlockable-api' ]
 
 protocol-nft-api:
   image:
@@ -156,8 +159,10 @@ protocol-nft-api:
     order: start-first
   networks:
     common:
-    - '{{ include "service.appEnv" $ }}-backend'
-    - '{{ .Values.global.network }}-ethereum'
+      '{{ include "service.appEnv" $ }}-backend':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-nft-api' ]
+      '{{ include "service.appEnv" $ }}-ethereum':
+        aliases: [ '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-nft-api' ]
 
 protocol-nft-listener:
   image:
