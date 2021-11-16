@@ -96,7 +96,7 @@ protocol-ethereum-order-api: &protocol-order-api
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
-    - '{{ include "service.appEnv" $ }}-ethereum'
+    - '{{ .Values.global.network }}-ethereum'
 
 protocol-polygon-order-api:
   <<: *protocol-order-api
@@ -193,7 +193,7 @@ protocol-ethereum-nft-api: &protocol-nft-api
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
-    - '{{ include "service.appEnv" $ }}-ethereum'
+    - '{{ .Values.global.network }}-ethereum'
 
 protocol-polygon-nft-api:
   <<: *protocol-nft-api
