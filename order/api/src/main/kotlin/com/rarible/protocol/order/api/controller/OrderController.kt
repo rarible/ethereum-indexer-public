@@ -2,7 +2,6 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.dto.InvertOrderFormDto
 import com.rarible.protocol.dto.LegacyOrderFormDto
 import com.rarible.protocol.dto.OrderCurrenciesDto
 import com.rarible.protocol.dto.OrderDto
@@ -19,7 +18,6 @@ import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.OrdersPaginationDto
-import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.dto.PrepareOrderTxResponseDto
@@ -35,22 +33,16 @@ import com.rarible.protocol.order.core.converters.dto.CompositeBidConverter
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
-import com.rarible.protocol.order.core.converters.model.OrderToFormDtoConverter
-import com.rarible.protocol.order.core.converters.model.PartConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.Part
-import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
-import com.rarible.protocol.order.core.service.OrderInvertService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -70,43 +62,15 @@ class OrderController(
     private val orderService: OrderService,
     private val orderRepository: OrderRepository,
     private val assetTypeDtoConverter: AssetTypeDtoConverter,
-    private val orderInvertService: OrderInvertService,
     private val prepareTxService: PrepareTxService,
     private val orderDtoConverter: OrderDtoConverter,
     private val assetDtoConverter: AssetDtoConverter,
-    private val orderToFormDtoConverter: OrderToFormDtoConverter,
     private val orderBidsService: OrderBidsService,
     private val compositeBidConverter: CompositeBidConverter,
     orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
 
     private val platformFeaturedFilter = PlatformFeaturedFilter(orderIndexerProperties.featureFlags)
-
-    override suspend fun invertOrder(
-        hash: String,
-        form: InvertOrderFormDto
-    ): ResponseEntity<OrderFormDto> {
-        val order = orderService.get(Word.apply(hash))
-        val inverted =
-            orderInvertService.invert(order, form.maker, form.amount, form.salt.toWord(), convert(form.originFees))
-        return ResponseEntity.ok(orderToFormDtoConverter.convert(inverted))
-    }
-
-    override suspend fun prepareOrderV2Transaction(
-        hash: String,
-        form: OrderFormDto
-    ): ResponseEntity<PrepareOrderTxResponseDto> {
-        val order = orderService.get(Word.apply(hash))
-        val orderRight = orderService.convertFormToVersion(form).toOrderExactFields()
-        val result = with(prepareTxService.prepareTxFor2Orders(order, orderRight)) {
-            PrepareOrderTxResponseDto(
-                transferProxyAddress,
-                assetDtoConverter.convert(asset),
-                PreparedOrderTxDto(transaction.to, transaction.data)
-            )
-        }
-        return ResponseEntity.ok(result)
-    }
 
     override suspend fun prepareOrderTransaction(
         hash: String,
@@ -553,11 +517,7 @@ class OrderController(
         return platformFeaturedFilter.filter(platform)
     }
 
-    private fun convert(source: List<PartDto>): List<Part> {
-        return source.map { PartConverter.convert(it) }
-    }
-
-    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatusDto>? {
+    private fun convertStatus(source: List<OrderStatusDto>?): List<OrderStatusDto> {
         return source?.map { OrderStatusDto.valueOf(it.name) } ?: listOf()
     }
 

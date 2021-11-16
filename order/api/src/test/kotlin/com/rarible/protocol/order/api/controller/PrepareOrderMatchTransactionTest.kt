@@ -7,15 +7,18 @@ import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
-import com.rarible.protocol.dto.InvertOrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
-import com.rarible.protocol.order.api.data.generateNewKeys
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.AbstractOrderIt
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -34,9 +37,9 @@ import scalether.util.Hex
 import java.math.BigInteger
 
 @IntegrationTest
-class WertFt : AbstractOrderIt() {
+class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
     @Test
-    fun `should prepare v1 tx for wert`() = runBlocking<Unit> {
+    fun `should prepare v1 tx`() = runBlocking<Unit> {
         val realBuyer = AddressFactory.create()
 
         val (seller, sellerKey, buyer, _, erc721) = prepare()
@@ -80,8 +83,8 @@ class WertFt : AbstractOrderIt() {
     }
 
     @Test
-    fun `should prepare v2 tx for wert`() = runBlocking<Unit> {
-        val (realBuyerKey, _, realBuyer) = generateNewKeys()
+    fun `should prepare v2 tx`() = runBlocking<Unit> {
+        val (_, _, realBuyer) = generateNewKeys()
 
         val (seller, sellerKey, buyer, _, erc721) = prepare()
 
@@ -98,15 +101,13 @@ class WertFt : AbstractOrderIt() {
             )
         )
         val created = orderClient.upsertOrder(order.toForm(sellerKey)).awaitFirst()
-        val inverted = orderClient.invertOrder(created.hash.toString(), InvertOrderFormDto(
-            maker = realBuyer,
-            amount = BigInteger.ONE,
-            originFees = emptyList(),
-            salt = BigInteger.TEN
-        )).awaitFirst()
-        encodeClient.encodeOrder(inverted).awaitFirst()
-        val prepared = orderClient.prepareOrderV2Transaction(
-            created.hash.toString(), inverted.sign(realBuyerKey)
+        val prepared = orderClient.prepareOrderTransaction(
+            created.hash.toString(), PrepareOrderTxFormDto(
+                maker = buyer.from(),
+                amount = BigInteger.ONE,
+                payouts = listOf(PartDto(realBuyer, 10000)),
+                originFees = emptyList()
+            )
         ).awaitFirst()
 
         buyer.sendTransaction(
@@ -164,8 +165,8 @@ class WertFt : AbstractOrderIt() {
 
         val v2 = ExchangeV2.deployAndWait(sender, poller).awaitFirst()
         setV2Address(v2.address())
-        val royaltiesPrevider = TestRoyaltiesProvider.deployAndWait(sender, poller).awaitFirst()
-        v2.__ExchangeV2_init(transferProxy.address(), Address.ZERO(), BigInteger.ZERO, beneficiary, royaltiesPrevider.address()).execute().verifySuccess()
+        val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).awaitFirst()
+        v2.__ExchangeV2_init(transferProxy.address(), Address.ZERO(), BigInteger.ZERO, beneficiary, royaltiesProvider.address()).execute().verifySuccess()
         transferProxy.addOperator(v2.address()).execute().verifySuccess()
         setField(
             prepareTxService,

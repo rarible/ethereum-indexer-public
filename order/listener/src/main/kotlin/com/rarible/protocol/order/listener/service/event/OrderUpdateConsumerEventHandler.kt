@@ -1,7 +1,21 @@
 package com.rarible.protocol.order.listener.service.event
 
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AssetTypeDto
+import com.rarible.protocol.dto.CollectionAssetTypeDto
+import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
+import com.rarible.protocol.dto.Erc1155AssetTypeDto
+import com.rarible.protocol.dto.Erc1155LazyAssetTypeDto
+import com.rarible.protocol.dto.Erc20AssetTypeDto
+import com.rarible.protocol.dto.Erc721AssetTypeDto
+import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
+import com.rarible.protocol.dto.EthAssetTypeDto
+import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
+import com.rarible.protocol.dto.OrderEventDto
+import com.rarible.protocol.dto.OrderFilterBidByItemDto
+import com.rarible.protocol.dto.OrderFilterDto
+import com.rarible.protocol.dto.OrderFilterSellByItemDto
+import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.misc.MAX_SIZE
 import com.rarible.protocol.order.core.model.ItemId
@@ -65,7 +79,7 @@ class OrderUpdateConsumerEventHandler(
     }
 
     private fun AssetTypeDto.getItemId(): ItemId? = when (this) {
-        is CryptoPunksAssetTypeDto -> ItemId(contract, punkId.toBigInteger())
+         is CryptoPunksAssetTypeDto -> ItemId(contract, tokenId.toBigInteger())
         is Erc1155AssetTypeDto -> ItemId(contract, tokenId)
         is Erc1155LazyAssetTypeDto -> ItemId(contract, tokenId)
         is Erc721AssetTypeDto -> ItemId(contract, tokenId)
