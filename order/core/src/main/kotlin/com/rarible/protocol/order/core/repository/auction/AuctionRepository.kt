@@ -7,16 +7,15 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository.AuctionIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository.AuctionIndexes.BY_LAST_UPDATE_AND_ID_DEFINITION
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
-import org.springframework.data.mongodb.core.remove
 import scalether.domain.Address
 
 class AuctionRepository(
@@ -40,6 +39,11 @@ class AuctionRepository(
 
     suspend fun findById(hash: Word): Auction? {
         return template.findById<Auction>(hash).awaitFirstOrNull()
+    }
+
+    fun findAll(hashes: Collection<Word>): Flow<Auction> {
+        val criteria = Criteria.where("_id").inValues(hashes)
+        return template.find<Auction>(Query.query(criteria)).asFlow()
     }
 
     suspend fun search(filter: AuctionFilter, size: Int, continuation: String?): List<Auction> {

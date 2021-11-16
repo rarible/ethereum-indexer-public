@@ -19,6 +19,8 @@ import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.auction.AuctionFilter
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -73,6 +75,11 @@ class AuctionController(
             currency = null
         )
         val result = search(filter, size, continuation)
+        return ResponseEntity.ok(result)
+    }
+
+    override fun getAuctionsByIds(auctionIdsDto: AuctionIdsDto): ResponseEntity<Flow<AuctionDto>> {
+        val result = auctionService.getAll(auctionIdsDto.ids).map { convert(it) }
         return ResponseEntity.ok(result)
     }
 

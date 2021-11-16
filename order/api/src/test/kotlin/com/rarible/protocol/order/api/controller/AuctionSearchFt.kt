@@ -290,6 +290,19 @@ class AuctionSearchFt : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `should get auctions by ids`() = runBlocking<Unit> {
+        val auction1 = randomAuction()
+        val auction2 = randomAuction()
+        saveAuction(auction1, auction2)
+
+        val auctions = auctionClient.getAuctionsByIds(AuctionIdsDto(listOf(auction1.hash, auction2.hash))).collectList().awaitFirst()
+
+        assertThat(auctions).hasSize(2)
+        assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction1.hash) }
+        assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction2.hash) }
+    }
+
     private fun checkAuctionDto(auctionDto: AuctionDto, auction: Auction) {
         assertThat(auctionDto.hash).isEqualTo(auction.hash)
     }
