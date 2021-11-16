@@ -1,7 +1,7 @@
 global:
   blockchain: ethereum
   network: mainnet
-protocol-ethereum-erc20-api: &protocol-erc20-api
+ethereum-erc20-api: &protocol-erc20-api
   image:
     repository: ethereum-indexer-erc20-api
   replicas: 2
@@ -22,11 +22,11 @@ protocol-ethereum-erc20-api: &protocol-erc20-api
     common:
      - '{{ include "service.appEnv" $ }}-backend'
 
-protocol-polygon-erc20-api:
+polygon-erc20-api:
   <<: *protocol-erc20-api
   blockchain: polygon
 
-protocol-ethereum-erc20-listener: &protocol-erc20-listener
+ethereum-erc20-listener: &protocol-erc20-listener
   image:
     repository: ethereum-indexer-erc20-listener
   blockchain: ethereum
@@ -45,11 +45,11 @@ protocol-ethereum-erc20-listener: &protocol-erc20-listener
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-erc20-listener:
+polygon-erc20-listener:
   <<: *protocol-erc20-listener
   blockchain: polygon
 
-protocol-ethereum-gateway: &protocol-gateway
+ethereum-gateway: &protocol-gateway
   image:
     repository: ethereum-indexer-gateway
   replicas: 2
@@ -71,11 +71,11 @@ protocol-ethereum-gateway: &protocol-gateway
     - '{{ include "service.appEnv" $ }}-backend'
     - 'proxy'
 
-protocol-polygon-gateway:
+polygon-gateway:
   <<: *protocol-gateway
   blockchain: polygon
 
-protocol-ethereum-order-api: &protocol-order-api
+ethereum-order-api: &protocol-order-api
   image:
     repository: ethereum-indexer-order-api
   replicas: 2
@@ -98,11 +98,11 @@ protocol-ethereum-order-api: &protocol-order-api
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-order-api:
+polygon-order-api:
   <<: *protocol-order-api
   blockchain: polygon
 
-protocol-ethereum-order-listener: &protocol-order-listener
+ethereum-order-listener: &protocol-order-listener
   image:
     repository: ethereum-indexer-order-listener
   blockchain: ethereum
@@ -121,11 +121,11 @@ protocol-ethereum-order-listener: &protocol-order-listener
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-order-listener:
+polygon-order-listener:
   <<: *protocol-order-listener
   blockchain: polygon
 
-protocol-ethereum-order-migration: &protocol-order-migration
+ethereum-order-migration: &protocol-order-migration
   image:
     repository: ethereum-indexer-order-migration
   blockchain: ethereum
@@ -144,11 +144,11 @@ protocol-ethereum-order-migration: &protocol-order-migration
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-order-migration:
+polygon-order-migration:
   <<: *protocol-order-migration
   blockchain: polygon
 
-protocol-ethereum-unlockable-api: &protocol-unlockable-api
+ethereum-unlockable-api: &protocol-unlockable-api
   image:
     repository: ethereum-indexer-unlockable-api
   replicas: 2
@@ -169,11 +169,11 @@ protocol-ethereum-unlockable-api: &protocol-unlockable-api
     common:
     - '{{ include "service.appEnv" $ }}-backend'
 
-protocol-polygon-unlockable-api:
+polygon-unlockable-api:
   <<: *protocol-unlockable-api
   blockchain: polygon
 
-protocol-ethereum-nft-api: &protocol-nft-api
+ethereum-nft-api: &protocol-nft-api
   image:
     repository: ethereum-indexer-nft-api
   replicas: 2
@@ -195,11 +195,11 @@ protocol-ethereum-nft-api: &protocol-nft-api
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-nft-api:
+polygon-nft-api:
   <<: *protocol-nft-api
   blockchain: polygon
 
-protocol-ethereum-nft-listener: &protocol-nft-listener
+ethereum-nft-listener: &protocol-nft-listener
   image:
     repository: ethereum-indexer-nft-listener
   blockchain: ethereum
@@ -220,6 +220,6 @@ protocol-ethereum-nft-listener: &protocol-nft-listener
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-protocol-polygon-nft-listener:
+polygon-nft-listener:
   <<: *protocol-nft-listener
   blockchain: polygon

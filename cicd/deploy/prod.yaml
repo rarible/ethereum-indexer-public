@@ -1,84 +1,84 @@
 global:
   network: mainnet
 
-protocol-ethereum-erc20-api:
+ethereum-erc20-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 256
 
-protocol-polygon-erc20-api:
+polygon-erc20-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 256
 
-protocol-ethereum-erc20-listener:
+ethereum-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
 
-protocol-polygon-erc20-listener:
+polygon-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
 
-protocol-ethereum-gateway:
+ethereum-gateway:
   resources:
     jvm:
       xmx_megabytes: 1024
 
-protocol-polygon-gateway:
+polygon-gateway:
   resources:
     jvm:
       xmx_megabytes: 1024
 
-protocol-ethereum-order-api:
+ethereum-order-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 256
 
-protocol-polygon-order-api:
+polygon-order-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 256
 
-protocol-ethereum-order-listener:
+ethereum-order-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
 
-protocol-polygon-order-listener:
+polygon-order-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
 
-protocol-ethereum-nft-api:
+ethereum-nft-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1536
       max_direct_memory_megabytes: 256
 
-protocol-polygon-nft-api:
+polygon-nft-api:
   replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1536
       max_direct_memory_megabytes: 256
 
-protocol-ethereum-nft-listener:
+ethereum-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
 
-protocol-polygon-nft-listener:
+polygon-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 2048

@@ -3,74 +3,74 @@ name: protocol
 version: 0.1.0
 dependencies:
 - name: rarible-helm-chart
-  alias: protocol-ethereum-erc20-listener
+  alias: ethereum-erc20-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-erc20-listener
+  alias: polygon-erc20-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-erc20-api
+  alias: ethereum-erc20-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-erc20-api
+  alias: polygon-erc20-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-gateway
+  alias: ethereum-gateway
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-gateway
+  alias: polygon-gateway
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-api
+  alias: ethereum-order-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-order-api
+  alias: polygon-order-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-listener
+  alias: ethereum-order-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-order-listener
+  alias: polygon-order-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-order-migration
+  alias: ethereum-order-migration
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-order-migration
+  alias: polygon-order-migration
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-unlockable-api
+  alias: ethereum-unlockable-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-unlockable-api
+  alias: polygon-unlockable-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-nft-api
+  alias: ethereum-nft-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-nft-api
+  alias: polygon-nft-api
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-ethereum-nft-listener
+  alias: ethereum-nft-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
 - name: rarible-helm-chart
-  alias: protocol-polygon-nft-listener
+  alias: polygon-nft-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
