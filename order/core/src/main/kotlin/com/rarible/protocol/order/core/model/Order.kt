@@ -150,14 +150,6 @@ data class Order(
         )
     }
 
-    fun withTakePrice(price: BigDecimal?): Order {
-        return copy(takePriceUsd = price)
-    }
-
-    fun withMakePrice(price: BigDecimal?): Order {
-        return copy(makePriceUsd = price)
-    }
-
     companion object {
         /**
          * Maximum size of [priceHistory]
@@ -517,7 +509,7 @@ val AssetType.token: Address
             is Erc1155LazyAssetType -> token
             is Erc20AssetType -> token
             is Erc721LazyAssetType -> token
-            is GenerativeArtAssetType, is EthAssetType -> Address.ZERO()
+            is GenerativeArtAssetType -> Address.ZERO()
             is CryptoPunksAssetType -> token
             is CollectionAssetType -> token
             is EthAssetType -> Address.ZERO()

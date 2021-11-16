@@ -22,8 +22,7 @@ class OrderReduceTaskHandler(
         get() = ORDER_REDUCE
 
     override suspend fun isAbleToRun(param: String): Boolean =
-        isTaskCompleted(OnChainOrderVersionInsertionTaskHandler.TYPE, "", completedIfNotExists = false)
-                && verifyAllReindexingTasksCompleted(ItemType.values().flatMap { it.topic })
+        verifyAllReindexingTasksCompleted(ItemType.values().flatMap { it.topic })
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
         return orderReduceService.update(null, fromOrderHash = from?.let { Word.apply(it) })
@@ -34,9 +33,9 @@ class OrderReduceTaskHandler(
     private suspend fun verifyAllReindexingTasksCompleted(topics: Iterable<Word>): Boolean =
         topics.all { isTaskCompleted(ReindexTopicTaskHandler.TOPIC, it.toString()) }
 
-    private suspend fun isTaskCompleted(type: String, param: String, completedIfNotExists: Boolean = true): Boolean {
+    private suspend fun isTaskCompleted(type: String, param: String): Boolean {
         val task = taskRepository.findByTypeAndParam(type, param).awaitFirstOrNull()
-        return (task == null && completedIfNotExists) || task?.lastStatus == TaskStatus.COMPLETED
+        return task == null || task.lastStatus == TaskStatus.COMPLETED
     }
 
     companion object {

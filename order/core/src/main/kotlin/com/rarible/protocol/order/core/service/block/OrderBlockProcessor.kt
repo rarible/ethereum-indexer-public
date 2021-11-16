@@ -18,19 +18,17 @@ class OrderBlockProcessor(
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
-        val hashed = logs
+        val hashes = logs
             .map { log -> log.data }
             .filterIsInstance<OrderExchangeHistory>()
-            .map { orderHistory -> orderHistory.hash }.distinct()
-
-        val run = mono {
-            orderUpdateService.saveOrRemoveOnChainOrderVersions(logs)
-            for (hash in hashed) {
-                orderUpdateService.update(hash)
-            }
-        }
+            .map { orderHistory -> orderHistory.hash }
+            .distinct()
         return LoggingUtils.withMarker { marker ->
-            run
+            mono {
+                for (hash in hashes) {
+                    orderUpdateService.update(hash)
+                }
+            }
                 .toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Order logs process time: ${it.t1}ms") }

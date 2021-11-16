@@ -3,12 +3,22 @@ package com.rarible.protocol.order.core.repository.exchange
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.AggregatedData
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.jetbrains.annotations.TestOnly
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -16,7 +26,12 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
@@ -60,6 +75,7 @@ class ExchangeHistoryRepository(
         return template.save(logEvent, COLLECTION)
     }
 
+    @TestOnly // this query may be slow, use in tests only
     fun findByItemType(type: ItemType): Flux<LogEvent> {
         val query = Query(LogEvent::topic inValues type.topic)
         return template.find(query, COLLECTION)

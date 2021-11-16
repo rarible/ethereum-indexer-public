@@ -34,7 +34,6 @@ import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.time.Instant
 
 @IntegrationTest
 class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
@@ -196,9 +195,6 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         assertThat(savedOrder?.pending).hasSize(1)
         assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderSideMatch::class.java)
     }
-
-    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
-        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     private suspend fun processTransaction(receipt: TransactionReceipt, expectedSize: Int = 1) {
         val tx = ethereum.ethGetTransactionByHash(receipt.transactionHash()).awaitFirst().get()

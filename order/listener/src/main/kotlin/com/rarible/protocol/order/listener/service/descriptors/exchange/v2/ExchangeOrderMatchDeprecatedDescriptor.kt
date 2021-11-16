@@ -5,12 +5,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.listener.service.order.RaribleExchangeV2OrderParser
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher

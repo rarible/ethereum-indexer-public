@@ -4,9 +4,14 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
-import com.rarible.protocol.order.listener.service.order.RaribleExchangeV2OrderParser
+import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher

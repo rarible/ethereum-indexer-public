@@ -115,7 +115,7 @@ internal class OrderVersionRepositoryTest {
         topic = Word.apply(randomWord()),
         index = randomInt(),
         minorLogIndex = randomInt(),
-        contractAddress = randomAddress()
+        address = randomAddress()
     )
 
     private suspend fun save(vararg order: OrderVersion) {

@@ -8,11 +8,24 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.order.api.data.createErc1155BidOrderVersion
+import com.rarible.protocol.order.api.data.createErc1155ListOrderVersion
+import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
+import com.rarible.protocol.order.api.data.createErc721ListOrderVersion
+import com.rarible.protocol.order.api.data.createLogEvent
+import com.rarible.protocol.order.api.data.withCreatedAt
+import com.rarible.protocol.order.api.data.withOrigin
+import com.rarible.protocol.order.api.data.withTakeNft
+import com.rarible.protocol.order.api.data.withTakePriceUsd
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.toOnChainOrder
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -20,7 +33,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -33,7 +45,6 @@ import java.time.Duration
 import java.time.Instant
 import java.util.stream.Stream
 
-@Disabled
 @IntegrationTest
 class OrderVersionControllerFt : AbstractIntegrationTest() {
 
@@ -164,27 +175,9 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
 
     @Test
     internal fun `should find on-chain bid`() = runBlocking<Unit> {
-        val bidVersion = createErc721BidOrderVersion().run {
-            OnChainOrder(
-                maker = maker,
-                taker = taker,
-                make = make,
-                take = take,
-                createdAt = createdAt,
-                platform = platform,
-                orderType = type,
-                salt = salt,
-                start = start,
-                end = end,
-                data = data,
-                signature = signature,
-                hash = hash,
-                priceUsd = makePriceUsd ?: takePriceUsd
-            )
-        }
+        val bidVersion = createErc721BidOrderVersion().toOnChainOrder()
         val logEvent = createLogEvent(bidVersion)
         exchangeHistoryRepository.save(logEvent).awaitFirst()
-        orderUpdateService.saveOrRemoveOnChainOrderVersions(listOf(logEvent))
         orderReduceService.updateOrder(bidVersion.hash)
         val paginationDto = orderClient.getOrderBidsByItemAndByStatus(
             (bidVersion.take.type as Erc721AssetType).token.hex(),

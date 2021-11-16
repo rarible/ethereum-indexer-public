@@ -2,8 +2,27 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
+import com.rarible.protocol.dto.EthAssetTypeDto
+import com.rarible.protocol.dto.OrderActivityBidDto
+import com.rarible.protocol.dto.OrderActivityCancelBidDto
+import com.rarible.protocol.dto.OrderActivityCancelListDto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.OrderActivityListDto
+import com.rarible.protocol.dto.OrderActivityMatchDto
+import com.rarible.protocol.dto.OrderActivityMatchSideDto
+import com.rarible.protocol.dto.PrepareOrderTxFormDto
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
 import kotlinx.coroutines.FlowPreview
@@ -26,7 +45,7 @@ import java.math.BigInteger
 class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test
-    fun `buy crypto punk which is on sale`() = runBlocking {
+    fun `buy crypto punk which is on sale`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -171,7 +190,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    fun `cancel sell order for a crypto punk`() = runBlocking {
+    fun `cancel sell order for a crypto punk`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -212,7 +231,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    fun `accept bid for a crypto punk`() = runBlocking {
+    fun `accept bid for a crypto punk`() = runBlocking<Unit> {
         val (ownerAddress, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
@@ -355,7 +374,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    fun `cancel bid for a crypto punk`() = runBlocking {
+    fun `cancel bid for a crypto punk`() = runBlocking<Unit> {
         val (_, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
@@ -399,7 +418,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    fun `crypto punk listed for sale to a specific address`() = runBlocking {
+    fun `crypto punk listed for sale to a specific address`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -449,7 +468,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    internal fun `sell order closed after punk transferring`() = runBlocking {
+    internal fun `sell order closed after punk transferring`() = runBlocking<Unit> {
         val (_, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -477,7 +496,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     @Nested
     inner class OrderReopenedTest {
         @Test
-        fun `sell order re-opened`() = runBlocking {
+        fun `sell order re-opened`() = runBlocking<Unit> {
             val (_, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
             cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
@@ -498,7 +517,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         @Test
-        fun `bid order re-opened`() = runBlocking {
+        fun `bid order re-opened`() = runBlocking<Unit> {
             val (_, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
             cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
@@ -523,7 +542,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
 
         @Test
-        fun `punk sold then bought by the same user and put on sale again`() = runBlocking {
+        fun `punk sold then bought by the same user and put on sale again`() = runBlocking<Unit> {
             val (ownerAddress, ownerSender) = newSender()
             val punkIndex = 42.toBigInteger()
             cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
