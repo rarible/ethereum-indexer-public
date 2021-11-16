@@ -14,8 +14,8 @@ ethereum-erc20-api: &protocol-erc20-api
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
   networks:
@@ -38,8 +38,8 @@ ethereum-erc20-listener: &protocol-erc20-listener
     node.labels.rarible.job: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 256
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
@@ -62,8 +62,8 @@ ethereum-gateway: &protocol-gateway
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
   networks:
@@ -89,8 +89,8 @@ ethereum-order-api: &protocol-order-api
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
   networks:
@@ -114,8 +114,8 @@ ethereum-order-listener: &protocol-order-listener
     node.labels.rarible.job: true
   resources:
     jvm:
-      xmx_megabytes: 768
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
@@ -131,14 +131,14 @@ ethereum-order-migration: &protocol-order-migration
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
@@ -155,14 +155,14 @@ ethereum-unlockable-api: &protocol-unlockable-api
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/unlockable'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
   networks:
@@ -180,14 +180,14 @@ ethereum-nft-api: &protocol-nft-api
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 512
-      max_direct_memory_megabytes: 128
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
   networks:
@@ -205,16 +205,14 @@ ethereum-nft-listener: &protocol-nft-listener
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
     jvm:
-      xmx_megabytes: 768
-      max_direct_memory_megabytes: 128
-  networkAliases:
-    - '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-nft-listener'
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
