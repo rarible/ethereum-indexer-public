@@ -2,7 +2,33 @@ package com.rarible.protocol.order.core.producer
 
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.AssetTypeDto
+import com.rarible.protocol.dto.CollectionAssetTypeDto
+import com.rarible.protocol.dto.CryptoPunkOrderDto
+import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
+import com.rarible.protocol.dto.Erc1155AssetTypeDto
+import com.rarible.protocol.dto.Erc1155LazyAssetTypeDto
+import com.rarible.protocol.dto.Erc20AssetTypeDto
+import com.rarible.protocol.dto.Erc721AssetTypeDto
+import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
+import com.rarible.protocol.dto.EthAssetTypeDto
+import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
+import com.rarible.protocol.dto.LegacyOrderDto
+import com.rarible.protocol.dto.NftOrdersPriceUpdateEventDto
+import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderActivityBidDto
+import com.rarible.protocol.dto.OrderActivityCancelBidDto
+import com.rarible.protocol.dto.OrderActivityCancelListDto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.OrderActivityListDto
+import com.rarible.protocol.dto.OrderActivityMatchDto
+import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderEventDto
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
+import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.Platform
@@ -78,7 +104,7 @@ class ProtocolOrderPublisher(
             is Erc1155AssetTypeDto -> ItemId(contract, tokenId).toString()
             is Erc1155LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
             is Erc721LazyAssetTypeDto -> ItemId(contract, tokenId).toString()
-            is CryptoPunksAssetTypeDto -> ItemId(contract, punkId.toBigInteger()).toString()
+            is CryptoPunksAssetTypeDto -> ItemId(contract, tokenId.toBigInteger()).toString()
             is EthAssetTypeDto, is Erc20AssetTypeDto, is GenerativeArtAssetTypeDto, is CollectionAssetTypeDto -> null
         }
 

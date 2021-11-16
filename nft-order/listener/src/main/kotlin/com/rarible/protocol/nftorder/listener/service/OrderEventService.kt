@@ -1,7 +1,17 @@
 package com.rarible.protocol.nftorder.listener.service
 
 import com.rarible.core.client.WebClientResponseProxyException
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AssetTypeDto
+import com.rarible.protocol.dto.CollectionAssetTypeDto
+import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
+import com.rarible.protocol.dto.Erc1155AssetTypeDto
+import com.rarible.protocol.dto.Erc1155LazyAssetTypeDto
+import com.rarible.protocol.dto.Erc20AssetTypeDto
+import com.rarible.protocol.dto.Erc721AssetTypeDto
+import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
+import com.rarible.protocol.dto.EthAssetTypeDto
+import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
+import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.nftorder.core.model.ItemId
 import com.rarible.protocol.nftorder.core.model.MissedCollection
 import com.rarible.protocol.nftorder.core.model.OwnershipId
@@ -54,7 +64,7 @@ class OrderEventService(
             is Erc1155AssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
             is Erc721LazyAssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
             is Erc1155LazyAssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId)
-            is CryptoPunksAssetTypeDto -> ItemId.of(assetType.contract, assetType.punkId.toBigInteger())
+            is CryptoPunksAssetTypeDto -> ItemId.of(assetType.contract, assetType.tokenId.toBigInteger())
             is GenerativeArtAssetTypeDto -> null
             is CollectionAssetTypeDto -> null
             is EthAssetTypeDto -> null
