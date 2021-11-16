@@ -1,0 +1,225 @@
+global:
+  blockchain: ethereum
+  network: mainnet
+protocol-ethereum-erc20-api: &protocol-erc20-api
+  image:
+    repository: ethereum-indexer-erc20-api
+  replicas: 2
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
+    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+     - '{{ include "service.appEnv" $ }}-backend'
+
+protocol-polygon-erc20-api:
+  <<: *protocol-erc20-api
+  blockchain: polygon
+
+protocol-ethereum-erc20-listener: &protocol-erc20-listener
+  image:
+    repository: ethereum-indexer-erc20-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
+    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 256
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-polygon-erc20-listener:
+  <<: *protocol-erc20-listener
+  blockchain: polygon
+
+protocol-ethereum-gateway: &protocol-gateway
+  image:
+    repository: ethereum-indexer-gateway
+  replicas: 2
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
+    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - 'proxy'
+
+protocol-polygon-gateway:
+  <<: *protocol-gateway
+  blockchain: polygon
+
+protocol-ethereum-order-api: &protocol-order-api
+  image:
+    repository: ethereum-indexer-order-api
+  replicas: 2
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ include "service.appEnv" $ }}-ethereum'
+
+protocol-polygon-order-api:
+  <<: *protocol-order-api
+  blockchain: polygon
+
+protocol-ethereum-order-listener: &protocol-order-listener
+  image:
+    repository: ethereum-indexer-order-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 768
+      max_direct_memory_megabytes: 128
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-polygon-order-listener:
+  <<: *protocol-order-listener
+  blockchain: polygon
+
+protocol-ethereum-order-migration: &protocol-order-migration
+  image:
+    repository: ethereum-indexer-order-migration
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-polygon-order-migration:
+  <<: *protocol-order-migration
+  blockchain: polygon
+
+protocol-ethereum-unlockable-api: &protocol-unlockable-api
+  image:
+    repository: ethereum-indexer-unlockable-api
+  replicas: 2
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+
+protocol-polygon-unlockable-api:
+  <<: *protocol-unlockable-api
+  blockchain: polygon
+
+protocol-ethereum-nft-api: &protocol-nft-api
+  image:
+    repository: ethereum-indexer-nft-api
+  replicas: 2
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 128
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ include "service.appEnv" $ }}-ethereum'
+
+protocol-polygon-nft-api:
+  <<: *protocol-nft-api
+  blockchain: polygon
+
+protocol-ethereum-nft-listener: &protocol-nft-listener
+  image:
+    repository: ethereum-indexer-nft-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 768
+      max_direct_memory_megabytes: 128
+  networkAliases:
+    - '{{ include "service.appEnv" $ }}-protocol-{{ .Values.global.blockchain }}-nft-listener'
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+protocol-polygon-nft-listener:
+  <<: *protocol-nft-listener
+  blockchain: polygon
