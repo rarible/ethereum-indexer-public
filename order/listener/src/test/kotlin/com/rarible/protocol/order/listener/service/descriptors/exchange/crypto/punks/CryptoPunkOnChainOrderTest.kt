@@ -455,6 +455,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             pending = emptyList(),
             makePriceUsd = punkPriceUsd,
             takePriceUsd = null,
+            makePrice = punkPrice.toBigDecimal(18),
+            takePrice = null,
             makeUsd = null,
             takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
