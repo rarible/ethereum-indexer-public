@@ -9,7 +9,7 @@ ethereum-erc20-api: &protocol-erc20-api
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -33,7 +33,7 @@ ethereum-erc20-listener: &protocol-erc20-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
@@ -57,7 +57,7 @@ ethereum-gateway: &protocol-gateway
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
-    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -83,7 +83,7 @@ ethereum-order-api: &protocol-order-api
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
     JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
   nodeSelector:
     node.labels.rarible.service: true
@@ -109,7 +109,7 @@ ethereum-order-listener: &protocol-order-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    PROFILES: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
@@ -132,7 +132,7 @@ ethereum-order-migration: &protocol-order-migration
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
@@ -156,7 +156,7 @@ ethereum-unlockable-api: &protocol-unlockable-api
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -181,7 +181,7 @@ ethereum-nft-api: &protocol-nft-api
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -206,7 +206,7 @@ ethereum-nft-listener: &protocol-nft-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    PROFILES: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
   resources:
