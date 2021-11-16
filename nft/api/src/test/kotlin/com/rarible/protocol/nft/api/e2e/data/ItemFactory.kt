@@ -1,8 +1,11 @@
 package com.rarible.protocol.nft.api.e2e.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemProperties
 import scalether.domain.Address
 import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
@@ -21,6 +24,24 @@ fun createItem(): Item {
         date = nowMillis()
     )
 }
+
+fun createLazyItemProperties() = ItemProperties(
+    name = randomString(),
+    description = randomString(),
+    image = null,
+    imagePreview = null,
+    imageBig = null,
+    animationUrl = null,
+    attributes = listOf(
+        ItemAttribute(
+            key = randomString(),
+            value = randomString(),
+            type = randomString(),
+            format = randomString()
+        )
+    ),
+    rawJsonContent = null
+)
 
 fun createItem(
     token: Address,

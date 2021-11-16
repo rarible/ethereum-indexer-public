@@ -1,22 +1,28 @@
 package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.dto.*
+import com.rarible.core.test.data.randomString
+import com.rarible.protocol.dto.NftItemFilterAllDto
+import com.rarible.protocol.dto.NftItemFilterByCollectionDto
+import com.rarible.protocol.dto.NftItemFilterByCreatorDto
+import com.rarible.protocol.dto.NftItemFilterByOwnerDto
+import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.service.item.ItemService
-import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
+import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.remove
 import scalether.domain.Address
 import java.time.Duration
 import java.time.Instant
@@ -29,15 +35,7 @@ class ItemServiceIt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
-    @Autowired
-    private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
-
     private val defaultSort = NftItemFilterDto.Sort.LAST_UPDATE
-
-    @BeforeEach
-    fun afterEach() = runBlocking<Unit> {
-        mongo.remove<Item>().all().awaitFirst()
-    }
 
     @Test
     fun `should find all items`() = runBlocking<Unit> {
@@ -134,7 +132,12 @@ class ItemServiceIt : SpringContainerBaseTest() {
 
     private fun assertSizeAndMeta(result: List<ExtendedItem>, expectedSize: Int) {
         assertThat(result).hasSize(expectedSize)
-        assertThat(result).allMatch { it.itemMeta == itemMeta }
+        assertThat(result).allSatisfy {
+            assertThat(it.itemMeta.properties).isEqualToIgnoringGivenFields(
+                itemProperties,
+                ItemProperties::rawJsonContent.name
+            )
+        }
     }
 
     private suspend fun saveItem(
@@ -149,20 +152,20 @@ class ItemServiceIt : SpringContainerBaseTest() {
     }
 
     private suspend fun saveItem(vararg items: Item) {
-        items.forEach { item ->
-            itemRepository.save(item).awaitFirst()
-            temporaryItemPropertiesRepository.save(TemporaryItemProperties(item.id.decimalStringValue, itemProperties)).awaitFirst()
+        items.forEach {
+            itemRepository.save(it).awaitFirst()
+            coEvery { mockItemPropertiesResolver.resolve(it.id) } returns itemProperties
         }
     }
 
     private val itemProperties = ItemProperties(
-        "Test",
-        "Description",
-        null,
-        null,
-        null,
-        null,
-        emptyList()
+        name = randomString(),
+        description = randomString(),
+        image = "https://" + randomString(),
+        imagePreview = "https://" + randomString(),
+        imageBig = "https://" + randomString(),
+        animationUrl = "https://" + randomString(),
+        attributes = emptyList(),
+        rawJsonContent = null
     )
-    private val itemMeta = ItemMeta(itemProperties, ContentMeta.EMPTY)
 }

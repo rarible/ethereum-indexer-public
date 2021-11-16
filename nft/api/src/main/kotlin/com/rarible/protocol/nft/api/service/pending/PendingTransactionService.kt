@@ -16,22 +16,23 @@ import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC721RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC721RaribleUserEvent
+import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.factory.ERC1155RaribleFactoryC2
 import com.rarible.protocol.contracts.erc1155.rarible.factory.user.ERC1155RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc1155.v1.CreateERC1155_v1Event
 import com.rarible.protocol.contracts.erc1155.v1.RaribleUserToken
+import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactoryC2
 import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
-import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
-import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -51,7 +52,7 @@ import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as Mintable
 class PendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
-    private val itemPropertiesService: ItemPropertiesService,
+    private val pendingLogItemPropertiesResolver: PendingLogItemPropertiesResolver,
     private val properties: NftIndexerProperties,
     blockProcessor: BlockProcessor,
     logEventService: LogEventService
@@ -188,7 +189,7 @@ class PendingTransactionService(
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._2()}", it._3()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._2(), uri = it._3())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -217,7 +218,7 @@ class PendingTransactionService(
             )
         }
         checkTx(id, data, Signatures.erc721V3mintSignature())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._5()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._5())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -232,7 +233,7 @@ class PendingTransactionService(
             )
         }
         checkTx(id, data, Signatures.erc721V4mintSignature())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._6()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._6())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -275,7 +276,7 @@ class PendingTransactionService(
             )
         }
         checkTx(id, data, Signatures.erc1155MintSignatureV1())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._1()}", it._7()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._7())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -304,7 +305,7 @@ class PendingTransactionService(
             )
         }
         checkTx(id, data, ERC721Rarible.mintAndTransferSignature())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._1()._1(), uri = it._1()._2())
             val creator = it._1()._3()[0]._1()
             val mint = PendingLog(
                 ItemTransfer(
@@ -334,7 +335,7 @@ class PendingTransactionService(
             }
         }
         checkTx(id, data, ERC1155Rarible.mintAndTransferSignature())?.let {
-            itemPropertiesService.saveTemporaryProperties("$to:${it._1()._1()}", it._1()._2()).awaitFirstOrNull()
+            savePendingItemProperties(token = to, tokenId = it._1()._1(), uri = it._1()._2())
             val creator = it._1()._4()[0]._1()
             val mint = PendingLog(
                 ItemTransfer(
@@ -364,6 +365,11 @@ class PendingTransactionService(
             }
         }
         return null
+    }
+
+    private suspend fun savePendingItemProperties(token: Address, tokenId: BigInteger, uri: String) {
+        val itemId = ItemId(token, EthUInt256(tokenId))
+        pendingLogItemPropertiesResolver.savePendingLogItemPropertiesByUri(itemId, uri)
     }
 
     private fun processTxToCreate(from: Address, nonce: Long, input: Binary): PendingLog? {

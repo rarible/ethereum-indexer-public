@@ -1,12 +1,13 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.hegic.Hegic
 import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import org.apache.commons.lang3.time.DateUtils
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -17,22 +18,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
-class HegicCacheDescriptor(
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+class HegicPropertiesResolver(
     sender: MonoTransactionSender,
-    @Value("\${api.hegic.address}") hegicAddress: String,
-    @Value("\${api.hegic.cache-timeout}") private val cacheTimeout: Long,
     @Value("\${api.properties.api-url}") private val apiUrl: String
-) : CacheDescriptor<ItemProperties> {
-    private val hegic = Hegic(Address.apply(hegicAddress), sender)
-    final val token = "hegic"
-    override val collection: String = "cache_$token"
-
-    override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
-        DateUtils.MILLIS_PER_HOUR
-    } else {
-        cacheTimeout
-    }
+) : ItemPropertiesResolver {
+    private val hegic = Hegic(HEGIC_ADDRESS, sender)
+    private val token = "hegic"
 
     private val formatterDate = SimpleDateFormat("dd.MM")
     private val formatterTime = SimpleDateFormat("hh:mm a")
@@ -44,8 +36,21 @@ class HegicCacheDescriptor(
         formatterUTC.timeZone = TimeZone.getTimeZone("UTC")
     }
 
-    override fun get(id: String): Mono<ItemProperties> {
-        return hegic.getUnderlyingOptionParams(id.toBigInteger()).call()
+    companion object {
+        val HEGIC_ADDRESS = Address.apply("0xcb9ebae59738d9dadc423adbde66c018777455a4")
+    }
+
+    override val name get() = "Hegic"
+
+    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        if (itemId.token != HEGIC_ADDRESS) {
+            return null
+        }
+        return hegic.getUnderlyingOptionParams(itemId.tokenId.value).call()
+            .onErrorResume {
+                ItemPropertiesService.logProperties(itemId, "hegic failed on 'getUnderlyingOptionParams': ${it.message}", warn = true)
+                Mono.empty()
+            }
             .flatMap { tuple ->
                 val period = tuple._7()
                 val amount = tuple._4()
@@ -57,6 +62,10 @@ class HegicCacheDescriptor(
                 val expirationDate = Date(expirationTimeMillis)
                 val expirationDateUTCText = formatterUTC.format(expirationDate)
                 hegic.getOptionCostETH(period, amount, strike, optionType).call()
+                    .onErrorResume {
+                        ItemPropertiesService.logProperties(itemId, "hegic failed on 'getOptionCostETH': ${it.message}", warn = true)
+                        Mono.empty()
+                    }
                     .map {
                         val ethCost = String.format(Locale.ENGLISH, "%,d", it.divide(BigInteger.TEN.pow(16)).toLong())
                         val attributes = listOf(
@@ -80,13 +89,15 @@ class HegicCacheDescriptor(
                                     "Holding this NFT gives the holder the right to $optionTypeText 1 ETH at \$$ethCost anytime before the maturity date ($expirationDateUTCText).\n" +
                                     "Hegic options are cash-settled so you will receive the difference between ETH's price at exercise and strike price. This is, you will not need to buy the underlying asset when you exercise. \n" +
                                     "Options provider is Hegic Protocol. To exercise, please visit www.hegic.co.",
-                            image = "$apiUrl/image/$token/$id.svg",
+                            image = "$apiUrl/image/$token/${itemId.tokenId.value}.svg",
                             attributes = attributes,
                             imagePreview = null,
                             imageBig = null,
-                            animationUrl = null
+                            animationUrl = null,
+                            rawJsonContent = null
                         )
                     }
             }
+            .awaitFirstOrNull()
     }
 }

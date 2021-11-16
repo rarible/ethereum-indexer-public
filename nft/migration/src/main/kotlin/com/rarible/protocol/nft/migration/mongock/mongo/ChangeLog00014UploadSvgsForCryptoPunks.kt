@@ -2,21 +2,18 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
-import com.rarible.protocol.nft.migration.configuration.IpfsProperties
+import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import io.changock.migration.api.annotations.NonLockGuarded
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.http.ContentDisposition
-import org.springframework.http.HttpEntity
-import org.springframework.http.HttpHeaders
-import org.springframework.http.MediaType
-import org.springframework.util.LinkedMultiValueMap
-import org.springframework.util.MultiValueMap
-import org.springframework.web.reactive.function.BodyInserters
-import org.springframework.web.reactive.function.client.WebClient
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
 import java.io.InputStream
@@ -29,11 +26,11 @@ import java.util.zip.ZipInputStream
 class ChangeLog00014UploadSvgsForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
-    fun create(
-        @NonLockGuarded cryptoPunksMetaService: CryptoPunksMetaService,
-        @NonLockGuarded ipfsProperties: IpfsProperties
+    fun uploadCryptoPunksSvgs(
+        @NonLockGuarded cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver,
+        @NonLockGuarded ipfsService: IpfsService
     ) = runBlocking<Unit> {
-        val zipResponse = archive(ipfsProperties.cryptoPunksImagesUrl).awaitSingle()
+        val zipResponse = downloadArchive(CRYPTO_PUNKS_ARCHIVE_URL).awaitSingle()
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->
                 var entry: ZipEntry?
@@ -49,13 +46,13 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                         val imageUrl = upload(
                             fileName,
                             content,
-                            cryptoPunksMetaService,
-                            ipfsProperties
+                            cryptoPunksPropertiesResolver,
+                            ipfsService
                         )
                         logger.info("Uploaded #${finished.incrementAndGet()}/10000 image: $imageUrl")
                     })
                     delay(betweenRequest)
-                    if (++rateLimiter % ratelimit == 0) {
+                    if (++rateLimiter % rateLimit == 0) {
                         futures.awaitAll()
                         futures.clear()
                     }
@@ -66,7 +63,8 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         logger.info("Uploaded CryptoPunks svgs")
     }
 
-    fun archive(url: String): Mono<InputStream> {
+    @Suppress("SameParameterValue")
+    private fun downloadArchive(url: String): Mono<InputStream> {
         return HttpClient.create()
             .baseUrl(url)
             .get()
@@ -76,45 +74,23 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
     }
 
     suspend fun upload(
-        file: String, someByteArray: ByteArray,
-        cryptoPunksMetaService: CryptoPunksMetaService,
-        ipfsProperties: IpfsProperties
+        file: String,
+        someByteArray: ByteArray,
+        cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver,
+        ipfsService: IpfsService
     ): String {
-        val response = postFile(file, someByteArray, ipfsProperties.uploadProxy)
         val id = file.filter { it.isDigit() }.toBigInteger()
-        val image = "${ipfsProperties.gateway}/${response.get("IpfsHash")}"
-        val punk = cryptoPunksMetaService.get(id).awaitSingle()
-        cryptoPunksMetaService.save(punk.copy(image = image))
-        return image
+        val imageUrl = ipfsService.upload(file, someByteArray, "image/svg+xml")
+        val punk = cryptoPunksPropertiesResolver.get(id).awaitSingle()
+        cryptoPunksPropertiesResolver.save(punk.copy(image = imageUrl))
+        return imageUrl
     }
 
-    suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String): Map<*, *> {
-        val fileMap: MultiValueMap<String, String> = LinkedMultiValueMap()
-        val contentDisposition: ContentDisposition = ContentDisposition
-            .builder("form-data")
-            .name("file")
-            .filename(filename)
-            .build()
-        fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-        fileMap.add("Content-Type", "image/svg+xml")
-        val fileEntity = HttpEntity(someByteArray, fileMap)
-        val body: MultiValueMap<String, Any> = LinkedMultiValueMap()
-        body.add("file", fileEntity)
-
-        val response = webClient.post()
-            .uri(url)
-            .contentType(MediaType.MULTIPART_FORM_DATA)
-            .body(BodyInserters.fromMultipartData(body))
-            .retrieve()
-            .bodyToMono(Map::class.java)
-        return response.awaitSingle()
-    }
-
-    companion object {
-        var webClient = WebClient.create()
-        val ratelimit = 100
-        val timeframe = 60_000L
-        val betweenRequest = timeframe / ratelimit
+    private companion object {
+        const val rateLimit = 100
+        const val timeframe = 60_000L
+        const val betweenRequest = timeframe / rateLimit
+        val CRYPTO_PUNKS_ARCHIVE_URL: String = "${IpfsService.RARIBLE_IPFS}/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"
         val logger: Logger = LoggerFactory.getLogger(ChangeLog00014UploadSvgsForCryptoPunks::class.java)
     }
 }

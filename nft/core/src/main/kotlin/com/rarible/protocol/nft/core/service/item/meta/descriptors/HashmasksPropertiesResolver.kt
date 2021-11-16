@@ -1,43 +1,42 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.hashmasks.Hashmasks
 import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import org.apache.commons.lang3.time.DateUtils
-import org.springframework.beans.factory.annotation.Value
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
+// TODO[meta]: support metadata and images of Hashmasks: https://twitter.com/thehashmasks/status/1372188306356772870
 @Component
-@CaptureSpan(type = SpanType.EXT)
-class HashmasksCacheDescriptor(
-    sender: MonoTransactionSender,
-    @Value("\${api.hashmasks.address}") hashmasksAddress: String,
-    @Value("\${api.hashmasks.cache-timeout}") private val cacheTimeout: Long
-) : CacheDescriptor<ItemProperties> {
-    private val hashmasks = Hashmasks(Address.apply(hashmasksAddress), sender)
-    final val token = "hashmasks"
-    override val collection: String = "cache_$token"
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+class HashmasksPropertiesResolver(
+    sender: MonoTransactionSender
+) : ItemPropertiesResolver {
 
-    override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
-        DateUtils.MILLIS_PER_HOUR
-    } else {
-        cacheTimeout
+    companion object {
+        val HASH_MASKS_ADDRESS = Address.apply("0xc2c747e0f7004f9e8817db2ca4997657a7746928")
     }
 
-    override fun get(id: String): Mono<ItemProperties> {
-        return hashmasks.tokenNameByIndex(id.toBigInteger()).call()
+    private val hashmasks = Hashmasks(HASH_MASKS_ADDRESS, sender)
+
+    override val name get() = "Hashmasks"
+
+    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        if (itemId.token != HASH_MASKS_ADDRESS) {
+            return null
+        }
+        return hashmasks.tokenNameByIndex(itemId.tokenId.value).call()
             .flatMap { tuple ->
-                val name = if (tuple.isNullOrEmpty()) "Hashmask #$id" else tuple
-                hashmasks.ownerOf(id.toBigInteger()).call()
+                val name = if (tuple.isNullOrEmpty()) "Hashmask #${itemId.tokenId.value}" else tuple
+                hashmasks.ownerOf(itemId.tokenId.value).call()
                     .map { ownerAddress ->
                         val attributes = listOf(
-                            ItemAttribute("token", token),
+                            ItemAttribute("token", "hashmasks"),
                             ItemAttribute("owner", ownerAddress.toString())
                         )
                         ItemProperties(
@@ -47,9 +46,11 @@ class HashmasksCacheDescriptor(
                             image = null,
                             imagePreview = null,
                             imageBig = null,
-                            animationUrl = null
+                            animationUrl = null,
+                            rawJsonContent = null
                         )
                     }
             }
+            .awaitFirstOrNull()
     }
 }

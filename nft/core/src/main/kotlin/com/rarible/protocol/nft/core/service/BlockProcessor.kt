@@ -24,7 +24,7 @@ class BlockProcessor(
     private val tokenUpdateService: TokenUpdateService
 ) : LogEventsListener {
 
-    override fun postProcessLogs(logs: MutableList<LogEvent>): Mono<Void> {
+    override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
             val monoTokensUpdate = mono {
                 val tokenIds = logs

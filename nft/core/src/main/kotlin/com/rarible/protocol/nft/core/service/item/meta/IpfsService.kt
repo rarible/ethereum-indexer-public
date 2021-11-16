@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.protocol.nft.core.configuration.IpfsProperties
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ContentDisposition
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -18,53 +16,57 @@ import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 
 @Service
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
-class IpfsService(
-    @Value("\${api.ipfs-url}") private val ipfsUrl: String,
-    private val ipfsProperties: IpfsProperties
-) {
-    fun resolveIpfsUrl(uri: String): String =
-        if (uri.contains("/ipfs/")) {
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+class IpfsService {
+    private val webClient = WebClient.create()
+
+    fun resolveHttpUrl(uri: String): String {
+        val ipfsUri = if (uri.contains("/ipfs/")) {
             "ipfs:/${uri.substring(uri.lastIndexOf("/ipfs/"))}"
         } else {
             uri
         }
-
-    fun resolveRealUrl(uri: String): String {
-        val ipfsProtocolUri = resolveIpfsUrl(uri)
         return when {
-            ipfsProtocolUri.startsWith("http") -> ipfsProtocolUri
-            ipfsProtocolUri.startsWith("ipfs:///ipfs/") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs:///ipfs/".length)}"
-            ipfsProtocolUri.startsWith("ipfs://ipfs/") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs://ipfs/".length)}"
-            ipfsProtocolUri.startsWith("ipfs://") -> "$ipfsUrl/ipfs/${ipfsProtocolUri.substring("ipfs://".length)}"
-            ipfsProtocolUri.startsWith("Qm") -> "$ipfsUrl/ipfs/$ipfsProtocolUri"
-            else -> "$ipfsUrl$ipfsProtocolUri"
+            ipfsUri.startsWith("http") -> ipfsUri
+            ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
+            ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
+            ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
+            ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
+            else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
         }
     }
 
-    fun url(hash: String): String = "ipfs://ipfs/${hash}"
-
-    suspend fun upload(file: String, someByteArray: ByteArray, contentType: String): String {
-        val response = postFile(file, someByteArray, ipfsProperties.uploadProxy, contentType)
-        logger.info("$file was uploaded to ipfs with hash:${response.get("IpfsHash")}")
-        return response.get("IpfsHash").toString()
+    suspend fun upload(
+        fileName: String,
+        someByteArray: ByteArray,
+        contentType: String
+    ): String {
+        val response = postFile(fileName, someByteArray, contentType)
+        val ipfsHash = response["IpfsHash"].toString()
+        val url = resolveHttpUrl(ipfsHash)
+        logger.info("$fileName was uploaded to ipfs with hash $ipfsHash: $url")
+        return url
     }
 
-    suspend fun postFile(filename: String?, someByteArray: ByteArray, url: String, contentType: String): Map<*, *> {
+    private suspend fun postFile(
+        fileName: String,
+        fileContent: ByteArray,
+        contentType: String
+    ): Map<*, *> {
         val fileMap: MultiValueMap<String, String> = LinkedMultiValueMap()
         val contentDisposition: ContentDisposition = ContentDisposition
             .builder("form-data")
             .name("file")
-            .filename(filename)
+            .filename(fileName)
             .build()
         fileMap.add(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
         fileMap.add("Content-Type", contentType)
-        val fileEntity = HttpEntity(someByteArray, fileMap)
+        val fileEntity = HttpEntity(fileContent, fileMap)
         val body: MultiValueMap<String, Any> = LinkedMultiValueMap()
         body.add("file", fileEntity)
 
         val response = webClient.post()
-            .uri(url)
+            .uri(RARIBLE_UPLOAD_PROXY_URL)
             .contentType(MediaType.MULTIPART_FORM_DATA)
             .body(BodyInserters.fromMultipartData(body))
             .retrieve()
@@ -73,8 +75,8 @@ class IpfsService(
     }
 
     companion object {
-        var webClient = WebClient.create()
-        const val IPFS_NEW_URL = "https://ipfs.rarible.com"
-        val logger: Logger = LoggerFactory.getLogger(IpfsService::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(IpfsService::class.java)
+        const val RARIBLE_IPFS = "https://rarible.mypinata.cloud"
+        private const val RARIBLE_UPLOAD_PROXY_URL = "https://pinata.rarible.com/upload"
     }
 }

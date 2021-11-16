@@ -4,19 +4,23 @@ import com.google.common.io.ByteStreams
 import com.google.common.io.CountingInputStream
 import com.google.common.net.InternetDomainName
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheDescriptor
+import com.rarible.core.cache.CacheService
+import com.rarible.core.cache.get
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.blockingToMono
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.MediaMeta
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
 import com.sun.imageio.plugins.bmp.BMPMetadata
 import com.sun.imageio.plugins.gif.GIFImageMetadata
 import com.sun.imageio.plugins.jpeg.JPEGMetadata
 import com.sun.imageio.plugins.png.PNGMetadata
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
@@ -25,14 +29,21 @@ import reactor.kotlin.core.publisher.toMono
 import java.io.FilterInputStream
 import java.io.IOException
 import java.io.InputStream
-import java.net.*
+import java.net.HttpURLConnection
+import java.net.InetSocketAddress
+import java.net.Proxy
+import java.net.URI
+import java.net.URL
+import java.net.URLConnection
 import java.util.concurrent.Callable
 import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
-@CaptureSpan(type = SpanType.APP)
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
 class MediaMetaService(
+    private val ipfsService: IpfsService,
+    @Autowired(required = false) private val cacheService: CacheService?,
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int,
     @Value("\${api.properties.media-meta-max-loaded-content-size:10000000}") private val maxLoadedContentSize: Long
@@ -51,10 +62,23 @@ class MediaMetaService(
             Long.MAX_VALUE
         }
 
-    override fun get(id: String): Mono<MediaMeta> = getMediaMeta(id)
+    suspend fun getMediaMeta(url: String): MediaMeta? {
+        val realUrl = ipfsService.resolveHttpUrl(url)
+        return cacheService.get(realUrl, this, true)
+            .onErrorResume { Mono.empty() }
+            .awaitFirstOrNull()
+    }
 
-    @CaptureSpan(type = SpanType.EXT)
-    fun getMediaMeta(url: String): Mono<MediaMeta> {
+    suspend fun resetMediaMeta(url: String) {
+        val realUrl = ipfsService.resolveHttpUrl(url)
+        cacheService?.reset(realUrl, this)
+            ?.onErrorResume { Mono.empty() }
+            ?.awaitFirstOrNull()
+    }
+
+    override fun get(id: String): Mono<MediaMeta> = getMediaMetaMono(id)
+
+    private fun getMediaMetaMono(url: String): Mono<MediaMeta> {
         return LoggingUtils.withMarker { marker ->
             logger.info(marker, "getMediaMeta $url")
             when {

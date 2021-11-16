@@ -2,7 +2,16 @@ package com.rarible.protocol.nft.migration.service
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceSkipTokens
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -144,7 +153,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
         royalties = listOf(createPart(), createPart())
     )
 
-    fun createItem(): Item {
+    private fun createItem(): Item {
         val token = createAddress()
         val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
         return Item(

@@ -1,20 +1,16 @@
-package com.rarible.protocol.nft.core.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import io.netty.util.internal.ThreadLocalRandom
-import scalether.domain.Address
-import java.math.BigInteger
 import java.time.Instant
 import java.util.*
 
+const val META_CAPTURE_SPAN_TYPE = "item_meta"
+
 const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
 const val BASE_64_SVG_PREFIX = "data:image/svg+xml;base64,"
-
-fun String.parseTokenId(): Pair<Address, BigInteger> {
-    val parts = this.split(":")
-    return Pair(Address.apply(parts[0]), parts[1].toBigInteger())
-}
 
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
@@ -26,59 +22,33 @@ fun JsonNode.getText(vararg paths: String): String? {
     return null
 }
 
-fun JsonNode.toProperties(): List<ItemAttribute> {
-    return if (this.isArray) {
-        this.mapNotNull { it.getText("trait_type")?.let { key -> attribute(key, it) } }
-    } else {
-        emptyList()
+fun ObjectNode.parseAttributes(): List<ItemAttribute> {
+    for (attrName in listOf("attributes", "traits")) {
+        val attrPath = path(attrName)
+        if (!attrPath.isEmpty && attrPath.isArray) {
+            return attrPath.mapNotNull { it.toAttribute() }
+        }
+    }
+    return emptyList()
+}
+
+private fun JsonNode.toAttribute(): ItemAttribute? {
+    val key = getText("key", "trait_type") ?: return null
+    val valueField = getText("value") ?: return ItemAttribute(key, null, null, null)
+    return when {
+        getText("display_type") == "date" && valueField.toDoubleOrNull() != null -> {
+            val value = Instant.ofEpochSecond(valueField.toDouble().toLong()).toString()
+            ItemAttribute(key, value, type = "string", format = "date-time")
+        }
+        else -> {
+            val type = getText("type")
+            val format = getText("format")
+            ItemAttribute(key, valueField, type = type, format = format)
+        }
     }
 }
 
-fun attribute(key: String, node: JsonNode): ItemAttribute {
-    val traitType = TraitType.fromNode(node)
-    return ItemAttribute(key, traitType.converter(node), traitType.type, traitType.format)
-}
-
-fun isBase64String(data: String): Boolean {
-    return data.startsWith(BASE_64_JSON_PREFIX) || data.startsWith(BASE_64_SVG_PREFIX)
-}
-
-fun base64MimeToString(data: String): String {
-    return String(base64MimeToBytes(data))
-}
-
-fun base64MimeToBytes(data: String): ByteArray {
-    return Base64.getMimeDecoder().decode(
-        data
-            .removePrefix(BASE_64_JSON_PREFIX)
-            .removePrefix(BASE_64_SVG_PREFIX)
-            .toByteArray()
-    )
-}
-
-enum class TraitType(
-    val type: String?,
-    val format: String?,
-    val predicate: (JsonNode) -> Boolean,
-    val converter: (JsonNode) -> String?
-) {
-    DATE_TIME("string", "date-time",
-        { it.getText("display_type") == "date" && it.getText("value")?.toDoubleOrNull() != null },
-        {
-            val v = it.getText("value") ?: null
-            if (v.isNullOrBlank()) {
-                null
-            } else {
-                Instant.ofEpochSecond(v.toDouble().toLong()).toString()
-            }
-        }),
-    DEFAULT(null, null, { true }, { it.getText("value") });
-
-    companion object {
-        fun fromNode(node: JsonNode) = values().asSequence()
-            .sortedBy { it.ordinal }.find { it.predicate(node) } ?: DEFAULT
-    }
-}
+fun base64MimeToBytes(data: String): ByteArray = Base64.getMimeDecoder().decode(data.toByteArray())
 
 object UserAgentGenerator {
     private const val version1 = "#version1"
@@ -99,6 +69,8 @@ object UserAgentGenerator {
     }
 
     private fun randomVersion(): String {
-        return "${ThreadLocalRandom.current().nextInt(1, 30)}.${ThreadLocalRandom.current().nextInt(0, 100)}.${ThreadLocalRandom.current().nextInt(0, 200)}"
+        return "${ThreadLocalRandom.current().nextInt(1, 30)}.${
+            ThreadLocalRandom.current().nextInt(0, 100)
+        }.${ThreadLocalRandom.current().nextInt(0, 200)}"
     }
 }
