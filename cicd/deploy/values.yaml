@@ -186,7 +186,7 @@ ethereum-nft-api: &protocol-nft-api
     node.labels.rarible.service: true
   resources:
     jvm:
-      xmx_megabytes: 356
+      xmx_megabytes: 456
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
@@ -211,7 +211,7 @@ ethereum-nft-listener: &protocol-nft-listener
     node.labels.rarible.job: true
   resources:
     jvm:
-      xmx_megabytes: 356
+      xmx_megabytes: 456
       max_direct_memory_megabytes: 32
   networks:
     common:
