@@ -43,7 +43,12 @@ class WyvernExchangeOrderCancelDescriptor(
         logger.info("Got OrderCancel event, tx=$transactionHash")
 
         val order = openSeaOrderParser.parseCancelOrder(transaction.input())
-        return if (order != null) openSeaOrderEventConverter.convert(order, date) else emptyList()
+        return if (order != null) {
+            openSeaOrderEventConverter.convert(order, date)
+        } else {
+            logger.warn("Can't parser OpenSea cancel transaction ${transaction.value()}")
+            emptyList()
+        }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
