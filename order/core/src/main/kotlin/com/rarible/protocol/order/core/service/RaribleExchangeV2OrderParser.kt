@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.model.toPart
@@ -24,8 +25,11 @@ import java.math.BigInteger
 
 @Component
 class RaribleExchangeV2OrderParser {
-    fun parseMatchedOrders(input: String): RaribleMatchedOrders {
-        val decoded = ExchangeV2.matchOrdersSignature().`in`().decode(Binary.apply(input), 4)
+    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders? {
+        val signature = ExchangeV2.matchOrdersSignature()
+        if (signature.id() != input.methodSignatureId()) return null
+
+        val decoded = signature.`in`().decode(input, 4)
 
         return RaribleMatchedOrders(
             left = SimpleOrder(

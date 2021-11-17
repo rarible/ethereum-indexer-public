@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.converters.model
 
-
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto

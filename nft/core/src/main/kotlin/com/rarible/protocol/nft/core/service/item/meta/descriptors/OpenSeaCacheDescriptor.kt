@@ -9,6 +9,7 @@ import com.rarible.core.cache.get
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.UserAgentGenerator
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
 import com.rarible.protocol.nft.core.service.item.meta.toProperties
@@ -17,6 +18,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.http.HttpHeaders
 import org.springframework.http.client.reactive.ClientHttpConnector
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.stereotype.Service
@@ -85,6 +87,9 @@ class OpenSeaCacheDescriptor(
                 .uri("$openseaUrl/asset/$token/$tokenId/")
             if (openseaApiKey.isNotBlank()) {
                 get.header(X_API_KEY, openseaApiKey)
+            }
+            if (proxyUrl.isNotBlank()) {
+                get.header(HttpHeaders.USER_AGENT, UserAgentGenerator.generateUserAgent())
             }
             get.retrieve()
                 .bodyToMono<ObjectNode>()

@@ -79,7 +79,7 @@ class OrderUpdateConsumerEventHandler(
     }
 
     private fun AssetTypeDto.getItemId(): ItemId? = when (this) {
-         is CryptoPunksAssetTypeDto -> ItemId(contract, tokenId.toBigInteger())
+        is CryptoPunksAssetTypeDto -> ItemId(contract, tokenId.toBigInteger())
         is Erc1155AssetTypeDto -> ItemId(contract, tokenId)
         is Erc1155LazyAssetTypeDto -> ItemId(contract, tokenId)
         is Erc721AssetTypeDto -> ItemId(contract, tokenId)
@@ -87,4 +87,3 @@ class OrderUpdateConsumerEventHandler(
         is Erc20AssetTypeDto, is EthAssetTypeDto, is GenerativeArtAssetTypeDto, is CollectionAssetTypeDto -> null
     }
 }
-
