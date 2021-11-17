@@ -44,7 +44,12 @@ class WyvernExchangeOrderMatchDescriptor(
 
         val orders = openSeaOrderParser.parseMatchedOrders(transaction.input())
         val event = OrdersMatchedEvent.apply(log)
-        return if (orders != null) openSeaOrdersSideMatcher.convert(orders, event.price(), date) else emptyList()
+        return if (orders != null) {
+            openSeaOrdersSideMatcher.convert(orders, event.price(), date)
+        } else {
+            logger.warn("Can't parser OpenSea match transaction ${transaction.value()}")
+            emptyList()
+        }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
