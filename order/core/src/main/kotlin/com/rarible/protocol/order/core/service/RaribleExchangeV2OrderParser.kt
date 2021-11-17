@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainOrder
@@ -11,10 +12,10 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataVersion
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders
-import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.model.toPart
@@ -103,6 +104,17 @@ class RaribleExchangeV2OrderParser {
                 OrderRaribleV2DataV1(
                     payouts = payouts,
                     originFees = originFees
+                )
+            }
+            OrderDataVersion.RARIBLE_V2_DATA_V2.ethDataType -> {
+                val decoded = Tuples.orderDataV2Type().decode(data, 0).value()
+                val payouts = decoded._1().map { it.toPart() }
+                val originFees = decoded._2().map { it.toPart() }
+                val isMakeFill = decoded._3() > BigInteger.ZERO
+                OrderRaribleV2DataV2(
+                    payouts = payouts,
+                    originFees = originFees,
+                    isMakeFill = isMakeFill
                 )
             }
             else -> throw IllegalArgumentException("Unsupported order data version $version")

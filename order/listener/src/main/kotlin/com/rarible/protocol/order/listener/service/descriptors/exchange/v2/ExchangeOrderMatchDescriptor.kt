@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.toAssetType
@@ -60,7 +61,7 @@ class ExchangeOrderMatchDescriptor(
         val at = nowMillis()
         val leftMake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
         val leftTake = Asset(rightAssetType, EthUInt256(event.newLeftFill()))
-        val lestUsdValue = priceUpdateService.getAssetsUsdValue(leftMake, leftTake, at)
+        val leftUsdValue = priceUpdateService.getAssetsUsdValue(leftMake, leftTake, at)
 
         val rightMake = Asset(rightAssetType, EthUInt256(event.newLeftFill()))
         val rightTake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
@@ -72,22 +73,34 @@ class ExchangeOrderMatchDescriptor(
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
 
+        val leftFill = if ((transactionOrders?.left?.data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+            EthUInt256(event.newRightFill())
+        } else {
+            EthUInt256(event.newLeftFill())
+        }
+
+        val rightFill = if ((transactionOrders?.right?.data as? OrderRaribleV2DataV2)?.isMakeFill == true) {
+            EthUInt256(event.newLeftFill())
+        } else {
+            EthUInt256(event.newRightFill())
+        }
+
         return listOf(
             OrderSideMatch(
                 hash = leftHash,
                 counterHash = rightHash,
                 side = OrderSide.LEFT,
-                fill = EthUInt256(event.newLeftFill()),
+                fill = leftFill,
                 make = leftMake,
                 take = leftTake,
                 maker = leftMaker,
                 taker = rightMaker,
-                makeUsd = lestUsdValue?.makeUsd,
-                takeUsd = lestUsdValue?.takeUsd,
+                makeUsd = leftUsdValue?.makeUsd,
+                takeUsd = leftUsdValue?.takeUsd,
                 makeValue = prizeNormalizer.normalize(leftMake),
                 takeValue = prizeNormalizer.normalize(leftTake),
-                makePriceUsd = lestUsdValue?.makePriceUsd,
-                takePriceUsd = lestUsdValue?.takePriceUsd,
+                makePriceUsd = leftUsdValue?.makePriceUsd,
+                takePriceUsd = leftUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
                 data = transactionOrders?.left?.data,
@@ -98,7 +111,7 @@ class ExchangeOrderMatchDescriptor(
                 hash = rightHash,
                 counterHash = leftHash,
                 side = OrderSide.RIGHT,
-                fill = EthUInt256(event.newRightFill()),
+                fill = rightFill,
                 make = rightMake,
                 take = rightTake,
                 maker = rightMaker,
@@ -123,9 +136,10 @@ class ExchangeOrderMatchDescriptor(
     }
 }
 
-internal fun getOriginMaker(maker: Address, date: OrderData?): Address {
-    return when (date) {
-        is OrderRaribleV2DataV1 -> if (date.payouts.isSingleton) date.payouts.first().account else maker
+internal fun getOriginMaker(maker: Address, data: OrderData?): Address {
+    return when (data) {
+        is OrderRaribleV2DataV1 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
+        is OrderRaribleV2DataV2 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
         is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderCryptoPunksData -> maker
         null -> maker
     }

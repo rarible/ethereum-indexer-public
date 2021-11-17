@@ -1,7 +1,17 @@
 package com.rarible.protocol.order.core.service
 
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Transfer
+import com.rarible.protocol.order.core.model.TransferCallData
+import com.rarible.protocol.order.core.model.invert
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -33,10 +43,18 @@ class OrderInvertService(
         amount: BigInteger,
         salt: Word,
         originFees: List<Part>
-    ): Order {
-        return order
-            .invert(maker, amount, salt)
-            .copy(data = OrderRaribleV2DataV1(emptyList(), originFees) )
+    ): Order = order
+        .invert(maker, amount, salt)
+        .let {
+            it.copy(
+                data = it.data.withOriginFees(originFees)
+            )
+        }
+
+    private fun OrderData.withOriginFees(newFees: List<Part>) = when (this) {
+        is OrderRaribleV2DataV1 -> copy(originFees = newFees)
+        is OrderRaribleV2DataV2 -> copy(originFees = newFees)
+        else -> this
     }
 
     private fun invertOpenSeaV1(

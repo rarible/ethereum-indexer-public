@@ -1,11 +1,11 @@
 package com.rarible.protocol.order.listener.service.order
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.test.data.randomInt
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.order.core.misc.toBinary
+import com.rarible.protocol.order.core.model.OrderRaribleV2Data
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.service.PrepareTxService
@@ -37,37 +37,61 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser
 
-    @MockkBean
-    private lateinit var erc1271SignService: ERC1271SignService
-
     companion object {
         @JvmStatic
         fun signServiceMethodResult(): Stream<Arguments> = run {
-            val leftData = OrderRaribleV2DataV1(
-                originFees = (1..4).map { Part(AddressFactory.create(), EthUInt256.Companion.of(randomInt())) },
-                payouts = (1..4).map { Part(AddressFactory.create(), EthUInt256.Companion.of(randomInt())) }
+            fun randomParts() = (1..4).map { Part(AddressFactory.create(), EthUInt256.Companion.of(randomInt())) }
+
+            val leftDataV1 = OrderRaribleV2DataV1(originFees = randomParts(), payouts = randomParts())
+            val rightDataV1 = OrderRaribleV2DataV1(originFees = randomParts(), payouts = randomParts())
+            val emptyDataV1 = OrderRaribleV2DataV1(emptyList(), emptyList())
+
+            val leftDataV2False = OrderRaribleV2DataV2(
+                originFees = randomParts(),
+                payouts = randomParts(),
+                isMakeFill = false
             )
-            val rightData = OrderRaribleV2DataV1(
-                originFees = (1..4).map { Part(AddressFactory.create(), EthUInt256.Companion.of(randomInt())) },
-                payouts = (1..4).map { Part(AddressFactory.create(), EthUInt256.Companion.of(randomInt())) }
+            val leftDataV2True = OrderRaribleV2DataV2(
+                originFees = randomParts(),
+                payouts = randomParts(),
+                isMakeFill = true
             )
-            val emptyData = OrderRaribleV2DataV1(emptyList(), emptyList())
+            val rightDataV2False = OrderRaribleV2DataV2(
+                originFees = randomParts(),
+                payouts = randomParts(),
+                isMakeFill = false
+            )
+            val rightDataV2True = OrderRaribleV2DataV2(
+                originFees = randomParts(),
+                payouts = randomParts(),
+                isMakeFill = true
+            )
+            val emptyDataV2False = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false)
+            val emptyDataV2True = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = true)
 
             Stream.of(
-                Arguments.of(true, leftData, rightData),
-                Arguments.of(true, leftData.copy(originFees = emptyList()), rightData),
-                Arguments.of(true, leftData.copy(originFees = emptyList()), rightData),
-                Arguments.of(true, leftData.copy(payouts = emptyList()), rightData),
-                Arguments.of(true, leftData.copy(payouts = emptyList()), rightData),
+                Arguments.of(true, leftDataV1, rightDataV1),
+                Arguments.of(true, leftDataV1.copy(originFees = emptyList()), rightDataV1),
+                Arguments.of(true, leftDataV1.copy(originFees = emptyList()), rightDataV1),
+                Arguments.of(true, leftDataV1.copy(payouts = emptyList()), rightDataV1),
+                Arguments.of(true, leftDataV1.copy(payouts = emptyList()), rightDataV1),
 
-                Arguments.of(false, leftData, rightData),
-                Arguments.of(false, leftData.copy(originFees = emptyList()), rightData),
-                Arguments.of(false, leftData.copy(originFees = emptyList()), rightData),
-                Arguments.of(false, leftData.copy(payouts = emptyList()), rightData),
-                Arguments.of(false, leftData.copy(payouts = emptyList()), rightData),
+                Arguments.of(false, leftDataV1, rightDataV1),
+                Arguments.of(false, leftDataV1.copy(originFees = emptyList()), rightDataV1),
+                Arguments.of(false, leftDataV1.copy(originFees = emptyList()), rightDataV1),
+                Arguments.of(false, leftDataV1.copy(payouts = emptyList()), rightDataV1),
+                Arguments.of(false, leftDataV1.copy(payouts = emptyList()), rightDataV1),
 
-                Arguments.of(true, emptyData, emptyData),
-                Arguments.of(false, emptyData, emptyData)
+                Arguments.of(true, emptyDataV1, emptyDataV1),
+                Arguments.of(false, emptyDataV1, emptyDataV1),
+
+                Arguments.of(false, leftDataV2False, rightDataV2False),
+                Arguments.of(false, leftDataV2False, rightDataV2True),
+                Arguments.of(false, leftDataV2True, rightDataV2False),
+                Arguments.of(false, leftDataV2True, rightDataV2True),
+
+                Arguments.of(false, emptyDataV2False, emptyDataV2False),
+                Arguments.of(false, emptyDataV2True, emptyDataV2True)
             )
         }
     }
@@ -76,8 +100,8 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
     @MethodSource("signServiceMethodResult")
     fun `should decode order match transaction input`(
         isSigner: Boolean,
-        leftData: OrderRaribleV2DataV1,
-        rightData: OrderRaribleV2DataV1
+        leftData: OrderRaribleV2Data,
+        rightData: OrderRaribleV2Data
     ) = runBlocking<Unit> {
         val orderLeft = createOrder().copy(
             type = OrderType.RARIBLE_V2,
@@ -98,7 +122,6 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
         assertThat(result!!.left.data).isEqualTo(leftData)
         assertThat(result.right.data).isEqualTo(rightData)
     }
-
 
     @Test
     fun `should safe parse invalid order match transaction input`() = runBlocking<Unit> {

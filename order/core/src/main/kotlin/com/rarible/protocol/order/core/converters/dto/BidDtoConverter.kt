@@ -1,6 +1,13 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.CryptoPunksOrderBidDto
+import com.rarible.protocol.dto.LegacyOrderBidDto
+import com.rarible.protocol.dto.OpenSeaV1OrderBidDto
+import com.rarible.protocol.dto.OrderBidDto
+import com.rarible.protocol.dto.OrderDataLegacyDto
+import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataDto
+import com.rarible.protocol.dto.RaribleV2OrderBidDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.OrderType
@@ -52,7 +59,7 @@ class BidDtoConverter(
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
-                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataV1Dto,
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataDto,
                 makeBalance = BigInteger.ZERO
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderBidDto(

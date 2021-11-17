@@ -1,15 +1,21 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
+import com.rarible.contracts.test.erc1155.TestERC1155
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.ethereum.sign.domain.EIP712Domain
+import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
+import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
 import com.rarible.protocol.order.listener.service.order.SideMatchTransactionProvider
+import io.daonomic.rpc.domain.Word
+import io.mockk.clearMocks
+import io.mockk.coEvery
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -26,6 +32,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     protected lateinit var token1: TestERC20
     protected lateinit var token2: TestERC20
     protected lateinit var token721: TestERC721
+    protected lateinit var token1155: TestERC1155
     protected lateinit var transferProxy: TransferProxy
     protected lateinit var erc20TransferProxy: ERC20TransferProxy
     protected lateinit var exchange: ExchangeV2
@@ -41,6 +48,10 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     private lateinit var exchangeV2UpsertOrderDescriptor: ExchangeV2UpsertOrderDescriptor
     @Autowired
     private lateinit var sideMatchTransactionProvider: SideMatchTransactionProvider
+    @Autowired
+    protected lateinit var prepareTxService: PrepareTxService
+    @Autowired
+    protected lateinit var erc721SignService: ERC1271SignService
 
     @BeforeEach
     fun before() {
@@ -64,6 +75,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
         token1 = TestERC20.deployAndWait(sender, poller, "Test1", "TST1").block()!!
         token2 = TestERC20.deployAndWait(sender, poller, "Test2", "TST2").block()!!
         token721 = TestERC721.deployAndWait(sender, poller, "Test", "TST").block()!!
+        token1155 = TestERC1155.deployAndWait(sender, poller, "ipfs:/").block()!!
         transferProxy = TransferProxy.deployAndWait(sender, poller).block()!!
         erc20TransferProxy = ERC20TransferProxy.deployAndWait(sender, poller).block()!!
         val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).block()!!
@@ -84,6 +96,8 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
             .verifySuccess()
         token721.setApprovalForAll(transferProxy.address(), true).withSender(userSender1).execute().verifySuccess()
         token721.setApprovalForAll(transferProxy.address(), true).withSender(userSender2).execute().verifySuccess()
+        token1155.setApprovalForAll(transferProxy.address(), true).withSender(userSender1).execute().verifySuccess()
+        token1155.setApprovalForAll(transferProxy.address(), true).withSender(userSender2).execute().verifySuccess()
 
         setField(exchV2CancelDescriptor, "exchangeContract", exchange.address())
         setField(exchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
@@ -96,5 +110,9 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
             chainId = BigInteger.valueOf(17),
             verifyingContract = exchange.address()
         )
+        setField(prepareTxService, "eip712Domain", eip712Domain)
+
+        clearMocks(erc721SignService)
+        coEvery { erc721SignService.isSigner(any(), any() as Word, any()) } returns true
     }
 }

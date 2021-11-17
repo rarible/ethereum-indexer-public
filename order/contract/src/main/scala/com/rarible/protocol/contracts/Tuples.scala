@@ -21,11 +21,14 @@ object Tuples {
   val assetHashType =
     Tuple3Type(Bytes32Type, Bytes32Type, Uint256Type)
 
-  val orderKeyHashType =
+  val orderKeyHashTypeDataV1 =
     Tuple4Type(AddressType, Bytes32Type, Bytes32Type, Uint256Type)
 
   val raribleAuctionKeyHashType =
     Tuple2Type(AddressType, Uint256Type)
+
+  val orderKeyHashTypeDataV2 =
+    Tuple5Type(AddressType, Bytes32Type, Bytes32Type, Uint256Type, BytesType)
 
   val orderHashType =
     Tuple10Type(Bytes32Type, AddressType, Bytes32Type, AddressType, Bytes32Type, Uint256Type, Uint256Type, Uint256Type, Bytes4Type, Bytes32Type)
@@ -47,6 +50,9 @@ object Tuples {
 
   val orderDataV1Type =
     Tuple1Type(wrongOrderDataV1Type)
+
+  val orderDataV2Type =
+    Tuple1Type(Tuple3Type(VarArrayType(addressUintType), VarArrayType(addressUintType), Uint8Type))
 
   val orderDataLegacyType =
     Tuple1Type(Uint256Type)

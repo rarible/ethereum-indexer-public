@@ -14,7 +14,6 @@ import com.rarible.protocol.order.api.service.order.validation.OrderValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
-
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -49,8 +48,8 @@ class OrderService(
         val maker = form.maker
         val make = checkLazyNftMake(maker, AssetConverter.convert(form.make))
         val take = checkLazyNft(AssetConverter.convert(form.take))
-        val hash = Order.hashKey(form.maker, make.type, take.type, form.salt)
         val data = OrderDataConverter.convert(form.data)
+        val hash = Order.hashKey(form.maker, make.type, take.type, form.salt, data)
         return OrderVersion(
             maker = maker,
             make = make,

@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -20,9 +21,11 @@ import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.model.toOrderVersion
@@ -38,6 +41,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.types.ObjectId
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
@@ -66,12 +70,13 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
     }
 
     @Test
-    fun `upsert on-chain order with make of ERC20 type`() = runBlocking<Unit> {
+    fun `upsert on-chain order with make of ERC20 type - data V1`() = runBlocking<Unit> {
         val maker = userSender1.from()
         token1.mint(maker, BigInteger.TEN).execute().verifySuccess()
         val make = Asset(Erc20AssetType(token1.address()), EthUInt256.TEN)
         val take = Asset(Erc20AssetType(token2.address()), EthUInt256.ONE)
         val salt = EthUInt256.TEN
+        val orderData = OrderRaribleV2DataV1(emptyList(), emptyList())
         val version = OnChainOrder(
             maker = maker,
             taker = null,
@@ -81,23 +86,24 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             salt = salt,
             start = null,
             end = null,
-            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            data = orderData,
             signature = null,
             createdAt = nowMillis(),
             platform = Platform.RARIBLE,
             priceUsd = null,
-            hash = Order.hashKey(maker, make.type, take.type, salt.value)
+            hash = Order.hashKey(maker, make.type, take.type, salt.value, orderData)
         )
         `test insert order`(version, null)
     }
 
     @Test
-    fun `upsert on-chain order with make of ETH type`() = runBlocking<Unit> {
+    fun `upsert on-chain order with make of ETH type - data V1`() = runBlocking {
         val makeValue = EthUInt256.TEN
         val make = Asset(EthAssetType, makeValue)
         val take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE)
         val maker = userSender1.from()
         val salt = EthUInt256.TEN
+        val orderData = OrderRaribleV2DataV1(listOf(Part(randomAddress(), EthUInt256.of(5000))), emptyList())
         val onChainOrder = OnChainOrder(
             maker = maker,
             taker = null,
@@ -107,17 +113,49 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             salt = salt,
             start = null,
             end = null,
-            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            data = orderData,
             signature = null,
             createdAt = nowMillis(),
             platform = Platform.RARIBLE,
             priceUsd = null,
-            hash = Order.hashKey(maker, make.type, take.type, salt.value)
+            hash = Order.hashKey(maker, make.type, take.type, salt.value, orderData)
         )
-        val remainingEth = BigInteger.valueOf(2)
-        depositInitialBalance(userSender1.from(), makeValue.value.plus(remainingEth))
+        depositInitialBalance(userSender1.from(), makeValue.value.plus(BigInteger.valueOf(2)))
         `test insert order`(onChainOrder, makeValue)
-        assertThat(getEthBalance(userSender1.from())).isEqualTo(remainingEth)
+        Assertions.assertEquals(BigInteger.valueOf(2), getEthBalance(userSender1.from()))
+    }
+
+    @Test
+    fun `upsert on-chain order with make of ETH type - data V2`() = runBlocking {
+        val makeValue = EthUInt256.TEN
+        val make = Asset(EthAssetType, makeValue)
+        val take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE)
+        val maker = userSender1.from()
+        val salt = EthUInt256.TEN
+        val orderData = OrderRaribleV2DataV2(
+            listOf(Part(randomAddress(), EthUInt256.of(5000))),
+            emptyList(),
+            isMakeFill = true
+        )
+        val onChainOrder = OnChainOrder(
+            maker = maker,
+            taker = null,
+            make = make,
+            take = take,
+            orderType = OrderType.RARIBLE_V2,
+            salt = salt,
+            start = null,
+            end = null,
+            data = orderData,
+            signature = null,
+            createdAt = nowMillis(),
+            platform = Platform.RARIBLE,
+            priceUsd = null,
+            hash = Order.hashKey(maker, make.type, take.type, salt.value, orderData)
+        )
+        depositInitialBalance(userSender1.from(), makeValue.value.plus(BigInteger.valueOf(2)))
+        `test insert order`(onChainOrder, makeValue)
+        Assertions.assertEquals(BigInteger.valueOf(2), getEthBalance(userSender1.from()))
     }
 
     @Test

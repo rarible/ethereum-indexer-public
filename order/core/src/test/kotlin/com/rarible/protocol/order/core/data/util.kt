@@ -2,12 +2,25 @@ package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.RaribleV2OrderDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.AddressFactory
@@ -18,8 +31,8 @@ fun createOrder() =
     Order(
         maker = AddressFactory.create(),
         taker = null,
-        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        make = randomErc20(EthUInt256.TEN),
+        take = randomErc20(EthUInt256.of(5)),
         makeStock = EthUInt256.TEN,
         type = OrderType.RARIBLE_V2,
         fill = EthUInt256.ZERO,
@@ -37,8 +50,8 @@ fun createOrderVersion(): OrderVersion {
     return OrderVersion(
         maker = randomAddress(),
         taker = null,
-        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        make = randomErc20(EthUInt256.TEN),
+        take = randomErc20(EthUInt256.of(5)),
         createdAt = nowMillis(),
         makePriceUsd = null,
         takePriceUsd = null,
@@ -54,6 +67,24 @@ fun createOrderVersion(): OrderVersion {
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
     )
+}
+
+fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
+    val newData = data.withMakeFill(isMakeFill)
+    return copy(
+        data = newData,
+        hash = Order.hashKey(maker, make.type, take.type, salt.value, newData)
+    )
+}
+
+fun OrderData.withMakeFill(isMakeFill: Boolean = true): OrderData = when (this) {
+    is OrderRaribleV2DataV1 -> OrderRaribleV2DataV2(
+        payouts = payouts,
+        originFees = originFees,
+        isMakeFill = isMakeFill
+    )
+    is OrderRaribleV2DataV2 -> this.copy(isMakeFill = isMakeFill)
+    else -> this
 }
 
 fun createOrderDto() =
@@ -86,7 +117,7 @@ fun createOrderCancel(): OrderCancel {
     return OrderCancel(
         hash = WordFactory.create(),
         maker = AddressFactory.create(),
-        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+        make = randomErc20(EthUInt256.TEN),
         take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
     )
 }
@@ -96,8 +127,8 @@ fun createOrderSideMatch(): OrderSideMatch {
         hash = WordFactory.create(),
         maker = AddressFactory.create(),
         taker = AddressFactory.create(),
-        make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
-        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        make = randomErc20(EthUInt256.TEN),
+        take = randomErc20(EthUInt256.of(5)),
         fill = EthUInt256.ZERO,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         side = OrderSide.LEFT,
@@ -109,3 +140,7 @@ fun createOrderSideMatch(): OrderSideMatch {
         takeValue = null
     )
 }
+
+fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
+
+fun randomErc1155(value: EthUInt256) = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), value)

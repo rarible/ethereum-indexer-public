@@ -26,9 +26,11 @@ import com.rarible.protocol.order.core.model.LegacyAssetTypeClass
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -46,6 +48,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
@@ -220,7 +224,8 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
             setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
         }
 
-        @Test
+        @ParameterizedTest
+        @MethodSource("com.rarible.protocol.order.api.controller.PendingTransactionServiceTest#withOrderRaribleV2Data")
         fun `should create pending transaction for cancel - v2`() = runBlocking<Unit> {
             val (maker, makerSender) = newSender()
 
@@ -278,10 +283,12 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
             val savedOrder = orderRepository.findById(orderVersion.hash)
             assertThat(savedOrder?.pending).hasSize(1)
             assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderCancel::class.java)
+            assertThat(savedOrder?.data).isEqualTo(data)
         }
 
-        @Test
-        fun `should create pending transaction for matchOrders - v2`() = runBlocking<Unit> {
+        @ParameterizedTest
+        @MethodSource("com.rarible.protocol.order.api.controller.PendingTransactionServiceTest#withOrderRaribleV2Data")
+        fun `should create pending transaction for matchOrders - v2`(orderData: OrderData) = runBlocking<Unit> {
             val (maker, makerSender, makePrivateKey) = newSender()
             val (taker, takerSender, takePrivateKey) = newSender()
 
@@ -300,8 +307,6 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
 
             assertEquals(make.value.value, token.balanceOf(maker, tokenId).call().awaitFirst())
             assertEquals(take.value.value, buyToken.balanceOf(taker, buyTokenId).call().awaitFirst())
-
-            val orderData = OrderRaribleV2DataV1(listOf(), listOf())
 
             val makerOrderTuple = Tuple9(
                 maker,
@@ -378,19 +383,22 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
 
             processTransaction(receipt, expectedSize = 2)
 
-            val makeHash = Order.hashKey(maker, make.type, take.type, salt)
-            val takeHash = Order.hashKey(taker, take.type, make.type, salt)
+            val makeHash = Order.hashKey(maker, make.type, take.type, salt, orderData)
+            val takeHash = Order.hashKey(taker, take.type, make.type, salt, orderData)
 
             for (hash in listOf(makeHash, takeHash)) {
                 val history = exchangeHistoryRepository.findLogEvents(hash, null).collectList().awaitFirst()
                 assertThat(history).hasSize(1)
                 assertThat(history.single().status).isEqualTo(LogEventStatus.PENDING)
-                assertThat(history.single().data).isInstanceOf(OrderSideMatch::class.java)
+                assertThat(history.single().data).isInstanceOfSatisfying(OrderSideMatch::class.java) { sideMatch ->
+                    assertThat(sideMatch.data).isEqualTo(orderData)
+                }
             }
 
             val savedOrder = orderRepository.findById(orderVersion.hash)
             assertThat(savedOrder?.pending).hasSize(1)
             assertThat(savedOrder?.pending?.single()).isInstanceOf(OrderSideMatch::class.java)
+            assertThat(savedOrder?.data).isEqualTo(orderData)
         }
 
         @Test
@@ -483,6 +491,17 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 // Non-primary fields that are hard to calculate.
                 Order::lastEventId.name,
                 Order::version.name
+            )
+        }
+    }
+
+    companion object {
+        @JvmStatic
+        fun withOrderRaribleV2Data(): List<OrderData> {
+            return listOf(
+                OrderRaribleV2DataV1(payouts = emptyList(), originFees = emptyList()),
+                OrderRaribleV2DataV2(payouts = emptyList(), originFees = emptyList(), isMakeFill = true),
+                OrderRaribleV2DataV2(payouts = emptyList(), originFees = emptyList(), isMakeFill = false)
             )
         }
     }

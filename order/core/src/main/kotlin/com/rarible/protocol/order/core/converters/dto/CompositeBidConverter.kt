@@ -7,7 +7,7 @@ import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
-import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
@@ -71,7 +71,7 @@ class CompositeBidConverter(
                 cancelled = source.order.cancelled,
                 salt = source.order.salt.value.toWord(),
                 signature = source.order.signature.orEmpty(),
-                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataV1Dto,
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataDto,
                 makeBalance = BigInteger.ZERO,
                 lastUpdateAt = source.order.lastUpdateAt
             )

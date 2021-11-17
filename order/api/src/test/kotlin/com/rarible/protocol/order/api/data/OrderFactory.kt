@@ -3,12 +3,20 @@ package com.rarible.protocol.order.api.data
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LegacyOrderFormDto
+import com.rarible.protocol.dto.OrderDataLegacyDto
+import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.OrderRaribleV2DataDto
+import com.rarible.protocol.dto.RaribleV2OrderFormDto
 import com.rarible.protocol.order.core.converters.dto.OrderDataDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderFormAssetDtoConverter
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.service.CommonSigner
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -55,7 +63,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             taker = taker,
             take = OrderFormAssetDtoConverter.convert(take),
             salt = salt.value,
-            data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataV1Dto,
+            data = OrderDataDtoConverter.convert(data) as OrderRaribleV2DataDto,
             start = start,
             end = end,
             signature = eip712Domain.hashToSign(Order.hash(this)).sign(privateKey)

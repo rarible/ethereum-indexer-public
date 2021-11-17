@@ -1,7 +1,17 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
@@ -57,6 +67,7 @@ fun OrderVersion.withTakeNft(token: Address, tokenId: EthUInt256): OrderVersion 
 fun OrderVersion.withOrigin(origin: Address): OrderVersion {
     return when (val versionData = data) {
         is OrderRaribleV2DataV1 -> copy(data = versionData.copy(originFees = listOf(Part(origin, EthUInt256.of(10000)))))
+        is OrderRaribleV2DataV2 -> copy(data = versionData.copy(originFees = listOf(Part(origin, EthUInt256.of(10000)))))
         else -> throw IllegalArgumentException("Unsupported data type ${data.javaClass} to set origin")
     }
 }

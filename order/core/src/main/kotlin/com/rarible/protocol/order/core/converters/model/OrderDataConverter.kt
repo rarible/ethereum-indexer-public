@@ -1,7 +1,23 @@
 package com.rarible.protocol.order.core.converters.model
 
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.dto.OrderCryptoPunksDataDto
+import com.rarible.protocol.dto.OrderDataDto
+import com.rarible.protocol.dto.OrderDataLegacyDto
+import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
+import com.rarible.protocol.dto.OrderRaribleV2DataV2Dto
+import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.Part
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -13,6 +29,11 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 val payouts = convert(source.payouts)
                 val originFees = convert(source.originFees)
                 OrderRaribleV2DataV1(payouts = payouts, originFees = originFees)
+            }
+            is OrderRaribleV2DataV2Dto -> {
+                val payouts = convert(source.payouts)
+                val originFees = convert(source.originFees)
+                OrderRaribleV2DataV2(payouts = payouts, originFees = originFees, isMakeFill = source.isMakeFill)
             }
             is OrderDataLegacyDto -> {
                 OrderDataLegacy(source.fee)

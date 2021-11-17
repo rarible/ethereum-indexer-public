@@ -4,7 +4,11 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
