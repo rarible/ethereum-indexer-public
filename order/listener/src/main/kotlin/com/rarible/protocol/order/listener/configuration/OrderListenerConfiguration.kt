@@ -28,6 +28,7 @@ import com.rarible.protocol.order.listener.service.event.ConsumerWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OrderUpdateConsumerEventHandler
+import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentGenerator
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
@@ -73,6 +74,11 @@ class OrderListenerConfiguration(
     @Bean
     fun blockchainTransactionTraceProvider(): TransactionTraceProvider {
         return transactionTraceProviderFactory.createTraceProvider()
+    }
+
+    @Bean
+    fun externalUserAgentGenerator(): ExternalUserAgentGenerator {
+        return ExternalUserAgentGenerator(listenerProperties.openSeaClientUserAgents)
     }
 
     @Bean

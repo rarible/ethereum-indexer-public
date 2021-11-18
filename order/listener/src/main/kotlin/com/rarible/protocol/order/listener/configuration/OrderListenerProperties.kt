@@ -14,12 +14,12 @@ class OrderListenerProperties(
     val priceUpdateEnabled: Boolean = false,
     val publishTaskDelayMs: Long = 1000L,
     val loadOpenSeaOrders: Boolean = false,
-    val loadOpenSeaOrderVersion: Boolean = false,
     val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),
     val loadOpenSeaDelay: Duration = Duration.ofSeconds(5),
     val saveOpenSeaOrdersBatchSize: Int = 200,
     val openSeaOrderSide: OrderSide? = null,
-    val resetMakeStockEnabled: Boolean = false
+    val resetMakeStockEnabled: Boolean = false,
+    val openSeaClientUserAgents: String = ""
 ) {
     enum class OrderSide {
         ALL,
