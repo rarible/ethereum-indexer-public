@@ -4,8 +4,10 @@ import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.isSingleton
+import com.rarible.protocol.order.core.misc.safeQueryParam
 import com.rarible.protocol.order.core.model.*
 import org.bson.Document
+import org.bson.types.ObjectId
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
 import java.time.Instant
@@ -51,12 +53,12 @@ sealed class ActivityExchangeHistoryFilter {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date lt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
+                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / OrderExchangeHistory::date gt continuation.afterDate,
-                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
+                    (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
         }
 
