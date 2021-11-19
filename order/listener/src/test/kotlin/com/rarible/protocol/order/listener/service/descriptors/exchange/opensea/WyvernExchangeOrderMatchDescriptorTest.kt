@@ -17,6 +17,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -149,10 +150,10 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.TEN)
 
             assertFalse(left?.adhoc!!)
-            assertFalse(left?.counterAdhoc!!)
+            assertTrue(left.counterAdhoc!!)
 
-            assertFalse(right?.adhoc!!)
-            assertFalse(right?.counterAdhoc!!)
+            assertTrue(right?.adhoc!!)
+            assertFalse(right.counterAdhoc!!)
 
             checkActivityWasPublished {
                 assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {

@@ -38,8 +38,9 @@ internal class OpenSeaOrderParserTest {
         val orders = parser.parseMatchedOrders(input)
         assertThat(orders).isNotNull
 
+        val from = orders!!.buyOrder.maker
         val date = nowMillis()
-        val matchers = openSeaOrdersSideMatcher.convert(orders!!, price, date)
+        val matchers = openSeaOrdersSideMatcher.convert(orders, from, price, date)
 
         val buyMatch = matchers[0]
         val sellMatch = matchers[1]
@@ -57,6 +58,7 @@ internal class OpenSeaOrderParserTest {
         assertThat(sellMatch.take.value).isEqualTo(EthUInt256.of(price))
         assertThat(sellMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(sellMatch.date).isEqualTo(date)
+        assertThat(sellMatch.adhoc).isFalse()
 
         assertThat(buyMatch.hash).isEqualTo(orders.buyOrder.hash)
         assertThat(buyMatch.fill).isEqualTo(EthUInt256.ONE)
@@ -71,6 +73,7 @@ internal class OpenSeaOrderParserTest {
         assertThat(buyMatch.make.value).isEqualTo(EthUInt256.of(price))
         assertThat(buyMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(buyMatch.date).isEqualTo(date)
+        assertThat(buyMatch.adhoc).isTrue()
 
         coVerify(exactly = 2) { prizeNormalizer.normalize(withArg {
             assertTrue(it.type is EthAssetType)
@@ -86,8 +89,9 @@ internal class OpenSeaOrderParserTest {
         val orders = parser.parseMatchedOrders(input)
         assertThat(orders).isNotNull
 
+        val from = orders!!.sellOrder.maker
         val date = nowMillis()
-        val matchers = openSeaOrdersSideMatcher.convert(orders!!, BigInteger.valueOf(1000), date)
+        val matchers = openSeaOrdersSideMatcher.convert(orders, from, BigInteger.valueOf(1000), date)
         val price = BigInteger.valueOf(1000)
 
         val buyMatch = matchers[0]
@@ -107,6 +111,7 @@ internal class OpenSeaOrderParserTest {
         assertThat(buyMatch.take.value).isEqualTo(EthUInt256.ONE)
         assertThat(buyMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(buyMatch.date).isEqualTo(date)
+        assertThat(buyMatch.adhoc).isFalse()
 
         assertThat(sellMatch.hash).isEqualTo(orders.sellOrder.hash)
         assertThat(sellMatch.fill).isEqualTo(EthUInt256.of(price))
@@ -122,8 +127,8 @@ internal class OpenSeaOrderParserTest {
         assertThat(sellMatch.make.value).isEqualTo(EthUInt256.ONE)
         assertThat(sellMatch.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(sellMatch.date).isEqualTo(date)
+        assertThat(sellMatch.adhoc).isTrue()
     }
-
 
     @Test
     fun `should parse cancel sell order`() = runBlocking<Unit> {
