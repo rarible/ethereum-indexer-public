@@ -11,7 +11,6 @@ import io.daonomic.rpc.domain.Binary
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
 import java.time.Instant
 import java.util.*
@@ -26,7 +25,12 @@ class OpenSeaOrderEventConverter(
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    suspend fun convert(openSeaOrders: OpenSeaMatchedOrders, price: BigInteger, date: Instant): List<OrderSideMatch> {
+    suspend fun convert(
+        openSeaOrders: OpenSeaMatchedOrders,
+        from: Address,
+        price: BigInteger,
+        date: Instant
+    ): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
         val buyOrder = openSeaOrders.buyOrder
         val buyOrderSide = getBuyOrderSide(openSeaOrders)
@@ -55,8 +59,8 @@ class OpenSeaOrderEventConverter(
         val at = nowMillis()
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = at)
         val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = at)
-        val buyAdhoc = EthUInt256.of(buyOrder.salt) == EthUInt256.ZERO
-        val sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
+        val buyAdhoc = buyOrder.maker == from
+        val sellAdhoc = sellOrder.maker == from
 
         return listOf(
             OrderSideMatch(
