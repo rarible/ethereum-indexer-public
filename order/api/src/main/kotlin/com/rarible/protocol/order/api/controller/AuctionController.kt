@@ -32,6 +32,14 @@ class AuctionController(
     private val auctionDtoConverter: AuctionDtoConverter
 ) : AuctionControllerApi {
 
+    override suspend fun getAuctionBidsByHash(
+        hash: String,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<AuctionBidsPaginationDto> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun getAuctionByHash(hash: String): ResponseEntity<AuctionDto> {
         val auction = auctionService.get(HashParser.parse(hash))
         return ResponseEntity.ok(convert(auction))
