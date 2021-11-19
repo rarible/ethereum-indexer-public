@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.isSingleton
+import com.rarible.protocol.order.core.misc.safeQueryParam
 import com.rarible.protocol.order.core.model.Continuation
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.ActivitySort
@@ -49,12 +50,12 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     OrderVersion::createdAt lt continuation.afterDate,
-                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId)
+                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     OrderVersion::createdAt gt continuation.afterDate,
-                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
+                    (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
         }
     }
