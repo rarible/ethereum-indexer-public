@@ -1,7 +1,6 @@
 @Library('shared-library@no-tests-more-properties') _
 
 def ETHEREUM_PROPERTIES = [BLOCKCHAIN:"ethereum"]
-// def POLYGON_PROPERTIES = [BLOCKCHAIN:"polygon"]
 
 pipeline {
   parameters {
@@ -16,7 +15,6 @@ pipeline {
     PREFIX = "protocol"
     CREDENTIALS_ID = "nexus-ci"
     ETHEREUM_STACK = "protocol-ethereum"
-//     POLYGON_STACK = "protocol-polygon"
   }
 
   stages {
@@ -66,7 +64,7 @@ pipeline {
       agent any
       when {
         allOf {
-          anyOf { branch 'develop'; branch 'master'; branch 'RPN-803-multi-chain-pipeline' }
+          anyOf { branch 'develop'; branch 'master' }
           expression {
             input message: "Deploy to dev?"
             return true
@@ -79,14 +77,13 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to e2e") {
       agent any
       when {
         allOf {
-          anyOf { branch 'release/*' }
+          anyOf { branch 'develop'; branch 'master' }
           expression {
             input message: "Deploy to e2e?"
             return true
@@ -99,14 +96,13 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to staging") {
       agent any
       when {
         allOf {
-          anyOf { branch 'release/*' }
+          anyOf { branch 'develop'; branch 'master' }
           expression {
             input message: "Deploy to staging?"
             return true
@@ -119,7 +115,6 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
     stage("deploy to prod") {
@@ -139,7 +134,6 @@ pipeline {
       }
       steps {
         deployStack(env.APPLICATION_ENVIRONMENT, env.ETHEREUM_STACK, env.PREFIX, env.IMAGE_TAG, [], ETHEREUM_PROPERTIES)
-//         deployStack(env.APPLICATION_ENVIRONMENT, env.POLYGON_STACK, env.PREFIX, env.IMAGE_TAG, [], POLYGON_PROPERTIES)
       }
     }
   }
