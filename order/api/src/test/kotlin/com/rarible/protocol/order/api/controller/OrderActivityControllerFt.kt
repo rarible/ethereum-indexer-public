@@ -50,6 +50,39 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                 OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
                 ActivitySortDto.LATEST_FIRST
             ),
+            run {
+                val item1 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
+                val item2 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
+                val item3 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
+                val item4 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
+                Arguments.of(
+                    listOf(
+                        item4, item3, item2, item1,
+                        createErc1155BidOrderVersion().copy(createdAt = now.plus(1, ChronoUnit.MINUTES)),
+                        createErc1155BidOrderVersion().copy(createdAt = now.plus(0, ChronoUnit.MINUTES))
+                    ),
+                    listOf(
+                        createErc721ListOrderVersion(), createErc1155ListOrderVersion(), createErc721ListOrderVersion()
+                    ),
+                    OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            },
+            Arguments.of(
+                listOf(
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(1, ChronoUnit.MINUTES)),
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(1, ChronoUnit.MINUTES)),
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(1, ChronoUnit.MINUTES)),
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(1, ChronoUnit.MINUTES)),
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES)),
+                    createErc1155BidOrderVersion().copy(createdAt = now.plus(3, ChronoUnit.MINUTES))
+                ),
+                listOf(
+                    createErc721ListOrderVersion(), createErc1155ListOrderVersion(), createErc721ListOrderVersion()
+                ),
+                OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
+                ActivitySortDto.EARLIEST_FIRST
+            ),
             Arguments.of(
                 listOf(
                     createErc1155BidOrderVersion().copy(createdAt = now.minus(2, ChronoUnit.MINUTES)),
@@ -1244,6 +1277,25 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
             },
             run {
                 val token = AddressFactory.create()
+                Arguments.of(
+                    listOf(
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(7, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(8, ChronoUnit.MINUTES)))
+                    ),
+                    emptyList<LogEvent>(),
+                    emptyList<OrderVersion>(),
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.MATCH)),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            },
+            run {
+                val token = AddressFactory.create()
                 val tokenId = EthUInt256.of((1L..1000L).random())
 
                 Arguments.of(
@@ -1308,7 +1360,27 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
-                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_BID)),
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_BID))
+                )
+            },
+            run {
+                val token = AddressFactory.create()
+                val items1 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+                val items2 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+                val items3 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+                val items4 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+                val items5 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+                val items6 = createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(9, ChronoUnit.MINUTES)))
+
+                Arguments.of(
+                    listOf(
+                        items6, items5, items4, items3, items2, items1,
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(2, ChronoUnit.MINUTES))),
+                        createLogEvent(orderErc721SellSideMatch().withMakeToken(token).withDate(now.plus(1, ChronoUnit.MINUTES)))
+                    ),
+                    emptyList<LogEvent>(),
+                    emptyList<OrderVersion>(),
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.MATCH)),
                     ActivitySortDto.LATEST_FIRST
                 )
             }
