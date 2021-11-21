@@ -1360,7 +1360,8 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         createLogEvent(orderErc721SellCancel().withMakeToken(token).withDate(now.minus(3, ChronoUnit.MINUTES)))
                     ),
                     listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
-                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_BID))
+                    OrderActivityFilterByCollectionDto(token, listOf(OrderActivityFilterByCollectionDto.Types.CANCEL_BID)),
+                    ActivitySortDto.LATEST_FIRST
                 )
             },
             run {
