@@ -2,8 +2,11 @@ package com.rarible.protocol.order.core.repository.auction
 
 import com.rarible.core.reduce.repository.ReduceEventRepository
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -30,6 +33,18 @@ class AuctionHistoryRepository(
     fun findByType(type: AuctionHistoryType): Flux<LogEvent> {
         val query = Query(LogEvent::topic inValues type.topic)
         return template.find(query, COLLECTION)
+    }
+
+    fun searchActivity(filter: ActivityAuctionHistoryFilter, size: Int): Flux<LogEvent> {
+        val hint = filter.hint
+        val criteria = filter.getCriteria().and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+
+        val query = Query(criteria).limit(size)
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        return template.find(query.with(filter.sort), LogEvent::class.java, COLLECTION)
     }
 
     override fun getEvents(key: Word?, after: Long?): Flow<AuctionReduceEvent> {

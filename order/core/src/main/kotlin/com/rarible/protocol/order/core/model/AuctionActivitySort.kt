@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.model
 
-enum class ActivitySort {
+enum class AuctionActivitySort {
+    BID_DES,
     LATEST_FIRST,
     EARLIEST_FIRST;
 }
-

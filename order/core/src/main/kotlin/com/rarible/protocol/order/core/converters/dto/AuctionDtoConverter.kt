@@ -18,7 +18,6 @@ class AuctionDtoConverter(
         return when (source.type) {
             AuctionType.RARIBLE_V1 -> RaribleAuctionV1Dto(
                 seller = source.seller,
-                buyer = source.buyer,
                 sell =  assetDtoConverter.convert(source.sell),
                 buy = AssetTypeDtoConverter.convert(source.buy),
                 endTime = source.endTime,

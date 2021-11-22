@@ -4,6 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.time.Instant
 
 sealed class AuctionHistory(
@@ -40,6 +41,7 @@ data class BidPlaced(
     val buyer: Address,
     val endTime: EthUInt256,
     val auctionId: EthUInt256,
+    val bidValue: BigDecimal,
     override val hash: Word,
     override val contract: Address,
     override val date: Instant,
