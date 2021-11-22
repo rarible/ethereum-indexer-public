@@ -43,11 +43,11 @@ class AuctionController(
 
         val auctionBids = auctionService
             .getAuctionBids(HashParser.parse(hash), continuation, safeSize)
-            .let { auctionBids -> auctionBidsDtoConverter.convert(auctionBids) }
+            .map { entity -> auctionBidsDtoConverter.convert(entity) }
 
         val page = Paging(AuctionContinuation.ByBidValueAndId, auctionBids).getPage(safeSize).let { page ->
             AuctionBidsPaginationDto(
-                bids = page.entities,
+                bids = page.entities.map { entity -> entity.dto },
                 continuation = page.continuation
             )
         }

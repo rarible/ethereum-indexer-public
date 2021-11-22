@@ -1,8 +1,7 @@
 package com.rarible.protocol.order.core.continuation
 
-import com.rarible.protocol.dto.AuctionBidDto
 import com.rarible.protocol.dto.AuctionDto
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.core.model.AuctionBidEntityDto
 
 object AuctionContinuation {
     object ByLastUpdatedAndId : ContinuationFactory<AuctionDto, DateIdContinuation> {
@@ -17,15 +16,10 @@ object AuctionContinuation {
         }
     }
 
-    object ByBidValueAndId : ContinuationFactory<ByBidValueAndId.AuctionBidEntityDto, PriceIdContinuation> {
+    object ByBidValueAndId : ContinuationFactory<AuctionBidEntityDto, PriceIdContinuation> {
         override fun getContinuation(entity: AuctionBidEntityDto): PriceIdContinuation {
-            return PriceIdContinuation(entity.bidDto.amount, entity.hash.prefixed())
+            return PriceIdContinuation(entity.dto.amount, entity.id)
         }
-
-        class AuctionBidEntityDto(
-            val hash: Word,
-            val bidDto: AuctionBidDto
-        )
     }
 
     object ByBuyUsdPriceAndId : ContinuationFactory<AuctionDto, PriceIdContinuation> {

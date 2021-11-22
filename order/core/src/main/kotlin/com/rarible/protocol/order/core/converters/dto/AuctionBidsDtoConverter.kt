@@ -1,17 +1,17 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.AuctionBidDto
-import com.rarible.protocol.order.core.model.AuctionBids
+import com.rarible.protocol.order.core.model.AuctionBidEntityDto
+import com.rarible.protocol.order.core.model.AuctionBidEntity
 import org.springframework.stereotype.Component
 
 @Component
 class AuctionBidsDtoConverter(
     private val auctionBidDtoConverter: AuctionBidDtoConverter
 ) {
-    suspend fun convert(source: AuctionBids): List<AuctionBidDto> {
-        val (bidsPlaced, auction) = source
-        return bidsPlaced.map { bidPlaced ->
-            auctionBidDtoConverter.convert(auction.buy, bidPlaced.buyer, bidPlaced.bid)
-        }
+    suspend fun convert(source: AuctionBidEntity): AuctionBidEntityDto {
+        return AuctionBidEntityDto(
+            id = source.id,
+            dto = auctionBidDtoConverter.convert(source.buy, source.buyer, source.bid)
+        )
     }
 }

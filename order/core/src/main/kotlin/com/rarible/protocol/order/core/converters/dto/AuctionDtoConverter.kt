@@ -32,7 +32,9 @@ class AuctionDtoConverter(
                 hash = source.hash,
                 auctionId = source.auctionId.value,
                 lastBid = source.lastBid?.let { lastBid ->
-                    auctionBidDtoConverter.convert(source.buy, lastBid) as RaribleAuctionV1BidV1Dto
+                    source.buyer?.let { buyer ->
+                        auctionBidDtoConverter.convert(source.buy, buyer, lastBid) as RaribleAuctionV1BidV1Dto
+                    }
                 },
                 data = convert(source.buy, source.data) as RaribleAuctionV1DataV1Dto
             )

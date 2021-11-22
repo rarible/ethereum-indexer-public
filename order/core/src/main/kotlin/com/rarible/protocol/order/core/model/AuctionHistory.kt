@@ -41,7 +41,7 @@ data class BidPlaced(
     val buyer: Address,
     val endTime: EthUInt256,
     val auctionId: EthUInt256,
-    val bidValue: BigDecimal,
+    val bidValue: BigDecimal?,
     override val hash: Word,
     override val contract: Address,
     override val date: Instant,

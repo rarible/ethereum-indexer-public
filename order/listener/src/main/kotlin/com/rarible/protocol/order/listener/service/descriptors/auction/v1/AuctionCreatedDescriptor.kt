@@ -17,7 +17,7 @@ class AuctionCreatedDescriptor(
 
     override val topic: Word = AuctionCreatedEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, date: Instant): List<OnChainAuction> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OnChainAuction> {
         val event = AuctionCreatedEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
