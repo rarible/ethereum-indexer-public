@@ -75,4 +75,18 @@ class ChangeLog00003ItemIndexes {
                 .on(Item.Fields.ID, Sort.Direction.DESC)
         )
     }
+
+    @ChangeSet(id = "ChangeLog00003ItemIndexes.createIndexByCollectionAndOwner",
+        order = "7",
+        author = "protocol",
+        runAlways = true)
+    fun createIndexByCollectionAndOwner(template: MongockTemplate) {
+        template.indexOps(ItemRepository.COLLECTION).ensureIndex(
+            Index()
+                .on(Item.Fields.TOKEN, Sort.Direction.ASC)
+                .on(Item.Fields.OWNERS, Sort.Direction.ASC)
+                .on(Item.Fields.DATE, Sort.Direction.DESC)
+                .on(Item.Fields.ID, Sort.Direction.DESC)
+        )
+    }
 }

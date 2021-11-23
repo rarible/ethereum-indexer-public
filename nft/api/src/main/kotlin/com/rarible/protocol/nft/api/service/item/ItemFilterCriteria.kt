@@ -18,7 +18,7 @@ object ItemFilterCriteria {
     ): Query {
         val (criteria, showDeleted) = when (this) {
             is NftItemFilterAllDto -> all(lastUpdatedFrom) to showDeleted
-            is NftItemFilterByCollectionDto -> byCollection(collection) to false
+            is NftItemFilterByCollectionDto -> byCollection(collection, owner) to false
             is NftItemFilterByCreatorDto -> byCreator(creator) to false
             is NftItemFilterByOwnerDto -> byOwner(owner) to false
         }
@@ -38,8 +38,14 @@ object ItemFilterCriteria {
     private fun byCreator(creator: Address) =
         Criteria("${Item::creators.name}.recipient").inValues(creator)
 
-    private fun byCollection(collection: Address) =
-        Criteria(Item::token.name).isEqualTo(collection)
+    private fun byCollection(collection: Address, owner: Address?): Criteria {
+        val condition = Criteria(Item::token.name).`is`(collection)
+        return when {
+            null != owner -> condition.and(Item::owners.name).`is`(owner)
+            else -> condition
+        }
+    }
+
 
     private fun NftItemFilterDto.Sort.toMongoSort() =
         when (this) {

@@ -147,12 +147,14 @@ class ItemController(
 
     override suspend fun getNftItemsByCollection(
         collection: String,
+        owner: String?,
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
         val filter = NftItemFilterByCollectionDto(
             defaultSorting,
-            Address.apply(collection)
+            Address.apply(collection),
+            owner?.let { Address.apply(it) }
         )
 
         val result = getItems(filter, continuation, size)
