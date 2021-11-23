@@ -116,11 +116,6 @@
             <artifactId>transport-mono_${scala.major.version}</artifactId>
             <version>${scalether.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.michael-bull.kotlin-retry</groupId>
-            <artifactId>kotlin-retry</artifactId>
-            <version>1.0.6</version>
-        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>

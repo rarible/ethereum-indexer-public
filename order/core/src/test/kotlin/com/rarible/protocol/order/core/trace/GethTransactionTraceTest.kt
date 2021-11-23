@@ -5,6 +5,7 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.mono.WebClientTransport
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Tag
 import org.junit.jupiter.api.Test
 import scalether.core.MonoEthereum
@@ -14,6 +15,7 @@ class GethTransactionTraceTest {
 
     @Test
     @Tag("manual")
+    @Disabled
     fun `find trace work for geth`() = runBlocking<Unit> {
         val ethereum = MonoEthereum(WebClientTransport("https://node-rinkeby.rarible.com", MonoEthereum.mapper(), 10000, 10000))
         val testing = GethTransactionTraceProvider(ethereum)

@@ -1,12 +1,9 @@
 package com.rarible.protocol.order.core.trace
 
-import com.github.michaelbull.retry.policy.constantDelay
-import com.github.michaelbull.retry.policy.limitAttempts
-import com.github.michaelbull.retry.policy.plus
-import com.github.michaelbull.retry.retry
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.delay
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 
@@ -15,13 +12,19 @@ class TraceCallService(
     private val traceProvider: TransactionTraceProvider
 ) {
     suspend fun findRequiredCallInput(txHash: Word, txInput: Binary, to: Address, id: Binary): Binary {
-        return if (id == txInput.methodSignatureId()) {
-            txInput
+        if (id == txInput.methodSignatureId()) {
+            return txInput
         } else {
-            retry(limitAttempts(5) + constantDelay(200)) {
+            var attempts = 0
+            do {
                 val traceFound = traceProvider.traceAndFindCallTo(txHash, to, id)
-                traceFound?.input ?: error("tx trace not found for hash: $txHash")
-            }
+
+                if (traceFound?.input != null) {
+                    return traceFound.input
+                }
+                delay(200)
+            } while (attempts++ < 5)
         }
+        error("tx trace not found for hash: $txHash")
     }
 }
