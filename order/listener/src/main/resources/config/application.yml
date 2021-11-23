@@ -52,6 +52,7 @@ listener:
   priceUpdateEnabled: false
   resetMakeStockScheduleRate: PT1H # 1 hour period
   resetMakeStockEnabled: false
+  openSeaEndpoint: "https://api.opensea.io"
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50
