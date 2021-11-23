@@ -1,4 +1,4 @@
-global:
+lobal:
   blockchain: ethereum
   network: mainnet
 ethereum-erc20-api: &protocol-erc20-api

@@ -1,17 +1,20 @@
 package com.rarible.protocol.order.api.controller
 
+import com.nhaarman.mockitokotlin2.same
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.data.randomAuction
-import com.rarible.protocol.order.api.data.randomAuctionV1DataV1
+import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Duration
 import java.util.stream.Stream
@@ -229,6 +233,27 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                 }
             )
         }
+
+        @JvmStatic
+        fun auctionBids(): Stream<Arguments> = Stream.of(
+            run {
+                val contract = randomAddress()
+                val auctionId = EthUInt256.ONE
+                val hash = Auction.raribleV1HashKey(contract, auctionId)
+
+                Arguments.of(
+                    contract,
+                    auctionId,
+                    listOf(
+                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(5), bid = randomBid().copy(amount = EthUInt256.of(5)))),
+                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(4), bid = randomBid().copy(amount = EthUInt256.of(4)))),
+                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(3), bid = randomBid().copy(amount = EthUInt256.of(3)))),
+                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(2), bid = randomBid().copy(amount = EthUInt256.of(2)))),
+                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(1), bid = randomBid().copy(amount = EthUInt256.of(1))))
+                    )
+                )
+            }
+        )
     }
 
     @Test
@@ -303,12 +328,40 @@ class AuctionSearchFt : AbstractIntegrationTest() {
         assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction2.hash) }
     }
 
+    @ParameterizedTest
+    @MethodSource("auctionBids")
+    fun `should find auctions bids`(
+        contract: Address,
+        auctionId: EthUInt256,
+        eventLogs: List<LogEvent>
+    ) = runBlocking<Unit> {
+        val auction = randomAuction().copy(contract = contract, auctionId = auctionId)
+        saveAuction(auction)
+        saveHistory(eventLogs)
+
+        Wait.waitAssert {
+            val result = auctionClient.getAuctionBidsByHash(auction.hash.prefixed(), null, eventLogs.size).awaitFirst()
+
+            result.bids.forEachIndexed { index, orderDto ->
+                checkAuctionBidDto(orderDto, eventLogs[index].data as BidPlaced)
+            }
+        }
+    }
+
     private fun checkAuctionDto(auctionDto: AuctionDto, auction: Auction) {
         assertThat(auctionDto.hash).isEqualTo(auction.hash)
     }
 
+    private fun checkAuctionBidDto(auctionBidDto: AuctionBidDto, bidPlaced: BidPlaced) {
+        assertThat(auctionBidDto.buyer).isEqualTo(bidPlaced.buyer)
+    }
+
     private suspend fun saveAuction(vararg auction: Auction) {
         auction.forEach { auctionRepository.save(it) }
+    }
+
+    private suspend fun saveHistory(history: List<LogEvent>) {
+        history.forEach { auctionHistoryRepository.save(it).awaitFirst() }
     }
 
     data class FetchParams(

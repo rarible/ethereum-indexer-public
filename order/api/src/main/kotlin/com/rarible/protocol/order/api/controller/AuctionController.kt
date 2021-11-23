@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.continuation.Continuation
 import com.rarible.protocol.order.core.continuation.ContinuationFactory
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.continuation.page.Paging
+import com.rarible.protocol.order.core.converters.dto.AuctionBidsDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AuctionDtoConverter
 import com.rarible.protocol.order.core.converters.model.AuctionSortConverter
 import com.rarible.protocol.order.core.converters.model.AuctionStatusConverter
@@ -29,8 +30,29 @@ import scalether.domain.Address
 @RestController
 class AuctionController(
     private val auctionService: AuctionService,
-    private val auctionDtoConverter: AuctionDtoConverter
+    private val auctionDtoConverter: AuctionDtoConverter,
+    private val auctionBidsDtoConverter: AuctionBidsDtoConverter
 ) : AuctionControllerApi {
+
+    override suspend fun getAuctionBidsByHash(
+        hash: String,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<AuctionBidsPaginationDto> {
+        val safeSize = PageSize.AUCTION_BIDS.limit(size)
+
+        val auctionBids = auctionService
+            .getAuctionBids(HashParser.parse(hash), continuation, safeSize)
+            .map { entity -> auctionBidsDtoConverter.convert(entity) }
+
+        val page = Paging(AuctionContinuation.ByBidValueAndId, auctionBids).getPage(safeSize).let { page ->
+            AuctionBidsPaginationDto(
+                bids = page.entities.map { entity -> entity.dto },
+                continuation = page.continuation
+            )
+        }
+        return ResponseEntity.ok(page)
+    }
 
     override suspend fun getAuctionByHash(hash: String): ResponseEntity<AuctionDto> {
         val auction = auctionService.get(HashParser.parse(hash))

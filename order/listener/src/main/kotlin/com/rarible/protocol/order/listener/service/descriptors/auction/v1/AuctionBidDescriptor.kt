@@ -4,6 +4,8 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.auction.v1.event.BidPlacedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.auction.AuctionRepository
+import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
 import scalether.domain.response.Log
@@ -12,27 +14,33 @@ import java.time.Instant
 
 @Service
 class AuctionBidDescriptor(
-    auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
+    auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses,
+    private val prizeNormalizer: PriceNormalizer,
+    private val auctionRepository: AuctionRepository
 ) : AbstractAuctionDescriptor<BidPlaced>(auctionContractAddresses) {
 
     override val topic: Word = BidPlacedEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, date: Instant): List<BidPlaced> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<BidPlaced> {
         val event = BidPlacedEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
         val bid = event.bid().toAuctionBid()
         val endTime = EthUInt256.of(event.endTime())
+        val hash = Auction.raribleV1HashKey(contract, auctionId)
+        val auction = auctionRepository.findById(hash)
+        val bidValue = auction?.let { prizeNormalizer.normalize(auction.buy, bid.amount.value) }
 
         return listOf(
             BidPlaced(
                 buyer = transaction.from(),
                 bid = bid,
+                bidValue = bidValue,
                 endTime = endTime,
                 date = date,
                 contract = contract,
                 auctionId = auctionId,
-                hash = Auction.raribleV1HashKey(contract, auctionId),
+                hash = hash,
                 source = HistorySource.RARIBLE
             )
         )

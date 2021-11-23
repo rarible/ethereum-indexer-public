@@ -31,7 +31,7 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    protected abstract fun convert(log: Log, transaction: Transaction, date: Instant): List<T>
+    protected abstract suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<T>
 
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(listOf(auctionContractAddresses.v1))

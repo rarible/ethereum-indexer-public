@@ -17,7 +17,7 @@ class AuctionCancelDescriptor(
 
     override val topic: Word = AuctionCancelledEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, date: Instant): List<AuctionCancelled> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<AuctionCancelled> {
         val event = AuctionCancelledEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())

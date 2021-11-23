@@ -6,6 +6,7 @@ data class PageSize(
 ) {
     companion object {
         val AUCTION = PageSize(50, 1000)
+        val AUCTION_BIDS = PageSize(50, 1000)
     }
 
     fun limit(size: Int?): Int {
