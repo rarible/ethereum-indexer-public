@@ -2,22 +2,24 @@ package com.rarible.protocol.order.core.trace
 
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.NodeType
-import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 import scalether.core.MonoEthereum
 
-@Component
+@Configuration
 class TransactionTraceProviderFactory(
     private val ethereum: MonoEthereum,
-    properties: OrderIndexerProperties
+    private val properties: OrderIndexerProperties
 ) {
-    private val transactionTraceProvider: TransactionTraceProvider = runBlocking {
+
+    @Bean
+    fun traceProvider(): TransactionTraceProvider {
         if (properties.nodeType == null) {
             logger.warn("nodeType not set. using OPEN_ETHEREUM")
         }
-        when (properties.nodeType ?: NodeType.OPEN_ETHEREUM) {
+        return when (properties.nodeType ?: NodeType.OPEN_ETHEREUM) {
             NodeType.OPEN_ETHEREUM -> {
                 OpenEthereumTransactionTraceProvider(ethereum)
             }
@@ -25,10 +27,6 @@ class TransactionTraceProviderFactory(
                 GethTransactionTraceProvider(ethereum)
             }
         }
-    }
-
-    fun createTraceProvider(): TransactionTraceProvider {
-        return transactionTraceProvider
     }
 
     companion object {

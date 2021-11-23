@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
@@ -40,7 +41,7 @@ class OpenEthereumTransactionTraceProvider(
         @Suppress("BlockingMethodInNonBlockingContext")
         return mapper.treeToValue<Array<Trace>>(result.result().get())!!
             .asSequence()
-            .filter { it.action.to == to && it.action.input.slice(0, 4) == id }
+            .filter { it.action.to == to && it.action.input.methodSignatureId() == id }
             .map { convert(it) }
             .firstOrNull()
     }

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
+import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
@@ -24,7 +25,7 @@ import java.math.BigInteger
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
         OrderIndexerProperties.ExchangeContractAddresses(Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO()),
-        NoopTransactionTraceProvider()
+        TraceCallService(NoopTransactionTraceProvider())
     )
 
     private val priceUpdateService = mockk<PriceUpdateService> {

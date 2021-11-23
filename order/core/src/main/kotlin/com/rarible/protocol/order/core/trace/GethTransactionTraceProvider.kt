@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
@@ -59,7 +60,7 @@ class GethTransactionTraceProvider(
         val calls: List<TraceResult> = emptyList()
     ) {
         fun findTrace(to: Address, id: Binary): TraceResult? {
-            if (to == to && input.slice(0, 4) == id) {
+            if (to == to && input.methodSignatureId() == id) {
                 return this
             }
             return calls

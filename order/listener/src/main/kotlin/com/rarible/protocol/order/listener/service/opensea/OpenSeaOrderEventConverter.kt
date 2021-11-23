@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -185,7 +186,7 @@ class OpenSeaOrderEventConverter(
     }
 
     private fun encodeTransfer(callData: Binary): Transfer? {
-        return when (callData.slice(0, 4)) {
+        return when (callData.methodSignatureId()) {
             IERC1155.safeTransferFromSignature().id() -> {
                 val encoded = IERC1155.safeTransferFromSignature().`in`().decode(callData, 4)
                 Transfer(

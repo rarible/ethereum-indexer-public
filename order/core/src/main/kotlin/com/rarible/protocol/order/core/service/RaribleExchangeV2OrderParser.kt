@@ -1,15 +1,10 @@
 package com.rarible.protocol.order.core.service
 
-import com.github.michaelbull.retry.policy.constantDelay
-import com.github.michaelbull.retry.policy.limitAttempts
-import com.github.michaelbull.retry.policy.plus
-import com.github.michaelbull.retry.retry
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainOrder
@@ -24,7 +19,7 @@ import com.rarible.protocol.order.core.model.RaribleMatchedOrders
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.model.toPart
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
+import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -34,20 +29,13 @@ import java.math.BigInteger
 @Component
 class RaribleExchangeV2OrderParser(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceProvider: TransactionTraceProvider
+    private val traceCallService: TraceCallService
 ) {
     private val address = exchangeContractAddresses.v2
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): RaribleMatchedOrders? {
         val signature = ExchangeV2.matchOrdersSignature()
-        val input = if (signature.id() == txInput.methodSignatureId()) {
-            txInput
-        } else {
-            retry(limitAttempts(5) + constantDelay(200)) {
-                val traceFound = traceProvider.traceAndFindCallTo(txHash, address, signature.id())
-                traceFound?.input ?: error("tx trace not found for hash: $txHash")
-            }
-        }
+        val input = traceCallService.findRequiredCallInput(txHash, txInput, address, signature.id())
 
         val decoded = signature.`in`().decode(input, 4)
 
