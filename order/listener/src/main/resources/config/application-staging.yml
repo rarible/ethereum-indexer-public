@@ -4,3 +4,6 @@ common:
 rarible:
   opensea:
     endpoint: https://rinkeby-api.opensea.io
+
+listener:
+  openSeaEndpoint: ${rarible.opensea.endpoint}
