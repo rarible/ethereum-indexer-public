@@ -21,8 +21,6 @@ import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
-import com.rarible.protocol.order.core.trace.TransactionTraceProviderFactory
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.service.event.ConsumerWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
@@ -54,7 +52,6 @@ class OrderListenerConfiguration(
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val orderIndexerEventsConsumerFactory: OrderIndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
-    private val transactionTraceProviderFactory: TransactionTraceProviderFactory,
     private val blockRepository: BlockRepository
 ) {
     private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
@@ -69,11 +66,6 @@ class OrderListenerConfiguration(
     @Bean
     fun blockchain(): Blockchain {
         return commonProperties.blockchain
-    }
-
-    @Bean
-    fun blockchainTransactionTraceProvider(): TransactionTraceProvider {
-        return transactionTraceProviderFactory.createTraceProvider()
     }
 
     @Bean

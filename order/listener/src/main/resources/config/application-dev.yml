@@ -1,5 +1,6 @@
 common:
   chain-id: 3
+  node-type: GETH
 rarible:
   ethereum:
     max-frame-size: 10485760

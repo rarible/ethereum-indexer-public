@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.order.core.model.NodeType
 import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -29,7 +30,8 @@ data class OrderIndexerProperties(
     val publish: PublishProperties = PublishProperties(),
     @NestedConfigurationProperty
     val featureFlags: FeatureFlags = FeatureFlags(),
-    val blockCountBeforeSnapshot: Int = 12
+    val blockCountBeforeSnapshot: Int = 12,
+    val nodeType: NodeType?
 ) {
     data class ExchangeContractAddresses(
         val v1: Address,
@@ -57,7 +59,6 @@ data class OrderIndexerProperties(
     )
 
     data class FeatureFlags(
-        val useCommonTransactionTraceProvider: Boolean = true,
         val showAllOrdersByDefault: Boolean = false,
         val showOpenSeaOrdersWithOtherPlatforms: Boolean = false
     )
