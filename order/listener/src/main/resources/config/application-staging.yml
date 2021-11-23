@@ -1,5 +1,6 @@
 common:
   chain-id: 4
+  node-type: GETH
 
 rarible:
   opensea:

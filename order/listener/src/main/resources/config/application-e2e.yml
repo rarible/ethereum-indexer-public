@@ -1,4 +1,5 @@
 common:
   chain-id: 17
+  node-type: OPEN_ETHEREUM
 listener:
   load-open-sea-orders: false
