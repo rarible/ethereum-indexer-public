@@ -235,6 +235,65 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `should get item by collection`() = runBlocking {
+        val token = AddressFactory.create()
+        val item = createItem().copy(token = token)
+
+        listOf(
+            createItem(),
+            item,
+            createItem()
+        ).forEach { itemRepository.save(it).awaitFirst() }
+
+        val allItems = mutableListOf<NftItemDto>()
+        var continuation: String? = null
+        do {
+            val itemsDto = nftItemApiClient.getNftItemsByCollection(token.hex(), null, continuation, 2).awaitFirst()
+            assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(2)
+
+            allItems.addAll(itemsDto.items)
+            continuation = itemsDto.continuation
+        } while (continuation != null)
+
+        assertThat(allItems).hasSize(1)
+
+        assertThat(allItems.map { it.id }).containsExactlyInAnyOrder(item.id.decimalStringValue)
+        allItems.forEach {
+            assertThat(it.meta).isNotNull
+        }
+    }
+
+    @Test
+    fun `should get item by collection & owner`() = runBlocking {
+        val token = AddressFactory.create()
+        val owner = AddressFactory.create()
+        val item = createItem().copy(token = token, owners = listOf(owner))
+
+        listOf(
+            createItem().copy(token = token),
+            item,
+            createItem().copy(token = token)
+        ).forEach { itemRepository.save(it).awaitFirst() }
+
+        val allItems = mutableListOf<NftItemDto>()
+        var continuation: String? = null
+        do {
+            val itemsDto = nftItemApiClient.getNftItemsByCollection(token.hex(), owner.hex(), continuation, 2).awaitFirst()
+            assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(2)
+
+            allItems.addAll(itemsDto.items)
+            continuation = itemsDto.continuation
+        } while (continuation != null)
+
+        assertThat(allItems).hasSize(1)
+
+        assertThat(allItems.map { it.id }).containsExactlyInAnyOrder(item.id.decimalStringValue)
+        allItems.forEach {
+            assertThat(it.meta).isNotNull
+        }
+    }
+
+    @Test
     fun `should get null continuation`() = runBlocking<Unit> {
         val owner = AddressFactory.create()
         val item1 = createItem().copy(owners = listOf(owner))
