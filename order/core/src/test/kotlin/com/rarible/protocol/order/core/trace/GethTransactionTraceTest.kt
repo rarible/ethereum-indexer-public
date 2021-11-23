@@ -22,7 +22,6 @@ class GethTransactionTraceTest {
             Address.apply("0x04792a5109e55d518db3b65285516cca55db46fe"),
             Binary.apply("0xe6a43905")
         )
-        println(NodeVersionProvider(ethereum).getClientVersion())
         assertThat(traceResult?.input)
             .isEqualTo(Binary.apply("0xe6a43905000000000000000000000000b83a6d7f5dc224e241989511ea3e2b7f4f263ede000000000000000000000000ec23daeab1deeb3587eeb3453d4e95db128b0e62"))
     }
