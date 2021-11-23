@@ -85,7 +85,7 @@ class ItemApiService(
             collection, continuation, size
         )
         return itemsResponse(
-            nftItemControllerApi.getNftItemsByCollection(collection, continuation, size)
+            nftItemControllerApi.getNftItemsByCollection(collection, null, continuation, size)
         )
     }
 

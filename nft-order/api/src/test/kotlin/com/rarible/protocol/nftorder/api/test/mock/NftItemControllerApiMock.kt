@@ -58,7 +58,7 @@ class NftItemControllerApiMock(
 
     fun mockGetNftOrderItemsByCollection(collection: String, vararg returnItems: NftItemDto) {
         every {
-            nftItemControllerApi.getNftItemsByCollection(collection, null, null)
+            nftItemControllerApi.getNftItemsByCollection(collection, null, null, null)
         } returns Mono.just(NftItemsDto(returnItems.size.toLong(), null, returnItems.asList()))
     }
 
