@@ -1,16 +1,35 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.github.michaelbull.retry.policy.constantDelay
+import com.github.michaelbull.retry.policy.limitAttempts
+import com.github.michaelbull.retry.policy.plus
+import com.github.michaelbull.retry.retry
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 
 @Component
-class OpenSeaOrderParser {
-    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders? {
+class OpenSeaOrderParser(
+    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val traceProvider: TransactionTraceProvider
+) {
+    private val address = exchangeContractAddresses.openSeaV1
+
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
-        if (signature.id() != input.methodSignatureId()) return null
+        val input = if (signature.id() == txInput.methodSignatureId()) {
+            txInput
+        } else {
+            retry(limitAttempts(5) + constantDelay(200)) {
+                val traceFound = traceProvider.traceAndFindCallTo(txHash, address, signature.id())
+                traceFound?.input ?: error("tx trace not found for hash: $txHash")
+            }
+        }
 
         val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()

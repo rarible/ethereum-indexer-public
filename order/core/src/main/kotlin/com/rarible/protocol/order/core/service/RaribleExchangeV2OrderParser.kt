@@ -1,9 +1,14 @@
 package com.rarible.protocol.order.core.service
 
+import com.github.michaelbull.retry.policy.constantDelay
+import com.github.michaelbull.retry.policy.limitAttempts
+import com.github.michaelbull.retry.policy.plus
+import com.github.michaelbull.retry.retry
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
@@ -19,16 +24,30 @@ import com.rarible.protocol.order.core.model.RaribleMatchedOrders
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.model.toPart
+import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
 
 @Component
-class RaribleExchangeV2OrderParser {
-    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders? {
+class RaribleExchangeV2OrderParser(
+    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val traceProvider: TransactionTraceProvider
+) {
+    private val address = exchangeContractAddresses.v2
+
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): RaribleMatchedOrders? {
         val signature = ExchangeV2.matchOrdersSignature()
-        if (signature.id() != input.methodSignatureId()) return null
+        val input = if (signature.id() == txInput.methodSignatureId()) {
+            txInput
+        } else {
+            retry(limitAttempts(5) + constantDelay(200)) {
+                val traceFound = traceProvider.traceAndFindCallTo(txHash, address, signature.id())
+                traceFound?.input ?: error("tx trace not found for hash: $txHash")
+            }
+        }
 
         val decoded = signature.`in`().decode(input, 4)
 
@@ -91,11 +110,11 @@ class RaribleExchangeV2OrderParser {
         return when (version) {
             OrderDataVersion.RARIBLE_V2_DATA_V1.ethDataType -> {
                 val (payouts, originFees) = when {
-                    data.slice(0, 32) ==  ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
+                    data.slice(0, 32) == ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
                         val decoded = Tuples.orderDataV1Type().decode(data, 0)
                         decoded.value()._1().map { it.toPart() } to decoded.value()._2().map { it.toPart() }
                     }
-                    data.slice(0, 32) ==  WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
+                    data.slice(0, 32) == WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX -> {
                         val decodedWrong = Tuples.wrongOrderDataV1Type().decode(data, 0)
                         decodedWrong.value()._1().map { it.toPart() } to decodedWrong.value()._2().map { it.toPart() }
                     }
@@ -122,7 +141,9 @@ class RaribleExchangeV2OrderParser {
     }
 
     private companion object {
-        val WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000040")
-        val ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000020")
+        val WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary =
+            Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000040")
+        val ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary =
+            Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000020")
     }
 }

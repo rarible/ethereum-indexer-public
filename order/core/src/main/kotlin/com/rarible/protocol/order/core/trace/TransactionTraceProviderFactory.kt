@@ -3,6 +3,8 @@ package com.rarible.protocol.order.core.trace
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.NodeType
 import kotlinx.coroutines.runBlocking
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.core.MonoEthereum
 
@@ -11,26 +13,25 @@ class TransactionTraceProviderFactory(
     private val ethereum: MonoEthereum,
     properties: OrderIndexerProperties
 ) {
-    private val featureFlags = properties.featureFlags
-
     private val transactionTraceProvider: TransactionTraceProvider = runBlocking {
-        val nodeVersionProvider = NodeVersionProvider(ethereum)
-        val clientVersion = nodeVersionProvider.getClientVersion()
-            ?: throw IllegalStateException("Can't get blockchain client version")
-
-        when (clientVersion.type) {
+        if (properties.nodeType == null) {
+            logger.warn("nodeType not set. using OPEN_ETHEREUM")
+        }
+        when (properties.nodeType ?: NodeType.OPEN_ETHEREUM) {
             NodeType.OPEN_ETHEREUM -> {
-                if (featureFlags.useCommonTransactionTraceProvider) CommonTransactionTraceProvider(ethereum)
-                else OpenEthereumTransactionTraceProvider(ethereum)
+                OpenEthereumTransactionTraceProvider(ethereum)
             }
             NodeType.GETH, NodeType.UNKNOWN -> {
-                if (featureFlags.useCommonTransactionTraceProvider) CommonTransactionTraceProvider(ethereum)
-                else GethTransactionTraceProvider(ethereum)
+                GethTransactionTraceProvider(ethereum)
             }
         }
     }
 
     fun createTraceProvider(): TransactionTraceProvider {
         return transactionTraceProvider
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(TransactionTraceProviderFactory::class.java)
     }
 }

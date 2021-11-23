@@ -2,17 +2,14 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
 import com.rarible.contracts.test.erc20.TestERC20
 import com.rarible.contracts.test.erc721.TestERC721
-import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.wyvern.proxy.WyvernTokenTransferProxy
 import com.rarible.protocol.contracts.common.wyvern.registry.WyvernProxyRegistry
 import com.rarible.protocol.contracts.common.wyvern.token.TestToken
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
-import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.misc.setField
-import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderProvider
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -52,9 +49,6 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var wyvernExchangeOrderCancelDescriptor: WyvernExchangeOrderCancelDescriptor
-
-    @Autowired
-    private lateinit var openSeaOrderProvider: OpenSeaOrderProvider
 
     @BeforeEach
     fun before() = runBlocking {
@@ -96,7 +90,6 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
 
         setField(wyvernExchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
         setField(wyvernExchangeOrderCancelDescriptor, "exchangeContract", exchange.address())
-        setField(openSeaOrderProvider, "openSeaContract", exchange.address())
 
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 
