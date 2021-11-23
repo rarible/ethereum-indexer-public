@@ -3,6 +3,8 @@ package com.rarible.protocol.order.core.repository.auction
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.order.core.continuation.DateIdContinuation
+import com.rarible.protocol.order.core.continuation.PriceIdContinuation
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import org.bson.Document
@@ -36,29 +38,29 @@ sealed class ActivityAuctionHistoryFilter {
             this
         } else when (sort) {
             AuctionActivitySort.BID_DES -> {
-                val lastBid = Continuation.parse<Continuation.Price>(continuation)
+                val lastBid = PriceIdContinuation.parse(continuation)
                 lastBid?.let {
                     this.orOperator(
-                        LogEvent::data / BidPlaced::bidValue lt lastBid.afterPrice,
-                        (LogEvent::data / BidPlaced::bidValue isEqualTo lastBid.afterPrice).and("_id").lt(lastBid.afterId)
+                        LogEvent::data / BidPlaced::bidValue lt lastBid.price,
+                        (LogEvent::data / BidPlaced::bidValue isEqualTo lastBid.price).and("_id").lt(lastBid.id)
                     )
                 } ?: this
             }
             AuctionActivitySort.LATEST_FIRST -> {
-                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::data / AuctionHistory::date lt lastDate.afterDate,
-                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.afterDate).and("_id").lt(lastDate.afterId)
+                        LogEvent::data / AuctionHistory::date lt lastDate.date,
+                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.date).and("_id").lt(lastDate.id)
                     )
                 } ?: this
             }
             AuctionActivitySort.EARLIEST_FIRST -> {
-                val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+                val lastDate = DateIdContinuation.parse(continuation)
                 lastDate?.let {
                     this.orOperator(
-                        LogEvent::data / AuctionHistory::date gt lastDate.afterDate,
-                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.afterDate).and("_id").gt(lastDate.afterId)
+                        LogEvent::data / AuctionHistory::date gt lastDate.date,
+                        (LogEvent::data / AuctionHistory::date isEqualTo lastDate.date).and("_id").gt(lastDate.id)
                     )
                 } ?: this
             }

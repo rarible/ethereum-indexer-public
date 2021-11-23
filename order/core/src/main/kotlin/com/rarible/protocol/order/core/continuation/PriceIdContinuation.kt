@@ -12,4 +12,13 @@ data class PriceIdContinuation(
     }
 
     private fun BigDecimal?.orDefault(): BigDecimal = this ?: BigDecimal.ZERO
+
+    companion object {
+        fun parse(str: String?): PriceIdContinuation? {
+            val pair = Continuation.splitBy(str, "_") ?: return null
+            val price = pair.first
+            val id = pair.second
+            return PriceIdContinuation(BigDecimal(price), id)
+        }
+    }
 }
