@@ -63,7 +63,7 @@ class OpenSeaOrderLoadTaskHandler(
                 val now = nowMillis().epochSecond
                 val listedBefore = listedAfter + MAX_LOAD_PERIOD.seconds
 
-                logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
+                logger.info("[OldOpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
                 val openSeaOrders = openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
 
                 if (openSeaOrders.isNotEmpty()) {
@@ -75,7 +75,7 @@ class OpenSeaOrderLoadTaskHandler(
                     val minCreatedAt = createdAts.min() ?: error("Can't be empty value")
                     val maxCreatedAt = createdAts.max() ?: error("Can't be empty value")
 
-                    logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
+                    logger.info("[OldOpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
                     coroutineScope {
                         openSeaOrders
@@ -88,9 +88,9 @@ class OpenSeaOrderLoadTaskHandler(
                                 }
                             }.awaitAll()
                     }
-                    logger.info("[OpenSea] All new OpenSea orders saved")
+                    logger.info("[OldOpenSea] All new OpenSea orders saved")
                 } else {
-                    logger.info("[OpenSea] No new orders to fetch")
+                    logger.info("[OldOpenSea] No new orders to fetch")
                     delay(properties.pollingOpenSeaPeriod)
                 }
                 if (listedBefore <= now) {
