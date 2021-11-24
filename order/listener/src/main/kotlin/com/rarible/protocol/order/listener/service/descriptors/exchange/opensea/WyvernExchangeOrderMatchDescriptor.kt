@@ -42,10 +42,7 @@ class WyvernExchangeOrderMatchDescriptor(
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
-        val transactionHash =  log.transactionHash()
-        logger.info("Got OrdersMatchedEvent, tx=$transactionHash")
-
-        val orders = openSeaOrderParser.parseMatchedOrders(transaction.input())
+        val orders = openSeaOrderParser.parseMatchedOrders(transaction.hash(), transaction.input())
         val event = OrdersMatchedEvent.apply(log)
         return if (orders != null) {
             openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)

@@ -29,6 +29,7 @@ class InternalItemHandler(
     private val conversionService: ConversionService,
     private val protocolNftEventPublisher: ProtocolNftEventPublisher
 ) : ConsumerEventHandler<NftItemEventDto> {
+
     override suspend fun handle(event: NftItemEventDto) = when (event) {
         is NftItemUpdateEventDto -> {
             val meta = itemMetaService.getItemMetadata(ItemId.parseId(event.item.id))

@@ -1,2 +1,3 @@
 common:
   chain-id: 1
+  node-type: OPEN_ETHEREUM

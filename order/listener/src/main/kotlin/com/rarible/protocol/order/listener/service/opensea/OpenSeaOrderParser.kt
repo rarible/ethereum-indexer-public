@@ -1,16 +1,30 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 
 @Component
-class OpenSeaOrderParser {
-    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders? {
+class OpenSeaOrderParser(
+    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val traceCallService: TraceCallService
+) {
+    private val address = exchangeContractAddresses.openSeaV1
+
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
-        if (signature.id() != input.methodSignatureId()) return null
+        val input = traceCallService.findRequiredCallInput(txHash, txInput, address, signature.id())
 
         val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()

@@ -1,6 +1,10 @@
 common:
   chain-id: 4
+  node-type: GETH
 
 rarible:
   opensea:
     endpoint: https://rinkeby-api.opensea.io
+
+listener:
+  openSeaEndpoint: ${rarible.opensea.endpoint}
