@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderActivityMatchDto
+import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.model.Asset
@@ -104,6 +105,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 null
             )
         ).verifySuccess()
+        val rightOrderHash = Order.hashKey(userSender2.from(), sellOrder.take.type, sellOrder.make.type, BigInteger.ZERO, sellOrder.data)
 
         assertThat(exchange.fills(sellOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.valueOf(4))
 
@@ -124,7 +126,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left.adhoc).isFalse()
             assertThat(left.counterAdhoc).isTrue()
 
-            assertThat(right.hash).isEqualTo(Order.hashKey(userSender2.from(), sellOrder.take.type, sellOrder.make.type, BigInteger.ZERO, sellOrder.data))
+            assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.fill).isEqualTo(EthUInt256.of(40))
             assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(right.adhoc).isTrue()
@@ -137,6 +139,15 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(filledOrder.fill).isEqualTo(EthUInt256.of(4))
             assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.of(6))
             assertThat(filledOrder.status).isEqualTo(OrderStatus.ACTIVE)
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(sellOrder.hash)
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+                assertThat(it.right.hash).isEqualTo(rightOrderHash)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
+            }
         }
     }
 
@@ -168,6 +179,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             makeUsd = null,
             takeUsd = null
         )
+        val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
 
         // to make the makeStock = 100
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns bidOrder.make.value
@@ -240,6 +252,15 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.of(60))
             assertThat(filledOrder.status).isEqualTo(OrderStatus.ACTIVE)
         }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
+                assertThat(it.right.hash).isEqualTo(rightOrderHash)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+            }
+        }
     }
 
     @Test
@@ -268,6 +289,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             makeUsd = null,
             takeUsd = null
         )
+        val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
 
         orderUpdateService.save(bidOrder)
 
@@ -323,12 +345,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.adhoc!!).isTrue()
             assertThat(left.counterAdhoc!!).isTrue()
-
-            checkActivityWasPublished {
-                assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
-                    assertThat(left.hash).isEqualTo(bidOrder.hash)
-                }
-            }
         }
 
         Wait.waitAssert {
@@ -337,6 +353,15 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(filledOrder.fill).isEqualTo(EthUInt256.ONE)
             assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.ZERO)
             assertThat(filledOrder.status).isEqualTo(OrderStatus.FILLED)
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
+                assertThat(it.right.hash).isEqualTo(rightOrderHash)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+            }
         }
     }
 
@@ -370,6 +395,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             makeUsd = null,
             takeUsd = null
         )
+        val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
         orderUpdateService.save(bidOrder)
 
         token1.mint(userSender1.from(), BigInteger.valueOf(100)).execute().verifySuccess()
@@ -426,6 +452,15 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.maker).isEqualTo(rightPayout)
             assertThat(right.taker).isEqualTo(leftPayout)
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(bidOrder.hash)
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
+                assertThat(it.right.hash).isEqualTo(rightOrderHash)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+            }
         }
     }
 }
