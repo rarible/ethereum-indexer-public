@@ -14,10 +14,25 @@ import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.limit
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 
 object OrderFilterCriteria {
@@ -110,7 +125,8 @@ object OrderFilterCriteria {
             Order::make / Asset::type / NftAssetType::token isEqualTo token,
             Criteria().orOperator(
                 Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
-                Order::make / Asset::type / NftAssetType::tokenId exists false
+                Criteria("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}").exists(false)
+                    .and("${Order::make.name}.${Asset::type.name}._class").isEqualTo(CollectionAssetType::class.java.name)
             )
         )
     }

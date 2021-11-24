@@ -8,7 +8,9 @@ import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
@@ -71,6 +73,26 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
         val take = Asset(EthAssetType, EthUInt256.ONE)
         val orderV1 = createOrderVersion(make, take).copy(maker = maker)
         saveOrderVersions(orderV1)
+
+        val dto = controller.getSellOrdersByItemAndByStatus(
+            token.hex(), tokenId.toString(), null, null, null, null, null, listOf(OrderStatusDto.ACTIVE),
+            null
+        )
+        assertEquals(1, dto.body.orders.size)
+    }
+
+    @Test
+    fun `shouldn't return sell order by item`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val make1 = Asset(GenerativeArtAssetType(token), EthUInt256.ONE)
+        val take1 = Asset(EthAssetType, EthUInt256.ONE)
+        val orderV1 = createOrderVersion(make1, take1).copy(maker = maker)
+        saveOrderVersions(orderV1)
+
+        val make2 = Asset(Erc721AssetType(token, EthUInt256.of(tokenId)), EthUInt256.ONE)
+        val take2 = Asset(EthAssetType, EthUInt256.ONE)
+        val orderV2 = createOrderVersion(make2, take2).copy(maker = maker)
+        saveOrderVersions(orderV2)
 
         val dto = controller.getSellOrdersByItemAndByStatus(
             token.hex(), tokenId.toString(), null, null, null, null, null, listOf(OrderStatusDto.ACTIVE),
