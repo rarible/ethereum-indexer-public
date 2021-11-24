@@ -37,19 +37,23 @@ class OpenSeaOrderLoadTaskHandler(
 ) : TaskHandler<Long> {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private val openSeaOrderService = MeasurableOpenSeaOrderService(
-        OpenSeaOrderServiceImpl(
-            OpenSeaClient(
-                endpoint = properties.openSeaEndpoint ?: error("OpenSea endpoint must be defined"),
-                apiKey = null,
-                proxy = openSeaClientProperties.proxy,
-                userAgentProvider = externalUserAgentProvider
+    private val openSeaOrderService = run {
+        logger.info("Create OpenSea client for endpoint ${properties.openSeaEndpoint}")
+
+        MeasurableOpenSeaOrderService(
+            OpenSeaOrderServiceImpl(
+                OpenSeaClient(
+                    endpoint = properties.openSeaEndpoint ?: error("OpenSea endpoint must be defined"),
+                    apiKey = null,
+                    proxy = openSeaClientProperties.proxy,
+                    userAgentProvider = externalUserAgentProvider
+                ),
+                properties
             ),
-            properties
-        ),
-        micrometer,
-        blockchain
-    )
+            micrometer,
+            blockchain
+        )
+    }
 
     override val type: String
         get() = OPEN_SEA_ORDER_LOAD
@@ -91,7 +95,6 @@ class OpenSeaOrderLoadTaskHandler(
                     logger.info("[OldOpenSea] All new OpenSea orders saved")
                 } else {
                     logger.info("[OldOpenSea] No new orders to fetch")
-                    delay(properties.pollingOpenSeaPeriod)
                 }
                 if (listedBefore <= now) {
                     listedAfter = listedBefore
