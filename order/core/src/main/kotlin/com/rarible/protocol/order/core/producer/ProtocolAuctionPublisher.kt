@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.producer
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.ActivityDto
@@ -26,7 +28,10 @@ import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.PublishProperties
 import com.rarible.protocol.order.core.model.ItemId
+import org.springframework.stereotype.Component
 
+@Component
+@CaptureSpan(type = SpanType.KAFKA)
 class ProtocolAuctionPublisher(
     private val auctionActivityProducer: RaribleKafkaProducer<ActivityDto>,
     private val auctionEventProducer: RaribleKafkaProducer<AuctionEventDto>,

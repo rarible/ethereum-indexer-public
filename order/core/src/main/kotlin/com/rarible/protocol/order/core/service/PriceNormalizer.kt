@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.protocol.order.core.model.*
@@ -10,6 +12,7 @@ import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
+@CaptureSpan(type = SpanType.APP)
 class PriceNormalizer(
     private val contractService: ContractService
 ) {

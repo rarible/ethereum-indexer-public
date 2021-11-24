@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
@@ -26,6 +28,7 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class ExchangeOrderMatchDeprecatedDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val orderRepository: OrderRepository,

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.event.OrderListener
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component
  * Service responsible for inserting or updating order state (see [save]).
  */
 @Component
+@CaptureSpan(type = SpanType.APP)
 class OrderUpdateService(
     private val orderRepository: OrderRepository,
     private val assetMakeBalanceProvider: AssetMakeBalanceProvider,

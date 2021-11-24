@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.repository.auction
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.misc.isSingleton
@@ -16,8 +18,11 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.*
+import org.springframework.stereotype.Component
 import scalether.domain.Address
 
+@CaptureSpan(type = SpanType.DB)
+@Component
 class AuctionRepository(
     private val template: ReactiveMongoTemplate
 ) {

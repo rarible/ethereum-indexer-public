@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -20,9 +22,12 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+@CaptureSpan(type = SpanType.DB)
+@Component
 class OrderVersionRepository(
     private val template: ReactiveMongoTemplate
 ) {

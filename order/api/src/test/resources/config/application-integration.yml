@@ -3,6 +3,8 @@ rarible:
     apm:
       agent:
         enabled: false
+      annotation:
+        enabled: false
 common:
   blockchain: ethereum
   eip712-domain-name: test

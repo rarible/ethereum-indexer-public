@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.domain.EventData
@@ -20,6 +22,7 @@ import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
+@CaptureSpan(type = SpanType.EVENT)
 abstract class AbstractAuctionDescriptor<T : EventData>(
     private val auctionContractAddresses: OrderIndexerProperties.AuctionContractAddresses
 ) : LogEventDescriptor<T> {

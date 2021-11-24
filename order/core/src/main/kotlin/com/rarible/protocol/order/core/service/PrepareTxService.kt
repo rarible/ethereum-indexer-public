@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
@@ -50,6 +52,7 @@ import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
 
 @Service
+@CaptureSpan(type = SpanType.APP)
 class PrepareTxService(
     private val transferProxyService: TransferProxyService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,

@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.test.context.ContextConfiguration
@@ -19,6 +20,7 @@ import scalether.domain.Address
 
 @MongoTest
 @DataMongoTest
+@EnableAutoConfiguration
 @ContextConfiguration(classes = [RepositoryConfiguration::class])
 internal class OrderRepositoryIt {
 

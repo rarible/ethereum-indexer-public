@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
@@ -24,6 +26,7 @@ import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class ExchangeV2UpsertOrderDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser

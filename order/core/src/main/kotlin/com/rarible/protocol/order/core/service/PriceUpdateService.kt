@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
@@ -13,6 +15,7 @@ import java.math.BigDecimal
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EXT)
 class PriceUpdateService(
     private val blockchain: Blockchain,
     private val currencyApi: CurrencyControllerApi,

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
@@ -29,6 +31,7 @@ import scalether.util.Hash
 import java.time.Instant
 
 @Component
+@CaptureSpan(type = SpanType.APP)
 class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val orderRepository: OrderRepository,

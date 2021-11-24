@@ -1,5 +1,8 @@
 package com.rarible.protocol.order.listener.job
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.CaptureTransaction
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
@@ -40,6 +43,7 @@ class OpenSeaOrdersFetcherWorker(
         }
     }
 
+    @CaptureTransaction(value = "opensea")
     private suspend fun handleSafely() {
         if (properties.loadOpenSeaOrders.not()) return
 

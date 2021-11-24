@@ -1,11 +1,7 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.AuctionEventDto
 import com.rarible.protocol.order.core.producer.ProducerFactory
-import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -24,22 +20,23 @@ class ProducerConfiguration(
     }
 
     @Bean
-    fun protocolOrderPublisher(producerFactory: ProducerFactory): ProtocolOrderPublisher {
-        return ProtocolOrderPublisher(
-            orderActivityProducer = producerFactory.createOrderActivitiesProducer(),
-            orderEventProducer = producerFactory.createOrderEventsProducer(),
-            ordersPriceUpdateEventProducer = producerFactory.createOrderPriceUpdateEventsProducer(),
-            globalOrderEventProducer = producerFactory.createGlobalOrderEventsProducer(),
-            publishProperties = properties.publish
-        )
-    }
+    fun orderActivityProducer(producerFactory: ProducerFactory) = producerFactory.createOrderActivitiesProducer()
 
     @Bean
-    fun protocolAuctionPublisher(producerFactory: ProducerFactory): ProtocolAuctionPublisher {
-        return ProtocolAuctionPublisher(
-            auctionActivityProducer = producerFactory.createAuctionActivitiesProducer(),
-            auctionEventProducer = producerFactory.createAuctionEventsProducer(),
-            publishProperties = properties.publish
-        )
-    }
+    fun orderEventProducer(producerFactory: ProducerFactory) = producerFactory.createOrderEventsProducer()
+
+    @Bean
+    fun ordersPriceUpdateEventProducer(producerFactory: ProducerFactory) = producerFactory.createOrderPriceUpdateEventsProducer()
+
+    @Bean
+    fun globalOrderEventProducer(producerFactory: ProducerFactory) = producerFactory.createGlobalOrderEventsProducer()
+
+    @Bean
+    fun auctionActivityProducer(producerFactory: ProducerFactory) = producerFactory.createAuctionActivitiesProducer()
+
+    @Bean
+    fun auctionEventProducer(producerFactory: ProducerFactory) = producerFactory.createAuctionEventsProducer()
+
+    @Bean
+    fun publishProperties() = properties.publish
 }

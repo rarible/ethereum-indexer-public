@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
@@ -22,6 +24,7 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,

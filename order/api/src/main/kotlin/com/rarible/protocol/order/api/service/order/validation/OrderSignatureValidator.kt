@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.api.service.order.validation
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
@@ -14,6 +16,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
+@CaptureSpan(type = SpanType.APP)
 class OrderSignatureValidator(
     private val eip712Domain: EIP712Domain,
     private val legacySigner: CommonSigner,

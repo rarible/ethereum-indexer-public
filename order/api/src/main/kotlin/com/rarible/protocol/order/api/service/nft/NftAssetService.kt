@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.api.service.nft
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.order.core.model.Item
@@ -8,6 +10,7 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
+@CaptureSpan(type = SpanType.EXT)
 class NftAssetService(
     private val nftItemApi: NftItemControllerApi
 ) {

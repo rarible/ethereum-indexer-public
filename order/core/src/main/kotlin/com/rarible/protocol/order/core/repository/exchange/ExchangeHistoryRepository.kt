@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.repository.exchange
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
@@ -32,10 +34,13 @@ import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.util.*
 
+@CaptureSpan(type = SpanType.DB)
+@Component
 class ExchangeHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) {

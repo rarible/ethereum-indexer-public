@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v1
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
@@ -23,6 +25,7 @@ import java.math.BigInteger
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class ExchangeBuyDescriptor(
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val assetTypeService: AssetTypeService,

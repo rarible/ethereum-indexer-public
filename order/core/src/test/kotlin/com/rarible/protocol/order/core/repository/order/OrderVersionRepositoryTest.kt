@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
@@ -15,6 +14,7 @@ import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import io.daonomic.rpc.domain.Word
+import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -26,7 +26,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.boot.test.context.TestConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Import
+import org.springframework.context.annotation.Primary
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
@@ -35,10 +40,12 @@ import java.math.BigDecimal
 
 @MongoTest
 @DataMongoTest
+@EnableAutoConfiguration
 @ContextConfiguration(classes = [RepositoryConfiguration::class])
+@Import(OrderVersionRepositoryTest.ProtocolOrderPublisherTestConfiguration::class)
 internal class OrderVersionRepositoryTest {
 
-    @MockkBean
+    @Autowired
     private lateinit var publisher: ProtocolOrderPublisher
 
     @Autowired
@@ -120,5 +127,12 @@ internal class OrderVersionRepositoryTest {
 
     private suspend fun save(vararg order: OrderVersion) {
         order.forEach { orderVersionRepository.save(it).awaitFirst() }
+    }
+
+
+    @TestConfiguration
+    class ProtocolOrderPublisherTestConfiguration {
+        @Bean
+        fun mockProtocolOrderPublisher(): ProtocolOrderPublisher = mockk()
     }
 }

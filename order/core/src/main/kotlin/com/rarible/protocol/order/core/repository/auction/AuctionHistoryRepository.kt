@@ -1,12 +1,12 @@
 package com.rarible.protocol.order.core.repository.auction
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.core.reduce.repository.ReduceEventRepository
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -17,9 +17,12 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.query.*
+import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+@CaptureSpan(type = SpanType.DB)
+@Component
 class AuctionHistoryRepository(
     private val template: ReactiveMongoTemplate
 ) : ReduceEventRepository<AuctionReduceEvent, Long, Word> {

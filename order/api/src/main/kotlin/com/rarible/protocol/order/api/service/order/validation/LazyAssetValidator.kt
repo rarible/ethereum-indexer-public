@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.api.service.order.validation
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.nft.model.LazyNft
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
@@ -15,6 +17,7 @@ import scalether.abi.Uint256Type
 import java.util.*
 
 @Service
+@CaptureSpan(type = SpanType.APP)
 class LazyAssetValidator(
     private val delegate: LazyNftValidator,
     private val nftCollectionClient: NftCollectionControllerApi

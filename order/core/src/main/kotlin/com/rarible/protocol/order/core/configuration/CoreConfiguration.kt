@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.producer.ProducerPackage
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -33,7 +34,8 @@ import scalether.transaction.MonoTransactionSender
     Package::class,
     ConvertersPackage::class,
     EventPackage::class,
-    TracePackage::class]
+    TracePackage::class,
+    ProducerPackage::class]
 )
 @Import(
     RepositoryConfiguration::class,

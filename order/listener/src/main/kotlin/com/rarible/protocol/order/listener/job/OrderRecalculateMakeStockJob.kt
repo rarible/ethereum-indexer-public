@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.job
 
+import com.rarible.core.apm.CaptureTransaction
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -25,6 +26,7 @@ class OrderRecalculateMakeStockJob(
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
 
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.resetMakeStockScheduleRate}")
+    @CaptureTransaction(value = "order_stock")
     fun update() = runBlocking {
         if (properties.resetMakeStockEnabled.not()) return@runBlocking
         update(Instant.now())

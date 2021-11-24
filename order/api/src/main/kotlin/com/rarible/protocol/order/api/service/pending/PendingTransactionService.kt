@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.api.service.pending
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -14,15 +16,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.CancelEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties.ExchangeContractAddresses
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
-import com.rarible.protocol.order.core.model.OrderSide
-import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.toAssetType
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
@@ -35,6 +29,7 @@ import java.math.BigInteger
 import com.rarible.protocol.contracts.exchange.v1.CancelEvent as CancelEventV1
 
 @Service
+@CaptureSpan(type = SpanType.APP)
 class PendingTransactionService(
     private val assetTypeService: AssetTypeService,
     private val orderRepository: OrderRepository,

@@ -9,6 +9,10 @@ spring:
       config:
         enabled: false
 rarible:
+  core:
+    apm:
+      agent:
+        enabled: false
   common:
     elasticPrefix: dev_
     elasticNode: localhost:9200

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.opensea.client.OpenSeaClient
 import com.rarible.opensea.client.model.*
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Component
 import java.time.Instant
 
 @Component
+@CaptureSpan(type = SpanType.EXT)
 class OpenSeaOrderServiceImpl(
     private val openSeaClient: OpenSeaClient,
     properties: OrderListenerProperties

@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.service.asset
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.model.*
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
+@CaptureSpan(type = SpanType.EXT)
 class AssetBalanceProvider(
     private val erc20BalanceApi: BalanceControllerApiService,
     private val nftOwnershipApi: NftOwnershipApiService,

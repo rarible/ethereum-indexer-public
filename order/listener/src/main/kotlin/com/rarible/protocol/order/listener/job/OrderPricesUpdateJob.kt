@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.job
 
+import com.rarible.core.apm.CaptureTransaction
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.OrderKind
@@ -29,6 +30,7 @@ class OrderPricesUpdateJob(
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
 
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.priceUpdateScheduleRate}")
+    @CaptureTransaction(value = "order_price")
     fun updateOrdersPrices() = runBlocking {
         if (properties.priceUpdateEnabled.not()) return@runBlocking
 
