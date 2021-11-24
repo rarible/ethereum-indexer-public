@@ -230,7 +230,7 @@ ethereum-nft-migration: &protocol-nft-migration
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
