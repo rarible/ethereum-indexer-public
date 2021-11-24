@@ -26,6 +26,7 @@ import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
 import com.rarible.protocol.order.core.converters.dto.BidStatusReverseConverter
@@ -35,7 +36,6 @@ import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
-import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -369,7 +369,7 @@ class OrderController(
         startDate: Long?,
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
-        val requestSize = size.limit()
+        val requestSize = limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
@@ -416,7 +416,7 @@ class OrderController(
         startDate: Long?,
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
-        val requestSize = size.limit()
+        val requestSize = limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
@@ -475,7 +475,7 @@ class OrderController(
         continuation: String?,
         size: Int?
     ): OrdersPaginationDto {
-        val requestSize = size.limit()
+        val requestSize = limit(size)
 
         val result = orderService.findOrders(filter, requestSize, continuation)
 
@@ -528,4 +528,6 @@ class OrderController(
     private fun toContinuation(orderVersion: OrderVersion): String {
         return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
+
+    private fun limit(size: Int?): Int = PageSize.ORDER.limit(size)
 }

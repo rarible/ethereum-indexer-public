@@ -7,11 +7,11 @@ import com.rarible.protocol.dto.OrderBidsPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.BidDtoConverter
 import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
-import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import org.springframework.http.ResponseEntity
@@ -41,7 +41,7 @@ class OrderBidController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<OrderBidsPaginationDto> {
-        val requestSize = size.limit()
+        val requestSize = PageSize.ORDER_BID.limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val makerAddress = if (maker == null) null else Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)

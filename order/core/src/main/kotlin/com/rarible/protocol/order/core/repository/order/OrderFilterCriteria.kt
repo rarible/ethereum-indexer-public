@@ -13,7 +13,6 @@ import com.rarible.protocol.dto.OrderFilterSellDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.*
 import org.bson.Document
 import org.springframework.data.domain.Sort
@@ -21,7 +20,7 @@ import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
 
 object OrderFilterCriteria {
-    fun OrderFilterDto.toCriteria(continuation: String?, limit: Int?): Query {
+    fun OrderFilterDto.toCriteria(continuation: String?, limit: Int): Query {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
@@ -34,14 +33,12 @@ object OrderFilterCriteria {
             is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
 
-        val requestLimit = limit.limit()
-
         val query = Query(
             criteria
                 .forPlatform(platforms.mapNotNull { convert(it) })
                 .scrollTo(continuation, this.sort, this.currency)
                 .fromOrigin(origin)
-        ).limit(requestLimit).with(sort(this.sort, this.currency))
+        ).limit(limit).with(sort(this.sort, this.currency))
 
         if (hint != null) {
             query.withHint(hint)

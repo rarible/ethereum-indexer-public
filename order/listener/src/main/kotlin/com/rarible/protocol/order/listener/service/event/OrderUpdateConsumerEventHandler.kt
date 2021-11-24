@@ -16,8 +16,8 @@ import com.rarible.protocol.dto.OrderFilterBidByItemDto
 import com.rarible.protocol.dto.OrderFilterDto
 import com.rarible.protocol.dto.OrderFilterSellByItemDto
 import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
-import com.rarible.protocol.order.core.misc.MAX_SIZE
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.OrderKind
 import com.rarible.protocol.order.core.service.OrderRepositoryService
@@ -72,7 +72,7 @@ class OrderUpdateConsumerEventHandler(
                 origin = null
             )
         }
-        orderRepositoryService.search(orderFilter, MAX_SIZE).collect { orders ->
+        orderRepositoryService.search(orderFilter, PageSize.ORDER.max).collect { orders ->
             orders.forEach { orderPriceUpdateService.updateOrderPrice(it.hash, at) }
             nftOrdersPriceUpdateListener.onNftOrders(itemId, kind, orders)
         }

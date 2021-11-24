@@ -3,13 +3,13 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.protocol.dto.AggregationDataDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.service.aggregation.OrderAggregationService
+import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AggregationDataDtoConverter
 import com.rarible.protocol.order.core.model.HistorySource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
-import java.lang.Long.min
 import java.util.*
 
 @RestController
@@ -25,7 +25,7 @@ class OrderAggregationController(
     ): ResponseEntity<Flow<AggregationDataDto>> {
         val result = orderAggregationService
             .getNftSellOrdersAggregationByMaker(Date(startDate), Date(endDate), convert(source))
-            .take(size.limit())
+            .take(limit(size))
             .map { AggregationDataDtoConverter.convert(it) }
             .asFlow()
         return ResponseEntity.ok(result)
@@ -39,7 +39,7 @@ class OrderAggregationController(
     ): ResponseEntity<Flow<AggregationDataDto>> {
         val result = orderAggregationService
             .getNftPurchaseOrdersAggregationByTaker(Date(startDate), Date(endDate), convert(source))
-            .take(size.limit())
+            .take(limit(size))
             .map { AggregationDataDtoConverter.convert(it) }
             .asFlow()
         return ResponseEntity.ok(result)
@@ -53,7 +53,7 @@ class OrderAggregationController(
     ): ResponseEntity<Flow<AggregationDataDto>> {
         val result = orderAggregationService
             .getNftPurchaseOrdersAggregationByCollection(Date(startDate), Date(endDate), convert(source))
-            .take(size.limit())
+            .take(limit(size))
             .map { AggregationDataDtoConverter.convert(it) }
             .asFlow()
         return ResponseEntity.ok(result)
@@ -68,9 +68,6 @@ class OrderAggregationController(
         }
     }
 
-    companion object {
-        private const val DEFAULT_SIZE = Long.MAX_VALUE
-        private fun Long?.limit() = min(this ?: DEFAULT_SIZE, DEFAULT_SIZE)
-    }
+    private fun limit(size: Long?): Long = PageSize.ORDER_AGGREGATION.limit(size)
 }
 

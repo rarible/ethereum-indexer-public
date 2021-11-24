@@ -8,8 +8,8 @@ import com.rarible.protocol.order.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
+import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
-import com.rarible.protocol.order.core.misc.limit
 import com.rarible.protocol.order.core.model.ActivitySort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -28,7 +28,7 @@ class OrderActivityController(
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<OrderActivitiesDto> {
-        val requestSize = size.limit()
+        val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val activitySort = sort?.let { ActivitySortConverter.convert(sort) } ?: ActivitySort.LATEST_FIRST
         val historyFilters = historyFilterConverter.convert(filter, activitySort, continuationDto)
