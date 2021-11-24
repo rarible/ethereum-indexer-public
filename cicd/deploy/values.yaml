@@ -139,6 +139,8 @@ ethereum-order-migration: &protocol-order-migration
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
+  restartPolicy:
+    condition: on-failure
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
@@ -220,4 +222,29 @@ ethereum-nft-listener: &protocol-nft-listener
 
 polygon-nft-listener:
   <<: *protocol-nft-listener
+  blockchain: polygon
+
+ethereum-nft-migration: &protocol-nft-migration
+  image:
+    repository: ethereum-indexer-nft-migration
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  restartPolicy:
+    condition: on-failure
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-nft-migration:
+  <<: *protocol-nft-migration
   blockchain: polygon
