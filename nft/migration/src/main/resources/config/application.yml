@@ -46,7 +46,7 @@ ipfs:
   cryptoPunksImagesUrl: "https://rarible.mypinata.cloud/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"
 
 api:
-  ipfs-url: https://ipfs.rarible.com/
+  ipfs-url: https://rarible.mypinata.cloud/
   hashmasks:
     address: "0xc2c747e0f7004f9e8817db2ca4997657a7746928"
     cache-timeout: 864000000

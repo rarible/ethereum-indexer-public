@@ -38,7 +38,7 @@ ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50
 
 api:
-  ipfs-url: https://ipfs.rarible.com/
+  ipfs-url: https://rarible.mypinata.cloud/
   hashmasks:
     address: "0xc2c747e0f7004f9e8817db2ca4997657a7746928"
     cache-timeout: 864000000
