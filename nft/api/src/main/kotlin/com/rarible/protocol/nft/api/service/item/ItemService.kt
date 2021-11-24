@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
@@ -70,7 +71,8 @@ class ItemService(
         continuation: ItemContinuation?,
         size: Int?
     ): List<ExtendedItem> = coroutineScope {
-        val items = itemRepository.search(filter.toCriteria(continuation, size))
+        val requestSize = PageSize.ITEM.limit(size)
+        val items = itemRepository.search(filter.toCriteria(continuation, requestSize))
         items.map { item ->
             async {
                 val meta = itemMetaService.getItemMetadata(item.id)

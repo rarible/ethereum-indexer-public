@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.api.service.activity.NftActivityService
 import com.rarible.protocol.nft.core.converters.model.ActivitySortConverter
+import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.ActivitySort
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -26,7 +27,7 @@ class ActivityController(
         size: Int?,
         sort: ActivitySortDto?
     ): ResponseEntity<NftActivitiesDto> {
-        val requestSize = size.limit()
+        val requestSize = PageSize.ITEM_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
         val activitySort = sort?.let { ActivitySortConverter.convert(it) } ?: ActivitySort.LATEST_FIRST
         val historyFilters = historyFilterConverter.convert(activitySort, request, continuationDto)
@@ -42,10 +43,5 @@ class ActivityController(
             ContinuationMapper.toString(result.last())
         }
         return ResponseEntity.ok(NftActivitiesDto(nextContinuation, result))
-    }
-
-    companion object {
-        private const val DEFAULT_SIZE = 1_000
-        private fun Int?.limit() = Integer.min(this ?: DEFAULT_SIZE, DEFAULT_SIZE)
     }
 }

@@ -4,6 +4,7 @@ import com.rarible.core.common.convert
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.core.page.PageSize
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -46,7 +47,7 @@ class OwnershipController(
 
     private suspend fun getItems(filter: NftOwnershipFilterDto, continuation: String?, size: Int?): NftOwnershipsDto {
         val ownerships = ownershipApiService
-            .search(filter, continuation?.let { OwnershipContinuation.parse(it) }, size ?: 1000)
+            .search(filter, continuation?.let { OwnershipContinuation.parse(it) }, PageSize.OWNERSHIP.limit(size))
 
         val last = if (ownerships.isEmpty()) null else ownerships.last()
         val cont = last?.let { OwnershipContinuation(it.date, it.id) }?.toString()

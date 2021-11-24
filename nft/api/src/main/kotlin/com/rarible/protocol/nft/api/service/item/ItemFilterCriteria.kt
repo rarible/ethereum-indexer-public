@@ -10,11 +10,9 @@ import java.time.Instant
 
 object ItemFilterCriteria {
 
-    const val DEFAULT_LIMIT = 1_000
-
     fun NftItemFilterDto.toCriteria(
         continuation: ItemContinuation?,
-        limit: Int? = null
+        limit: Int
     ): Query {
         val (criteria, showDeleted) = when (this) {
             is NftItemFilterAllDto -> all(lastUpdatedFrom) to showDeleted
@@ -25,7 +23,7 @@ object ItemFilterCriteria {
         return Query
             .query(criteria showDeleted(showDeleted) scrollTo continuation)
             .with(this.sort.toMongoSort())
-            .limit(limit ?: DEFAULT_LIMIT)
+            .limit(limit)
     }
 
     private fun all(lastUpdatedFrom: Instant?): Criteria {

@@ -6,11 +6,11 @@ import com.rarible.protocol.dto.NftCollectionsDto
 import com.rarible.protocol.dto.NftTokenIdDto
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
 import com.rarible.protocol.nft.core.model.TokenFilter
+import com.rarible.protocol.nft.core.page.PageSize
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
-import java.lang.Integer.min
 
 @RestController
 class CollectionController(
@@ -31,7 +31,7 @@ class CollectionController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftCollectionsDto> {
-        val filter = TokenFilter.All(continuation, size.limit())
+        val filter = TokenFilter.All(continuation, limit(size))
         val result = searchCollections(filter)
         return ResponseEntity.ok(result)
     }
@@ -44,7 +44,7 @@ class CollectionController(
         val filter = TokenFilter.ByOwner(
             Address.apply(owner),
             continuation,
-            size.limit()
+            limit(size)
         )
         val result = searchCollections(filter)
         return ResponseEntity.ok(result)
@@ -73,8 +73,5 @@ class CollectionController(
         )
     }
 
-    companion object {
-        fun Int?.limit(): Int = min(this ?: DEFAULT_MAX_SIZE, DEFAULT_MAX_SIZE)
-        private const val DEFAULT_MAX_SIZE = 1_000
-    }
+    private fun limit(size: Int?): Int = PageSize.TOKEN.limit(size)
 }

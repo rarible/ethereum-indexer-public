@@ -14,11 +14,11 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
-import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.DEFAULT_LIMIT
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.page.PageSize
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
@@ -166,7 +166,7 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): NftItemsDto {
-        val requestSize = Integer.min(size ?: DEFAULT_LIMIT, DEFAULT_LIMIT)
+        val requestSize = PageSize.ITEM.limit(size)
         val result = itemService.search(filter, ItemContinuation.parse(continuation), requestSize)
         val last = if (result.isEmpty() || result.size < requestSize) null else result.last()
         val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
@@ -175,6 +175,6 @@ class ItemController(
     }
 
     companion object {
-        val BURN_MSG = "I would like to burn my %s item."
+        const val BURN_MSG = "I would like to burn my %s item."
     }
 }
