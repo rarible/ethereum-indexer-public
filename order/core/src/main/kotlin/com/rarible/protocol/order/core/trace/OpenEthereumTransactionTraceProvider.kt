@@ -63,9 +63,9 @@ class OpenEthereumTransactionTraceProvider(
         val result: Result?
     ) {
         data class Action(
-            val callType: String,
+            val callType: String?,
             val from: Address,
-            val to: Address,
+            val to: Address?,
             val input: Binary,
             val value: String
         )
