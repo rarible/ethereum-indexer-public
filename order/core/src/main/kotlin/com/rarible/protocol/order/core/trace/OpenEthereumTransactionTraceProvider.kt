@@ -41,22 +41,25 @@ class OpenEthereumTransactionTraceProvider(
         @Suppress("BlockingMethodInNonBlockingContext")
         return mapper.treeToValue<Array<Trace>>(result.result().get())!!
             .asSequence()
-            .filter { it.action.to == to && it.action.input.methodSignatureId() == id }
-            .map { convert(it) }
+            .filter { it.action?.to == to && it.action.input.methodSignatureId() == id }
+            .mapNotNull { convert(it) }
             .firstOrNull()
     }
 
-    private fun convert(trace: Trace): SimpleTraceResult {
-        return SimpleTraceResult(
-            from = trace.action.from,
-            to = trace.action.to,
-            input = trace.action.input
-        )
+    private fun convert(trace: Trace): SimpleTraceResult? {
+        return if (trace.action != null) {
+            SimpleTraceResult(
+                from = trace.action.from,
+                to = trace.action.to,
+                input = trace.action.input
+            )
+        } else {
+            null
+        }
     }
 
-
     data class Trace(
-        val action: Action,
+        val action: Action?,
         val result: Result?
     ) {
         data class Action(
