@@ -21,6 +21,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -180,7 +181,14 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.left.hash).isEqualTo(listOrder.hash)
                 assertThat(it.left.maker).isEqualTo(sellerAddress)
 
-                assertThat(it.right.hash).isEqualTo(Order.hashKey(buyerAddress, take.type, make.type, listOrder.salt.value))
+                assertThat(it.right.hash).isEqualTo(
+                    Order.hashKey(
+                        buyerAddress,
+                        take.type,
+                        make.type,
+                        listOrder.salt.value
+                    )
+                )
                 assertThat(it.right.maker).isEqualTo(buyerAddress)
 
                 assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
@@ -286,16 +294,18 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             val secondPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
             val secondMakePrice = secondPrice.toBigDecimal(18)
             val secondTake = take.copy(value = EthUInt256(secondPrice))
-            assertThat(secondOrder).isEqualTo(expectedListOrder.copy(
-                take = secondTake,
-                createdAt = secondSellTimestamp,
-                lastUpdateAt = secondSellTimestamp,
-                makePriceUsd = secondPriceUsd,
-                takeUsd = secondPriceUsd,
-                makePrice = secondMakePrice,
-                priceHistory = createPriceHistory(secondSellTimestamp, make, secondTake),
-                lastEventId = secondOrder.lastEventId
-            ))
+            assertThat(secondOrder).isEqualTo(
+                expectedListOrder.copy(
+                    take = secondTake,
+                    createdAt = secondSellTimestamp,
+                    lastUpdateAt = secondSellTimestamp,
+                    makePriceUsd = secondPriceUsd,
+                    takeUsd = secondPriceUsd,
+                    makePrice = secondMakePrice,
+                    priceHistory = createPriceHistory(secondSellTimestamp, make, secondTake),
+                    lastEventId = secondOrder.lastEventId
+                )
+            )
         }
     }
 
@@ -433,7 +443,14 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         checkActivityWasPublished {
             assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
                 assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
-                assertThat(it.left.hash).isEqualTo(Order.hashKey(ownerAddress, bidTake.type, bidMake.type, bidOrder.salt.value))
+                assertThat(it.left.hash).isEqualTo(
+                    Order.hashKey(
+                        ownerAddress,
+                        bidTake.type,
+                        bidMake.type,
+                        bidOrder.salt.value
+                    )
+                )
                 assertThat(it.left.maker).isEqualTo(ownerAddress)
 
                 assertThat(it.right.hash).isEqualTo(bidOrder.hash)
@@ -482,6 +499,114 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.maker).isEqualTo(bidderAddress)
                 assertThat(it.make).isInstanceOf(EthAssetTypeDto::class.java)
                 assertThat(it.take).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+            }
+        }
+    }
+
+    @Test
+    fun `another user makes a bid with higher price, then the first bid must be cancelled`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (firstBidderAddress, firstBidderSender) = newSender()
+        val firstBidPrice = 100000.toBigInteger()
+        depositInitialBalance(firstBidderAddress, firstBidPrice)
+        val firstBidTimestamp =
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(firstBidderSender).withValue(firstBidPrice)
+                .execute().verifySuccess().getTimestamp()
+        val firstBidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        val firstBidMake = Asset(EthAssetType, EthUInt256(firstBidPrice))
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val firstBidTakePriceUsd = firstBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        val expectedFirstBidOrder = Order(
+            maker = firstBidderAddress,
+            taker = null,
+            make = firstBidMake,
+            take = bidTake,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256(firstBidPrice),
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = firstBidTimestamp,
+            lastUpdateAt = firstBidTimestamp,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = firstBidTakePriceUsd,
+            takePrice = BigDecimal("1.00000E-13"),
+            makeUsd = firstBidTakePriceUsd,
+            takeUsd = null,
+            priceHistory = createPriceHistory(firstBidTimestamp, firstBidMake, bidTake),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = firstBidOrder.lastEventId
+        )
+        assertThat(firstBidOrder).isEqualTo(expectedFirstBidOrder)
+
+        // Second user makes a bid with higher price => th first user's bid must be cancelled.
+        val (secondBidderAddress, secondBidderSender) = newSender()
+        val secondBidPrice = 200000.toBigInteger()
+        depositInitialBalance(secondBidderAddress, secondBidPrice)
+        val secondBidTimestamp =
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(secondBidderSender).withValue(secondBidPrice)
+                .execute().verifySuccess().getTimestamp()
+
+        val secondMake = firstBidMake.copy(value = EthUInt256(secondBidPrice))
+        val secondBidTakePriceUsd = secondBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val secondTakePrice = secondBidPrice.toBigDecimal(18)
+        val secondBidHash = Order.hashKey(secondBidderAddress, secondMake.type, bidTake.type, CRYPTO_PUNKS_SALT.value)
+
+        Wait.waitAssert {
+            val firstBidCancelledOrder = orderRepository.findById(firstBidOrder.hash)
+            assertThat(firstBidCancelledOrder).isEqualTo(
+                firstBidOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = secondBidTimestamp,
+                    lastEventId = firstBidCancelledOrder?.lastEventId
+                )
+            )
+
+            val activeOrders = orderRepository.findActive().toList()
+            assertThat(activeOrders).hasSize(1)
+
+            val secondBidOrder = activeOrders.single()
+            assertThat(secondBidOrder).isEqualTo(
+                expectedFirstBidOrder.copy(
+                    maker = secondBidderAddress,
+                    make = secondMake,
+                    hash = secondBidHash,
+                    makeStock = secondMake.value,
+
+                    createdAt = secondBidTimestamp,
+                    lastUpdateAt = secondBidTimestamp,
+                    takePriceUsd = secondBidTakePriceUsd,
+                    makeUsd = secondBidTakePriceUsd,
+                    takePrice = secondTakePrice,
+                    priceHistory = createPriceHistory(secondBidTimestamp, secondMake, bidTake),
+                    lastEventId = secondBidOrder.lastEventId
+                )
+            )
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityBidDto::class.java) {
+                assertThat(it.hash).isEqualTo(secondBidHash)
+            }
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelBidDto::class.java) {
+                assertThat(it.hash).isEqualTo(firstBidOrder.hash)
             }
         }
     }

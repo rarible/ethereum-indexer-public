@@ -41,9 +41,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
@@ -150,16 +152,23 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     @BeforeEach
-    fun cleanDatabase() {
+    fun cleanDatabase() = runBlocking<Unit> {
         //TODO: previous tests (when running the whole package) might not have finished before the next test starts.
         // Such activities might insert the old order right after cleaning the database here.
         // We need a proper way of ending activities in the tests.
-        Thread.sleep(300)
+        delay(300)
 
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
-            .then().block()
+            .then().awaitFirstOrNull()
+
+        orderRepository.createIndexes()
+        orderRepository.dropIndexes()
+        orderVersionRepository.createIndexes()
+        orderVersionRepository.dropIndexes()
+        exchangeHistoryRepository.createIndexes()
+        exchangeHistoryRepository.dropIndexes()
     }
 
     @BeforeEach

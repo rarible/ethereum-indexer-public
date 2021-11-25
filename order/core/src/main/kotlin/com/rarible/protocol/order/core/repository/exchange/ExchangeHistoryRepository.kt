@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.repository.exchange
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
@@ -16,6 +17,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_BID_DEFINITION
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
@@ -37,6 +39,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 import java.util.*
 
 @CaptureSpan(type = SpanType.DB)
@@ -83,6 +86,24 @@ class ExchangeHistoryRepository(
     @TestOnly // this query may be slow, use in tests only
     fun findByItemType(type: ItemType): Flux<LogEvent> {
         val query = Query(LogEvent::topic inValues type.topic)
+        return template.find(query, COLLECTION)
+    }
+
+    fun findBidEventsByItem(token: Address, tokenId: EthUInt256): Flux<LogEvent> {
+        val tokenKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::token
+        val tokenIdKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / NftAssetType::tokenId
+        val criteria = tokenKey.isEqualTo(token)
+            .and(tokenIdKey).isEqualTo(tokenId)
+            .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
+        val query = Query
+            .query(criteria)
+            .with(
+                Sort.by(
+                    Sort.Order.asc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
+                    Sort.Order.asc(OrderVersion::id.name)
+                )
+            )
+            .withHint(ITEM_BID_DEFINITION.indexKeys)
         return template.find(query, COLLECTION)
     }
 
