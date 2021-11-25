@@ -184,7 +184,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.right.maker).isEqualTo(buyerAddress)
 
                 assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
-                assertThat(it.right.type).isEqualTo(null)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
             }
         }
     }
