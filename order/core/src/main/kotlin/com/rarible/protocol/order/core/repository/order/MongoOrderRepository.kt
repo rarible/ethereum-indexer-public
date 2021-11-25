@@ -150,7 +150,7 @@ class MongoOrderRepository(
             Criteria().andOperator(
                 Order::end exists true,
                 Order::end lt now.toEpochMilli(),
-                Order::makeStock gt EthUInt256.ZERO
+                Order::makeStock ne EthUInt256.ZERO
             )
         )
         return template.query<Order>().matching(query).all().asFlow()
