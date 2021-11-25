@@ -167,11 +167,11 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(make, right.take)
             assertEquals(true, right.externalOrderExecutedOnRarible)
 
-            assertFalse(left?.adhoc!!)
-            assertTrue(left?.counterAdhoc!!)
+            assertFalse(left.adhoc!!)
+            assertTrue(left.counterAdhoc!!)
 
-            assertTrue(right?.adhoc!!)
-            assertFalse(right?.counterAdhoc!!)
+            assertTrue(right.adhoc!!)
+            assertFalse(right.counterAdhoc!!)
         }
 
         checkActivityWasPublished {
@@ -227,6 +227,75 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.make).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
                 assertThat(it.take).isInstanceOf(EthAssetTypeDto::class.java)
             }
+        }
+    }
+
+    @Test
+    fun `create sell order and then change price`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val firstPrice = BigInteger.valueOf(100000)
+        val firstSellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, firstPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val firstPriceUsd = firstPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val firstMakePrice = firstPrice.toBigDecimal(18)
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(firstPrice))
+
+        val firstOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+        val expectedListOrder = Order(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256.ONE,
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = firstSellTimestamp,
+            lastUpdateAt = firstSellTimestamp,
+            pending = emptyList(),
+            makePriceUsd = firstPriceUsd,
+            takePriceUsd = null,
+            makePrice = firstMakePrice,
+            makeUsd = null,
+            takeUsd = firstPriceUsd,
+            priceHistory = createPriceHistory(firstSellTimestamp, make, take),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = firstOrder.lastEventId
+        )
+        assertThat(firstOrder).isEqualTo(expectedListOrder)
+
+        // Make the second sell order with new price.
+        val secondPrice = BigInteger.valueOf(200000)
+        val secondSellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, secondPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        Wait.waitAssert {
+            val secondOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+            val secondPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+            val secondMakePrice = secondPrice.toBigDecimal(18)
+            val secondTake = take.copy(value = EthUInt256(secondPrice))
+            assertThat(secondOrder).isEqualTo(expectedListOrder.copy(
+                take = secondTake,
+                createdAt = secondSellTimestamp,
+                lastUpdateAt = secondSellTimestamp,
+                makePriceUsd = secondPriceUsd,
+                takeUsd = secondPriceUsd,
+                makePrice = secondMakePrice,
+                priceHistory = createPriceHistory(secondSellTimestamp, make, secondTake),
+                lastEventId = secondOrder.lastEventId
+            ))
         }
     }
 
@@ -354,11 +423,11 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(bidMake, left.take)
             assertEquals(bidMake, right.make)
 
-            assertTrue(left?.adhoc!!)
-            assertFalse(left?.counterAdhoc!!)
+            assertTrue(left.adhoc!!)
+            assertFalse(left.counterAdhoc!!)
 
-            assertFalse(right?.adhoc!!)
-            assertTrue(right?.counterAdhoc!!)
+            assertFalse(right.adhoc!!)
+            assertTrue(right.counterAdhoc!!)
         }
 
         checkActivityWasPublished {
