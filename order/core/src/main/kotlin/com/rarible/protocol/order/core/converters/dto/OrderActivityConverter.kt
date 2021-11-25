@@ -4,9 +4,22 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.dto.OrderActivityBidDto
+import com.rarible.protocol.dto.OrderActivityCancelBidDto
+import com.rarible.protocol.dto.OrderActivityCancelListDto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.OrderActivityListDto
+import com.rarible.protocol.dto.OrderActivityMatchDto
+import com.rarible.protocol.dto.OrderActivityMatchSideDto
+import com.rarible.protocol.order.core.model.ActivityResult
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -16,8 +29,7 @@ import java.math.BigDecimal
 @CaptureSpan(type = SpanType.APP)
 class OrderActivityConverter(
     private val priceNormalizer: PriceNormalizer,
-    private val assetDtoConverter: AssetDtoConverter,
-    private val orderRepository: OrderRepository
+    private val assetDtoConverter: AssetDtoConverter
 ) {
 
     suspend fun convert(ar: ActivityResult): OrderActivityDto? {
@@ -40,25 +52,6 @@ class OrderActivityConverter(
 
         return when (data) {
             is OrderSideMatch -> {
-                // TODO: we will re-implement this using a dedicated field in OrderSideMatch event.
-                val leftType = if (orderRepository.findById(data.hash) != null) {
-                    if (data.isBid()) {
-                        OrderActivityMatchSideDto.Type.BID
-                    } else {
-                        OrderActivityMatchSideDto.Type.SELL
-                    }
-                } else {
-                    null
-                }
-                val rightType = if (data.counterHash?.let { orderRepository.findById(it) } != null) {
-                    if (data.isBid()) {
-                        OrderActivityMatchSideDto.Type.SELL
-                    } else {
-                        OrderActivityMatchSideDto.Type.BID
-                    }
-                } else {
-                    null
-                }
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = data.date,
@@ -66,13 +59,13 @@ class OrderActivityConverter(
                         maker = data.maker,
                         asset = assetDtoConverter.convert(data.make),
                         hash = data.hash,
-                        type = leftType
+                        type = typeSideDto(data, data.make, data.take)
                     ),
                     right = OrderActivityMatchSideDto(
                         maker = data.taker,
                         asset = assetDtoConverter.convert(data.take),
                         hash = data.counterHash ?: Word.apply(ByteArray(32)),
-                        type = rightType
+                        type = typeSideDto(data, data.take, data.make)
                     ),
                     price = if (data.isBid()) {
                         price(data.make, data.take /* NFT */)
@@ -157,6 +150,18 @@ class OrderActivityConverter(
             isNft(orderSideMatch.take) && !isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.ACCEPT_BID
             isNft(orderSideMatch.make) && isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.ACCEPT_BID
             isNft(orderSideMatch.take) && isAdhoc(orderSideMatch) -> OrderActivityMatchDto.Type.SELL
+            else -> null
+        }
+    }
+
+    private fun typeSideDto(orderSideMatch: OrderSideMatch, make: Asset, take: Asset): OrderActivityMatchSideDto.Type? {
+        val isNft: (Asset) -> Boolean = { it.type.nft }
+        val isAdhoc: (OrderSideMatch) -> Boolean = { it.adhoc == true }
+        return when {
+            isNft(make) && !isAdhoc(orderSideMatch) -> OrderActivityMatchSideDto.Type.SELL
+            isNft(take) && !isAdhoc(orderSideMatch) -> OrderActivityMatchSideDto.Type.BID
+            isNft(make) && isAdhoc(orderSideMatch) -> OrderActivityMatchSideDto.Type.BID
+            isNft(take) && isAdhoc(orderSideMatch) -> OrderActivityMatchSideDto.Type.SELL
             else -> null
         }
     }
