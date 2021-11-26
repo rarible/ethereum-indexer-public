@@ -35,7 +35,7 @@ class RefreshControllerFt : AbstractFunctionalTest() {
         assertThat(result.unlockable).isTrue()
 
         coVerify {
-            testItemEventProducer.send(match { message: KafkaMessage<NftOrderItemEventDto> ->
+            testItemEventProducer.send(match<KafkaMessage<NftOrderItemEventDto>> { message ->
                 message.value.itemId.equals(itemId.decimalStringValue)
             })
         }
@@ -67,7 +67,7 @@ class RefreshControllerFt : AbstractFunctionalTest() {
         assertThat(result.totalStock).isEqualTo(bestSell.makeStock)
 
         coVerify {
-            testItemEventProducer.send(match { message: KafkaMessage<NftOrderItemEventDto> ->
+            testItemEventProducer.send(match<KafkaMessage<NftOrderItemEventDto>> { message ->
                 message.value.itemId.equals(itemId.decimalStringValue)
             })
         }

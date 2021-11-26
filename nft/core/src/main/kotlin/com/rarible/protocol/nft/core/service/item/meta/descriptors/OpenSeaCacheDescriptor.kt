@@ -29,7 +29,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import reactor.netty.http.client.HttpClient
 import reactor.netty.resources.ConnectionProvider
-import reactor.netty.tcp.ProxyProvider
+import reactor.netty.transport.ProxyProvider
 import scalether.domain.Address
 import java.math.BigInteger
 import java.net.URI
