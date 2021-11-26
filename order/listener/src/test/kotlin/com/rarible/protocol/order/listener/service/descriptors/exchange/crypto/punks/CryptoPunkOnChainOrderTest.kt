@@ -612,6 +612,72 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
+    fun `transfer punk to bidder while the bid is active, must cancel the bid`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100000.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        val bidTimestamp = cryptoPunksMarket.enterBidForPunk(punkIndex)
+            .withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess().getTimestamp()
+        val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        val expectedBidOrder = Order(
+            maker = bidderAddress,
+            taker = null,
+            make = bidMake,
+            take = bidTake,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256(bidPrice),
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = bidTimestamp,
+            lastUpdateAt = bidTimestamp,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = bidTakePriceUsd,
+            takePrice = BigDecimal("1.00000E-13"),
+            makeUsd = bidTakePriceUsd,
+            takeUsd = null,
+            priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = bidOrder.lastEventId
+        )
+        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+
+        // Transfer punk to the bidder for free.
+        val transferTimestamp = cryptoPunksMarket.transferPunk(bidderAddress, punkIndex)
+            .withSender(ownerSender).execute().verifySuccess().getTimestamp()
+
+        Wait.waitAssert {
+            val bidCancelledOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(bidCancelledOrder).isEqualTo(
+                bidOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = transferTimestamp,
+                    lastEventId = bidCancelledOrder?.lastEventId
+                )
+            )
+        }
+    }
+
+    @Test
     fun `crypto punk listed for sale to a specific address`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()

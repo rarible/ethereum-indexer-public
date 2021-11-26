@@ -52,7 +52,7 @@ class CryptoPunkBidEnteredLogDescriptor(
         val make = Asset(EthAssetType, EthUInt256(bidPrice))
         val take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex)), EthUInt256.ONE)
         val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
-        val cancelOfPreviousBid = getCancelOfPreviousBid(marketAddress, date, punkIndex)
+        val cancelOfPreviousBid = getCancelOfPreviousBid(exchangeHistoryRepository, marketAddress, date, punkIndex)
         return listOfNotNull(
             cancelOfPreviousBid,
             OnChainOrder(
@@ -74,30 +74,34 @@ class CryptoPunkBidEnteredLogDescriptor(
         )
     }
 
-    /**
-     * Find the previous bid for the same punk. It must be cancelled if the new bid's price is higher.
-     */
-    private suspend fun getCancelOfPreviousBid(
-        marketAddress: Address,
-        blockDate: Instant,
-        punkIndex: BigInteger
-    ): OrderCancel? {
-        val lastBidEvent = exchangeHistoryRepository
-            .findBidEventsByItem(marketAddress, EthUInt256(punkIndex)).collectList()
-            .awaitFirst().lastOrNull()?.data
-        // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
-        //  it means that there was a previous bid from another user for the same punk with smaller price.
-        //  That bid must be cancelled.
-        if (lastBidEvent is OnChainOrder) {
-            return OrderCancel(
-                hash = lastBidEvent.hash,
-                maker = lastBidEvent.maker,
-                make = lastBidEvent.make,
-                take = lastBidEvent.take,
-                date = blockDate,
-                source = HistorySource.CRYPTO_PUNKS
-            )
+    companion object {
+        /**
+         * Find the previous bid for the same punk. It must be cancelled if the new bid's price is higher.
+         */
+        suspend fun getCancelOfPreviousBid(
+            exchangeHistoryRepository: ExchangeHistoryRepository,
+            marketAddress: Address,
+            blockDate: Instant,
+            punkIndex: BigInteger
+        ): OrderCancel? {
+            val lastBidEvent = exchangeHistoryRepository
+                .findBidEventsByItem(marketAddress, EthUInt256(punkIndex)).collectList()
+                .awaitFirst().lastOrNull()?.data
+            // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
+            //  it means that there was a previous bid from another user for the same punk with smaller price.
+            //  That bid must be cancelled.
+            if (lastBidEvent is OnChainOrder) {
+                return OrderCancel(
+                    hash = lastBidEvent.hash,
+                    maker = lastBidEvent.maker,
+                    make = lastBidEvent.make,
+                    take = lastBidEvent.take,
+                    date = blockDate,
+                    source = HistorySource.CRYPTO_PUNKS
+                )
+            }
+            return null
         }
-        return null
+
     }
 }
