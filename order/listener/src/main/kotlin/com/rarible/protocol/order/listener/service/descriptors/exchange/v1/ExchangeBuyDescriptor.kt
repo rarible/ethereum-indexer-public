@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetTypeService
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -30,6 +31,8 @@ class ExchangeBuyDescriptor(
     private val prizeNormalizer: PriceNormalizer
 ) : ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
 
+    private val logger = LoggerFactory.getLogger(ExchangeBuyDescriptor::class.java)
+
     private val addresses = listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old)
 
     override val topic: Word = BuyEvent.id()
@@ -43,7 +46,12 @@ class ExchangeBuyDescriptor(
         val takeAssetType = assetTypeService.toAssetType(event.buyToken(), EthUInt256(event.buyTokenId()))
         val take = Asset(takeAssetType, EthUInt256(event.fill))
 
-        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
+        val usdValue = try {
+            priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
+        } catch (e: Exception) {
+            logger.error("Failed to get USD price for $log", e)
+            throw e
+        }
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
         val counterHash = Order.hashKey(event.buyer(), takeAssetType, makeAssetType, BigInteger.ZERO)
 
