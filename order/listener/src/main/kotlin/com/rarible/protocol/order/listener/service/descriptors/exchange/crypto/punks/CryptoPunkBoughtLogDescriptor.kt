@@ -7,7 +7,16 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitSingle
@@ -169,7 +178,7 @@ class CryptoPunkBoughtLogDescriptor(
             ethereum.ethGetLogsJava(filter).awaitSingle()
         } catch (e: Exception) {
             logger.warn("Unable to get logs for block ${punkBoughtEvent.log().blockHash()}", e)
-            return Address.ZERO()
+            throw e
         }
         return logs.find {
             it.topics().head() == TransferEvent.id()
