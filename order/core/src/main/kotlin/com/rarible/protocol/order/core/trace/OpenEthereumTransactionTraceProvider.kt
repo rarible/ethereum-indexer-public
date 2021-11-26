@@ -47,7 +47,7 @@ class OpenEthereumTransactionTraceProvider(
     }
 
     private fun convert(trace: Trace): SimpleTraceResult? {
-        return if (trace.action != null) {
+        return if (trace.action?.from != null) {
             SimpleTraceResult(
                 from = trace.action.from,
                 to = trace.action.to,
@@ -64,7 +64,7 @@ class OpenEthereumTransactionTraceProvider(
     ) {
         data class Action(
             val callType: String?,
-            val from: Address,
+            val from: Address?,
             val to: Address?,
             val input: Binary?,
             val value: String?
