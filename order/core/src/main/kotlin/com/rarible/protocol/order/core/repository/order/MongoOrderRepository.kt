@@ -149,7 +149,7 @@ class MongoOrderRepository(
         val query = Query(
             Criteria().andOperator(
                 Order::end exists true,
-                Order::end lt now.toEpochMilli(),
+                Order::end lt now.epochSecond,
                 Order::makeStock ne EthUInt256.ZERO
             )
         )
