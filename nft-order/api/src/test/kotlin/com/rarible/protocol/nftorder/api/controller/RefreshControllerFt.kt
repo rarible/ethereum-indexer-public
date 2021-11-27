@@ -71,7 +71,5 @@ class RefreshControllerFt : AbstractFunctionalTest() {
                 message.value.itemId.equals(itemId.decimalStringValue)
             })
         }
-
     }
-
 }

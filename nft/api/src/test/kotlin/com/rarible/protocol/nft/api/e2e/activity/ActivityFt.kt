@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.e2e.activity
 
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.*
@@ -37,7 +36,7 @@ class ActivityFt : SpringContainerBaseTest() {
         private val now = Instant.ofEpochSecond(Instant.now().epochSecond)
 
         @JvmStatic
-        private fun allFilter() = Stream.of(
+        fun allFilter() = Stream.of(
             Arguments.of(
                 listOf(
                     createItemMint().withTransferDate(now + Duration.ofMinutes(4)),
