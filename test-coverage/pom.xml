@@ -72,21 +72,6 @@
             <artifactId>protocol-order-indexer-migration</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-nft-order-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-nft-order-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-nft-order-listener</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 
     <build>

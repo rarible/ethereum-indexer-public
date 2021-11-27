@@ -167,7 +167,6 @@
         <module>erc20</module>
         <module>nft</module>
         <module>order</module>
-        <module>nft-order</module>
         <module>gateway</module>
         <module>unlockable</module>
         <module>test-coverage</module>
