@@ -36,7 +36,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         private val now = Instant.ofEpochSecond(Instant.now().epochSecond)
 
         @JvmStatic
-        private fun activityVersionFilterData() = Stream.of(
+        fun activityVersionFilterData() = Stream.of(
             Arguments.of(
                 listOf(
                     createErc721BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES)),
@@ -523,7 +523,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
         )
 
         @JvmStatic
-        private fun activityHistoryFilterData() = Stream.of(
+        fun activityHistoryFilterData() = Stream.of(
             Arguments.of(
                 listOf(
                     createLogEvent(orderErc721SellSideMatch().copy(date = now.plus(2, ChronoUnit.MINUTES))),
