@@ -678,6 +678,80 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
+    fun `transfer punk from seller must cancel the sell order`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val sellPrice = BigInteger.valueOf(100000)
+        val sellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val priceUsd = sellPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val makePrice = sellPrice.toBigDecimal(18)
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(sellPrice))
+
+        val sellOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+        val expectedSellOrder = Order(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256.ONE,
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = sellTimestamp,
+            lastUpdateAt = sellTimestamp,
+            pending = emptyList(),
+            makePriceUsd = priceUsd,
+            takePriceUsd = null,
+            makePrice = makePrice,
+            makeUsd = null,
+            takeUsd = priceUsd,
+            priceHistory = createPriceHistory(sellTimestamp, make, take),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = sellOrder.lastEventId
+        )
+        assertThat(sellOrder).isEqualTo(expectedSellOrder)
+
+        val (newOwnerAddress) = newSender()
+
+        // Transfer punk to a new owner for free => it must cancel the sell order.
+        val transactionReceipt = cryptoPunksMarket.transferPunk(newOwnerAddress, punkIndex)
+            .withSender(sellerSender).execute().verifySuccess()
+        val transferTimestamp = transactionReceipt.getTimestamp()
+
+        Wait.waitAssert {
+            val sellCancelledOrder = orderRepository.findById(sellOrder.hash)
+            assertThat(sellCancelledOrder).isEqualTo(
+                sellOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = transferTimestamp,
+                    lastEventId = sellCancelledOrder?.lastEventId
+                )
+            )
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelListDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(sellOrder.hash)
+            }
+        }
+    }
+
+    @Test
     fun `crypto punk listed for sale to a specific address`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
