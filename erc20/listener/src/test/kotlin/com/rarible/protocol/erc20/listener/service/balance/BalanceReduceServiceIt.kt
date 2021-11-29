@@ -9,11 +9,15 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
 import com.rarible.protocol.erc20.core.configuration.Erc20IndexerProperties
-import com.rarible.protocol.erc20.core.model.*
+import com.rarible.protocol.erc20.core.model.BalanceId
+import com.rarible.protocol.erc20.core.model.Erc20Balance
+import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
+import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
+import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
+import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
 import com.rarible.protocol.erc20.listener.data.createAddress
 import com.rarible.protocol.erc20.listener.data.createReduceEventFactory
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 @IntegrationTest
 internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
@@ -55,7 +60,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should calculate balance for not existed balance`() = runBlocking<Unit> {
         val consumer = createConsumer()
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<Erc20BalanceEventDto>>())
+        val events = CopyOnWriteArrayList<KafkaMessage<Erc20BalanceEventDto>>()
         val job = async {
             consumer
                 .receive()
@@ -98,7 +103,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
     @Test
     fun `should calculate balance for existed balance`() = runBlocking<Unit> {
         val consumer = createConsumer()
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<Erc20BalanceEventDto>>())
+        val events = CopyOnWriteArrayList<KafkaMessage<Erc20BalanceEventDto>>()
         val job = async {
             consumer
                 .receive()

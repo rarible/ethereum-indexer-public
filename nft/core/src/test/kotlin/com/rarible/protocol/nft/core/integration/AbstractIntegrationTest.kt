@@ -9,7 +9,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftItemDeleteEventDto
+import com.rarible.protocol.dto.NftItemEventDto
+import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -20,10 +28,16 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -46,7 +60,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 @FlowPreview
 @Suppress("UNCHECKED_CAST")
@@ -84,8 +98,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     private lateinit var itemEventConsumer: RaribleKafkaConsumer<NftItemEventDto>
 
-    private val itemEvents = Collections.synchronizedList(ArrayList<NftItemEventDto>())
-    private val ownershipEvents = Collections.synchronizedList(ArrayList<NftOwnershipEventDto>())
+    private val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
+    private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
     private lateinit var consumingJobs: List<Job>
 
     @BeforeEach

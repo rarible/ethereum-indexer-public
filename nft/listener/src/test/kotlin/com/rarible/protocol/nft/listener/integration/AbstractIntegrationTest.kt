@@ -7,7 +7,11 @@ import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.MintDto
+import com.rarible.protocol.dto.NftActivityDto
+import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -36,10 +40,14 @@ import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
-import scalether.transaction.*
+import scalether.transaction.MonoGasPriceProvider
+import scalether.transaction.MonoSigningTransactionSender
+import scalether.transaction.MonoSimpleNonceProvider
+import scalether.transaction.MonoTransactionPoller
+import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
 @FlowPreview
@@ -158,7 +166,7 @@ abstract class AbstractIntegrationTest {
 
         assertThat(logEvent).isNotNull
 
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<ActivityDto>>())
+        val events = CopyOnWriteArrayList<KafkaMessage<ActivityDto>>()
 
         val job = async {
            activityConsumer

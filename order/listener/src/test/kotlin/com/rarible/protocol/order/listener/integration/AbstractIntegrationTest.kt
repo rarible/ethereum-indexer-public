@@ -76,7 +76,7 @@ import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
 @FlowPreview
@@ -132,7 +132,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     private lateinit var consumingJob: Job
 
-    private val activities = Collections.synchronizedList(ArrayList<ActivityDto>())
+    private val activities = CopyOnWriteArrayList<ActivityDto>()
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()
