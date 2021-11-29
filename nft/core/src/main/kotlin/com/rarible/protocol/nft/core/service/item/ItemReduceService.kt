@@ -26,7 +26,7 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "item")
+@CaptureSpan(type = SpanType.APP)
 class ItemReduceService(
     private val itemRepository: ItemRepository,
     private val ownershipService: OwnershipService,
@@ -156,6 +156,9 @@ class ItemReduceService(
         //  Anyway we should come up with a better solution of passing huge 'Item.owners'.
         val withNewOwners = item.copy(owners = ownerships.sortedByDescending { it.value }.map { it.owner })
         logger.info(marker, "Saving updated item: {}", withNewOwners)
+        if (ownerships.size >= MAX_OWNERSHIPS_TO_LOG) {
+            logger.info(marker, "Big number of ownerships {} in item {}", ownerships.size, item.id.decimalStringValue)
+        }
         return itemRepository.save(withNewOwners)
             .flatMap { savedItem ->
                 eventListenerListener.onItemChanged(savedItem).thenReturn(savedItem)
@@ -328,6 +331,7 @@ class ItemReduceService(
     }
 
     companion object {
+        const val MAX_OWNERSHIPS_TO_LOG = 1000
         val WORD_ZERO: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
 
         val logger: Logger = LoggerFactory.getLogger(ItemReduceService::class.java)

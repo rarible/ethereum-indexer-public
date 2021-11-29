@@ -37,7 +37,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 @Service
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
+@CaptureSpan(type = SpanType.EXT)
 class OpenSeaCacheDescriptor(
     @Value("\${api.opensea.url:}") private val openseaUrl: String,
     @Value("\${api.opensea.api-key:}") private val openseaApiKey: String,

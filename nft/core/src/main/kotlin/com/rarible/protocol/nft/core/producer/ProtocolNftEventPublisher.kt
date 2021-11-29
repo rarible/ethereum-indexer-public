@@ -9,7 +9,7 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "event")
+@CaptureSpan(type = SpanType.KAFKA)
 class ProtocolNftEventPublisher(
     private val collectionEventProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,

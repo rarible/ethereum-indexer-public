@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.listener.service.descriptors.royalty
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.SecondarySaleFeesEvent
 import com.rarible.protocol.nft.core.model.ItemRoyalty
@@ -14,6 +16,7 @@ import scalether.domain.response.Log
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class RoyaltyV1LogDescriptor: ItemHistoryLogEventDescriptor<ItemRoyalty> {
     override val topic: Word = SecondarySaleFeesEvent.id()
 

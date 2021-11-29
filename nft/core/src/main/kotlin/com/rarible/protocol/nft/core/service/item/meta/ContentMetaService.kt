@@ -16,6 +16,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.whenComplete
 
 @Service
+@CaptureSpan(SpanType.APP)
 class ContentMetaService(
     private val mapper: ObjectMapper,
     private val mediaMetaService: MediaMetaService,
@@ -43,7 +44,6 @@ class ContentMetaService(
         }
     }
 
-    @CaptureSpan(SpanType.APP, "meta")
     fun resetByProperties(properties: ItemProperties): Mono<Void> {
         return listOfNotNull(
             properties.image,

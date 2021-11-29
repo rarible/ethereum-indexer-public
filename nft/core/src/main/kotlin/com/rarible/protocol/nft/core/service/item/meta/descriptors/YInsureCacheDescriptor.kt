@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
+@CaptureSpan(type = SpanType.EXT)
 class YInsureCacheDescriptor(
     sender: MonoTransactionSender,
     @Value("\${api.yinsure.address}") yInsureAddress: String,

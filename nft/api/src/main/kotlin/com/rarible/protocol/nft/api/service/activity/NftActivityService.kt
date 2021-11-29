@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
 @Component
-@CaptureSpan(type = SpanType.APP, subtype = "item")
+@CaptureSpan(type = SpanType.APP)
 class NftActivityService(
     private val nftItemHistoryRepository: NftItemHistoryRepository
 ) {

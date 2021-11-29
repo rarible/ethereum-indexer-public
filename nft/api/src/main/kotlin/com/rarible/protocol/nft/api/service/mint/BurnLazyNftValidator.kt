@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 import scalether.util.Hash
 
 @Component
-@CaptureSpan(type = SpanType.APP, subtype = "item")
+@CaptureSpan(type = SpanType.APP)
 class BurnLazyNftValidator(
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val signService: ERC1271SignService

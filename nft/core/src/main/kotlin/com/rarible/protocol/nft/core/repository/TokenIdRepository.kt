@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.query.Update
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "token")
+@CaptureSpan(type = SpanType.DB)
 class TokenIdRepository(
     private val mongo: ReactiveMongoOperations
 ) {

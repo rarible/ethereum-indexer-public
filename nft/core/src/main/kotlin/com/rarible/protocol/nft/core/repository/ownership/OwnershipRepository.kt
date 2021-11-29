@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "ownership")
+@CaptureSpan(type = SpanType.DB)
 class OwnershipRepository(
     private val mongo: ReactiveMongoOperations
 ) {

@@ -20,7 +20,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
+@CaptureSpan(type = SpanType.EXT)
 class KittiesCacheDescriptor(
     @Value("\${api.kitties.cache-timeout}") private val cacheTimeout: Long
 ) : CacheDescriptor<ItemProperties> {

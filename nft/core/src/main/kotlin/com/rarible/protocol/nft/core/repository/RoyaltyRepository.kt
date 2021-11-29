@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "royalty")
+@CaptureSpan(type = SpanType.DB)
 class RoyaltyRepository(
     private val mongo: ReactiveMongoOperations
 ) {

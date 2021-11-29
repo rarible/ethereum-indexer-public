@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.listener.service.descriptors.crypto.punks
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -10,6 +12,7 @@ import scalether.domain.Address
 import scalether.domain.response.Log
 import java.time.Instant
 
+@CaptureSpan(type = SpanType.EVENT)
 abstract class CryptoPunkLogDescriptorBase(
     private val tokenRegistrationService: TokenRegistrationService,
     private val nftIndexerProperties: NftIndexerProperties
