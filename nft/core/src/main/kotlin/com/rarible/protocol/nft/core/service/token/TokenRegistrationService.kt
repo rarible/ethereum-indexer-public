@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.google.common.cache.CacheBuilder
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
@@ -24,6 +25,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -38,19 +40,18 @@ import java.util.*
 @CaptureSpan(type = SpanType.EXT)
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
-    private val sender: MonoTransactionSender
+    private val sender: MonoTransactionSender,
+    @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long
 ) {
-    private val map: MutableMap<Address, TokenStandard> = mutableMapOf()
+    private val cache = CacheBuilder.newBuilder()
+        .maximumSize(cacheMaxSize)
+        .build<Address, TokenStandard>()
 
     fun getTokenStandard(address: Address): Mono<TokenStandard> {
-        val result = map[address]
-        return if (result != null) {
-            Mono.just(result)
-        } else {
-            register(address)
-                .map { it.standard }
-                .doOnNext { map[address] = it }
-        }
+        cache.getIfPresent(address)?.let { return it.toMono() }
+        return register(address)
+            .map { it.standard }
+            .doOnNext { cache.put(address, it) }
     }
 
     fun register(address: Address): Mono<Token> = getOrSaveToken(address, ::fetchToken)

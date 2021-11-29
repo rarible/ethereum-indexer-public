@@ -16,7 +16,7 @@ import scalether.transaction.ReadOnlyMonoTransactionSender
 @Disabled
 class TokenRegistrationServiceMainNetTest {
     private val tokenRepository = mockk<TokenRepository>()
-    private val service = TokenRegistrationService(tokenRepository, createSender())
+    private val service = TokenRegistrationService(tokenRepository, createSender(), 1000)
 
     private fun createSender() = ReadOnlyMonoTransactionSender(
         MonoEthereum(
