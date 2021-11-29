@@ -46,8 +46,8 @@ import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken as Mintable
 import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken as MintableOwnableTokenV3
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as MintableOwnableTokenV4
 
-@ExperimentalCoroutinesApi
 @Service
+@ExperimentalCoroutinesApi
 class PendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

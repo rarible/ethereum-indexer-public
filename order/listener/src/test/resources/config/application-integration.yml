@@ -29,3 +29,6 @@ listener:
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
+
+logging:
+  level.org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG

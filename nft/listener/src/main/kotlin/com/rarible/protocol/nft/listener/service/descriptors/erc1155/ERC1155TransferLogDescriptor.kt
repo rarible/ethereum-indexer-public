@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.listener.service.descriptors.erc1155
 
 import com.rarible.contracts.erc1155.TransferSingleEvent
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.TransferSingleEventTopics1
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -16,6 +18,7 @@ import scalether.domain.response.Log
 import java.time.Instant
 
 @Service
+@CaptureSpan(type = SpanType.EVENT)
 class ERC1155TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {

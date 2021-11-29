@@ -34,14 +34,19 @@ class OrderRecalculateMakeStockJob(
 
     suspend fun update(now: Instant) {
         logger.info("Starting to update makeStock for orders...")
+        var counter = 0L
 
         merge(
             orderRepository.findExpiredMakeStock(now),
             orderRepository.findActualZeroMakeStock(now)
         ).collect {
             orderUpdateService.updateMakeStock(hash = it.hash)
+            counter++
+            if (counter % 10000L == 0L) {
+                logger.info("Fixed $counter orders")
+            }
         }
 
-        logger.info("Successfully finished update makeStock for orders.")
+        logger.info("Successfully finished update makeStock for $counter orders.")
     }
 }

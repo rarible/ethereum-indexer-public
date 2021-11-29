@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "item-creator")
+@CaptureSpan(type = SpanType.DB)
 class ItemCreatorRepository(private val mongo: ReactiveMongoOperations) {
     fun findById(id: ItemId): Mono<ItemCreator> = mongo.findById(id)
 

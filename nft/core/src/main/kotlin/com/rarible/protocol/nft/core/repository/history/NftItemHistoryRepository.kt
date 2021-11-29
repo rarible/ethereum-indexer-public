@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "item")
+@CaptureSpan(type = SpanType.DB)
 class NftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {

@@ -18,7 +18,7 @@ import scalether.domain.Address
 import scalether.util.Hash
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "token")
+@CaptureSpan(type = SpanType.APP)
 class TokenReduceService(
     private val tokenRepository: TokenRepository,
     private val tokenHistoryRepository: NftHistoryRepository

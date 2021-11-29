@@ -13,7 +13,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "token")
+@CaptureSpan(type = SpanType.DB)
 class TokenRepository(
     private val mongo: ReactiveMongoOperations
 ) {

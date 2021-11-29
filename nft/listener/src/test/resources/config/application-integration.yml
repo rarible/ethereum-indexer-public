@@ -1,4 +1,8 @@
 rarible:
+  core:
+    apm:
+      agent:
+        enabled: false
   protocol:
     listener:
       operator-private-key: "0000000000000000000000000000000000000000"

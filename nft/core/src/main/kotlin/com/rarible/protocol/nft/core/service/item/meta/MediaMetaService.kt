@@ -31,7 +31,7 @@ import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
+@CaptureSpan(type = SpanType.APP)
 class MediaMetaService(
     @Value("\${api.proxy-url:}") private val proxyUrl: String,
     @Value("\${api.properties.media-meta-timeout}") private val timeout: Int,
@@ -53,6 +53,7 @@ class MediaMetaService(
 
     override fun get(id: String): Mono<MediaMeta> = getMediaMeta(id)
 
+    @CaptureSpan(type = SpanType.EXT)
     fun getMediaMeta(url: String): Mono<MediaMeta> {
         return LoggingUtils.withMarker { marker ->
             logger.info(marker, "getMediaMeta $url")

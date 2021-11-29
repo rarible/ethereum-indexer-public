@@ -29,7 +29,7 @@ import scalether.transaction.MonoTransactionSender
 import java.util.*
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "token")
+@CaptureSpan(type = SpanType.EXT)
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender

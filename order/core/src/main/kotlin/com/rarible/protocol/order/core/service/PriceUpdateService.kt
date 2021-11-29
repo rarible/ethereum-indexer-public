@@ -6,7 +6,12 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.BlockchainDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderUsdValue
+import com.rarible.protocol.order.core.model.OrderVersion
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -111,6 +116,9 @@ class PriceUpdateService(
     }
 
     private fun usdPrice(usdRate: BigDecimal, nftPart: BigDecimal, payingPart: BigDecimal): BigDecimal {
+        if (nftPart.signum() == 0) {
+            return BigDecimal.ZERO
+        }
         return usdRate * payingPart / nftPart
     }
 

@@ -25,6 +25,12 @@ mongock:
     - com.rarible.ethereum.listener.log.mongock
 
 rarible:
+  core:
+    apm:
+      agent:
+        enabled: true
+        server: http://elk_apm-server:8200
+        packages: com.rarible.protocol.nft.listener
   ethereum:
     max-frame-size: 104857600
     converter:

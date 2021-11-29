@@ -23,7 +23,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "meta")
+@CaptureSpan(type = SpanType.APP)
 class ItemPropertiesService(
     private val propertiesCacheDescriptor: PropertiesCacheDescriptor,
     private val kittiesCacheDescriptor: KittiesCacheDescriptor,
