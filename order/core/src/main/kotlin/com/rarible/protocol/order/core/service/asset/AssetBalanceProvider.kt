@@ -4,29 +4,42 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.ownershipId
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.service.balance.BalanceControllerApiService
 import com.rarible.protocol.order.core.service.balance.EthBalanceService
 import com.rarible.protocol.order.core.service.nft.NftOwnershipApiService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
+interface AssetBalanceProvider {
+    suspend fun getAssetStock(owner: Address, asset: Asset): EthUInt256?
+}
+
 @Component
 @CaptureSpan(type = SpanType.EXT)
-class AssetBalanceProvider(
+class AssetBalanceProviderImpl(
     private val erc20BalanceApi: BalanceControllerApiService,
     private val nftOwnershipApi: NftOwnershipApiService,
     private val ethBalanceService: EthBalanceService
-) {
-    suspend fun getAssetStock(owner: Address, type: AssetType): EthUInt256? {
-        return when (type) {
+) : AssetBalanceProvider {
+    override suspend fun getAssetStock(owner: Address, asset: Asset): EthUInt256? {
+        return when (asset.type) {
             is Erc20AssetType -> {
                 erc20BalanceApi
-                    .getBalance(type.token, owner)
+                    .getBalance(asset.type.token, owner)
                     ?.let { balance -> EthUInt256.of(balance.balance) }
             }
             is Erc721AssetType, is Erc1155AssetType, is CryptoPunksAssetType -> {
-                val ownershipId = type.ownershipId(owner)
+                val ownershipId = asset.type.ownershipId(owner)
                 nftOwnershipApi
                     .getOwnershipById(ownershipId)
                     ?.let { ownership -> EthUInt256.of(ownership.value) }
@@ -41,7 +54,7 @@ class AssetBalanceProvider(
                 EthUInt256.of(Long.MAX_VALUE)
             }
             is Erc1155LazyAssetType -> {
-                type.supply
+                asset.type.supply
             }
             is EthAssetType -> {
                 ethBalanceService.getBalance(owner)

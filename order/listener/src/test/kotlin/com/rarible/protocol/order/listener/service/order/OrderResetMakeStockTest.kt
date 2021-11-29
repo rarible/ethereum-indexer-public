@@ -56,8 +56,8 @@ internal class OrderResetMakeStockTest : AbstractIntegrationTest() {
             end = nowMillis().plus(Duration.ofHours(1)).epochSecond
         )
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ZERO
 
         val newStock = EthUInt256.of(5)
         val order = orderUpdateService.save(orderVersion)
@@ -91,13 +91,13 @@ internal class OrderResetMakeStockTest : AbstractIntegrationTest() {
             end = Long.MAX_VALUE
         )
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ZERO
         orderUpdateService.save(orderVersion)
         assertThat(orderRepository.findById(orderVersion.hash)?.makeStock).isEqualTo(EthUInt256.ZERO)
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns newStock
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns newStock
         updaterJob.update()
         assertThat(orderRepository.findById(orderVersion.hash)?.makeStock).isEqualTo(newStock)
     }

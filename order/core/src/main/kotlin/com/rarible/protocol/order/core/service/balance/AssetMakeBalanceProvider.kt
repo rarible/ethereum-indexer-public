@@ -1,7 +1,11 @@
 package com.rarible.protocol.order.core.service.balance
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import org.springframework.stereotype.Component
 
@@ -14,7 +18,7 @@ class AssetMakeBalanceProvider(
         order.platform == Platform.RARIBLE -> handleRaribleOnChainOrder(order)
         else -> null
     }
-        ?: delegate.getAssetStock(order.maker, order.make.type)
+        ?: delegate.getAssetStock(order.maker, order.make)
         ?: EthUInt256.ZERO
 
     /**

@@ -59,11 +59,11 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         clearMocks(currencyApi)
         every { currencyApi.getCurrencyRate(any(), any(), any()) } returns Mono.empty()
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
-            val order = firstArg<Order>()
-            if (order.make.type is EthAssetType) {
-                return@r order.make.value
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@{
+            val asset = secondArg<Asset>()
+            if (asset.type is EthAssetType) {
+                return@r asset.value
             }
             EthUInt256.TEN
         }

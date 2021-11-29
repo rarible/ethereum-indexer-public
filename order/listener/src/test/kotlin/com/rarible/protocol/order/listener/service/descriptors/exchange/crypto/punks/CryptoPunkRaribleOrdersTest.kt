@@ -34,7 +34,6 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.sign
-import com.rarible.protocol.order.listener.service.descriptors.exchange.v2.ExchangeOrderMatchDescriptor
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -53,9 +52,6 @@ import java.math.BigInteger
 @IntegrationTest
 @FlowPreview
 class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
-
-    @Autowired
-    private lateinit var exchangeOrderMatchDescriptor: ExchangeOrderMatchDescriptor
 
     @Autowired
     private lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
