@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.contracts.test.erc721.TestERC721
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
@@ -10,9 +11,7 @@ import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.AbstractOrderIt
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -168,22 +167,12 @@ class PrepareOrderMatchTransactionTest : AbstractOrderIt() {
         val royaltiesProvider = TestRoyaltiesProvider.deployAndWait(sender, poller).awaitFirst()
         v2.__ExchangeV2_init(transferProxy.address(), Address.ZERO(), BigInteger.ZERO, beneficiary, royaltiesProvider.address()).execute().verifySuccess()
         transferProxy.addOperator(v2.address()).execute().verifySuccess()
-        setField(
-            prepareTxService,
-            "exchangeContractAddresses",
-            OrderIndexerProperties.ExchangeContractAddresses(
-                v1 = v1.address(),
-                v1Old = null,
-                v2 = v2.address(),
-                openSeaV1 = AddressFactory.create(),
-                cryptoPunks = AddressFactory.create()
-            )
-        )
-        setField(
-            prepareTxService,
-            "privateKey",
-            deployerKey
-        )
+        exchangeContractAddresses.v1 = v1.address()
+        exchangeContractAddresses.v1Old = null
+        exchangeContractAddresses.v2 = v2.address()
+        exchangeContractAddresses.openSeaV1 = randomAddress()
+        exchangeContractAddresses.cryptoPunks = randomAddress()
+        orderIndexerProvider.operatorPrivateKey = Binary.apply(deployerKey.toByteArray())
         logger.info("deployed v2: ${v2.address()}")
 
         val erc721 = TestERC721.deployAndWait(sender, poller, "test", "test").awaitFirst()

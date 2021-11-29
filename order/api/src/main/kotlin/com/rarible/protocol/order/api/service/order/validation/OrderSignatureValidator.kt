@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class OrderSignatureValidator(
-    private val eip712Domain: EIP712Domain,
+    var eip712Domain: EIP712Domain,
     private val legacySigner: CommonSigner,
     private val erc1271SignService: ERC1271SignService
 ) {

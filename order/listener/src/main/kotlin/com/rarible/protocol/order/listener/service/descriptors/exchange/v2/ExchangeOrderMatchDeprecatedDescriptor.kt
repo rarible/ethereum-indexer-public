@@ -27,14 +27,12 @@ import java.time.Instant
 
 @Service
 class ExchangeOrderMatchDeprecatedDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val orderRepository: OrderRepository,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     private val raribleOrderParser: RaribleExchangeV2OrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
-
-    private val exchangeContract = exchangeContractAddresses.v2
 
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -113,8 +111,6 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(exchangeContract))
+        return Mono.just(listOf(exchangeContractAddresses.v2))
     }
 }
-
-

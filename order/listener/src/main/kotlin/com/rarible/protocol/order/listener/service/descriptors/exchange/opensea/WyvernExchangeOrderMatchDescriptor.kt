@@ -21,13 +21,12 @@ import java.time.Instant
 
 @Service
 class WyvernExchangeOrderMatchDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val exchangeContract = exchangeContractAddresses.openSeaV1
 
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -49,9 +48,5 @@ class WyvernExchangeOrderMatchDescriptor(
         }
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(exchangeContract))
-    }
+    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.openSeaV1))
 }
-
-

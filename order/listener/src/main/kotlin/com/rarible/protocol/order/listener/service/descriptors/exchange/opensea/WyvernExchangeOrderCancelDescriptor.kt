@@ -3,7 +3,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
@@ -21,13 +21,12 @@ import java.time.Instant
 
 @Service
 class WyvernExchangeOrderCancelDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val openSeaOrderEventConverter: OpenSeaOrderEventConverter,
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderCancel> {
 
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val exchangeContract = exchangeContractAddresses.openSeaV1
 
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -51,7 +50,5 @@ class WyvernExchangeOrderCancelDescriptor(
         }
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(exchangeContract))
-    }
+    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.openSeaV1))
 }

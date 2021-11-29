@@ -25,19 +25,15 @@ import java.time.Instant
 
 @Service
 class ExchangeV2UpsertOrderDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser
 ) : LogEventDescriptor<OnChainOrder> {
-
-    private val exchangeContract = exchangeContractAddresses.v2
 
     override val collection = ExchangeHistoryRepository.COLLECTION
 
     override val topic: Word = UpsertOrderEvent.id()
 
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return listOf(exchangeContract).toMono()
-    }
+    override fun getAddresses(): Mono<Collection<Address>> = listOf(exchangeContractAddresses.v2).toMono()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OnChainOrder> {
         val event = UpsertOrderEvent.apply(log)

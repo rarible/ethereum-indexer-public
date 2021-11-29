@@ -35,13 +35,11 @@ import java.time.Instant
 
 @Service
 class ExchangeOrderMatchDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     private val raribleOrderParser: RaribleExchangeV2OrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
-
-    private val exchangeContract = exchangeContractAddresses.v2
 
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -133,7 +131,7 @@ class ExchangeOrderMatchDescriptor(
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(listOf(exchangeContract))
+        return Mono.just(listOf(exchangeContractAddresses.v2))
     }
 }
 

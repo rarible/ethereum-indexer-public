@@ -19,18 +19,16 @@ import java.time.Instant
 
 @Service
 class ExchangeCancelDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val assetTypeService: AssetTypeService
 ) : ItemExchangeHistoryLogEventDescriptor<OrderCancel> {
-
-    private val addresses = listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old)
 
     override val topic: Word = CancelEvent.id()
 
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val event = CancelEvent.apply(log)
 
-        val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()));
+        val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()))
         val takeAssetType = assetTypeService.toAssetType(event.buyToken(), EthUInt256(event.buyTokenId()))
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
 
@@ -46,7 +44,6 @@ class ExchangeCancelDescriptor(
         )
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(addresses)
-    }
+    override fun getAddresses(): Mono<Collection<Address>> =
+        Mono.just(listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old))
 }

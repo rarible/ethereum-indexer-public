@@ -2,8 +2,11 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.mockk.coEvery
@@ -18,9 +21,6 @@ import java.time.temporal.ChronoField
 
 @FlowPreview
 abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
-
-    @Autowired
-    protected lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
     @Autowired
     protected lateinit var prepareTxService: PrepareTxService

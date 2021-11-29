@@ -22,10 +22,8 @@ import java.time.Instant
 
 @Service
 class ExchangeV2CancelDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 ) : LogEventDescriptor<OrderCancel> {
-
-    private val exchangeContract = exchangeContractAddresses.v2
 
     override val collection: String = ExchangeHistoryRepository.COLLECTION
 
@@ -35,7 +33,7 @@ class ExchangeV2CancelDescriptor(
         return mono { listOfNotNull(convert(log, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(setOf(exchangeContract))
+    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(setOf(exchangeContractAddresses.v2))
 
     private fun convert(log: Log, date: Instant): OrderCancel {
         val event = CancelEvent.apply(log)

@@ -33,7 +33,6 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
 import com.rarible.protocol.order.listener.misc.sign
 import com.rarible.protocol.order.listener.service.descriptors.exchange.v2.ExchangeOrderMatchDescriptor
 import kotlinx.coroutines.FlowPreview
@@ -90,8 +89,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             chainId = BigInteger.valueOf(17),
             verifyingContract = exchangeV2.address()
         )
-        setField(prepareTxService, "eip712Domain", eip712Domain)
-        setField(exchangeOrderMatchDescriptor, "exchangeContract", exchangeV2.address())
+        prepareTxService.eip712Domain = eip712Domain
+        exchangeContractAddresses.v2 = exchangeV2.address()
 
         punkTransferProxy = PunkTransferProxy.deployAndWait(sender, poller).awaitFirst()
         transferProxyAddresses.cryptoPunksTransferProxy = punkTransferProxy.address()

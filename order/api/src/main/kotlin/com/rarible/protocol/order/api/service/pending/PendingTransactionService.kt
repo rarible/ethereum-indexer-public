@@ -38,19 +38,11 @@ import com.rarible.protocol.contracts.exchange.v1.CancelEvent as CancelEventV1
 class PendingTransactionService(
     private val assetTypeService: AssetTypeService,
     private val orderRepository: OrderRepository,
-    exchangeContractAddresses: ExchangeContractAddresses,
+    private val exchangeContractAddresses: ExchangeContractAddresses,
     private val raribleExchangeV2OrderParser: RaribleExchangeV2OrderParser,
     logEventService: LogEventService,
     blockProcessor: OrderBlockProcessor
 ) : AbstractPendingTransactionService(logEventService, blockProcessor) {
-
-    private val exchangeContracts = listOfNotNull(
-        exchangeContractAddresses.v1,
-        exchangeContractAddresses.v1Old,
-        exchangeContractAddresses.v2
-    ).toSet()
-
-    private val cryptoPunksAddress = exchangeContractAddresses.cryptoPunks
 
     override suspend fun process(
         hash: Word,
@@ -62,8 +54,10 @@ class PendingTransactionService(
     ): List<LogEvent> {
         if (to == null) return emptyList()
         val logs = when {
-            exchangeContracts.contains(to) -> processTxToExchange(from, id, data)
-            cryptoPunksAddress == to -> processTxToCryptoPunks(from, id, data)
+            to == exchangeContractAddresses.v1
+                    || to == exchangeContractAddresses.v1Old
+                    || to == exchangeContractAddresses.v2 -> processTxToExchange(from, id, data)
+            exchangeContractAddresses.cryptoPunks == to -> processTxToCryptoPunks(from, id, data)
             else -> emptyList()
         }
         return logs.mapIndexed { index, pendingLog ->
@@ -84,7 +78,7 @@ class PendingTransactionService(
         val pendingLogs = when (id.prefixed()) {
             CryptoPunksMarket.buyPunkSignature().id().prefixed() -> {
                 val punkId = CryptoPunksMarket.buyPunkSignature().`in`().decode(data, 0).value()
-                val order = orderRepository.findByMake(cryptoPunksAddress, EthUInt256(punkId))
+                val order = orderRepository.findByMake(exchangeContractAddresses.cryptoPunks, EthUInt256(punkId))
                 order?.let {
                     val hash = Order.hashKey(it.maker, it.make.type, it.take.type, it.salt.value)
                     val counterHash = Order.hashKey(from, it.take.type, it.make.type, it.salt.value)
@@ -95,7 +89,7 @@ class PendingTransactionService(
                 val bidData = CryptoPunksMarket.acceptBidForPunkSignature().`in`().decode(data, 0).value()
                 val punkId = bidData._1()
                 val price = bidData._2()
-                val order = orderRepository.findByTake(cryptoPunksAddress, EthUInt256(punkId))
+                val order = orderRepository.findByTake(exchangeContractAddresses.cryptoPunks, EthUInt256(punkId))
                 order?.let {
                     val make = it.make.copy(value = EthUInt256.of(price))
                     val hash = Order.hashKey(from, it.take.type, make.type, it.salt.value)
