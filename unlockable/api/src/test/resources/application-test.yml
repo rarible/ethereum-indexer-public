@@ -15,9 +15,6 @@ logging:
   logstash.tcp-socket.enabled: false
   level.org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
 
-application:
-  environment: test
-
 common:
   blockchain: ethereum
 

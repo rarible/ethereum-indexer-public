@@ -32,7 +32,14 @@ import java.util.*
 @EnableAutoConfiguration
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-    properties = ["spring.cloud.bootstrap.enabled=false"]
+    properties = [
+        "spring.cloud.bootstrap.enabled=false",
+        "spring.cloud.service-registry.auto-registration.enabled = false",
+        "spring.cloud.discovery.enabled = false",
+        "spring.cloud.consul.config.enabled = false",
+        "logging.logstash.tcp-socket.enabled = false",
+        "application.environment=test"
+    ]
 )
 @ActiveProfiles("test")
 internal class LockServiceIt {
