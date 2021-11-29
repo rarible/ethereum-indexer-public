@@ -25,7 +25,7 @@ import java.util.*
 import com.rarible.ethereum.nft.validation.LazyNftValidator as DaonomicLazyNftValidator
 
 @Component
-@CaptureSpan(type = SpanType.APP, subtype = "item")
+@CaptureSpan(type = SpanType.APP)
 class LazyNftValidator(
     private val delegate: DaonomicLazyNftValidator,
     private val tokenRepository: TokenRepository,

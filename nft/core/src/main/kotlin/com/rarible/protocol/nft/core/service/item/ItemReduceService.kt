@@ -26,7 +26,7 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "item")
+@CaptureSpan(type = SpanType.APP)
 class ItemReduceService(
     private val itemRepository: ItemRepository,
     private val ownershipService: OwnershipService,

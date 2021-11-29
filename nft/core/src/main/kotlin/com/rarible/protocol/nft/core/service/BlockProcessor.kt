@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "block")
+@CaptureSpan(type = SpanType.EVENT)
 class BlockProcessor(
     private val itemReduceService: ItemReduceService,
     private val tokenUpdateService: TokenUpdateService

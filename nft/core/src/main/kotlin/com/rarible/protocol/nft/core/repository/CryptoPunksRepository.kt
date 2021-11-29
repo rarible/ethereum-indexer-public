@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono
 import java.math.BigInteger
 
 @Component
-@CaptureSpan(type = SpanType.DB, subtype = "item")
+@CaptureSpan(type = SpanType.DB)
 class CryptoPunksRepository(private val mongo: ReactiveMongoOperations) {
 
     fun findById(id: BigInteger): Mono<CryptoPunksMeta> {

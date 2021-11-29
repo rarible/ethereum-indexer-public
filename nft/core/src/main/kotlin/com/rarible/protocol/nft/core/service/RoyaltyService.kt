@@ -17,7 +17,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Service
-@CaptureSpan(type = SpanType.APP, subtype = "royalty")
+@CaptureSpan(type = SpanType.EXT)
 class RoyaltyService(
     private val sender: MonoTransactionSender,
     private val nftIndexerProperties: NftIndexerProperties,

@@ -24,7 +24,7 @@ import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(SpanType.APP, "item")
+@CaptureSpan(SpanType.APP)
 class ItemService(
     private val conversionService: ConversionService,
     private val itemMetaService: ItemMetaService,

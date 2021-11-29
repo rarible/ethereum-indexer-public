@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.KnownOrigin.KnownOrigin
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -18,10 +20,11 @@ import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
 @Service
+@CaptureSpan(type = SpanType.EXT)
 class ItemCreatorService(
     sender: MonoTransactionSender,
     private val itemCreatorRepository: ItemCreatorRepository,
-    private val properties: NftIndexerProperties
+    properties: NftIndexerProperties
 ) {
     private val knownOrigin = KnownOrigin(KNOWN_ORIGIN_TOKEN, sender)
     private val openseaAddress = Address.apply(properties.openseaLazyMintAddress)

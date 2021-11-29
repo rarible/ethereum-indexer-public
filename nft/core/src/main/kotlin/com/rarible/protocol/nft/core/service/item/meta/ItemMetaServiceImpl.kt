@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -11,6 +13,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Component
+@CaptureSpan(type = SpanType.APP)
 class ItemMetaServiceImpl(
     private val itemPropertiesService: ItemPropertiesService,
     private val contentMetaService: ContentMetaService

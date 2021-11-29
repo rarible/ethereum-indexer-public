@@ -37,7 +37,7 @@ import java.math.BigInteger
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = SpanType.EXT, subtype = "meta")
+@CaptureSpan(type = SpanType.EXT)
 class PropertiesCacheDescriptor(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
