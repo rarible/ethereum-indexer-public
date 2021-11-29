@@ -14,7 +14,6 @@ import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.OrderService
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -53,9 +52,6 @@ import com.rarible.protocol.order.api.data.createOrder as createOrderFully
 @IntegrationTest
 @Import(OrderControllerFt.TestOrderServiceConfiguration::class)
 class OrderControllerFt : AbstractIntegrationTest() {
-
-    @Autowired
-    lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
     @Autowired
     lateinit var orderService: OrderService

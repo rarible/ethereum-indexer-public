@@ -18,7 +18,6 @@ import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.pending.PendingTransactionService
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -167,7 +166,7 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 takeUsd = null
             )
 
-            setField(pendingTransactionService, "exchangeContracts", hashSetOf(sale.address()))
+            exchangeContractAddresses.v1 = sale.address()
 
             orderUpdateService.save(orderVersion)
 
@@ -221,7 +220,7 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 verifyingContract = exchangeV2Contract.address()
             )
 
-            setField(pendingTransactionService, "exchangeContracts", hashSetOf(exchangeV2Contract.address()))
+            exchangeContractAddresses.v2 = exchangeV2Contract.address()
         }
 
         @ParameterizedTest

@@ -9,14 +9,12 @@ import com.rarible.protocol.contracts.common.wyvern.token.TestToken
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoGasPriceProvider
@@ -43,12 +41,6 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
     protected lateinit var erc20TransferProxy: ERC20TransferProxy
     protected lateinit var privateKey1: BigInteger
     protected lateinit var privateKey2: BigInteger
-
-    @Autowired
-    private lateinit var wyvernExchangeOrderMatchDescriptor: WyvernExchangeOrderMatchDescriptor
-
-    @Autowired
-    private lateinit var wyvernExchangeOrderCancelDescriptor: WyvernExchangeOrderCancelDescriptor
 
     @BeforeEach
     fun before() = runBlocking {
@@ -88,8 +80,7 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
             userSender1.from()
         ).awaitFirst()
 
-        setField(wyvernExchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
-        setField(wyvernExchangeOrderCancelDescriptor, "exchangeContract", exchange.address())
+        exchangeContractAddresses.openSeaV1 = exchange.address()
 
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 

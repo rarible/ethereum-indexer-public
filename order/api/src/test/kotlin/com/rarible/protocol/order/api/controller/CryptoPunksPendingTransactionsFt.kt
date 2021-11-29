@@ -7,9 +7,6 @@ import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.api.misc.setField
-import com.rarible.protocol.order.api.service.pending.PendingTransactionService
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -28,7 +25,6 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
@@ -37,12 +33,6 @@ import java.math.BigInteger
 
 @IntegrationTest
 class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
-
-    @Autowired
-    lateinit var pendingTransactionService: PendingTransactionService
-
-    @Autowired
-    lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
     protected lateinit var cryptoPunksMarket: CryptoPunksMarket
 
@@ -112,7 +102,7 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         depositInitialBalance(buyerAddress, punkPrice)
         val receipt = cryptoPunksMarket.buyPunk(punkIndex).withSender(buyerSender).withValue(punkPrice).execute().verifySuccess()
 
-        setField(pendingTransactionService, "cryptoPunksAddress", cryptoPunksMarket.address())
+        exchangeContractAddresses.cryptoPunks = cryptoPunksMarket.address()
         processTransaction(receipt, 2)
 
         val makeHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
@@ -169,7 +159,7 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
 
         orderUpdateService.save(orderVersion)
 
-        setField(pendingTransactionService, "cryptoPunksAddress", cryptoPunksMarket.address())
+        exchangeContractAddresses.cryptoPunks = cryptoPunksMarket.address()
 
         // Bid the punk
         depositInitialBalance(buyerAddress, punkPrice)

@@ -18,7 +18,7 @@ data class OrderIndexerProperties(
     val eip712DomainName: String,
     val eip712DomainVersion: String,
     val chainId: Int,
-    val operatorPrivateKey: Binary,
+    var operatorPrivateKey: Binary,
     val protocolCommission: Int,
     @NestedConfigurationProperty
     val exchangeContractAddresses: ExchangeContractAddresses,
@@ -34,10 +34,10 @@ data class OrderIndexerProperties(
     val nodeType: NodeType?
 ) {
     data class ExchangeContractAddresses(
-        val v1: Address,
-        val v1Old: Address? = null,
-        val v2: Address,
-        val openSeaV1: Address,
+        var v1: Address,
+        var v1Old: Address? = null,
+        var v2: Address,
+        var openSeaV1: Address,
         var cryptoPunks: Address
     )
 
@@ -63,4 +63,3 @@ data class OrderIndexerProperties(
         val showOpenSeaOrdersWithOtherPlatforms: Boolean = false
     )
 }
-
