@@ -22,7 +22,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -82,7 +82,13 @@ class CryptoPunkBoughtLogDescriptor(
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
         val cancelSellOrder = if (calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name()) {
-            getCancelOfSellOrder(marketAddress, date, punkIndex)
+            getCancelOfSellOrder(
+                marketAddress = marketAddress,
+                blockDate = date,
+                blockNumber = log.blockNumber().toLong(),
+                logIndex = log.logIndex().toInt(),
+                punkIndex = punkIndex
+            )
         } else {
             null
         }
@@ -141,11 +147,19 @@ class CryptoPunkBoughtLogDescriptor(
     private suspend fun getCancelOfSellOrder(
         marketAddress: Address,
         blockDate: Instant,
+        blockNumber: Long,
+        logIndex: Int,
         punkIndex: BigInteger
     ): OrderCancel? {
         val lastSellEvent = exchangeHistoryRepository
-            .findSellEventsByItem(marketAddress, EthUInt256(punkIndex)).collectList()
-            .awaitFirst().lastOrNull()?.data
+            .findSellEventsByItem(marketAddress, EthUInt256(punkIndex))
+            .filter {
+                it.blockNumber!! < blockNumber || it.blockNumber!! == blockNumber && it.logIndex!! < logIndex
+            }
+            .takeLast(1)
+            .singleOrEmpty()
+            .awaitFirstOrNull()
+            ?.data
         // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
         //  it means that there was a previous sell order. That sell order must be cancelled.
         if (lastSellEvent is OnChainOrder) {

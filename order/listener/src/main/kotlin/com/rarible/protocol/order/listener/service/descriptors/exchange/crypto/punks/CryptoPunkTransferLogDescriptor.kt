@@ -31,7 +31,14 @@ class CryptoPunkTransferLogDescriptor(
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val punkTransferEvent = PunkTransferEvent.apply(log)
         val punkIndex = punkTransferEvent.punkIndex()
-        val cancelOfPreviousBid = getCancelOfPreviousBid(exchangeHistoryRepository, log.address(), date, punkIndex)
+        val cancelOfPreviousBid = getCancelOfPreviousBid(
+            exchangeHistoryRepository = exchangeHistoryRepository,
+            marketAddress = log.address(),
+            blockNumber = log.blockNumber().toLong(),
+            logIndex = log.logIndex().toInt(),
+            blockDate = date,
+            punkIndex = punkIndex
+        )
         if (cancelOfPreviousBid != null && cancelOfPreviousBid.maker == punkTransferEvent.to()) {
             return listOf(cancelOfPreviousBid)
         }
