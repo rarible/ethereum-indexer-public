@@ -23,12 +23,13 @@ class RoyaltyService(
     private val nftIndexerProperties: NftIndexerProperties,
     private val royaltyRepository: RoyaltyRepository
 ) {
-
     // TODO: handle the two cases differently:
     //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
     //  2) item doesn't have any royalties at all
     //  Currently, we request royalties from the contract in both cases.
     suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
+        if (nftIndexerProperties.isRoyaltyServiceEnabled.not()) return emptyList()
+
         val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
             return cachedRoyalties.royalty

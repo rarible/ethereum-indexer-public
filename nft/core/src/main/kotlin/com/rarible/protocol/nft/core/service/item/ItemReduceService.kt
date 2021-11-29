@@ -205,8 +205,7 @@ class ItemReduceService(
                         }
                     }
                     is ItemRoyalty -> {
-                        logger.info("Ignoring ItemRoyalty event: $event")
-                        item
+                        item.copy(royalties = event.royalties)
                     }
                     is ItemLazyMint -> {
                         item.copy(royalties = event.royalties, creators = event.creators, creatorsFinal = true)
