@@ -251,7 +251,7 @@ fun Tuple2<ByteArray, ByteArray>.toAssetType() =
         AssetType.ERC1155_LAZY -> Erc1155LazyAssetType.apply(Binary(_2()))
         AssetType.CRYPTO_PUNKS -> CryptoPunksAssetType.apply(Binary(_2()))
         AssetType.GEN_ART -> GenerativeArtAssetType(Binary(_2()))
-        AssetType.COLLECTION -> GenerativeArtAssetType(Binary(_2()))
+        AssetType.COLLECTION -> CollectionAssetType(Binary(_2()))
         else -> throw IllegalArgumentException("asset type not supported: $type")
     }
 
