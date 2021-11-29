@@ -29,7 +29,6 @@ import java.math.BigInteger
 import com.rarible.protocol.contracts.exchange.v1.CancelEvent as CancelEventV1
 
 @Service
-@CaptureSpan(type = SpanType.APP)
 class PendingTransactionService(
     private val assetTypeService: AssetTypeService,
     private val orderRepository: OrderRepository,

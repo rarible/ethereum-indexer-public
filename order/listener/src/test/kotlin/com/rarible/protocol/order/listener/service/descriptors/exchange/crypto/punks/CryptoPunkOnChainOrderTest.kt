@@ -21,6 +21,7 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -167,11 +168,11 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(make, right.take)
             assertEquals(true, right.externalOrderExecutedOnRarible)
 
-            assertFalse(left?.adhoc!!)
-            assertTrue(left?.counterAdhoc!!)
+            assertFalse(left.adhoc!!)
+            assertTrue(left.counterAdhoc!!)
 
-            assertTrue(right?.adhoc!!)
-            assertFalse(right?.counterAdhoc!!)
+            assertTrue(right.adhoc!!)
+            assertFalse(right.counterAdhoc!!)
         }
 
         checkActivityWasPublished {
@@ -180,7 +181,14 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.left.hash).isEqualTo(listOrder.hash)
                 assertThat(it.left.maker).isEqualTo(sellerAddress)
 
-                assertThat(it.right.hash).isEqualTo(Order.hashKey(buyerAddress, take.type, make.type, listOrder.salt.value))
+                assertThat(it.right.hash).isEqualTo(
+                    Order.hashKey(
+                        buyerAddress,
+                        take.type,
+                        make.type,
+                        listOrder.salt.value
+                    )
+                )
                 assertThat(it.right.maker).isEqualTo(buyerAddress)
 
                 assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
@@ -227,6 +235,77 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.make).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
                 assertThat(it.take).isInstanceOf(EthAssetTypeDto::class.java)
             }
+        }
+    }
+
+    @Test
+    fun `create sell order and then change price`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val firstPrice = BigInteger.valueOf(100000)
+        val firstSellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, firstPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val firstPriceUsd = firstPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val firstMakePrice = firstPrice.toBigDecimal(18)
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(firstPrice))
+
+        val firstOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+        val expectedListOrder = Order(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256.ONE,
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = firstSellTimestamp,
+            lastUpdateAt = firstSellTimestamp,
+            pending = emptyList(),
+            makePriceUsd = firstPriceUsd,
+            takePriceUsd = null,
+            makePrice = firstMakePrice,
+            makeUsd = null,
+            takeUsd = firstPriceUsd,
+            priceHistory = createPriceHistory(firstSellTimestamp, make, take),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = firstOrder.lastEventId
+        )
+        assertThat(firstOrder).isEqualTo(expectedListOrder)
+
+        // Make the second sell order with new price.
+        val secondPrice = BigInteger.valueOf(200000)
+        val secondSellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, secondPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        Wait.waitAssert {
+            val secondOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+            val secondPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+            val secondMakePrice = secondPrice.toBigDecimal(18)
+            val secondTake = take.copy(value = EthUInt256(secondPrice))
+            assertThat(secondOrder).isEqualTo(
+                expectedListOrder.copy(
+                    take = secondTake,
+                    createdAt = secondSellTimestamp,
+                    lastUpdateAt = secondSellTimestamp,
+                    makePriceUsd = secondPriceUsd,
+                    takeUsd = secondPriceUsd,
+                    makePrice = secondMakePrice,
+                    priceHistory = createPriceHistory(secondSellTimestamp, make, secondTake),
+                    lastEventId = secondOrder.lastEventId
+                )
+            )
         }
     }
 
@@ -354,17 +433,24 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(bidMake, left.take)
             assertEquals(bidMake, right.make)
 
-            assertTrue(left?.adhoc!!)
-            assertFalse(left?.counterAdhoc!!)
+            assertTrue(left.adhoc!!)
+            assertFalse(left.counterAdhoc!!)
 
-            assertFalse(right?.adhoc!!)
-            assertTrue(right?.counterAdhoc!!)
+            assertFalse(right.adhoc!!)
+            assertTrue(right.counterAdhoc!!)
         }
 
         checkActivityWasPublished {
             assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
                 assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
-                assertThat(it.left.hash).isEqualTo(Order.hashKey(ownerAddress, bidTake.type, bidMake.type, bidOrder.salt.value))
+                assertThat(it.left.hash).isEqualTo(
+                    Order.hashKey(
+                        ownerAddress,
+                        bidTake.type,
+                        bidMake.type,
+                        bidOrder.salt.value
+                    )
+                )
                 assertThat(it.left.maker).isEqualTo(ownerAddress)
 
                 assertThat(it.right.hash).isEqualTo(bidOrder.hash)
@@ -413,6 +499,388 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 assertThat(it.maker).isEqualTo(bidderAddress)
                 assertThat(it.make).isInstanceOf(EthAssetTypeDto::class.java)
                 assertThat(it.take).isInstanceOf(CryptoPunksAssetTypeDto::class.java)
+            }
+        }
+    }
+
+    @Test
+    fun `another user makes a bid with higher price, then the first bid must be cancelled`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (firstBidderAddress, firstBidderSender) = newSender()
+        val firstBidPrice = 100000.toBigInteger()
+        depositInitialBalance(firstBidderAddress, firstBidPrice)
+        val firstBidTimestamp =
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(firstBidderSender).withValue(firstBidPrice)
+                .execute().verifySuccess().getTimestamp()
+        val firstBidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        val firstBidMake = Asset(EthAssetType, EthUInt256(firstBidPrice))
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val firstBidTakePriceUsd = firstBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        val expectedFirstBidOrder = Order(
+            maker = firstBidderAddress,
+            taker = null,
+            make = firstBidMake,
+            take = bidTake,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256(firstBidPrice),
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = firstBidTimestamp,
+            lastUpdateAt = firstBidTimestamp,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = firstBidTakePriceUsd,
+            takePrice = BigDecimal("1.00000E-13"),
+            makeUsd = firstBidTakePriceUsd,
+            takeUsd = null,
+            priceHistory = createPriceHistory(firstBidTimestamp, firstBidMake, bidTake),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = firstBidOrder.lastEventId
+        )
+        assertThat(firstBidOrder).isEqualTo(expectedFirstBidOrder)
+
+        // Second user makes a bid with higher price => th first user's bid must be cancelled.
+        val (secondBidderAddress, secondBidderSender) = newSender()
+        val secondBidPrice = 200000.toBigInteger()
+        depositInitialBalance(secondBidderAddress, secondBidPrice)
+        val secondBidTimestamp =
+            cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(secondBidderSender).withValue(secondBidPrice)
+                .execute().verifySuccess().getTimestamp()
+
+        val secondMake = firstBidMake.copy(value = EthUInt256(secondBidPrice))
+        val secondBidTakePriceUsd = secondBidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val secondTakePrice = secondBidPrice.toBigDecimal(18)
+        val secondBidHash = Order.hashKey(secondBidderAddress, secondMake.type, bidTake.type, CRYPTO_PUNKS_SALT.value)
+
+        Wait.waitAssert {
+            val firstBidCancelledOrder = orderRepository.findById(firstBidOrder.hash)
+            assertThat(firstBidCancelledOrder).isEqualTo(
+                firstBidOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = secondBidTimestamp,
+                    lastEventId = firstBidCancelledOrder?.lastEventId
+                )
+            )
+
+            val activeOrders = orderRepository.findActive().toList()
+            assertThat(activeOrders).hasSize(1)
+
+            val secondBidOrder = activeOrders.single()
+            assertThat(secondBidOrder).isEqualTo(
+                expectedFirstBidOrder.copy(
+                    maker = secondBidderAddress,
+                    make = secondMake,
+                    hash = secondBidHash,
+                    makeStock = secondMake.value,
+
+                    createdAt = secondBidTimestamp,
+                    lastUpdateAt = secondBidTimestamp,
+                    takePriceUsd = secondBidTakePriceUsd,
+                    makeUsd = secondBidTakePriceUsd,
+                    takePrice = secondTakePrice,
+                    priceHistory = createPriceHistory(secondBidTimestamp, secondMake, bidTake),
+                    lastEventId = secondBidOrder.lastEventId
+                )
+            )
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityBidDto::class.java) {
+                assertThat(it.hash).isEqualTo(secondBidHash)
+            }
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelBidDto::class.java) {
+                assertThat(it.hash).isEqualTo(firstBidOrder.hash)
+            }
+        }
+    }
+
+    @Test
+    fun `transfer punk to bidder while the bid is active, must cancel the bid`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100000.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        val bidTimestamp = cryptoPunksMarket.enterBidForPunk(punkIndex)
+            .withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess().getTimestamp()
+        val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        val expectedBidOrder = Order(
+            maker = bidderAddress,
+            taker = null,
+            make = bidMake,
+            take = bidTake,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256(bidPrice),
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = bidTimestamp,
+            lastUpdateAt = bidTimestamp,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = bidTakePriceUsd,
+            takePrice = BigDecimal("1.00000E-13"),
+            makeUsd = bidTakePriceUsd,
+            takeUsd = null,
+            priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = bidOrder.lastEventId
+        )
+        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+
+        // Transfer punk to the bidder for free.
+        val transferTimestamp = cryptoPunksMarket.transferPunk(bidderAddress, punkIndex)
+            .withSender(ownerSender).execute().verifySuccess().getTimestamp()
+
+        Wait.waitAssert {
+            val bidCancelledOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(bidCancelledOrder).isEqualTo(
+                bidOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = transferTimestamp,
+                    lastEventId = bidCancelledOrder?.lastEventId
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `transfer punk from seller must cancel the sell order`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val sellPrice = BigInteger.valueOf(100000)
+        val sellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val priceUsd = sellPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val makePrice = sellPrice.toBigDecimal(18)
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(sellPrice))
+
+        val sellOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+        val expectedSellOrder = Order(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256.ONE,
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = sellTimestamp,
+            lastUpdateAt = sellTimestamp,
+            pending = emptyList(),
+            makePriceUsd = priceUsd,
+            takePriceUsd = null,
+            makePrice = makePrice,
+            makeUsd = null,
+            takeUsd = priceUsd,
+            priceHistory = createPriceHistory(sellTimestamp, make, take),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = sellOrder.lastEventId
+        )
+        assertThat(sellOrder).isEqualTo(expectedSellOrder)
+
+        val (newOwnerAddress) = newSender()
+
+        // Transfer punk to a new owner for free => it must cancel the sell order.
+        val transactionReceipt = cryptoPunksMarket.transferPunk(newOwnerAddress, punkIndex)
+            .withSender(sellerSender).execute().verifySuccess()
+        val transferTimestamp = transactionReceipt.getTimestamp()
+
+        Wait.waitAssert {
+            val sellCancelledOrder = orderRepository.findById(sellOrder.hash)
+            assertThat(sellCancelledOrder).isEqualTo(
+                sellOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    lastUpdateAt = transferTimestamp,
+                    lastEventId = sellCancelledOrder?.lastEventId
+                )
+            )
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityCancelListDto::class.java) {
+                assertThat(it.source).isEqualTo(OrderActivityDto.Source.CRYPTO_PUNKS)
+                assertThat(it.hash).isEqualTo(sellOrder.hash)
+            }
+        }
+    }
+
+    @Test
+    fun `sell order created, then bid order created, accept bid partially fills the sell order`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val sellPrice = BigInteger.valueOf(200000)
+        val sellTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+
+        val priceUsd = sellPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val makePrice = sellPrice.toBigDecimal(18)
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(sellPrice))
+
+        val sellOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+        val expectedSellOrder = Order(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256.ONE,
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = sellTimestamp,
+            lastUpdateAt = sellTimestamp,
+            pending = emptyList(),
+            makePriceUsd = priceUsd,
+            takePriceUsd = null,
+            makePrice = makePrice,
+            makeUsd = null,
+            takeUsd = priceUsd,
+            priceHistory = createPriceHistory(sellTimestamp, make, take),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = sellOrder.lastEventId
+        )
+        assertThat(sellOrder).isEqualTo(expectedSellOrder)
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100000.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        val bidTimestamp = cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess().getTimestamp()
+        val bidOrder = Wait.waitFor {
+            val activeOrders = orderRepository.findActive().toList()
+            (activeOrders - sellOrder).singleOrNull()
+        }!!
+
+        val bidMake = Asset(EthAssetType, EthUInt256(bidPrice))
+        val bidTake = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+
+        val bidTakePriceUsd = bidPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val bidTakePrice = BigDecimal("1.00000E-13")
+
+        val expectedBidOrder = Order(
+            maker = bidderAddress,
+            taker = null,
+            make = bidMake,
+            take = bidTake,
+            type = OrderType.CRYPTO_PUNKS,
+            fill = EthUInt256.ZERO,
+            cancelled = false,
+            data = OrderCryptoPunksData,
+
+            makeStock = EthUInt256(bidPrice),
+            salt = CRYPTO_PUNKS_SALT,
+            start = null,
+            end = null,
+            signature = null,
+            createdAt = bidTimestamp,
+            lastUpdateAt = bidTimestamp,
+            pending = emptyList(),
+            makePriceUsd = null,
+            takePriceUsd = bidTakePriceUsd,
+            takePrice = bidTakePrice,
+            makeUsd = bidTakePriceUsd,
+            takeUsd = null,
+            priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
+            platform = Platform.CRYPTO_PUNKS,
+            lastEventId = bidOrder.lastEventId
+        )
+        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+
+        // Seller accepts the bid.
+        val acceptBidTimestamp = cryptoPunksMarket.acceptBidForPunk(punkIndex, bidPrice).withSender(sellerSender)
+            .execute().verifySuccess().getTimestamp()
+
+        Wait.waitAssert {
+            val sellCancelledOrder = orderRepository.findById(sellOrder.hash)
+            assertThat(sellCancelledOrder).isEqualTo(
+                sellOrder.copy(
+                    cancelled = true,
+                    status = OrderStatus.CANCELLED,
+                    makeStock = EthUInt256.ZERO,
+                    fill = EthUInt256.ZERO,
+                    lastUpdateAt = acceptBidTimestamp,
+                    lastEventId = sellCancelledOrder?.lastEventId
+                )
+            )
+
+            val filledBidOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(filledBidOrder).isEqualTo(
+                expectedBidOrder.copy(
+                    maker = bidderAddress,
+                    make = bidMake,
+                    makeStock = EthUInt256.ZERO,
+                    fill = EthUInt256.ONE,
+                    status = OrderStatus.FILLED,
+
+                    lastUpdateAt = acceptBidTimestamp,
+                    takePriceUsd = bidTakePriceUsd,
+                    makeUsd = bidTakePriceUsd,
+                    takePrice = bidTakePrice,
+                    lastEventId = filledBidOrder?.lastEventId
+                )
+            )
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(sellOrder.hash)
+                assertThat(it.right.hash).isEqualTo(bidOrder.hash)
             }
         }
     }
@@ -470,7 +938,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    internal fun `sell order closed after punk transferring`() = runBlocking<Unit> {
+    fun `sell order closed after punk transferring`() = runBlocking<Unit> {
         val (_, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()

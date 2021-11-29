@@ -142,11 +142,29 @@ class OrderReduceService(
         return when (logEvent.status) {
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
-                is OrderSideMatch -> copy(
-                    fill = fill.plus(orderExchangeHistory.fill),
-                    lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
-                    lastEventId = accumulateEventId(lastEventId, eventId)
-                )
+                is OrderSideMatch -> {
+                    if (orderExchangeHistory.adhoc == true) {
+                        /*
+                         * Do not apply side matches to "virtual" orders, which are created solely for the exchange moment.
+                         * This only happens to on-chain orders that have the same salt for all events.
+                         * For now, this is only about CryptoPunks: their orders always have salt = 0.
+                         * Consider the case:
+                         * 1) Owner puts a punk on sale
+                         * 2) Bidder makes a bid on the punk
+                         * 3) Owner accepts the bid
+                         * In this case the sell order (p. 1) must be cancelled, not filled.
+                         * This is why when we're processing the OrderSideMatch for the virtual "sell" order of a bid match
+                         * we must not apply it to the real sell order out there in the database.
+                         */
+                        this
+                    } else {
+                        copy(
+                            fill = fill.plus(orderExchangeHistory.fill),
+                            lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
+                            lastEventId = accumulateEventId(lastEventId, eventId)
+                        )
+                    }
+                }
                 is OrderCancel -> copy(
                     cancelled = true,
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),

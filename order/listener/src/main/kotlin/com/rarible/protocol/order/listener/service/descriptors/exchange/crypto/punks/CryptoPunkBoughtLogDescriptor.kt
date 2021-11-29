@@ -7,9 +7,22 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.CryptoPunksMarket
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.TransferEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -27,6 +40,7 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class CryptoPunkBoughtLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
     private val ethereum: MonoEthereum
 ) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
@@ -40,7 +54,8 @@ class CryptoPunkBoughtLogDescriptor(
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val punkBoughtEvent = PunkBoughtEvent.apply(log)
         val marketAddress = log.address()
-        val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkBoughtEvent.punkIndex()))
+        val punkIndex = punkBoughtEvent.punkIndex()
+        val cryptoPunksAssetType = CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex))
         val sellerAddress = punkBoughtEvent.fromAddress()
         val buyerAddress = getBuyerAddress(punkBoughtEvent)
         if (buyerAddress == transferProxyAddresses.cryptoPunksTransferProxy) {
@@ -66,11 +81,18 @@ class CryptoPunkBoughtLogDescriptor(
         val make = Asset(cryptoPunksAssetType, EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(punkPrice))
 
+        val cancelSellOrder = if (calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name()) {
+            getCancelOfSellOrder(marketAddress, date, punkIndex)
+        } else {
+            null
+        }
+
         // the left order is always a sell order; if we receive accept bid -> left adhoc = true
         val adhoc = calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name()
         // the right order is always a buy order; if we receive buy -> right adhoc = true
         val counterAdhoc = calledFunctionSignature == CryptoPunksMarket.buyPunkSignature().name()
-        return listOf(
+        return listOfNotNull(
+            cancelSellOrder,
             OrderSideMatch(
                 hash = sellOrderHash,
                 counterHash = buyOrderHash,
@@ -114,6 +136,29 @@ class CryptoPunkBoughtLogDescriptor(
                 counterAdhoc = adhoc
             )
         )
+    }
+
+    private suspend fun getCancelOfSellOrder(
+        marketAddress: Address,
+        blockDate: Instant,
+        punkIndex: BigInteger
+    ): OrderCancel? {
+        val lastSellEvent = exchangeHistoryRepository
+            .findSellEventsByItem(marketAddress, EthUInt256(punkIndex)).collectList()
+            .awaitFirst().lastOrNull()?.data
+        // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
+        //  it means that there was a previous sell order. That sell order must be cancelled.
+        if (lastSellEvent is OnChainOrder) {
+            return OrderCancel(
+                hash = lastSellEvent.hash,
+                maker = lastSellEvent.maker,
+                make = lastSellEvent.make,
+                take = lastSellEvent.take,
+                date = blockDate,
+                source = HistorySource.CRYPTO_PUNKS
+            )
+        }
+        return null
     }
 
     private fun isExternalOrderExecutedOnRarible(transaction: Transaction): Boolean {
@@ -169,7 +214,7 @@ class CryptoPunkBoughtLogDescriptor(
             ethereum.ethGetLogsJava(filter).awaitSingle()
         } catch (e: Exception) {
             logger.warn("Unable to get logs for block ${punkBoughtEvent.log().blockHash()}", e)
-            return Address.ZERO()
+            throw e
         }
         return logs.find {
             it.topics().head() == TransferEvent.id()
