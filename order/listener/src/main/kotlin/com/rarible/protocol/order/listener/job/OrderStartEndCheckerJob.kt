@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -17,36 +18,42 @@ import java.time.Instant
 
 @Component
 @Profile("!integration")
-class OrderRecalculateMakeStockJob(
+class OrderStartEndCheckerJob(
     private val properties: OrderListenerProperties,
     reactiveMongoTemplate: ReactiveMongoTemplate,
     private val orderUpdateService: OrderUpdateService
 ) {
-    private val logger: Logger = LoggerFactory.getLogger(OrderRecalculateMakeStockJob::class.java)
+    private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerJob::class.java)
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
 
-    @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.resetMakeStockScheduleRate}")
-    @CaptureTransaction(value = "order_stock")
+    @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.updateStatusByStartEndRate}")
+    @CaptureTransaction(value = "order_status")
     fun update() = runBlocking {
-        if (properties.resetMakeStockEnabled.not()) return@runBlocking
+        if (properties.updateStatusByStartEndEnabled.not()) return@runBlocking
         update(Instant.now())
     }
 
     suspend fun update(now: Instant) {
-        logger.info("Starting to update makeStock for orders...")
-        var counter = 0L
+        logger.info("Starting to update status for orders...")
+        var expired = 0L
+        var alive = 0L
 
         merge(
-            orderRepository.findExpiredMakeStock(now),
-            orderRepository.findActualZeroMakeStock(now)
-        ).collect {
-            orderUpdateService.updateMakeStock(hash = it.hash)
-            counter++
-            if (counter % 10000L == 0L) {
-                logger.info("Fixed $counter orders")
+            orderRepository.findExpiredOrders(now),
+            orderRepository.findAliveOrders(now)
+        ).collect { order ->
+            if (order.isEnded()) {
+                expired++
+            } else {
+                alive++
+            }
+            orderRepository.save(order.withUpdatedStatus())
+            val all = alive + expired
+            if (all % 10000L == 0L) {
+                logger.info("Fixed $all orders")
             }
         }
 
-        logger.info("Successfully finished update makeStock for $counter orders.")
+        logger.info("Successfully finished updating order status: $expired expired, $alive alive")
     }
 }

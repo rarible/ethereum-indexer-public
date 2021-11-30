@@ -71,7 +71,7 @@ class OrderBidsService(
     private fun convert(source: Order): BidStatus {
         return when (source.status) {
             OrderStatus.CANCELLED -> BidStatus.CANCELLED
-            OrderStatus.INACTIVE -> BidStatus.INACTIVE
+            OrderStatus.INACTIVE, OrderStatus.NOT_STARTED, OrderStatus.ENDED -> BidStatus.INACTIVE
             else -> BidStatus.HISTORICAL
         }
     }

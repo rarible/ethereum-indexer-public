@@ -77,7 +77,7 @@ data class Order(
     val version: Long? = 1
 ) {
     init {
-        status = calculateStatus(fill, take, makeStock, cancelled)
+        status = calculateStatus(fill, take, makeStock, cancelled, start, end)
     }
 
     fun forV1Tx() = run {
@@ -135,6 +135,12 @@ data class Order(
         )
     }
 
+    fun withUpdatedStatus(): Order {
+        return copy(status = calculateStatus(fill, take, makeStock, cancelled, start, end))
+    }
+
+    fun isEnded() = Companion.isEnded(end)
+
     companion object {
         /**
          * Maximum size of [priceHistory]
@@ -154,7 +160,7 @@ data class Order(
             start: Long?,
             end: Long?
         ): EthUInt256 {
-            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO || !isAlive(start, end)) {
+            if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
                 return EthUInt256.ZERO
             }
             val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled, data)
@@ -174,20 +180,27 @@ data class Order(
             }
         }
 
-        private fun calculateStatus(fill: EthUInt256, take: Asset, makeStock: EthUInt256, cancelled: Boolean): OrderStatus {
+        private fun calculateStatus(fill: EthUInt256, take: Asset, makeStock: EthUInt256, cancelled: Boolean, start: Long?, end: Long?): OrderStatus {
             return when {
                 fill == take.value -> OrderStatus.FILLED
-                makeStock > EthUInt256.ZERO -> OrderStatus.ACTIVE
                 cancelled -> OrderStatus.CANCELLED
+                makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
+                !isStarted(start) -> OrderStatus.NOT_STARTED
+                isEnded(end) -> OrderStatus.ENDED
                 else -> OrderStatus.INACTIVE
             }
         }
 
-        private fun isAlive(start: Long?, end: Long?): Boolean {
+        private fun isAlive(start: Long?, end: Long?) = isStarted(start) && !isEnded(end)
+
+        private fun isEnded(end: Long?): Boolean {
             val now = Instant.now().epochSecond
-            val started = start?.let { it <= now } ?: true
-            val alive = end?.let { it > now } ?: true
-            return started && alive
+            return end?.let { it < now } ?: false
+        }
+
+        private fun isStarted(start: Long?): Boolean {
+            val now = Instant.now().epochSecond
+            return start?.let { it <= now } ?: true
         }
 
         private fun calculateRemaining(
