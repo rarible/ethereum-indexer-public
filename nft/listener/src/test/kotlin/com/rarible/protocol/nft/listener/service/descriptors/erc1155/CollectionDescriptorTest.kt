@@ -4,13 +4,16 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature.*
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -42,12 +45,28 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
 
         Wait.waitAssert {
             assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.address()).awaitFirst()
-
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
-            assertEquals(savedToken.name, "Test")
-            assertEquals(savedToken.owner, address)
-            assertEquals(savedToken.symbol, "TestSymbol")
+            val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isEqualTo(
+                Token(
+                    id = token.address(),
+                    owner = address,
+                    name = "Test",
+                    symbol = "TestSymbol",
+                    status = ContractStatus.CONFIRMED,
+                    features = setOf(
+                        APPROVE_FOR_ALL,
+                        SET_URI_PREFIX,
+                        BURN,
+                        MINT_WITH_ADDRESS,
+                        SECONDARY_SALE_FEES,
+                        MINT_AND_TRANSFER
+                    ),
+                    lastEventId = savedToken?.lastEventId,
+                    standard = TokenStandard.ERC1155,
+                    version = savedToken?.version,
+                    isRaribleContract = true
+                )
+            )
         }
     }
 
@@ -69,12 +88,28 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
 
         Wait.waitAssert {
             assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.address()).awaitFirst()
-
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
-            assertEquals(savedToken.name, "Test")
-            assertEquals(savedToken.owner, address)
-            assertEquals(savedToken.symbol, "TestSymbol")
+            val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isEqualTo(
+                Token(
+                    id = token.address(),
+                    owner = address,
+                    name = "Test",
+                    symbol = "TestSymbol",
+                    status = ContractStatus.CONFIRMED,
+                    features = setOf(
+                        APPROVE_FOR_ALL,
+                        SET_URI_PREFIX,
+                        BURN,
+                        MINT_WITH_ADDRESS,
+                        SECONDARY_SALE_FEES,
+                        MINT_AND_TRANSFER
+                    ),
+                    lastEventId = savedToken?.lastEventId,
+                    standard = TokenStandard.ERC1155,
+                    version = savedToken?.version,
+                    isRaribleContract = true
+                )
+            )
         }
     }
 }
