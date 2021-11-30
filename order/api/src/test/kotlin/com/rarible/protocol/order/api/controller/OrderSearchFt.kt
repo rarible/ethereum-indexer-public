@@ -2,6 +2,7 @@ package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderDto
@@ -408,7 +409,13 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val take = Asset(CryptoPunksAssetType(contract, EthUInt256.of(42)), EthUInt256.ONE)
         val salt = BigInteger.ZERO
         val orderHash = Order.hashKey(maker, make.type, take.type, salt)
-        val orderVersions = listOf(10, 30, 20).map { bidPrice ->
+        val numberOfBids = 105 // Bigger than the default page size (50).
+        val bidPrices = (1..numberOfBids).map { randomInt(1, 1_000_000) }
+        val orderVersions = bidPrices.map { bidPrice ->
+            val takePrice = bidPrice.toBigInteger().toBigDecimal(18)
+            // TODO: if we set 'takePriceUsd = null' for all bids, then the bug https://rarible.atlassian.net/browse/RPN-1414
+            //  will incorrectly return only some (not all) subsequent order versions having the same price.
+            val takePriceUsd = takePrice.multiply(BigDecimal.valueOf(4500))
             OrderVersion(
                 maker = maker,
                 taker = randomAddress(),
@@ -423,9 +430,9 @@ class OrderSearchFt : AbstractIntegrationTest() {
                 data = OrderRaribleV2DataV1(emptyList(), emptyList()),
                 signature = null,
                 makePriceUsd = null,
-                takePriceUsd = null,
+                takePriceUsd = takePriceUsd,
                 makePrice = null,
-                takePrice = null,
+                takePrice = takePrice,
                 makeUsd = null,
                 takeUsd = null,
                 hash = orderHash
@@ -437,22 +444,20 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val bids = orderClient.getOrderBidsByItemAndByStatus(
             contract.prefixed(),
             take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
+            listOf(OrderStatusDto.ACTIVE),
             maker.prefixed(),
             null,
             PlatformDto.ALL,
             null,
-            1000,
+            null,
             null,
             null,
             null
         ).awaitFirst()
+
+        // Only the bid with the highest price must be returned with status ACTIVE (irrespective of the request window size)
         assertThat(bids.orders.map { it.status!! to it.make.value }).isEqualTo(
-            listOf(
-                OrderStatusDto.ACTIVE to 20.toBigInteger(),
-                OrderStatusDto.HISTORICAL to 30.toBigInteger(),
-                OrderStatusDto.HISTORICAL to 10.toBigInteger()
-            )
+            listOf(OrderStatusDto.ACTIVE to bidPrices.max()!!.toBigInteger())
         )
     }
 

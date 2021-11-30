@@ -3,7 +3,11 @@ package com.rarible.protocol.order.api.service.order
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.CompositeBid
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
@@ -26,6 +30,7 @@ class OrderBidsService(
         val totalResult = mutableListOf<CompositeBid>()
         var versions = emptyList<OrderVersion>()
 
+        val foundOrders = hashSetOf<Word>()
         do {
             val next = if (versions.isNotEmpty()) filter.withContinuation(toContinuation(versions.last(), filter)) else filter
             versions = orderVersionRepository.search(next).collectList().awaitFirst()
@@ -33,15 +38,18 @@ class OrderBidsService(
             val orderHashes = versions.map { it.hash }.toHashSet()
             val orders = orderRepository.findAll(orderHashes).toList().associateBy { it.hash }
 
-            val result = convert(versions, orders).filter { it.status in statuses }.toList()
+            val result = convert(versions, orders, foundOrders).filter { it.status in statuses }.toList()
             totalResult.addAll(result)
         } while (versions.isNotEmpty() && totalResult.size < filter.limit)
 
         return totalResult.take(filter.limit)
     }
 
-    private fun convert(versions: List<OrderVersion>, orders: Map<Word, Order>): Sequence<CompositeBid> {
-        val foundOrders = HashSet<Word>()
+    private fun convert(
+        versions: List<OrderVersion>,
+        orders: Map<Word, Order>,
+        foundOrders: MutableSet<Word>
+    ): Sequence<CompositeBid> {
 
         return sequence {
             versions.forEach { version ->
@@ -49,13 +57,11 @@ class OrderBidsService(
                 if (order != null) {
                     val status = convert(order)
 
-                    val calculatedStatus = if (!foundOrders.contains(version.hash) && status == BidStatus.HISTORICAL) {
+                    val calculatedStatus = if (foundOrders.add(version.hash) && status == BidStatus.HISTORICAL) {
                         if (order.status == OrderStatus.FILLED) BidStatus.FILLED else BidStatus.ACTIVE
                     } else {
                         status
                     }
-
-                    foundOrders.add(version.hash)
                     yield(CompositeBid(calculatedStatus, version, order))
                 }
             }
