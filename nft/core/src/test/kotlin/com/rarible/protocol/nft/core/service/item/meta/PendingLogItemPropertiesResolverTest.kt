@@ -28,15 +28,13 @@ import scalether.domain.Address
 @ItemMetaTest
 class PendingLogItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val pendingLogItemPropertiesTTL = 1000L
     private val pendingLogItemPropertiesRepository = mockk<PendingLogItemPropertiesRepository>()
     private val rariblePropertiesResolver = mockk<RariblePropertiesResolver>()
     private val itemRepository = mockk<ItemRepository>()
     private val pendingLogItemPropertiesResolver = PendingLogItemPropertiesResolver(
         pendingLogItemPropertiesRepository,
         itemRepository,
-        rariblePropertiesResolver,
-        pendingLogItemPropertiesTTL
+        rariblePropertiesResolver
     )
 
     @Test

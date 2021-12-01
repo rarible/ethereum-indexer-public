@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -19,13 +18,10 @@ import scalether.domain.Address
 class PendingLogItemPropertiesResolver(
     private val pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository,
     private val itemRepository: ItemRepository,
-    private val rariblePropertiesResolver: RariblePropertiesResolver,
-    @Value("\${pending.log.item.properties.resolver.ttl:300000}") private val pendingLogTTL: Long
+    private val rariblePropertiesResolver: RariblePropertiesResolver
 ) : ItemPropertiesResolver {
 
     override val name: String get() = "Pending"
-
-    override val maxAge: Long get() = pendingLogTTL
 
     suspend fun savePendingLogItemPropertiesByUri(itemId: ItemId, uri: String) {
         try {

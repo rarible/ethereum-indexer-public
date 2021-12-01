@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.time.Instant
 
 @Service
 @CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
@@ -29,7 +31,7 @@ class ItemPropertiesService(
 
     private data class CachedItemProperties(
         val properties: ItemProperties,
-        val maxAge: Long
+        val fetchAt: Instant
     )
 
     private val cacheDescriptor = object : CacheDescriptor<CachedItemProperties> {
@@ -37,17 +39,12 @@ class ItemPropertiesService(
 
         override fun get(id: String) = mono {
             val resolveResult = doResolve(ItemId.parseId(id)) ?: return@mono null
-            val maxAge = resolveResult.second.maxAge ?: cacheTimeout
             val itemProperties = resolveResult.first.fixIpfsUrls()
-            CachedItemProperties(itemProperties, maxAge)
+            CachedItemProperties(itemProperties, nowMillis())
         }
 
         override fun getMaxAge(value: CachedItemProperties?): Long =
-            if (value == null) {
-                DateUtils.MILLIS_PER_MINUTE * 5
-            } else {
-                cacheTimeout
-            }
+            if (value != null) cacheTimeout else DateUtils.MILLIS_PER_MINUTE * 5
     }
 
     suspend fun resolve(itemId: ItemId): ItemProperties? =

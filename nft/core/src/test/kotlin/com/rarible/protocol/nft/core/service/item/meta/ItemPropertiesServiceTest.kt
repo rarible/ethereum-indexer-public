@@ -27,7 +27,6 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
-            coEvery { maxAge } returns null
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
@@ -58,7 +57,6 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
-            coEvery { maxAge } returns null
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
@@ -92,7 +90,6 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
-            coEvery { maxAge } returns null
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()

@@ -21,7 +21,6 @@ class TestPropertiesConfiguration {
     @Qualifier("mockItemPropertiesResolver")
     fun mockItemPropertiesResolver(): ItemPropertiesResolver = mockk {
         every { name } returns "MockResolver"
-        every { maxAge } returns null
     }
 
     @Bean

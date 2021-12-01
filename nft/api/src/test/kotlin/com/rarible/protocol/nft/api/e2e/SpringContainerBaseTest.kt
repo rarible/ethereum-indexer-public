@@ -87,7 +87,6 @@ abstract class SpringContainerBaseTest {
     fun clear() {
         clearMocks(mockItemPropertiesResolver)
         every { mockItemPropertiesResolver.name } returns "MockResolver"
-        every { mockItemPropertiesResolver.maxAge } returns null
     }
 
     @PostConstruct
