@@ -457,7 +457,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
 
         // Only the bid with the highest price must be returned with status ACTIVE (irrespective of the request window size)
         assertThat(bids.orders.map { it.status!! to it.make.value }).isEqualTo(
-            listOf(OrderStatusDto.ACTIVE to bidPrices.max()!!.toBigInteger())
+            listOf(OrderStatusDto.ACTIVE to bidPrices.maxOrNull()!!.toBigInteger())
         )
     }
 
