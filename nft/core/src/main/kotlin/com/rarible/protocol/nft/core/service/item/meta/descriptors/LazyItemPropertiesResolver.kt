@@ -22,7 +22,7 @@ class LazyItemPropertiesResolver(
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val tokenUri = getUriForLazyMintedItem(itemId) ?: return null
-        ItemPropertiesService.logProperties(itemId, "found the lazy item's URI")
+        ItemPropertiesService.logProperties(itemId, "found the lazy item's URI: $tokenUri")
         return rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri)
     }
 
