@@ -1,9 +1,7 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
-import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
@@ -20,8 +18,7 @@ import java.time.Instant
 @Profile("!integration")
 class OrderStartEndCheckerJob(
     private val properties: OrderListenerProperties,
-    reactiveMongoTemplate: ReactiveMongoTemplate,
-    private val orderUpdateService: OrderUpdateService
+    reactiveMongoTemplate: ReactiveMongoTemplate
 ) {
     private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerJob::class.java)
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
