@@ -44,7 +44,6 @@ class PendingLogItemPropertiesResolver(
             ItemPropertiesService.logProperties(itemId, "removing properties of an already confirmed item")
             // Minted items must provide properties from the contract.
             // This resolver is applicable only while the item is in pending minting state.
-            // Cleanup the
             pendingLogItemPropertiesRepository.deleteById(itemId.decimalStringValue).awaitFirstOrNull()
             return null
         }
