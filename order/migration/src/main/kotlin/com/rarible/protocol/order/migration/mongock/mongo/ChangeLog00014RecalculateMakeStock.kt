@@ -30,15 +30,19 @@ class ChangeLog00014RecalculateMakeStock {
 
         var nullableStock = 0L
         var nonZeroStock = 0L
+        var changed = 0L
         val query = Query(Criteria().andOperator(Order::status isEqualTo OrderStatus.INACTIVE))
 
         template.query<Order>().matching(query).all().asFlow().collect { order ->
             try {
-                val order = orderUpdateService.updateMakeStock(order.hash)
-                if (order?.makeStock != EthUInt256.ZERO) {
+                val updated = orderUpdateService.updateMakeStock(order.hash)
+                if (updated?.makeStock != EthUInt256.ZERO) {
                     nonZeroStock++
                 } else {
                     nullableStock++
+                }
+                if (updated != null && updated.makeStock != order.makeStock) {
+                    changed++
                 }
                 val all = nonZeroStock + nullableStock
                 if (all % 10000L == 0L) {
@@ -48,6 +52,6 @@ class ChangeLog00014RecalculateMakeStock {
                 logger.error("Failed to update makeStock ${order.hash} order")
             }
         }
-        logger.info("MakeStock was updated for orders: makeStock == 0 for $nullableStock orders, makeStock > 0 for $nonZeroStock orders ")
+        logger.info("MakeStock was updated for orders: makeStock == 0 for $nullableStock orders, makeStock > 0 for $nonZeroStock orders, changed $changed orders.")
     }
 }
