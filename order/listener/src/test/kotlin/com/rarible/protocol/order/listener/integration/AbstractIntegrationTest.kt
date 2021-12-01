@@ -18,9 +18,9 @@ import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toWord
+import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -28,7 +28,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
+import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
@@ -76,7 +76,7 @@ import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
 @FlowPreview
@@ -103,6 +103,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var orderIndexerProperties: OrderIndexerProperties
 
     @Autowired
+    protected lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
+
+    @Autowired
     protected lateinit var orderReduceService: OrderReduceService
 
     @Autowired
@@ -115,7 +118,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var poller: MonoTransactionPoller
 
     @Autowired
-    protected lateinit var assetMakeBalanceProvider: AssetMakeBalanceProvider
+    protected lateinit var assetBalanceProvider: AssetBalanceProvider
 
     @Autowired
     protected lateinit var erc1271SignService: ERC1271SignService
@@ -129,7 +132,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     private lateinit var consumingJob: Job
 
-    private val activities = Collections.synchronizedList(ArrayList<ActivityDto>())
+    private val activities = CopyOnWriteArrayList<ActivityDto>()
 
     private fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.block()
@@ -181,13 +184,13 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
             nowMillis()
         ).toMono()
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@{
-            val order = arg<Order>(0)
-            if (order.make.type is EthAssetType) {
-                return@r order.make.value
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@ {
+            val asset = secondArg<Asset>()
+            if (asset.type is EthAssetType) {
+                return@r asset.value
             }
-            EthUInt256.ONE
+            return@r EthUInt256.ONE
         }
 
         clearMocks(erc1271SignService)

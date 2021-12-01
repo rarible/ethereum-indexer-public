@@ -21,6 +21,7 @@ import com.rarible.protocol.order.api.client.OrderControllerApi
 import com.rarible.protocol.order.api.client.OrderEncodeControllerApi
 import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
 import com.rarible.protocol.order.api.client.OrderTransactionControllerApi
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
@@ -105,6 +106,12 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var auctionHistoryRepository: AuctionHistoryRepository
+
+    @Autowired
+    protected lateinit var orderIndexerProvider: OrderIndexerProperties
+
+    @Autowired
+    protected lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
     protected fun createMonoSigningTransactionSender(): MonoSigningTransactionSender {
         return openEthereumTest.signingTransactionSender()

@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 @MongoTest
 @KafkaTest
@@ -59,7 +59,7 @@ internal class LockServiceIt {
     @Test
     fun `lock events`() = runBlocking {
         val consumer = createConsumer()
-        val events = Collections.synchronizedList(ArrayList<KafkaMessage<UnlockableEventDto>>())
+        val events = CopyOnWriteArrayList<KafkaMessage<UnlockableEventDto>>()
         val job: Deferred<Unit> = async {
             consumer.receive().collect { events.add(it) }
         }

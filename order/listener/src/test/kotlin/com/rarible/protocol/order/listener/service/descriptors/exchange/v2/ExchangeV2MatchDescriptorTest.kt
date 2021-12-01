@@ -69,7 +69,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // to make the makeStock = 10
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns sellOrder.make.value
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns sellOrder.make.value
         orderUpdateService.save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
@@ -92,7 +92,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // Imitate the balance of the seller: 6 ERC1155
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.of(6)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.of(6)
 
         userSender2.sendTransaction(
             Transaction(
@@ -182,7 +182,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
 
         // to make the makeStock = 100
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns bidOrder.make.value
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns bidOrder.make.value
         orderUpdateService.save(bidOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.of(100))
         }
@@ -205,7 +205,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // Imitate the balance of the bidder: 60 ERC20
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.of(60)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.of(60)
 
         userSender2.sendTransaction(
             Transaction(

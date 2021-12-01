@@ -10,18 +10,22 @@ import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.v1.ExchangeV1
 import com.rarible.protocol.contracts.exchange.v1.state.ExchangeStateV1
 import com.rarible.protocol.dto.OrderActivityCancelBidDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.LegacyAssetTypeClass.ERC1155
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple3
@@ -34,9 +38,6 @@ import java.math.BigInteger
 
 @IntegrationTest
 class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var exchangeCancelDescriptor: ExchangeCancelDescriptor
-
     companion object {
         lateinit var userSender: MonoSigningTransactionSender
         lateinit var token: TestERC1155
@@ -118,7 +119,7 @@ class ExchangeCancelDescriptorTest : AbstractIntegrationTest() {
             .withSender(sender)
             .execute().verifySuccess()
 
-        setField(exchangeCancelDescriptor, "addresses", listOf(sale.address()))
+        exchangeContractAddresses.v1 = sale.address()
 
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.CANCEL).collectList().awaitFirst()

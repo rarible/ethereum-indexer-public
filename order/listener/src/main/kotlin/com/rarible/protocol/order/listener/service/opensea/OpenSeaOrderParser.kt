@@ -17,14 +17,12 @@ import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceCallService: TraceCallService
 ) {
-    private val address = exchangeContractAddresses.openSeaV1
-
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
-        val input = traceCallService.findRequiredCallInput(txHash, txInput, address, signature.id())
+        val input = traceCallService.findRequiredCallInput(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
 
         val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()
@@ -137,4 +135,3 @@ class OpenSeaOrderParser(
         )
     }
 }
-

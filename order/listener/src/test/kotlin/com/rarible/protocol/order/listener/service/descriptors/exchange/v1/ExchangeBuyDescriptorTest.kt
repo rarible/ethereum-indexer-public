@@ -14,13 +14,20 @@ import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.Order.Companion.legacyMessage
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.core.service.SignUtils
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
+import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -41,9 +48,6 @@ import java.math.BigInteger
 @IntegrationTest
 @FlowPreview
 class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
-    @Autowired
-    private lateinit var exchangeBuyDescriptor: ExchangeBuyDescriptor
-
     @Autowired
     private lateinit var prepareTxService: PrepareTxService
 
@@ -115,8 +119,8 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             .withSender(buyer)
             .execute().verifySuccess()
 
-        setField(exchangeBuyDescriptor, "addresses", listOf(sale.address()))
-        setField(prepareTxService, "privateKey", buyerFeeSignerPrivateKey)
+        exchangeContractAddresses.v1 = sale.address()
+        orderIndexerProperties.operatorPrivateKey = Binary.apply(buyerFeeSignerPrivateKey.toByteArray())
 
         val ownerHas = BigInteger.TEN
         token.mint(owner.from(), tokenId, ownerHas, ByteArray(0)).execute().verifySuccess()

@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderDto
@@ -12,7 +14,19 @@ import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
+import com.rarible.protocol.order.core.model.tokenId
+import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -385,6 +399,66 @@ class OrderSearchFt : AbstractIntegrationTest() {
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].make.value).isEqualTo(123)
+    }
+
+    @Test
+    fun `should find multiple on-chain bids with the same hash`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val make = Asset(EthAssetType, EthUInt256.TEN)
+        val contract = randomAddress()
+        val take = Asset(CryptoPunksAssetType(contract, EthUInt256.of(42)), EthUInt256.ONE)
+        val salt = BigInteger.ZERO
+        val orderHash = Order.hashKey(maker, make.type, take.type, salt)
+        val numberOfBids = 105 // Bigger than the default page size (50).
+        val bidPrices = (1..numberOfBids).map { randomInt(1, 1_000_000) }
+        val orderVersions = bidPrices.map { bidPrice ->
+            val takePrice = bidPrice.toBigInteger().toBigDecimal(18)
+            // TODO: if we set 'takePriceUsd = null' for all bids, then the bug https://rarible.atlassian.net/browse/RPN-1414
+            //  will incorrectly return only some (not all) subsequent order versions having the same price.
+            val takePriceUsd = takePrice.multiply(BigDecimal.valueOf(4500))
+            OrderVersion(
+                maker = maker,
+                taker = randomAddress(),
+                make = make.copy(value = EthUInt256.of(bidPrice)),
+                take = take,
+                createdAt = nowMillis(),
+                platform = Platform.RARIBLE,
+                type = OrderType.RARIBLE_V2,
+                salt = EthUInt256(salt),
+                start = null,
+                end = null,
+                data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+                signature = null,
+                makePriceUsd = null,
+                takePriceUsd = takePriceUsd,
+                makePrice = null,
+                takePrice = takePrice,
+                makeUsd = null,
+                takeUsd = null,
+                hash = orderHash
+            )
+        }
+        // Mock the available balance of these orders.
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers { firstArg<Order>().make.value }
+        saveOrderVersions(*orderVersions.toTypedArray())
+        val bids = orderClient.getOrderBidsByItemAndByStatus(
+            contract.prefixed(),
+            take.type.tokenId?.value.toString(),
+            listOf(OrderStatusDto.ACTIVE),
+            maker.prefixed(),
+            null,
+            PlatformDto.ALL,
+            null,
+            null,
+            null,
+            null,
+            null
+        ).awaitFirst()
+
+        // Only the bid with the highest price must be returned with status ACTIVE (irrespective of the request window size)
+        assertThat(bids.orders.map { it.status!! to it.make.value }).isEqualTo(
+            listOf(OrderStatusDto.ACTIVE to bidPrices.max()!!.toBigInteger())
+        )
     }
 
     private fun checkOrderDto(orderDto: OrderDto, order: Order) {

@@ -11,7 +11,6 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
@@ -96,9 +95,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
         token1155.setApprovalForAll(transferProxy.address(), true).withSender(userSender1).execute().verifySuccess()
         token1155.setApprovalForAll(transferProxy.address(), true).withSender(userSender2).execute().verifySuccess()
 
-        setField(exchV2CancelDescriptor, "exchangeContract", exchange.address())
-        setField(exchangeOrderMatchDescriptor, "exchangeContract", exchange.address())
-        setField(exchangeV2UpsertOrderDescriptor, "exchangeContract", exchange.address())
+        exchangeContractAddresses.v2 = exchange.address()
 
         eip712Domain = EIP712Domain(
             name = "Exchange",
@@ -106,7 +103,7 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
             chainId = BigInteger.valueOf(17),
             verifyingContract = exchange.address()
         )
-        setField(prepareTxService, "eip712Domain", eip712Domain)
+        prepareTxService.eip712Domain = eip712Domain
 
         clearMocks(erc721SignService)
         coEvery { erc721SignService.isSigner(any(), any() as Word, any()) } returns true

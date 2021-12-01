@@ -2,9 +2,17 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
+import com.rarible.protocol.dto.Erc20BalanceDto
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
+import com.rarible.protocol.dto.NftDeletedOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -26,9 +34,6 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var orderBalanceService: OrderBalanceService
 
-    @Autowired
-    private lateinit var assetBalanceProvider: AssetBalanceProvider
-
     @Test
     fun `should update all not canceled balance orders`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
@@ -40,8 +45,8 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val oldStock = EthUInt256.of(2)
         val newStock = EthUInt256.of(5)
 
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns oldStock
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns oldStock
 
         val order1 = createOrderVersion().copy(
             maker = targetMaker,
@@ -119,8 +124,8 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
         val oldStock = EthUInt256.ONE
         val newStock = EthUInt256.of(5)
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns oldStock
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns oldStock
 
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
@@ -155,8 +160,8 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         val oldOwner = AddressFactory.create()
 
         val initialStock = EthUInt256.ONE
-        clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns initialStock
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns initialStock
         val order = orderUpdateService.save(
             createOrderVersion().copy(
                 maker = oldOwner,

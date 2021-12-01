@@ -22,7 +22,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -52,7 +52,14 @@ class CryptoPunkBidEnteredLogDescriptor(
         val make = Asset(EthAssetType, EthUInt256(bidPrice))
         val take = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex)), EthUInt256.ONE)
         val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
-        val cancelOfPreviousBid = getCancelOfPreviousBid(exchangeHistoryRepository, marketAddress, date, punkIndex)
+        val cancelOfPreviousBid = getCancelOfPreviousBid(
+            exchangeHistoryRepository = exchangeHistoryRepository,
+            marketAddress = marketAddress,
+            blockNumber = log.blockNumber().toLong(),
+            logIndex = log.logIndex().toInt(),
+            blockDate = date,
+            punkIndex = punkIndex
+        )
         return listOfNotNull(
             cancelOfPreviousBid,
             OnChainOrder(
@@ -81,12 +88,20 @@ class CryptoPunkBidEnteredLogDescriptor(
         suspend fun getCancelOfPreviousBid(
             exchangeHistoryRepository: ExchangeHistoryRepository,
             marketAddress: Address,
+            blockNumber: Long,
+            logIndex: Int,
             blockDate: Instant,
             punkIndex: BigInteger
         ): OrderCancel? {
             val lastBidEvent = exchangeHistoryRepository
-                .findBidEventsByItem(marketAddress, EthUInt256(punkIndex)).collectList()
-                .awaitFirst().lastOrNull()?.data
+                .findBidEventsByItem(marketAddress, EthUInt256(punkIndex))
+                .filter {
+                    it.blockNumber!! < blockNumber || it.blockNumber!! == blockNumber && it.logIndex!! < logIndex
+                }
+                .takeLast(1)
+                .singleOrEmpty()
+                .awaitFirstOrNull()
+                ?.data
             // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
             //  it means that there was a previous bid from another user for the same punk with smaller price.
             //  That bid must be cancelled.

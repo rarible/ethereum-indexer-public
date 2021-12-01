@@ -56,12 +56,12 @@ import java.util.concurrent.ThreadLocalRandom
 class PrepareTxService(
     private val transferProxyService: TransferProxyService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val eip712Domain: EIP712Domain,
+    var eip712Domain: EIP712Domain,
     private val erc1271SignService: ERC1271SignService,
     private val orderInvertService: OrderInvertService,
-    orderIndexerProperties: OrderIndexerProperties
+    private val orderIndexerProperties: OrderIndexerProperties
 ) {
-    private val privateKey = Numeric.toBigInt(orderIndexerProperties.operatorPrivateKey.bytes())
+    private val privateKey get() = Numeric.toBigInt(orderIndexerProperties.operatorPrivateKey.bytes())
     private val protocolCommission = orderIndexerProperties.protocolCommission
 
     suspend fun prepareTransaction(order: Order, form: PrepareOrderTxFormDto): PrepareTxResponse {

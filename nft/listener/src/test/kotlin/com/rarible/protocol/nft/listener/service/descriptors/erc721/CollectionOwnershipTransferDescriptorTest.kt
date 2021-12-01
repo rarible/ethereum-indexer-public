@@ -13,9 +13,14 @@ import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -24,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 @IntegrationTest
 @FlowPreview
@@ -35,7 +40,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
 
     private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
 
-    private val collectionEvents = Collections.synchronizedList(arrayListOf<NftCollectionEventDto>())
+    private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
     private lateinit var consumingJobs: List<Job>
 
     @BeforeEach

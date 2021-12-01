@@ -21,26 +21,30 @@ import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.misc.setField
+import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
 import com.rarible.protocol.order.listener.misc.sign
-import com.rarible.protocol.order.listener.service.descriptors.exchange.v2.ExchangeOrderMatchDescriptor
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -54,9 +58,6 @@ import java.math.BigInteger
 @IntegrationTest
 @FlowPreview
 class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
-
-    @Autowired
-    private lateinit var exchangeOrderMatchDescriptor: ExchangeOrderMatchDescriptor
 
     @Autowired
     private lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
@@ -90,8 +91,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             chainId = BigInteger.valueOf(17),
             verifyingContract = exchangeV2.address()
         )
-        setField(prepareTxService, "eip712Domain", eip712Domain)
-        setField(exchangeOrderMatchDescriptor, "exchangeContract", exchangeV2.address())
+        prepareTxService.eip712Domain = eip712Domain
+        exchangeContractAddresses.v2 = exchangeV2.address()
 
         punkTransferProxy = PunkTransferProxy.deployAndWait(sender, poller).awaitFirst()
         transferProxyAddresses.cryptoPunksTransferProxy = punkTransferProxy.address()
@@ -105,7 +106,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
     }
 
     @Test
-    fun `sell crypto punk via ExchangeV2`() = runBlocking {
+    fun `sell crypto punk via ExchangeV2`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender, sellerPrivateKey) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
@@ -242,8 +243,111 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         }
     }
 
+    /**
+     * 1) Create Rarible sell order.
+     * 2) Create CryptoPunksMarket order.
+     * The approval to the Rarible transfer proxy is expired inside the CryptoPunksMarket,
+     * so the Rarible order becomes INACTIVE.
+     */
     @Test
-    fun `buy crypto punk via ExchangeV2`() = runBlocking {
+    fun `on-chain sell order must make the Rarible sell order inactive`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender, sellerPrivateKey) = newSender()
+        val punkIndex = 42.toBigInteger()
+
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+        val rariblePunkPrice = BigInteger.valueOf(100000)
+
+        // Allow to sell the punk to the CryptoPunks transfer proxy for 0 ETH.
+        cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, BigInteger.ZERO, punkTransferProxy.address())
+            .withSender(sellerSender)
+            .execute().verifySuccess()
+
+        // Insert the Rarible sell order.
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val raribleTake = Asset(EthAssetType, EthUInt256(rariblePunkPrice))
+
+        val sellOrderVersion = OrderVersion(
+            maker = sellerAddress,
+            taker = null,
+            make = make,
+            take = raribleTake,
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null,
+            signature = null
+        ).let {
+            it.copy(
+                signature = eip712Domain.hashToSign(Order.hash(it)).sign(sellerPrivateKey)
+            )
+        }
+        val sellOrder = orderUpdateService.save(sellOrderVersion)
+
+        // Add on-chain sell order
+        val onChainPunkPrice = BigInteger.valueOf(200000)
+        val onChainSellOrderTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, onChainPunkPrice)
+            .withSender(sellerSender).execute().verifySuccess().getTimestamp()
+        val onChainPunkPriceUsd = onChainPunkPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+        val onChainTake = Asset(EthAssetType, EthUInt256(onChainPunkPrice))
+        val makePrice = onChainPunkPrice.toBigDecimal(18)
+
+        Wait.waitAssert {
+            val inactiveRaribleOrder = orderRepository.findById(sellOrder.hash)
+            assertThat(inactiveRaribleOrder).isEqualTo(
+                sellOrder.copy(
+                    status = OrderStatus.INACTIVE,
+                    makeStock = EthUInt256.ZERO
+                )
+            )
+        }
+
+        Wait.waitAssert {
+            val activeOrders = orderRepository.findActive().toList()
+            assertThat(activeOrders).hasSize(1)
+            val onChainSellOrder = activeOrders.single()
+            assertThat(onChainSellOrder).isEqualTo(
+                Order(
+                    maker = sellerAddress,
+                    taker = null,
+                    make = make,
+                    take = onChainTake,
+                    type = OrderType.CRYPTO_PUNKS,
+                    fill = EthUInt256.ZERO,
+                    cancelled = false,
+                    makeStock = EthUInt256.ONE,
+                    salt = CRYPTO_PUNKS_SALT,
+                    start = null,
+                    end = null,
+                    data = OrderCryptoPunksData,
+                    signature = null,
+                    createdAt = onChainSellOrderTimestamp,
+                    lastUpdateAt = onChainSellOrderTimestamp,
+                    pending = emptyList(),
+                    makePriceUsd = onChainPunkPriceUsd,
+                    takePriceUsd = null,
+                    makePrice = makePrice,
+                    takePrice = null,
+                    makeUsd = null,
+                    takeUsd = onChainPunkPriceUsd,
+                    priceHistory = createPriceHistory(onChainSellOrderTimestamp, make, onChainTake),
+                    status = OrderStatus.ACTIVE,
+                    platform = Platform.CRYPTO_PUNKS,
+                    lastEventId = onChainSellOrder.lastEventId
+                )
+            )
+        }
+    }
+
+     @Test
+    fun `buy crypto punk via ExchangeV2`() = runBlocking<Unit> {
         val (ownerAddress, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
         cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()

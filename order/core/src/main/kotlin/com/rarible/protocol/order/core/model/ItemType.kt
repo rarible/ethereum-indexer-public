@@ -1,6 +1,11 @@
 package com.rarible.protocol.order.core.model
 
-import com.rarible.protocol.contracts.exchange.crypto.punks.*
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBidEnteredEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBidWithdrawnEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
+import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
@@ -38,7 +43,8 @@ enum class ItemType(
             com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated.id(),
             OrderCancelledEvent.id(),
             PunkNoLongerForSaleEvent.id(),
-            PunkBidWithdrawnEvent.id()
+            PunkBidWithdrawnEvent.id(),
+            PunkTransferEvent.id()
         )
     ),
 }

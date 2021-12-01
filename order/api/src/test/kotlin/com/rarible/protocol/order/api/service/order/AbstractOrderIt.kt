@@ -10,12 +10,21 @@ import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.api.misc.setField
 import com.rarible.protocol.order.api.service.order.validation.OrderSignatureValidator
 import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderDataConverter
 import com.rarible.protocol.order.core.converters.model.OrderTypeConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
@@ -131,8 +140,8 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             chainId = BigInteger.valueOf(17),
             verifyingContract = address
         )
-        setField(orderSignatureValidator, "eip712Domain", eip712Domain)
-        setField(prepareTxService, "eip712Domain", eip712Domain)
+        orderSignatureValidator.eip712Domain = eip712Domain
+        prepareTxService.eip712Domain = eip712Domain
     }
 
     fun Order.toForm(privateKey: BigInteger) = toForm(eip712Domain, privateKey)

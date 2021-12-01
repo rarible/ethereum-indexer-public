@@ -27,13 +27,11 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class ExchangeBuyDescriptor(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val assetTypeService: AssetTypeService,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer
 ) : ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
-
-    private val addresses = listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old)
 
     override val topic: Word = BuyEvent.id()
 
@@ -97,9 +95,8 @@ class ExchangeBuyDescriptor(
         )
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> {
-        return Mono.just(addresses)
-    }
+    override fun getAddresses(): Mono<Collection<Address>> =
+        Mono.just(listOfNotNull(exchangeContractAddresses.v1, exchangeContractAddresses.v1Old))
 }
 
 val BuyEvent.fill: BigInteger

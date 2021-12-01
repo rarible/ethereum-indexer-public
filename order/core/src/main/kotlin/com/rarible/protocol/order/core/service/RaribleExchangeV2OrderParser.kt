@@ -28,14 +28,18 @@ import java.math.BigInteger
 
 @Component
 class RaribleExchangeV2OrderParser(
-    exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceCallService: TraceCallService
 ) {
-    private val address = exchangeContractAddresses.v2
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): RaribleMatchedOrders? {
         val signature = ExchangeV2.matchOrdersSignature()
-        val input = traceCallService.findRequiredCallInput(txHash, txInput, address, signature.id())
+        val input = traceCallService.findRequiredCallInput(
+            txHash,
+            txInput,
+            exchangeContractAddresses.v2,
+            signature.id()
+        )
 
         val decoded = signature.`in`().decode(input, 4)
 

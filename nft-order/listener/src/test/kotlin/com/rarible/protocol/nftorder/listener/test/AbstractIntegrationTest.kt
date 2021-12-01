@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 
 abstract class AbstractIntegrationTest {
 
@@ -67,10 +67,10 @@ abstract class AbstractIntegrationTest {
 
     fun <T> runWithKafka(block: suspend CoroutineScope.() -> T): T =
         runBlocking<T> {
-            ownershipEvents = Collections.synchronizedList(ArrayList<KafkaMessage<NftOrderOwnershipEventDto>>())
+            ownershipEvents = CopyOnWriteArrayList<KafkaMessage<NftOrderOwnershipEventDto>>()
             ownershipJob = async { ownershipConsumer.receive().collect { ownershipEvents?.add(it) } }
 
-            itemEvents = Collections.synchronizedList(ArrayList<KafkaMessage<NftOrderItemEventDto>>())
+            itemEvents = CopyOnWriteArrayList<KafkaMessage<NftOrderItemEventDto>>()
             itemJob = async { itemConsumer.receive().collect { itemEvents?.add(it) } }
 
             val result = try {

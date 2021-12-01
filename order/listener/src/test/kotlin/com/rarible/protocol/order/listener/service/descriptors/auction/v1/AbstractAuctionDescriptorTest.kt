@@ -13,15 +13,35 @@ import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.common.erc721.TestERC721
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AuctionEventDto
+import com.rarible.protocol.dto.OrderIndexerTopicProvider
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionData
+import com.rarible.protocol.order.core.model.AuctionHistoryType
+import com.rarible.protocol.order.core.model.AuctionStatus
+import com.rarible.protocol.order.core.model.AuctionType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainAuction
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import kotlinx.coroutines.*
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
@@ -33,7 +53,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
 @FlowPreview
@@ -58,7 +78,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     @Autowired
     protected lateinit var auctionRepository: AuctionRepository
 
-    private val auctionEvents = Collections.synchronizedList(ArrayList<AuctionEventDto>())
+    private val auctionEvents = CopyOnWriteArrayList<AuctionEventDto>()
 
     private lateinit var auctionEventConsumer: RaribleKafkaConsumer<AuctionEventDto>
 
