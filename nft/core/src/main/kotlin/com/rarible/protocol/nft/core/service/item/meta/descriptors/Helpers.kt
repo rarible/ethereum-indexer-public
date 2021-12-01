@@ -34,6 +34,29 @@ fun ObjectNode.parseAttributes(): List<ItemAttribute> {
     return emptyList()
 }
 
+fun JsonNode.getInt(vararg paths: String): Int? {
+    for (path in paths) {
+        val current = this.path(path)
+        if (current.isInt) {
+            return current.asInt()
+        }
+    }
+    return null
+}
+
+fun JsonNode.toProperties(): List<ItemAttribute> {
+    return if (this.isArray) {
+        this.mapNotNull { it.getText("trait_type")?.let { key -> attribute(key, it) } }
+    } else {
+        emptyList()
+    }
+}
+
+fun attribute(key: String, node: JsonNode): ItemAttribute {
+    val traitType = TraitType.fromNode(node)
+    return ItemAttribute(key, traitType.converter(node), traitType.type, traitType.format)
+}
+
 private fun JsonNode.toAttribute(): ItemAttribute? {
     val key = getText("key", "trait_type") ?: return null
     val valueField = getText("value") ?: return ItemAttribute(key, null, null, null)

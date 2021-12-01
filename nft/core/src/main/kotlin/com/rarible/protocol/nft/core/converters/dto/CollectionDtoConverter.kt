@@ -17,7 +17,8 @@ object CollectionDtoConverter : Converter<Token, NftCollectionDto> {
             symbol = source.symbol,
             features = source.features.map { CollectionFeatureDtoConverter.convert(it) },
             supportsLazyMint = source.features.contains(TokenFeature.MINT_AND_TRANSFER),
-            minters = if (source.isRaribleContract) listOfNotNull(source.owner) else emptyList()
+            minters = if (source.isRaribleContract) listOfNotNull(source.owner) else emptyList(),
+            meta = null
         )
     }
 }
