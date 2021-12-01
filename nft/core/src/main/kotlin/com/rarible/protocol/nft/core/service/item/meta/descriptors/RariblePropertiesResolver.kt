@@ -134,6 +134,7 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun parseJsonProperties(itemId: ItemId, jsonBody: String): ItemProperties? {
+        @Suppress("BlockingMethodInNonBlockingContext")
         val node = try {
             mapper.readTree(jsonBody) as ObjectNode
         } catch (e: Exception) {
