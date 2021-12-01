@@ -162,7 +162,7 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    fun findAliveOrders(now: Instant): Flow<Order> {
+    fun findNotStartedOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
                 Order::status isEqualTo OrderStatus.NOT_STARTED,

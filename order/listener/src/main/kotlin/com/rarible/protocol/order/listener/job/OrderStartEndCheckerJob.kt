@@ -37,7 +37,7 @@ class OrderStartEndCheckerJob(
 
         merge(
             orderRepository.findExpiredOrders(now),
-            orderRepository.findAliveOrders(now)
+            orderRepository.findNotStartedOrders(now)
         ).collect { order ->
             if (order.isEnded()) {
                 expired++
