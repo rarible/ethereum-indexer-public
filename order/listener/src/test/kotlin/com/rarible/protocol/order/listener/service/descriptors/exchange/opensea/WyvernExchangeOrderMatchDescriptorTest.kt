@@ -186,7 +186,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         val buyCallData = callDataEncoder.encodeTransferCallData(buyTransfer)
 
         val buyOrderVersion = OrderVersion(
-            maker = sellMaker,
+            maker = buyMaker,
             taker = null,
             make = Asset(Erc20AssetType(paymentToken), EthUInt256.TEN),
             take = Asset(Erc721AssetType(target, tokenId), EthUInt256.ONE),
@@ -223,7 +223,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
             val hashToSign = commonSigner.openSeaHashToSign(hash)
             logger.info("Buy order hash: $hash, hash to sing: $hashToSign")
-            val signature = hashToSign.sign(privateKey1)
+            val signature = hashToSign.sign(privateKey2)
             it.copy(signature = signature, hash = hash)
         }
 
