@@ -96,7 +96,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
                 val itemId = path.name.removeSuffix(".json").let {
                     ItemId(
                         Address.apply(it.substringBefore(":")),
-                        EthUInt256.of(it.substringAfter(":").toInt())
+                        EthUInt256.of(it.substringAfter(":").toBigInteger())
                     )
                 }
                 println("Processing $itemId")

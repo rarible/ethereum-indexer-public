@@ -305,14 +305,14 @@ Token ID: 51561
     @Test
     fun `ens domain`() = runBlocking<Unit> {
         Assumptions.assumeFalse(true)
-        // TODO: ENS is not supported yet: https://docs.ens.domains/
-        // https://rarible.com/token/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85:36071955485891595785443576745556172890537718974602336938223322572747980843639?tab=details
+        // TODO: https://rarible.atlassian.net/browse/RPN-1432
+        // https://rarible.com/token/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85:13081560491824663516256299825698718846215943324818953005193338190475271748185?tab=details
         val token = Address.apply("0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85")
         mockTokenStandard(token, TokenStandard.ERC721)
         val properties = rariblePropertiesResolver.resolve(
             ItemId(
                 token,
-                EthUInt256("36071955485891595785443576745556172890537718974602336938223322572747980843639".toBigInteger())
+                EthUInt256("13081560491824663516256299825698718846215943324818953005193338190475271748185".toBigInteger())
             )
         )
         assertThat(properties).isEqualTo(
