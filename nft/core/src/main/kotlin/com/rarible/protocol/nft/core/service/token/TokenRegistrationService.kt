@@ -6,7 +6,12 @@ import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.common.*
+import com.rarible.core.common.component1
+import com.rarible.core.common.component2
+import com.rarible.core.common.component3
+import com.rarible.core.common.component4
+import com.rarible.core.common.component5
+import com.rarible.core.common.orNull
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
@@ -15,11 +20,12 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
@@ -102,32 +108,32 @@ class TokenRegistrationService(
             .onErrorResume { Mono.just(Optional.empty()) }
     }
 
-    internal fun fetchStandard(address: Address): Mono<TokenStandard> {
-        val contract = IERC721(address, sender)
-        return Flux.fromIterable(TokenStandard.values().filter { it.interfaceId != null })
-            .flatMap { checkStandard ->
-                contract.supportsInterface(checkStandard.interfaceId!!.bytes())
-                    .onErrorResume { error ->
-                        if (WELL_KNOWN_TOKENS_WITHOUT_ERC165[address] == checkStandard) {
-                            Mono.just(true)
-                        } else if (error is RpcCodeException || error is IllegalArgumentException) {
-                            Mono.just(false)
-                        } else {
-                            Mono.error(error)
-                        }
+    private suspend fun fetchTokenStandard(address: Address): TokenStandard {
+        if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
+            return WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)
+        }
+        val contract = IERC165(address, sender)
+        for (standard in TokenStandard.values()) {
+            if (standard.interfaceId != null) {
+                try {
+                    val isSupported = contract.supportsInterface(standard.interfaceId.bytes()).awaitFirst()
+                    if (isSupported) {
+                        return standard
                     }
-                    .map { supported ->
-                        checkStandard to supported
+                } catch (e: Exception) {
+                    if (e is RpcCodeException || e is IllegalArgumentException) {
+                        // Not supported or does not have 'supportsInterface' declared at all.
+                        continue
                     }
+                    // Could not determine for sure (probably we failed to connect to the node).
+                    throw e
+                }
             }
-            .collectList()
-            .map { all ->
-                all.sortedBy { it.first.ordinal }
-                    .firstOrNull { it.second }
-                    ?.first
-                    ?: TokenStandard.NONE
-            }
+        }
+        return TokenStandard.NONE
     }
+
+    internal fun fetchStandard(address: Address): Mono<TokenStandard> = mono { fetchTokenStandard(address) }
 
     private fun fetchFeatures(address: Address): Mono<Set<TokenFeature>> {
         return Mono.zip(
