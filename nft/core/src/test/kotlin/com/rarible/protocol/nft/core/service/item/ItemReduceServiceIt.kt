@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -42,10 +44,11 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("ownershipBatchHandle")
     fun mintItem(ownershipBatchHandle: Boolean) = runBlocking {
+
         setOwnershipBatchHandle(ownershipBatchHandle)
 
-        val token = AddressFactory.create()
         val owner = AddressFactory.create()
+        val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
         saveTokenAndMeta(
@@ -71,6 +74,41 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
         checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
+    }
+
+    @ParameterizedTest
+    @MethodSource("ownershipBatchHandle")
+    @Disabled
+    fun compareHandleTime(ownershipBatchHandle: Boolean) = runBlocking {
+        nftItemHistoryRepository.createIndexes()
+        featureFlags.isRoyaltyServiceEnabled = false
+        setOwnershipBatchHandle(ownershipBatchHandle)
+
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+
+        saveTokenAndMeta(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721),
+            tokenId
+        )
+
+        val timing = mutableListOf<Long>()
+
+        val ownerships = 6000
+        repeat((1..ownerships).count()) {
+            val transfer = createTransfer(token, tokenId)
+            saveItemHistory(transfer)
+        }
+
+        for (i in 1..3) {
+            val start = nowMillis()
+            historyService.update(token, tokenId).awaitFirstOrNull()
+            val end = nowMillis()
+            timing.add(end.toEpochMilli() - start.toEpochMilli())
+        }
+        timing.forEach {
+            logger.info("$it ($ownershipBatchHandle)")
+        }
     }
 
     @ParameterizedTest
@@ -945,7 +983,20 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
     }
 
+    private fun createTransfer(token: Address, tokenId: EthUInt256): ItemTransfer {
+        return ItemTransfer(
+            owner = randomAddress(),
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+    }
+
     companion object {
+        val logger = LoggerFactory.getLogger(ItemReduceServiceIt::class.java)
+
         @JvmStatic
         fun invalidLogEventStatus(): Stream<Arguments> = Stream.of(
             Arguments.of(LogEventStatus.DROPPED, true),
