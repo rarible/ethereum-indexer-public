@@ -12,6 +12,8 @@ const val META_CAPTURE_SPAN_TYPE = "item_meta"
 const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
 const val BASE_64_SVG_PREFIX = "data:image/svg+xml;base64,"
 
+fun String?.ifNotBlank() = this?.takeIf { it.isNotBlank() }
+
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
         val current = this.path(path)

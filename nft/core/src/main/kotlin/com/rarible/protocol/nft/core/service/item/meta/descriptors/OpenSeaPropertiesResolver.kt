@@ -68,13 +68,13 @@ class OpenSeaPropertiesResolver(
                 ItemProperties(
                     name = parseName(it, itemId.tokenId.value),
                     description = it.getText("description"),
-                    image = image?.replace(
+                    image = image.ifNotBlank()?.replace(
                         "{id}",
                         itemId.tokenId.toString()
                     ),
-                    imagePreview = it.getText("image_preview_url"),
-                    imageBig = it.getText("image_url"),
-                    animationUrl = it.getText("animation_url"),
+                    imagePreview = it.getText("image_preview_url").ifNotBlank(),
+                    imageBig = it.getText("image_url").ifNotBlank(),
+                    animationUrl = it.getText("animation_url").ifNotBlank(),
                     attributes = it.parseAttributes(),
                     rawJsonContent = null
                 )
