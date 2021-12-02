@@ -83,6 +83,7 @@ class CryptoPunkBoughtLogDescriptor(
 
         val cancelSellOrder = if (calledFunctionSignature == CryptoPunksMarket.acceptBidForPunkSignature().name()) {
             getCancelOfSellOrder(
+                exchangeHistoryRepository = exchangeHistoryRepository,
                 marketAddress = marketAddress,
                 blockDate = date,
                 blockNumber = log.blockNumber().toLong(),
@@ -142,37 +143,6 @@ class CryptoPunkBoughtLogDescriptor(
                 counterAdhoc = adhoc
             )
         )
-    }
-
-    private suspend fun getCancelOfSellOrder(
-        marketAddress: Address,
-        blockDate: Instant,
-        blockNumber: Long,
-        logIndex: Int,
-        punkIndex: BigInteger
-    ): OrderCancel? {
-        val lastSellEvent = exchangeHistoryRepository
-            .findSellEventsByItem(marketAddress, EthUInt256(punkIndex))
-            .filter {
-                it.blockNumber!! < blockNumber || it.blockNumber!! == blockNumber && it.logIndex!! < logIndex
-            }
-            .takeLast(1)
-            .singleOrEmpty()
-            .awaitFirstOrNull()
-            ?.data
-        // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
-        //  it means that there was a previous sell order. That sell order must be cancelled.
-        if (lastSellEvent is OnChainOrder) {
-            return OrderCancel(
-                hash = lastSellEvent.hash,
-                maker = lastSellEvent.maker,
-                make = lastSellEvent.make,
-                take = lastSellEvent.take,
-                date = blockDate,
-                source = HistorySource.CRYPTO_PUNKS
-            )
-        }
-        return null
     }
 
     private fun isExternalOrderExecutedOnRarible(transaction: Transaction): Boolean {
@@ -238,5 +208,39 @@ class CryptoPunkBoughtLogDescriptor(
             ?.let { TransferEvent.apply(it) }
             ?.to()
             ?: punkBoughtEvent.toAddress()
+    }
+
+    companion object {
+        suspend fun getCancelOfSellOrder(
+            exchangeHistoryRepository: ExchangeHistoryRepository,
+            marketAddress: Address,
+            blockDate: Instant,
+            blockNumber: Long,
+            logIndex: Int,
+            punkIndex: BigInteger
+        ): OrderCancel? {
+            val lastSellEvent = exchangeHistoryRepository
+                .findSellEventsByItem(marketAddress, EthUInt256(punkIndex))
+                .filter {
+                    it.blockNumber!! < blockNumber || it.blockNumber!! == blockNumber && it.logIndex!! < logIndex
+                }
+                .takeLast(1)
+                .singleOrEmpty()
+                .awaitFirstOrNull()
+                ?.data
+            // If the latest exchange event for this punk is OnChainOrder (and not OrderCancel nor OrderSideMatch)
+            //  it means that there was a previous sell order. That sell order must be cancelled.
+            if (lastSellEvent is OnChainOrder) {
+                return OrderCancel(
+                    hash = lastSellEvent.hash,
+                    maker = lastSellEvent.maker,
+                    make = lastSellEvent.make,
+                    take = lastSellEvent.take,
+                    date = blockDate,
+                    source = HistorySource.CRYPTO_PUNKS
+                )
+            }
+            return null
+        }
     }
 }
