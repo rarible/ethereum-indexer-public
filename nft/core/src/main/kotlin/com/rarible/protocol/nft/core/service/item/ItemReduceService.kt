@@ -87,7 +87,7 @@ class ItemReduceService(
 
     private fun updateOneItem(marker: Marker, initial: Item, byItem: Flux<HistoryLog>): Mono<Void> =
         byItem
-            .reduce(initial, emptyMap(), this::itemReducer, this::ownershipsReducer)
+            .reduce(initial, mutableMapOf(), this::itemReducer, this::ownershipsReducer)
             .flatMap { royalty(it) }
             .flatMap { (item, ownerships) ->
                 if (item.token != Address.ZERO()) {
@@ -234,22 +234,22 @@ class ItemReduceService(
         }
     }
 
-    private fun ownershipsReducer(map: Map<Address, Ownership>, log: HistoryLog): Map<Address, Ownership> {
+    private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {
         val (event, _) = log
         return when (event) {
             is ItemTransfer -> {
                 val from = map.getOrElse(event.from) { Ownership.empty(event.token, event.tokenId, event.from) }
                 val to = map.getOrElse(event.owner) { Ownership.empty(event.token, event.tokenId, event.owner) }
-                map + mapOf(
-                    event.from to ownershipReducer(from, log),
-                    event.owner to ownershipReducer(to, log)
-                )
+                map.apply {
+                    put(event.from, ownershipReducer(from, log))
+                    put(event.owner, ownershipReducer(to, log))
+                }
             }
             is ItemLazyMint -> {
                 val to = map.getOrElse(event.owner) { Ownership.empty(event.token, event.tokenId, event.owner) }
-                map + mapOf(
-                    event.owner to ownershipReducer(to, log)
-                )
+                map.apply {
+                    put(event.owner, ownershipReducer(to, log))
+                }
             }
             is ItemRoyalty -> {
                 map
@@ -260,10 +260,10 @@ class ItemReduceService(
             is BurnItemLazyMint -> {
                 val from = map.getOrElse(event.from) { Ownership.empty(event.token, event.tokenId, event.from) }
                 val to = Ownership.empty(event.token, event.tokenId, event.owner)
-                map + mapOf(
-                    event.from to ownershipReducer(from, log),
-                    event.owner to ownershipReducer(to, log)
-                )
+                map.apply {
+                    put(event.from, ownershipReducer(from, log))
+                    put(event.owner, ownershipReducer(to, log))
+                }
             }
         }
     }
