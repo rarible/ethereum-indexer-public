@@ -7,6 +7,7 @@ import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import io.daonomic.rpc.RpcCodeException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -21,14 +22,15 @@ import scalether.transaction.MonoTransactionSender
 class RoyaltyService(
     private val sender: MonoTransactionSender,
     private val nftIndexerProperties: NftIndexerProperties,
-    private val royaltyRepository: RoyaltyRepository
+    private val royaltyRepository: RoyaltyRepository,
+    private val featureFlags: NftIndexerProperties.FeatureFlags
 ) {
     // TODO: handle the two cases differently:
     //  1) royalties are not yet set for the item (this is the case while the item hasn't been minted yet - pending transaction)
     //  2) item doesn't have any royalties at all
     //  Currently, we request royalties from the contract in both cases.
     suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
-        if (nftIndexerProperties.isRoyaltyServiceEnabled.not()) return emptyList()
+        if (featureFlags.isRoyaltyServiceEnabled.not()) return emptyList()
 
         val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {

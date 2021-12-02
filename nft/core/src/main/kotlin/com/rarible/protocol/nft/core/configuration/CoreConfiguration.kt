@@ -18,7 +18,14 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 @EnableConfigurationProperties(NftIndexerProperties::class, IpfsProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class)
 @ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
-class CoreConfiguration {
+class CoreConfiguration(
+    private val properties: NftIndexerProperties
+) {
+    @Bean
+    fun featureFlags(): NftIndexerProperties.FeatureFlags {
+        return properties.featureFlags
+    }
+
     @Bean
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService {
         val nftItemHistoryTopics = (ItemType.TRANSFER.topic + ItemType.ROYALTY.topic + ItemType.CREATORS.topic)
