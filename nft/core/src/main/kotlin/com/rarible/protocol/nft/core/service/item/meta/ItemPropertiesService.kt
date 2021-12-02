@@ -35,7 +35,7 @@ class ItemPropertiesService(
     )
 
     private val cacheDescriptor = object : CacheDescriptor<CachedItemProperties> {
-        override val collection get() = METADATA_COLLECTION
+        override val collection get() = ITEM_METADATA_COLLECTION
 
         override fun get(id: String) = mono {
             val resolveResult = doResolve(ItemId.parseId(id)) ?: return@mono null
@@ -177,6 +177,6 @@ class ItemPropertiesService(
             }
         }
 
-        const val METADATA_COLLECTION = "metadata"
+        const val ITEM_METADATA_COLLECTION = "item_metadata"
     }
 }

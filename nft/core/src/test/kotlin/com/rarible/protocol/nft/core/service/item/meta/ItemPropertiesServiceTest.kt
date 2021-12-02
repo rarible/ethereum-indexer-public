@@ -28,7 +28,7 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
         }
-        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
+        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
         every { ipfsService.resolveHttpUrl(any()) } answers { firstArg() }
         val service = ItemPropertiesService(
@@ -58,7 +58,7 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
         }
-        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
+        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
         every { ipfsService.resolveHttpUrl(any()) } answers { firstArg() }
         val service = ItemPropertiesService(
@@ -91,7 +91,7 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
         }
-        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.METADATA_COLLECTION)
+        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
         every { ipfsService.resolveHttpUrl(any()) } answers { firstArg() }
         val service = ItemPropertiesService(
