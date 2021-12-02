@@ -91,7 +91,21 @@ class CryptoPunkBoughtLogDescriptor(
                 punkIndex = punkIndex
             )
         } else {
-            null
+            // If there was an active bid for this punk from the user that calls the 'buyPunk',
+            // that bid will be cancelled in the contract.
+            val cancelOfPreviousBidOrder = CryptoPunkBidEnteredLogDescriptor.getCancelOfPreviousBid(
+                exchangeHistoryRepository = exchangeHistoryRepository,
+                marketAddress = marketAddress,
+                blockNumber = log.blockNumber().toLong(),
+                logIndex = log.logIndex().toInt(),
+                blockDate = date,
+                punkIndex = punkIndex
+            )
+            if (cancelOfPreviousBidOrder != null && cancelOfPreviousBidOrder.maker == buyerAddress) {
+                cancelOfPreviousBidOrder
+            } else {
+                null
+            }
         }
 
         // the left order is always a sell order; if we receive accept bid -> left adhoc = true

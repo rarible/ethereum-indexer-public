@@ -1083,6 +1083,32 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
         }
     }
 
+    @Test
+    fun `bid order closed after buying the punk by the bidder`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100500.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess()
+        val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        // List the punk for sale.
+        val sellPrice = 200000.toBigInteger()
+        cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice).withSender(ownerSender).execute().verifySuccess()
+        depositInitialBalance(bidderAddress, sellPrice)
+        cryptoPunksMarket.buyPunk(punkIndex).withSender(bidderSender).withValue(sellPrice).execute().verifySuccess()
+
+        Wait.waitAssert {
+            assertThat(orderRepository.findActive().toList()).isEmpty()
+            val cancelledBidOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(cancelledBidOrder?.cancelled).isTrue()
+        }
+    }
+
     @Nested
     inner class OrderReopenedTest {
         @Test
