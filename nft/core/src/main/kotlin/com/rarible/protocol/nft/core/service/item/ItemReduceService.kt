@@ -17,7 +17,6 @@ import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -134,6 +133,7 @@ class ItemReduceService(
     }
 
     private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux<Ownership> {
+        logger.info("Start processing ownership ${item.id}")
         val needRemove = ownerships.filter { ownership -> ownership.needRemove() }
         val needRemoveIds = needRemove.map { ownership -> ownership.id }
 
@@ -156,6 +156,7 @@ class ItemReduceService(
             eventListenerListener.onOwnershipsChanged(needUpdate)
         }
         activeOwnerships.forEach { ownership -> send(ownership) }
+        logger.info("End processing ownership ${item.id}")
     }
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
