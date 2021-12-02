@@ -6,6 +6,7 @@ import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.model.OwnershipId
+import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Component
 
 @Component
@@ -54,16 +55,15 @@ class ProtocolNftEventPublisher(
     }
 
     suspend fun publish(event: NftOwnershipEventDto) {
-        val ownershipId = OwnershipId.parseId(event.ownershipId)
-        val itemId = "${ownershipId.token}:${ownershipId.tokenId.value}"
-
-        val message = KafkaMessage(
-            key = itemId,
-            value = event,
-            headers = ownershipEventHeaders,
-            id = event.eventId
-        )
+        val message = prepareOwnershipKafkaMessage(event)
         ownershipEventProducer.send(message).ensureSuccess()
+    }
+
+    suspend fun publish(events: List<NftOwnershipEventDto>) {
+        val messages = events.map { event -> prepareOwnershipKafkaMessage(event) }
+        ownershipEventProducer.send(messages).collect { result ->
+            result.ensureSuccess()
+        }
     }
 
     suspend fun publish(event: NftActivityDto) {
@@ -75,5 +75,17 @@ class ProtocolNftEventPublisher(
             id = itemId
         )
         nftItemActivityProducer.send(message).ensureSuccess()
+    }
+
+    private fun prepareOwnershipKafkaMessage(event: NftOwnershipEventDto): KafkaMessage<NftOwnershipEventDto> {
+        val ownershipId = OwnershipId.parseId(event.ownershipId)
+        val itemId = "${ownershipId.token}:${ownershipId.tokenId.value}"
+
+        return KafkaMessage(
+            key = itemId,
+            value = event,
+            headers = ownershipEventHeaders,
+            id = event.eventId
+        )
     }
 }

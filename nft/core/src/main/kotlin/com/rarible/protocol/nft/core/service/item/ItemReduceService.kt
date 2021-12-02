@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -15,6 +16,9 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -25,6 +29,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
+@ExperimentalCoroutinesApi
 @Service
 @CaptureSpan(type = SpanType.APP)
 class ItemReduceService(
@@ -35,9 +40,9 @@ class ItemReduceService(
     private val itemCreatorService: ItemCreatorService,
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
-    private val royaltyService: RoyaltyService
+    private val royaltyService: RoyaltyService,
+    private val featureFlags: NftIndexerProperties.FeatureFlags
 ) {
-
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
 
     fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
@@ -98,8 +103,7 @@ class ItemReduceService(
 
                     updateItem(item.copy(supply = supply, lazySupply = lazySupply, deleted = deleted))
                         .flatMap { updatedItem ->
-                            fixed.toFlux()
-                                .flatMap { updateOwnershipAndSave(marker, updatedItem, it) }
+                            handleOwnerships(marker, updatedItem, fixed)
                                 .collectList()
                                 .flatMap { updated ->
                                     saveItem(marker, updatedItem, updated)
@@ -119,6 +123,39 @@ class ItemReduceService(
         } else {
             pair
         }
+    }
+
+    private fun handleOwnerships(marker: Marker, item: Item, ownerships: List<Ownership>): Flux<Ownership>  {
+        return if (featureFlags.ownershipBatchHandle) {
+            handleOwnershipWithBatch(marker, item, ownerships)
+        } else {
+            ownerships.toFlux().flatMap { updateOwnershipAndSave(marker, item, it) }
+        }
+    }
+
+    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux<Ownership> {
+        val needRemove = ownerships.filter { ownership -> ownership.needRemove() }
+        val needRemoveIds = needRemove.map { ownership -> ownership.id }
+
+        val activeOwnerships = (ownerships - needRemove).map { ownership -> buildOwnership(marker, ownership, item) }
+        val activeOwnershipIds = activeOwnerships.map { ownership -> ownership.id }
+
+        val currentOwnerships = ownershipService.getAll(activeOwnershipIds)
+            .associateBy { ownership -> ownership.id }
+
+        val needUpdate = activeOwnerships.filter { ownership -> ownership != currentOwnerships[ownership.id] }
+        val needUpdateIds = needUpdate.map { ownership -> ownership.id }
+
+        if (needRemove.isNotEmpty()) {
+            ownershipService.removeAll(needRemoveIds)
+            eventListenerListener.onOwnershipsDeleted(needRemoveIds)
+        }
+        if (needUpdate.isNotEmpty()) {
+            ownershipService.removeAll(needUpdateIds)
+            ownershipService.saveAll(needUpdate)
+            eventListenerListener.onOwnershipsChanged(needUpdate)
+        }
+        activeOwnerships.forEach { ownership -> send(ownership) }
     }
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
@@ -167,7 +204,7 @@ class ItemReduceService(
 
     private fun updateOwnershipAndSave(marker: Marker, item: Item, ownership: Ownership): Mono<Ownership> =
         when {
-            ownership.value <= EthUInt256.of(0) && ownership.pending.isEmpty() -> {
+            ownership.needRemove() -> {
                 ownershipService
                     .delete(marker, ownership)
                     .then(eventListenerListener.onOwnershipDeleted(ownership.id))
@@ -329,6 +366,8 @@ class ItemReduceService(
             )
         }
     }
+
+    private fun Ownership.needRemove(): Boolean = value <= EthUInt256.of(0) && pending.isEmpty()
 
     companion object {
         const val MAX_OWNERSHIPS_TO_LOG = 1000
