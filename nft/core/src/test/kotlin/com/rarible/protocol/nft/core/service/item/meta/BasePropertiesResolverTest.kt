@@ -17,6 +17,10 @@ import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
 
+/**
+ * Annotation that allows to disable meta tests locally, since they may require internet connection.
+ * To run locally, pass the system property -DRARIBLE_TESTS_RUN_META_TESTS=true or comment out this annotation.
+ */
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_RUN_META_TESTS", matches = "true")
 annotation class ItemMetaTest
 

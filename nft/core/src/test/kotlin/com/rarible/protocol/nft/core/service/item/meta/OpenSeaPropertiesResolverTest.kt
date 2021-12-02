@@ -8,10 +8,22 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaProper
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import scalether.domain.Address
 
 @ItemMetaTest
+@EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
+    companion object {
+        fun createOpenSeaPropertiesResolver() = OpenSeaPropertiesResolver(
+            openseaUrl = "https://api.opensea.io/api/v1",
+            openseaApiKey = "",
+            readTimeout = 10000,
+            connectTimeout = 3000,
+            requestTimeout = 20000,
+            proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL")
+        )
+    }
 
     private val openSeaPropertiesResolver: OpenSeaPropertiesResolver = OpenSeaPropertiesResolver(
         openseaUrl = "https://api.opensea.io/api/v1",
