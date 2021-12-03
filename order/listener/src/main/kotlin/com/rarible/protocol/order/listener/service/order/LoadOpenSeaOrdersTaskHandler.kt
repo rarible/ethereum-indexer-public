@@ -50,7 +50,7 @@ class LoadOpenSeaOrdersTaskHandler(
 
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
-            logger.info("Saved new OpenSea order ${orderVersion.hash}")
+            logger.info("[internal] Saved new OpenSea order ${orderVersion.hash},")
         }
     }
 
