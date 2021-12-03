@@ -6,7 +6,17 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.descriptors.ItemExchangeHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
@@ -22,20 +32,30 @@ import java.time.Instant
 class CryptoPunkOfferedLogDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses,
-    private val priceUpdateService: PriceUpdateService
-) : ItemExchangeHistoryLogEventDescriptor<OnChainOrder> {
+    private val priceUpdateService: PriceUpdateService,
+    private val exchangeHistoryRepository: ExchangeHistoryRepository
+) : ItemExchangeHistoryLogEventDescriptor<OrderExchangeHistory> {
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.cryptoPunks))
 
     override val topic: Word = PunkOfferedEvent.id()
 
-    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OnChainOrder> {
+    override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderExchangeHistory> {
         val punkOfferedEvent = PunkOfferedEvent.apply(log)
         val grantedBuyer = punkOfferedEvent.toAddress().takeUnless { it == Address.ZERO() }
+        val punkIndex = EthUInt256(punkOfferedEvent.punkIndex())
+        val previousSellOrderCancel = listOfNotNull(
+            CryptoPunkBoughtLogDescriptor.getCancelOfSellOrder(
+                exchangeHistoryRepository = exchangeHistoryRepository,
+                marketAddress = log.address(),
+                blockDate = date,
+                blockNumber = log.blockNumber().toLong(),
+                logIndex = log.logIndex().toInt(),
+                punkIndex = punkIndex.value
+            )
+        )
         if (grantedBuyer == transferProxyAddresses.cryptoPunksTransferProxy) {
-            // We ignore "grant buy for 0ETH" from the owner to the transfer proxy,
-            // because this is the Exchange contract's implementation detail.
-            return emptyList()
+            return previousSellOrderCancel
         }
 /*
         We do not ignore SELL orders specific to a concrete buyer, because we want to track the whole CryptoPunks order history.
@@ -49,14 +69,13 @@ class CryptoPunkOfferedLogDescriptor(
         }
 */
         val minPrice = punkOfferedEvent.minValue()
-        val punkIndex = EthUInt256(punkOfferedEvent.punkIndex())
         val marketAddress = log.address()
         val sellerAddress = transaction.from()
         val make = Asset(CryptoPunksAssetType(marketAddress, EthUInt256(punkIndex.value)), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256(minPrice))
         val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
         val sellOrderHash = Order.hashKey(sellerAddress, make.type, take.type, CRYPTO_PUNKS_SALT.value)
-        return listOf(
+        return previousSellOrderCancel + listOf(
             OnChainOrder(
                 hash = sellOrderHash,
                 maker = sellerAddress,

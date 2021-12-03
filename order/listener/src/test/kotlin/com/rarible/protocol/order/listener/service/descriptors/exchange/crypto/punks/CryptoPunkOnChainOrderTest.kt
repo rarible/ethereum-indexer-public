@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.crypto.punks
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -886,6 +887,125 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
     }
 
     @Test
+    fun `sell order update - allowance to sell to a specific address replaces the old order`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender, _) = newSender()
+        val punkIndex = 42.toBigInteger()
+        val firstPrice = BigInteger.valueOf(100)
+        val secondPrice = BigInteger.valueOf(200)
+
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        cryptoPunksMarket.offerPunkForSale(punkIndex, firstPrice)
+            .withSender(sellerSender)
+            .execute().verifySuccess().getTimestamp()
+
+        val taker = randomAddress()
+        val saleToAddressTimestamp = cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, secondPrice, taker)
+            .withSender(sellerSender)
+            .execute().verifySuccess().getTimestamp()
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(secondPrice))
+
+        val punkPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        Wait.waitAssert {
+            val activeOrders = orderRepository.findActive().toList()
+            assertThat(activeOrders).hasSize(1)
+            val order = activeOrders.single()
+            val expectedOrder = Order(
+                maker = sellerAddress,
+                taker = taker, // 'taker' is defined as the granted address for this sale order.
+                make = make,
+                take = take,
+                type = OrderType.CRYPTO_PUNKS,
+                fill = EthUInt256.ZERO,
+                cancelled = false,
+                data = OrderCryptoPunksData,
+
+                makeStock = EthUInt256.ONE,
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                signature = null,
+                createdAt = saleToAddressTimestamp,
+                lastUpdateAt = saleToAddressTimestamp,
+                pending = emptyList(),
+                makePriceUsd = punkPriceUsd,
+                takePriceUsd = null,
+                makePrice = secondPrice.toBigDecimal(18),
+                takePrice = null,
+                makeUsd = null,
+                takeUsd = punkPriceUsd,
+                priceHistory = createPriceHistory(saleToAddressTimestamp, make, take),
+                platform = Platform.CRYPTO_PUNKS,
+                lastEventId = order.lastEventId
+            )
+            assertThat(order).isEqualTo(expectedOrder)
+        }
+    }
+
+    @Test
+    fun `sell order update - allowance to sell to Rarible transfer proxy just cancels the old order`() = runBlocking<Unit> {
+        val (sellerAddress, sellerSender, _) = newSender()
+        val punkIndex = 42.toBigInteger()
+        val firstPrice = BigInteger.valueOf(100)
+
+        cryptoPunksMarket.getPunk(punkIndex).withSender(sellerSender).execute().verifySuccess()
+
+        val forSaleTimestamp = cryptoPunksMarket.offerPunkForSale(punkIndex, firstPrice)
+            .withSender(sellerSender)
+            .execute().verifySuccess().getTimestamp()
+
+        val punkTransferProxyAddress = randomAddress()
+        transferProxyAddresses.cryptoPunksTransferProxy = punkTransferProxyAddress
+
+        val saleToAddressTimestamp = cryptoPunksMarket.offerPunkForSaleToAddress(punkIndex, BigInteger.ZERO, punkTransferProxyAddress)
+            .withSender(sellerSender)
+            .execute().verifySuccess().getTimestamp()
+
+        val make = Asset(CryptoPunksAssetType(cryptoPunksMarket.address(), EthUInt256(punkIndex)), EthUInt256.ONE)
+        val take = Asset(EthAssetType, EthUInt256(firstPrice))
+
+        val punkPriceUsd = firstPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
+
+        Wait.waitAssert {
+            val allOrders = orderRepository.findAll().toList()
+            assertThat(allOrders).hasSize(1)
+            val order = allOrders.single()
+            val expectedOrder = Order(
+                maker = sellerAddress,
+                taker = null,
+                make = make,
+                take = take,
+                type = OrderType.CRYPTO_PUNKS,
+                fill = EthUInt256.ZERO,
+                cancelled = true,
+                data = OrderCryptoPunksData,
+
+                makeStock = EthUInt256.ZERO,
+                salt = CRYPTO_PUNKS_SALT,
+                start = null,
+                end = null,
+                signature = null,
+                createdAt = forSaleTimestamp,
+                lastUpdateAt = saleToAddressTimestamp,
+                pending = emptyList(),
+                makePriceUsd = punkPriceUsd,
+                takePriceUsd = null,
+                makePrice = firstPrice.toBigDecimal(18),
+                takePrice = null,
+                makeUsd = null,
+                takeUsd = punkPriceUsd,
+                priceHistory = createPriceHistory(forSaleTimestamp, make, take),
+                platform = Platform.CRYPTO_PUNKS,
+                lastEventId = order.lastEventId
+            )
+            assertThat(order).isEqualTo(expectedOrder)
+        }
+    }
+
+    @Test
     fun `crypto punk listed for sale to a specific address`() = runBlocking<Unit> {
         val (sellerAddress, sellerSender) = newSender()
         val punkIndex = 42.toBigInteger()
@@ -960,6 +1080,32 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertEquals(EthUInt256.ZERO, order!!.makeStock)
             // Order cancelled by 'punkNoLongerForSale' function called during the 'transferPunk' execution,
             assertTrue(order.cancelled)
+        }
+    }
+
+    @Test
+    fun `bid order closed after buying the punk by the bidder`() = runBlocking<Unit> {
+        val (_, ownerSender) = newSender()
+        val punkIndex = 42.toBigInteger()
+        cryptoPunksMarket.getPunk(punkIndex).withSender(ownerSender).execute().verifySuccess()
+
+        val (bidderAddress, bidderSender) = newSender()
+        val bidPrice = 100500.toBigInteger()
+        depositInitialBalance(bidderAddress, bidPrice)
+        cryptoPunksMarket.enterBidForPunk(punkIndex).withSender(bidderSender).withValue(bidPrice)
+            .execute().verifySuccess()
+        val bidOrder = Wait.waitFor { orderRepository.findActive().singleOrNull() }!!
+
+        // List the punk for sale.
+        val sellPrice = 200000.toBigInteger()
+        cryptoPunksMarket.offerPunkForSale(punkIndex, sellPrice).withSender(ownerSender).execute().verifySuccess()
+        depositInitialBalance(bidderAddress, sellPrice)
+        cryptoPunksMarket.buyPunk(punkIndex).withSender(bidderSender).withValue(sellPrice).execute().verifySuccess()
+
+        Wait.waitAssert {
+            assertThat(orderRepository.findActive().toList()).isEmpty()
+            val cancelledBidOrder = orderRepository.findById(bidOrder.hash)
+            assertThat(cancelledBidOrder?.cancelled).isTrue()
         }
     }
 

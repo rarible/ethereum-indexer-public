@@ -103,6 +103,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     protected lateinit var orderIndexerProperties: OrderIndexerProperties
 
     @Autowired
+    protected lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
+
+    @Autowired
     protected lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
     @Autowired

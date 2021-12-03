@@ -18,7 +18,6 @@ import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderActivityListDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
@@ -49,7 +48,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.request.Transaction
 import java.math.BigDecimal
@@ -58,9 +56,6 @@ import java.math.BigInteger
 @IntegrationTest
 @FlowPreview
 class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
-
-    @Autowired
-    private lateinit var transferProxyAddresses: OrderIndexerProperties.TransferProxyAddresses
 
     private lateinit var exchangeV2: ExchangeV2
     private lateinit var eip712Domain: EIP712Domain
@@ -346,7 +341,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
         }
     }
 
-     @Test
+    @Test
     fun `buy crypto punk via ExchangeV2`() = runBlocking<Unit> {
         val (ownerAddress, ownerSender) = newSender()
         val punkIndex = 42.toBigInteger()
