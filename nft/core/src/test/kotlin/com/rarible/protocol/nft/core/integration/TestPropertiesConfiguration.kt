@@ -6,13 +6,19 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolverProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.mockk.every
+import io.mockk.mockk
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
@@ -49,6 +55,22 @@ class TestPropertiesConfiguration {
     @Bean
     fun itemMetaExtenderWorker() {
 
+    }
+
+    @Bean
+    @Primary
+    @Qualifier("mockItemPropertiesResolver")
+    fun mockItemPropertiesResolver(): ItemPropertiesResolver = mockk {
+        every { name } returns "MockResolver"
+        every { canBeCached } returns true
+    }
+
+    @Bean
+    @Primary
+    fun mockItemPropertiesResolverProvider(
+        @Qualifier("mockItemPropertiesResolver") mockItemPropertiesResolver: ItemPropertiesResolver
+    ): ItemPropertiesResolverProvider = mockk {
+        every { orderedResolvers } returns listOf(mockItemPropertiesResolver)
     }
 
     /**

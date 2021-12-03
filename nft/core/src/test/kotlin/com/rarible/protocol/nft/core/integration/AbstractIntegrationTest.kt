@@ -19,15 +19,17 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import io.mockk.clearMocks
+import io.mockk.every
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -45,6 +47,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
@@ -67,24 +70,35 @@ import java.util.concurrent.CopyOnWriteArrayList
 abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
+
     @Autowired
     protected lateinit var tokenRepository: TokenRepository
+
     @Autowired
-    protected lateinit var pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository
+    @Qualifier("mockItemPropertiesResolver")
+    protected lateinit var mockItemPropertiesResolver: ItemPropertiesResolver
+
     @Autowired
     protected lateinit var itemRepository: ItemRepository
+
     @Autowired
     protected lateinit var nftItemHistoryRepository: NftItemHistoryRepository
+
     @Autowired
     protected lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
+
     @Autowired
     protected lateinit var nftIndexerProperties: NftIndexerProperties
+
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
+
     @Autowired
     private lateinit var properties: NftIndexerProperties
+
     @Autowired
     protected lateinit var ethereum: MonoEthereum
+
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
@@ -101,6 +115,13 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     private val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
     private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
     private lateinit var consumingJobs: List<Job>
+
+    @BeforeEach
+    fun clearMock() {
+        clearMocks(mockItemPropertiesResolver)
+        every { mockItemPropertiesResolver.name } returns "MockResolver"
+        every { mockItemPropertiesResolver.canBeCached } returns true
+    }
 
     @BeforeEach
     fun cleanDatabase() {
@@ -133,7 +154,13 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         consumingJobs.forEach { it.cancelAndJoin() }
     }
 
-    suspend fun <T> saveItemHistory(data: T, token: Address = AddressFactory.create(), transactionHash: Word = WordFactory.create(), logIndex: Int? = null, status: LogEventStatus = LogEventStatus.CONFIRMED): T {
+    suspend fun <T> saveItemHistory(
+        data: T,
+        token: Address = AddressFactory.create(),
+        transactionHash: Word = WordFactory.create(),
+        logIndex: Int? = null,
+        status: LogEventStatus = LogEventStatus.CONFIRMED
+    ): T {
         return nftItemHistoryRepository.save(
             LogEvent(
                 data = data as EventData,
@@ -144,7 +171,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                 index = 0,
                 logIndex = logIndex,
                 blockNumber = 1,
-                minorLogIndex = 0)
+                minorLogIndex = 0
+            )
         ).awaitFirst().data as T
     }
 

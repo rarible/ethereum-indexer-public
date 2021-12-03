@@ -21,16 +21,17 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.PendingLogItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
+import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -50,15 +51,19 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
 
+    @BeforeEach
+    fun setUpMeta() {
+        coEvery { mockItemPropertiesResolver.resolve(any()) } returns itemProperties
+    }
+
     @Test
     fun mintItem() = runBlocking {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -91,9 +96,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val tokenId = EthUInt256.of("43635738831738903259797022654371755363838740687517624872331458295230642520065")
         val creator = Address.apply("0x6078f3f4a50eec358790bdfae15b351647e9cbb4")
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -121,9 +125,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         saveItemHistory(
@@ -168,9 +171,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -209,9 +211,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         val transfer = ItemTransfer(
@@ -246,9 +247,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -286,9 +286,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -325,9 +324,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -351,9 +349,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     fun confirmedItemTransfer() = runBlocking {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -388,9 +385,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         val transfer = ItemTransfer(owner, token, tokenId, nowMillis(), Address.ZERO(), EthUInt256.TEN)
@@ -411,9 +407,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val minter = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         val transfer = ItemTransfer(minter, token, tokenId, nowMillis(), Address.ZERO(), EthUInt256.TEN)
@@ -434,9 +429,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         val transfer = ItemTransfer(
@@ -475,9 +469,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
 
         val transfer = ItemTransfer(
@@ -516,9 +509,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner1 = AddressFactory.create()
         val owner2 = AddressFactory.create()
         val owner3 = AddressFactory.create()
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         val transfer1 = ItemTransfer(
@@ -575,9 +567,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner3 = AddressFactory.create()
         val owner4 = AddressFactory.create()
         val value = EthUInt256.of(20)
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
         saveItemHistory(
             ItemTransfer(
@@ -643,9 +634,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val creator = AddressFactory.create()
 
         val value = EthUInt256.of(20)
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         lazyNftItemHistoryRepository.save(
@@ -675,9 +665,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner1 = AddressFactory.create()
 
         val value = EthUInt256.of(10)
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         lazyNftItemHistoryRepository.save(
@@ -799,9 +788,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val creator = AddressFactory.create()
         val value = EthUInt256.of(10)
 
-        saveTokenAndMeta(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155),
-            tokenId
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
 
         lazyNftItemHistoryRepository.save(
@@ -854,12 +842,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         animation = null
     )
 
-    private suspend fun saveTokenAndMeta(token: Token, tokenId: EthUInt256) {
+    private suspend fun saveToken(token: Token) {
         tokenRepository.save(token).awaitFirst()
-        pendingLogItemPropertiesRepository.save(PendingLogItemProperties(
-            "${token.id}:${tokenId.value}",
-            itemProperties
-        )).awaitFirst()
     }
 
     private suspend fun checkItem(
