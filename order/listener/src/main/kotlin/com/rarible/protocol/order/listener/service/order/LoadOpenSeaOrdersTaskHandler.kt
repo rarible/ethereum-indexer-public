@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.RawOpenSeaOrder
 import com.rarible.protocol.order.core.repository.order.OpenSeaOrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -23,7 +24,8 @@ class LoadOpenSeaOrdersTaskHandler(
     private val openSeaOrderRepository: OpenSeaOrderRepository,
     private val orderRepository: OrderRepository,
     private val openSeaOrderConverter: OpenSeaOrderConverter,
-    private val orderUpdateService: OrderUpdateService
+    private val orderUpdateService: OrderUpdateService,
+    private val properties: OrderListenerProperties
 ) : TaskHandler<String> {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -31,7 +33,7 @@ class LoadOpenSeaOrdersTaskHandler(
         get() = LOAD_OPEN_SEA_ORDERS
 
     override suspend fun isAbleToRun(param: String): Boolean {
-        return true
+        return properties.loadInternalOpenSeaOrders
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
