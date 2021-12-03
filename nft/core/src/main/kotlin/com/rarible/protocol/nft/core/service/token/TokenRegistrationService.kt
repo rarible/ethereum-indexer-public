@@ -180,7 +180,12 @@ class TokenRegistrationService(
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
         val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
-            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
+            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721, // CryptoBots (CBT)
+
+            // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
+            // Its 'supportsInterface' is calculated for a wrong hash, although the contract defines all the necessary methods.
+            // It's Not worth it to add to the known IERC721 set.
+            Address.apply("0xc631164b6cb1340b5123c9162f8558c866de1926") to TokenStandard.ERC721
         )
         val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
     }
