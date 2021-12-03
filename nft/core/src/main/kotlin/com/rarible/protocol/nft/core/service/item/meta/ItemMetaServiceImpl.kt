@@ -1,71 +1,56 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.slf4j.LoggerFactory
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
-import reactor.kotlin.core.publisher.switchIfEmpty
 
 @Component
-@CaptureSpan(type = SpanType.APP)
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
 class ItemMetaServiceImpl(
     private val itemPropertiesService: ItemPropertiesService,
-    private val contentMetaService: ContentMetaService
+    private val mediaMetaService: MediaMetaService
 ) : ItemMetaService {
 
-    private val logger = LoggerFactory.getLogger(this::class.java)
-
     override suspend fun getItemMetadata(itemId: ItemId): ItemMeta {
-        return itemPropertiesService.getProperties(itemId.token, itemId.tokenId.value)
-            .map { properties ->
-                fixPropertiesIfNeeded(properties)
-            }
-            .onErrorResume {
-                logger.warn("Unable to load item properties for $itemId: $it")
-                Mono.just(ItemProperties.EMPTY)
-            }
-            .switchIfEmpty {
-                logger.warn("properties not found for $itemId")
-                Mono.just(ItemProperties.EMPTY)
-            }
-            .flatMap { properties ->
-                contentMetaService.getByProperties(properties)
-                    .map { meta ->
-                        ItemMeta(properties, meta)
-                    }
-            }.awaitFirst()
+        val itemProperties = itemPropertiesService.resolve(itemId) ?: return ItemMeta.EMPTY
+        val contentMeta = getContentMetaForProperties(itemProperties)
+        return ItemMeta(itemProperties.fixAnimationUrl(), contentMeta)
     }
 
-    override suspend fun resetMetadata(itemId: ItemId) {
-        try {
-            val itemMeta = getItemMetadata(itemId)
-            contentMetaService.resetByProperties(itemMeta.properties).awaitFirstOrNull()
-        } finally {
-            itemPropertiesService.resetProperties(itemId.token, itemId.tokenId.value).awaitFirstOrNull()
+    private suspend fun getContentMetaForProperties(itemProperties: ItemProperties): ContentMeta = coroutineScope {
+        val imageMediaMeta = async {
+            when {
+                itemProperties.imagePreview != null -> mediaMetaService.getMediaMeta(itemProperties.imagePreview)
+                itemProperties.image != null -> mediaMetaService.getMediaMeta(itemProperties.image)
+                else -> null
+            }
         }
+        val animationMediaMeta = async {
+            when {
+                itemProperties.animationUrl != null -> mediaMetaService.getMediaMeta(itemProperties.animationUrl)
+                else -> null
+            }
+        }
+        return@coroutineScope ContentMeta(imageMediaMeta.await(), animationMediaMeta.await())
     }
 
-    private fun fixPropertiesIfNeeded(properties: ItemProperties): ItemProperties {
-        val image = properties.image
-        val imageBig = properties.imageBig
-        val imagePreview = properties.imagePreview
-        val animationUrl = properties.animationUrl
-
-        val isWrongImage = ANIMATION_EXPANSIONS.any { image?.endsWith(it, true) == true }
-        val isWrongImageBig = ANIMATION_EXPANSIONS.any { imageBig?.endsWith(it, true) == true }
-        val isWrongImagePreview = ANIMATION_EXPANSIONS.any { imagePreview?.endsWith(it, true) == true }
-
-        return if (animationUrl.isNullOrBlank() && (isWrongImage || isWrongImageBig || isWrongImagePreview)) {
-            properties.copy(
-                image = if (isWrongImage || image?.startsWith("ipfs://") == true) null else image,
-                imageBig = if (isWrongImageBig) null else imageBig,
-                imagePreview = if (isWrongImagePreview) null else imagePreview,
+    // TODO[meta]: this fix may be re-implemented using content meta requested with mediaMetaService.getMediaMeta(...)
+    private fun ItemProperties.fixAnimationUrl(): ItemProperties {
+        fun String?.hasAnimationExtension() = ANIMATION_EXTENSIONS.any { this?.endsWith(it) == true }
+        val isWrongImage = image.hasAnimationExtension()
+        val isWrongImageBig = imageBig.hasAnimationExtension()
+        val isWrongImagePreview = imagePreview.hasAnimationExtension()
+        if (animationUrl.isNullOrBlank() && (isWrongImage || isWrongImageBig || isWrongImagePreview)) {
+            return copy(
+                image = image.takeUnless { isWrongImage },
+                imageBig = imageBig.takeUnless { isWrongImageBig },
+                imagePreview = imagePreview.takeUnless { isWrongImagePreview },
                 animationUrl = when {
                     isWrongImage -> image
                     isWrongImageBig -> imageBig
@@ -73,12 +58,23 @@ class ItemMetaServiceImpl(
                     else -> animationUrl
                 }
             )
-        } else {
-            properties
+        }
+        return this
+    }
+
+    override suspend fun resetMetadata(itemId: ItemId) {
+        try {
+            val itemProperties = itemPropertiesService.resolve(itemId)
+            itemProperties?.image?.let { mediaMetaService.resetMediaMeta(it) }
+            itemProperties?.imagePreview?.let { mediaMetaService.resetMediaMeta(it) }
+            itemProperties?.imageBig?.let { mediaMetaService.resetMediaMeta(it) }
+            itemProperties?.animationUrl?.let { mediaMetaService.resetMediaMeta(it) }
+        } finally {
+            itemPropertiesService.resetProperties(itemId)
         }
     }
 
-    companion object {
-        val ANIMATION_EXPANSIONS = setOf(".mov", ".mp4")
+    private companion object {
+        private val ANIMATION_EXTENSIONS = listOf(".mov", ".mp4")
     }
 }

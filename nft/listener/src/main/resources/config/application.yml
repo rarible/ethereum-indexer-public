@@ -44,37 +44,15 @@ ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50
 
 api:
-  ipfs-url: https://rarible.mypinata.cloud/
-  hashmasks:
-    address: "0xc2c747e0f7004f9e8817db2ca4997657a7746928"
-    cache-timeout: 864000000
-  yinsure:
-    address: "0x181aea6936b407514ebfc0754a37704eb8d98f91"
-    cache-timeout: 864000000
-  quotation:
-    address: "0x1776651F58a17a50098d31ba3C3cD259C1903f7A"
-  hegic:
-    address: "0xcb9ebae59738d9dadc423adbde66c018777455a4"
-    api-url:
-    cache-timeout: 864000000
-  waifusion:
-    address: "0x2216d47494e516d8206b70fca8585820ed3c4946"
-    cache-timeout: 864000000
-    ipfs-url-prefix: https://ipfs.io/ipfs/QmQuzMGqHxSXugCUvWQjDCDHWhiGB75usKbrZk6Ec6pFvw
-  kitties:
-    cache-timeout: 864000000
-  loot:
-    cache-timeout: 864000000
   opensea:
     url: https://api.opensea.io/api/v1
     api-key: test
     read-timeout: 10000
     connect-timeout: 3000
-    cache-timeout: 864000000
     request-timeout: 20000
   properties:
     api-url: https://api.rarible.com/images
-    cache-timeout: 864000000
+    cache-timeout: 315360000000 # 10 years (effectively, forever)
     request-timeout: 20000
     media-meta-timeout: 10000
   royalty:
@@ -82,7 +60,3 @@ api:
 
 common:
   cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
-
-ipfs:
-  upload_proxy: "https://pinata.rarible.com/upload"
-  gateway: "https://rarible.mypinata.cloud/ipfs"

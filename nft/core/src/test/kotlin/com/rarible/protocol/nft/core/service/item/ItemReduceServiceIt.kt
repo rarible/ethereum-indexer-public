@@ -4,10 +4,26 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftItemDeleteEventDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.PendingLogItemProperties
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.FlowPreview
@@ -826,7 +842,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         imagePreview = null,
         imageBig = null,
         animationUrl = null,
-        attributes = emptyList()
+        attributes = emptyList(),
+        rawJsonContent = null
     )
 
     private val expectedItemMeta = NftItemMetaDto(
@@ -839,7 +856,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     private suspend fun saveTokenAndMeta(token: Token, tokenId: EthUInt256) {
         tokenRepository.save(token).awaitFirst()
-        temporaryItemPropertiesRepository.save(TemporaryItemProperties(
+        pendingLogItemPropertiesRepository.save(PendingLogItemProperties(
             "${token.id}:${tokenId.value}",
             itemProperties
         )).awaitFirst()

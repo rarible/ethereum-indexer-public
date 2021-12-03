@@ -1,0 +1,36 @@
+{
+  "name": "rogova.eth",
+  "description": "rogova.eth, an ENS name.",
+  "attributes": [
+    {
+      "key": "Length",
+      "value": "6"
+    },
+    {
+      "key": "Registration Date",
+      "value": "2021-11-10T13:35:53Z",
+      "type": "string",
+      "format": "date-time"
+    },
+    {
+      "key": "Expiration Date",
+      "value": "2024-11-10T07:03:29Z",
+      "type": "string",
+      "format": "date-time"
+    }
+  ],
+  "image": {
+    "url": {
+      "ORIGINAL": "https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x1cebe69e5e603f333a50be5b760c17879bd949bccd2ee33d36b6e3b93d823a59/image",
+      "BIG": "https://storage.opensea.io/files/14aad589c31fa718bd8f6db270465970.svg",
+      "PREVIEW": "https://storage.opensea.io/files/14aad589c31fa718bd8f6db270465970.svg"
+    },
+    "meta": {
+      "PREVIEW": {
+        "type": "image/svg+xml",
+        "width": 192,
+        "height": 192
+      }
+    }
+  }
+}

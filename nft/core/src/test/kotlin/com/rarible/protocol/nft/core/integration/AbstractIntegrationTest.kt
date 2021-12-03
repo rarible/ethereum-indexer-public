@@ -19,7 +19,7 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
+import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -70,7 +70,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     protected lateinit var tokenRepository: TokenRepository
     @Autowired
-    protected lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
+    protected lateinit var pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository
     @Autowired
     protected lateinit var itemRepository: ItemRepository
     @Autowired

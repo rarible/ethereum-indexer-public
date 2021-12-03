@@ -5,8 +5,16 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenStandard
-import org.springframework.data.mongodb.core.*
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.count
+import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.remove
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -17,10 +25,6 @@ import scalether.domain.Address
 class TokenRepository(
     private val mongo: ReactiveMongoOperations
 ) {
-    fun drop(): Mono<Void> {
-        return mongo.dropCollection(Token::class.java)
-    }
-
     fun save(token: Token): Mono<Token> {
         return mongo.save(token)
     }

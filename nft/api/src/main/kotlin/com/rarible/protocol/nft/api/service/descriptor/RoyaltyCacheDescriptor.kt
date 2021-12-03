@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.item.meta.descriptors
+package com.rarible.protocol.nft.api.service.descriptor
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType

@@ -1,0 +1,52 @@
+{
+  "name": "Stoner Cats #8423",
+  "description": "Stoner Cats is an adult animated short series accessed exclusively by owning a collectible Stoner Cat NFT. The NFT sales directly fund the mini-pilot and all future content. The show is centered around five house cats who mysteriously become sentient. With their *higher* consciousness, they realize that their beloved owner needs rescue from a myriad of dangerous situations. With great *flower* comes great responsibility.",
+  "attributes": [
+    {
+      "key": "Name",
+      "value": "Baxter"
+    },
+    {
+      "key": "Accessories",
+      "value": "Kitty Cap"
+    },
+    {
+      "key": "Backdrops",
+      "value": "Gold"
+    },
+    {
+      "key": "Left Arm",
+      "value": "Naked"
+    },
+    {
+      "key": "Right Arm",
+      "value": "Hacker Tech"
+    },
+    {
+      "key": "Collars",
+      "value": "Blue BTC"
+    },
+    {
+      "key": "Expressions",
+      "value": "Naked"
+    },
+    {
+      "key": "Eyes",
+      "value": "Hungover"
+    }
+  ],
+  "image": {
+    "url": {
+      "ORIGINAL": "https://go.fission.app/json/8423/image.jpg",
+      "BIG": "https://lh3.googleusercontent.com/bYQvP4dzJB-SwYwL-O2FvxljbVFe9CQhiURuHPAusEm7_2yQ23U4y2iL3hQcrBq29twpfqEp3LTd7nOnoOfkuJILhHmeCJlNQ4jjV2U",
+      "PREVIEW": "https://lh3.googleusercontent.com/bYQvP4dzJB-SwYwL-O2FvxljbVFe9CQhiURuHPAusEm7_2yQ23U4y2iL3hQcrBq29twpfqEp3LTd7nOnoOfkuJILhHmeCJlNQ4jjV2U=s250"
+    },
+    "meta": {
+      "PREVIEW": {
+        "type": "image/jpeg",
+        "width": 250,
+        "height": 250
+      }
+    }
+  }
+}

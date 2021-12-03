@@ -24,6 +24,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "api.chain-id = 4",
         "api.opensea.url = https://api.opensea.io/api/v1",
         "api.opensea.api-key = test",
+        "api.properties.cache-timeout = 1000",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",

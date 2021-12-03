@@ -4,7 +4,7 @@ import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -16,7 +16,7 @@ import java.net.URL
 class ChangeLog00013InsertAttributesForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00013InsertAttributesForCryptoPunks.create", order = "1", author = "protocol")
-    fun create(@NonLockGuarded punksService: CryptoPunksMetaService) = runBlocking<Unit> {
+    fun insertCryptoPunksAttributes(@NonLockGuarded punksService: CryptoPunksPropertiesResolver) = runBlocking<Unit> {
         listOf(
             "0-999.csv",
             "1000-1999.csv",
@@ -39,7 +39,7 @@ class ChangeLog00013InsertAttributesForCryptoPunks {
             }
     }
 
-    suspend fun savePunk(punk: String, punksService: CryptoPunksMetaService) {
+    suspend fun savePunk(punk: String, cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver) {
         val id = BigInteger(punk.split(",")[0])
         val extra = punk.split(",").drop(1).map { it.trim() }
         val props = mapOf(
@@ -55,7 +55,7 @@ class ChangeLog00013InsertAttributesForCryptoPunks {
                 else -> listOf(ItemAttribute(it.key, it.value.toString()))
             }
         }
-        punksService.save(CryptoPunksMeta(id, null, attributes))
+        cryptoPunksPropertiesResolver.save(CryptoPunksMeta(id, null, attributes))
     }
 
     companion object {

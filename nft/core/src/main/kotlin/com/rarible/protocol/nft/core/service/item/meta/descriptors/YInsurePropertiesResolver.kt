@@ -1,44 +1,37 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.core.cache.CacheDescriptor
 import com.rarible.protocol.contracts.external.quotation.QuotationData
 import com.rarible.protocol.contracts.external.yinsure.YInsure
 import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import org.apache.commons.lang3.time.DateUtils
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
-class YInsureCacheDescriptor(
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+class YInsurePropertiesResolver(
     sender: MonoTransactionSender,
-    @Value("\${api.yinsure.address}") yInsureAddress: String,
-    @Value("\${api.yinsure.cache-timeout}") private val cacheTimeout: Long,
-    @Value("\${api.quotation.address}") quotationDataAddress: String,
     @Value("\${api.properties.api-url}") private val apiUrl: String
-) : CacheDescriptor<ItemProperties> {
-    private val yInsure = YInsure(Address.apply(yInsureAddress), sender)
-    private val quotationData = QuotationData(Address.apply(quotationDataAddress), sender)
+) : ItemPropertiesResolver {
 
-    final val token = "yinsure"
-    override val collection: String = "cache_$token"
-
-    override fun getMaxAge(value: ItemProperties?): Long = if (value == null) {
-        DateUtils.MILLIS_PER_HOUR
-    } else {
-        cacheTimeout
+    companion object {
+        val YINSURE_ADDRESS: Address = Address.apply("0x181aea6936b407514ebfc0754a37704eb8d98f91")
+        val QUOTATION_ADDRESS: Address = Address.apply("0x1776651F58a17a50098d31ba3C3cD259C1903f7A")
     }
 
-    val formatterShort = SimpleDateFormat("dd/MM/yyyy")
-    val formatterLong = SimpleDateFormat("E MMM dd yyyy", Locale.ENGLISH)
+    private val yInsure = YInsure(YINSURE_ADDRESS, sender)
+    private val quotationData = QuotationData(QUOTATION_ADDRESS, sender)
+
+    private val formatterShort = SimpleDateFormat("dd/MM/yyyy")
+    private val formatterLong = SimpleDateFormat("E MMM dd yyyy", Locale.ENGLISH)
 
     private val yInsurePlatformMap = listOf(
         YInsurePlatform(
@@ -109,8 +102,13 @@ class YInsureCacheDescriptor(
         )
     )
 
-    override fun get(id: String): Mono<ItemProperties> {
-        return yInsure.tokens(id.toBigInteger())
+    override val name get() = "YInsure"
+
+    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        if (itemId.token != YINSURE_ADDRESS) {
+            return null
+        }
+        return yInsure.tokens(itemId.tokenId.value)
             .flatMap { tuple ->
                 val currency = String(tuple._2()).replace("\u0000", "")
                 val amount = String.format(Locale.ENGLISH, "%,d", tuple._3().toLong())
@@ -124,7 +122,7 @@ class YInsureCacheDescriptor(
                             ?: YInsurePlatform(it._2.toString(), "Unknown", Pair("#00A3FF", "#0066FF"), "ethereum.svg")
 
                         val attributes = listOf(
-                            ItemAttribute("token", token),
+                            ItemAttribute("token", "yinsure"),
                             ItemAttribute("currency", currency),
                             ItemAttribute("amount", amount),
                             ItemAttribute("expireTime", expireTime.toString()),
@@ -139,14 +137,15 @@ class YInsureCacheDescriptor(
                         ItemProperties(
                             name = "${platform.name} | $amount $currency \uD83D\uDD12 | $validUntil",
                             description = "Covers ${platform.name} Smart Contract risks worth $amount $currency. Policy is valid until $validUntilLong",
-                            image = "$apiUrl/image/$token/$id.svg",
+                            image = "$apiUrl/image/yinsure/${itemId.tokenId.value}.svg",
                             attributes = attributes,
                             imagePreview = null,
                             imageBig = null,
-                            animationUrl = null
+                            animationUrl = null,
+                            rawJsonContent = null
                         )
                     }
-            }
+            }.awaitFirstOrNull()
     }
 
     private data class YInsurePlatform(

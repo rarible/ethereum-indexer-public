@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.nft.validation.LazyNftValidator
@@ -17,24 +16,25 @@ import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
+import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
+import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Request
-import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,13 +43,11 @@ import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import scalether.domain.response.TransactionReceipt
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
-import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 
 @End2EndTest
@@ -58,7 +56,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 
-    @MockkBean
+    @Autowired
     private lateinit var lazyNftValidator: LazyNftValidator
 
     @Autowired
@@ -87,15 +85,19 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = randomAddress()
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
+        val itemProperties = createLazyItemProperties()
+        val itemId = ItemId(contract.address(), tokenId)
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc721Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        checkItemDto(lazyItemDto, itemDto)
+        checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
     @Test
@@ -105,15 +107,19 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
+        val itemProperties = createLazyItemProperties()
+        val itemId = ItemId(contract.address(), tokenId)
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc721Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        checkItemDto(lazyItemDto, itemDto)
+        checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
     @Test
@@ -123,10 +129,14 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = randomAddress()
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
+        val itemProperties = createLazyItemProperties()
+        val itemId = ItemId(contract.address(), tokenId)
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc721Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
@@ -142,15 +152,19 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
+        val itemProperties = createLazyItemProperties()
+        val itemId = ItemId(contract.address(), tokenId)
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc1155Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        checkItemDto(lazyItemDto, itemDto)
+        checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
     @Test
@@ -160,15 +174,19 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = randomAddress()
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
+        val itemProperties = createLazyItemProperties()
+        val itemId = ItemId(contract.address(), tokenId)
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc1155Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        checkItemDto(lazyItemDto, itemDto)
+        checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
     @Test
@@ -181,7 +199,8 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val lazyItemDto = createLazyErc1155Dto().copy(
             contract = contract.address(),
             tokenId = tokenId.value,
-            creators = listOf(PartDto(creator, 10000)))
+            creators = listOf(PartDto(creator, 10000))
+        )
 
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
@@ -202,7 +221,11 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         }
     }
 
-    private suspend fun checkItemDto(lazyItemDto: LazyNftDto, itemDto: NftItemDto) {
+    private suspend fun checkItemDto(
+        lazyItemDto: LazyNftDto,
+        itemDto: NftItemDto,
+        expectedItemProperties: ItemProperties
+    ) {
         val itemId = ItemId(lazyItemDto.contract, EthUInt256(lazyItemDto.tokenId))
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
         assertThat(itemDto.contract).isEqualTo(lazyItemDto.contract)
@@ -235,9 +258,15 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             assertThat(creatorDto.value).isEqualTo(lazyItemDto.creators[index].value)
         }
 
+        val expectedItemMetaDto = NftItemMetaDtoConverter.convert(
+            ItemMeta(expectedItemProperties, ContentMeta.EMPTY)
+        )
+        assertThat(itemDto.meta).isEqualTo(expectedItemMetaDto)
+
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertThat(lazyMint.token).isEqualTo(lazyItemDto.contract)
         assertThat(lazyMint.tokenId.value).isEqualTo(lazyItemDto.tokenId)
+        assertThat(lazyMint.uri).isEqualTo(lazyItemDto.uri)
 
         lazyMint.creators.forEachIndexed { index, it ->
             assertThat(it)
@@ -258,7 +287,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         return LazyErc721Dto(
             contract = token,
             tokenId = tokenId.value,
-            uri = UUID.randomUUID().toString(),
+            uri = "https://placeholder.com",
             creators = listOf(PartDto(AddressFactory.create(), 5000)),
             royalties = listOf(PartDto(AddressFactory.create(), 5000)),
             signatures = listOf(Binary.empty())
@@ -272,31 +301,11 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         return LazyErc1155Dto(
             contract = token,
             tokenId = tokenId.value,
-            uri = UUID.randomUUID().toString(),
+            uri = "https://placeholder.com",
             supply = BigInteger.TEN,
             creators = listOf(PartDto(AddressFactory.create(), 5000)),
             royalties = listOf(PartDto(AddressFactory.create(), 5000)),
             signatures = listOf(Binary.empty())
         )
-    }
-
-    private suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-        val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success()) {
-            val result = ethereum.executeRaw(
-                Request(1, "trace_replayTransaction", scalether.java.Lists.toScala(
-                    receipt.transactionHash().toString(),
-                    scalether.java.Lists.toScala("trace", "stateDiff")
-                ), "2.0")
-            ).block()!!
-            "traces: ${result.result().get()}"
-        }
-        return receipt
-    }
-
-    private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
-        val value = this.awaitFirstOrNull()
-        require(value != null) { "txHash is null" }
-        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 }

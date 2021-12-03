@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 
 @Configuration
-@EnableConfigurationProperties(NftIndexerProperties::class, IpfsProperties::class)
+@EnableConfigurationProperties(NftIndexerProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class)
 @ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
 class CoreConfiguration {

@@ -6,8 +6,9 @@ data class ItemProperties(
     val image: String?,
     val imagePreview: String?,
     val imageBig: String?,
-    val animationUrl: String? = null,
-    val attributes: List<ItemAttribute>
+    val animationUrl: String?,
+    val attributes: List<ItemAttribute>,
+    val rawJsonContent: String?
 ) {
     companion object {
         val EMPTY = ItemProperties(
@@ -16,7 +17,9 @@ data class ItemProperties(
             image = null,
             imagePreview = null,
             imageBig = null,
-            attributes = listOf()
+            animationUrl = null,
+            attributes = listOf(),
+            rawJsonContent = null
         )
     }
 }

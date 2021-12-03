@@ -9,4 +9,5 @@ data class CryptoPunksMeta(
     @Id
     val id: BigInteger,
     val image: String?,
-    val attributes: List<ItemAttribute>)
+    val attributes: List<ItemAttribute>
+)

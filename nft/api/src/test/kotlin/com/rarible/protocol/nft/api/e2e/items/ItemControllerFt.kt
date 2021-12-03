@@ -1,32 +1,48 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
+import com.rarible.protocol.dto.LazyErc1155Dto
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftItemRoyaltyDto
+import com.rarible.protocol.dto.NftItemRoyaltyListDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
+import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.repository.TemporaryItemPropertiesRepository
+import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.PendingLogItemProperties
+import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +50,6 @@ import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
 import scalether.domain.AddressFactory
-import scalether.domain.response.TransactionReceipt
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
@@ -53,13 +68,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 
     @Autowired
-    private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
+    private lateinit var pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository
 
     @Autowired
     protected lateinit var nftIndexerProperties: NftIndexerProperties
-
-    @Autowired
-    private lateinit var mapper : ObjectMapper
 
     companion object {
         @JvmStatic
@@ -88,14 +100,12 @@ class ItemControllerFt : SpringContainerBaseTest() {
             imagePreview = "http://127.0.0.1/ItemMetaImagePreview.bmp",
             imageBig = "http://t127.0.0.1/ItemMetaImageBig.jpeg",
             animationUrl = "http://127.0.0.1/ItemMetaImageUrl.gif",
-            attributes = itemAttributes
+            attributes = itemAttributes,
+            rawJsonContent = null
         )
 
-        val tempItemProperties = TemporaryItemProperties(
-            id = item.id.decimalStringValue,
-            value = itemProperties
-        )
-        temporaryItemPropertiesRepository.save(tempItemProperties).block()
+        val tempItemProperties = PendingLogItemProperties(id = item.id.decimalStringValue, value = itemProperties)
+        pendingLogItemPropertiesRepository.save(tempItemProperties).block()
 
         val metaDto = nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
 
@@ -405,18 +415,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
             }
             else -> throw IllegalArgumentException("Unexpected token standard ${itemLazyMint.standard}")
         }
-    }
-
-    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-        val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success())
-        return receipt
-    }
-
-    protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
-        val value = this.awaitFirstOrNull()
-        require(value != null) { "txHash is null" }
-        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
     // restoring address after tests

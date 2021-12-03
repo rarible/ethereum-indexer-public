@@ -20,15 +20,12 @@ import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -38,7 +35,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import scalether.domain.response.TransactionReceipt
-import scalether.java.Lists
 import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
@@ -157,26 +153,6 @@ class FactoryPendingTransactionFt : SpringContainerBaseTest() {
             assertThat(topic).isEqualTo(id)
             assertThat(status).isEqualTo(LogEventDto.Status.PENDING)
         }
-    }
-
-    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-        val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success()) {
-            val result = ethereum.executeRaw(
-                Request(1, "trace_replayTransaction", Lists.toScala(
-                    receipt.transactionHash().toString(),
-                    Lists.toScala("trace", "stateDiff")
-                ), "2.0")
-            ).block()!!
-            "traces: ${result.result().get()}"
-        }
-        return receipt
-    }
-
-    private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
-        val value = this.awaitFirstOrNull()
-        require(value != null) { "txHash is null" }
-        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
     }
 
     private fun Transaction.toRequest() = CreateTransactionRequestDto(

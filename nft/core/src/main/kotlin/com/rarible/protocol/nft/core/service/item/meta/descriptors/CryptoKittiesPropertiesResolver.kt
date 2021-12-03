@@ -3,48 +3,38 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
-import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.parseTokenId
-import org.apache.commons.lang3.time.DateUtils
-import org.slf4j.Logger
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
+import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.EXT)
-class KittiesCacheDescriptor(
-    @Value("\${api.kitties.cache-timeout}") private val cacheTimeout: Long
-) : CacheDescriptor<ItemProperties> {
-    override val collection: String = "cache_properties"
-
-    override fun getMaxAge(value: ItemProperties?): Long =
-        if (value == null) {
-            DateUtils.MILLIS_PER_HOUR
-        } else {
-            cacheTimeout
-        }
+@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
 
     private val client = WebClient.builder()
         .clientConnector(WebClientHelper.createConnector(10000, 10000, true))
         .build()
     private val mapper = ObjectMapper()
 
-    override fun get(id: String): Mono<ItemProperties> {
+    override val name get() = "CryptoKitties"
+
+    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        if (itemId.token != CRYPTO_KITTIES_ADDRESS) {
+            return null
+        }
         return LoggingUtils.withMarker { marker ->
-            logger.info(marker, "get properties $id")
+            logger.info(marker, "get CryptoKitties properties ${itemId.tokenId.value}")
 
-            val tokenId = id.parseTokenId().second
-
-            client.get().uri("$CK_URL/$tokenId")
+            client.get().uri("$CK_URL/${itemId.tokenId.value}")
                 .retrieve()
                 .bodyToMono<String>()
                 .map {
@@ -55,15 +45,18 @@ class KittiesCacheDescriptor(
                         image = node.path("image_url_cdn").asText(),
                         imagePreview = null,
                         imageBig = null,
+                        animationUrl = null,
                         attributes = node.withArray("enhanced_cattributes")
-                            .map { attr -> ItemAttribute(attr.path("type").asText(), attr.path("description").asText()) }
+                            .map { attr -> ItemAttribute(attr.path("type").asText(), attr.path("description").asText()) },
+                        rawJsonContent = null
                     )
                 }
-        }
+        }.awaitFirstOrNull()
     }
 
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(KittiesCacheDescriptor::class.java)
-        const val CK_URL = "https://api.cryptokitties.co/kitties"
+        private val logger = LoggerFactory.getLogger(CryptoKittiesPropertiesResolver::class.java)
+        private const val CK_URL = "https://api.cryptokitties.co/kitties"
+        val CRYPTO_KITTIES_ADDRESS: Address = Address.apply("0x06012c8cf97bead5deae237070f9587f8e7a266d")
     }
 }

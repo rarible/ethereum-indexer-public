@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.migration.mongock.mongo
+package com.rarible.protocol.nft.migration.service
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
+import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00018SetRaribleContractField
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking

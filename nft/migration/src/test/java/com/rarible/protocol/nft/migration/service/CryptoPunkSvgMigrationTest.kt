@@ -1,14 +1,16 @@
 package com.rarible.protocol.nft.migration.service
 
+import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.service.CryptoPunksMetaService
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
-import com.rarible.protocol.nft.migration.configuration.IpfsProperties
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
 import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00013InsertAttributesForCryptoPunks
 import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00014UploadSvgsForCryptoPunks
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -17,53 +19,58 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.exists
 import scalether.domain.Address
 import java.math.BigInteger
 
 @IntegrationTest
 class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
 
-    private val insertAttributes = ChangeLog00013InsertAttributesForCryptoPunks()
-    private val uploaderSvg = ChangeLog00014UploadSvgsForCryptoPunks()
+    @Autowired
+    private lateinit var cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver
 
     @Autowired
-    private lateinit var itemPropertiesService: ItemPropertiesService
-
-    @Autowired
-    private lateinit var cryptoPunksMetaService: CryptoPunksMetaService
-
-    @Autowired
-    private lateinit var ipfsProperties: IpfsProperties
+    private lateinit var ipfsService: IpfsService
 
     @Test
-    fun `should save svg image`() = runBlocking {
+    fun `should save svg image`() = runBlocking<Unit> {
         val token = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         val tokenId = BigInteger.valueOf(2L)
 
         val punk = "2, Human, Female, Light, 1, Wild Hair"
-        insertAttributes.savePunk(punk, cryptoPunksMetaService)
-        val bs = javaClass.getResourceAsStream("/data/cryptopunks/2.svg").readBytes()
-        uploaderSvg.upload("2.svg", bs, cryptoPunksMetaService, ipfsProperties)
+        ChangeLog00013InsertAttributesForCryptoPunks().savePunk(punk, cryptoPunksPropertiesResolver)
+
+        val testPunkSvg = javaClass.getResourceAsStream("/data/cryptopunks/2.svg")!!.readBytes()
+        ChangeLog00014UploadSvgsForCryptoPunks().upload("2.svg", testPunkSvg, cryptoPunksPropertiesResolver, ipfsService)
 
         assertEquals(1, mongo.count(Query(), "cryptopunks_meta").awaitSingle())
 
-        val itemProps = itemPropertiesService.getProperties(token, tokenId).awaitFirstOrNull()
-        assertEquals("CryptoPunk #2", itemProps?.name)
-        assertEquals("https://rarible.mypinata.cloud/ipfs/QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS", itemProps?.image)
-        assertThat(itemProps?.attributes).contains(ItemAttribute("type", "Human"))
-        assertThat(itemProps?.attributes).contains(ItemAttribute("gender", "Female"))
-        assertThat(itemProps?.attributes).contains(ItemAttribute("skin tone", "Light"))
-        assertThat(itemProps?.attributes).contains(ItemAttribute("count", "1"))
-        assertThat(itemProps?.attributes).contains(ItemAttribute("accessory", "Wild Hair"))
-        assertEquals(5, itemProps?.attributes?.size)
+        val itemProps = cryptoPunksPropertiesResolver.resolve(ItemId(token, EthUInt256(tokenId)))
+        assertThat(itemProps).isEqualTo(
+            ItemProperties(
+                name = "CryptoPunk #2",
+                image = "${IpfsService.RARIBLE_IPFS}/ipfs/QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS",
+                description = null,
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(
+                    ItemAttribute("type", "Human"),
+                    ItemAttribute("gender", "Female"),
+                    ItemAttribute("skin tone", "Light"),
+                    ItemAttribute("count", "1"),
+                    ItemAttribute("accessory", "Wild Hair")
+                )
+            )
+        )
     }
 
     // It's a very slow test
     @Disabled
     @Test
     fun `should upload all svg images`() = runBlocking {
-        insertAttributes.create(cryptoPunksMetaService)
-        uploaderSvg.create(cryptoPunksMetaService, ipfsProperties)
-        assertEquals(10000, mongo.count(Query(), "item_properties").awaitSingle())
+        ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(cryptoPunksPropertiesResolver)
+        ChangeLog00014UploadSvgsForCryptoPunks().uploadCryptoPunksSvgs(cryptoPunksPropertiesResolver, ipfsService)
+        assertEquals(10000, mongo.count(Query(CryptoPunksMeta::image exists true), "cryptopunks_meta").awaitSingle())
     }
 }
