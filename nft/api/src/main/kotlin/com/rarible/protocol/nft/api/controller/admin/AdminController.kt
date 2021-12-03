@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 
@@ -88,15 +90,12 @@ class AdminController(
         value = ["/admin/nft/collections/tasks/setTokenStandard"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
     suspend fun setTokenStandard(
-        @RequestParam(value = "collection", required = true) collection: Address,
-        @RequestParam(value = "standard", required = true) standardStr: String
-    ): ResponseEntity<Void> {
-        val standard = requireNotNull(TokenStandard.valueOf(standardStr)) {
-            "Unknown token standard $standardStr"
-        }
+        @RequestParam(value = "collection") collection: Address,
+        @RequestParam(value = "standard") standard: TokenStandard
+    ) {
         tokenUpdateService.setTokenStandard(collection, standard)
-        return ResponseEntity.noContent().build()
     }
 
     @GetMapping(
