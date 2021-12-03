@@ -2,16 +2,20 @@ package com.rarible.protocol.nft.api.service.admin
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
+import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
+import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
+import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
+import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
+import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.TokenTaskParam
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
@@ -20,16 +24,8 @@ import scalether.domain.Address
 @Component
 class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
-    private val tokenRepository: TokenRepository,
     private val taskRepository: TempTaskRepository
 ) {
-    suspend fun getToken(token: Address): Token? {
-        return tokenRepository.findById(token).awaitFirstOrNull()
-    }
-
-    suspend fun removeToken(token: Address) {
-        tokenRepository.remove(token).awaitFirstOrNull()
-    }
 
     suspend fun getTokenTasks(): List<Task> {
         return taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).toList() +
@@ -152,4 +148,3 @@ class ReindexTokenService(
         return tokenStandardMap.joinToString(",") { "${it.second}:${it.first}" }
     }
 }
-

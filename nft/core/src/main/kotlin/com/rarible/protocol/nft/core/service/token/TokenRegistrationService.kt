@@ -22,6 +22,7 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -74,6 +75,16 @@ class TokenRegistrationService(
                     Mono.error(it)
                 }
             }
+    }
+
+    suspend fun setTokenStandard(tokenId: Address, standard: TokenStandard): Token {
+        val token = checkNotNull(tokenRepository.findById(tokenId).awaitFirstOrNull()) {
+            "Token $tokenId is not found"
+        }
+        check(token.standard != standard) { "Token standard is already $standard" }
+        val savedToken = tokenRepository.save(token.copy(standard = standard)).awaitFirst()
+        cache.put(tokenId, standard)
+        return savedToken
     }
 
     fun updateFeatures(token: Token): Mono<Token> {
