@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacyCachePropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
+import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,7 +47,7 @@ class ItemPropertiesService(
 
         override fun getMaxAge(value: CachedItemProperties?): Long =
             when {
-                value == null -> cacheTimeout
+                value == null -> DateUtils.MILLIS_PER_MINUTE * 5
                 value.canBeCached -> cacheTimeout
                 else -> 0
             }
