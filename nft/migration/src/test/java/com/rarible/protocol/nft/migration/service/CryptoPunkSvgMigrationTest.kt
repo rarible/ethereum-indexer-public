@@ -60,7 +60,8 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
                     ItemAttribute("skin tone", "Light"),
                     ItemAttribute("count", "1"),
                     ItemAttribute("accessory", "Wild Hair")
-                )
+                ),
+                rawJsonContent = null
             )
         )
     }
