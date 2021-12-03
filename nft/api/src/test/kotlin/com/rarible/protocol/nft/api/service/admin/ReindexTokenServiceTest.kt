@@ -25,7 +25,7 @@ class ReindexTokenServiceTest {
     private val tokenRepository = mockk<TokenRepository>()
     private val taskRepository = mockk<TempTaskRepository>()
 
-    private val service = ReindexTokenService(tokenRegistrationService, tokenRepository, taskRepository)
+    private val service = ReindexTokenService(tokenRegistrationService, taskRepository)
 
     @Test
     fun `should create token reindex task`() = runBlocking<Unit> {

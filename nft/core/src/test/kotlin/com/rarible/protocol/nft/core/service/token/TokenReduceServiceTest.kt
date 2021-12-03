@@ -9,7 +9,11 @@ import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.contracts.erc721.OwnershipTransferredEvent
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.CollectionEvent
+import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
+import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -70,6 +74,21 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             Token::lastEventId.name,
             Token::version.name
         )
+    }
+
+    @Test
+    fun `return token registered with via service having no log events`() = runBlocking<Unit> {
+        val id = randomAddress()
+        val token = Token(
+            id = id,
+            owner = randomAddress(),
+            name = "Name",
+            symbol = "Symbol",
+            standard = TokenStandard.ERC721
+        )
+        tokenRegistrationService.getOrSaveToken(id) { token.toMono() }.awaitFirst()
+        val updated = tokenReduceService.updateToken(id)
+        assertThat(updated).isEqualTo(updated)
     }
 
     @Test

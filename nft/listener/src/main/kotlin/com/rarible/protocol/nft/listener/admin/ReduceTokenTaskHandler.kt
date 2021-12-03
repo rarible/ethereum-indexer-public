@@ -5,12 +5,12 @@ import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -21,7 +21,7 @@ import scalether.domain.Address
 @Component
 class ReduceTokenTaskHandler(
     private val taskRepository: TempTaskRepository,
-    private val tokenReduceService: TokenReduceService
+    private val tokenUpdateService: TokenUpdateService
 ) : TaskHandler<String> {
 
     override val type: String
@@ -35,10 +35,10 @@ class ReduceTokenTaskHandler(
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val params = ReduceTokenTaskParams.fromParamString(param)
-        return tokenReduceService
-            .update(address = params.oneToken)
-            .map { it.id.prefixed() }
-            .asFlow()
+        return flow {
+            tokenUpdateService.update(params.oneToken)
+            emit(params.oneToken.prefixed())
+        }
     }
 
     private suspend fun findTokensBeingIndexedNow(): List<Address> {

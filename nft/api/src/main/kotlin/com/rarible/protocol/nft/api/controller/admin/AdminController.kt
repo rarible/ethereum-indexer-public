@@ -6,40 +6,51 @@ import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 
 @RestController
 class AdminController(
-    private val reindexTokenService: ReindexTokenService
+    private val reindexTokenService: ReindexTokenService,
+    private val tokenUpdateService: TokenUpdateService
 ) {
     @GetMapping(
         value = ["/admin/nft/collections/{collectionId}"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun getTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<TokenDto> {
-        val token = reindexTokenService.getToken(collectionId)
+        val token = tokenUpdateService.getToken(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return ResponseEntity.ok().body(convert(token))
     }
 
     @DeleteMapping(
         value = ["/admin/nft/collections/{collectionId}"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun deleteTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<Void> {
-        reindexTokenService.removeToken(collectionId)
+        tokenUpdateService.removeToken(collectionId)
         return ResponseEntity.noContent().build()
     }
 
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reindexToken"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun createReindexTokenTask(
         @RequestParam(value = "collection", required = true) collection: List<Address>,
@@ -52,7 +63,7 @@ class AdminController(
 
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reindexItems"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun createReindexTokenItemsTask(
         @RequestParam(value = "collection", required = true) collection: List<Address>,
@@ -65,7 +76,7 @@ class AdminController(
 
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reduceToken"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun createReduceTokenTask(
         @RequestParam(value = "collection", required = true) collection: Address,
@@ -75,9 +86,21 @@ class AdminController(
         return ResponseEntity.ok().body(convert(task))
     }
 
+    @PostMapping(
+        value = ["/admin/nft/collections/tasks/setTokenStandard"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @ResponseStatus(value = HttpStatus.NO_CONTENT)
+    suspend fun setTokenStandard(
+        @RequestParam(value = "collection") collection: Address,
+        @RequestParam(value = "standard") standard: TokenStandard
+    ) {
+        tokenUpdateService.setTokenStandard(collection, standard)
+    }
+
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reduceItems"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun createReduceTokenItemsTask(
         @RequestParam(value = "collection", required = true) collection: Address,
@@ -89,7 +112,7 @@ class AdminController(
 
     @GetMapping(
         value = ["/admin/nft/collections/tasks/reindexItemsRoyalties"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun createReindexTokenItemRoyaltiesTask(
         @RequestParam(value = "collection", required = true) collection: Address,
@@ -101,7 +124,7 @@ class AdminController(
 
     @GetMapping(
         value = ["/admin/nft/collections/tasks"],
-        produces = ["application/json"]
+        produces = [MediaType.APPLICATION_JSON_VALUE]
     )
     suspend fun getTokenTasks(): ResponseEntity<List<AdminTaskDto>> {
         val tasks = reindexTokenService.getTokenTasks()

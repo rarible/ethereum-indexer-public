@@ -4,7 +4,12 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.CollectionEvent
+import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -32,6 +37,7 @@ class TokenReduceService(
         return tokenHistoryRepository.findAllByCollection(address)
             .windowUntilChanged { (it.data as CollectionEvent).id }
             .concatMap { updateOneToken(registeredToken, it) }
+            .switchIfEmpty(registeredToken)
     }
 
     private fun updateOneToken(registeredToken: Mono<Token>, logs: Flux<LogEvent>): Mono<Token> {

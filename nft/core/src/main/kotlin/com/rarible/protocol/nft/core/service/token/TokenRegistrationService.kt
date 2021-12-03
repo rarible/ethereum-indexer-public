@@ -1,12 +1,18 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.google.common.cache.CacheBuilder
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.common.*
+import com.rarible.core.common.component1
+import com.rarible.core.common.component2
+import com.rarible.core.common.component3
+import com.rarible.core.common.component4
+import com.rarible.core.common.component5
+import com.rarible.core.common.orNull
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
@@ -15,11 +21,14 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.switchIfEmpty
 import reactor.kotlin.core.publisher.toFlux
@@ -32,19 +41,18 @@ import java.util.*
 @CaptureSpan(type = SpanType.EXT)
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
-    private val sender: MonoTransactionSender
+    private val sender: MonoTransactionSender,
+    @Value("\${nft.token.cache.max.size:10000}") private val cacheMaxSize: Long
 ) {
-    private val map: MutableMap<Address, TokenStandard> = mutableMapOf()
+    private val cache = CacheBuilder.newBuilder()
+        .maximumSize(cacheMaxSize)
+        .build<Address, TokenStandard>()
 
     fun getTokenStandard(address: Address): Mono<TokenStandard> {
-        val result = map[address]
-        return if (result != null) {
-            Mono.just(result)
-        } else {
-            register(address)
-                .map { it.standard }
-                .doOnNext { map[address] = it }
-        }
+        cache.getIfPresent(address)?.let { return it.toMono() }
+        return register(address)
+            .map { it.standard }
+            .doOnNext { cache.put(address, it) }
     }
 
     fun register(address: Address): Mono<Token> = getOrSaveToken(address, ::fetchToken)
@@ -67,6 +75,16 @@ class TokenRegistrationService(
                     Mono.error(it)
                 }
             }
+    }
+
+    suspend fun setTokenStandard(tokenId: Address, standard: TokenStandard): Token {
+        val token = checkNotNull(tokenRepository.findById(tokenId).awaitFirstOrNull()) {
+            "Token $tokenId is not found"
+        }
+        check(token.standard != standard) { "Token standard is already $standard" }
+        val savedToken = tokenRepository.save(token.copy(standard = standard)).awaitFirst()
+        cache.put(tokenId, standard)
+        return savedToken
     }
 
     fun updateFeatures(token: Token): Mono<Token> {
@@ -102,32 +120,32 @@ class TokenRegistrationService(
             .onErrorResume { Mono.just(Optional.empty()) }
     }
 
-    internal fun fetchStandard(address: Address): Mono<TokenStandard> {
-        val contract = IERC721(address, sender)
-        return Flux.fromIterable(TokenStandard.values().filter { it.interfaceId != null })
-            .flatMap { checkStandard ->
-                contract.supportsInterface(checkStandard.interfaceId!!.bytes())
-                    .onErrorResume { error ->
-                        if (WELL_KNOWN_TOKENS_WITHOUT_ERC165[address] == checkStandard) {
-                            Mono.just(true)
-                        } else if (error is RpcCodeException || error is IllegalArgumentException) {
-                            Mono.just(false)
-                        } else {
-                            Mono.error(error)
-                        }
+    private suspend fun fetchTokenStandard(address: Address): TokenStandard {
+        if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
+            return WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)
+        }
+        val contract = IERC165(address, sender)
+        for (standard in TokenStandard.values()) {
+            if (standard.interfaceId != null) {
+                try {
+                    val isSupported = contract.supportsInterface(standard.interfaceId.bytes()).awaitFirst()
+                    if (isSupported) {
+                        return standard
                     }
-                    .map { supported ->
-                        checkStandard to supported
+                } catch (e: Exception) {
+                    if (e is RpcCodeException || e is IllegalArgumentException) {
+                        // Not supported or does not have 'supportsInterface' declared at all.
+                        continue
                     }
+                    // Could not determine for sure (probably we failed to connect to the node).
+                    throw e
+                }
             }
-            .collectList()
-            .map { all ->
-                all.sortedBy { it.first.ordinal }
-                    .firstOrNull { it.second }
-                    ?.first
-                    ?: TokenStandard.NONE
-            }
+        }
+        return TokenStandard.NONE
     }
+
+    internal fun fetchStandard(address: Address): Mono<TokenStandard> = mono { fetchTokenStandard(address) }
 
     private fun fetchFeatures(address: Address): Mono<Set<TokenFeature>> {
         return Mono.zip(
@@ -174,7 +192,12 @@ class TokenRegistrationService(
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
         val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
-            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
+            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721, // CryptoBots (CBT)
+
+            // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
+            // Its 'supportsInterface' is calculated for a wrong hash, although the contract defines all the necessary methods.
+            // It's Not worth it to add to the known IERC721 set.
+            Address.apply("0xc631164b6cb1340b5123c9162f8558c866de1926") to TokenStandard.ERC721
         )
         val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
     }
