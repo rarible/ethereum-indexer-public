@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.e2e
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolverProvider
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.beans.factory.annotation.Qualifier
@@ -21,6 +22,14 @@ class TestPropertiesConfiguration {
     @Qualifier("mockItemPropertiesResolver")
     fun mockItemPropertiesResolver(): ItemPropertiesResolver = mockk {
         every { name } returns "MockResolver"
+        every { canBeCached } returns true
+    }
+
+    @Bean
+    @Primary
+    @Qualifier("mockRariblePropertiesResolver")
+    fun mockRariblePropertiesResolver(): RariblePropertiesResolver = mockk {
+        every { name } returns "MockRariblePropertiesResolver"
         every { canBeCached } returns true
     }
 

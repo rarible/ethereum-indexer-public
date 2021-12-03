@@ -28,9 +28,11 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
 import com.rarible.protocol.nft.core.service.item.meta.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
+import io.mockk.coVerify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -63,6 +65,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository
+
+    @Autowired
+    private lateinit var pendingLogItemPropertiesResolver: PendingLogItemPropertiesResolver
 
     @Autowired
     private lateinit var itemPropertiesService: ItemPropertiesService
@@ -102,7 +107,13 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         val tokenId = EthUInt256(BigInteger.valueOf(nonce.value))
         val itemId = ItemId(token.address(), tokenId)
 
-        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
+        coEvery { mockRariblePropertiesResolver.resolve(itemId) } returns itemProperties
+        coEvery { mockRariblePropertiesResolver.resolveByTokenUri(itemId, any()) } returns itemProperties
+        coEvery { mockItemPropertiesResolver.resolve(itemId) } coAnswers {
+            // Delegate to the pendingLogItemPropertiesResolver
+            pendingLogItemPropertiesResolver.resolve(itemId) ?:
+                mockRariblePropertiesResolver.resolve(itemId)
+        }
         val resolvedItemProperties = itemProperties.copy(
             image = IpfsService.RARIBLE_IPFS + '/' + itemProperties.image,
             imagePreview = IpfsService.RARIBLE_IPFS + '/' + itemProperties.imagePreview,
@@ -129,8 +140,11 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
             assertThat(item.pending).hasSize(1)
 
-            assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(resolvedItemProperties, ItemProperties::rawJsonContent.name)
+            assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(
+                resolvedItemProperties, ItemProperties::rawJsonContent.name
+            )
 
+            coVerify(exactly = 1) { mockItemPropertiesResolver.resolve(itemId) }
             val savedProperties = pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(savedProperties?.value).isEqualToIgnoringGivenFields(itemProperties, ItemProperties::rawJsonContent.name)
         }
@@ -143,8 +157,8 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             .collectList().awaitFirst()
         assertThat(history).hasSize(1)
         val pendingLogEvent = history.single().log
-        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED)
         assertThat(pendingLogEvent.status).isEqualTo(LogEventStatus.PENDING)
+        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED)
         nftItemHistoryRepository.save(confirmedLogEvent).awaitFirst()
         blockProcessor.postProcessLogs(listOf(confirmedLogEvent)).awaitFirstOrNull()
 
@@ -154,7 +168,8 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         // Since the item is not pending anymore, the pending log item repository must not contain properties for it.
         Wait.waitAssert {
             // Wait while the 'itemPropertiesService' requests the pending log resolver again and this resolver invalidates the cache.
-            assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(resolvedItemProperties, ItemProperties::rawJsonContent.name)
+            assertThat(itemPropertiesService.resolve(itemId))
+                .isEqualToIgnoringGivenFields(resolvedItemProperties, ItemProperties::rawJsonContent.name)
             assertThat(pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue).awaitFirstOrNull()).isNull()
         }
     }

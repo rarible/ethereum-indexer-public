@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.model.PendingLogItemProperties
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -27,11 +27,15 @@ class PendingLogItemPropertiesResolver(
 
     suspend fun savePendingLogItemPropertiesByUri(itemId: ItemId, uri: String) {
         try {
-            val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, uri) ?: return
+            val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, uri)
+            if (itemProperties == null) {
+                logProperties(itemId, "no properties resolved with Rarible resolver for the pending item")
+                return
+            }
             val pendingLogItemProperties = PendingLogItemProperties(itemId.decimalStringValue, itemProperties)
             pendingLogItemPropertiesRepository.save(pendingLogItemProperties).awaitFirstOrNull()
         } catch (e: Exception) {
-            ItemPropertiesService.logProperties(itemId, "failed to save pending log item properties", warn = true)
+            logProperties(itemId, "failed to save pending log item properties", warn = true)
         }
     }
 
@@ -39,7 +43,7 @@ class PendingLogItemPropertiesResolver(
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return null
         val isPendingMinting = item.pending.any { it.from == Address.ZERO() }
         if (!isPendingMinting) {
-            ItemPropertiesService.logProperties(itemId, "removing properties of an already confirmed item")
+            logProperties(itemId, "removing properties of an already confirmed item")
             // Minted items must provide properties from the contract.
             // This resolver is applicable only while the item is in pending minting state.
             pendingLogItemPropertiesRepository.deleteById(itemId.decimalStringValue).awaitFirstOrNull()

@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
@@ -71,6 +72,10 @@ abstract class SpringContainerBaseTest {
     @Autowired
     @Qualifier("mockItemPropertiesResolver")
     protected lateinit var mockItemPropertiesResolver: ItemPropertiesResolver
+
+    @Autowired
+    @Qualifier("mockRariblePropertiesResolver")
+    protected lateinit var mockRariblePropertiesResolver: RariblePropertiesResolver
 
     @LocalServerPort
     private var port: Int = 0
