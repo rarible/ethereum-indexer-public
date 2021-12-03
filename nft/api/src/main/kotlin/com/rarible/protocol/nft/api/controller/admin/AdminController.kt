@@ -6,13 +6,21 @@ import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 
 @RestController
 class AdminController(
-    private val reindexTokenService: ReindexTokenService
+    private val reindexTokenService: ReindexTokenService,
+    private val tokenUpdateService: TokenUpdateService
 ) {
     @GetMapping(
         value = ["/admin/nft/collections/{collectionId}"],
@@ -21,7 +29,7 @@ class AdminController(
     suspend fun getTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<TokenDto> {
-        val token = reindexTokenService.getToken(collectionId)
+        val token = tokenUpdateService.getToken(collectionId)
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return ResponseEntity.ok().body(convert(token))
     }
@@ -33,7 +41,7 @@ class AdminController(
     suspend fun deleteTokenById(
         @PathVariable("collectionId") collectionId: Address
     ): ResponseEntity<Void> {
-        reindexTokenService.removeToken(collectionId)
+        tokenUpdateService.removeToken(collectionId)
         return ResponseEntity.noContent().build()
     }
 
@@ -73,6 +81,21 @@ class AdminController(
     ): ResponseEntity<AdminTaskDto> {
         val task = reindexTokenService.createReduceTokenTask(collection, force ?: false)
         return ResponseEntity.ok().body(convert(task))
+    }
+
+    @PostMapping(
+        value = ["/admin/nft/collections/tasks/setTokenStandard"],
+        produces = ["application/json"]
+    )
+    suspend fun setTokenStandard(
+        @RequestParam(value = "collection", required = true) collection: Address,
+        @RequestParam(value = "standard", required = true) standardStr: String
+    ): ResponseEntity<Void> {
+        val standard = requireNotNull(TokenStandard.valueOf(standardStr)) {
+            "Unknown token standard $standardStr"
+        }
+        tokenUpdateService.setTokenStandard(collection, standard)
+        return ResponseEntity.noContent().build()
     }
 
     @GetMapping(
