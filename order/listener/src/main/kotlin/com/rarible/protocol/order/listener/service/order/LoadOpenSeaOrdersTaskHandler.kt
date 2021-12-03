@@ -33,7 +33,7 @@ class LoadOpenSeaOrdersTaskHandler(
         get() = LOAD_OPEN_SEA_ORDERS
 
     override suspend fun isAbleToRun(param: String): Boolean {
-        return properties.loadInternalOpenSeaOrders
+        return properties.loadOpenSeaOrders
     }
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
