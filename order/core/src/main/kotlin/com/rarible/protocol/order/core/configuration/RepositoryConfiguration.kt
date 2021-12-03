@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.configuration
 
+import com.mongodb.reactivestreams.client.MongoClient
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.order.core.repository.Package
@@ -60,5 +61,10 @@ class RepositoryConfiguration(
     @Bean
     fun auctionSnapshotRepository(): AuctionSnapshotRepository {
         return AuctionSnapshotRepository(template)
+    }
+
+    @Bean
+    fun openSeaOrderRepository(mongoClient: MongoClient): OpenSeaOrderRepository {
+        return OpenSeaOrderRepository(mongoClient)
     }
 }
