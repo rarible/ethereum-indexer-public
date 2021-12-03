@@ -21,6 +21,7 @@ class TestPropertiesConfiguration {
     @Qualifier("mockItemPropertiesResolver")
     fun mockItemPropertiesResolver(): ItemPropertiesResolver = mockk {
         every { name } returns "MockResolver"
+        every { canBeCached } returns true
     }
 
     @Bean

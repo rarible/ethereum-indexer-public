@@ -23,6 +23,8 @@ class PendingLogItemPropertiesResolver(
 
     override val name: String get() = "Pending"
 
+    override val canBeCached: Boolean get() = false
+
     suspend fun savePendingLogItemPropertiesByUri(itemId: ItemId, uri: String) {
         try {
             val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, uri) ?: return

@@ -27,6 +27,7 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
+            coEvery { canBeCached } returns true
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
@@ -53,10 +54,42 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
     }
 
     @Test
+    fun `do not cache properties if the resolver does not allow that`() = runBlocking<Unit> {
+        val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
+        val resolver = mockk<ItemPropertiesResolver>() {
+            coEvery { name } returns "Test"
+            coEvery { canBeCached } returns false
+        }
+        val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
+        val ipfsService = mockk<IpfsService>()
+        every { ipfsService.resolveHttpUrl(any()) } answers { firstArg() }
+        val service = ItemPropertiesService(
+            itemPropertiesResolverProvider = mockk {
+                every { orderedResolvers } returns listOf(resolver)
+            },
+            ipfsService = ipfsService,
+            cacheTimeout = 10000,
+            cacheService = cacheService
+        )
+        val itemProperties = randomItemProperties()
+        coEvery { resolver.resolve(itemId) } returns itemProperties
+
+        assertThat(service.resolve(itemId)).isEqualTo(itemProperties)
+        coVerify(exactly = 1) { cacheService.getCached<ItemProperties>(itemId.decimalStringValue, any(), any()) }
+        coVerify(exactly = 1) { resolver.resolve(itemId) }
+
+        assertThat(service.resolve(itemId)).isEqualTo(itemProperties)
+        coVerify(exactly = 2) { cacheService.getCached<ItemProperties>(itemId.decimalStringValue, any(), any()) }
+        // The resolver disables caching, so it must be called every time.
+        coVerify(exactly = 2) { resolver.resolve(itemId) }
+    }
+
+    @Test
     fun `reset cached properties`() = runBlocking<Unit> {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
+            coEvery { canBeCached } returns true
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
@@ -90,6 +123,7 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
         val itemId = ItemId(randomAddress(), EthUInt256(randomBigInt()))
         val resolver = mockk<ItemPropertiesResolver>() {
             coEvery { name } returns "Test"
+            coEvery { canBeCached } returns true
         }
         val cacheService = createSimpleCacheService<ItemProperties>(ItemPropertiesService.ITEM_METADATA_COLLECTION)
         val ipfsService = mockk<IpfsService>()
@@ -125,8 +159,9 @@ class ItemPropertiesServiceTest : BasePropertiesResolverTest() {
             val id = firstArg<String>()
             val descriptor = secondArg<CacheDescriptor<T>>()
             check(descriptor.collection == collectionName)
-            if (simpleMap.containsKey(id)) {
-                return@answers simpleMap[id].justOrEmpty()
+            val value = simpleMap[id]
+            if (value != null && descriptor.getMaxAge(value) > 0) {
+                return@answers value.justOrEmpty()
             }
             val fetched = descriptor.get(id).block()
             if (fetched != null) {
