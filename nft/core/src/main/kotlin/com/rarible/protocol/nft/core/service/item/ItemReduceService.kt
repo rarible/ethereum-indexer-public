@@ -342,7 +342,11 @@ class ItemReduceService(
                         ownership
                     }
                     is BurnItemLazyMint -> {
-                        ownership.copy(lazyValue = ownership.lazyValue - event.value)
+                        if (ownership.lazyValue > EthUInt256.ZERO) {
+                            ownership.copy(lazyValue = ownership.lazyValue - event.value)
+                        } else {
+                            ownership
+                        }
                     }
                 }.copy(date = event.date)
             else -> ownership
