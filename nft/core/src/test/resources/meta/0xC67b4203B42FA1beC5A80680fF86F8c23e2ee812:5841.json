@@ -1,0 +1,38 @@
+{
+  "name": "NFT Fuck Bubble #5841",
+  "description": "Tired of always missing the latest project? Never having enough ETH? Listening to mega-rich collectors cry about pickles? Show them how you really feel with NFT fuck-bubbles. Visit https://fuckbubbles.wtf to mint.",
+  "attributes": [
+    {
+      "key": "Target",
+      "value": "Bored Apes"
+    },
+    {
+      "key": "Expletive",
+      "value": "Fucking"
+    },
+    {
+      "key": "Bubble direction",
+      "value": "Right"
+    },
+    {
+      "key": "Rarity",
+      "value": "Common"
+    },
+    {
+      "key": "Fucks given",
+      "value": "5"
+    }
+  ],
+  "image": {
+    "url": {
+      "ORIGINAL": "https://rarible.mypinata.cloud/ipfs/QmaMTrfaPkHrD3RsoN7VECBn8Wea6pBg175GCWFNbQRK6R/cusses/bored%20apes_fucking_right.gif"
+    },
+    "meta": {
+      "ORIGINAL": {
+        "type": "image/gif",
+        "width": 666,
+        "height": 180
+      }
+    }
+  }
+}

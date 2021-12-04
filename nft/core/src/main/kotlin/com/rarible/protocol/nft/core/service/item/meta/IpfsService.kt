@@ -33,7 +33,11 @@ class IpfsService {
             ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
             ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
             else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
-        }
+        }.encodeHtmlUrl()
+    }
+
+    private fun String.encodeHtmlUrl(): String {
+        return this.replace(" ", "%20")
     }
 
     suspend fun upload(
