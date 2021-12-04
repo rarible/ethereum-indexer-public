@@ -11,23 +11,40 @@ import com.rarible.protocol.nft.core.model.TokenFeature.*
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
+import scalether.util.Hash
 
-enum class TokenStandard(val interfaceId: Bytes? = null) {
+enum class TokenStandard(
+    val interfaceId: Bytes? = null,
+    val functionSignatures: List<String> = emptyList()
+) {
     /**
      * ERC721
      *
      * 0x80ac58cd ===
-     *     bytes4(keccak256('balanceOf(address)')) == 0x70a08231
-     *     bytes4(keccak256('ownerOf(uint256)')) == 0x6352211e
-     *     bytes4(keccak256('approve(address,uint256)')) == 0x095ea7b3
-     *     bytes4(keccak256('getApproved(uint256)')) == 0x081812fc
-     *     bytes4(keccak256('setApprovalForAll(address,bool)')) == 0xa22cb465
-     *     bytes4(keccak256('isApprovedForAll(address,address)')) == 0xe985e9c5
-     *     bytes4(keccak256('transferFrom(address,address,uint256)')) == 0x23b872dd
-     *     bytes4(keccak256('safeTransferFrom(address,address,uint256)')) == 0x42842e0e
-     *     bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)')) == 0xb88d4fde
+     *     balanceOf(address)
+     *     ownerOf(uint256)
+     *     approve(address,uint256)
+     *     getApproved(uint256)
+     *     setApprovalForAll(address,bool)
+     *     isApprovedForAll(address,address)
+     *     transferFrom(address,address,uint256)
+     *     safeTransferFrom(address,address,uint256)
+     *     safeTransferFrom(address,address,uint256,bytes)
      */
-    ERC721(Binary.apply("0x80ac58cd")),
+    ERC721(
+        interfaceId = Binary.apply("0x80ac58cd"),
+        functionSignatures = listOf(
+            "balanceOf(address)",
+            "ownerOf(uint256)",
+            "approve(address,uint256)",
+            "getApproved(uint256)",
+            "setApprovalForAll(address,bool)",
+            "isApprovedForAll(address,address)",
+            "transferFrom(address,address,uint256)",
+            "safeTransferFrom(address,address,uint256)",
+            "safeTransferFrom(address,address,uint256,bytes)"
+        )
+    ),
 
     /**
      *  ERC1155
@@ -40,7 +57,17 @@ enum class TokenStandard(val interfaceId: Bytes? = null) {
      *     bytes4(keccak256('safeTransferFrom(address,address,uint256,uint256,bytes)')) == 0xf242432a
      *     bytes4(keccak256('safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)')) == 0x2eb2c2d6
      */
-    ERC1155(Binary.apply("0xd9b67a26")),
+    ERC1155(
+        interfaceId = Binary.apply("0xd9b67a26"),
+        functionSignatures = listOf(
+            "balanceOf(address,uint256)",
+            "balanceOfBatch(address[],uint256[])",
+            "setApprovalForAll(address,bool)",
+            "isApprovedForAll(address,address)",
+            "safeTransferFrom(address,address,uint256,uint256,bytes)",
+            "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)"
+        )
+    ),
     CRYPTO_PUNKS,
 
     /**
@@ -58,7 +85,21 @@ enum class TokenStandard(val interfaceId: Bytes? = null) {
      *     bytes4(keccak256('tokensOfOwner(address)')) ^
      *     bytes4(keccak256('tokenMetadata(uint256,string)'));
      */
-    DEPRECATED(Binary.apply("0x9a20483d")),
+    DEPRECATED(
+        interfaceId = Binary.apply("0x9a20483d"),
+        functionSignatures = listOf(
+            "name()",
+            "symbol()",
+            "totalSupply()",
+            "balanceOf(address)",
+            "ownerOf(uint256)",
+            "approve(address,uint256)",
+            "transfer(address,uint256)",
+            "transferFrom(address,address,uint256)",
+            "tokensOfOwner(address)",
+            "tokenMetadata(uint256,string)"
+        )
+    ),
     NONE;
 
     companion object {
@@ -92,3 +133,6 @@ enum class TokenStandard(val interfaceId: Bytes? = null) {
         )
     }
 }
+
+fun calculateFunctionId(functionSignature: String): Binary =
+    Binary.apply(Hash.sha3(functionSignature.toByteArray(Charsets.ISO_8859_1)).take(4).toByteArray())

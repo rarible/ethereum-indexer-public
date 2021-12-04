@@ -42,7 +42,12 @@ class TokenRegistrationServiceMainNetTest {
         "0x76be3b62873462d2142405439777e971754e8e77" to TokenStandard.ERC1155,
 
         // CryptoKitties
-        "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" to TokenStandard.DEPRECATED
+        "0x06012c8cf97BEaD5deAe237070F9587f8E7A266d" to TokenStandard.DEPRECATED,
+
+        // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
+        // Its 'supportsInterface' is calculated for a subset of the common ERC721,
+        // although the contract defines all the necessary methods.
+        "0xc631164B6CB1340B5123c9162f8558c866dE1926" to TokenStandard.ERC721
     )
 
     @Test
