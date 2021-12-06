@@ -17,9 +17,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.MediaMeta
 import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.toEth
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
@@ -31,12 +29,8 @@ import com.rarible.protocol.nft.core.service.BlockProcessor
 import com.rarible.protocol.nft.core.service.item.meta.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesCacheDescriptor
-import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import io.mockk.coEvery
 import io.mockk.coEvery
 import io.mockk.coVerify
 import kotlinx.coroutines.reactive.awaitFirst
@@ -48,10 +42,6 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.remove
-import org.springframework.http.HttpStatus
-import org.springframework.web.reactive.function.client.ClientResponse
-import org.springframework.web.reactive.function.client.WebClient
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import scalether.domain.Address
@@ -84,27 +74,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var blockProcessor: BlockProcessor
-    private lateinit var temporaryItemPropertiesRepository: TemporaryItemPropertiesRepository
-
-    @Autowired
-    private lateinit var tokenPropertiesService: TokenPropertiesService
-
-    private val temporaryProperties = ItemProperties(
-        name = UUID.randomUUID().toString(),
-        description = "Test",
-        image = "Test",
-        imagePreview = "Test",
-        imageBig = "Test",
-        attributes = emptyList()
-    )
-
-    @BeforeEach
-    fun cleanup() = runBlocking<Unit> {
-        tokenRepository.drop().awaitFirstOrNull()
-
-        every { ipfsService.resolveIpfsUrl(any()) } returns "Test"
-        every { propertiesCacheDescriptor.getByUri(any()) } returns Mono.just(temporaryProperties)
-    }
 
     @Test
     fun `pending minting`() = runBlocking<Unit> {
@@ -143,7 +112,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         coEvery { mockItemPropertiesResolver.resolve(itemId) } coAnswers {
             // Delegate to the pendingLogItemPropertiesResolver
             pendingLogItemPropertiesResolver.resolve(itemId) ?:
-                mockRariblePropertiesResolver.resolve(itemId)
+            mockRariblePropertiesResolver.resolve(itemId)
         }
         val resolvedItemProperties = itemProperties.copy(
             image = IpfsService.RARIBLE_IPFS + '/' + itemProperties.image,
@@ -283,9 +252,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             signer
         )
         val receipt = poller.waitForTransaction(contractDeploy).awaitFirst()
-
-        coEvery { tokenPropertiesService.resolve(any()) } returns TokenProperties.EMPTY
-
         processTransaction(receipt, isCollection = true)
 
         Wait.waitAssert {

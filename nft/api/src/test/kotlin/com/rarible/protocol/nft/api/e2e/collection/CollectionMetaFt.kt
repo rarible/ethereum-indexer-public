@@ -14,10 +14,9 @@ import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaDescriptor
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardDescriptor
-import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.InternalPlatformDsl.toStr
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -25,7 +24,6 @@ import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -41,7 +39,6 @@ import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
-import scalether.java.Lists
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
@@ -218,22 +215,6 @@ class CollectionMetaFt : SpringContainerBaseTest() {
         assertThat(metaDto.description).isEqualTo(null)
     }
 
-    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-        val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success()) {
-            val result = ethereum.executeRaw(
-                Request(
-                    1, "trace_replayTransaction", Lists.toScala(
-                        receipt.transactionHash().toString(),
-                        Lists.toScala("trace", "stateDiff")
-                    ), "2.0"
-                )
-            ).block()!!
-            "traces: ${result.result().get()}"
-        }
-        return receipt
-    }
-
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
@@ -288,21 +269,19 @@ class CollectionMetaFt : SpringContainerBaseTest() {
 
     private fun mockMediaIpfsResponse(): MediaMetaService {
         val mock: MediaMetaService = mockk()
-        every { mock.getMediaMeta(eq("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d")) } returns Mono.just(
+        coEvery { mock.getMediaMeta(eq("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d")) } returns
             MediaMeta(
                 type = "image/png", width = 256, height = 256
             )
-        )
         return mock
     }
 
     private fun mockMediaOpenseaResponse(): MediaMetaService {
         val mock: MediaMetaService = mockk()
-        every { mock.getMediaMeta(eq("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120")) } returns Mono.just(
+        coEvery { mock.getMediaMeta(eq("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120")) } returns
             MediaMeta(
                 type = "image/png", width = 256, height = 256
             )
-        )
         return mock
     }
 

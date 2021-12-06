@@ -24,16 +24,6 @@ fun JsonNode.getText(vararg paths: String): String? {
     return null
 }
 
-fun ObjectNode.parseAttributes(): List<ItemAttribute> {
-    for (attrName in listOf("attributes", "traits")) {
-        val attrPath = path(attrName)
-        if (!attrPath.isEmpty && attrPath.isArray) {
-            return attrPath.mapNotNull { it.toAttribute() }
-        }
-    }
-    return emptyList()
-}
-
 fun JsonNode.getInt(vararg paths: String): Int? {
     for (path in paths) {
         val current = this.path(path)
@@ -44,17 +34,14 @@ fun JsonNode.getInt(vararg paths: String): Int? {
     return null
 }
 
-fun JsonNode.toProperties(): List<ItemAttribute> {
-    return if (this.isArray) {
-        this.mapNotNull { it.getText("trait_type")?.let { key -> attribute(key, it) } }
-    } else {
-        emptyList()
+fun ObjectNode.parseAttributes(): List<ItemAttribute> {
+    for (attrName in listOf("attributes", "traits")) {
+        val attrPath = path(attrName)
+        if (!attrPath.isEmpty && attrPath.isArray) {
+            return attrPath.mapNotNull { it.toAttribute() }
+        }
     }
-}
-
-fun attribute(key: String, node: JsonNode): ItemAttribute {
-    val traitType = TraitType.fromNode(node)
-    return ItemAttribute(key, traitType.converter(node), traitType.type, traitType.format)
+    return emptyList()
 }
 
 private fun JsonNode.toAttribute(): ItemAttribute? {

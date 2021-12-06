@@ -3,9 +3,9 @@ package com.rarible.protocol.nft.core.service.token.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.protocol.nft.core.model.TokenProperties
-import com.rarible.protocol.nft.core.service.item.meta.UserAgentGenerator
-import com.rarible.protocol.nft.core.service.item.meta.getInt
-import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.UserAgentGenerator
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.getInt
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import io.netty.handler.timeout.ReadTimeoutHandler
 import kotlinx.coroutines.reactive.awaitFirstOrNull

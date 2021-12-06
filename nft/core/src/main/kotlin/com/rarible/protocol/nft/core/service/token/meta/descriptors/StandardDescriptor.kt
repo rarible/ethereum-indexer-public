@@ -9,8 +9,8 @@ import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.getInt
-import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.getInt
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -41,7 +41,7 @@ class StandardDescriptor(
 
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
-        val httpUrl = ipfsService.resolveRealUrl(uri!!)
+        val httpUrl = ipfsService.resolveHttpUrl(uri!!)
         return client.get()
             .uri(httpUrl)
             .retrieve()
