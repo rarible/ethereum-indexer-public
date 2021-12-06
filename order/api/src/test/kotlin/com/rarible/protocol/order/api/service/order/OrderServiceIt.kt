@@ -50,6 +50,7 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -462,6 +463,8 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(saved.makeStock).isEqualTo(makerErc721Supply)
     }
 
+    // Due to RPN-1402 we do not reset makeStock
+    @Disabled
     @Test
     fun `makeStock should by 0`() = runBlocking<Unit> {
         val (privateKey, _, maker) = generateNewKeys()
