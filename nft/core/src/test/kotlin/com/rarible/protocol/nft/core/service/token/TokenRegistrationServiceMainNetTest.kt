@@ -32,8 +32,7 @@ class TokenRegistrationServiceMainNetTest {
 
     private val expectedStandards = listOf(
         // Mythereum CARD (no ERC165 supportsInterface)
-        // TODO: not supported.
-        // "0xc70be5b7c19529ef642d16c10dfe91c58b5c3bf0" to TokenStandard.ERC721,
+         "0xc70be5b7c19529ef642d16c10dfe91c58b5c3bf0" to TokenStandard.ERC721,
 
         // ENS domains
         "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85" to TokenStandard.ERC721,
