@@ -232,7 +232,7 @@ class TokenRegistrationService(
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
         val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
-//            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
+            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
         )
         private val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
 
