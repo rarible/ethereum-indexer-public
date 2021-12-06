@@ -3,14 +3,18 @@ package com.rarible.protocol.nft.api.service.colllection
 import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
-import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ExtendedToken
+import com.rarible.protocol.nft.core.model.SignedTokenId
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenFilter
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -44,6 +48,10 @@ class CollectionService(
         return conversionService.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }
 
+    suspend fun resetMeta(collectionId: Address) {
+        tokenMetaService.reset(collectionId)
+    }
+
     suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {
         val tokens = tokenRepository.search(filter).collectList().awaitFirst()
         tokens.map { token ->
@@ -68,11 +76,6 @@ class CollectionService(
 
         val sign = sign(token, nextTokenId)
         return SignedTokenId(nextTokenId, sign)
-    }
-
-    suspend fun meta(collectionId: Address): NftCollectionMetaDto {
-        val meta = tokenMetaService.get(collectionId)
-        return conversionService.convert(meta)
     }
 
     private fun BigInteger.generateUint256(minter: Address?): EthUInt256 {

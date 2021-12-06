@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class PendingLogItemPropertiesResolver(
     private val pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository,
     private val itemRepository: ItemRepository,

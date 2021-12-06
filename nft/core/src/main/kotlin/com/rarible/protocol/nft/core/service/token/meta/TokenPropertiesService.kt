@@ -1,38 +1,39 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
+import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenProperties
-import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesDescriptor
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEmpty
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
-import kotlinx.coroutines.yield
 import org.apache.commons.lang3.time.DateUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.time.Instant
 
 @Component
+@CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
 class TokenPropertiesService(
     @Value("\${api.properties.cache-timeout}") private val cacheTimeout: Long,
     @Autowired(required = false) private val cacheService: CacheService?,
-    private val descriptors: List<TokenPropertiesDescriptor>
+    private val resolvers: List<TokenPropertiesResolver>
 ) {
 
-    private data class CachedTokenProperties(
+    data class CachedTokenProperties(
         val properties: TokenProperties,
         val fetchAt: Instant
     )
@@ -51,14 +52,21 @@ class TokenPropertiesService(
 
     suspend fun resolve(id: Address): TokenProperties? =
         cacheService.get(
-            id.hex(),
+            id.prefixed(),
             cacheDescriptor,
             immediatelyIfCached = false
         ).awaitFirstOrNull()?.properties
 
+    suspend fun reset(id: Address) {
+        logger.info("Resetting properties for $id")
+        cacheService?.reset(id.prefixed(), cacheDescriptor)
+            ?.onErrorResume { Mono.empty() }
+            ?.awaitFirstOrNull()
+    }
+
     private suspend fun doResolve(id: Address): TokenProperties? {
-        val item = descriptors
-            .sortedBy(TokenPropertiesDescriptor::order)
+        val item = resolvers
+            .sortedBy(TokenPropertiesResolver::order)
             .asFlow()
             .map {
                 it.resolve(id)
@@ -68,6 +76,14 @@ class TokenPropertiesService(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(TokenPropertiesService::class.java)
+        fun logProperties(id: Address, message: String, warn: Boolean = false) {
+            val logMessage = "Meta of ${id.prefixed()}: $message"
+            if (warn) {
+                logger.warn(logMessage)
+            } else {
+                logger.info(logMessage)
+            }
+        }
         const val TOKEN_METADATA_COLLECTION = "token_metadata"
     }
 }

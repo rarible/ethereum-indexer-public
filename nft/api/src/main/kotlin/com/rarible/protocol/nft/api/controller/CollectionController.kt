@@ -25,6 +25,11 @@ class CollectionController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
+        collectionService.resetMeta(conversionService.convert(collection))
+        return ResponseEntity.noContent().build()
+    }
+
     override suspend fun searchNftAllCollections(
         continuation: String?,
         size: Int?

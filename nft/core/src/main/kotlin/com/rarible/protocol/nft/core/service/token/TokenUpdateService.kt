@@ -12,7 +12,7 @@ class TokenUpdateService(
     private val tokenRepository: TokenRepository,
     private val tokenReduceService: TokenReduceService,
     private val tokenRegistrationService: TokenRegistrationService,
-    private val tokenListener: TokenListener
+    private val tokenListener: TokenEventListener
 ) {
 
     suspend fun getToken(tokenId: Address): Token? =

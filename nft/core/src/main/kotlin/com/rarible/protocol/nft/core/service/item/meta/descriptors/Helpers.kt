@@ -7,7 +7,9 @@ import io.netty.util.internal.ThreadLocalRandom
 import java.time.Instant
 import java.util.*
 
-const val META_CAPTURE_SPAN_TYPE = "item_meta"
+const val ITEM_META_CAPTURE_SPAN_TYPE = "item_meta"
+const val TOKEN_META_CAPTURE_SPAN_TYPE = "token_meta"
+const val IPFS_CAPTURE_SPAN_TYPE = "ipfs"
 
 const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
 const val BASE_64_SVG_PREFIX = "data:image/svg+xml;base64,"

@@ -11,7 +11,8 @@ import com.rarible.core.client.WebClientHelper
 import com.rarible.core.common.blockingToMono
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.MediaMeta
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import com.sun.imageio.plugins.bmp.BMPMetadata
 import com.sun.imageio.plugins.gif.GIFImageMetadata
 import com.sun.imageio.plugins.jpeg.JPEGMetadata
@@ -40,7 +41,7 @@ import javax.imageio.ImageIO
 import javax.imageio.metadata.IIOMetadata
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class MediaMetaService(
     private val ipfsService: IpfsService,
     @Autowired(required = false) private val cacheService: CacheService?,

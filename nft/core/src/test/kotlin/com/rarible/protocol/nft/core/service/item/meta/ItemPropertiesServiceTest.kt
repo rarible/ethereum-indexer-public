@@ -10,6 +10,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.IpfsService
 import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerify

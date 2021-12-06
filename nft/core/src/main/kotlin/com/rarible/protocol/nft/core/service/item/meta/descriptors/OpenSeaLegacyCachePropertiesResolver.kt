@@ -53,7 +53,7 @@ abstract class BaseLegacyCachePropertiesResolver(
 }
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenSeaLegacyCachePropertiesResolver(
     mongo: ReactiveMongoTemplate
 ) : BaseLegacyCachePropertiesResolver(NAME, "cache_opensea", mongo) {
@@ -63,7 +63,7 @@ class OpenSeaLegacyCachePropertiesResolver(
 }
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class RaribleLegacyCachePropertiesResolver(
     mongo: ReactiveMongoTemplate
 ) : BaseLegacyCachePropertiesResolver("Legacy Rarible cache", "cache_properties", mongo) {
