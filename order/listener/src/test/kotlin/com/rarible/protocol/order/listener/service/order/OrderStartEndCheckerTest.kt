@@ -40,8 +40,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
     private val updaterJob
         get() = OrderStartEndCheckerJob(
             OrderListenerProperties(updateStatusByStartEndEnabled = true),
-            reactiveMongoTemplate,
-            orderUpdateService
+            reactiveMongoTemplate
         )
 
     @BeforeEach
