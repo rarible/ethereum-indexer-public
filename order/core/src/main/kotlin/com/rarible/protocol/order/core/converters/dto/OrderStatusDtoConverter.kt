@@ -9,8 +9,8 @@ object OrderStatusDtoConverter : Converter<OrderStatus, OrderStatusDto> {
         return when (source) {
             OrderStatus.ACTIVE -> OrderStatusDto.ACTIVE
             OrderStatus.FILLED -> OrderStatusDto.FILLED
-            OrderStatus.INACTIVE -> OrderStatusDto.INACTIVE
             OrderStatus.CANCELLED -> OrderStatusDto.CANCELLED
+            OrderStatus.INACTIVE, OrderStatus.NOT_STARTED, OrderStatus.ENDED -> OrderStatusDto.INACTIVE
         }
     }
 }

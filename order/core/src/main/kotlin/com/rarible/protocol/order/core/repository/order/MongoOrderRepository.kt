@@ -30,7 +30,8 @@ class MongoOrderRepository(
     override suspend fun dropIndexes() {
         dropIndexes(
             "make.type.nft_1_lastUpdateAt_1__id_1",
-            "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1"
+            "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1",
+            "end_1_start_1_makeStock_1__id_1"
         )
     }
 
@@ -150,25 +151,35 @@ class MongoOrderRepository(
         return template.query<Order>().matching(queue).all().asFlow()
     }
 
-    fun findExpiredMakeStock(now: Instant): Flow<Order> {
+    fun findExpiredOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
+                Order::status isEqualTo OrderStatus.ACTIVE,
                 Order::end exists true,
-                Order::end lt now.epochSecond,
-                Order::makeStock ne EthUInt256.ZERO
+                Order::end lt now.epochSecond
             )
         )
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    fun findActualZeroMakeStock(now: Instant): Flow<Order> {
+    fun findNotStartedOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
-                Order::start exists true,
-                Order::end exists true,
-                Order::start lte now.epochSecond,
-                Order::end gte now.epochSecond,
-                Order::makeStock isEqualTo EthUInt256.ZERO
+                Order::status isEqualTo OrderStatus.NOT_STARTED,
+                Criteria().orOperator(
+                    Order::end exists false,
+                    Criteria().andOperator(
+                        Order::end exists true,
+                        Order::end gte now.epochSecond
+                    )
+                ),
+                Criteria().orOperator(
+                    Order::start exists false,
+                    Criteria().andOperator(
+                        Order::start exists true,
+                        Order::start lte now.epochSecond
+                    )
+                )
             )
         )
         return template.query<Order>().matching(query).all().asFlow()

@@ -147,6 +147,13 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    // --------------------- for updating status by start/end ---------------------//
+    val BY_STATUS_AND_END_START = Index()
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::end.name, Sort.Direction.ASC)
+        .on(Order::start.name, Sort.Direction.ASC)
+        .background()
+
     // --------------------- Other ---------------------//
     // TODO these indices have 0 usage in prod, need to check them
 
@@ -157,13 +164,6 @@ object OrderRepositoryIndexes {
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         // for queries with continuation
         .on("_id", Sort.Direction.ASC)
-        .background()
-
-    val BY_END_START_AND_MAKE_STOCK = Index()
-        .on(Order::end.name, Sort.Direction.ASC)
-        .on(Order::start.name, Sort.Direction.ASC)
-        .on(Order::makeStock.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC) // ?
         .background()
 
     val ALL_INDEXES = listOf(
@@ -193,6 +193,6 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
         BY_MAKE_STOCK_DEFINITION,
-        BY_END_START_AND_MAKE_STOCK
+        BY_STATUS_AND_END_START
     )
 }

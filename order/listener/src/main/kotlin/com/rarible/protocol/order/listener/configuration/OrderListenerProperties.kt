@@ -22,7 +22,7 @@ class OrderListenerProperties(
     val openSeaEndpoint: URI? = null,
     val saveOpenSeaOrdersBatchSize: Int = 200,
     val openSeaOrderSide: OrderSide? = null,
-    val resetMakeStockEnabled: Boolean = false,
+    val updateStatusByStartEndEnabled: Boolean = false,
     val openSeaClientUserAgents: String = ""
 ) {
     enum class OrderSide {

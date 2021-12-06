@@ -60,7 +60,10 @@ object OrderFilterCriteria {
         }
         this.status?.let {
             if (it.isNotEmpty()) {
-                val statuses = it.map { OrderStatus.valueOf(it.name) }
+                val statuses = it.map { OrderStatus.valueOf(it.name) }.toMutableList()
+                if (OrderStatus.INACTIVE in statuses) {
+                    statuses += listOf(OrderStatus.ENDED, OrderStatus.NOT_STARTED)
+                }
                 query.addCriteria(Order::status inValues statuses)
             }
         }
