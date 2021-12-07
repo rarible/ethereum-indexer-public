@@ -28,7 +28,7 @@ class TokenMetaService(
                 feeRecipient = it.feeRecipient,
                 sellerFeeBasisPoints = it.sellerFeeBasisPoints
             ),
-            imageMeta = it.image?.let { mediaMetaService.getMediaMeta(it) }
+            contentMeta = it.image?.let { mediaMetaService.getMediaMeta(it) }
         ) } ?: TokenMeta.EMPTY
     }
 
