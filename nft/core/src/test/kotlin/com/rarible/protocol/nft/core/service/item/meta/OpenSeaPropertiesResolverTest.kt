@@ -25,14 +25,7 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
         )
     }
 
-    private val openSeaPropertiesResolver: OpenSeaPropertiesResolver = OpenSeaPropertiesResolver(
-        openseaUrl = "https://api.opensea.io/api/v1",
-        openseaApiKey = "",
-        readTimeout = 10000,
-        connectTimeout = 3000,
-        requestTimeout = 20000,
-        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL")
-    )
+    private val openSeaPropertiesResolver: OpenSeaPropertiesResolver = createOpenSeaPropertiesResolver()
 
     @Test
     fun `attribute with date time format`() = runBlocking<Unit> {
