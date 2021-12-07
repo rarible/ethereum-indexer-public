@@ -537,6 +537,22 @@ class ActivityFt : SpringContainerBaseTest() {
                     NftActivityFilterByCollectionDto(token, listOf(NftActivityFilterByCollectionDto.Types.TRANSFER)),
                     ActivitySortDto.LATEST_FIRST
                 )
+            },
+            run {
+                // should have the same date for checking continuation with sorting by _id
+                val date = now
+                Arguments.of(
+                    listOf(
+                        createItemMint().withTransferDate(date),
+                        createItemMint().withTransferDate(date),
+                        createItemMint().withTransferDate(date),
+                        createItemMint().withTransferDate(date),
+                        createItemMint().withTransferDate(date)
+                    ),
+                    listOf(createItemBurn(), createItemBurn(), createItemTransfer(), createItemTransfer()),
+                    NftActivityFilterAllDto(listOf(NftActivityFilterAllDto.Types.MINT)),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
             }
         )
     }
