@@ -22,7 +22,8 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.math.min
 
-class OpenSeaOrdersFetcherWorker(
+@CaptureTransaction(value = "opensea")
+open class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderService: OpenSeaOrderService,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val openSeaOrderConverter: OpenSeaOrderConverter,
@@ -41,7 +42,6 @@ class OpenSeaOrdersFetcherWorker(
         }
     }
 
-    @CaptureTransaction(value = "opensea")
     private suspend fun handleSafely() {
         if (properties.loadOpenSeaOrders.not()) return
 

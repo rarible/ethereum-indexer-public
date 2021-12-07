@@ -18,6 +18,7 @@ import com.rarible.protocol.contracts.Signatures
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.calculateFunctionId
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import io.daonomic.rpc.RpcCodeException
 import io.daonomic.rpc.domain.Binary
@@ -121,8 +122,11 @@ class TokenRegistrationService(
     }
 
     private suspend fun fetchTokenStandard(address: Address): TokenStandard {
+        logStandard(address, "started fetching")
         if (address in WELL_KNOWN_TOKENS_WITHOUT_ERC165) {
-            return WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)
+            val standard = WELL_KNOWN_TOKENS_WITHOUT_ERC165.getValue(address)
+            logStandard(address, "it is well known token with standard $standard")
+            return standard
         }
         val contract = IERC165(address, sender)
         for (standard in TokenStandard.values()) {
@@ -134,11 +138,42 @@ class TokenRegistrationService(
                     }
                 } catch (e: Exception) {
                     if (e is RpcCodeException || e is IllegalArgumentException) {
+                        logStandard(address, "unable to call supportsInterface: ${e.message}")
                         // Not supported or does not have 'supportsInterface' declared at all.
                         continue
                     }
                     // Could not determine for sure (probably we failed to connect to the node).
                     throw e
+                }
+            }
+        }
+        return fetchTokenStandardByFunctionSignatures(sender, address)
+    }
+
+    suspend fun fetchTokenStandardByFunctionSignatures(sender: MonoTransactionSender, address: Address): TokenStandard {
+        logStandard(address, "determine standard by presence of function signatures")
+        val bytecode = try {
+            sender.ethereum()
+                .ethGetCode(address, "latest")
+                .awaitFirstOrNull()
+                ?: return TokenStandard.NONE
+        } catch (e: Exception) {
+            logStandard(address, "failed to get contract bytecode, returning NONE: ${e.message}")
+            return TokenStandard.NONE
+        }
+        val hexBytecode = bytecode.hex()
+        for (standard in TokenStandard.values()) {
+            if (standard.functionSignatures.isNotEmpty()) {
+                val allSignaturesPresent = standard.functionSignatures.all { signature ->
+                    val functionId = calculateFunctionId(signature)
+                    hexBytecode.contains(functionId.hex())
+                }
+                if (allSignaturesPresent) {
+                    logStandard(
+                        address,
+                        "determined as $standard: all function signatures are present in bytecode"
+                    )
+                    return standard
                 }
             }
         }
@@ -192,13 +227,12 @@ class TokenRegistrationService(
             IERC1155.burnSignature().id() to TokenFeature.BURN
         )
         val WELL_KNOWN_TOKENS_WITHOUT_ERC165 = mapOf<Address, TokenStandard>(
-            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721, // CryptoBots (CBT)
-
-            // Divine Anarchy https://etherscan.io/address/0xc631164b6cb1340b5123c9162f8558c866de1926
-            // Its 'supportsInterface' is calculated for a wrong hash, although the contract defines all the necessary methods.
-            // It's Not worth it to add to the known IERC721 set.
-            Address.apply("0xc631164b6cb1340b5123c9162f8558c866de1926") to TokenStandard.ERC721
+            Address.apply("0xf7a6e15dfd5cdd9ef12711bd757a9b6021abf643") to TokenStandard.ERC721 // CryptoBots (CBT)
         )
-        val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(TokenRegistrationService::class.java)
+
+        private fun logStandard(address: Address, message: String) {
+            logger.info("Token standard of $address: $message")
+        }
     }
 }
