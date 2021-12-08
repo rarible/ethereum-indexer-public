@@ -2,8 +2,13 @@ package com.rarible.protocol.order.api.service.order.validation
 
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
-import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderRaribleV2Data
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
 import org.springframework.stereotype.Service
 
 @Service
@@ -14,7 +19,7 @@ class OrderValidator(
     suspend fun validateOrderVersion(orderVersion: OrderVersion) {
         val isValidOrderDataType = when (orderVersion.type) {
             OrderType.RARIBLE_V1 -> orderVersion.data is OrderDataLegacy
-            OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2DataV1
+            OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2Data
             OrderType.OPEN_SEA_V1 -> false
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
         }

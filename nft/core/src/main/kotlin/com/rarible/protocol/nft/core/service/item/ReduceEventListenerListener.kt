@@ -25,8 +25,18 @@ class ReduceEventListenerListener(
         publisher.publish(eventDto)
     }.then()
 
+    suspend fun onOwnershipsChanged(ownerships: List<Ownership>) {
+        val eventsDto = ownerships.map { conversionService.convert<NftOwnershipEventDto>(it) }
+        publisher.publish(eventsDto)
+    }
+
     fun onOwnershipDeleted(ownershipId: OwnershipId): Mono<Void> = mono {
         val eventDto = conversionService.convert<NftOwnershipEventDto>(ownershipId)
         publisher.publish(eventDto)
     }.then()
+
+    suspend fun onOwnershipsDeleted(ownershipIds: List<OwnershipId>) {
+        val eventsDto = ownershipIds.map { conversionService.convert<NftOwnershipEventDto>(it) }
+        publisher.publish(eventsDto)
+    }
 }

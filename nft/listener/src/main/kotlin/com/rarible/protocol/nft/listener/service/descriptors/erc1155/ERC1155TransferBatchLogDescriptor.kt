@@ -6,8 +6,8 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher
 import org.springframework.stereotype.Service
@@ -29,7 +29,13 @@ class ERC1155TransferBatchLogDescriptor(
                 if (standard == TokenStandard.ERC1155) {
                     val e = TransferBatchEvent.apply(log)
                     if (e._ids().size != e._values().size) {
-                        Mono.error<ItemTransfer>(IllegalStateException("ids.size != values.size"))
+                        Mono.error<ItemTransfer>(IllegalStateException(
+                            buildString {
+                                appendln("Invalid TransferBatchEvent for transaction ${log.transactionHash()} logIndex ${log.logIndex()}")
+                                appendln("ids (${e._ids().size}): ${e._ids().toList()}")
+                                appendln("values (${e._values().size}): ${e._values().toList()}")
+                            }
+                        ))
                     } else if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
                         Mono.empty<ItemTransfer>()
                     } else {
