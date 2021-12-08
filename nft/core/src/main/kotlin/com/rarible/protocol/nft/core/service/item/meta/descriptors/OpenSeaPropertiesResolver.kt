@@ -17,7 +17,7 @@ import java.math.BigInteger
 import java.time.Duration
 
 @Service
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenSeaPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
     @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
