@@ -33,6 +33,12 @@
             <artifactId>protocol-nft-indexer-contract</artifactId>
         </dependency>
 
+        <!-- =============== Blockchain-scanner ================ -->
+        <dependency>
+            <groupId>com.rarible.blockchain.scanner</groupId>
+            <artifactId>rarible-blockchain-scanner-ethereum</artifactId>
+        </dependency>
+
         <!-- =============== Rarible-core ================ -->
         <dependency>
             <groupId>com.rarible.ethereum</groupId>
@@ -73,6 +79,10 @@
         <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-entity-reducer</artifactId>
         </dependency>
         <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>

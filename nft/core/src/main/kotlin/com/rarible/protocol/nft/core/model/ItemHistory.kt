@@ -4,7 +4,6 @@ import com.rarible.contracts.erc1155.TransferBatchEvent
 import com.rarible.contracts.erc1155.TransferSingleEvent
 import com.rarible.contracts.erc721.TransferEvent
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.contracts.creators.CreatorsEvent
 import com.rarible.protocol.contracts.royalties.RoyaltiesSetEvent
 import com.rarible.protocol.contracts.royalties.SecondarySaleFeesEvent

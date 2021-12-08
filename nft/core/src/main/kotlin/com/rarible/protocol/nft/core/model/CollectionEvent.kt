@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155_v1Event
