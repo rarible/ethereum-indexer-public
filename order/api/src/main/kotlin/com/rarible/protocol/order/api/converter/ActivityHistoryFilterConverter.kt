@@ -30,17 +30,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     MATCH -> listOf(
                         ActivityExchangeHistoryFilter.AllSell(sort, continuation)
                     )
-                    BID -> listOf(
-                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
-                        ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
-                    )
                     CANCEL_BID -> listOf(
                         ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
                     )
                     CANCEL_LIST -> listOf(
                         ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation)
                     )
-                    LIST -> emptyList()
+                    LIST, BID -> emptyList()
                 }
             }
             is OrderActivityFilterByUserDto -> {
@@ -55,16 +51,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                         OrderActivityFilterByUserDto.Types.BUY -> listOf(
                             UserActivityExchangeHistoryFilter.ByUserBuy(sort, users, from, to, continuation)
                         )
-                        OrderActivityFilterByUserDto.Types.MAKE_BID -> listOf(
-                            //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
-                            UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, from, to, continuation)
-                        )
                         OrderActivityFilterByUserDto.Types.CANCEL_BID -> listOf(
                             UserActivityExchangeHistoryFilter.ByUserCanceledBid(sort, users, from, to, continuation)
                         )
                         OrderActivityFilterByUserDto.Types.CANCEL_LIST -> listOf(
                             UserActivityExchangeHistoryFilter.ByUserCanceledSell(sort, users, from, to, continuation)
                         )
+                        OrderActivityFilterByUserDto.Types.MAKE_BID,
                         OrderActivityFilterByUserDto.Types.LIST,
                         OrderActivityFilterByUserDto.Types.GET_BID -> emptyList()
                     }
@@ -75,16 +68,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     OrderActivityFilterByItemDto.Types.MATCH -> listOf(
                         ItemActivityExchangeHistoryFilter.ByItemSell(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
-                    OrderActivityFilterByItemDto.Types.BID -> listOf(
-                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
-                        ItemActivityExchangeHistoryFilter.ByItemCanceledBid(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
-                    )
                     OrderActivityFilterByItemDto.Types.CANCEL_BID -> listOf(
                         ItemActivityExchangeHistoryFilter.ByItemCanceledBid(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
                     OrderActivityFilterByItemDto.Types.CANCEL_LIST -> listOf(
                         ItemActivityExchangeHistoryFilter.ByItemCanceledSell(sort, source.contract, EthUInt256.of(source.tokenId), continuation)
                     )
+                    OrderActivityFilterByItemDto.Types.BID,
                     OrderActivityFilterByItemDto.Types.LIST -> emptyList()
                 }
             }
@@ -93,16 +83,13 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                     OrderActivityFilterByCollectionDto.Types.MATCH -> listOf(
                         CollectionActivityExchangeHistoryFilter.ByCollectionSell(sort, source.contract, continuation)
                     )
-                    OrderActivityFilterByCollectionDto.Types.BID -> listOf(
-                        //TODO: Remove after market move to CANCEL_BID/CANCEL_LIST
-                        CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(sort, source.contract, continuation)
-                    )
                     OrderActivityFilterByCollectionDto.Types.CANCEL_BID -> listOf(
                         CollectionActivityExchangeHistoryFilter.ByCollectionCanceledBid(sort, source.contract, continuation)
                     )
                     OrderActivityFilterByCollectionDto.Types.CANCEL_LIST -> listOf(
                         CollectionActivityExchangeHistoryFilter.ByCollectionCanceledSell(sort, source.contract, continuation)
                     )
+                    OrderActivityFilterByCollectionDto.Types.BID,
                     OrderActivityFilterByCollectionDto.Types.LIST -> emptyList()
                 }
             }
