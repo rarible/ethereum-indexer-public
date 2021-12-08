@@ -38,18 +38,17 @@ class ChangeLog00019MigrateObjectId2StringTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var operator: TransactionalOperator
 
-    private val changeLog = ChangeLog00019MigrateObjectId2String()
+    private val migration = ChangeLog00019MigrateObjectId2String()
 
     @Test
     fun migrateIds() = runBlocking<Unit> {
-
         val legacyLogs = (0..10).map { createLogEvent() }
         legacyLogs.map {
             val saved = template.insert(it, NftItemHistoryRepository.COLLECTION).awaitSingle()
             assertThat(saved.id).isEqualTo(it.id)
         }
 
-        changeLog.setStringId(template, operator)
+        migration.itemHistory(template, operator)
 
         // check objectId -> string
         legacyLogs.forEach {

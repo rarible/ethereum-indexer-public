@@ -51,6 +51,22 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                 ActivitySortDto.LATEST_FIRST
             ),
             run {
+                val date = now
+                Arguments.of(
+                    listOf(
+                        createErc721BidOrderVersion().copy(createdAt = date),
+                        createErc1155BidOrderVersion().copy(createdAt = date),
+                        createErc1155BidOrderVersion().copy(createdAt = date),
+                        createErc1155BidOrderVersion().copy(createdAt = date)
+                    ),
+                    listOf(
+                        createErc721ListOrderVersion(), createErc1155ListOrderVersion(), createErc721ListOrderVersion()
+                    ),
+                    OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.BID)),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            },
+            run {
                 val item1 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
                 val item2 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))
                 val item3 = createErc1155BidOrderVersion().copy(createdAt = now.plus(2, ChronoUnit.MINUTES))

@@ -24,15 +24,15 @@ import org.springframework.transaction.reactive.executeAndAwait
 @ChangeLog(order = "00019")
 class ChangeLog00019MigrateObjectId2String {
     @ChangeSet(
-        id = "ChangeLog00019MigrateObjectId2String.setStringId",
+        id = "ChangeLog00019MigrateObjectId2String.itemHistory",
         order = "1",
         author = "protocol"
     )
-    fun setStringId(
+    fun itemHistory(
         @NonLockGuarded template: ReactiveMongoTemplate,
         @NonLockGuarded operator: TransactionalOperator
     ) = runBlocking {
-        logger.info("Started setting string as _id field")
+        logger.info("Starting migration _id fields for ${NftItemHistoryRepository.COLLECTION}")
         var deleted = 0L
         var inserted = 0L
         val criteria = Criteria.where("_id").type(JsonSchemaObject.Type.OBJECT_ID)
@@ -53,7 +53,7 @@ class ChangeLog00019MigrateObjectId2String {
                 }
             }
         }
-        logger.info("Finished setting string as _id field: $inserted inserted, $deleted deleted")
+        logger.info("Finished migration _id fields for ${NftItemHistoryRepository.COLLECTION}: $inserted inserted, $deleted deleted")
     }
 
     companion object {
