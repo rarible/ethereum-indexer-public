@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.opensea.client.model.AssetSchema
 import com.rarible.opensea.client.model.OpenSeaOrder
@@ -43,7 +42,7 @@ class OpenSeaOrderConverter(
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
             data = createData(clientOpenSeaOrder),
-            createdAt = nowMillis(),
+            createdAt = clientOpenSeaOrder.createdAt,
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = usdPrice?.makePriceUsd,
             takePriceUsd = usdPrice?.takePriceUsd,
