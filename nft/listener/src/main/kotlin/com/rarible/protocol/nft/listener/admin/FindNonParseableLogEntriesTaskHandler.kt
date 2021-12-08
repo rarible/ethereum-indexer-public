@@ -51,7 +51,7 @@ class FindNonParseableLogEntriesTaskHandler(
     ): Flow<String> {
         val collection = mongo.getCollection(collectionName).block()!!
         val documentsFlow = if (fromId != null) {
-            collection.find(Filters.gt("_id", fromId.toString()))
+            collection.find(Filters.gt("_id", fromId))
         } else {
             collection.find()
         }.asFlow()
