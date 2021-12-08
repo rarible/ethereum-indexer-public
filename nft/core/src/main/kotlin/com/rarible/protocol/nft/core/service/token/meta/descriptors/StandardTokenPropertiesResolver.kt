@@ -27,7 +27,7 @@ import java.time.Duration
 
 @Component
 @CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
-class StandardPropertiesResolver(
+class StandardTokenPropertiesResolver(
     private val sender: MonoTransactionSender,
     private val ipfsService: IpfsService,
     private val tokenRepository: TokenRepository,
@@ -43,29 +43,33 @@ class StandardPropertiesResolver(
 
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
-        val httpUrl = ipfsService.resolveHttpUrl(uri!!)
-        return client.get()
-            .uri(httpUrl)
-            .retrieve()
-            .bodyToMono<String>()
-            .timeout(timeout)
-            .onErrorResume {
-                logProperties(id, "failed to get properties by URI: $httpUrl", true)
-                Mono.empty()
-            }
-            .flatMap {
-                logProperties(id, "parsing properties by URI: $httpUrl")
-                mono { parseJsonProperties(it) }
-            }
-            .onErrorResume {
-                logProperties(id, "failed to parse properties by URI: $httpUrl", true)
-                Mono.empty()
-            }.awaitFirstOrNull()
+        return uri?.let {
+            val url = ipfsService.resolveHttpUrl(it)
+            request(id, url)
+        }
     }
 
     override val order get() = Int.MIN_VALUE
 
-    private fun parseJsonProperties(jsonBody: String): TokenProperties? {
+    private suspend fun request(id: Address, httpUrl: String) = client.get()
+        .uri(httpUrl)
+        .retrieve()
+        .bodyToMono<String>()
+        .timeout(timeout)
+        .onErrorResume {
+            logProperties(id, "failed to get properties by URI: $httpUrl", true)
+            Mono.empty()
+        }
+        .flatMap {
+            logProperties(id, "parsing properties by URI: $httpUrl")
+            mono { parseJsonProperties(it) }
+        }
+        .onErrorResume {
+            logProperties(id, "failed to parse properties by URI: $httpUrl", true)
+            Mono.empty()
+        }.awaitFirstOrNull()
+
+    private fun parseJsonProperties(jsonBody: String): TokenProperties {
         val node = mapper.readTree(jsonBody) as ObjectNode
         return TokenProperties(
             name = node.getText("name") ?: "Untitled",
@@ -77,6 +81,7 @@ class StandardPropertiesResolver(
         )
     }
 
+    @Suppress("ReactiveStreamsUnusedPublisher")
     private suspend fun getCollectionUri(id: Address): String? {
         val token = tokenRepository.findById(id).awaitFirstOrNull() ?: return null
         return when (token.standard) {

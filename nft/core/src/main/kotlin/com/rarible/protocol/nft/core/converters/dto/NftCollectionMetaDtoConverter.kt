@@ -13,20 +13,20 @@ import org.springframework.stereotype.Component
 object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto> {
     override fun convert(source: TokenMeta): NftCollectionMetaDto {
         return NftCollectionMetaDto(
-            name = source.properties?.name,
-            description = source.properties?.description,
+            name = source.properties.name,
+            description = source.properties.description,
             image = createImage(source),
-            external_link = source.properties?.externalLink,
-            seller_fee_basis_points = source.properties?.sellerFeeBasisPoints,
-            fee_recipient = source.properties?.feeRecipient
+            external_link = source.properties.externalLink,
+            seller_fee_basis_points = source.properties.sellerFeeBasisPoints,
+            fee_recipient = source.properties.feeRecipient
         )
     }
 
     private fun createImage(source: TokenMeta): NftMediaDto? {
-        if (source.properties?.image != null && source.contentMeta != null) {
+        if (source.properties.image != null && source.contentMeta != null) {
             return NftMediaDto(
-                url = mapOf(NftMediaSizeDto.ORIGINAL.toString() to source.properties.image!!),
-                meta = mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta!!))
+                url = mapOf(NftMediaSizeDto.ORIGINAL.toString() to source.properties.image),
+                meta = mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta))
             )
         } else {
             return null

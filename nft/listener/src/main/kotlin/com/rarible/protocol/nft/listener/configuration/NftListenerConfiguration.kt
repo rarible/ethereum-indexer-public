@@ -109,7 +109,7 @@ class NftListenerConfiguration(
 
     @Bean
     fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): BatchedConsumerWorker<NftCollectionEventDto> {
-        logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} item meta extender workers")
+        logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} collection meta extender workers")
         val workers = (1..nftIndexerProperties.nftCollectionMetaExtenderWorkersCount).map {
             ConsumerWorker(
                 consumer = InternalCollectionHandler.createInternalCollectionConsumer(

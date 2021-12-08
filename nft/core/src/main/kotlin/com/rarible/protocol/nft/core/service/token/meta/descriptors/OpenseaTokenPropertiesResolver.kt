@@ -26,7 +26,7 @@ import java.time.Duration
 
 @Component
 @CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
-class OpenseaPropertiesResolver(
+class OpenseaTokenPropertiesResolver(
     private val mapper: ObjectMapper,
     @Value("\${api.opensea.url:}") private val openseaUrl: String,
     @Value("\${api.opensea.api-key:}") private val openseaApiKey: String,

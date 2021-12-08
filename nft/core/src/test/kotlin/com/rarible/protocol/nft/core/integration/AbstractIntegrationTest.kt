@@ -19,6 +19,10 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -63,6 +67,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
+import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
 @FlowPreview
@@ -283,5 +288,18 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         val publicKey = Sign.publicKeyFromPrivate(privateKey)
         val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         return NewKeys(privateKey, publicKey, signer)
+    }
+
+    protected fun createToken(): Token {
+        return Token(
+            id = AddressFactory.create(),
+            owner = AddressFactory.create(),
+            name = UUID.randomUUID().toString(),
+            symbol = UUID.randomUUID().toString(),
+            status = ContractStatus.values().random(),
+            features = (1..10).map {  TokenFeature.values().random() }.toSet(),
+            standard = TokenStandard.values().random(),
+            version = null
+        )
     }
 }

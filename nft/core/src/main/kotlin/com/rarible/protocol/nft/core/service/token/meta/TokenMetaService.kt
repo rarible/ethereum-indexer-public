@@ -19,17 +19,12 @@ class TokenMetaService(
 
     suspend fun get(id: Address): TokenMeta {
         val properties = tokenPropertiesService.resolve(id)
-        return properties?.let { TokenMeta(
-            properties = TokenProperties(
-                name = it.name,
-                description = it.description,
-                image = it.image,
-                externalLink = it.externalLink,
-                feeRecipient = it.feeRecipient,
-                sellerFeeBasisPoints = it.sellerFeeBasisPoints
-            ),
-            contentMeta = it.image?.let { mediaMetaService.getMediaMeta(it) }
-        ) } ?: TokenMeta.EMPTY
+        return if (properties == null) TokenMeta.EMPTY else {
+            TokenMeta(
+                properties = properties,
+                contentMeta = properties.image?.let { mediaMetaService.getMediaMeta(it) }
+            )
+        }
     }
 
     suspend fun reset(id: Address) {

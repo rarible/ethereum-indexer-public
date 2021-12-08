@@ -120,7 +120,7 @@ class TestPropertiesConfiguration {
     }
 
     /**
-     * This bean is needed to make possible publishing of item with extended meta.
+     * This bean is needed to make possible publishing of collection with extended meta.
      * In production this bean is defined in the 'nft-indexer-listener' module.
      */
     @Bean
@@ -146,4 +146,8 @@ class TestPropertiesConfiguration {
     @Bean
     fun itemMetaExtenderWorkerStarter(itemMetaExtenderWorker: ConsumerWorker<NftItemEventDto>): CommandLineRunner =
         CommandLineRunner { itemMetaExtenderWorker.start() }
+
+    @Bean
+    fun collectionMetaExtenderWorkerStarter(collectionMetaExtenderWorker: ConsumerWorker<NftCollectionEventDto>): CommandLineRunner =
+        CommandLineRunner { collectionMetaExtenderWorker.start() }
 }

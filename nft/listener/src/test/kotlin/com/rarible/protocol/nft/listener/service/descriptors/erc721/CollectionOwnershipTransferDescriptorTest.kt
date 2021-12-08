@@ -54,7 +54,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             defaultTopic = NftCollectionEventTopicProvider.getTopic(
                 application.name,
                 nftIndexerProperties.blockchain.value
-            ),
+            ) + ".internal",
             bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )

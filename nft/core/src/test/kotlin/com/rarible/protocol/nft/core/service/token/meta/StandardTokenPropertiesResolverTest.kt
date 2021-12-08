@@ -1,20 +1,17 @@
-package com.rarible.protocol.nft.api.e2e.collection.meta
+package com.rarible.protocol.nft.core.service.token.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
-import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
-import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
+import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
-import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardPropertiesResolver
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -28,11 +25,8 @@ import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import java.net.URI
 
-@End2EndTest
-class StandardPropertiesResolverTest : SpringContainerBaseTest() {
-
-    @Autowired
-    private lateinit var tokenRepository: TokenRepository
+@IntegrationTest
+class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var mapper: ObjectMapper
@@ -40,7 +34,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
     @Autowired
     private lateinit var ipfsService: IpfsService
 
-    private lateinit var resolver: StandardPropertiesResolver
+    private lateinit var resolver: StandardTokenPropertiesResolver
 
     private lateinit var userSender: MonoSigningTransactionSender
     private lateinit var erc721: ERC721Rarible
@@ -48,7 +42,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
     @BeforeEach
     fun before() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-        userSender = createSigningSender(privateKey)
+        userSender = newSender(privateKey).second
         erc721 = ERC721Rarible.deployAndWait(userSender, poller).awaitFirst()
         erc721.__ERC721Rarible_init(
             "Feudalz",
@@ -65,7 +59,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
 
     @Test
     fun `should parse from ipfs`() = runBlocking<Unit> {
-        resolver = object : StandardPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
+        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
             override val client get() = mockSuccessIpfsResponse()
         }
         val props = resolver.resolve(erc721.address())
@@ -81,7 +75,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
 
     @Test
     fun `should return null if not found`() = runBlocking<Unit> {
-        resolver = object : StandardPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
+        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
             override val client get() = mockNotFoundIpfsResponse()
         }
         val props = resolver.resolve(erc721.address())
@@ -90,7 +84,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
 
     @Test
     fun `should return null if broken json`() = runBlocking<Unit> {
-        resolver = object : StandardPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
+        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
             override val client get() = mockBrokenJsonIpfsResponse()
         }
         val props = resolver.resolve(erc721.address())
@@ -100,7 +94,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
     private fun mockSuccessIpfsResponse(): WebClient {
         return WebClient.builder()
             .exchangeFunction { request ->
-                Assertions.assertThat(request.url())
+                assertThat(request.url())
                     .isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
                 Mono.just(
                     ClientResponse.create(HttpStatus.OK)
@@ -114,7 +108,7 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
     private fun mockNotFoundIpfsResponse(): WebClient {
         return WebClient.builder()
             .exchangeFunction { request ->
-                Assertions.assertThat(request.url()).isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
+                assertThat(request.url()).isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
                 Mono.just(ClientResponse.create(HttpStatus.NOT_FOUND).build())
             }.build()
     }
@@ -131,6 +125,6 @@ class StandardPropertiesResolverTest : SpringContainerBaseTest() {
             }.build()
     }
 
-    fun String.asResource() = this.javaClass::class.java.getResource("/data/token/response/$this").readText()
+    fun String.asResource() = this.javaClass::class.java.getResource("/meta/response/$this").readText()
 
 }

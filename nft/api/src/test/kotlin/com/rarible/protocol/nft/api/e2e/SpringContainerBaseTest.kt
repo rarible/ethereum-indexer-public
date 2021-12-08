@@ -15,8 +15,8 @@ import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
-import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaPropertiesResolver
-import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardPropertiesResolver
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
@@ -84,12 +84,12 @@ abstract class SpringContainerBaseTest {
     protected lateinit var mockRariblePropertiesResolver: RariblePropertiesResolver
 
     @Autowired
-    @Qualifier("mockStandardPropertiesResolver")
-    protected lateinit var mockTokenStandardPropertiesResolver: StandardPropertiesResolver
+    @Qualifier("mockStandardTokenPropertiesResolver")
+    protected lateinit var mockTokenStandardPropertiesResolver: StandardTokenPropertiesResolver
 
     @Autowired
-    @Qualifier("mockOpenseaPropertiesResolver")
-    protected lateinit var mockTokenOpenseaPropertiesResolver: OpenseaPropertiesResolver
+    @Qualifier("mockOpenseaTokenPropertiesResolver")
+    protected lateinit var mockTokenOpenseaPropertiesResolver: OpenseaTokenPropertiesResolver
 
     @Autowired
     @Qualifier("mockMediaMetaService")
