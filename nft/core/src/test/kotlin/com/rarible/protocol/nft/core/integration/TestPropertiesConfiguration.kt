@@ -19,10 +19,13 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import scalether.core.EthPubSub
 import scalether.core.MonoEthereum
+import scalether.core.PubSubTransport
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import scalether.transport.WebSocketPubSubTransport
 
 @TestConfiguration
 class TestPropertiesConfiguration {
@@ -42,6 +45,16 @@ class TestPropertiesConfiguration {
     @Bean
     fun poller(ethereum: MonoEthereum): MonoTransactionPoller {
         return MonoTransactionPoller(ethereum)
+    }
+
+    @Bean
+    fun pubSubTransport(@Value("\${parityUrls}") url: String): WebSocketPubSubTransport {
+        return WebSocketPubSubTransport(url, Int.MAX_VALUE)
+    }
+
+    @Bean
+    fun ethPubSub(transport: PubSubTransport): EthPubSub {
+        return EthPubSub(transport)
     }
 
     @Bean
