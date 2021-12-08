@@ -5,9 +5,7 @@ import com.rarible.core.cache.CacheDescriptor
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenProperties
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.flow.asFlow
@@ -64,7 +62,7 @@ class TokenPropertiesService(
             ?.awaitFirstOrNull()
     }
 
-    private suspend fun doResolve(id: Address): TokenProperties? {
+    protected suspend fun doResolve(id: Address): TokenProperties? {
         val item = resolvers
             .sortedBy(TokenPropertiesResolver::order)
             .asFlow()
