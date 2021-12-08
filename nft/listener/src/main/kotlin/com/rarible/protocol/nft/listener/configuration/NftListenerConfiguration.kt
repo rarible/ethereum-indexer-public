@@ -1,7 +1,9 @@
 package com.rarible.protocol.nft.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
+import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.application.ApplicationInfo
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.lockredis.EnableRaribleRedisLock
@@ -15,8 +17,10 @@ import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.BatchedConsumerWorker
+import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
 import com.rarible.protocol.nft.listener.NftListenerApplication
+import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
@@ -36,7 +40,9 @@ class NftListenerConfiguration(
     private val nftListenerProperties: NftListenerProperties,
     private val meterRegistry: MeterRegistry,
     private val blockRepository: BlockRepository,
-    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
+    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo,
+    private val applicationInfo: ApplicationInfo,
+    private val kafkaProperties: KafkaProperties
 ) {
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
 
@@ -72,6 +78,21 @@ class NftListenerConfiguration(
             )
         }
         return BatchedConsumerWorker(workers)
+    }
+
+    @Bean
+    fun entityEventConsumer(
+        entityEventListener: List<EntityEventListener>
+    ): KafkaEntityEventConsumer {
+        return KafkaEntityEventConsumer(
+            properties = kafkaProperties,
+            daemonProperties = nftListenerProperties.eventConsumerWorker,
+            meterRegistry = meterRegistry,
+            host = applicationEnvironmentInfo.host,
+            environment = applicationEnvironmentInfo.name,
+            blockchain = nftIndexerProperties.blockchain.value,
+            service = applicationInfo.serviceName
+        ).apply { start(entityEventListener.associateBy { it.groupId }) }
     }
 
     @Bean

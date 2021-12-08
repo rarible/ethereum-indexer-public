@@ -28,6 +28,7 @@ data class Item(
     val date: Instant,
     val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,
+    val lastLazyEventTimestamp: Long = Instant.EPOCH.epochSecond,
     override val events: List<ItemEvent> = emptyList()
 ) : RevertableEntity<ItemId, ItemEvent, Item> {
 

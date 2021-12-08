@@ -6,8 +6,10 @@ import com.rarible.blockchain.scanner.ethereum.mapper.EthereumLogMapper
 import com.rarible.blockchain.scanner.ethereum.model.EthereumDescriptor
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.subscriber.EthereumLogEventSubscriber
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.nft.core.model.EventData
+import com.rarible.protocol.nft.core.model.SubscriberGroup
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +21,15 @@ import scalether.domain.response.Transaction
 import java.math.BigInteger
 
 abstract class AbstractItemLogEventSubscriber<T : EventData>(
+    group: SubscriberGroup,
     private val legacyLogEventDescriptor: LogEventDescriptor<T>
-) : ItemLogEventSubscriber {
+) : EthereumLogEventSubscriber {
 
     private val mapper = EthereumLogMapper()
 
     private val descriptor = EthereumDescriptor(
         ethTopic = legacyLogEventDescriptor.topic,
-        groupId = legacyLogEventDescriptor.topic.toString(),
+        groupId = group,
         collection = legacyLogEventDescriptor.collection,
         contracts = emptyList(),
         entityType = ReversedEthereumLogRecord::class.java
