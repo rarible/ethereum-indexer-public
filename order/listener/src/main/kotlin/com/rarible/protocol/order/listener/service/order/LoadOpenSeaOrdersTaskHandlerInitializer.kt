@@ -9,11 +9,11 @@ import org.springframework.stereotype.Component
 @ExperimentalCoroutinesApi
 @Component
 @Profile("!integration")
-class OpenSeaOrderLoadTaskHandlerInitializer(
+class LoadOpenSeaOrdersTaskHandlerInitializer(
     private val taskService: TaskService
 ) {
     @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
     fun init() {
-        taskService.runTask(OpenSeaOrderLoadTaskHandler.OPEN_SEA_ORDER_LOAD, "")
+        taskService.runTask(LoadOpenSeaOrdersTaskHandler.LOAD_OPEN_SEA_ORDERS, "")
     }
 }

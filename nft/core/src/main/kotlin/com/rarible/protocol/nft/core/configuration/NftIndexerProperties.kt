@@ -17,13 +17,18 @@ data class NftIndexerProperties(
     var royaltyRegistryAddress: String,
     val factory: FactoryAddresses,
     val nftItemMetaExtenderWorkersCount: Int = 4,
-    val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties()
+    val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
+    val featureFlags: FeatureFlags = FeatureFlags()
 ) {
-
     data class FactoryAddresses(
         val erc721Rarible: String,
         val erc721RaribleUser: String,
         val erc1155Rarible: String,
         val erc1155RaribleUser: String
+    )
+
+    data class FeatureFlags(
+        var isRoyaltyServiceEnabled: Boolean = true,
+        var ownershipBatchHandle: Boolean = false
     )
 }
