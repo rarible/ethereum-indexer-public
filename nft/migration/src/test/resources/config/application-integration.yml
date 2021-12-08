@@ -1,6 +1,9 @@
 mongock:
   enabled: false
 
+logging:
+  level.org.springframework.data.mongodb: DEBUG
+
 api:
   royalty:
     cache-timeout: 600000 # 10 min
