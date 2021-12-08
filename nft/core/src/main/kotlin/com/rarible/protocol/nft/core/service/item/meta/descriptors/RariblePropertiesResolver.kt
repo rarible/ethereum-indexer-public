@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
@@ -20,7 +20,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoTransactionSender
@@ -32,12 +31,9 @@ class RariblePropertiesResolver(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val ipfsService: IpfsService,
+    private val externalHttpClient: ExternalHttpClient,
     @Value("\${api.properties.request-timeout}") requestTimeout: Long
 ) : ItemPropertiesResolver {
-
-    private val client = WebClient.builder().apply {
-        DefaultProtocolWebClientCustomizer().customize(it)
-    }.build()
 
     private val timeout = Duration.ofMillis(requestTimeout)
 
@@ -111,9 +107,13 @@ class RariblePropertiesResolver(
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         val httpUrl = ipfsService.resolveHttpUrl(uri)
         logProperties(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
-        return client.get()
-            .uri(httpUrl)
-            .retrieve()
+        val clientSpec = try {
+            externalHttpClient.get(httpUrl)
+        } catch (e: Exception) {
+            logProperties(itemId, "failed to parse URI: $httpUrl: ${e.message}", warn = true)
+            return null
+        }
+        return clientSpec
             .bodyToMono<String>()
             .timeout(timeout)
             .onErrorResume {

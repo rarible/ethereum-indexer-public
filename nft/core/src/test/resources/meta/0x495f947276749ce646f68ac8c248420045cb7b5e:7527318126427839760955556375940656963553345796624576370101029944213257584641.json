@@ -1,0 +1,39 @@
+{
+  "name": "Abiding Axolotl #4907",
+  "attributes": [
+    {
+      "key": "Background",
+      "value": "Tribal"
+    },
+    {
+      "key": "Glasses",
+      "value": "Owl"
+    },
+    {
+      "key": "Earrings",
+      "value": "Sunny_side_up"
+    },
+    {
+      "key": "Type",
+      "value": "Purple_Blinking"
+    },
+    {
+      "key": "Clothing",
+      "value": "Red_Milk"
+    }
+  ],
+  "image": {
+    "url": {
+      "ORIGINAL": "https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw",
+      "BIG": "https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw",
+      "PREVIEW": "https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw=s250"
+    },
+    "meta": {
+      "PREVIEW": {
+        "type": "image/png",
+        "width": 250,
+        "height": 250
+      }
+    }
+  }
+}

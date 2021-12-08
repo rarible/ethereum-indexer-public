@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createOpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
@@ -19,6 +20,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.nio.file.Files
@@ -28,12 +30,14 @@ import kotlin.io.path.readText
 import kotlin.io.path.toPath
 
 @ItemMetaTest
+@EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     private val rariblePropertiesResolver = RariblePropertiesResolver(
         sender = createSender(),
         tokenRepository = tokenRepository,
         ipfsService = IpfsService(),
-        requestTimeout = 20000
+        requestTimeout = 20000,
+        externalHttpClient = createExternalHttpClient()
     )
     private val openSeaPropertiesResolver = createOpenSeaPropertiesResolver()
 

@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
 import io.mockk.every
@@ -17,11 +18,13 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @ItemMetaTest
+@EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
@@ -30,7 +33,8 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         sender = createSender(),
         tokenRepository = tokenRepository,
         ipfsService = IpfsService(),
-        requestTimeout = 20000
+        requestTimeout = 20000,
+        externalHttpClient = createExternalHttpClient()
     )
 
     @BeforeEach
@@ -325,6 +329,31 @@ Token ID: 51561
                 animationUrl = "animationUrl",
                 attributes = emptyList(),
                 rawJsonContent = null
+            )
+        )
+    }
+
+    @Test
+    fun `openSea shared store`() = runBlocking<Unit> {
+        // https://rarible.com/token/0x495f947276749ce646f68ac8c248420045cb7b5e:7527318126427839760955556375940656963553345796624576370101029944213257584641?tab=details
+        val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
+        mockTokenStandard(token, TokenStandard.ERC1155)
+        val properties = rariblePropertiesResolver.resolve(
+            ItemId(
+                token,
+                EthUInt256("7527318126427839760955556375940656963553345796624576370101029944213257584641".toBigInteger())
+            )
+        )
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Abiding Axolotl #4907",
+                description = null,
+                image = "https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = emptyList(),
+                rawJsonContent = """{"name":"Abiding Axolotl #4907","description":null,"external_link":null,"image":"https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw","animation_url":null}"""
             )
         )
     }
