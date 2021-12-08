@@ -25,7 +25,7 @@ data class OrderVersion(
     val makeUsd: BigDecimal?,
     val takeUsd: BigDecimal?,
     @Id
-    val id: ObjectId = ObjectId(),
+    val id: String = ObjectId.get().toString(),
     val onChainOrderKey: LogEventKey? = null,
     val createdAt: Instant = nowMillis(),
     val platform: Platform = Platform.RARIBLE,

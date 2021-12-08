@@ -10,7 +10,6 @@ import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import org.bson.Document
-import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -69,12 +68,12 @@ sealed class ActivityItemHistoryFilter {
             ActivitySort.LATEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / ItemHistory::date lt continuation.afterDate,
-                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").lt(ObjectId(continuation.afterId))
+                    (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").lt(continuation.afterId)
                 )
             ActivitySort.EARLIEST_FIRST ->
                 this.orOperator(
                     LogEvent::data / ItemHistory::date gt continuation.afterDate,
-                    (LogEvent::data / ItemHistory::date isEqualTo continuation.afterDate).and("_id").gt(ObjectId(continuation.afterId))
+                    (LogEvent::data / ItemHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId)
                 )
         }
 

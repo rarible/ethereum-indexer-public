@@ -30,7 +30,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
 
     private fun toDto(
         itemTransfer: ItemTransfer,
-        id: ObjectId,
+        id: String,
         transactionHash: Word,
         blockHash: Word,
         blockNumber: Long,
@@ -39,7 +39,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
         return when {
             itemTransfer.from == Address.ZERO() -> {
                 MintDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.owner,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
@@ -53,7 +53,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
             }
             itemTransfer.owner == Address.ZERO() -> {
                 BurnDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.from,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
@@ -67,7 +67,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
             }
             else -> {
                 TransferDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.owner,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,

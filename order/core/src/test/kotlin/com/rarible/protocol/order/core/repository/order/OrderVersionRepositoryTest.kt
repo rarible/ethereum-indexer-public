@@ -110,7 +110,7 @@ internal class OrderVersionRepositoryTest {
         val version = createOrderVersion().copy(onChainOrderKey = key)
         val otherVersion = version.copy(
             onChainOrderKey = key, // Duplicated
-            id = ObjectId() // New ID
+            id = ObjectId.get().toString() // New ID
         )
         orderVersionRepository.save(version).awaitFirst()
         assertThrows<DuplicateKeyException> { runBlocking { orderVersionRepository.save(otherVersion).awaitFirst() } }

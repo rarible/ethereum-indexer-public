@@ -111,7 +111,7 @@ class OrderVersionRepository(
         return template.find(query, COLLECTION)
     }
 
-    fun findById(id: ObjectId): Mono<OrderVersion> {
+    fun findById(id: String): Mono<OrderVersion> {
         return template.findById(id)
     }
 

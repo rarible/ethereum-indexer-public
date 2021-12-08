@@ -371,7 +371,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         }
 
         Wait.waitAssert {
-            fun OrderVersion.ignoreVersionId() = copy(id = ObjectId(0, 0))
+            fun OrderVersion.ignoreVersionId() = copy(id = ObjectId(0, 0).toString())
             fun OrderVersion.ignoreOnChainOrderKey() = copy(onChainOrderKey = null)
             fun OrderVersion.ignore() = ignoreVersionId().ignoreOnChainOrderKey()
 

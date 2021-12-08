@@ -20,12 +20,18 @@ import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
 import com.rarible.protocol.order.core.service.auction.AuctionUpdateService
 import com.rarible.protocol.order.core.trace.TracePackage
+import org.bson.types.ObjectId
 import org.springframework.boot.context.properties.ConfigurationPropertiesBinding
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.convert.MappingMongoConverter
+import org.springframework.data.mongodb.core.convert.MongoCustomConversions
+import org.springframework.data.mongodb.core.convert.NoOpDbRefResolver
+import org.springframework.data.mongodb.core.mapping.MongoMappingContext
+import org.springframework.util.ClassUtils
 import scalether.transaction.MonoTransactionSender
 
 @Configuration
@@ -80,5 +86,29 @@ class CoreConfiguration {
             updateService = auctionUpdateService,
             snapshotStrategy = BlockchainSnapshotStrategy(properties.blockCountBeforeSnapshot)
         )
+    }
+
+    @Bean
+    fun mappingMongoConverter(
+        context: MongoMappingContext,
+        conversions: MongoCustomConversions
+    ): MappingMongoConverter {
+        val mappingConverter = object : MappingMongoConverter(NoOpDbRefResolver.INSTANCE, context) {
+            override fun convertId(id: Any, targetType: Class<*>?): Any? {
+                if (id == null) {
+                    return null
+                    // prevent to convert string to objectId automatically
+                } else if (ClassUtils.isAssignable(
+                        ObjectId::class.java,
+                        targetType
+                    ) && id is String && ObjectId.isValid(id.toString())
+                ) {
+                    return id
+                }
+                return super.convertId(id, targetType)
+            }
+        }
+        mappingConverter.setCustomConversions(conversions)
+        return mappingConverter
     }
 }

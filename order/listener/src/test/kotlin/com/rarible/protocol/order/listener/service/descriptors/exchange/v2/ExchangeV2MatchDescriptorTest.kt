@@ -466,7 +466,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 }
 
 fun OrderVersion.invert(maker: Address) = this.copy(
-    id = ObjectId(), // recreate ID.
+    id = ObjectId.get().toString(), // recreate ID.
     maker = maker,
     make = take,
     take = make,

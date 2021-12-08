@@ -133,7 +133,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             val contract get() = logEvent.address
             val logStatus get() = logEvent.status
             val history get() = logEvent.data.toAuctionHistory()
-            val eventId: String get() = logEvent.id.toHexString()
+            val eventId: String get() = logEvent.id
         }
 
         private fun EventData.toAuctionHistory(): AuctionHistory {
