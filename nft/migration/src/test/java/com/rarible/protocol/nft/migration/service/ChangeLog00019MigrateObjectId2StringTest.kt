@@ -24,6 +24,7 @@ import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.count
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.transaction.reactive.TransactionalOperator
 import scalether.domain.Address
 import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
@@ -34,18 +35,21 @@ class ChangeLog00019MigrateObjectId2StringTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var template: ReactiveMongoTemplate
 
+    @Autowired
+    private lateinit var operator: TransactionalOperator
+
     private val changeLog = ChangeLog00019MigrateObjectId2String()
 
     @Test
     fun migrateIds() = runBlocking<Unit> {
 
-        val legacyLogs = (0..9).map { createLogEvent() }
+        val legacyLogs = (0..10).map { createLogEvent() }
         legacyLogs.map {
             val saved = template.insert(it, NftItemHistoryRepository.COLLECTION).awaitSingle()
             assertThat(saved.id).isEqualTo(it.id)
         }
 
-        changeLog.setStringId(template)
+        changeLog.setStringId(template, operator)
 
         // check objectId -> string
         legacyLogs.forEach {

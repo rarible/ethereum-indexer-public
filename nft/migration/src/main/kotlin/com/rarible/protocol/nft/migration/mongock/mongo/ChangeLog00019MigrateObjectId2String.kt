@@ -18,6 +18,8 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.schema.JsonSchemaObject
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 
 @ChangeLog(order = "00019")
 class ChangeLog00019MigrateObjectId2String {
@@ -27,24 +29,28 @@ class ChangeLog00019MigrateObjectId2String {
         author = "protocol"
     )
     fun setStringId(
-        @NonLockGuarded template: ReactiveMongoTemplate
+        @NonLockGuarded template: ReactiveMongoTemplate,
+        @NonLockGuarded operator: TransactionalOperator
     ) = runBlocking {
         logger.info("Started setting string as _id field")
         var deleted = 0L
         var inserted = 0L
         val criteria = Criteria.where("_id").type(JsonSchemaObject.Type.OBJECT_ID)
         template.find<LogEvent>(Query(criteria), NftItemHistoryRepository.COLLECTION).asFlow().collect { logEvent ->
-            try {
-                val removeQuery = Query.query(Criteria("_id").isEqualTo(ObjectId(logEvent.id)))
-                val dResult = template.remove(removeQuery, NftItemHistoryRepository.COLLECTION).awaitSingle()
-                deleted += dResult.deletedCount
-                template.insert(logEvent, NftItemHistoryRepository.COLLECTION).awaitSingle()
-                inserted++
-                if (inserted % 10000L == 0L) {
-                    logger.info("Fixed $inserted orders")
+            operator.executeAndAwait { tx ->
+                try {
+                    val removeQuery = Query.query(Criteria("_id").isEqualTo(ObjectId(logEvent.id)))
+                    val dResult = template.remove(removeQuery, NftItemHistoryRepository.COLLECTION).awaitSingle()
+                    deleted += dResult.deletedCount
+                    template.insert(logEvent, NftItemHistoryRepository.COLLECTION).awaitSingle()
+                    inserted++
+                    if (inserted % 10000L == 0L) {
+                        logger.info("Fixed $inserted logs")
+                    }
+                } catch (ex: Exception) {
+                    logger.error("Failed: ", ex)
+                    throw ex
                 }
-            } catch (ex: Exception) {
-                logger.error("Failed: ", ex)
             }
         }
         logger.info("Finished setting string as _id field: $inserted inserted, $deleted deleted")
