@@ -5,10 +5,21 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.misc.safeQueryParam
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.Continuation
+import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.bson.Document
-import org.bson.types.ObjectId
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 
@@ -40,7 +51,7 @@ sealed class ActivityExchangeHistoryFilter {
     }
 
     class AllCanceledSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-        override val hint: Document = ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true canceled true).scrollTo(sort, continuation)
