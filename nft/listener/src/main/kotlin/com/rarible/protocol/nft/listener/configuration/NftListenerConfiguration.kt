@@ -2,6 +2,8 @@ package com.rarible.protocol.nft.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
+import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
+import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.application.ApplicationInfo
 import com.rarible.core.cache.EnableRaribleCache
@@ -45,6 +47,11 @@ class NftListenerConfiguration(
     private val kafkaProperties: KafkaProperties
 ) {
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
+
+    @Bean
+    fun reconciliationFromProvider(): ReconciliationFromProvider {
+        return DefaultReconciliationFormProvider()
+    }
 
     @Bean
     fun reduceSkipTokens(): ReduceSkipTokens {

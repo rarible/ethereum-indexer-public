@@ -56,9 +56,9 @@ abstract class AbstractItemLogEventSubscriber<T : EventData>(
 
     companion object {
         val EMPTY_TRANSACTION = Transaction(
-            Word.apply(byteArrayOf(32)),
+            Word.apply(ByteArray(32)),
             BigInteger.ZERO,
-            Word.apply(byteArrayOf(32)),
+            Word.apply(ByteArray(32)),
             BigInteger.ZERO,
             Address.ZERO(),
             BigInteger.ZERO,
