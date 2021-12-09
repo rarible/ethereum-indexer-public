@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.convert.MongoConverter
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
@@ -56,6 +57,9 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
+
+    @Autowired
+    protected lateinit var mongoConverter: MongoConverter
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum

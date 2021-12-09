@@ -26,7 +26,8 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "rarible.common.jms-brokerUrls = localhost:\${random.int(5000,5100)}",
         "rarible.common.jms-eventTopic = protocol",
         "spring.cloud.consul.config.enabled = false",
-        "logging.logstash.tcp-socket.enabled = false"
+        "logging.logstash.tcp-socket.enabled = false",
+        "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
 @ActiveProfiles("integration")

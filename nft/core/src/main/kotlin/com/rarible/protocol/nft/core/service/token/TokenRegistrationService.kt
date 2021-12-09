@@ -164,16 +164,21 @@ class TokenRegistrationService(
         val hexBytecode = bytecode.hex()
         for (standard in TokenStandard.values()) {
             if (standard.functionSignatures.isNotEmpty()) {
-                val allSignaturesPresent = standard.functionSignatures.all { signature ->
+                val nonMatchingSignatures = standard.functionSignatures.filterNot { signature ->
                     val functionId = calculateFunctionId(signature)
                     hexBytecode.contains(functionId.hex())
                 }
-                if (allSignaturesPresent) {
+                if (nonMatchingSignatures.isEmpty()) {
                     logStandard(
                         address,
                         "determined as $standard: all function signatures are present in bytecode"
                     )
                     return standard
+                } else {
+                    logStandard(
+                        address,
+                        "cannot determine as $standard, non existing signatures: " + nonMatchingSignatures.joinToString()
+                    )
                 }
             }
         }
