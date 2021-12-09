@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.ethereum.listener.log.domain.EventData
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155RaribleUserEvent
 import com.rarible.protocol.contracts.collection.CreateERC1155_v1Event
@@ -31,6 +31,10 @@ enum class CollectionEventType(val topic: Set<Word>) {
 
 sealed class CollectionEvent(var type: CollectionEventType) : EventData {
     abstract val id: Address
+
+    override fun getKey(log: EthereumLog): String {
+        return id.prefixed()
+    }
 }
 
 data class CreateCollection(

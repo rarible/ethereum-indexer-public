@@ -16,5 +16,10 @@ rarible:
     httpUrl: ${node.hosts}
     websocketUrl: ${node.webSocketHosts}
 
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
+
 common:
   kafka-replica-set: ${kafka.hosts}

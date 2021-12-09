@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.integration
 
+import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
+import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.protocol.dto.NftItemEventDto
@@ -19,16 +21,24 @@ import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import scalether.core.EthPubSub
 import scalether.core.MonoEthereum
+import scalether.core.PubSubTransport
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.ReadOnlyMonoTransactionSender
+import scalether.transport.WebSocketPubSubTransport
 
 @TestConfiguration
 class TestPropertiesConfiguration {
     @Bean
     fun skipTokens(): ReduceSkipTokens {
         return ReduceSkipTokens(hashSetOf())
+    }
+
+    @Bean
+    fun reconciliationFromProvider(): ReconciliationFromProvider {
+        return DefaultReconciliationFormProvider()
     }
 
     @Bean
@@ -42,6 +52,16 @@ class TestPropertiesConfiguration {
     @Bean
     fun poller(ethereum: MonoEthereum): MonoTransactionPoller {
         return MonoTransactionPoller(ethereum)
+    }
+
+    @Bean
+    fun pubSubTransport(@Value("\${parityUrls}") url: String): WebSocketPubSubTransport {
+        return WebSocketPubSubTransport(url, Int.MAX_VALUE)
+    }
+
+    @Bean
+    fun ethPubSub(transport: PubSubTransport): EthPubSub {
+        return EthPubSub(transport)
     }
 
     @Bean

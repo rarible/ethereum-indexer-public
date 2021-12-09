@@ -24,6 +24,37 @@ api:
   royalty:
     cache-timeout: 600000 # 10 min
 
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
+      maxPollRecords: 10
+    ethereum:
+      optimisticLockRetries: 3
+      retryPolicy:
+        scan:
+          reconnectDelay: 2s
+          reconnectAttempts: 1
+        client:
+          delay: 2s
+          attempts: 3
+      job:
+        pendingLogs:
+          interval: 1s
+          initialDelay: 1s
+        reconciliation:
+          enabled: false
+          batchSize: 5
+      monitoring:
+        enabled: false
+        rootPath: "blockchain.scanner"
+        worker:
+          pollingPeriod: 1m
+
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration
+
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false

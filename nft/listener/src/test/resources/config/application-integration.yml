@@ -40,6 +40,11 @@ common:
     erc1155Rarible: "0x0000000000000000000000000000000000000000"
     erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
 
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}
+
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false

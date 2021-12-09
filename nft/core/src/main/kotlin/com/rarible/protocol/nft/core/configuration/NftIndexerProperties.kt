@@ -12,13 +12,14 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 data class NftIndexerProperties(
     val kafkaReplicaSet: String,
     val blockchain: Blockchain,
+    val maxPollRecords: Int = 100,
     var cryptoPunksContractAddress: String,
     var openseaLazyMintAddress: String,
     var royaltyRegistryAddress: String,
-    val factory: FactoryAddresses,
     val nftItemMetaExtenderWorkersCount: Int = 4,
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
-    val featureFlags: FeatureFlags = FeatureFlags()
+    val featureFlags: FeatureFlags = FeatureFlags(),
+    val confirmationBlocks: Int = 12
 ) {
     data class FactoryAddresses(
         val erc721Rarible: String,
