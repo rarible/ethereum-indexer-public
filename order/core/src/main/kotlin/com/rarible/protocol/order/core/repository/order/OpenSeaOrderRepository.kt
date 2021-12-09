@@ -9,7 +9,9 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-
+import org.springframework.stereotype.Component
+ 
+@Component
 class OpenSeaOrderRepository(mongoClient: MongoClient) {
     private val template = ReactiveMongoTemplate(SimpleReactiveMongoDatabaseFactory(mongoClient, "open-sea"))
 
