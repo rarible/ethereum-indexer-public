@@ -34,7 +34,7 @@ class ExternalHttpClient(
         DefaultProtocolWebClientCustomizer().customize(it)
     }.build()
 
-    private val openSeaClient = WebClient.builder()
+    protected val openSeaClient = WebClient.builder()
         .clientConnector(createConnector(connectTimeout, readTimeout, proxyUrl, true))
         .exchangeStrategies(ExchangeStrategies.builder()
             .codecs { it.defaultCodecs().maxInMemorySize(262144 * 5) }

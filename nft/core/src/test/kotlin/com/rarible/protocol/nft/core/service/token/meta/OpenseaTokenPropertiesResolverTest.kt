@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import io.mockk.InternalPlatformDsl.toStr
 import kotlinx.coroutines.reactive.awaitSingle
@@ -41,9 +42,10 @@ class OpenseaTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Test
     fun `should parse from json`() = runBlocking<Unit> {
-        resolver = object : OpenseaTokenPropertiesResolver(mapper, "https://api.opensea.io/api/v1", "", 60000, 60000, 60000, "") {
-            override val client get() = mockOpenSeaResponse()
+        val openSeaClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
+            override val openSeaClient get() = mockOpenSeaResponse()
         }
+        resolver = OpenseaTokenPropertiesResolver(mapper, openSeaClient, 60000)
         val props = resolver.resolve(token.id)
         assertThat(props).isEqualTo(TokenProperties(
             name = "Feudalz",
