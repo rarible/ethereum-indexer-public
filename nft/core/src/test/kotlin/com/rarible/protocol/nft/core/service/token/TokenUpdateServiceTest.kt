@@ -6,7 +6,10 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -18,13 +21,11 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper
 import scalether.domain.Address
 
 @IntegrationTest
 class TokenUpdateServiceTest : AbstractIntegrationTest() {
-
-    @Autowired
-    lateinit var tokenRegistrationService: TokenRegistrationService
 
     @Autowired
     lateinit var tokenUpdateService: TokenUpdateService
@@ -63,18 +64,26 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
         tokenUpdateService.update(id)
 
         Wait.waitAssert {
-            assertThat(collectionEvents)
-                .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies { events ->
-                    val filteredEvents = events.filter { event ->
-                        when (event) {
-                            is NftCollectionUpdateEventDto -> {
-                                event.collection.meta?.name == "Feudalz"
-                            }
-                        }
-                    }
-                    assertThat(filteredEvents.size).isEqualTo(1)
-                }
+            println(ObjectMapper().writeValueAsString(collectionEvents))
+            assertThat(collectionEvents).anyMatch {
+                it is NftCollectionUpdateEventDto && it.collection.meta == NftCollectionMetaDto(
+                    name = "Feudalz",
+                    description = "Feudalz emerged to protect their Peasants.",
+                    external_link = "https://feudalz.io",
+                    image = NftMediaDto(
+                        url = mapOf("ORIGINAL" to "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d"),
+                        meta = mapOf(
+                            "ORIGINAL" to NftMediaMetaDto(
+                                type = "image/png",
+                                width = 256,
+                                height = 256
+                            )
+                        )
+                    ),
+                    fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
+                    seller_fee_basis_points = 250
+                )
+            }
         }
     }
 }
