@@ -57,12 +57,12 @@ open class OpenSeaOrdersFetcherWorker(
 
         if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }
-            val minId = ids.min() ?: error("Can't be empty value")
-            val maxId = ids.max() ?: error("Can't be empty value")
+            val minId = ids.minOrNull() ?: error("Can't be empty value")
+            val maxId = ids.maxOrNull() ?: error("Can't be empty value")
 
             val createdAts = openSeaOrders.map { it.createdAt }
-            val minCreatedAt = createdAts.min() ?: error("Can't be empty value")
-            val maxCreatedAt = createdAts.max() ?: error("Can't be empty value")
+            val minCreatedAt = createdAts.minOrNull() ?: error("Can't be empty value")
+            val maxCreatedAt = createdAts.maxOrNull() ?: error("Can't be empty value")
 
             logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
