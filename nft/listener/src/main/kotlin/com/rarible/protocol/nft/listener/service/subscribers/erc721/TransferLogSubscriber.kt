@@ -8,4 +8,5 @@ import org.springframework.stereotype.Component
 
 @Component
 class TransferLogSubscriber(descriptor: TransferLogDescriptor)
-    : AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor)
+    : AbstractItemLogEventSubscriber<ItemTransfer>(SubscriberGroups.ITEM_HISTORY, descriptor) {
+}

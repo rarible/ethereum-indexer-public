@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.contracts.erc1155.TransferBatchEvent
 import com.rarible.contracts.erc1155.TransferSingleEvent
 import com.rarible.contracts.erc721.TransferEvent
@@ -38,6 +39,10 @@ sealed class ItemHistory(var type: ItemType) : EventData {
     abstract val token: Address
     abstract val tokenId: EthUInt256
     abstract val date: Instant
+
+    override fun getKey(log: EthereumLog): String {
+        return ItemId(token, tokenId).stringValue
+    }
 }
 
 data class ItemTransfer(
