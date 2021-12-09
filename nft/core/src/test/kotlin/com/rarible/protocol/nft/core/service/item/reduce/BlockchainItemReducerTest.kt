@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 internal class BlockchainItemReducerTest {
-    val itemBlockchainItemReducer = BlockchainItemReducer()
+    private val itemBlockchainItemReducer = BlockchainItemReducer()
 
     @Test
     fun `should reduce mint event`() = runBlocking<Unit> {
