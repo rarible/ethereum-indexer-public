@@ -43,8 +43,7 @@ class NftListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     private val blockRepository: BlockRepository,
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo,
-    private val applicationInfo: ApplicationInfo,
-    private val kafkaProperties: KafkaProperties
+    private val applicationInfo: ApplicationInfo
 ) {
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
 
@@ -92,7 +91,11 @@ class NftListenerConfiguration(
         entityEventListener: List<EntityEventListener>
     ): KafkaEntityEventConsumer {
         return KafkaEntityEventConsumer(
-            properties = kafkaProperties,
+            properties = KafkaProperties(
+                brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
+                enabled = true,
+                maxPollRecords = nftIndexerProperties.maxPollRecords
+            ),
             daemonProperties = nftListenerProperties.eventConsumerWorker,
             meterRegistry = meterRegistry,
             host = applicationEnvironmentInfo.host,

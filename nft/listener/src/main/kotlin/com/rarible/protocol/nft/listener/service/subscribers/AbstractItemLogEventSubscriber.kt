@@ -49,10 +49,10 @@ abstract class AbstractItemLogEventSubscriber<T : EventData>(
             .toFlux()
             .collectList()
             .map { dataCollection ->
-                dataCollection.mapIndexed { index, data ->
+                dataCollection.mapIndexed { minorLogIndex, data ->
                     ReversedEthereumLogRecord(
                         id = ObjectId().toHexString(),
-                        log = mapper.map(block, log, 0, 0, getDescriptor()),
+                        log = mapper.map(block, log, index, minorLogIndex, getDescriptor()),
                         data = data
                     )
                 }
