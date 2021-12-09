@@ -11,11 +11,15 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftCollectionMetaDto
+import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
@@ -128,7 +132,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     private val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
     private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
-    protected val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
+    private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
 
     private lateinit var consumingJobs: List<Job>
 
@@ -174,7 +178,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @AfterEach
     fun stopConsumers() = runBlocking {
         consumingJobs.forEach { it.cancelAndJoin() }
-        collectionEvents.clear()
     }
 
     suspend fun <T> saveItemHistory(
@@ -286,6 +289,16 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                         }
                     }
                 }
+        }
+    }
+
+    protected suspend fun checkMetaWasPublished(
+        meta: NftCollectionMetaDto
+    ) = coroutineScope {
+        Wait.waitAssert {
+            assertThat(collectionEvents).anyMatch {
+                it is NftCollectionUpdateEventDto && it.collection.meta == meta
+            }
         }
     }
 

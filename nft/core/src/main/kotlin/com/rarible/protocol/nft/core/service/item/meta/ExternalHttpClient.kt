@@ -30,7 +30,7 @@ class ExternalHttpClient(
     @Value("\${api.proxy-url:}") private val proxyUrl: String
 ) {
 
-    private val defaultClient = WebClient.builder().apply {
+    protected val defaultClient = WebClient.builder().apply {
         DefaultProtocolWebClientCustomizer().customize(it)
     }.build()
 

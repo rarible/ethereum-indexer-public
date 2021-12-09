@@ -7,7 +7,9 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
+import io.netty.resolver.DefaultAddressResolverGroup
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -17,10 +19,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
+import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.web.reactive.function.client.ClientResponse
 import org.springframework.web.reactive.function.client.WebClient
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
+import reactor.netty.http.client.HttpClient
 import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import java.net.URI
@@ -33,8 +37,6 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var ipfsService: IpfsService
-
-    private lateinit var resolver: StandardTokenPropertiesResolver
 
     private lateinit var userSender: MonoSigningTransactionSender
     private lateinit var erc721: ERC721Rarible
@@ -59,9 +61,7 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Test
     fun `should parse from ipfs`() = runBlocking<Unit> {
-        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
-            override val client get() = mockSuccessIpfsResponse()
-        }
+        val resolver = mock(mockSuccessIpfsResponse())
         val props = resolver.resolve(erc721.address())
         assertThat(props).isEqualTo(TokenProperties(
             name = "Feudalz",
@@ -75,20 +75,23 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Test
     fun `should return null if not found`() = runBlocking<Unit> {
-        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
-            override val client get() = mockNotFoundIpfsResponse()
-        }
+        val resolver = mock(mockNotFoundIpfsResponse())
         val props = resolver.resolve(erc721.address())
         assertThat(props).isNull()
     }
 
     @Test
     fun `should return null if broken json`() = runBlocking<Unit> {
-        resolver = object : StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, 60000) {
-            override val client get() = mockBrokenJsonIpfsResponse()
-        }
+        val resolver = mock(mockBrokenJsonIpfsResponse())
         val props = resolver.resolve(erc721.address())
         assertThat(props).isNull()
+    }
+
+    private fun mock(webClient: WebClient): StandardTokenPropertiesResolver {
+        val externalHttpClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
+            override val defaultClient get() = webClient
+        }
+        return StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, externalHttpClient, 60000)
     }
 
     private fun mockSuccessIpfsResponse(): WebClient {
@@ -106,7 +109,9 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
     }
 
     private fun mockNotFoundIpfsResponse(): WebClient {
+        val httpClient = HttpClient.create().resolver(DefaultAddressResolverGroup.INSTANCE)
         return WebClient.builder()
+            .clientConnector(ReactorClientHttpConnector(httpClient))
             .exchangeFunction { request ->
                 assertThat(request.url()).isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
                 Mono.just(ClientResponse.create(HttpStatus.NOT_FOUND).build())

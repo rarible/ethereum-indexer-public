@@ -3,13 +3,13 @@ package com.rarible.protocol.nft.core.service.token.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.getInt
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
@@ -18,7 +18,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -32,14 +31,9 @@ class StandardTokenPropertiesResolver(
     private val ipfsService: IpfsService,
     private val tokenRepository: TokenRepository,
     private val mapper: ObjectMapper,
-    @Value("\${api.properties.request-timeout}") requestTimeout: Long
+    private val externalHttpClient: ExternalHttpClient,
+    @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
 ): TokenPropertiesResolver {
-
-    private val timeout = Duration.ofMillis(requestTimeout)
-
-    protected val client = WebClient.builder().apply {
-        DefaultProtocolWebClientCustomizer().customize(it)
-    }.build()
 
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
@@ -51,11 +45,8 @@ class StandardTokenPropertiesResolver(
 
     override val order get() = Int.MIN_VALUE
 
-    private suspend fun request(id: Address, httpUrl: String) = client.get()
-        .uri(httpUrl)
-        .retrieve()
+    private suspend fun request(id: Address, httpUrl: String) = externalHttpClient.get(httpUrl)
         .bodyToMono<String>()
-        .timeout(timeout)
         .onErrorResume {
             logProperties(id, "failed to get properties by URI: $httpUrl", true)
             Mono.empty()
@@ -64,6 +55,7 @@ class StandardTokenPropertiesResolver(
             logProperties(id, "parsing properties by URI: $httpUrl")
             mono { parseJsonProperties(it) }
         }
+        .timeout(Duration.ofMillis(requestTimeout))
         .onErrorResume {
             logProperties(id, "failed to parse properties by URI: $httpUrl", true)
             Mono.empty()
