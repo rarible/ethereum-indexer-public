@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
+import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.ReversedReducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
@@ -15,7 +16,7 @@ class ReversedItemReducer : ReversedReducer<ItemEvent, Item> {
             is ItemEvent.ItemBurnEvent -> entity.supply + event.supply
 
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
-                throw IllegalStateException("This events can't be in this reducer")
+                throw ReduceException("This events can't be in this reducer")
         }
         return entity.copy(supply = supply, deleted = supply == EthUInt256.ZERO)
     }

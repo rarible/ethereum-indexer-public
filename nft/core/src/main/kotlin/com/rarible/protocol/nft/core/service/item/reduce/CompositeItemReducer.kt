@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class CompositeItemReducer(
-    val itemReducer: ItemReducer,
+    private val itemReducer: ItemReducer,
     reversedItemReducer: ReversedItemReducer
 ) : ReversedReducer<ItemEvent, Item> {
     private val reversedItemReducer = RevertableEntityReversedReducer(reversedItemReducer)
