@@ -13,14 +13,14 @@ object OrderRepositoryIndexes {
     //TODO add same indices with 'status' field
     private val SELL_ORDERS_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::createdAt.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
     private val SELL_ORDERS_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::createdAt.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
