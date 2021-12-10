@@ -243,8 +243,8 @@ object OrderFilterCriteria {
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
 
     private fun OrderFilterSellDto.withSellHint(): Document {
-        val hasPlatforms = this.platforms.mapNotNull { convert(it) }.isEmpty()
-        val hasStatuses = this.status.isNullOrEmpty()
+        val hasPlatforms = this.platforms.mapNotNull { convert(it) }.isNotEmpty()
+        val hasStatuses = !this.status.isNullOrEmpty()
         return if (hasPlatforms) {
             if (hasStatuses) {
                 OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
