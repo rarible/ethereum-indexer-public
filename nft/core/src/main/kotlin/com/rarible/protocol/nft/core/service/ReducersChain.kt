@@ -8,7 +8,7 @@ open class ReducersChain<Event, Entity>(
 
     override suspend fun reduce(entity: Entity, event: Event): Entity {
         return reducers.fold(entity) { state, reducer ->
-            return reducer.reduce(state, event)
+            reducer.reduce(state, event)
         }
     }
 }

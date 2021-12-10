@@ -15,6 +15,6 @@ open class EntityEventRevertService<T : BlockchainEntityEvent<T>>(
         }
         val lastBlockNumber = checkNotNull(last.blockNumber)
         val currentBlockNumber = checkNotNull(current.blockNumber)
-        return lastBlockNumber - currentBlockNumber >= confirmationBlocks
+        return lastBlockNumber - currentBlockNumber <= confirmationBlocks
     }
 }

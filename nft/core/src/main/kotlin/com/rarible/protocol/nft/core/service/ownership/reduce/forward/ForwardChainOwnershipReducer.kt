@@ -11,13 +11,16 @@ import org.springframework.stereotype.Component
 @Component
 class ForwardChainOwnershipReducer(
     forwardOwnershipValueReducer: ForwardOwnershipValueReducer,
-    forwardCreatorsOwnershipReducer: ForwardCreatorsOwnershipReducer,
     entityEventRevertService: EntityEventRevertService<OwnershipEvent>
 ) : Reducer<OwnershipEvent, Ownership> {
 
     private val reducer = RevertableEntityReducer(
         eventRevertService = entityEventRevertService,
-        reducer = ReducersChain(listOf(forwardOwnershipValueReducer, forwardCreatorsOwnershipReducer))
+        reducer = ReducersChain(
+            listOf(
+                forwardOwnershipValueReducer
+            )
+        )
     )
 
     override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
