@@ -42,7 +42,7 @@ internal class LazyItemReducerTest {
     @Test
     fun `should not reduce old lazy event`() = runBlocking<Unit> {
         val item = createRandomItem().copy(lastLazyEventTimestamp = nowMillis().epochSecond)
-        val event = createRandomLazyBurnItemEvent().copy(timestamp = item.lastLazyEventTimestamp - 10)
+        val event = createRandomLazyBurnItemEvent().copy(timestamp = requireNotNull(item.lastLazyEventTimestamp) - 10)
 
         val reducedItem = lazyItemReducer.reduce(item, event)
 

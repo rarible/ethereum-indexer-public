@@ -3,29 +3,32 @@ package com.rarible.protocol.nft.core.service
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
+import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.reduce.ItemReducer
-import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipReducer
+import com.rarible.protocol.nft.core.service.item.reduce.ItemTaskReduceService
+import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipTaskReduceService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactor.asFlux
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
 class ReduceService(
     private val skipTokens: ReduceSkipTokens,
-    private val itemReducer: ItemReducer,
-    private val ownershipReducer: OwnershipReducer,
+    private val itemTaskReduceService: ItemTaskReduceService,
+    private val ownershipTaskReduceService: OwnershipTaskReduceService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository
 )  {
-    suspend fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
+    suspend fun onItemHistories(logs: List<LogEvent>) {
         logger.info("onHistories ${logs.size} logs")
         logs
             .map { it.data as ItemHistory }
@@ -37,7 +40,7 @@ class ReduceService(
 
     suspend fun update(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemId> {
         logger.info("Update token=$token, tokenId=$tokenId")
-        Flux.mergeComparing(
+        return Flux.mergeComparing(
             compareBy<HistoryLog>(
                 { it.item.token.toString() },
                 { it.item.tokenId },
@@ -46,9 +49,18 @@ class ReduceService(
             ),
             findLazyItemsHistory(token, tokenId, from),
             historyRepository.findItemsHistory(token, tokenId, from)
-        ).asFlow().collect { event ->
+        ).asFlow().run {
+            val itemFlow = Channel<ItemEvent>()
+            val ownershipFlow = Channel<OwnershipEvent>()
+            itemTaskReduceService.reduce(itemFlow.consumeAsFlow())
+            ownershipTaskReduceService.reduce(ownershipFlow.consumeAsFlow())
 
-        }
+            map { logEvent ->
+                ItemEventConverter.convert(logEvent.log)?.let { event -> itemFlow.send(event) }
+                OwnershipEventConverter.convert(logEvent.log).forEach { event -> ownershipFlow.send(event) }
+                ItemId(logEvent.item.token, logEvent.item.tokenId)
+            }
+        }.asFlux()
     }
 
     private fun findLazyItemsHistory(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<HistoryLog> {
