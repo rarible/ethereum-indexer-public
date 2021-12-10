@@ -25,8 +25,8 @@ object OrderRepositoryIndexes {
 
     val SELL_ORDERS_STATUS_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
