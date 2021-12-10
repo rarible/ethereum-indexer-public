@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.EntityEventRevertService
+import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardValueItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.params.ParameterizedTest
@@ -11,7 +13,7 @@ import java.util.stream.Stream
 
 internal class ItemReducerTest {
     private val lazyItemReducer = mockk<LazyItemReducer>()
-    private val blockchainItemReducer = mockk<BlockchainItemReducer>()
+    private val blockchainItemReducer = mockk<ForwardValueItemReducer>()
     private val entityEventRevertService = mockk<EntityEventRevertService<ItemEvent>>()
     private val itemReducer = ItemReducer(lazyItemReducer, blockchainItemReducer, entityEventRevertService)
 

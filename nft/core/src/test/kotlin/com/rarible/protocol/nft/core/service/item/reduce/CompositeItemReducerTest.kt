@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
+import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedValueItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -13,9 +15,9 @@ import java.util.stream.Stream
 
 internal class CompositeItemReducerTest {
     private val itemReducer = mockk<ItemReducer>()
-    private val reversedItemReducer = mockk<ReversedItemReducer>()
+    private val reversedItemReducer = mockk<ReversedValueItemReducer>()
 
-    private val compositeItemReducer = CompositeItemReducer(
+    private val compositeItemReducer = EventStatusItemReducer(
         itemReducer = itemReducer,
         reversedItemReducer = reversedItemReducer
     )

@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.ownership.reduce
+package com.rarible.protocol.nft.core.service.ownership.reduce.status
 
 import com.rarible.core.entity.reducer.service.ReversedReducer
 import com.rarible.protocol.nft.core.model.*
@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.service.ownership.reduce.reversed.ReversedC
 import org.springframework.stereotype.Component
 
 @Component
-class BlockchainOwnershipReducer(
+class EventStatusOwnershipReducer(
     private val ownershipReducer: ForwardChainOwnershipReducer,
     private val reversedOwnershipReducer: ReversedChainOwnershipReducer
 ) : ReversedReducer<OwnershipEvent, Ownership> {

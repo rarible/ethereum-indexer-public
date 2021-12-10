@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.item.reduce
+package com.rarible.protocol.nft.core.service.item.reduce.forward
 
 import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.Reducer
@@ -11,7 +11,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 
 @Component
-class CreatorsItemReducer(
+class ForwardCreatorsItemReducer(
     private val creatorService: ItemCreatorService
 ) : Reducer<ItemEvent, Item> {
 
@@ -29,6 +29,7 @@ class CreatorsItemReducer(
                 val creators = event.creators
                 entity.copy(creators = getCreator(entity.id, creators), creatorsFinal = true)
             }
+            is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent -> {
                 entity
             }

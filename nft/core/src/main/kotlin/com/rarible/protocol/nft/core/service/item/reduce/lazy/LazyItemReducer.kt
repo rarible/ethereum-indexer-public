@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.item.reduce
+package com.rarible.protocol.nft.core.service.item.reduce.lazy
 
 import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.Reducer
@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 @Component
 class LazyItemReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return if (entity.lastLazyEventTimestamp >= event.timestamp) {
+        return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
             entity
         } else {
             val lazySupply = when (event) {
@@ -18,7 +18,8 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 is ItemEvent.LazyItemBurnEvent -> EthUInt256.ZERO
                 is ItemEvent.ItemBurnEvent,
                 is ItemEvent.ItemMintEvent,
-                is ItemEvent.ItemCreatorsEvent -> {
+                is ItemEvent.ItemCreatorsEvent,
+                is ItemEvent.ItemTransferEvent -> {
                     throw ReduceException("This events can't be in this reducer")
                 }
             }

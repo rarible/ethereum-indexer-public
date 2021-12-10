@@ -17,6 +17,19 @@ sealed class ItemEvent : BlockchainEntityEvent<ItemEvent>() {
         override val minorLogIndex: Int
     ) : ItemEvent()
 
+    data class ItemTransferEvent(
+        val from: Address,
+        val to: Address,
+        val value: EthUInt256,
+        override val blockNumber: Long,
+        override val logIndex: Int,
+        override val status: Status,
+        override val entityId: String,
+        override val timestamp: Long,
+        override val transactionHash: String,
+        override val minorLogIndex: Int
+    ) : ItemEvent()
+
     data class LazyItemMintEvent(
         val supply: EthUInt256,
         override val blockNumber: Long?,

@@ -13,7 +13,7 @@ class OwnershipEventReduceService(
     entityService: OwnershipUpdateService,
     entityEventService: OwnershipEventService,
     templateProvider: OwnershipTemplateProvider,
-    reducer: BlockchainOwnershipReducer
+    reducer: OwnershipReducer
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityEventService, templateProvider, reducer)
 

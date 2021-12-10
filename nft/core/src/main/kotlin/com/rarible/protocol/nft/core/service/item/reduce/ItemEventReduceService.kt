@@ -13,7 +13,7 @@ class ItemEventReduceService(
     entityService: ItemUpdateService,
     entityEventService: ItemEventService,
     templateProvider: ItemTemplateProvider,
-    reducer: CompositeItemReducer
+    reducer: ItemReducer
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityEventService, templateProvider, reducer)
 

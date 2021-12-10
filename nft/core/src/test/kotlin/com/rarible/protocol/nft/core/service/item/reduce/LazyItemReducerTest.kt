@@ -5,6 +5,7 @@ import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test

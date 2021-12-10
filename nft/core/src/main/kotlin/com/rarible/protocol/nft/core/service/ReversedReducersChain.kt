@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.entity.reducer.service.Reducer
+import com.rarible.core.entity.reducer.service.ReversedReducer
 
-open class ReducersChain<Event, Entity>(
-    private val reducers: List<Reducer<Event, Entity>>
-) : Reducer<Event, Entity> {
+open class ReversedReducersChain<Event, Entity>(
+    private val reducers: List<ReversedReducer<Event, Entity>>
+) : ReversedReducer<Event, Entity> {
 
     override suspend fun reduce(entity: Entity, event: Event): Entity {
         return reducers.fold(entity) { state, reducer ->
@@ -12,4 +12,3 @@ open class ReducersChain<Event, Entity>(
         }
     }
 }
-

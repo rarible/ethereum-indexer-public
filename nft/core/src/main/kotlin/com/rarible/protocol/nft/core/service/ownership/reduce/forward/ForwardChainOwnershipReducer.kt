@@ -13,14 +13,14 @@ class ForwardChainOwnershipReducer(
     forwardOwnershipValueReducer: ForwardOwnershipValueReducer,
     forwardCreatorsOwnershipReducer: ForwardCreatorsOwnershipReducer,
     entityEventRevertService: EntityEventRevertService<OwnershipEvent>
-) : ReducersChain<OwnershipEvent, Ownership>() {
+) : Reducer<OwnershipEvent, Ownership> {
 
-    private val reducers = listOf(
-        RevertableEntityReducer(entityEventRevertService, forwardOwnershipValueReducer),
-        forwardCreatorsOwnershipReducer
+    private val reducer = RevertableEntityReducer(
+        eventRevertService = entityEventRevertService,
+        reducer = ReducersChain(listOf(forwardOwnershipValueReducer, forwardCreatorsOwnershipReducer))
     )
 
-    override fun reducers(): List<Reducer<OwnershipEvent, Ownership>> {
-        return reducers
+    override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
+        return reducer.reduce(entity, event)
     }
 }

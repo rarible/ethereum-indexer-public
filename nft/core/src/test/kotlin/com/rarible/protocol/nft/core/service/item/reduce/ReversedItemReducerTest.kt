@@ -4,6 +4,7 @@ import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedValueItemReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -13,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 internal class ReversedItemReducerTest {
-    private val reversedItemReducer = ReversedItemReducer()
+    private val reversedItemReducer = ReversedValueItemReducer()
 
     @Test
     fun `should revert mint event`() = runBlocking<Unit> {
