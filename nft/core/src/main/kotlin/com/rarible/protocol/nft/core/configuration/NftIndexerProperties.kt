@@ -16,6 +16,7 @@ data class NftIndexerProperties(
     var cryptoPunksContractAddress: String,
     var openseaLazyMintAddress: String,
     var royaltyRegistryAddress: String,
+    val factory: FactoryAddresses,
     val nftItemMetaExtenderWorkersCount: Int = 4,
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
