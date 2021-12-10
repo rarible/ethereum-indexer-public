@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service
+package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -8,39 +8,45 @@ import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.reduce.ItemTaskReduceService
-import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipTaskReduceService
+import com.rarible.protocol.nft.core.service.composit.CompositeTaskReduceService
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.asFlux
+import kotlinx.coroutines.reactor.flux
 import org.slf4j.LoggerFactory
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
 @Component
-class ReduceService(
+@ExperimentalCoroutinesApi
+@Profile("reduce-v2")
+class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
-    private val itemTaskReduceService: ItemTaskReduceService,
-    private val ownershipTaskReduceService: OwnershipTaskReduceService,
+    private val compositeTaskReduceService: CompositeTaskReduceService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository
-)  {
-    suspend fun onItemHistories(logs: List<LogEvent>) {
+) : ItemReduceService {
+
+    override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         logger.info("onHistories ${logs.size} logs")
-        logs
+        return logs.toFlux()
             .map { it.data as ItemHistory }
             .map { history -> ItemId(history.token, history.tokenId) }
             .filter { skipTokens.allowReducing(it.token, it.tokenId) }
-            .distinct()
-            .forEach { update(token = it.token, tokenId = it.tokenId) }
+            .flatMap { update(token = it.token, tokenId = it.tokenId, from = null) }
+            .then()
     }
 
-    suspend fun update(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemId> {
+    @OptIn(FlowPreview::class)
+    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<ItemId> = flux {
         logger.info("Update token=$token, tokenId=$tokenId")
-        return Flux.mergeComparing(
+        val events = Flux.mergeComparing(
             compareBy<HistoryLog>(
                 { it.item.token.toString() },
                 { it.item.tokenId },
@@ -49,18 +55,15 @@ class ReduceService(
             ),
             findLazyItemsHistory(token, tokenId, from),
             historyRepository.findItemsHistory(token, tokenId, from)
-        ).asFlow().run {
-            val itemFlow = Channel<ItemEvent>()
-            val ownershipFlow = Channel<OwnershipEvent>()
-            itemTaskReduceService.reduce(itemFlow.consumeAsFlow())
-            ownershipTaskReduceService.reduce(ownershipFlow.consumeAsFlow())
-
-            map { logEvent ->
-                ItemEventConverter.convert(logEvent.log)?.let { event -> itemFlow.send(event) }
-                OwnershipEventConverter.convert(logEvent.log).forEach { event -> ownershipFlow.send(event) }
-                ItemId(logEvent.item.token, logEvent.item.tokenId)
-            }
-        }.asFlux()
+        ).map {
+            CompositeEvent(
+                itemEvent = ItemEventConverter.convert(it.log),
+                ownershipEvents = OwnershipEventConverter.convert(it.log)
+            )
+        }
+        compositeTaskReduceService.reduce(events.asFlow()).collect { entity ->
+            entity.id.itemId()?.let { send(it) }
+        }
     }
 
     private fun findLazyItemsHistory(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<HistoryLog> {
@@ -83,6 +86,6 @@ class ReduceService(
     }
 
     private companion object {
-        private val logger = LoggerFactory.getLogger(ReduceService::class.java)
+        private val logger = LoggerFactory.getLogger(ItemReduceServiceV2::class.java)
     }
 }

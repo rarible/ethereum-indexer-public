@@ -27,7 +27,7 @@ class ForwardOwnersItemReducer(
                 if (to == null || owners.contains(event.to).not()) {
                     owners.add(event.to)
                 }
-                if (from != null && from.value <= event.value) {
+                if (from != null && from.value == event.value) {
                     owners.remove(event.from)
                 }
                 entity.copy(owners = owners)

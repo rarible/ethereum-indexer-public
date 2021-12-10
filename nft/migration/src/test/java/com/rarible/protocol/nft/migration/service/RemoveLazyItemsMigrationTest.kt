@@ -21,6 +21,7 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
@@ -74,7 +75,7 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `should remove lazy items`() = runBlocking {
-        val itemReduceService = ItemReduceService(itemRepository, ownershipService, historyRepository,
+        val itemReduceService = ItemReduceServiceV1(itemRepository, ownershipService, historyRepository,
             lazyNftItemHistoryRepository, itemCreatorService, eventListenerListener, skipTokens, royaltyService, NftIndexerProperties.FeatureFlags())
 
         // non lazy collection

@@ -26,6 +26,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
     ]
 )
 @Import(TestPropertiesConfiguration::class)
-@ActiveProfiles("integration")
+@ActiveProfiles("integration", "reduce-v2")
 @Testcontainers
 annotation class IntegrationTest

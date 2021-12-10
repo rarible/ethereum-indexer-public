@@ -29,6 +29,7 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
@@ -155,8 +156,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logMint = LogEvent(
             data = eventMint,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 2,
             logIndex = 2,
@@ -173,8 +174,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logCreator = LogEvent(
             data = eventCreator,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 1,
             logIndex = 1,
@@ -202,8 +203,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logBurn = LogEvent(
             data = eventBurn,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 4,
             logIndex = Int.MAX_VALUE,

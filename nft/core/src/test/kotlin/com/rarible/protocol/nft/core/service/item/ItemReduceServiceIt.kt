@@ -63,10 +63,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         coEvery { mockItemPropertiesResolver.resolve(any()) } returns itemProperties
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun mintItem(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
+    @Test
+    fun mintItem() = runBlocking {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -74,7 +72,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -83,7 +80,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer)
+        saveItemHistory(transfer, logIndex = 0)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 
