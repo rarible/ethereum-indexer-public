@@ -10,10 +10,17 @@ import org.springframework.stereotype.Component
 class ReversedChainItemReducer(
     reversedValueItemReducer: ReversedValueItemReducer,
     reversedLazyValueItemReducer: ReversedLazyValueItemReducer,
+    reversedOwnersItemReducer: ReversedOwnersItemReducer
 ) : Reducer<ItemEvent, Item> {
 
     private val chain = RevertableEntityReversedReducer(
-        ReversedReducersChain(listOf(reversedValueItemReducer, reversedLazyValueItemReducer))
+        ReversedReducersChain(
+            listOf(
+                reversedValueItemReducer,
+                reversedLazyValueItemReducer,
+                reversedOwnersItemReducer
+            )
+        )
     )
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {

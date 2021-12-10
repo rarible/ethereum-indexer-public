@@ -12,12 +12,20 @@ class ForwardChainItemReducer(
     forwardCreatorsItemReducer: ForwardCreatorsItemReducer,
     forwardLazyValueItemReducer: ForwardLazyValueItemReducer,
     forwardValueItemReducer: ForwardValueItemReducer,
+    forwardOwnersItemReducer: ForwardOwnersItemReducer,
     entityEventRevertService: EntityEventRevertService<ItemEvent>
 ) : Reducer<ItemEvent, Item> {
 
     private val reducer = RevertableEntityReducer(
         eventRevertService = entityEventRevertService,
-        reducer = ReducersChain(listOf(forwardCreatorsItemReducer, forwardValueItemReducer, forwardLazyValueItemReducer))
+        reducer = ReducersChain(
+            listOf(
+                forwardCreatorsItemReducer,
+                forwardValueItemReducer,
+                forwardOwnersItemReducer,
+                forwardLazyValueItemReducer
+            )
+        )
     )
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
