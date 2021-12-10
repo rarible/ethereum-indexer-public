@@ -40,7 +40,7 @@ object OrderFilterCriteria {
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
             is OrderFilterAllDto -> Criteria().withNoHint()
-            is OrderFilterSellDto -> sell().withNoHint()
+            is OrderFilterSellDto -> sell().withHint(withSellHint())
             is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
             is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
             is OrderFilterSellByMakerDto -> sellByMaker(maker).withNoHint()
@@ -48,6 +48,7 @@ object OrderFilterCriteria {
             is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
         }
 
+        // TODO scrollTo/getHint/toCritria should be part of Filter
         val query = Query(
             criteria
                 .forPlatform(platforms.mapNotNull { convert(it) })
@@ -240,4 +241,22 @@ object OrderFilterCriteria {
 
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
+
+    private fun OrderFilterSellDto.withSellHint(): Document {
+        val hasPlatforms = this.platforms.mapNotNull { convert(it) }.isNotEmpty()
+        val hasStatuses = !this.status.isNullOrEmpty()
+        return if (hasPlatforms) {
+            if (hasStatuses) {
+                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
+            } else {
+                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
+            }
+        } else {
+            if (hasStatuses) {
+                OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
+            } else {
+                OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
+            }
+        }
+    }
 }
