@@ -11,13 +11,10 @@ open class EntityEventRevertService<T : BlockchainEntityEvent<T>>(
 
     override fun canBeReverted(last: T, current: T): Boolean {
         if (current.status == BlockchainEntityEvent.Status.PENDING) {
-            return false
+            return true
         }
-        if (last.status == BlockchainEntityEvent.Status.PENDING) {
-            return false
-        }
-        val lastBlockNumber = last.blockNumber ?: error("Can't be null")
-        val currentBlockNumber = current.blockNumber ?: error("Can't be null")
+        val lastBlockNumber = checkNotNull(last.blockNumber)
+        val currentBlockNumber = checkNotNull(current.blockNumber)
         return lastBlockNumber - currentBlockNumber >= confirmationBlocks
     }
 }

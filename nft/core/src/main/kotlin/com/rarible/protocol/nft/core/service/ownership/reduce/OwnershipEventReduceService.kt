@@ -25,3 +25,4 @@ class OwnershipEventReduceService(
             .let { delegate.reduceAll(it) }
     }
 }
+
