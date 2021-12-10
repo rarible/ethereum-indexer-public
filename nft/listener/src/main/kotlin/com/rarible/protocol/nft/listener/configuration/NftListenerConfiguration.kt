@@ -13,6 +13,7 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.listener.log.EnableLogListeners
 import com.rarible.ethereum.listener.log.persist.BlockRepository
 import com.rarible.ethereum.monitoring.BlockchainMonitoringWorker
+import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
@@ -21,6 +22,7 @@ import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.BatchedConsumerWorker
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
+import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.listener.NftListenerApplication
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
@@ -106,6 +108,29 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    fun collectionMetaExtenderWorker(internalCollectionHandler: InternalCollectionHandler): BatchedConsumerWorker<NftCollectionEventDto> {
+        logger.info("Creating batch of ${nftIndexerProperties.nftCollectionMetaExtenderWorkersCount} collection meta extender workers")
+        val workers = (1..nftIndexerProperties.nftCollectionMetaExtenderWorkersCount).map {
+            ConsumerWorker(
+                consumer = InternalCollectionHandler.createInternalCollectionConsumer(
+                    applicationEnvironmentInfo,
+                    nftIndexerProperties.blockchain,
+                    nftIndexerProperties.kafkaReplicaSet
+                ),
+                properties = nftIndexerProperties.daemonWorkerProperties,
+                eventHandler = internalCollectionHandler,
+                meterRegistry = meterRegistry,
+                workerName = "nftCollectionMetaExtender.$it"
+            )
+        }
+        return BatchedConsumerWorker(workers)
+    }
+
+    @Bean
     fun itemMetaExtenderWorkerStarter(itemMetaExtenderWorker: BatchedConsumerWorker<NftItemEventDto>): CommandLineRunner =
         CommandLineRunner { itemMetaExtenderWorker.start() }
+
+    @Bean
+    fun collectionMetaExtenderWorkerStarter(collectionMetaExtenderWorker: BatchedConsumerWorker<NftItemEventDto>): CommandLineRunner =
+        CommandLineRunner { collectionMetaExtenderWorker.start() }
 }

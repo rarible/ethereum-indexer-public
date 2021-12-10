@@ -7,7 +7,7 @@ import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import kotlinx.coroutines.async
@@ -20,7 +20,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LootPropertiesResolver(
     val sender: MonoTransactionSender,
     val mapper: ObjectMapper,

@@ -12,7 +12,8 @@ import org.springframework.stereotype.Component
 @Component
 @CaptureSpan(type = SpanType.KAFKA)
 class ProtocolNftEventPublisher(
-    private val collectionEventProducer: RaribleKafkaProducer<NftCollectionEventDto>,
+    private val collectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
+    private val internalCollectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val internalItemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
@@ -31,7 +32,17 @@ class ProtocolNftEventPublisher(
             headers = collectionEventHeaders,
             id = event.eventId
         )
-        collectionEventProducer.send(message).ensureSuccess()
+        collectionEventsProducer.send(message).ensureSuccess()
+    }
+
+    suspend fun publishInternalCollection(event: NftCollectionEventDto) {
+        val message = KafkaMessage(
+            key = event.id.hex(),
+            value = event,
+            headers = collectionEventHeaders,
+            id = event.eventId
+        )
+        internalCollectionEventsProducer.send(message).ensureSuccess()
     }
 
     suspend fun publish(event: NftItemEventDto) {

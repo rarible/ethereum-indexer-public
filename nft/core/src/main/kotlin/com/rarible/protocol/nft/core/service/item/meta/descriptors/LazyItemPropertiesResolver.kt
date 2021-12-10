@@ -12,7 +12,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LazyItemPropertiesResolver(
     private val rariblePropertiesResolver: RariblePropertiesResolver,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository

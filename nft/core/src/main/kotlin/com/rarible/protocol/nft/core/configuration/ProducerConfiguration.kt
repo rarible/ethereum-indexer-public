@@ -26,6 +26,9 @@ class ProducerConfiguration(
     fun collectionEventsProducer(producerFactory: ProducerFactory) = producerFactory.createCollectionEventsProducer()
 
     @Bean
+    fun internalCollectionEventsProducer(producerFactory: ProducerFactory) = producerFactory.createInternalCollectionEventsProducer()
+
+    @Bean
     fun itemEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemEventsProducer()
 
     @Bean

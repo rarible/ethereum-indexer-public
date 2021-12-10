@@ -3,13 +3,19 @@ package com.rarible.protocol.nft.core.integration
 import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
 import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.cache.CacheService
 import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
+import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolverProvider
+import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
+import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.mono.WebClientTransport
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
@@ -93,6 +99,25 @@ class TestPropertiesConfiguration {
         every { orderedResolvers } returns listOf(mockItemPropertiesResolver)
     }
 
+    @Bean
+    @Primary
+    @Qualifier("mockStandardTokenPropertiesResolver")
+    fun mockStandardTokenPropertiesResolver(): StandardTokenPropertiesResolver = mockk {
+        every { order } returns Int.MIN_VALUE
+    }
+
+    @Bean
+    @Primary
+    fun testTokenPropertiesService(
+        @Qualifier("mockStandardTokenPropertiesResolver") mockStandardTokenPropertiesResolver: StandardTokenPropertiesResolver
+    ): TokenPropertiesService {
+        return object : TokenPropertiesService(60000, mockk(), listOf(mockStandardTokenPropertiesResolver)) {
+            override suspend fun resolve(id: Address): TokenProperties? {
+                return super.doResolve(id)
+            }
+        }
+    }
+
     /**
      * This bean is needed to make possible publishing of item with extended meta.
      * In production this bean is defined in the 'nft-indexer-listener' module.
@@ -117,7 +142,35 @@ class TestPropertiesConfiguration {
         )
     }
 
+    /**
+     * This bean is needed to make possible publishing of collection with extended meta.
+     * In production this bean is defined in the 'nft-indexer-listener' module.
+     */
+    @Bean
+    fun collectionMetaExtenderWorker(
+        applicationEnvironmentInfo: ApplicationEnvironmentInfo,
+        internalCollectionHandler: InternalCollectionHandler,
+        nftIndexerProperties: NftIndexerProperties,
+        meterRegistry: MeterRegistry
+    ): ConsumerWorker<NftCollectionEventDto> {
+        return ConsumerWorker(
+            consumer = InternalCollectionHandler.createInternalCollectionConsumer(
+                applicationEnvironmentInfo,
+                nftIndexerProperties.blockchain,
+                nftIndexerProperties.kafkaReplicaSet
+            ),
+            properties = nftIndexerProperties.daemonWorkerProperties,
+            eventHandler = internalCollectionHandler,
+            meterRegistry = meterRegistry,
+            workerName = "nftCollectionMetaExtender"
+        )
+    }
+
     @Bean
     fun itemMetaExtenderWorkerStarter(itemMetaExtenderWorker: ConsumerWorker<NftItemEventDto>): CommandLineRunner =
         CommandLineRunner { itemMetaExtenderWorker.start() }
+
+    @Bean
+    fun collectionMetaExtenderWorkerStarter(collectionMetaExtenderWorker: ConsumerWorker<NftCollectionEventDto>): CommandLineRunner =
+        CommandLineRunner { collectionMetaExtenderWorker.start() }
 }

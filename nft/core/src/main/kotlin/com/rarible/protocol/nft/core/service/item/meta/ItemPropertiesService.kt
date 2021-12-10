@@ -7,7 +7,8 @@ import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacyCachePropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
@@ -21,7 +22,7 @@ import reactor.core.publisher.Mono
 import java.time.Instant
 
 @Service
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
     private val ipfsService: IpfsService,

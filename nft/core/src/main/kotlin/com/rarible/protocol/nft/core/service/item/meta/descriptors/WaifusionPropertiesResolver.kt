@@ -12,7 +12,7 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class WaifusionPropertiesResolver(
     sender: MonoTransactionSender
 ) : ItemPropertiesResolver {

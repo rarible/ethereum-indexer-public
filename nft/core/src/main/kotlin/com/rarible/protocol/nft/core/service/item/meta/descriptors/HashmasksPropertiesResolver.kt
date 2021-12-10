@@ -13,7 +13,7 @@ import scalether.transaction.MonoTransactionSender
 
 // TODO[meta]: support metadata and images of Hashmasks: https://twitter.com/thehashmasks/status/1372188306356772870
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class HashmasksPropertiesResolver(
     sender: MonoTransactionSender
 ) : ItemPropertiesResolver {

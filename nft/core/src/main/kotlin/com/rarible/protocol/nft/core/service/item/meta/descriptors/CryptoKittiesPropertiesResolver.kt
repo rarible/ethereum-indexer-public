@@ -17,7 +17,7 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
 
     private val client = WebClient.builder()

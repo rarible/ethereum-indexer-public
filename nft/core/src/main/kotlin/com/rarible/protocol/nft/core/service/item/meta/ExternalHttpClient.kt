@@ -30,11 +30,11 @@ class ExternalHttpClient(
     @Value("\${api.proxy-url:}") private val proxyUrl: String
 ) {
 
-    private val defaultClient = WebClient.builder().apply {
+    protected val defaultClient = WebClient.builder().apply {
         DefaultProtocolWebClientCustomizer().customize(it)
     }.build()
 
-    private val openSeaClient = WebClient.builder()
+    protected val openSeaClient = WebClient.builder()
         .clientConnector(createConnector(connectTimeout, readTimeout, proxyUrl, true))
         .exchangeStrategies(ExchangeStrategies.builder()
             .codecs { it.defaultCodecs().maxInMemorySize(262144 * 5) }
