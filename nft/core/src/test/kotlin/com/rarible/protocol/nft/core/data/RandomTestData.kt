@@ -15,6 +15,7 @@ fun createRandomItem(): Item {
 
 fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {
     return ItemEvent.ItemMintEvent(
+        owner = randomAddress(),
         supply = EthUInt256.of(randomInt()),
         blockNumber = randomLong(),
         logIndex = randomInt(),

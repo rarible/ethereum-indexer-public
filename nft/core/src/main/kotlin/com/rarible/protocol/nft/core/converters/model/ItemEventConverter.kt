@@ -11,6 +11,7 @@ object ItemEventConverter {
                 when {
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
+                        owner = data.owner,
                         blockNumber = source.blockNumber ?: error("Can't be null"),
                         logIndex = source.logIndex ?: error("Can't be null"),
                         status = BlockchainStatusConverter.convert(source.status),
@@ -33,7 +34,7 @@ object ItemEventConverter {
                 }
             }
             is ItemLazyMint -> {
-                ItemEvent.ItemMintEvent(
+                ItemEvent.LazyItemMintEvent(
                     supply = data.value,
                     blockNumber = source.blockNumber ?: error("Can't be null"),
                     logIndex = source.logIndex ?: error("Can't be null"),
@@ -45,7 +46,7 @@ object ItemEventConverter {
                 )
             }
             is BurnItemLazyMint -> {
-                ItemEvent.ItemBurnEvent(
+                ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
                     blockNumber = source.blockNumber ?: error("Can't be null"),
                     logIndex = source.logIndex ?: error("Can't be null"),
@@ -60,3 +61,4 @@ object ItemEventConverter {
         }
     }
 }
+

@@ -2,13 +2,14 @@ package com.rarible.protocol.nft.core.service
 
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
+import com.rarible.protocol.nft.core.model.ItemEvent
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class EntityEventRevertServiceTest {
-    private val entityEventRevertService = EntityEventRevertService(
+    private val entityEventRevertService = EntityEventRevertService<ItemEvent>(
         mockk { every { confirmationBlocks } returns 5 }
     )
 

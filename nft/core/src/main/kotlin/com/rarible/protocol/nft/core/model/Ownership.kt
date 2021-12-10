@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.entity.reducer.model.RevertableEntity
 import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
@@ -25,17 +26,23 @@ data class Ownership(
     val value: EthUInt256,
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
-    val pending: List<ItemTransfer>
-) {
+    val pending: List<ItemTransfer>,
+    val deleted: Boolean = false,
+    override val events: List<OwnershipEvent> = emptyList()
+) : RevertableEntity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
     private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
     @get:Id
     @get:AccessType(AccessType.Type.PROPERTY)
-    var id: OwnershipId
+    override var id: OwnershipId
         get() = _id
         set(_) {}
+
+    override fun withEvents(events: List<OwnershipEvent>): Ownership {
+        return copy(events = events)
+    }
 
     companion object {
 

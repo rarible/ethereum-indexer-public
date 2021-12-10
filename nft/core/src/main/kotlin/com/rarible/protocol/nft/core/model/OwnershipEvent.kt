@@ -1,31 +1,29 @@
 package com.rarible.protocol.nft.core.model
 
-import java.time.Instant
+import com.rarible.ethereum.domain.EthUInt256
 
-data class OwnershipEvent(
-    val id: String,
-    val entityId: String,
-    val timestamp: Instant,
-    val subEvents: List<OwnershipSubEvent>
-)
+sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
+    abstract val value: EthUInt256
 
-sealed class OwnershipSubEvent {
-    abstract val type: SubOwnershipEventType
-}
+    data class TransferToEvent(
+        override val value: EthUInt256,
+        override val blockNumber: Long,
+        override val logIndex: Int,
+        override val status: Status,
+        override val entityId: String,
+        override val timestamp: Long,
+        override val transactionHash: String,
+        override val minorLogIndex: Int,
+    ) : OwnershipEvent()
 
-data class UpdateOwnershipEvent(
-    val ownership: Ownership
-) : OwnershipSubEvent() {
-    override val type: SubOwnershipEventType = SubOwnershipEventType.OWNERSHIP_UPDATED
-}
-
-data class DeleteOwnershipEvent(
-    val ownershipId: String
-) : OwnershipSubEvent() {
-    override val type: SubOwnershipEventType = SubOwnershipEventType.OWNERSHIP_DELETED
-}
-
-enum class SubOwnershipEventType {
-    OWNERSHIP_UPDATED,
-    OWNERSHIP_DELETED,
+    data class TransferFromEvent(
+        override val value: EthUInt256,
+        override val blockNumber: Long?,
+        override val logIndex: Int?,
+        override val status: Status,
+        override val entityId: String,
+        override val timestamp: Long,
+        override val transactionHash: String,
+        override val minorLogIndex: Int
+    ) : OwnershipEvent()
 }

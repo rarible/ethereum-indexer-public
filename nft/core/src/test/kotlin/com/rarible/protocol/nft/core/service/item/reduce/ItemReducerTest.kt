@@ -12,7 +12,7 @@ import java.util.stream.Stream
 internal class ItemReducerTest {
     private val lazyItemReducer = mockk<LazyItemReducer>()
     private val blockchainItemReducer = mockk<BlockchainItemReducer>()
-    private val entityEventRevertService = mockk<EntityEventRevertService>()
+    private val entityEventRevertService = mockk<EntityEventRevertService<ItemEvent>>()
     private val itemReducer = ItemReducer(lazyItemReducer, blockchainItemReducer, entityEventRevertService)
 
     companion object {

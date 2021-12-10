@@ -16,7 +16,9 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
             val lazySupply = when (event) {
                 is ItemEvent.LazyItemMintEvent -> entity.lazySupply + event.supply
                 is ItemEvent.LazyItemBurnEvent -> EthUInt256.ZERO
-                is ItemEvent.ItemBurnEvent, is ItemEvent.ItemMintEvent -> {
+                is ItemEvent.ItemBurnEvent,
+                is ItemEvent.ItemMintEvent,
+                is ItemEvent.ItemCreatorsEvent -> {
                     throw ReduceException("This events can't be in this reducer")
                 }
             }

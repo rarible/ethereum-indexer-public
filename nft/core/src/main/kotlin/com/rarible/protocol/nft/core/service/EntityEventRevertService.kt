@@ -3,16 +3,13 @@ package com.rarible.protocol.nft.core.service
 import com.rarible.core.entity.reducer.service.EventRevertService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
-import com.rarible.protocol.nft.core.model.ItemEvent
-import org.springframework.stereotype.Component
 
-@Component
-class EntityEventRevertService(
+open class EntityEventRevertService<T : BlockchainEntityEvent<T>>(
     nftIndexerProperties: NftIndexerProperties
-) : EventRevertService<ItemEvent> {
+) : EventRevertService<T> {
     private val confirmationBlocks = nftIndexerProperties.confirmationBlocks
 
-    override fun canBeReverted(last: ItemEvent, current: ItemEvent): Boolean {
+    override fun canBeReverted(last: T, current: T): Boolean {
         if (current.status == BlockchainEntityEvent.Status.PENDING) {
             return false
         }
