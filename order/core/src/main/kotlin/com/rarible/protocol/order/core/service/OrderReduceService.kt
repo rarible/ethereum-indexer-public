@@ -282,7 +282,7 @@ class OrderReduceService(
     }
 
     companion object {
-        private val EMPTY_ORDER_HASH = 0.toBigInteger().toWord()
+        val EMPTY_ORDER_HASH = 0.toBigInteger().toWord()
 
         private val emptyOrder = Order(
             maker = Address.ZERO(),
