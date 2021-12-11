@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.core.service.item.reduce.forward
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.core.entity.reducer.service.RevertableEntityReducer
 import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.service.EntityEventRevertService
+import com.rarible.protocol.nft.core.service.ConfirmEventRevertService
 import com.rarible.protocol.nft.core.service.ReducersChain
 import org.springframework.stereotype.Component
 
@@ -13,11 +13,11 @@ class ForwardChainItemReducer(
     forwardLazyValueItemReducer: ForwardLazyValueItemReducer,
     forwardValueItemReducer: ForwardValueItemReducer,
     forwardOwnersItemReducer: ForwardOwnersItemReducer,
-    entityEventRevertService: EntityEventRevertService<ItemEvent>
+    confirmEventRevertService: ConfirmEventRevertService<ItemEvent>
 ) : Reducer<ItemEvent, Item> {
 
     private val reducer = RevertableEntityReducer(
-        eventRevertService = entityEventRevertService,
+        eventRevertService = confirmEventRevertService,
         reducer = ReducersChain(
             listOf(
                 forwardCreatorsItemReducer,

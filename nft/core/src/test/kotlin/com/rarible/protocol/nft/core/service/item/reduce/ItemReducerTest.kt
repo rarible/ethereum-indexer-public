@@ -2,8 +2,6 @@ package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
-import com.rarible.protocol.nft.core.service.EntityEventRevertService
-import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardValueItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import io.mockk.*

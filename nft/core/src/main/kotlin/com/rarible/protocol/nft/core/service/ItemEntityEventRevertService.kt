@@ -6,4 +6,4 @@ import org.springframework.stereotype.Component
 
 @Component
 class ItemEntityEventRevertService(properties: NftIndexerProperties) :
-    EntityEventRevertService<ItemEvent>(properties)
+    ConfirmEventRevertService<ItemEvent>(properties)

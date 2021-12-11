@@ -92,45 +92,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    @Disabled
-    fun compareHandleTime(ownershipBatchHandle: Boolean) = runBlocking {
-        nftItemHistoryRepository.createIndexes()
-        featureFlags.isRoyaltyServiceEnabled = false
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
-        val token = AddressFactory.create()
-        val tokenId = EthUInt256.ONE
-
-        saveToken(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        )
-
-        val timing = mutableListOf<Long>()
-
-        val ownerships = 6000
-        repeat((1..ownerships).count()) {
-            val transfer = createTransfer(token, tokenId)
-            saveItemHistory(transfer)
-        }
-
-        for (i in 1..3) {
-            val start = nowMillis()
-            historyService.update(token, tokenId).awaitFirstOrNull()
-            val end = nowMillis()
-            timing.add(end.toEpochMilli() - start.toEpochMilli())
-        }
-        timing.forEach {
-            logger.info("$it ($ownershipBatchHandle)")
-        }
-    }
-
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `should get creator from tokenId for opensea tokenId`(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun `should get creator from tokenId for opensea tokenId`() = runBlocking {
         val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
 
         val owner = AddressFactory.create()
@@ -163,18 +126,15 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun mintItemViaPending(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun mintItemViaPending() = runBlocking {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
         saveItemHistory(
             ItemTransfer(
                 owner = owner,
@@ -183,7 +143,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 from = Address.ZERO(),
                 value = EthUInt256.ONE
-            ), status = LogEventStatus.PENDING
+            ),
+            status = LogEventStatus.PENDING
         )
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)

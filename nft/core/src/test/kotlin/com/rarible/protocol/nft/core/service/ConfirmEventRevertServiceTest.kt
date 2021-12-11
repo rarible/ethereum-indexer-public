@@ -8,8 +8,8 @@ import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-internal class EntityEventRevertServiceTest {
-    private val entityEventRevertService = EntityEventRevertService<ItemEvent>(
+internal class ConfirmEventRevertServiceTest {
+    private val entityEventRevertService = ConfirmEventRevertService<ItemEvent>(
         mockk { every { confirmationBlocks } returns 5 }
     )
 

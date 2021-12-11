@@ -6,4 +6,4 @@ import org.springframework.stereotype.Component
 
 @Component
 class OwnershipEntityEventRevertService(properties: NftIndexerProperties)
-    : EntityEventRevertService<OwnershipEvent>(properties)
+    : ConfirmEventRevertService<OwnershipEvent>(properties)

@@ -17,17 +17,17 @@ class ForwardCreatorsItemReducer(
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {
+            is ItemEvent.ItemCreatorsEvent -> {
+                val creators = event.creators
+                entity.copy(creators = getCreator(entity.id, creators), creatorsFinal = true)
+            }
             is ItemEvent.ItemMintEvent -> {
-                val creators = if (entity.creators.isEmpty() && entity.creatorsFinal.not()) {
+                val creators = if (entity.creatorsFinal.not()) {
                     listOf(Part.fullPart(event.owner))
                 } else {
                     entity.creators
                 }
                 entity.copy(creators = getCreator(entity.id, creators))
-            }
-            is ItemEvent.ItemCreatorsEvent -> {
-                val creators = event.creators
-                entity.copy(creators = getCreator(entity.id, creators), creatorsFinal = true)
             }
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent -> {

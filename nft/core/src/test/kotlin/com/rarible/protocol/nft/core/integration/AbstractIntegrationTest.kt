@@ -158,7 +158,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         data: T,
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
-        logIndex: Int? = null,
+        logIndex: Int? = 0,
         status: LogEventStatus = LogEventStatus.CONFIRMED
     ): T {
         return nftItemHistoryRepository.save(
