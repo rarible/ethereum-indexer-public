@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service
+package com.rarible.protocol.nft.core.service.ownership
 
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.OwnershipEvent

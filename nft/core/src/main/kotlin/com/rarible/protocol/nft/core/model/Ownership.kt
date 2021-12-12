@@ -34,6 +34,12 @@ data class Ownership(
     @Transient
     private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
+    fun withCalculated(): Ownership {
+        val deleted = deleted || revertableEvents.isEmpty()
+        val value = if (deleted) EthUInt256.ZERO else value
+        return copy(deleted = deleted, value = value)
+    }
+
     @get:Id
     @get:AccessType(AccessType.Type.PROPERTY)
     override var id: OwnershipId
@@ -55,7 +61,7 @@ data class Ownership(
             return OwnershipId(Address.apply(parts[0].trim()), tokenId, Address.apply(parts[2].trim()))
         }
 
-        fun empty(token: Address, tokenId: EthUInt256, owner: Address): Ownership {
+        fun empty(token: Address, tokenId: EthUInt256, owner: Address, deleted: Boolean = false): Ownership {
             return Ownership(
                 token = token,
                 tokenId = tokenId,
@@ -63,6 +69,7 @@ data class Ownership(
                 owner = owner,
                 value = EthUInt256.ZERO,
                 lazyValue = EthUInt256.ZERO,
+                deleted = deleted,
                 date = nowMillis(),
                 pending = emptyList()
             )

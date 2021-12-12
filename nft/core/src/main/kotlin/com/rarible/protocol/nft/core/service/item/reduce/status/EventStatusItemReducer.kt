@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.inactive.InactiveChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.pending.PendingChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedChainItemReducer
 import org.springframework.stereotype.Component
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component
 class EventStatusItemReducer(
     private val forwardChainItemReducer: ForwardChainItemReducer,
     private val reversedChainItemReducer: ReversedChainItemReducer,
-    private val pendingChainItemReducer: PendingChainItemReducer
+    private val pendingChainItemReducer: PendingChainItemReducer,
+    private val inactiveChainItemReducer: InactiveChainItemReducer
 ) : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
@@ -27,7 +29,10 @@ class EventStatusItemReducer(
             BlockchainEntityEvent.Status.REVERTED -> {
                 reversedChainItemReducer.reduce(entity, event)
             }
-            BlockchainEntityEvent.Status.INACTIVE -> TODO()
+            BlockchainEntityEvent.Status.INACTIVE,
+            BlockchainEntityEvent.Status.DROPPED -> {
+                inactiveChainItemReducer.reduce(entity, event)
+            }
         }
     }
 }

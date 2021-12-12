@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component
 @Component
 class OwnershipTemplateProvider : EntityTemplateProvider<OwnershipId, Ownership> {
     override fun getEntityTemplate(id: OwnershipId): Ownership {
-        return Ownership.empty(id.token, id.tokenId, id.owner)
+        return Ownership.empty(id.token, id.tokenId, id.owner, deleted = true)
     }
 }

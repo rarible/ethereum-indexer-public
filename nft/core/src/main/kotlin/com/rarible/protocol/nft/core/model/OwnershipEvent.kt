@@ -7,23 +7,25 @@ sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
 
     data class TransferToEvent(
         override val value: EthUInt256,
-        override val blockNumber: Long,
-        override val logIndex: Int,
+        override val blockNumber: Long?,
+        override val logIndex: Int?,
+        override val minorLogIndex: Int,
         override val status: Status,
         override val entityId: String,
         override val timestamp: Long,
         override val transactionHash: String,
-        override val minorLogIndex: Int,
+        override val address: String
     ) : OwnershipEvent()
 
     data class TransferFromEvent(
         override val value: EthUInt256,
         override val blockNumber: Long?,
         override val logIndex: Int?,
+        override val minorLogIndex: Int,
         override val status: Status,
         override val entityId: String,
         override val timestamp: Long,
         override val transactionHash: String,
-        override val minorLogIndex: Int
+        override val address: String
     ) : OwnershipEvent()
 }

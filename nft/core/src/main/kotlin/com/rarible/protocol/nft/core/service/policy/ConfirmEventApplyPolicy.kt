@@ -8,31 +8,32 @@ open class ConfirmEventApplyPolicy<T : BlockchainEntityEvent<T>>(
 ) : EventApplyPolicy<T> {
 
     override fun reduce(events: List<T>, event: T): List<T> {
-        checkIncomeEvent(event)
-
         val newEventList = (events + event)
         val lastNotRevertableEvent = newEventList.lastOrNull { current ->
             current.isConfirmed && isNotReverted(incomeEvent = event, current = current)
         }
         return newEventList.filter { current ->
-            current.isConfirmed && isNotReverted(incomeEvent = event, current = current) && current != lastNotRevertableEvent
+            current.isConfirmed.not() || current == lastNotRevertableEvent || isReverted(incomeEvent = event, current = current)
         }
     }
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
-        checkIncomeEvent(event)
         val lastAppliedEvent = events.lastOrNull { it.isConfirmed }
 
         return if (lastAppliedEvent == null || lastAppliedEvent < event) {
-            true
+            false
         } else {
             val firstAppliedEvent = events.firstOrNull { it.isConfirmed }
             when  {
-                firstAppliedEvent == null -> true
+                firstAppliedEvent == null -> false
                 firstAppliedEvent > lastAppliedEvent -> throw IllegalStateException("Can't decide if need to apply event")
                 else -> false
             }
         }
+    }
+
+    private fun isReverted(incomeEvent: T, current: T): Boolean {
+        return isNotReverted(incomeEvent, current).not()
     }
 
     private fun isNotReverted(incomeEvent: T, current: T): Boolean {
@@ -44,10 +45,6 @@ open class ConfirmEventApplyPolicy<T : BlockchainEntityEvent<T>>(
             "Block diff between income=$incomeEvent and current=$current can't be negative"
         }
         return blockDiff >= confirmationBlocks
-    }
-
-    private fun checkIncomeEvent(event: T) {
-        require(event.isConfirmed) { "Income event must be with ${BlockchainEntityEvent.Status.CONFIRMED} status" }
     }
 }
 

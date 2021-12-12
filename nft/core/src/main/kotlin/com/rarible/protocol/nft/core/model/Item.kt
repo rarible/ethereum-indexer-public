@@ -43,6 +43,12 @@ data class Item(
         get() = _id
         set(_) {}
 
+    fun withCalculated(): Item {
+        val deleted = deleted || revertableEvents.isEmpty()
+        val supply = if (deleted) EthUInt256.ZERO else supply
+        return copy(deleted = deleted, supply = supply)
+    }
+
     override fun withRevertableEvents(events: List<ItemEvent>): Item {
         return copy(revertableEvents = events)
     }
@@ -58,7 +64,7 @@ data class Item(
             return ItemId(Address.apply(parts[0].trim()), tokenId)
         }
 
-        fun empty(token: Address, tokenId: EthUInt256): Item {
+        fun empty(token: Address, tokenId: EthUInt256, deleted: Boolean = false): Item {
             return Item(
                 token = token,
                 tokenId = tokenId,
@@ -66,6 +72,7 @@ data class Item(
                 lazySupply = EthUInt256.ZERO,
                 royalties = emptyList(),
                 date = nowMillis(),
+                deleted = deleted,
                 revertableEvents = emptyList()
             )
         }

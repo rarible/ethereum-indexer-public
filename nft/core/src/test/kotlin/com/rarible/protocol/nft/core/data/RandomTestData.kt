@@ -23,6 +23,7 @@ fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {
         entityId = randomString(),
         timestamp = randomLong(),
         transactionHash = randomString(),
+        address = randomString(),
         minorLogIndex = randomInt()
     )
 }
@@ -36,6 +37,7 @@ fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
         entityId = randomString(),
         timestamp = randomLong(),
         transactionHash = randomString(),
+        address = randomString(),
         minorLogIndex = randomInt()
     )
 }
@@ -49,6 +51,7 @@ fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
         entityId = randomString(),
         timestamp = randomLong(),
         transactionHash = randomString(),
+        address = randomString(),
         minorLogIndex = randomInt()
     )
 }
@@ -61,6 +64,7 @@ fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
         entityId = randomString(),
         timestamp = randomLong(),
         transactionHash = randomString(),
+        address = randomString(),
         minorLogIndex = randomInt()
     )
 }

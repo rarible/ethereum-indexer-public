@@ -9,7 +9,9 @@ object BlockchainStatusConverter {
         return when (source) {
             Log.Status.CONFIRMED -> BlockchainEntityEvent.Status.CONFIRMED
             Log.Status.PENDING -> BlockchainEntityEvent.Status.PENDING
-            Log.Status.REVERTED, Log.Status.DROPPED, Log.Status.INACTIVE -> BlockchainEntityEvent.Status.REVERTED
+            Log.Status.REVERTED -> BlockchainEntityEvent.Status.REVERTED
+            Log.Status.DROPPED -> BlockchainEntityEvent.Status.DROPPED
+            Log.Status.INACTIVE ->  BlockchainEntityEvent.Status.INACTIVE
         }
     }
 
@@ -17,7 +19,9 @@ object BlockchainStatusConverter {
         return when (source) {
             LogEventStatus.CONFIRMED -> BlockchainEntityEvent.Status.CONFIRMED
             LogEventStatus.PENDING -> BlockchainEntityEvent.Status.PENDING
-            LogEventStatus.REVERTED, LogEventStatus.DROPPED, LogEventStatus.INACTIVE -> BlockchainEntityEvent.Status.REVERTED
+            LogEventStatus.REVERTED -> BlockchainEntityEvent.Status.REVERTED
+            LogEventStatus.DROPPED -> BlockchainEntityEvent.Status.DROPPED
+            LogEventStatus.INACTIVE -> BlockchainEntityEvent.Status.INACTIVE
         }
     }
 }

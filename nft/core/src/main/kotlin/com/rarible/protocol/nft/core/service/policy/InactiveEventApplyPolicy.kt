@@ -6,13 +6,11 @@ import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 open class InactiveEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPolicy<T> {
 
     override fun reduce(events: List<T>, event: T): List<T> {
-        checkIncomeEvent(event)
         val pendingEvent = findPendingEvent(events, event)
         return if (pendingEvent != null) events - event else events
     }
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
-        checkIncomeEvent(event)
         return findPendingEvent(events, event) != null
     }
 
@@ -20,9 +18,5 @@ open class InactiveEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPo
         return events.firstOrNull { current ->
             current.isPending && current.compareTo(event) == 0
         }
-    }
-
-    private fun checkIncomeEvent(event: T) {
-        require(event.isInactive) { "Income event must be with ${BlockchainEntityEvent.Status.INACTIVE} status" }
     }
 }

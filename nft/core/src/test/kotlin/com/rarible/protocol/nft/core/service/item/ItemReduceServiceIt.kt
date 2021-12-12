@@ -11,6 +11,7 @@ import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
@@ -173,18 +174,15 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun deleteErrorEntities(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun deleteErrorEntities() = runBlocking {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -193,8 +191,25 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        nftItemHistoryRepository.save(LogEvent(data = transfer, address = AddressFactory.create(), topic = WordFactory.create(), transactionHash = WordFactory.create(), status = LogEventStatus.DROPPED, index = 0, minorLogIndex = 0)).awaitFirst()
+        val logEvent = LogEvent(
+            data = transfer,
+            address = AddressFactory.create(),
+            topic = WordFactory.create(),
+            transactionHash = WordFactory.create(),
+            status = LogEventStatus.DROPPED,
+            blockNumber = 1,
+            logIndex = null,
+            minorLogIndex = 0,
+            index = 0
+        )
+        nftItemHistoryRepository.save(logEvent).awaitFirst()
+
         val id = OwnershipId(token, tokenId, owner)
+
+        val ownershipEvent = OwnershipEventConverter
+            .convert(logEvent.copy(status = LogEventStatus.PENDING))
+            .single()
+
         ownershipRepository.save(
             Ownership(
                 token = token,
@@ -204,30 +219,32 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 lazyValue = EthUInt256.ZERO,
                 date = nowMillis(),
                 creators = listOf(Part(AddressFactory.create(), 1000)),
-                pending = emptyList()
+                pending = emptyList(),
+                revertableEvents = listOf(ownershipEvent)
             )
         ).awaitFirst()
 
         historyService.update(token, tokenId).awaitFirstOrNull()
-        assertThat(ownershipRepository.findById(id).awaitFirstOrNull()).isNull()
+
+        val ownership = ownershipRepository.findById(id).awaitFirstOrNull()
+        if (ownership != null) {
+            assertThat(ownership.deleted).isTrue()
+        }
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO, deleted = true)
 
         checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemDeleteEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun transferToSelf(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun transferToSelf() = runBlocking {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
-
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -244,8 +261,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = owner,
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer, token)
-        saveItemHistory(transfer2, token)
+        saveItemHistory(transfer, token, logIndex = 0)
+        saveItemHistory(transfer2, token, logIndex = 1)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
@@ -255,12 +272,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @MethodSource("invalidLogEventStatus")
-    fun deleteItemAfterLogEventChangeStatusFromPendingToInvalidStatus(
-        invalidStatus: LogEventStatus,
-        ownershipBatchHandle: Boolean
-    ) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    fun deleteItemAfterLogEventChangeStatusFromPendingToInvalidStatus(invalidStatus: LogEventStatus) = runBlocking<Unit> {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -299,11 +311,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(updatedItem.deleted).isTrue()
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun burnItem(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun burnItem() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -340,11 +349,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun pendingItemTransfer(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun pendingItemTransfer() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -369,11 +375,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun confirmedItemTransfer(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun confirmedItemTransfer() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         saveToken(
@@ -405,8 +408,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.Companion.of(5))
     }
 
-    @Disabled
     @Test
+    @Disabled
     fun confirmedItemRoyalty() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -428,11 +431,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.royalties).isEqualTo(listOf(Part(owner, 2)))
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun confirmedItemMint(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun confirmedItemMint() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val minter = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -454,11 +454,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(creatorsList)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `update ownership for ERC1155`(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun `update ownership for ERC1155`() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -497,11 +494,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     /**
      * Check that ownership of ERC721 is removed for the previous owner and a new ownership for the new owner is created
      */
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `ownership transferred for ERC721`(ownershipBatchHandle: Boolean) = runBlocking {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun `ownership transferred for ERC721`() = runBlocking {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -538,11 +532,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `should set pending log only for target ownerships`(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun `should set pending log only for target ownerships`() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner1 = AddressFactory.create()
@@ -596,11 +587,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownership3.pending).isNotEmpty
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun ownershipsInfoOfItem(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun ownershipsInfoOfItem() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.of(1)
         val creator = AddressFactory.create()
@@ -669,11 +657,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.owners).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `should lazy mint`(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
-        setOwnershipBatchHandle(ownershipBatchHandle)
-
+    @Test
+    fun `should lazy mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -702,9 +687,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(creator, token, tokenId, expValue = EthUInt256.of(20), expLazyValue = EthUInt256.of(20))
     }
 
-    @ParameterizedTest
-    @MethodSource("ownershipBatchHandle")
-    fun `should calculate lazy after real mint`(ownershipBatchHandle: Boolean) = runBlocking<Unit> {
+    @Test
+    fun `should calculate lazy after real mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -825,8 +809,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, expSupply = value, expLazySupply = EthUInt256.Companion.of(0))
     }
 
-    @Disabled
     @Test
+    @Disabled
     fun `should calculate royalties after real mint of lazy nft`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
@@ -955,10 +939,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         @JvmStatic
         fun invalidLogEventStatus(): Stream<Arguments> = Stream.of(
-            Arguments.of(LogEventStatus.DROPPED, true),
-            Arguments.of(LogEventStatus.INACTIVE, true),
-            Arguments.of(LogEventStatus.DROPPED, false),
-            Arguments.of(LogEventStatus.INACTIVE, false)
+            Arguments.of(LogEventStatus.DROPPED),
+            Arguments.of(LogEventStatus.INACTIVE),
         )
 
         @JvmStatic

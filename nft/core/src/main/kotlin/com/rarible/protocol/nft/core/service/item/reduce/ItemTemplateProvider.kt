@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component
 @Component
 class ItemTemplateProvider : EntityTemplateProvider<ItemId, Item> {
     override fun getEntityTemplate(id: ItemId): Item {
-        return Item.empty(id.token, id.tokenId)
+        return Item.empty(id.token, id.tokenId, deleted = true)
     }
 }

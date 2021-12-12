@@ -4,7 +4,7 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.service.EntityChainReducer
-import com.rarible.protocol.nft.core.service.OwnershipConfirmEventApplyPolicy
+import com.rarible.protocol.nft.core.service.ownership.OwnershipConfirmEventApplyPolicy
 import org.springframework.stereotype.Component
 
 @Component

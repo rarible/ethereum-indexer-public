@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item.reduce.forward
 
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.service.EntityChainReducer
-import com.rarible.protocol.nft.core.service.ItemConfirmEventApplyPolicy
+import com.rarible.protocol.nft.core.service.item.ItemConfirmEventApplyPolicy
 import org.springframework.stereotype.Component
 
 @Component

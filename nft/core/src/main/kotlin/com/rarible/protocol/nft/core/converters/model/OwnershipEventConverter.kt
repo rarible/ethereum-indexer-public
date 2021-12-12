@@ -15,11 +15,12 @@ object OwnershipEventConverter {
                         ?.let {
                             OwnershipEvent.TransferToEvent(
                                 value = data.value,
-                                blockNumber = source.blockNumber ?: error("Can't be null"),
-                                logIndex = source.logIndex ?: error("Can't be null"),
-                                status = BlockchainStatusConverter.convert(source.status),
+                                blockNumber = source.blockNumber,
+                                logIndex = source.logIndex,
                                 minorLogIndex = source.minorLogIndex,
+                                status = BlockchainStatusConverter.convert(source.status),
                                 transactionHash = source.transactionHash,
+                                address = source.address.prefixed(),
                                 timestamp = source.createdAt.epochSecond,
                                 entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue
                             )
@@ -29,11 +30,12 @@ object OwnershipEventConverter {
                         ?.let {
                             OwnershipEvent.TransferFromEvent(
                                 value = data.value,
-                                blockNumber = source.blockNumber ?: error("Can't be null"),
-                                logIndex = source.logIndex ?: error("Can't be null"),
+                                blockNumber = source.blockNumber,
+                                logIndex = source.logIndex,
+                                minorLogIndex = source.minorLogIndex,
                                 status = BlockchainStatusConverter.convert(source.status),
                                 transactionHash = source.transactionHash,
-                                minorLogIndex = source.minorLogIndex,
+                                address = source.address.prefixed(),
                                 timestamp = source.createdAt.epochSecond,
                                 entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue
                             )
@@ -57,11 +59,12 @@ object OwnershipEventConverter {
                         ?.let {
                             OwnershipEvent.TransferToEvent(
                                 value = data.value,
-                                blockNumber = source.blockNumber ?: error("Can't be null"),
-                                logIndex = source.logIndex ?: error("Can't be null"),
-                                status = BlockchainStatusConverter.convert(source.status),
+                                blockNumber = source.blockNumber,
+                                logIndex = source.logIndex,
                                 minorLogIndex = source.minorLogIndex,
+                                status = BlockchainStatusConverter.convert(source.status),
                                 transactionHash = source.transactionHash.toString(),
+                                address = source.address.prefixed(),
                                 timestamp = source.createdAt.epochSecond,
                                 entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue
                             )
@@ -71,11 +74,12 @@ object OwnershipEventConverter {
                         ?.let {
                             OwnershipEvent.TransferFromEvent(
                                 value = data.value,
-                                blockNumber = source.blockNumber ?: error("Can't be null"),
-                                logIndex = source.logIndex ?: error("Can't be null"),
+                                blockNumber = source.blockNumber,
+                                logIndex = source.logIndex,
+                                minorLogIndex = source.minorLogIndex,
                                 status = BlockchainStatusConverter.convert(source.status),
                                 transactionHash = source.transactionHash.toString(),
-                                minorLogIndex = source.minorLogIndex,
+                                address = source.address.prefixed(),
                                 timestamp = source.createdAt.epochSecond,
                                 entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue
                             )
