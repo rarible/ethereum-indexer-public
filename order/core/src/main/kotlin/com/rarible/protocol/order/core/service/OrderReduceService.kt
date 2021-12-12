@@ -312,23 +312,12 @@ class OrderReduceService(
             return Hash.sha3((lastEventId ?: "") + eventId)
         }
 
-        private val wordComparator = Comparator<Word> r@{ w1, w2 ->
-            val w1Bytes = w1.bytes()
-            val w2Bytes = w2.bytes()
-            for (i in 0 until minOf(w1Bytes.size, w2Bytes.size)) {
-                if (w1Bytes[i] != w2Bytes[i]) {
-                    return@r w1Bytes[i].compareTo(w2Bytes[i])
-                }
-            }
-            return@r w1Bytes.size.compareTo(w2Bytes.size)
-        }
-
         /**
          * This comparator MUST comply with the order used in Fluxes for mergeOrdered.
          * Also, it explicitly moves OrderUpdate.ByOrderVersion before OrderUpdate.ByLogEvent
          */
         private val orderUpdateComparator: Comparator<OrderUpdate> = Comparator r@{ u1, u2 ->
-            wordComparator.compare(u1.orderHash, u2.orderHash).takeUnless { it == 0 }?.let { return@r it }
+            u1.orderHash.toString().compareTo(u2.orderHash.toString()).takeUnless { it == 0 }?.let { return@r it }
             if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByOrderVersion) {
                 return@r u1.eventId.compareTo(u2.eventId)
             }
