@@ -62,18 +62,15 @@ class OrderReduceService(
     private sealed class OrderUpdate {
         abstract val orderHash: Word
         abstract val eventId: ObjectId
-        abstract val date: Instant
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
             override val eventId get() = orderVersion.id
-            override val date get() = orderVersion.createdAt
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
             override val eventId get() = logEvent.id
-            override val date get() = logEvent.updatedAt
         }
     }
 
