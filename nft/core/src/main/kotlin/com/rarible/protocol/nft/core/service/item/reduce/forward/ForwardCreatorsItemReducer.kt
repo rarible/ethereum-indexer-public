@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.reduce.forward
 
-import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
@@ -9,6 +8,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
+import java.lang.IllegalArgumentException
 
 @Component
 class ForwardCreatorsItemReducer(
@@ -34,7 +34,7 @@ class ForwardCreatorsItemReducer(
                 entity
             }
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent -> {
-                throw ReduceException("This events can't be in this reducer")
+                throw IllegalArgumentException("This events can't be in this reducer")
             }
         }
     }

@@ -13,17 +13,29 @@ abstract class BlockchainEntityEvent<T> : Comparable<BlockchainEntityEvent<T>> {
         return comparator.compare(this, other)
     }
 
+    val isConfirmed: Boolean
+        get() = status == Status.CONFIRMED
+
+    val isReverted: Boolean
+        get() = status == Status.REVERTED
+
+    val isPending: Boolean
+        get() = status == Status.PENDING
+
+    val isInactive: Boolean
+        get() = status == Status.INACTIVE
+
     private companion object {
         val comparator: Comparator<BlockchainEntityEvent<*>> = Comparator
-            .comparingLong<BlockchainEntityEvent<*>> { it.blockNumber ?: 0 }
-            .thenComparingInt { it.logIndex ?: 0 }
+            .comparingLong<BlockchainEntityEvent<*>> { requireNotNull(it.blockNumber) }
+            .thenComparingInt { requireNotNull(it.logIndex) }
             .thenComparingInt { it.minorLogIndex }
-            .thenComparing { e1, e2 -> e1.transactionHash.compareTo(e2.transactionHash) }
     }
 
     enum class Status {
         PENDING,
         CONFIRMED,
+        INACTIVE,
         REVERTED
     }
 }

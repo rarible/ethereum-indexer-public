@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.reduce.forward
 
-import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
@@ -21,7 +20,7 @@ class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemCreatorsEvent,
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
-                throw ReduceException("This events can't be in this reducer")
+                throw IllegalArgumentException("This events can't be in this reducer")
         }
     }
 }

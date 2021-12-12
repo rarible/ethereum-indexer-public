@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
-import com.rarible.core.entity.reducer.service.ReversedReducer
+import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
@@ -14,7 +14,7 @@ class EventStatusItemReducer(
     private val forwardChainItemReducer: ForwardChainItemReducer,
     private val reversedChainItemReducer: ReversedChainItemReducer,
     private val pendingChainItemReducer: PendingChainItemReducer
-) : ReversedReducer<ItemEvent, Item> {
+) : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event.status) {
@@ -27,6 +27,7 @@ class EventStatusItemReducer(
             BlockchainEntityEvent.Status.REVERTED -> {
                 reversedChainItemReducer.reduce(entity, event)
             }
+            BlockchainEntityEvent.Status.INACTIVE -> TODO()
         }
     }
 }

@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.composit.CompositeTaskReduceService
+import com.rarible.protocol.nft.core.service.composit.CompositeFullReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -28,7 +28,7 @@ import scalether.domain.Address
 @Profile("reduce-v2")
 class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
-    private val compositeTaskReduceService: CompositeTaskReduceService,
+    private val compositeFullReduceService: CompositeFullReduceService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository
 ) : ItemReduceService {
@@ -61,7 +61,7 @@ class ItemReduceServiceV2(
                 ownershipEvents = OwnershipEventConverter.convert(it.log)
             )
         }
-        compositeTaskReduceService.reduce(events.asFlow()).collect { entity ->
+        compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
             entity.id.itemId()?.let { send(it) }
         }
     }

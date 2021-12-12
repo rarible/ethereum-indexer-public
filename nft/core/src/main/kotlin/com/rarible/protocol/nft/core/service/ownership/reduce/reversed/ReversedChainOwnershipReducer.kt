@@ -1,22 +1,17 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.reversed
 
-import com.rarible.core.entity.reducer.service.ReversedReducer
-import com.rarible.core.entity.reducer.service.RevertableEntityReversedReducer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
-import com.rarible.protocol.nft.core.service.ReversedReducersChain
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.service.OwnershipRevertEventApplyPolicy
+import com.rarible.protocol.nft.core.service.RevertedEntityChainReducer
 import org.springframework.stereotype.Component
 
 @Component
 class ReversedChainOwnershipReducer(
+    eventApplyPolicy: OwnershipRevertEventApplyPolicy,
     reversedOwnershipValueReducer: ReversedOwnershipValueReducer
-) : ReversedReducer<OwnershipEvent, Ownership> {
-
-    private val reducer = RevertableEntityReversedReducer(
-        reversedReducer = ReversedReducersChain(listOf(reversedOwnershipValueReducer))
-    )
-
-    override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
-        return reducer.reduce(entity, event)
-    }
-}
+) : RevertedEntityChainReducer<OwnershipId, OwnershipEvent, Ownership>(
+    eventApplyPolicy,
+    reversedOwnershipValueReducer
+)

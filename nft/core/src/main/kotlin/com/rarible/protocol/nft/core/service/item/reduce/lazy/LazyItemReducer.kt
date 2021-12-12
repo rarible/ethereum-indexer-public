@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.reduce.lazy
 
-import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
@@ -20,7 +19,7 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 is ItemEvent.ItemMintEvent,
                 is ItemEvent.ItemCreatorsEvent,
                 is ItemEvent.ItemTransferEvent -> {
-                    throw ReduceException("This events can't be in this reducer")
+                    throw IllegalArgumentException("This events can't be in this reducer")
                 }
             }
             entity.copy(

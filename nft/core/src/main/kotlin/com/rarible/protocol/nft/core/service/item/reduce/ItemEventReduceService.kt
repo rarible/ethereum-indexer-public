@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component
 @Component
 class ItemEventReduceService(
     entityService: ItemUpdateService,
-    entityEventService: ItemEventService,
+    entityIdService: ItemIdService,
     templateProvider: ItemTemplateProvider,
     reducer: ItemReducer
 ) : EntityEventListener {
-    private val delegate = EventReduceService(entityService, entityEventService, templateProvider, reducer)
+    private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 

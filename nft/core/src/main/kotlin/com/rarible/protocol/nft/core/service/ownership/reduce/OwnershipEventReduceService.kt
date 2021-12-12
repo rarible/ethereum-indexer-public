@@ -11,11 +11,11 @@ import org.springframework.stereotype.Component
 @Component
 class OwnershipEventReduceService(
     entityService: OwnershipUpdateService,
-    entityEventService: OwnershipEventService,
+    entityIdService: OwnershipIdService,
     templateProvider: OwnershipTemplateProvider,
     reducer: OwnershipReducer
 ) : EntityEventListener {
-    private val delegate = EventReduceService(entityService, entityEventService, templateProvider, reducer)
+    private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 

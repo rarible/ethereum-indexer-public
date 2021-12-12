@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
@@ -41,15 +40,5 @@ internal class BlockchainItemReducerTest {
     companion object {
         @JvmStatic
         fun invalidReduceEvents() = Stream.of(createRandomLazyMintItemEvent(), createRandomLazyBurnItemEvent())
-    }
-
-    @ParameterizedTest
-    @MethodSource("invalidReduceEvents")
-    fun `should throw exception on invalid event`(event: ItemEvent) = runBlocking<Unit> {
-        assertThrows<ReduceException> {
-            runBlocking {
-                itemBlockchainItemReducer.reduce(createRandomItem(), event)
-            }
-        }
     }
 }
