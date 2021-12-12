@@ -339,8 +339,8 @@ class OrderReduceService(
             return@r 1
         }
 
-        private val logEventComparator = compareBy<LogEvent> { it.blockNumber } then
-            compareBy { it.logIndex } then
+        private val logEventComparator = compareBy<LogEvent> { it.blockNumber ?: 0 } then
+            compareBy { it.logIndex ?: 0 } then
             compareBy { it.minorLogIndex }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
