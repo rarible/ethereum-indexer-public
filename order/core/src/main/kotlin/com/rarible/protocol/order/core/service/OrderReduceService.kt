@@ -20,6 +20,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -48,7 +49,7 @@ class OrderReduceService(
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
-            compareBy { it.date },
+            orderUpdateComparator,
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash)
                 .map { OrderUpdate.ByOrderVersion(it) },
             exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash)
@@ -60,18 +61,18 @@ class OrderReduceService(
 
     private sealed class OrderUpdate {
         abstract val orderHash: Word
-        abstract val eventId: String
+        abstract val eventId: ObjectId
         abstract val date: Instant
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
-            override val eventId: String get() = orderVersion.id.toHexString()
+            override val eventId get() = orderVersion.id
             override val date get() = orderVersion.createdAt
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
-            override val eventId: String get() = logEvent.id.toHexString()
+            override val eventId get() = logEvent.id
             override val date get() = logEvent.updatedAt
         }
     }
@@ -89,7 +90,7 @@ class OrderReduceService(
                         // On-chain order versions are processed via the OnChainOrder LogEvent-s in the next when-branch.
                         order
                     } else {
-                        order.updateWith(update.orderVersion, update.eventId)
+                        order.updateWith(update.orderVersion, update.eventId.toHexString())
                     }
                 }
                 is OrderUpdate.ByLogEvent -> {
@@ -100,7 +101,7 @@ class OrderReduceService(
                     ) {
                         seenRevertedOnChainOrder = true
                     }
-                    order.updateWith(update.logEvent, exchangeHistory, update.eventId)
+                    order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
                 }
             }
         }
@@ -313,6 +314,37 @@ class OrderReduceService(
         private fun accumulateEventId(lastEventId: String?, eventId: String): String {
             return Hash.sha3((lastEventId ?: "") + eventId)
         }
+
+        private val wordComparator = Comparator<Word> r@{ w1, w2 ->
+            val w1Bytes = w1.bytes()
+            val w2Bytes = w2.bytes()
+            for (i in 0 until minOf(w1Bytes.size, w2Bytes.size)) {
+                if (w1Bytes[i] != w2Bytes[i]) {
+                    return@r w1Bytes[i].compareTo(w2Bytes[i])
+                }
+            }
+            return@r w1Bytes.size.compareTo(w2Bytes.size)
+        }
+
+        /**
+         * This comparator MUST comply with the order used in Fluxes for mergeOrdered.
+         * Also, it explicitly moves OrderUpdate.ByOrderVersion before OrderUpdate.ByLogEvent
+         */
+        private val orderUpdateComparator: Comparator<OrderUpdate> = Comparator r@{ u1, u2 ->
+            wordComparator.compare(u1.orderHash, u2.orderHash).takeUnless { it == 0 }?.let { return@r it }
+            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByOrderVersion) {
+                return@r u1.eventId.compareTo(u2.eventId)
+            }
+            if (u1 is OrderUpdate.ByLogEvent && u2 is OrderUpdate.ByLogEvent) {
+                return@r logEventComparator.compare(u1.logEvent, u2.logEvent)
+            }
+            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByLogEvent) return@r -1
+            return@r 1
+        }
+
+        private val logEventComparator = compareBy<LogEvent> { it.blockNumber } then
+            compareBy { it.logIndex } then
+            compareBy { it.minorLogIndex }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
 
