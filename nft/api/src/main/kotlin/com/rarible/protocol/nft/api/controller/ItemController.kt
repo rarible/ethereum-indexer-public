@@ -19,6 +19,7 @@ import com.rarible.protocol.nft.core.model.ItemFilterByCreator
 import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.page.PageSize
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
@@ -74,6 +75,7 @@ class ItemController(
         return deleteLazyMintNftAssetInternal(itemId, burnLazyNftFormDto)
     }
 
+    @ExperimentalCoroutinesApi
     @Deprecated("Hidden in release 1.17, should be completely removed later")
     @DeleteMapping(
         value = ["/v0.1/items/{itemId}/lazy"],

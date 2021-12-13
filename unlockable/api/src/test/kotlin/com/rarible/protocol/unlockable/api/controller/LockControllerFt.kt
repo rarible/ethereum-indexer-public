@@ -86,7 +86,7 @@ class LockControllerFt {
         assertEquals(itemId, dto.itemId)
         assertEquals(form.content, dto.content)
         assertEquals(form.signature, dto.signature)
-        assertEquals(nftItem.owners[0], dto.author)
+        assertEquals(nftItem.owners!![0], dto.author)
     }
 
     @Test
@@ -96,7 +96,7 @@ class LockControllerFt {
         val nftItem = testData.nftItem
         val form = LockFormDto(testData.getItemLockSignature(), testData.lockContent)
 
-        lockRepository.save(Lock(itemId, form.content, nftItem.owners[0], form.signature))
+        lockRepository.save(Lock(itemId, form.content, nftItem.owners!![0], form.signature))
 
         coEvery { nftClientService.getItem(itemId) } returns nftItem
 
@@ -155,7 +155,7 @@ class LockControllerFt {
         client.createLock(itemId, lockForm).block()
 
         val unlockForm = SignatureFormDto(testData.getItemUnlockSignature())
-        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners[0]) } returns true
+        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners!![0]) } returns true
 
         val content = client.getLockContent(itemId, unlockForm).block()
 
@@ -170,7 +170,7 @@ class LockControllerFt {
         val unlockForm = SignatureFormDto(testData.getItemUnlockSignature())
 
         coEvery { nftClientService.getItem(itemId) } returns nftItem
-        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners[0]) } returns true
+        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners!![0]) } returns true
 
         val e = assertThrows(LockControllerApi.ErrorGetLockContent::class.java, Executable {
             client.getLockContent(itemId, unlockForm).block()
@@ -193,7 +193,7 @@ class LockControllerFt {
         client.createLock(itemId, lockForm).block()
 
         // TODO not really sure this case is correct - we getting item at first step, but at second it doesn't exist?
-        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners[0]) } returns false
+        coEvery { nftClientService.hasItem(nftItem.contract, nftItem.tokenId, nftItem.owners!![0]) } returns false
 
         val unlockForm = SignatureFormDto(testData.getItemUnlockSignature())
         val e = assertThrows(LockControllerApi.ErrorGetLockContent::class.java, Executable {
