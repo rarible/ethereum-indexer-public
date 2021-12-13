@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepositoryIndexes.HASH_PLATFORM_AND_ID_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow

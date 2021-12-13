@@ -5,6 +5,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -42,6 +43,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var orderRepository: OrderRepository
 
     @Autowired
+    protected lateinit var orderVersionRepository: OrderVersionRepository
+
+    @Autowired
     protected lateinit var orderReduceService: OrderReduceService
 
     @Autowired
@@ -70,6 +74,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             .then().block()
 
         orderRepository.createIndexes()
+        exchangeHistoryRepository.createIndexes()
+        orderVersionRepository.createIndexes()
     }
 
     @PostConstruct

@@ -13,6 +13,7 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
@@ -28,6 +29,11 @@ internal class ExchangeHistoryRepositoryTest {
 
     @Autowired
     private lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
+
+    @BeforeEach
+    fun setup() = runBlocking {
+        exchangeHistoryRepository.createIndexes()
+    }
 
     @Test
     fun `get all by hash and target platform`() = runBlocking<Unit> {
