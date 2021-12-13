@@ -7,7 +7,6 @@ import com.rarible.core.cache.get
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
@@ -16,6 +15,7 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
@@ -72,7 +72,7 @@ class ItemService(
     }
 
     suspend fun search(
-        filter: NftItemFilterDto,
+        filter: ItemFilter,
         continuation: ItemContinuation?,
         size: Int?
     ): List<ExtendedItem> = coroutineScope {

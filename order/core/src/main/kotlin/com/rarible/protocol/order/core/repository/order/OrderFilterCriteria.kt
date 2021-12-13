@@ -2,14 +2,6 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
-import com.rarible.protocol.dto.OrderFilterAllDto
-import com.rarible.protocol.dto.OrderFilterBidByItemDto
-import com.rarible.protocol.dto.OrderFilterBidByMakerDto
-import com.rarible.protocol.dto.OrderFilterDto
-import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
-import com.rarible.protocol.dto.OrderFilterSellByItemDto
-import com.rarible.protocol.dto.OrderFilterSellByMakerDto
-import com.rarible.protocol.dto.OrderFilterSellDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
@@ -18,6 +10,14 @@ import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderFilter
+import com.rarible.protocol.order.core.model.OrderFilterAll
+import com.rarible.protocol.order.core.model.OrderFilterBidByItem
+import com.rarible.protocol.order.core.model.OrderFilterBidByMaker
+import com.rarible.protocol.order.core.model.OrderFilterSell
+import com.rarible.protocol.order.core.model.OrderFilterSellByCollection
+import com.rarible.protocol.order.core.model.OrderFilterSellByItem
+import com.rarible.protocol.order.core.model.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Part
@@ -35,17 +35,17 @@ import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 
 object OrderFilterCriteria {
-    fun OrderFilterDto.toCriteria(continuation: String?, limit: Int): Query {
+    fun OrderFilter.toCriteria(continuation: String?, limit: Int): Query {
         //for sell filters we sort orders by make price ASC
         //for bid filters we sort orders by take price DESC
         val (criteria, hint) = when (this) {
-            is OrderFilterAllDto -> Criteria().withNoHint()
-            is OrderFilterSellDto -> sell().withHint(withSellHint())
-            is OrderFilterSellByItemDto -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
-            is OrderFilterSellByCollectionDto -> sellByCollection(collection).withNoHint()
-            is OrderFilterSellByMakerDto -> sellByMaker(maker).withNoHint()
-            is OrderFilterBidByItemDto -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
-            is OrderFilterBidByMakerDto -> bidByMaker(maker).withNoHint()
+            is OrderFilterAll -> Criteria().withNoHint()
+            is OrderFilterSell -> sell().withHint(withSellHint())
+            is OrderFilterSellByItem -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
+            is OrderFilterSellByCollection -> sellByCollection(collection).withNoHint()
+            is OrderFilterSellByMaker -> sellByMaker(maker).withNoHint()
+            is OrderFilterBidByItem -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
+            is OrderFilterBidByMaker -> bidByMaker(maker).withNoHint()
         }
 
         // TODO scrollTo/getHint/toCritria should be part of Filter
@@ -71,26 +71,26 @@ object OrderFilterCriteria {
         return query
     }
 
-    private fun sort(sort: OrderFilterDto.Sort, currency: Address?): Sort {
+    private fun sort(sort: OrderFilter.Sort, currency: Address?): Sort {
         return when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE_DESC -> Sort.by(
+            OrderFilter.Sort.LAST_UPDATE_DESC -> Sort.by(
                 Sort.Direction.DESC,
                 Order::lastUpdateAt.name,
                 Order::hash.name
             )
-            OrderFilterDto.Sort.LAST_UPDATE_ASC -> Sort.by(
+            OrderFilter.Sort.LAST_UPDATE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::lastUpdateAt.name,
                 Order::hash.name
             )
-            OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
+            OrderFilter.Sort.MAKE_PRICE_ASC -> {
                 Sort.by(
                     Sort.Direction.ASC,
                     (currency?.let { Order::makePrice } ?: Order::makePriceUsd).name,
                     Order::hash.name
                 )
             }
-            OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
+            OrderFilter.Sort.TAKE_PRICE_DESC -> {
                 Sort.by(
                     Sort.Direction.DESC,
                     (currency?.let { Order::takePrice } ?: Order::takePriceUsd).name,
@@ -168,9 +168,9 @@ object OrderFilterCriteria {
         }
     }
 
-    private fun Criteria.scrollTo(continuation: String?, sort: OrderFilterDto.Sort, currency: Address?) =
+    private fun Criteria.scrollTo(continuation: String?, sort: OrderFilter.Sort, currency: Address?) =
         when (sort) {
-            OrderFilterDto.Sort.LAST_UPDATE_DESC -> {
+            OrderFilter.Sort.LAST_UPDATE_DESC -> {
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
@@ -182,7 +182,7 @@ object OrderFilterCriteria {
                     )
                 } ?: this
             }
-            OrderFilterDto.Sort.LAST_UPDATE_ASC -> {
+            OrderFilter.Sort.LAST_UPDATE_ASC -> {
                 val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
                 lastDate?.let { c ->
                     this.orOperator(
@@ -194,7 +194,7 @@ object OrderFilterCriteria {
                     )
                 } ?: this
             }
-            OrderFilterDto.Sort.TAKE_PRICE_DESC -> {
+            OrderFilter.Sort.TAKE_PRICE_DESC -> {
                 val price = Continuation.parse<Continuation.Price>(continuation)
                 price?.let { c ->
                     if (currency != null) {
@@ -216,7 +216,7 @@ object OrderFilterCriteria {
                     }
                 } ?: this
             }
-            OrderFilterDto.Sort.MAKE_PRICE_ASC -> {
+            OrderFilter.Sort.MAKE_PRICE_ASC -> {
                 val price = Continuation.parse<Continuation.Price>(continuation)
                 price?.let { c ->
                     if (currency != null) {
@@ -245,7 +245,7 @@ object OrderFilterCriteria {
     private infix fun Criteria.withHint(index: Document) = Pair(this, index)
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
 
-    private fun OrderFilterSellDto.withSellHint(): Document {
+    private fun OrderFilterSell.withSellHint(): Document {
         val hasPlatforms = this.platforms.mapNotNull { convert(it) }.isNotEmpty()
         val hasStatuses = !this.status.isNullOrEmpty()
         return if (hasPlatforms) {
