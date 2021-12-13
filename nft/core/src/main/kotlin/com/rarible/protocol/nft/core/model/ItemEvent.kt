@@ -34,6 +34,7 @@ sealed class ItemEvent : BlockchainEntityEvent<ItemEvent>() {
 
     data class LazyItemMintEvent(
         val supply: EthUInt256,
+        val creators: List<Part>,
         override val blockNumber: Long?,
         override val logIndex: Int?,
         override val minorLogIndex: Int,

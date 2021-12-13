@@ -45,7 +45,7 @@ data class Item(
         set(_) {}
 
     fun withCalculated(): Item {
-        val deleted = deleted || revertableEvents.isEmpty()
+        val deleted = deleted || (revertableEvents.isEmpty() && lazySupply == EthUInt256.ZERO)
         val supply = if (deleted) EthUInt256.ZERO else supply
         return copy(deleted = deleted, supply = supply)
     }

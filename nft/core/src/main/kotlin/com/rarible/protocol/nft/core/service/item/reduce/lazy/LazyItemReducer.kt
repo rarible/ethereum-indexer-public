@@ -12,9 +12,26 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
         return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
             entity
         } else {
-            val lazySupply = when (event) {
-                is ItemEvent.LazyItemMintEvent -> entity.lazySupply + event.supply
-                is ItemEvent.LazyItemBurnEvent -> EthUInt256.ZERO
+            return when (event) {
+                is ItemEvent.LazyItemMintEvent -> {
+                    val lazySupply = entity.lazySupply + event.supply
+                    entity.copy(
+                        lazySupply = lazySupply,
+                        supply = lazySupply,
+                        creators = event.creators,
+                        ownerships = event.creators.firstOrNull()?.let { mapOf(it.account to lazySupply) } ?: emptyMap(),
+                        creatorsFinal = true,
+                        lastLazyEventTimestamp = event.timestamp,
+                        deleted = lazySupply == EthUInt256.ZERO
+                    )
+                }
+                is ItemEvent.LazyItemBurnEvent -> {
+                    entity.copy(
+                        lazySupply = EthUInt256.ZERO,
+                        lastLazyEventTimestamp = event.timestamp,
+                        deleted = true
+                    )
+                }
                 is ItemEvent.ItemBurnEvent,
                 is ItemEvent.ItemMintEvent,
                 is ItemEvent.ItemCreatorsEvent,
@@ -22,11 +39,6 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                     throw IllegalArgumentException("This events can't be in this reducer")
                 }
             }
-            entity.copy(
-                lazySupply = lazySupply,
-                lastLazyEventTimestamp = event.timestamp,
-                deleted = lazySupply == EthUInt256.ZERO
-            )
         }
     }
 }

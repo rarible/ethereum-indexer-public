@@ -39,8 +39,9 @@ object ItemEventConverter {
             is ItemLazyMint -> {
                 ItemEvent.LazyItemMintEvent(
                     supply = data.value,
-                    blockNumber = source.blockNumber ?: error("Can't be null"),
-                    logIndex = source.logIndex ?: error("Can't be null"),
+                    creators = data.creators,
+                    blockNumber = source.blockNumber,
+                    logIndex = source.logIndex ,
                     status = BlockchainStatusConverter.convert(source.status),
                     transactionHash = source.transactionHash,
                     address = source.address.prefixed(),
@@ -52,8 +53,8 @@ object ItemEventConverter {
             is BurnItemLazyMint -> {
                 ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
-                    blockNumber = source.blockNumber ?: error("Can't be null"),
-                    logIndex = source.logIndex ?: error("Can't be null"),
+                    blockNumber = source.blockNumber,
+                    logIndex = source.logIndex,
                     status = BlockchainStatusConverter.convert(source.status),
                     transactionHash = source.transactionHash,
                     address = source.address.prefixed(),
@@ -99,6 +100,7 @@ object ItemEventConverter {
             is ItemLazyMint -> {
                 ItemEvent.LazyItemMintEvent(
                     supply = data.value,
+                    creators = data.creators,
                     blockNumber = source.blockNumber,
                     logIndex = source.logIndex,
                     minorLogIndex = source.minorLogIndex,

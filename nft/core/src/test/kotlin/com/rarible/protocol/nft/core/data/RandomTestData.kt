@@ -45,6 +45,7 @@ fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
 fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
     return ItemEvent.LazyItemMintEvent(
         supply = EthUInt256.of(randomInt()),
+        creators = emptyList(),
         blockNumber = randomLong(),
         logIndex = randomInt(),
         status = BlockchainEntityEvent.Status.values().random(),

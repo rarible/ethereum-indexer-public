@@ -14,7 +14,11 @@ class ExtendedItemDtoConverter(
         val (item, meta) = source
         // TODO: RPN-497: until we've found a better solution, we limit the number of owners in the NftItem
         //  to avoid "too big Kafka message" errors.
-        val limitedOwners = item.owners.take(ownersSizeLimit)
+        val limitedOwners = if (item.ownerships.isNotEmpty()) {
+            item.ownerships.keys.take(ownersSizeLimit)
+        } else {
+            item.owners.take(ownersSizeLimit)
+        }
         return NftItemDto(
             id = item.id.decimalStringValue,
             contract = item.token,
