@@ -86,10 +86,24 @@ object OwnershipEventConverter {
                         }
                 )
             }
+            is ItemLazyMint -> {
+                listOf(
+                    OwnershipEvent.LazyTransferToEvent(
+                        value = data.value,
+                        blockNumber = source.blockNumber,
+                        logIndex = source.logIndex,
+                        minorLogIndex = source.minorLogIndex,
+                        status = BlockchainStatusConverter.convert(source.status),
+                        transactionHash = source.transactionHash.toString(),
+                        address = source.address.prefixed(),
+                        timestamp = source.createdAt.epochSecond,
+                        entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue
+                    )
+                )
+            }
             is ItemCreators,
             is ItemRoyalty,
             is BurnItemLazyMint,
-            is ItemLazyMint,
             null -> emptyList()
         }
     }

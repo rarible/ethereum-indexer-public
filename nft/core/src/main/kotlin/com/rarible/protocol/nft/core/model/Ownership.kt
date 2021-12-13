@@ -29,6 +29,7 @@ data class Ownership(
     @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
+    val lastLazyEventTimestamp: Long? = null,
     override val revertableEvents: List<OwnershipEvent> = emptyList()
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 

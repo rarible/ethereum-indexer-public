@@ -10,9 +10,11 @@ import org.springframework.stereotype.Component
 @Component
 class PendingChainItemReducer(
     itemPendingEventApplyPolicy: ItemPendingEventApplyPolicy,
-    pendingCreatorsItemReducer: PendingCreatorsItemReducer
+    pendingCreatorsItemReducer: PendingCreatorsItemReducer,
+    pendingValueItemReducer: PendingValueItemReducer
 ) : EntityChainReducer<ItemId, ItemEvent, Item>(
     itemPendingEventApplyPolicy,
+    pendingValueItemReducer,
     pendingCreatorsItemReducer
 )
 

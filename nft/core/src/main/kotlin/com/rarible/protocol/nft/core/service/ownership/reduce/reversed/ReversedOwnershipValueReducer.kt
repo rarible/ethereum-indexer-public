@@ -12,6 +12,8 @@ class ReversedOwnershipValueReducer : Reducer<OwnershipEvent, Ownership> {
         val value = when (event) {
             is OwnershipEvent.TransferToEvent -> entity.value - event.value
             is OwnershipEvent.TransferFromEvent -> entity.value + event.value
+            is OwnershipEvent.LazyTransferToEvent ->
+                throw IllegalArgumentException("This events can't be in this reducer")
         }
         return entity.copy(value = value, deleted = value == EthUInt256.ZERO)
     }

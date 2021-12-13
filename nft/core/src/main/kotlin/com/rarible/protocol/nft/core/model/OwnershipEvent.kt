@@ -28,4 +28,16 @@ sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
         override val transactionHash: String,
         override val address: String
     ) : OwnershipEvent()
+
+    data class LazyTransferToEvent(
+        override val value: EthUInt256,
+        override val blockNumber: Long?,
+        override val logIndex: Int?,
+        override val minorLogIndex: Int,
+        override val status: Status,
+        override val entityId: String,
+        override val timestamp: Long,
+        override val transactionHash: String,
+        override val address: String
+    ) : OwnershipEvent()
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component
 @Component
 class PendingChainOwnershipReducer(
     ownershipPendingEventApplyPolicy: OwnershipPendingEventApplyPolicy,
+    pendingOwnershipValueReducer: PendingOwnershipValueReducer
 ) : EntityChainReducer<OwnershipId, OwnershipEvent, Ownership>(
-    ownershipPendingEventApplyPolicy
+    ownershipPendingEventApplyPolicy,
+    pendingOwnershipValueReducer
 )
