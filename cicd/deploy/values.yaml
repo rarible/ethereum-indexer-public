@@ -70,7 +70,8 @@ ethereum-gateway: &protocol-gateway
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
-    - 'proxy'
+    additional:
+    - 'proxy-staging'
 
 polygon-gateway:
   <<: *protocol-gateway

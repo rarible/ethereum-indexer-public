@@ -29,11 +29,17 @@ ethereum-gateway:
   resources:
     jvm:
       xmx_megabytes: 1024
+  networks:
+    additional:
+    - 'proxy'
 
 polygon-gateway:
   resources:
     jvm:
       xmx_megabytes: 1024
+  networks:
+    additional:
+    - 'proxy'
 
 ethereum-order-api:
   replicas: 3
