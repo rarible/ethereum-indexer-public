@@ -4,18 +4,33 @@ data class CompositeEntityId(
     val itemId: ItemId?,
     val ownershipIds: List<OwnershipId>
 ) {
-    init {
-        if (itemId != null) {
+    private val _id: ItemId = when {
+        itemId != null -> {
             ownershipIds.forEach {
                 require(itemId.token == it.token)
                 require(itemId.tokenId == it.tokenId)
             }
-        } else if (ownershipIds.isNotEmpty()) {
-            require(ownershipIds.map { ItemId(it.token, it.tokenId) }.toSet().size == 1)
+            itemId
+        }
+        ownershipIds.isNotEmpty() -> {
+            val itemId = ownershipIds.first().let { ItemId(it.token, it.tokenId) }
+            require(ownershipIds.all { it.token == itemId.token && it.tokenId == it.tokenId })
+            itemId
+        }
+        else -> {
+            throw IllegalArgumentException("CompositeEntityId can't be empty")
         }
     }
 
     fun itemId(): ItemId? {
-        return itemId ?: ownershipIds.firstOrNull()?.let { ItemId(it.token, it.tokenId) }
+        return _id
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return (other as? CompositeEntityId)?.let { other._id == _id } ?: false
+    }
+
+    override fun hashCode(): Int {
+        return _id.hashCode()
     }
 }

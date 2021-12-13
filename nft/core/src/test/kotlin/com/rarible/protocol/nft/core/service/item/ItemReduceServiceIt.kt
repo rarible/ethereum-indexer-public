@@ -316,10 +316,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -328,7 +328,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.of(3)
         )
-        saveItemHistory(transfer)
+        saveItemHistory(transfer, logIndex = 1)
 
         val transfer2 = ItemTransfer(
             owner = Address.ZERO(),
@@ -338,9 +338,9 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = owner,
             value = EthUInt256.of(3)
         )
-        saveItemHistory(transfer2)
+        saveItemHistory(transfer2, logIndex = 2)
 
-        historyService.update(token, tokenId).then().block()
+        historyService.update(token, tokenId).awaitFirstOrNull()
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(item.deleted).isEqualTo(true)
@@ -351,13 +351,22 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun pendingItemTransfer() = runBlocking<Unit> {
+        val from = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
+        val mint = ItemTransfer(
+            owner = from,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
         val transfer = ItemTransfer(
             owner = owner,
             token = token,
@@ -366,12 +375,14 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = AddressFactory.create(),
             value = EthUInt256.ZERO
         )
-        saveItemHistory(transfer, token = token, status = LogEventStatus.PENDING)
+        saveItemHistory(mint, token = token, status = LogEventStatus.CONFIRMED, logIndex = 0)
+        saveItemHistory(transfer, token = token, status = LogEventStatus.PENDING, logIndex = 1)
 
-        historyService.update(token, tokenId).then().block()
+        historyService.update(token, tokenId).then().awaitFirstOrNull()
+
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(item.creators).isEmpty()
-        assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
+        assertThat(item.creators).isEqualTo(listOf(Part.fullPart(from)))
+        assertThat(item.supply).isEqualTo(EthUInt256.ONE)
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
     }
 
@@ -379,19 +390,19 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     fun confirmedItemTransfer() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-
         val transfer = ItemTransfer(
             owner = AddressFactory.create(),
             token = token,
             tokenId = tokenId,
             date = nowMillis(),
             from = Address.ZERO(),
-            value = EthUInt256.Companion.of(2)
+            value = EthUInt256.of(2)
         )
-        saveItemHistory(transfer)
+        saveItemHistory(transfer, logIndex = 1)
 
         val owner = AddressFactory.create()
         val transfer2 = ItemTransfer(
@@ -402,10 +413,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.of(3)
         )
-        saveItemHistory(transfer2)
+        saveItemHistory(transfer2, logIndex = 2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
-        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.Companion.of(5))
+        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5))
     }
 
     @Test

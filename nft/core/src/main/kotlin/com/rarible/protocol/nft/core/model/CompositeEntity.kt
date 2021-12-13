@@ -6,6 +6,8 @@ data class CompositeEntity(
     val item: Item?,
     val ownerships: List<Ownership>
 ) : Identifiable<CompositeEntityId> {
-    override val id = CompositeEntityId(item?.id, ownerships.map { it.id })
+    private val _id: CompositeEntityId = CompositeEntityId(item?.id, ownerships.map { it.id })
+
+    override val id = _id
 }
 

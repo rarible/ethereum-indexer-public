@@ -18,7 +18,7 @@ class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
             }
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent,
-            is ItemEvent.ItemCreatorsEvent,
+            is ItemEvent.ItemCreatorsEvent -> entity
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }
