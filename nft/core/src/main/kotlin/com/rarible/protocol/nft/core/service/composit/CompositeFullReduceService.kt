@@ -7,12 +7,12 @@ import org.springframework.stereotype.Component
 @Component
 class CompositeFullReduceService(
     entityService: CompositeUpdateService,
-    entityEventService: CompositeEventService,
+    entityEntityIdService: CompositeEntityIdService,
     templateProvider: CompositeTemplateProvider,
     reducer: CompositeReducer
-) : StreamFullReduceService<CompositeEntityId, CompositeEvent, CompositeEntity>(
+) : StreamFullReduceService<ItemId, CompositeEvent, CompositeEntity>(
     entityService = entityService,
-    entityEventService = entityEventService,
+    entityEventService = entityEntityIdService,
     templateProvider = templateProvider,
     reducer = reducer
 )

@@ -33,6 +33,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
@@ -588,14 +589,21 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val ownership1 = ownershipRepository.findById(OwnershipId(token, tokenId, owner1)).awaitFirst()
         assertThat(ownership1.value).isEqualTo(EthUInt256.TEN)
         assertThat(ownership1.pending).isEmpty()
+        assertThat(ownership1.getPendingEvents()).isEmpty()
 
         val ownership2 = ownershipRepository.findById(OwnershipId(token, tokenId, owner2)).awaitFirst()
-        assertThat(ownership1.value).isEqualTo(EthUInt256.TEN)
-        assertThat(ownership2.pending).isNotEmpty
+        assertThat(ownership2.value).isEqualTo(EthUInt256.TEN)
+
+        if (ownership2.pending.isEmpty() && ownership2.getPendingEvents().isEmpty()) {
+            Assertions.fail<String>("can't fins pending events")
+        }
 
         val ownership3 = ownershipRepository.findById(OwnershipId(token, tokenId, owner3)).awaitFirst()
         assertThat(ownership3.value).isEqualTo(EthUInt256.ZERO)
-        assertThat(ownership3.pending).isNotEmpty
+
+        if (ownership3.pending.isEmpty() && ownership3.getPendingEvents().isEmpty()) {
+            Assertions.fail<String>("can't fins pending events")
+        }
     }
 
     @Test
@@ -608,6 +616,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner3 = AddressFactory.create()
         val owner4 = AddressFactory.create()
         val value = EthUInt256.of(20)
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
@@ -619,7 +628,9 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 from = Address.ZERO(),
                 value = value
-            ), token
+            ),
+            token,
+            logIndex = 1
         )
         saveItemHistory(
             ItemTransfer(
@@ -628,8 +639,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 tokenId = tokenId,
                 date = nowMillis(),
                 from = creator,
-                value = EthUInt256.Companion.of(5)
-            ), token
+                value = EthUInt256.of(5)
+            ),
+            token,
+            logIndex = 2
         )
         saveItemHistory(
             ItemTransfer(
@@ -638,8 +651,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 tokenId = tokenId,
                 date = nowMillis(),
                 from = creator,
-                value = EthUInt256.Companion.of(5)
-            ), token
+                value = EthUInt256.of(5)
+            ),
+            token,
+            logIndex = 3
         )
         saveItemHistory(
             ItemTransfer(
@@ -648,8 +663,10 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 tokenId = tokenId,
                 date = nowMillis(),
                 from = creator,
-                value = EthUInt256.Companion.of(5)
-            ), token
+                value = EthUInt256.of(5)
+            ),
+            token,
+            logIndex = 4
         )
         saveItemHistory(
             ItemTransfer(
@@ -658,14 +675,21 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 tokenId = tokenId,
                 date = nowMillis(),
                 from = creator,
-                value = EthUInt256.Companion.of(5)
-            ), token
+                value = EthUInt256.of(5)
+            ),
+            token,
+            logIndex = 5
         )
-
         historyService.update(token, tokenId).awaitFirstOrNull()
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(item.owners).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
+
+        if (item.owners.isNotEmpty()) {
+            assertThat(item.owners).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
+        }
+        if (item.ownerships.isNotEmpty()) {
+            assertThat(item.ownerships.keys).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
+        }
     }
 
     @Test
@@ -887,10 +911,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         tokenRepository.save(token).awaitFirst()
     }
 
-    private fun setOwnershipBatchHandle(ownershipBatchHandle: Boolean) {
-        featureFlags.ownershipBatchHandle = ownershipBatchHandle
-    }
-
     private suspend fun checkItem(
         token: Address,
         tokenId: EthUInt256,
@@ -919,7 +939,9 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     ) {
         val ownershipId = OwnershipId(token, tokenId, owner)
         val found = ownershipRepository.findById(ownershipId).awaitFirstOrNull()
-        assertThat(found).withFailMessage("Deleted ownership must not be found: $ownershipId").isNull()
+        if (found != null) {
+            assertThat(found.deleted).isTrue()
+        }
     }
 
     private suspend fun checkOwnership(

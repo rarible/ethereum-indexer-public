@@ -26,6 +26,7 @@ data class Ownership(
     val value: EthUInt256,
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
+    @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
     override val revertableEvents: List<OwnershipEvent> = emptyList()
@@ -38,6 +39,10 @@ data class Ownership(
         val deleted = deleted || revertableEvents.isEmpty()
         val value = if (deleted) EthUInt256.ZERO else value
         return copy(deleted = deleted, value = value)
+    }
+
+    fun getPendingEvents(): List<OwnershipEvent> {
+        return revertableEvents.filter { it.status == BlockchainEntityEvent.Status.PENDING }
     }
 
     @get:Id

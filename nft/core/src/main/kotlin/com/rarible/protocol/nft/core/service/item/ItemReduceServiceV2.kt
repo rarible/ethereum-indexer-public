@@ -62,7 +62,7 @@ class ItemReduceServiceV2(
             )
         }
         compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
-            entity.id.itemId()?.let { send(it) }
+            send(entity.id)
         }
     }
 

@@ -5,11 +5,8 @@ import com.rarible.protocol.nft.core.model.*
 import org.springframework.stereotype.Component
 
 @Component
-class CompositeTemplateProvider : EntityTemplateProvider<CompositeEntityId, CompositeEntity> {
-    override fun getEntityTemplate(id: CompositeEntityId): CompositeEntity {
-        return CompositeEntity(
-            item = id.itemId?.let { Item.empty(it.token, it.tokenId) } ,
-            ownerships = id.ownershipIds.map { Ownership.empty(it.token, it.tokenId, it.owner) }
-        )
+class CompositeTemplateProvider : EntityTemplateProvider<ItemId, CompositeEntity> {
+    override fun getEntityTemplate(id: ItemId): CompositeEntity {
+        return CompositeEntity(id = id, item = null, ownerships = emptyList())
     }
 }
