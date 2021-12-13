@@ -60,6 +60,8 @@ class ItemReduceServiceV2(
                 itemEvent = ItemEventConverter.convert(it.log),
                 ownershipEvents = OwnershipEventConverter.convert(it.log)
             )
+        }.filter {
+            it.itemEvent != null || it.ownershipEvents.isNotEmpty()
         }
         compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
             send(entity.id)

@@ -27,6 +27,7 @@ data class Item(
     @Deprecated("Should use ownerships field")
     val owners: List<Address> = emptyList(),
     val date: Instant,
+    @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,

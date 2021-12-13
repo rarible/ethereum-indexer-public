@@ -134,7 +134,13 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
-            assertThat(item.owners.single()).isEqualTo(address)
+            assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty()).isEqualTo(true)
+            if (item.owners.isNotEmpty()) {
+                assertThat(item.owners.single()).isEqualTo(address)
+            }
+            if (item.ownerships.isNotEmpty()) {
+                assertThat(item.ownerships.keys.single()).isEqualTo(address)
+            }
             assertThat(item.creators.single().account).isEqualTo(address)
 
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)

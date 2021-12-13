@@ -19,7 +19,7 @@ abstract class BlockchainEntityEvent<T> : Comparable<BlockchainEntityEvent<T>> {
                 confirmBlockComparator.compare(this, other)
             }
             Status.PENDING, Status.INACTIVE, Status.DROPPED -> {
-                require(other.status == Status.CONFIRMED || other.status == Status.REVERTED) {
+                require(other.status == Status.PENDING || other.status == Status.INACTIVE || other.status == Status.DROPPED) {
                     "Can't compare $status and ${other.status}"
                 }
                 pendingBlockComparator.compare(this, other)

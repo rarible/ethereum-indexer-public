@@ -64,11 +64,10 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
         )
 
         val transferTo = AddressFactory.create()
-        val receipt = token.mintAndTransfer(mintData, transferTo)
+        token.mintAndTransfer(mintData, transferTo)
             .withSender(userSender)
             .execute()
             .verifySuccess()
-        println(receipt.logs())
 
         Wait.waitAssert {
             assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
@@ -104,11 +103,13 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
             }
         }
         Wait.waitAssert {
-            val ownerships = ownershipRepository.search(Query(Criteria.where(Ownership::token.name).isEqualTo(token.address())))
-
+            val ownerships = ownershipRepository.search(
+                Query(
+                    Criteria.where(Ownership::token.name).isEqualTo(token.address()).and(Ownership::deleted.name).isEqualTo(false)
+                )
+            )
             assertThat(ownerships).hasSize(1)
             assertThat(ownerships.single().owner).isEqualTo(transferTo)
-            assertThat(ownerships.single().creators).isEqualTo(listOf(Part(address, 10000)))
         }
     }
 }
