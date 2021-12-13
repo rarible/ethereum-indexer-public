@@ -36,6 +36,7 @@ ethereum-erc20-listener: &protocol-erc20-listener
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
+  endpointMode: dnsrr
   resources:
     jvm:
       xmx_megabytes: 356
@@ -69,7 +70,8 @@ ethereum-gateway: &protocol-gateway
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
-    - 'proxy'
+    additional:
+    - 'proxy-staging'
 
 polygon-gateway:
   <<: *protocol-gateway
@@ -114,6 +116,7 @@ ethereum-order-listener: &protocol-order-listener
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
+  endpointMode: dnsrr
   resources:
     jvm:
       xmx_megabytes: 356
@@ -139,6 +142,7 @@ ethereum-order-migration: &protocol-order-migration
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
+  endpointMode: dnsrr
   resources:
     jvm:
       xmx_megabytes: 356
@@ -219,6 +223,7 @@ ethereum-nft-listener: &protocol-nft-listener
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
+  endpointMode: dnsrr
   resources:
     jvm:
       xmx_megabytes: 512
@@ -244,6 +249,7 @@ ethereum-nft-migration: &protocol-nft-migration
     SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.job: true
+  endpointMode: dnsrr
   resources:
     jvm:
       xmx_megabytes: 356
