@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
@@ -46,13 +47,13 @@ class OrderReduceService(
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
-    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
+    fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
             orderUpdateComparator,
-            orderVersionRepository.findAllByHash(orderHash, fromOrderHash)
+            orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash)
+            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
                 .map { OrderUpdate.ByLogEvent(it) }
         )
             .windowUntilChanged { it.orderHash }

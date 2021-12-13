@@ -6,16 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.ActivitySort
-import com.rarible.protocol.order.core.model.AggregatedData
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.ItemType
-import com.rarible.protocol.order.core.model.NftAssetType
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
-import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_BID_DEFINITION
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION
@@ -126,13 +117,15 @@ class ExchangeHistoryRepository(
         return template.find(query, COLLECTION)
     }
 
-    fun findLogEvents(hash: Word?, from: Word?): Flux<LogEvent> {
-        val criteria = when {
+    fun findLogEvents(hash: Word?, from: Word?, platforms: List<HistorySource>? = null): Flux<LogEvent> {
+        var criteria = when {
             hash != null -> LogEvent::data / OrderExchangeHistory::hash isEqualTo hash
             from != null -> LogEvent::data / OrderExchangeHistory::hash gt from
             else -> Criteria()
         }
-
+        if (platforms?.isNotEmpty() == true) {
+            criteria = criteria.and(LogEvent::data / OrderExchangeHistory::source).inValues(platforms)
+        }
         val query = Query(criteria).with(LOG_SORT_ASC)
         return template.find(query, COLLECTION)
     }
