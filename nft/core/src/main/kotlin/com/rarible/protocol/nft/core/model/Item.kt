@@ -50,6 +50,10 @@ data class Item(
         return copy(deleted = deleted, supply = supply)
     }
 
+    fun getPendingEvents(): List<ItemEvent> {
+        return revertableEvents.filter { it.status == BlockchainEntityEvent.Status.PENDING }
+    }
+
     override fun withRevertableEvents(events: List<ItemEvent>): Item {
         return copy(revertableEvents = events)
     }

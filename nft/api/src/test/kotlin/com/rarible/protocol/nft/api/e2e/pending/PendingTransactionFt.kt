@@ -134,6 +134,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
+
             assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty()).isEqualTo(true)
             if (item.owners.isNotEmpty()) {
                 assertThat(item.owners.single()).isEqualTo(address)
@@ -144,7 +145,13 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             assertThat(item.creators.single().account).isEqualTo(address)
 
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending).hasSize(1)
+            assertThat(item.pending.isNotEmpty() || item.getPendingEvents().isNotEmpty()).isEqualTo(true)
+            if (item.pending.isNotEmpty()) {
+                assertThat(item.pending).hasSize(1)
+            }
+            if (item.getPendingEvents().isNotEmpty()) {
+                assertThat(item.getPendingEvents()).hasSize(1)
+            }
 
             assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(
                 resolvedItemProperties, ItemProperties::rawJsonContent.name
@@ -157,14 +164,23 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         // Confirm the logs, run the item reducer.
         val pendingItem = itemRepository.findById(ItemId(token.address(), tokenId)).awaitFirstOrNull()
-        assertThat(pendingItem?.pending).hasSize(1)
 
-        val history = nftItemHistoryRepository.findItemsHistory(token = token.address(), tokenId = tokenId)
+        assertThat(pendingItem?.pending?.isNotEmpty() == true || pendingItem?.getPendingEvents()?.isNotEmpty() == true).isEqualTo(true)
+        if (pendingItem?.pending?.isNotEmpty() == true) {
+            assertThat(pendingItem?.pending).hasSize(1)
+        }
+        if (pendingItem?.getPendingEvents()?.isNotEmpty() == true) {
+            assertThat(pendingItem?.getPendingEvents()).hasSize(1)
+        }
+
+        val history = nftItemHistoryRepository
+            .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
+
         assertThat(history).hasSize(1)
         val pendingLogEvent = history.single().log
         assertThat(pendingLogEvent.status).isEqualTo(LogEventStatus.PENDING)
-        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED)
+        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED, blockNumber = 10, logIndex = 10)
         nftItemHistoryRepository.save(confirmedLogEvent).awaitFirst()
         blockProcessor.postProcessLogs(listOf(confirmedLogEvent)).awaitFirstOrNull()
 
@@ -195,7 +211,13 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending).hasSize(1)
+            assertThat(item.pending.isNotEmpty() || item.getPendingEvents()?.isNotEmpty()).isEqualTo(true)
+            if (item.pending.isNotEmpty()) {
+                assertThat(item.pending).hasSize(1)
+            }
+            if (item.getPendingEvents().isNotEmpty()) {
+                assertThat(item.getPendingEvents()).hasSize(1)
+            }
         }
     }
 
