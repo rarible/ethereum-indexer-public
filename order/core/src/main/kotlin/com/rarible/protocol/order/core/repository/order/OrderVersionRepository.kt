@@ -5,6 +5,8 @@ import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.repository.order.OrderVersionRepositoryIndexes.HASH_PLATFORM_AND_ID_DEFINITION
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -18,10 +20,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.gt
-import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -99,13 +98,16 @@ class OrderVersionRepository(
         return template.findAll(COLLECTION)
     }
 
-    fun findAllByHash(hash: Word): Flow<OrderVersion> = findAllByHash(hash, null).asFlow()
+    fun findAllByHash(hash: Word): Flow<OrderVersion> = findAllByHash(hash, null, null).asFlow()
 
-    fun findAllByHash(hash: Word?, fromHash: Word?): Flux<OrderVersion> {
-        val criteria = when {
+    fun findAllByHash(hash: Word?, fromHash: Word?, platforms: List<Platform>?): Flux<OrderVersion> {
+        var criteria = when {
             hash != null -> OrderVersion::hash isEqualTo hash
             fromHash != null -> OrderVersion::hash gt fromHash
             else -> Criteria()
+        }
+        if (platforms?.isNotEmpty() == true) {
+            criteria = criteria.and(OrderVersion::platform).inValues(platforms)
         }
         val query = Query(criteria).with(HASH_SORT_ASC)
         return template.find(query, COLLECTION)

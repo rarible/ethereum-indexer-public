@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
@@ -20,6 +21,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DuplicateKeyException
@@ -45,13 +47,13 @@ class OrderReduceService(
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
-    fun update(orderHash: Word? = null, fromOrderHash: Word? = null): Flux<Order> {
+    fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
         return Flux.mergeOrdered(
-            compareBy { it.date },
-            orderVersionRepository.findAllByHash(orderHash, fromOrderHash)
+            orderUpdateComparator,
+            orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
-            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash)
+            exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
                 .map { OrderUpdate.ByLogEvent(it) }
         )
             .windowUntilChanged { it.orderHash }
@@ -60,19 +62,16 @@ class OrderReduceService(
 
     private sealed class OrderUpdate {
         abstract val orderHash: Word
-        abstract val eventId: String
-        abstract val date: Instant
+        abstract val eventId: ObjectId
 
         data class ByOrderVersion(val orderVersion: OrderVersion) : OrderUpdate() {
             override val orderHash get() = orderVersion.hash
-            override val eventId: String get() = orderVersion.id.toHexString()
-            override val date get() = orderVersion.createdAt
+            override val eventId get() = orderVersion.id
         }
 
         data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
-            override val eventId: String get() = logEvent.id.toHexString()
-            override val date get() = logEvent.updatedAt
+            override val eventId get() = logEvent.id
         }
     }
 
@@ -89,7 +88,7 @@ class OrderReduceService(
                         // On-chain order versions are processed via the OnChainOrder LogEvent-s in the next when-branch.
                         order
                     } else {
-                        order.updateWith(update.orderVersion, update.eventId)
+                        order.updateWith(update.orderVersion, update.eventId.toHexString())
                     }
                 }
                 is OrderUpdate.ByLogEvent -> {
@@ -100,7 +99,7 @@ class OrderReduceService(
                     ) {
                         seenRevertedOnChainOrder = true
                     }
-                    order.updateWith(update.logEvent, exchangeHistory, update.eventId)
+                    order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
                 }
             }
         }
@@ -282,7 +281,7 @@ class OrderReduceService(
     }
 
     companion object {
-        private val EMPTY_ORDER_HASH = 0.toBigInteger().toWord()
+        val EMPTY_ORDER_HASH = 0.toBigInteger().toWord()
 
         private val emptyOrder = Order(
             maker = Address.ZERO(),
@@ -313,6 +312,26 @@ class OrderReduceService(
         private fun accumulateEventId(lastEventId: String?, eventId: String): String {
             return Hash.sha3((lastEventId ?: "") + eventId)
         }
+
+        /**
+         * This comparator MUST comply with the order used in Fluxes for mergeOrdered.
+         * Also, it explicitly moves OrderUpdate.ByOrderVersion before OrderUpdate.ByLogEvent
+         */
+        private val orderUpdateComparator: Comparator<OrderUpdate> = Comparator r@{ u1, u2 ->
+            u1.orderHash.toString().compareTo(u2.orderHash.toString()).takeUnless { it == 0 }?.let { return@r it }
+            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByOrderVersion) {
+                return@r u1.eventId.compareTo(u2.eventId)
+            }
+            if (u1 is OrderUpdate.ByLogEvent && u2 is OrderUpdate.ByLogEvent) {
+                return@r logEventComparator.compare(u1.logEvent, u2.logEvent)
+            }
+            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByLogEvent) return@r -1
+            return@r 1
+        }
+
+        private val logEventComparator = compareBy<LogEvent> { it.blockNumber ?: 0 } then
+            compareBy { it.logIndex ?: 0 } then
+            compareBy { it.minorLogIndex }
 
         val logger: Logger = LoggerFactory.getLogger(OrderReduceService::class.java)
 

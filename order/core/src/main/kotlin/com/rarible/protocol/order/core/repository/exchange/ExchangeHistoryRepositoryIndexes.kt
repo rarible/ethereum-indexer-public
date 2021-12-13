@@ -80,6 +80,14 @@ object ExchangeHistoryRepositoryIndexes {
         .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
         .background()
 
+    val HASH_AND_SOURCE_DEFINITION: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::hash.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::source.name}", Sort.Direction.ASC)
+        .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
+        .on(LogEvent::logIndex.name, Sort.Direction.ASC)
+        .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
         MAKER_SELL_DEFINITION,
@@ -91,6 +99,7 @@ object ExchangeHistoryRepositoryIndexes {
         ITEM_BID_DEFINITION,
         COLLECTION_BID_DEFINITION,
         AGGREGATION_DEFINITION,
-        HASH_DEFINITION
+        HASH_DEFINITION,
+        HASH_AND_SOURCE_DEFINITION
     )
 }

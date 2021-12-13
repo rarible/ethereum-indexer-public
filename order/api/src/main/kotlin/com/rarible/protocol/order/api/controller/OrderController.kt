@@ -43,6 +43,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
+import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -50,6 +51,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -67,10 +70,20 @@ class OrderController(
     private val assetDtoConverter: AssetDtoConverter,
     private val orderBidsService: OrderBidsService,
     private val compositeBidConverter: CompositeBidConverter,
+    private val orderReduceService: OrderReduceService,
     orderIndexerProperties: OrderIndexerProperties
 ) : OrderControllerApi {
 
     private val platformFeaturedFilter = PlatformFeaturedFilter(orderIndexerProperties.featureFlags)
+
+    @PostMapping(
+        value = ["/v0.1/orders/{hash}/reduce"],
+        produces = ["application/json"]
+    )
+    suspend fun reduceOrder(@PathVariable hash: String): OrderDto? {
+        val order = orderReduceService.updateOrder(Word.apply(hash))
+        return order?.let { orderDtoConverter.convert(it) }
+    }
 
     override suspend fun prepareOrderTransaction(
         hash: String,
