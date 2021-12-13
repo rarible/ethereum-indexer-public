@@ -1,23 +1,32 @@
 package com.rarible.protocol.nft.api.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterAll
+import com.rarible.protocol.nft.core.model.OwnershipFilterByCollection
+import com.rarible.protocol.nft.core.model.OwnershipFilterByCreator
+import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
+import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 
 object OwnershipFilterCriteria {
     private const val DEFAULT_LIMIT = 1_000
 
-    fun NftOwnershipFilterDto.toCriteria(continuation: OwnershipContinuation?, limit: Int?): Query {
+    fun OwnershipFilter.toCriteria(continuation: OwnershipContinuation?, limit: Int?): Query {
         val criteria = when (this) {
-            is NftOwnershipFilterAllDto -> all()
-            is NftOwnershipFilterByCollectionDto -> byCollection(collection)
-            is NftOwnershipFilterByCreatorDto -> byCreator(creator)
-            is NftOwnershipFilterByOwnerDto -> byOwner(owner)
-            is NftOwnershipFilterByItemDto -> byItem(contract, EthUInt256(tokenId))
+            is OwnershipFilterAll -> all()
+            is OwnershipFilterByCollection -> byCollection(collection)
+            is OwnershipFilterByCreator -> byCreator(creator)
+            is OwnershipFilterByOwner -> byOwner(owner)
+            is OwnershipFilterByItem -> byItem(contract, EthUInt256(tokenId))
         } scrollTo continuation
 
         return Query.query(criteria).with(
@@ -45,9 +54,9 @@ object OwnershipFilterCriteria {
     private fun byCollection(collection: Address) =
         Criteria(Ownership::token.name).isEqualTo(collection)
 
-    private fun NftOwnershipFilterDto.Sort.toMongoSort() =
+    private fun OwnershipFilter.Sort.toMongoSort() =
         when (this) {
-            NftOwnershipFilterDto.Sort.LAST_UPDATE -> Sort.by(
+            OwnershipFilter.Sort.LAST_UPDATE -> Sort.by(
                 Sort.Order.desc(Ownership::date.name),
                 Sort.Order.desc(Ownership::id.name)
             )

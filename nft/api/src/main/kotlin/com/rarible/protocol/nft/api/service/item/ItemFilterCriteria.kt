@@ -1,24 +1,33 @@
 package com.rarible.protocol.nft.api.service.item
 
-import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.ItemFilterByCollection
+import com.rarible.protocol.nft.core.model.ItemFilterByCreator
+import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 
 object ItemFilterCriteria {
 
-    fun NftItemFilterDto.toCriteria(
+    fun ItemFilter.toCriteria(
         continuation: ItemContinuation?,
         limit: Int
     ): Query {
         val (criteria, showDeleted) = when (this) {
-            is NftItemFilterAllDto -> all(lastUpdatedFrom) to showDeleted
-            is NftItemFilterByCollectionDto -> byCollection(collection, owner) to false
-            is NftItemFilterByCreatorDto -> byCreator(creator) to false
-            is NftItemFilterByOwnerDto -> byOwner(owner) to false
+            is ItemFilterAll -> all(lastUpdatedFrom) to showDeleted
+            is ItemFilterByCollection -> byCollection(collection, owner) to false
+            is ItemFilterByCreator -> byCreator(creator) to false
+            is ItemFilterByOwner -> byOwner(owner) to false
         }
         return Query
             .query(criteria showDeleted(showDeleted) scrollTo continuation)
@@ -45,9 +54,9 @@ object ItemFilterCriteria {
     }
 
 
-    private fun NftItemFilterDto.Sort.toMongoSort() =
+    private fun ItemFilter.Sort.toMongoSort() =
         when (this) {
-            NftItemFilterDto.Sort.LAST_UPDATE -> Sort.by(
+            ItemFilter.Sort.LAST_UPDATE -> Sort.by(
                 Sort.Order.desc(Item::date.name),
                 Sort.Order.desc(Item::id.name)
             )

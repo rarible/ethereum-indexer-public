@@ -2,11 +2,6 @@ package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.dto.NftItemFilterAllDto
-import com.rarible.protocol.dto.NftItemFilterByCollectionDto
-import com.rarible.protocol.dto.NftItemFilterByCreatorDto
-import com.rarible.protocol.dto.NftItemFilterByOwnerDto
-import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
@@ -14,6 +9,11 @@ import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.ItemFilterByCollection
+import com.rarible.protocol.nft.core.model.ItemFilterByCreator
+import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -35,7 +35,7 @@ class ItemServiceIt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
-    private val defaultSort = NftItemFilterDto.Sort.LAST_UPDATE
+    private val defaultSort = ItemFilter.Sort.LAST_UPDATE
 
     @Test
     fun `should find all items`() = runBlocking<Unit> {
@@ -43,10 +43,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(NftItemFilterAllDto(defaultSort, true, null), null, 10)
+        var result = itemService.search(ItemFilterAll(defaultSort, true, null), null, 10)
         assertSizeAndMeta(result, 3)
 
-        result = itemService.search(NftItemFilterAllDto(defaultSort, true, null), null, 1)
+        result = itemService.search(ItemFilterAll(defaultSort, true, null), null, 1)
         assertSizeAndMeta(result, 1)
     }
 
@@ -56,10 +56,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(NftItemFilterAllDto(defaultSort, false, null), null, 10)
+        var result = itemService.search(ItemFilterAll(defaultSort, false, null), null, 10)
         assertSizeAndMeta(result, 2)
 
-        result = itemService.search(NftItemFilterAllDto(defaultSort, false, null), null, 1)
+        result = itemService.search(ItemFilterAll(defaultSort, false, null), null, 1)
         assertSizeAndMeta(result, 1)
     }
 
@@ -74,7 +74,7 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(item1, item2, item3, item4, item5)
 
         val result = itemService.search(
-            NftItemFilterAllDto(
+            ItemFilterAll(
                 defaultSort,
                 true,
                 now
@@ -94,10 +94,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(NftItemFilterByCollectionDto(defaultSort, Address.ONE()), null, 10)
+        var result = itemService.search(ItemFilterByCollection(defaultSort, Address.ONE()), null, 10)
         assertSizeAndMeta(result, 1)
 
-        result = itemService.search(NftItemFilterByCollectionDto(defaultSort, Address.TWO()), null, 10)
+        result = itemService.search(ItemFilterByCollection(defaultSort, Address.TWO()), null, 10)
         assertSizeAndMeta(result, 1)
     }
 
@@ -107,13 +107,13 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(NftItemFilterByOwnerDto(defaultSort, Address.ONE()), null, 10)
+        var result = itemService.search(ItemFilterByOwner(defaultSort, Address.ONE()), null, 10)
         assertSizeAndMeta(result, 0)
 
-        result = itemService.search(NftItemFilterByOwnerDto(defaultSort, Address.THREE()), null, 10)
+        result = itemService.search(ItemFilterByOwner(defaultSort, Address.THREE()), null, 10)
         assertSizeAndMeta(result, 2)
 
-        result = itemService.search(NftItemFilterByOwnerDto(defaultSort, Address.FOUR()), null, 10)
+        result = itemService.search(ItemFilterByOwner(defaultSort, Address.FOUR()), null, 10)
         assertSizeAndMeta(result, 1)
     }
 
@@ -123,10 +123,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(NftItemFilterByCreatorDto(defaultSort, Address.ONE()), null, 10)
+        var result = itemService.search(ItemFilterByCreator(defaultSort, Address.ONE()), null, 10)
         assertSizeAndMeta(result, 0)
 
-        result = itemService.search(NftItemFilterByCreatorDto(defaultSort, Address.TWO()), null, 10)
+        result = itemService.search(ItemFilterByCreator(defaultSort, Address.TWO()), null, 10)
         assertSizeAndMeta(result, 2)
     }
 
