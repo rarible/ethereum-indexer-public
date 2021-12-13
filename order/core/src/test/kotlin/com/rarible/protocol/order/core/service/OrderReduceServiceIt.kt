@@ -12,23 +12,18 @@ import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Duration
 
 @IntegrationTest
 class OrderReduceServiceIt : AbstractIntegrationTest() {
-
-    @Autowired
-    protected lateinit var orderVersionRepository: OrderVersionRepository
 
     @Test
     fun `should calculate order for existed order`() = runBlocking<Unit> {
