@@ -32,7 +32,6 @@ import scalether.domain.Address
 @ExperimentalCoroutinesApi
 @Service
 @CaptureSpan(type = SpanType.APP)
-@Profile("reduce-v1")
 class ItemReduceServiceV1(
     private val itemRepository: ItemRepository,
     private val ownershipService: OwnershipService,

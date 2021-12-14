@@ -12,3 +12,4 @@ interface ItemReduceService {
 
     fun update(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemId>
 }
+
