@@ -29,21 +29,6 @@
                 <artifactId>protocol-nft-indexer-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-nft-indexer-contract</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-nft-indexer-listener</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-nft-indexer-migration</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <!-- =============== Other dependencies ================ -->
             <dependency>
@@ -60,7 +45,6 @@
     </dependencyManagement>
 
     <modules>
-        <module>contract</module>
         <module>core</module>
         <module>listener</module>
         <module>migration</module>
