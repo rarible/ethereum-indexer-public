@@ -25,7 +25,6 @@ import scalether.domain.Address
 
 @Component
 @ExperimentalCoroutinesApi
-@Profile("reduce-v2")
 class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
     private val compositeFullReduceService: CompositeFullReduceService,

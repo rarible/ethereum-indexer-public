@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -27,10 +28,5 @@ data class NftIndexerProperties(
         val erc721RaribleUser: String,
         val erc1155Rarible: String,
         val erc1155RaribleUser: String
-    )
-
-    data class FeatureFlags(
-        var isRoyaltyServiceEnabled: Boolean = true,
-        var ownershipBatchHandle: Boolean = false
     )
 }

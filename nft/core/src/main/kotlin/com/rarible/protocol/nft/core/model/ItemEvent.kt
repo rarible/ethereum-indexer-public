@@ -46,6 +46,7 @@ sealed class ItemEvent : BlockchainEntityEvent<ItemEvent>() {
     ) : ItemEvent()
 
     data class ItemBurnEvent(
+        val owner: Address,
         val supply: EthUInt256,
         override val blockNumber: Long?,
         override val logIndex: Int?,

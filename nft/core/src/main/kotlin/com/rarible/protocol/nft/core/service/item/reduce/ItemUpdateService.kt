@@ -20,7 +20,7 @@ class ItemUpdateService(
     }
 
     override suspend fun update(entity: Item): Item {
-        val savedItem = itemRepository.save(entity.withCalculated()).awaitFirst()
+        val savedItem = itemRepository.save(entity).awaitFirst()
         eventListenerListener.onItemChanged(savedItem).awaitFirstOrNull()
         return savedItem
     }

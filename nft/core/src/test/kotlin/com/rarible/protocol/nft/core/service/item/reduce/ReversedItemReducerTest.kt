@@ -18,7 +18,6 @@ internal class ReversedItemReducerTest {
         val reducedItem = reversedItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.deleted).isEqualTo(true)
     }
 
     @Test
@@ -29,6 +28,5 @@ internal class ReversedItemReducerTest {
         val reducedItem = reversedItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
-        assertThat(reducedItem.deleted).isEqualTo(false)
     }
 }

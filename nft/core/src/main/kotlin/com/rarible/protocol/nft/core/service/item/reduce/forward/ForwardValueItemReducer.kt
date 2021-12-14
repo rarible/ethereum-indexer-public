@@ -17,7 +17,7 @@ class ForwardValueItemReducer : Reducer<ItemEvent, Item> {
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }
-        return entity.copy(supply = supply, deleted = supply == EthUInt256.ZERO)
+        return entity.copy(supply = supply)
     }
 }
 

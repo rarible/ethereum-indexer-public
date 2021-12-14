@@ -30,7 +30,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
-@ActiveProfiles("integration", "reduce-v2")
+@ActiveProfiles("integration")
 @Import(TestPropertiesConfiguration::class)
 @Testcontainers
 annotation class IntegrationTest

@@ -8,8 +8,19 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.HistoryLog
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -22,7 +33,6 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -32,7 +42,6 @@ import scalether.domain.Address
 @ExperimentalCoroutinesApi
 @Service
 @CaptureSpan(type = SpanType.APP)
-@Profile("reduce-v1")
 class ItemReduceServiceV1(
     private val itemRepository: ItemRepository,
     private val ownershipService: OwnershipService,
@@ -42,7 +51,7 @@ class ItemReduceServiceV1(
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService,
-    private val featureFlags: NftIndexerProperties.FeatureFlags
+    private val featureFlags: FeatureFlags
 ) : ItemReduceService {
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
 

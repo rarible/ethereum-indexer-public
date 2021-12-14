@@ -44,12 +44,6 @@ data class Item(
         get() = _id
         set(_) {}
 
-    fun withCalculated(): Item {
-        val deleted = deleted || (revertableEvents.isEmpty() && lazySupply == EthUInt256.ZERO)
-        val supply = if (deleted) EthUInt256.ZERO else supply
-        return copy(deleted = deleted, supply = supply)
-    }
-
     fun getPendingEvents(): List<ItemEvent> {
         return revertableEvents.filter { it.status == BlockchainEntityEvent.Status.PENDING }
     }
@@ -72,7 +66,7 @@ data class Item(
             return ItemId(Address.apply(parts[0].trim()), tokenId)
         }
 
-        fun empty(token: Address, tokenId: EthUInt256, deleted: Boolean = false): Item {
+        fun empty(token: Address, tokenId: EthUInt256): Item {
             return Item(
                 token = token,
                 tokenId = tokenId,
@@ -80,7 +74,6 @@ data class Item(
                 lazySupply = EthUInt256.ZERO,
                 royalties = emptyList(),
                 date = nowMillis(),
-                deleted = deleted,
                 revertableEvents = emptyList()
             )
         }

@@ -1,8 +1,11 @@
 package com.rarible.protocol.nft.migration.service
 
+import com.mongodb.assertions.Assertions.assertFalse
+import com.mongodb.assertions.Assertions.assertTrue
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
@@ -12,7 +15,6 @@ import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -20,7 +22,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
-import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
@@ -30,11 +31,11 @@ import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00017Unsupporte
 import io.daonomic.rpc.domain.Binary
 import io.mockk.every
 import io.mockk.mockk
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -76,7 +77,8 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
     @Test
     fun `should remove lazy items`() = runBlocking {
         val itemReduceService = ItemReduceServiceV1(itemRepository, ownershipService, historyRepository,
-            lazyNftItemHistoryRepository, itemCreatorService, eventListenerListener, skipTokens, royaltyService, NftIndexerProperties.FeatureFlags())
+            lazyNftItemHistoryRepository, itemCreatorService, eventListenerListener, skipTokens, royaltyService, FeatureFlags()
+        )
 
         // non lazy collection
         val contract = createToken().copy(
