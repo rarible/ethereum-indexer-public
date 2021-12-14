@@ -17,7 +17,14 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ContentMeta
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
