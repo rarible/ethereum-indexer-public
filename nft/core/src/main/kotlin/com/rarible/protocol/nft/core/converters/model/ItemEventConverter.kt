@@ -100,6 +100,7 @@ object ItemEventConverter {
             is ItemLazyMint -> {
                 ItemEvent.LazyItemMintEvent(
                     supply = data.value,
+                    timestamp = data.date.epochSecond,
                     creators = data.creators,
                     blockNumber = source.blockNumber,
                     logIndex = source.logIndex,
@@ -107,20 +108,19 @@ object ItemEventConverter {
                     status = BlockchainStatusConverter.convert(source.status),
                     transactionHash = source.transactionHash.toString(),
                     address = source.address.prefixed(),
-                    timestamp = source.createdAt.epochSecond,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
             is BurnItemLazyMint -> {
                 ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
+                    timestamp = data.date.epochSecond,
                     blockNumber = source.blockNumber,
                     logIndex = source.logIndex,
                     minorLogIndex = source.minorLogIndex,
                     status = BlockchainStatusConverter.convert(source.status),
                     transactionHash = source.transactionHash.toString(),
                     address = source.address.prefixed(),
-                    timestamp = source.createdAt.epochSecond,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }

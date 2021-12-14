@@ -34,6 +34,7 @@ import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import io.mockk.coVerify
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -53,6 +54,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.time.Instant
+import kotlin.time.Duration
 
 @End2EndTest
 class BurnLazyMintFt : SpringContainerBaseTest() {
@@ -112,8 +114,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val signature = sign(privateKey, msg).toBinary()
 
         val lazyDto = BurnLazyNftFormDto(lazyItemDto.creators.map { it.account }, listOf(signature))
-        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto)
-            .awaitFirstOrNull()
+        delay(2000)
+        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
         coVerify(exactly = 1) { mockItemPropertiesResolver.reset(itemId) }
         coEvery { mockItemPropertiesResolver.resolve(itemId) } returns null
         assertThat(itemMetaService.getItemMetadata(itemId)).isEqualTo(ItemMeta(ItemProperties.EMPTY, ContentMeta.EMPTY))
@@ -177,7 +179,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
             topic = ItemReduceServiceV1.WORD_ZERO,
             transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
-            blockNumber = 1,
+            blockNumber = 3,
             logIndex = 1,
             index = 1,
             minorLogIndex = 0

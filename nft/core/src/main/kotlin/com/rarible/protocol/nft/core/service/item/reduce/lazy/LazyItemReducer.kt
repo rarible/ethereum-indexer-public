@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 @Component
 class LazyItemReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
+            return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
             entity
         } else {
             return when (event) {
