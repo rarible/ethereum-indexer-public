@@ -8,9 +8,40 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.Part
 
 fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
+}
+
+fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
+    return ItemEvent.ItemCreatorsEvent(
+        creators = listOf(Part.fullPart(randomAddress()), Part.fullPart(randomAddress())),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
+}
+
+fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
+    return ItemEvent.ItemTransferEvent(
+        from = randomAddress(),
+        to = randomAddress(),
+        value = EthUInt256.of(randomInt()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
 }
 
 fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {

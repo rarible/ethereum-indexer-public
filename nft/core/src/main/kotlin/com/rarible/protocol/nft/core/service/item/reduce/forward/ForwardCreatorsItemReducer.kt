@@ -43,7 +43,6 @@ class ForwardCreatorsItemReducer(
         return creatorService
             .getCreator(itemId).awaitFirstOrNull()
             ?.let { listOf(Part.fullPart(it)) }
-            ?.takeUnless { it.isEmpty() }
             ?: default
     }
 }

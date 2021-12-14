@@ -52,6 +52,10 @@ data class Item(
         return if (lazySupply != EthUInt256.ZERO) creators.firstOrNull()?.account else null
     }
 
+    fun isLazyItem(): Boolean {
+        return lastLazyEventTimestamp != null
+    }
+
     override fun withRevertableEvents(events: List<ItemEvent>): Item {
         return copy(revertableEvents = events)
     }

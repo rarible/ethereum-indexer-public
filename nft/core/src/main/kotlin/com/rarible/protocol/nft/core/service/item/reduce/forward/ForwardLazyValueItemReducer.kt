@@ -5,16 +5,21 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import org.springframework.stereotype.Component
 
+/**
+ * This reducer is called on real mint of lazy item
+ * It must monitor consistency of lazyValue of item
+ */
 @Component
 class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {
             is ItemEvent.ItemMintEvent -> {
-                if (entity.lastLazyEventTimestamp != null) {
-                    entity.copy(
-                        lazySupply = entity.lazySupply - event.supply,
-                        supply = entity.supply - event.supply
-                    )
+                if (entity.isLazyItem()) {
+                    //On mint of lazy item it's lazySupply decreases
+                    val lazySupply = entity.lazySupply - event.supply
+                    //We also should to decreases supply as it is contains lazy part
+                    val supply = entity.supply - event.supply
+                    entity.copy(lazySupply = lazySupply, supply = supply)
                 } else {
                     entity
                 }
