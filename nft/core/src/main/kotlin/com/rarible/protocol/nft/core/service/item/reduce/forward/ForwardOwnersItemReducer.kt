@@ -10,26 +10,43 @@ import org.springframework.stereotype.Component
 class ForwardOwnersItemReducer : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return when (event) {
-            is ItemEvent.ItemTransferEvent-> {
-                val ownerships = entity.ownerships.toMutableMap()
+        val ownerships = entity.ownerships.toMutableMap()
+
+        when (event) {
+            is ItemEvent.ItemTransferEvent -> {
                 val toValue = ownerships[event.to] ?: EthUInt256.ZERO
                 val fromValue = ownerships[event.from] ?: EthUInt256.ZERO
 
+                if (fromValue > event.value) {
+                    ownerships[event.from] = fromValue - event.value
+                } else {
+                    ownerships.remove(event.from)
+                }
                 if (event.value != EthUInt256.ZERO) {
                     ownerships[event.to] = toValue + event.value
                 }
-                if (event.value != EthUInt256.ZERO && fromValue > event.value) {
-                    ownerships[event.from] = fromValue - event.value
-                }
-                entity.copy(ownerships = ownerships)
             }
-            is ItemEvent.ItemMintEvent,
-            is ItemEvent.ItemBurnEvent,
-            is ItemEvent.ItemCreatorsEvent -> entity
+            is ItemEvent.ItemMintEvent -> {
+                val ownerValue = ownerships[event.owner] ?: EthUInt256.ZERO
 
+                if (event.supply != EthUInt256.ZERO) {
+                    ownerships[event.owner] = ownerValue + event.supply
+                }
+            }
+            is ItemEvent.ItemBurnEvent -> {
+                val ownerValue = ownerships[event.owner] ?: EthUInt256.ZERO
+
+                if (ownerValue > event.supply) {
+                    ownerships[event.owner] = ownerValue - event.supply
+                } else {
+                    ownerships.remove(event.owner)
+                }
+            }
+            is ItemEvent.ItemCreatorsEvent -> {
+            }
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }
+        return entity.copy(ownerships = ownerships)
     }
 }

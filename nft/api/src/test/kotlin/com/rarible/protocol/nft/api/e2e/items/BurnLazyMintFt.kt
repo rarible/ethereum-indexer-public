@@ -17,13 +17,7 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
-import com.rarible.protocol.nft.core.model.ContentMeta
-import com.rarible.protocol.nft.core.model.ItemCreators
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -44,6 +38,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -54,7 +50,6 @@ import scalether.domain.Address
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.time.Instant
-import kotlin.time.Duration
 
 @End2EndTest
 class BurnLazyMintFt : SpringContainerBaseTest() {
@@ -80,8 +75,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemMetaService: ItemMetaService
 
-    @Test
-    fun `should burn mint lazy item`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -124,8 +120,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         assertTrue(item.deleted)
     }
 
-    @Test
-    fun `should burn lazy item after minting`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should burn lazy item after minting`(version: ReduceVersion) = withReducer(version) {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

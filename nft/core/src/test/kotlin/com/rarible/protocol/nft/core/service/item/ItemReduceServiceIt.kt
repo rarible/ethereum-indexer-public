@@ -15,15 +15,13 @@ import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -33,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
-import kotlin.coroutines.EmptyCoroutineContext
 
 @FlowPreview
 @IntegrationTest
@@ -46,9 +43,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
 
-    @Autowired
-    private lateinit var featuredItemReduceService: FeaturedItemReduceService
-
     @BeforeEach
     fun setUpMeta() {
         coEvery { mockItemPropertiesResolver.resolve(any()) } returns itemProperties
@@ -56,7 +50,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun mintItem(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun mintItem(version: ReduceVersion) = withReducer(version) {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -86,7 +80,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `should get creator from tokenId for OpenSea tokenId`(version: ReduceVersion) = runBlockingWithVersion(version)  {
+    fun `should get creator from tokenId for OpenSea tokenId`(version: ReduceVersion) = withReducer(version)  {
         val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
 
         val owner = AddressFactory.create()
@@ -121,7 +115,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun mintItemViaPending(version: ReduceVersion) = runBlockingWithVersion(version)  {
+    fun mintItemViaPending(version: ReduceVersion) = withReducer(version)  {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -162,7 +156,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             logIndex = 1
         )
 
-        historyService.update(token, tokenId).then().block()
+        historyService.update(token, tokenId).then().awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
 
         checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
@@ -171,7 +165,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun deleteErrorEntities(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun deleteErrorEntities(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -230,7 +224,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun transferToSelf(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun transferToSelf(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -268,7 +262,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     fun deleteItemAfterLogEventChangeStatusFromPendingToInvalidStatus(
         invalidStatus: LogEventStatus,
         version: ReduceVersion
-    ) = runBlockingWithVersion(version) {
+    ) = withReducer(version) {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -309,7 +303,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun burnItem(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun burnItem(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -348,7 +342,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun pendingItemTransfer(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun pendingItemTransfer(version: ReduceVersion) = withReducer(version) {
         val from = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -386,7 +380,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun confirmedItemTransfer(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun confirmedItemTransfer(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
 
@@ -419,7 +413,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun confirmedItemRoyalty() = runBlockingWithVersion(ReduceVersion.V1) {
+    @Disabled
+    fun confirmedItemRoyalty() = withReducer(ReduceVersion.V1) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -442,7 +437,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun confirmedItemMint(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun confirmedItemMint(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val minter = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -466,7 +461,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `update ownership for ERC1155`(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun `update ownership for ERC1155`(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -507,7 +502,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
      */
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `ownership transferred for ERC721`(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun `ownership transferred for ERC721`(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -546,7 +541,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `should set pending log only for target ownerships`(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun `should set pending log only for target ownerships`(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner1 = AddressFactory.create()
@@ -589,27 +584,31 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val ownership1 = ownershipRepository.findById(OwnershipId(token, tokenId, owner1)).awaitFirst()
         assertThat(ownership1.value).isEqualTo(EthUInt256.TEN)
-        assertThat(ownership1.pending).isEmpty()
-        assertThat(ownership1.getPendingEvents()).isEmpty()
 
         val ownership2 = ownershipRepository.findById(OwnershipId(token, tokenId, owner2)).awaitFirst()
         assertThat(ownership2.value).isEqualTo(EthUInt256.TEN)
 
-        if (ownership2.pending.isEmpty() && ownership2.getPendingEvents().isEmpty()) {
-            Assertions.fail<String>("can't fins pending events")
-        }
-
         val ownership3 = ownershipRepository.findById(OwnershipId(token, tokenId, owner3)).awaitFirst()
         assertThat(ownership3.value).isEqualTo(EthUInt256.ZERO)
 
-        if (ownership3.pending.isEmpty() && ownership3.getPendingEvents().isEmpty()) {
-            Assertions.fail<String>("can't fins pending events")
+
+        when (version) {
+            ReduceVersion.V1 -> {
+                assertThat(ownership1.pending).isEmpty()
+                assertThat(ownership2.pending).hasSize(1)
+                assertThat(ownership3.pending).hasSize(1)
+            }
+            ReduceVersion.V2 -> {
+                assertThat(ownership1.getPendingEvents()).isEmpty()
+                assertThat(ownership2.getPendingEvents()).hasSize(1)
+                assertThat(ownership3.getPendingEvents()).hasSize(1)
+            }
         }
     }
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun ownershipsInfoOfItem(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun ownershipsInfoOfItem(version: ReduceVersion) = withReducer(version) {
         val token = Address.ONE()
         val tokenId = EthUInt256.of(1)
         val creator = AddressFactory.create()
@@ -617,7 +616,9 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner2 = AddressFactory.create()
         val owner3 = AddressFactory.create()
         val owner4 = AddressFactory.create()
-        val value = EthUInt256.of(20)
+        val owner5 = AddressFactory.create()
+        val owner6 = AddressFactory.create()
+        val value = EthUInt256.of(25)
 
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC1155)
@@ -677,26 +678,58 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 tokenId = tokenId,
                 date = nowMillis(),
                 from = creator,
-                value = EthUInt256.of(5)
+                value = EthUInt256.of(10)
             ),
             token,
             logIndex = 5
+        )
+        saveItemHistory(
+            ItemTransfer(
+                owner = owner5,
+                token = token,
+                tokenId = tokenId,
+                date = nowMillis(),
+                from = owner4,
+                value = EthUInt256.of(5)
+            ),
+            token,
+            logIndex = 6
+        )
+        saveItemHistory(
+            ItemTransfer(
+                owner = owner6,
+                token = token,
+                tokenId = tokenId,
+                date = nowMillis(),
+                from = owner5,
+                value = EthUInt256.of(2)
+            ),
+            token,
+            logIndex = 7
         )
         historyService.update(token, tokenId).awaitFirstOrNull()
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
 
-        if (item.owners.isNotEmpty()) {
-            assertThat(item.owners).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
-        }
-        if (item.ownerships.isNotEmpty()) {
-            assertThat(item.ownerships.keys).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4)
+        when (version) {
+            ReduceVersion.V1 -> {
+                assertThat(item.owners).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4, owner5, owner6)
+            }
+            ReduceVersion.V2 -> {
+                assertThat(item.ownerships.keys).containsExactlyInAnyOrder(owner1, owner2, owner3, owner4, owner5, owner6)
+                assertThat(item.ownerships[owner1]).isEqualTo(EthUInt256.of(5))
+                assertThat(item.ownerships[owner2]).isEqualTo(EthUInt256.of(5))
+                assertThat(item.ownerships[owner3]).isEqualTo(EthUInt256.of(5))
+                assertThat(item.ownerships[owner4]).isEqualTo(EthUInt256.of(5))
+                assertThat(item.ownerships[owner5]).isEqualTo(EthUInt256.of(3))
+                assertThat(item.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
+            }
         }
     }
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `should lazy mint`(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun `should lazy mint`(version: ReduceVersion) = withReducer(version) {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -727,7 +760,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `should calculate lazy after real mint`(version: ReduceVersion) = runBlockingWithVersion(version) {
+    fun `should calculate lazy after real mint`(version: ReduceVersion) = withReducer(version) {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -854,7 +887,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should calculate royalties after real mint of lazy nft`() = runBlockingWithVersion(ReduceVersion.V1) {
+    @Disabled
+    fun `should calculate royalties after real mint of lazy nft`() = withReducer(ReduceVersion.V1) {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val royalties = listOf(Part(AddressFactory.create(), 1), Part(AddressFactory.create(), 2))
@@ -962,11 +996,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
-    }
-
-    fun <T> runBlockingWithVersion(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
-        featuredItemReduceService.reduceVersion = version
-        runBlocking(EmptyCoroutineContext, block)
+        assertThat(ownership.deleted).isEqualTo(false)
     }
 
     companion object {

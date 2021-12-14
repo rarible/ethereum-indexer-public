@@ -10,6 +10,8 @@ object ItemEventConverter {
         return when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 when {
+                    data.from == Address.ZERO() && data.owner == Address.ZERO() -> null
+
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
                         owner = data.owner,
@@ -24,8 +26,9 @@ object ItemEventConverter {
                     )
                     data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
                         supply = data.value,
-                        blockNumber = requireNotNull(source.blockNumber),
-                        logIndex = requireNotNull(source.logIndex),
+                        owner = data.from,
+                        blockNumber = source.blockNumber,
+                        logIndex = source.logIndex,
                         status = BlockchainStatusConverter.convert(source.status),
                         transactionHash = source.transactionHash.toString(),
                         address = source.address.prefixed(),
@@ -33,7 +36,19 @@ object ItemEventConverter {
                         timestamp = source.createdAt.epochSecond,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
-                    else -> null
+                    else -> ItemEvent.ItemTransferEvent(
+                        value = data.value,
+                        from = data.from,
+                        to = data.owner,
+                        blockNumber = source.blockNumber,
+                        logIndex = source.logIndex,
+                        status = BlockchainStatusConverter.convert(source.status),
+                        transactionHash = source.transactionHash.toString(),
+                        address = source.address.prefixed(),
+                        minorLogIndex = source.minorLogIndex,
+                        timestamp = source.createdAt.epochSecond,
+                        entityId = ItemId(data.token, data.tokenId).stringValue
+                    )
                 }
             }
             is ItemLazyMint -> {

@@ -31,6 +31,7 @@ fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {
 fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
     return ItemEvent.ItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
+        owner = randomAddress(),
         blockNumber = randomLong(),
         logIndex = randomInt(),
         status = BlockchainEntityEvent.Status.values().random(),

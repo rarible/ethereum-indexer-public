@@ -8,7 +8,6 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -22,7 +21,6 @@ import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -41,7 +39,7 @@ class ItemReduceServiceV1(
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService,
-    private val featureFlags: NftIndexerProperties.FeatureFlags
+    private val featureFlags: FeatureFlags
 ) : ItemReduceService {
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
 

@@ -15,6 +15,8 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.web3j.utils.Numeric
@@ -28,17 +30,17 @@ import java.math.BigInteger
 @IntegrationTest
 class TransferDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun convert() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun convert(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
         val userSender = MonoSigningTransactionSender(
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val token = TestERC721.deployAndWait(userSender, poller, "TEST", "TST").awaitFirst()
         token.mint(userSender.from(), BigInteger.ONE,"").execute().verifySuccess()

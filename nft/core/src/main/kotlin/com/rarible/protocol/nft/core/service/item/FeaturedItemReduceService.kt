@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -17,7 +18,7 @@ import scalether.domain.Address
 class FeaturedItemReduceService(
     private val reducerV1: ItemReduceServiceV1,
     private val reducerV2: ItemReduceServiceV2,
-    var reduceVersion: ReduceVersion
+    private var featureFlags: FeatureFlags
 ) : ItemReduceService {
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
@@ -29,7 +30,7 @@ class FeaturedItemReduceService(
     }
 
     fun getReducer(): ItemReduceService {
-        return when (reduceVersion) {
+        return when (featureFlags.reduceVersion) {
             ReduceVersion.V1 -> reducerV1
             ReduceVersion.V2 -> reducerV2
         }

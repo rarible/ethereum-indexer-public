@@ -19,6 +19,8 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -30,16 +32,10 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -64,6 +60,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.coroutines.EmptyCoroutineContext
 
 @FlowPreview
 @Suppress("UNCHECKED_CAST")
@@ -107,6 +104,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var tokenHistoryRepository: NftHistoryRepository
+
+    @Autowired
+    private lateinit var featureFlags: FeatureFlags
 
     private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
 
@@ -283,5 +283,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         val publicKey = Sign.publicKeyFromPrivate(privateKey)
         val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         return NewKeys(privateKey, publicKey, signer)
+    }
+
+    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        featureFlags.reduceVersion = version
+        runBlocking(EmptyCoroutineContext, block)
     }
 }

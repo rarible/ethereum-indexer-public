@@ -13,15 +13,15 @@ import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -50,6 +50,7 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
+import kotlin.coroutines.EmptyCoroutineContext
 
 @FlowPreview
 abstract class AbstractIntegrationTest {
@@ -87,6 +88,9 @@ abstract class AbstractIntegrationTest {
 
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
+
+    @Autowired
+    private lateinit var featureFlags: FeatureFlags
 
     private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
 
@@ -201,5 +205,10 @@ abstract class AbstractIntegrationTest {
                 }
         }
         job.cancel()
+    }
+
+    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        featureFlags.reduceVersion = version
+        runBlocking(EmptyCoroutineContext, block)
     }
 }

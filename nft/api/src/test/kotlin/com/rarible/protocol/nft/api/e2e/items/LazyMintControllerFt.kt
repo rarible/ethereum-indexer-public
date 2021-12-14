@@ -19,12 +19,7 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.model.ContentMeta
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Binary
@@ -37,6 +32,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -74,12 +71,13 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             MonoSimpleNonceProvider(ethereum),
             privateKey,
             BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+            { Mono.just(BigInteger.ZERO) }
         )
     }
 
-    @Test
-    fun `should any user mints ERC721`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should any user mints ERC721`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC721Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
         val creator = randomAddress()
@@ -100,8 +98,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
-    @Test
-    fun `should only owner mints ERC721User`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should only owner mints ERC721User`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
@@ -122,8 +121,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
-    @Test
-    fun `shouldn't random user mints ERC721User`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `shouldn't random user mints ERC721User`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC721RaribleUserMinimal.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = randomAddress()
@@ -145,8 +145,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         }
     }
 
-    @Test
-    fun `should only owner mints ERC1155User`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should only owner mints ERC1155User`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC1155RaribleUser.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC1155RaribleUser_init("Test", "TestSymbol", "BASE", "URI", emptyArray()).execute().verifySuccess()
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
@@ -167,8 +168,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         checkItemDto(lazyItemDto, itemDto, itemProperties)
     }
 
-    @Test
-    fun `should any user mints ERC1155`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should any user mints ERC1155`(version: ReduceVersion) = withReducer(version) {
         val contract = ERC1155Rarible.deployAndWait(creatorSender, poller).awaitSingle()
         contract.__ERC1155Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
         val creator = randomAddress()

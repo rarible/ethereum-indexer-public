@@ -2,17 +2,7 @@ package com.rarible.protocol.nft.migration.service
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemHistory
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceSkipTokens
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -20,7 +10,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
-import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
@@ -76,7 +65,8 @@ class RemoveLazyItemsMigrationTest : AbstractIntegrationTest() {
     @Test
     fun `should remove lazy items`() = runBlocking {
         val itemReduceService = ItemReduceServiceV1(itemRepository, ownershipService, historyRepository,
-            lazyNftItemHistoryRepository, itemCreatorService, eventListenerListener, skipTokens, royaltyService, NftIndexerProperties.FeatureFlags())
+            lazyNftItemHistoryRepository, itemCreatorService, eventListenerListener, skipTokens, royaltyService, FeatureFlags()
+        )
 
         // non lazy collection
         val contract = createToken().copy(

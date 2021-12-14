@@ -10,14 +10,18 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.every
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -39,6 +43,7 @@ import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.net.URI
 import javax.annotation.PostConstruct
+import kotlin.coroutines.EmptyCoroutineContext
 
 abstract class SpringContainerBaseTest {
     init {
@@ -76,6 +81,9 @@ abstract class SpringContainerBaseTest {
     @Autowired
     @Qualifier("mockRariblePropertiesResolver")
     protected lateinit var mockRariblePropertiesResolver: RariblePropertiesResolver
+
+    @Autowired
+    private lateinit var featureFlags: FeatureFlags
 
     @LocalServerPort
     private var port: Int = 0
@@ -134,6 +142,11 @@ abstract class SpringContainerBaseTest {
             "traces: ${result.result().get()}"
         }
         return receipt
+    }
+
+    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        featureFlags.reduceVersion = version
+        runBlocking(EmptyCoroutineContext, block)
     }
 
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
