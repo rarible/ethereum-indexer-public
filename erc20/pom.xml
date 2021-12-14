@@ -34,11 +34,6 @@
                 <artifactId>protocol-erc20-indexer-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-erc20-indexer-contract</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
         </dependencies>
     </dependencyManagement>
@@ -47,6 +42,5 @@
         <module>core</module>
         <module>listener</module>
         <module>api</module>
-        <module>contract</module>
     </modules>
 </project>

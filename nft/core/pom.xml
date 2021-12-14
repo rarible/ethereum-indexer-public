@@ -27,12 +27,6 @@
             <artifactId>protocol-model-nft</artifactId>
         </dependency>
 
-        <!-- ============ Internal dependencies ============ -->
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-nft-indexer-contract</artifactId>
-        </dependency>
-
         <!-- =============== Blockchain-scanner ================ -->
         <dependency>
             <groupId>com.rarible.blockchain.scanner</groupId>
@@ -40,6 +34,12 @@
         </dependency>
 
         <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.protocol.contracts</groupId>
+            <artifactId>protocol-ethereum-contracts-nft</artifactId>
+            <version>${rarible.ethereum.contracts.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-converters</artifactId>
