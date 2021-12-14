@@ -8,11 +8,7 @@ import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
-import com.rarible.protocol.dto.LazyErc1155Dto
-import com.rarible.protocol.dto.LazyErc721Dto
-import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
@@ -40,7 +36,6 @@ import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender

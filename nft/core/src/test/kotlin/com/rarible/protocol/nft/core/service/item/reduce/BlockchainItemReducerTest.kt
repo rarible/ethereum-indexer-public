@@ -23,7 +23,6 @@ internal class BlockchainItemReducerTest {
         val reducedItem = itemBlockchainItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
-        assertThat(reducedItem.deleted).isEqualTo(false)
     }
 
     @Test
@@ -34,7 +33,6 @@ internal class BlockchainItemReducerTest {
         val reducedItem = itemBlockchainItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.deleted).isEqualTo(true)
     }
 
     companion object {
