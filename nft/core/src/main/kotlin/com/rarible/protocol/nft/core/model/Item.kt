@@ -54,12 +54,15 @@ data class Item(
         return revertableEvents.filter { it.status == BlockchainEntityEvent.Status.PENDING }
     }
 
+    fun getLazyOwner(): Address? {
+        return if (lazySupply != EthUInt256.ZERO) creators.firstOrNull()?.account else null
+    }
+
     override fun withRevertableEvents(events: List<ItemEvent>): Item {
         return copy(revertableEvents = events)
     }
 
     companion object {
-
         fun parseId(id: String): ItemId {
             val parts = id.split(":")
             if (parts.size < 2) {

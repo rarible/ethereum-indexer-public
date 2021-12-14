@@ -10,8 +10,10 @@ import org.springframework.stereotype.Component
 @Component
 class ReversedChainOwnershipReducer(
     eventApplyPolicy: OwnershipRevertEventApplyPolicy,
-    reversedOwnershipValueReducer: ReversedOwnershipValueReducer
+    reversedOwnershipValueReducer: ReversedOwnershipValueReducer,
+    revertedOwnershipLazyValueReducer: RevertedOwnershipLazyValueReducer
 ) : RevertedEntityChainReducer<OwnershipId, OwnershipEvent, Ownership>(
     eventApplyPolicy,
-    reversedOwnershipValueReducer
+    reversedOwnershipValueReducer,
+    revertedOwnershipLazyValueReducer
 )

@@ -15,13 +15,13 @@ object BlockchainStatusConverter {
         }
     }
 
-    fun convert(source: LogEventStatus): BlockchainEntityEvent.Status {
+    fun convert(source: LogEventStatus): Log.Status {
         return when (source) {
-            LogEventStatus.CONFIRMED -> BlockchainEntityEvent.Status.CONFIRMED
-            LogEventStatus.PENDING -> BlockchainEntityEvent.Status.PENDING
-            LogEventStatus.REVERTED -> BlockchainEntityEvent.Status.REVERTED
-            LogEventStatus.DROPPED -> BlockchainEntityEvent.Status.DROPPED
-            LogEventStatus.INACTIVE -> BlockchainEntityEvent.Status.INACTIVE
+            LogEventStatus.CONFIRMED -> Log.Status.CONFIRMED
+            LogEventStatus.PENDING -> Log.Status.PENDING
+            LogEventStatus.REVERTED -> Log.Status.REVERTED
+            LogEventStatus.DROPPED -> Log.Status.DROPPED
+            LogEventStatus.INACTIVE -> Log.Status.INACTIVE
         }
     }
 }

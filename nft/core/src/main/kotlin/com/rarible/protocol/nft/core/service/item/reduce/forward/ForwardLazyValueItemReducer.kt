@@ -13,7 +13,7 @@ class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
                 if (entity.lastLazyEventTimestamp != null) {
                     entity.copy(
                         lazySupply = entity.lazySupply - event.supply,
-                        supply = entity.supply - entity.supply
+                        supply = entity.supply - event.supply
                     )
                 } else {
                     entity

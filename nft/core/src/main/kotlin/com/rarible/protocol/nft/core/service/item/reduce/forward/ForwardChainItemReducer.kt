@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component
 class ForwardChainItemReducer(
     itemConfirmEventApplyPolicy: ItemConfirmEventApplyPolicy,
     forwardCreatorsItemReducer: ForwardCreatorsItemReducer,
-    forwardLazyValueItemReducer: ForwardLazyValueItemReducer,
     forwardValueItemReducer: ForwardValueItemReducer,
+    forwardLazyValueItemReducer: ForwardLazyValueItemReducer,
     forwardOwnersItemReducer: ForwardOwnersItemReducer
 ) : EntityChainReducer<ItemId, ItemEvent, Item>(
     itemConfirmEventApplyPolicy,

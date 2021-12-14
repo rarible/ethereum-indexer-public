@@ -11,10 +11,10 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.composit.CompositeFullReduceService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.flux
+import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
@@ -30,7 +30,8 @@ class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
     private val compositeFullReduceService: CompositeFullReduceService,
     private val historyRepository: NftItemHistoryRepository,
-    private val lazyHistoryRepository: LazyNftItemHistoryRepository
+    private val lazyHistoryRepository: LazyNftItemHistoryRepository,
+    private val ownershipEventConverter: OwnershipEventConverter
 ) : ItemReduceService {
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
@@ -43,7 +44,6 @@ class ItemReduceServiceV2(
             .then()
     }
 
-    @OptIn(FlowPreview::class)
     override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<ItemId> = flux {
         logger.info("Update token=$token, tokenId=$tokenId")
         val events = Flux.mergeComparing(
@@ -55,11 +55,13 @@ class ItemReduceServiceV2(
             ),
             findLazyItemsHistory(token, tokenId, from),
             historyRepository.findItemsHistory(token, tokenId, from)
-        ).map {
-            CompositeEvent(
-                itemEvent = ItemEventConverter.convert(it.log),
-                ownershipEvents = OwnershipEventConverter.convert(it.log)
-            )
+        ).concatMap {
+            mono {
+                CompositeEvent(
+                    itemEvent = ItemEventConverter.convert(it.log),
+                    ownershipEvents = ownershipEventConverter.convert(it.log)
+                )
+            }
         }.filter {
             it.itemEvent != null || it.ownershipEvents.isNotEmpty()
         }

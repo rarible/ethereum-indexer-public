@@ -15,12 +15,14 @@ class LazyOwnershipReducer : Reducer<OwnershipEvent, Ownership> {
             val lazyValue = when (event) {
                 is OwnershipEvent.LazyTransferToEvent -> entity.lazyValue + event.value
                 is OwnershipEvent.TransferToEvent,
+                is OwnershipEvent.ChangeLazyValueEvent,
                 is OwnershipEvent.TransferFromEvent -> {
                     throw IllegalArgumentException("This events can't be in this reducer")
                 }
             }
             entity.copy(
                 lazyValue = lazyValue,
+                value = lazyValue,
                 lastLazyEventTimestamp = event.timestamp,
                 deleted = lazyValue == EthUInt256.ZERO
             )

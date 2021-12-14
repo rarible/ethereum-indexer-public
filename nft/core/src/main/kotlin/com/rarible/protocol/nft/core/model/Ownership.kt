@@ -36,14 +36,12 @@ data class Ownership(
     @Transient
     private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
-    fun withCalculated(): Ownership {
-        val deleted = deleted || revertableEvents.isEmpty()
-        val value = if (deleted) EthUInt256.ZERO else value
-        return copy(deleted = deleted, value = value)
-    }
-
     fun getPendingEvents(): List<OwnershipEvent> {
         return revertableEvents.filter { it.status == BlockchainEntityEvent.Status.PENDING }
+    }
+
+    fun isLazyOwnership(): Boolean {
+        return lastLazyEventTimestamp != null
     }
 
     @get:Id
@@ -67,7 +65,7 @@ data class Ownership(
             return OwnershipId(Address.apply(parts[0].trim()), tokenId, Address.apply(parts[2].trim()))
         }
 
-        fun empty(token: Address, tokenId: EthUInt256, owner: Address, deleted: Boolean = false): Ownership {
+        fun empty(token: Address, tokenId: EthUInt256, owner: Address): Ownership {
             return Ownership(
                 token = token,
                 tokenId = tokenId,
@@ -75,7 +73,6 @@ data class Ownership(
                 owner = owner,
                 value = EthUInt256.ZERO,
                 lazyValue = EthUInt256.ZERO,
-                deleted = deleted,
                 date = nowMillis(),
                 pending = emptyList()
             )

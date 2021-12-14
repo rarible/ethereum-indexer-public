@@ -11,7 +11,9 @@ import org.springframework.stereotype.Component
 class ForwardChainOwnershipReducer(
     eventApplyPolicy: OwnershipConfirmEventApplyPolicy,
     forwardOwnershipValueReducer: ForwardOwnershipValueReducer,
+    forwardOwnershipLazyValueReducer: ForwardOwnershipLazyValueReducer
 ) : EntityChainReducer<OwnershipId, OwnershipEvent, Ownership>(
     eventApplyPolicy,
-    forwardOwnershipValueReducer
+    forwardOwnershipValueReducer,
+    forwardOwnershipLazyValueReducer
 )

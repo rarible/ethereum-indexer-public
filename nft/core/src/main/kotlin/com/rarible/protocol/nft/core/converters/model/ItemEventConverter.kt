@@ -13,67 +13,6 @@ object ItemEventConverter {
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
                         owner = data.owner,
-                        blockNumber = source.blockNumber ?: error("Can't be null"),
-                        logIndex = source.logIndex ?: error("Can't be null"),
-                        status = BlockchainStatusConverter.convert(source.status),
-                        minorLogIndex = source.minorLogIndex,
-                        transactionHash = source.transactionHash,
-                        address = source.address.prefixed(),
-                        timestamp = source.createdAt.epochSecond,
-                        entityId = ItemId(data.token, data.tokenId).stringValue
-                    )
-                    data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
-                        supply = data.value,
-                        blockNumber = source.blockNumber ?: error("Can't be null"),
-                        logIndex = source.logIndex ?: error("Can't be null"),
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash,
-                        address = source.address.prefixed(),
-                        minorLogIndex = source.minorLogIndex,
-                        timestamp = source.createdAt.epochSecond,
-                        entityId = ItemId(data.token, data.tokenId).stringValue
-                    )
-                    else -> null
-                }
-            }
-            is ItemLazyMint -> {
-                ItemEvent.LazyItemMintEvent(
-                    supply = data.value,
-                    creators = data.creators,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex ,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash,
-                    address = source.address.prefixed(),
-                    minorLogIndex = source.minorLogIndex,
-                    timestamp = source.createdAt.epochSecond,
-                    entityId = ItemId(data.token, data.tokenId).stringValue
-                )
-            }
-            is BurnItemLazyMint -> {
-                ItemEvent.LazyItemBurnEvent(
-                    supply = data.value,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash,
-                    address = source.address.prefixed(),
-                    minorLogIndex = source.minorLogIndex,
-                    timestamp = source.createdAt.epochSecond,
-                    entityId = ItemId(data.token, data.tokenId).stringValue
-                )
-            }
-            is ItemCreators, is ItemRoyalty, null -> null
-        }
-    }
-
-    fun convert(source: LogEvent): ItemEvent? {
-        return when (val data = source.data as? ItemHistory) {
-            is ItemTransfer -> {
-                when {
-                    data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
-                        supply = data.value,
-                        owner = data.owner,
                         blockNumber = source.blockNumber,
                         logIndex = source.logIndex,
                         minorLogIndex = source.minorLogIndex,
@@ -139,6 +78,11 @@ object ItemEventConverter {
             }
             is ItemRoyalty, null -> null
         }
+    }
+
+    fun convert(source: LogEvent): ItemEvent? {
+        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source))
+
     }
 }
 

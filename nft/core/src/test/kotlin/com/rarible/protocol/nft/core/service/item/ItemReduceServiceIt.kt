@@ -10,7 +10,6 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
@@ -56,9 +55,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
-
-    @Autowired
-    private lateinit var featureFlags: NftIndexerProperties.FeatureFlags
 
     @BeforeEach
     fun setUpMeta() {
@@ -209,21 +205,17 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val id = OwnershipId(token, tokenId, owner)
 
-        val ownershipEvent = OwnershipEventConverter
-            .convert(logEvent.copy(status = LogEventStatus.PENDING))
-            .single()
-
         ownershipRepository.save(
             Ownership(
                 token = token,
                 tokenId = tokenId,
                 owner = owner,
-                value = EthUInt256.ONE,
+                value = EthUInt256.ZERO,
                 lazyValue = EthUInt256.ZERO,
                 date = nowMillis(),
                 creators = listOf(Part(AddressFactory.create(), 1000)),
                 pending = emptyList(),
-                revertableEvents = listOf(ownershipEvent)
+                revertableEvents = emptyList()
             )
         ).awaitFirst()
 
@@ -695,17 +687,16 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
-    @Disabled
     fun `should lazy mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
 
         val value = EthUInt256.of(20)
+
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC1155)
         )
-
         lazyNftItemHistoryRepository.save(
             ItemLazyMint(
                 token = token,
@@ -726,7 +717,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
-    @Disabled
     fun `should calculate lazy after real mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
@@ -752,6 +742,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             )
         ).awaitFirst()
 
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
         saveItemHistory(
             ItemTransfer(
                 owner = owner1,
@@ -760,7 +752,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 from = Address.ZERO(),
                 value = EthUInt256.Companion.of(2)
-            )
+            ),
+            logIndex = 1,
         )
 
         historyService.update(token, tokenId).awaitFirstOrNull()
@@ -791,7 +784,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 from = Address.ZERO(),
                 value = EthUInt256.Companion.of(5)
-            )
+            ),
+            logIndex = 2
         )
         saveItemHistory(
             ItemTransfer(
@@ -801,7 +795,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 from = Address.ZERO(),
                 value = EthUInt256.Companion.of(1)
-            )
+            ),
+            logIndex = 3
         )
 
         historyService.update(token, tokenId).awaitFirstOrNull()
@@ -954,26 +949,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         tokenId: EthUInt256,
         expValue: EthUInt256,
         expLazyValue: EthUInt256
-    ) = runBlocking {
+    ) {
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
     }
 
-    private fun createTransfer(token: Address, tokenId: EthUInt256): ItemTransfer {
-        return ItemTransfer(
-            owner = randomAddress(),
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.ONE
-        )
-    }
-
     companion object {
-        val logger = LoggerFactory.getLogger(ItemReduceServiceIt::class.java)
-
         @JvmStatic
         fun invalidLogEventStatus(): Stream<Arguments> = Stream.of(
             Arguments.of(LogEventStatus.DROPPED),

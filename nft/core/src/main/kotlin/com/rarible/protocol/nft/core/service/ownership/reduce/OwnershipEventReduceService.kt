@@ -13,7 +13,8 @@ class OwnershipEventReduceService(
     entityService: OwnershipUpdateService,
     entityIdService: OwnershipIdService,
     templateProvider: OwnershipTemplateProvider,
-    reducer: OwnershipReducer
+    reducer: OwnershipReducer,
+    private val eventConverter: OwnershipEventConverter,
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
@@ -21,8 +22,7 @@ class OwnershipEventReduceService(
 
     override suspend fun onEntityEvents(events: List<ReversedEthereumLogRecord>) {
         events
-            .flatMap { OwnershipEventConverter.convert(it) }
+            .flatMap { eventConverter.convert(it) }
             .let { delegate.reduceAll(it) }
     }
 }
-
