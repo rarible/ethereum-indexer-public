@@ -170,7 +170,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             // Wait while the 'itemPropertiesService' requests the pending log resolver again and this resolver invalidates the cache.
             assertThat(itemPropertiesService.resolve(itemId))
                 .isEqualToIgnoringGivenFields(resolvedItemProperties, ItemProperties::rawJsonContent.name)
-            assertThat(pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue).awaitFirstOrNull()).isNull()
         }
     }
 

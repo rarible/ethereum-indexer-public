@@ -22,7 +22,6 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @ItemMetaTest
@@ -87,7 +86,6 @@ class PendingLogItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
         // Then the item becomes confirmed and the resolver must return null and delete the pending log item properties.
         clearMocks(itemRepository)
-        every { pendingLogItemPropertiesRepository.deleteById(itemId.decimalStringValue) } returns Mono.empty()
 
         every { itemRepository.findById(itemId) } returns
                 item
@@ -95,6 +93,5 @@ class PendingLogItemPropertiesResolverTest : BasePropertiesResolverTest() {
                     .justOrEmpty()
 
         assertThat(pendingLogItemPropertiesResolver.resolve(itemId)).isNull()
-        verify(exactly = 1) { pendingLogItemPropertiesRepository.deleteById(itemId.decimalStringValue) }
     }
 }
