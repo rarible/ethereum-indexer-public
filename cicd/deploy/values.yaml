@@ -151,6 +151,8 @@ ethereum-order-migration: &protocol-order-migration
     initialDelaySeconds: 180s
   restartPolicy:
     condition: on-failure
+  updateConfig:
+    failure_action: continue
   networks:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
@@ -258,6 +260,8 @@ ethereum-nft-migration: &protocol-nft-migration
     initialDelaySeconds: 180s
   restartPolicy:
     condition: on-failure
+  updateConfig:
+    failure_action: continue
   networks:
     common:
       - '{{ include "service.appEnv" $ }}-backend'

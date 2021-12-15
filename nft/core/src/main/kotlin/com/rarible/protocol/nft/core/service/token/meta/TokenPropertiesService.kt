@@ -7,6 +7,7 @@ import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -67,7 +68,12 @@ class TokenPropertiesService(
             .sortedBy(TokenPropertiesResolver::order)
             .asFlow()
             .map {
-                it.resolve(id)
+                try {
+                    it.resolve(id)
+                } catch (ex: Exception) {
+                    logger.error("Unexpected exception during getting meta for token: $id with ${it::class.java} resolver", ex)
+                    null
+                }
             }.firstOrNull { it != null }
         return item
     }
