@@ -24,18 +24,21 @@ internal class LazyItemReducerTest {
         val reducedItem = lazyItemReducer.reduce(item, event)
 
         Assertions.assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ONE)
-        Assertions.assertThat(reducedItem.deleted).isEqualTo(false)
     }
 
     @Test
     fun `should reduce lazy burn event`() = runBlocking<Unit> {
-        val item = createRandomItem().copy(lazySupply = EthUInt256.ONE, deleted = false, lastLazyEventTimestamp = Instant.EPOCH.epochSecond)
+        val item = createRandomItem().copy(
+            lazySupply = EthUInt256.ONE,
+            supply = EthUInt256.ZERO,
+            deleted = false,
+            lastLazyEventTimestamp = Instant.EPOCH.epochSecond
+        )
         val event = createRandomLazyBurnItemEvent().copy(supply = EthUInt256.ONE)
 
         val reducedItem = lazyItemReducer.reduce(item, event)
 
         Assertions.assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        Assertions.assertThat(reducedItem.deleted).isEqualTo(true)
     }
 
     @Test

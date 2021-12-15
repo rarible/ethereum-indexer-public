@@ -11,9 +11,10 @@ import org.springframework.stereotype.Component
 @Component
 class ItemReducer(
     eventStatusItemReducer: EventStatusItemReducer,
-    private val lazyItemReducer: LazyItemReducer
+    lazyItemReducer: LazyItemReducer
 ) : Reducer<ItemEvent, Item> {
     private val eventStatusItemReducer = ItemDeleteReducer.wrap(eventStatusItemReducer)
+    private val lazyItemReducer = ItemDeleteReducer.wrap(lazyItemReducer)
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {

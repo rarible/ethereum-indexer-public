@@ -4,32 +4,32 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.Part
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class LazyItemReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-            return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
+        return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
             entity
         } else {
             return when (event) {
                 is ItemEvent.LazyItemMintEvent -> {
-                    val lazySupply = entity.lazySupply + event.supply
                     entity.copy(
-                        lazySupply = lazySupply,
-                        supply = lazySupply,
+                        lazySupply = event.supply,
+                        supply = event.supply,
                         creators = event.creators,
-                        ownerships = event.creators.firstOrNull()?.let { mapOf(it.account to lazySupply) } ?: emptyMap(),
+                        ownerships = convert(event.creators, event.supply),
                         creatorsFinal = true,
-                        lastLazyEventTimestamp = event.timestamp,
-                        deleted = lazySupply == EthUInt256.ZERO
+                        lastLazyEventTimestamp = event.timestamp
                     )
                 }
                 is ItemEvent.LazyItemBurnEvent -> {
                     entity.copy(
+                        ownerships = convert(entity.creators, event.supply),
                         lazySupply = EthUInt256.ZERO,
-                        lastLazyEventTimestamp = event.timestamp,
-                        deleted = true
+                        lastLazyEventTimestamp = event.timestamp
                     )
                 }
                 is ItemEvent.ItemBurnEvent,
@@ -40,5 +40,9 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 }
             }
         }
+    }
+
+    private fun convert(creators: List<Part>, value: EthUInt256): Map<Address, EthUInt256> {
+        return creators.firstOrNull()?.let { mapOf(it.account to value) } ?: emptyMap()
     }
 }

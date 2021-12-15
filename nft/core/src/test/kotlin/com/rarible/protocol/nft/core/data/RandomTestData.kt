@@ -8,6 +8,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.Part
 
 fun createRandomItem(): Item {
@@ -91,6 +92,50 @@ fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
 fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
     return ItemEvent.LazyItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
+}
+
+fun createRandomOwnershipTransferToEvent(): OwnershipEvent.TransferToEvent {
+    return OwnershipEvent.TransferToEvent(
+        from = randomAddress(),
+        value = EthUInt256.of(randomInt()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
+}
+
+fun createRandomOwnershipTransferFromEvent(): OwnershipEvent.TransferFromEvent {
+    return OwnershipEvent.TransferFromEvent(
+        to = randomAddress(),
+        value = EthUInt256.of(randomInt()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
+}
+
+fun createRandomOwnershipChangeLazyValueEvent(): OwnershipEvent.ChangeLazyValueEvent {
+    return OwnershipEvent.ChangeLazyValueEvent(
+        value = EthUInt256.of(randomInt()),
         blockNumber = randomLong(),
         logIndex = randomInt(),
         status = BlockchainEntityEvent.Status.values().random(),

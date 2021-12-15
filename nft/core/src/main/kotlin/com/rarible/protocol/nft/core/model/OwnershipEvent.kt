@@ -17,7 +17,9 @@ sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
         override val timestamp: Long,
         override val transactionHash: String,
         override val address: String
-    ) : OwnershipEvent()
+    ) : OwnershipEvent() {
+        fun isMint(): Boolean = from == Address.ZERO()
+    }
 
     data class TransferFromEvent(
         val to: Address,
@@ -30,7 +32,9 @@ sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
         override val timestamp: Long,
         override val transactionHash: String,
         override val address: String
-    ) : OwnershipEvent()
+    ) : OwnershipEvent() {
+        fun isBurn(): Boolean = to == Address.ZERO()
+    }
 
     data class ChangeLazyValueEvent(
         override val value: EthUInt256,
