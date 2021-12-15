@@ -39,6 +39,7 @@ class StandardTokenPropertiesResolver(
         val uri = getCollectionUri(id)
         return uri?.let {
             val url = ipfsService.resolveHttpUrl(it)
+            logProperties(id, "$it was resolved to: $url")
             request(id, url)
         }
     }
