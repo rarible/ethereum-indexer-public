@@ -14,14 +14,14 @@ class ForwardOwnersItemReducer : Reducer<ItemEvent, Item> {
 
         when (event) {
             is ItemEvent.ItemTransferEvent -> {
-                val toValue = ownerships[event.to] ?: EthUInt256.ZERO
                 val fromValue = ownerships[event.from] ?: EthUInt256.ZERO
-
                 if (fromValue > event.value) {
                     ownerships[event.from] = fromValue - event.value
                 } else {
                     ownerships.remove(event.from)
                 }
+
+                val toValue = ownerships[event.to] ?: EthUInt256.ZERO
                 if (event.value != EthUInt256.ZERO) {
                     ownerships[event.to] = toValue + event.value
                 }

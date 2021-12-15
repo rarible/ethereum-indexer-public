@@ -1,11 +1,13 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
+import scalether.domain.Address
 
 sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
     abstract val value: EthUInt256
 
     data class TransferToEvent(
+        val from: Address,
         override val value: EthUInt256,
         override val blockNumber: Long?,
         override val logIndex: Int?,
@@ -18,6 +20,7 @@ sealed class OwnershipEvent : BlockchainEntityEvent<OwnershipEvent>() {
     ) : OwnershipEvent()
 
     data class TransferFromEvent(
+        val to: Address,
         override val value: EthUInt256,
         override val blockNumber: Long?,
         override val logIndex: Int?,

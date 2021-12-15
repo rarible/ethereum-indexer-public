@@ -194,4 +194,36 @@ internal class ForwardOwnersItemReducerTest {
         val reducedItem = forwardOwnersItemReducer.reduce(item, event)
         assertThat(reducedItem.ownerships.keys).hasSize(0)
     }
+
+    @Test
+    fun `should not change owner value if he transfers to self`() = runBlocking<Unit> {
+        val owner = createAddress()
+        val supply = EthUInt256.ONE
+
+        val ownership = mapOf(
+            owner to EthUInt256.TEN,
+        )
+        val item = createRandomItem().copy(ownerships = ownership)
+        val event = createRandomTransferItemEvent().copy(from = owner, to = owner, value = supply)
+
+        val reducedItem = forwardOwnersItemReducer.reduce(item, event)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
+    }
+
+    @Test
+    fun `should not change owner value if he transfers to self the same value`() = runBlocking<Unit> {
+        val owner = createAddress()
+        val supply = EthUInt256.TEN
+
+        val ownership = mapOf(
+            owner to EthUInt256.TEN,
+        )
+        val item = createRandomItem().copy(ownerships = ownership)
+        val event = createRandomTransferItemEvent().copy(from = owner, to = owner, value = supply)
+
+        val reducedItem = forwardOwnersItemReducer.reduce(item, event)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
+    }
 }

@@ -479,7 +479,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.TEN
         )
-        saveItemHistory(transfer, token)
+        saveItemHistory(transfer, token, logIndex = 1)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.TEN)
@@ -488,7 +488,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val buyer = AddressFactory.create()
 
         val transferAsBuying = ItemTransfer(buyer, token, tokenId, nowMillis(), owner, EthUInt256.Companion.of(2))
-        saveItemHistory(transferAsBuying, token)
+        saveItemHistory(transferAsBuying, token, logIndex = 2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 
@@ -520,7 +520,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer, token)
+        saveItemHistory(transfer, token, logIndex = 1)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.ONE)
@@ -529,7 +529,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val buyer = AddressFactory.create()
 
         val transferAsBuying = ItemTransfer(buyer, token, tokenId, nowMillis(), owner, EthUInt256.ONE)
-        saveItemHistory(transferAsBuying, token)
+        saveItemHistory(transferAsBuying, token, logIndex = 2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 

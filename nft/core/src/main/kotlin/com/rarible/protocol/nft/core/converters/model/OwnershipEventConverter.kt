@@ -17,6 +17,7 @@ class OwnershipEventConverter(
             is ItemTransfer -> {
                 val transferTo = data.owner.takeUnless { data.owner == Address.ZERO() }?.let { owner ->
                     OwnershipEvent.TransferToEvent(
+                        from = data.from,
                         value = data.value,
                         blockNumber = source.blockNumber,
                         logIndex = source.logIndex,
@@ -30,6 +31,7 @@ class OwnershipEventConverter(
                 }
                 val transferFrom = data.from.takeUnless { data.from == Address.ZERO() }?.let { from ->
                     OwnershipEvent.TransferFromEvent(
+                        to = data.owner,
                         value = data.value,
                         blockNumber = source.blockNumber,
                         logIndex = source.logIndex,
