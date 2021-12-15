@@ -46,8 +46,10 @@ class LockService(
             throw LockOwnershipException()
         }
 
+        val owners = item.owners ?: emptyList()
+
         logger.info("Signer address [{}] for item [{}]", signerAddress, item.id)
-        if (item.owners.all { it == signerAddress }) {
+        if (owners.all { it == signerAddress }) {
             val lock = Lock(item.id, form.content, signerAddress, form.signature)
             onLockCreated(lock)
             return lockRepository.save(lock)

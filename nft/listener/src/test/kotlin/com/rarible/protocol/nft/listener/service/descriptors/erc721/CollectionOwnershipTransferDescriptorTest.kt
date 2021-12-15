@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -53,7 +54,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
             defaultTopic = NftCollectionEventTopicProvider.getTopic(
                 application.name,
                 nftIndexerProperties.blockchain.value
-            ),
+            ) + ".internal",
             bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
@@ -101,7 +102,15 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     symbol = "TEST",
                     features = it.collection.features,
                     supportsLazyMint = it.collection.supportsLazyMint,
-                    minters = listOf(creatorAddress)
+                    minters = listOf(creatorAddress),
+                    meta = NftCollectionMetaDto(
+                        name = "Untitled",
+                        description = null,
+                        image = null,
+                        external_link = null,
+                        seller_fee_basis_points = null,
+                        fee_recipient = null
+                    )
                 )
             }
         }
@@ -138,7 +147,15 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     symbol = "TEST",
                     features = it.collection.features,
                     supportsLazyMint = it.collection.supportsLazyMint,
-                    minters = listOf(creatorAddress)
+                    minters = listOf(creatorAddress),
+                    meta = NftCollectionMetaDto(
+                        name = "Untitled",
+                        description = null,
+                        image = null,
+                        external_link = null,
+                        seller_fee_basis_points = null,
+                        fee_recipient = null
+                    )
                 )
             }
         }

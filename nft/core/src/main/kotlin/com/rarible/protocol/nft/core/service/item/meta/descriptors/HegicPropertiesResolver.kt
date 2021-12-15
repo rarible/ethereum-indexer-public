@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class HegicPropertiesResolver(
     sender: MonoTransactionSender,
     @Value("\${api.properties.api-url}") private val apiUrl: String

@@ -24,26 +24,6 @@
                 <artifactId>protocol-order-indexer-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-order-indexer-contract</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-order-indexer-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-order-indexer-listener</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.rarible.protocol</groupId>
-                <artifactId>protocol-order-indexer-migration</artifactId>
-                <version>${project.version}</version>
-            </dependency>
 
             <!-- =============== Other dependencies ================ -->
             <dependency>
@@ -70,7 +50,6 @@
     </dependencyManagement>
 
     <modules>
-        <module>contract</module>
         <module>core</module>
         <module>listener</module>
         <module>api</module>

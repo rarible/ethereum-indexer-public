@@ -1,9 +1,13 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipsDto
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterAll
+import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.page.PageSize
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
@@ -17,10 +21,10 @@ class OwnershipController(
     private val conversionService: ConversionService
 ) : NftOwnershipControllerApi {
 
-    private val defaultSorting = NftOwnershipFilterDto.Sort.LAST_UPDATE
+    private val defaultSorting = OwnershipFilter.Sort.LAST_UPDATE
 
     override suspend fun getNftAllOwnerships(continuation: String?, size: Int?): ResponseEntity<NftOwnershipsDto> {
-        val filter = NftOwnershipFilterAllDto(defaultSorting)
+        val filter = OwnershipFilterAll(defaultSorting)
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
@@ -36,7 +40,7 @@ class OwnershipController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftOwnershipsDto> {
-        val filter = NftOwnershipFilterByItemDto(
+        val filter = OwnershipFilterByItem(
             defaultSorting,
             Address.apply(contract),
             BigInteger(tokenId)
@@ -45,7 +49,7 @@ class OwnershipController(
         return ResponseEntity.ok(result)
     }
 
-    private suspend fun getItems(filter: NftOwnershipFilterDto, continuation: String?, size: Int?): NftOwnershipsDto {
+    private suspend fun getItems(filter: OwnershipFilter, continuation: String?, size: Int?): NftOwnershipsDto {
         val ownerships = ownershipApiService
             .search(filter, continuation?.let { OwnershipContinuation.parse(it) }, PageSize.OWNERSHIP.limit(size))
 

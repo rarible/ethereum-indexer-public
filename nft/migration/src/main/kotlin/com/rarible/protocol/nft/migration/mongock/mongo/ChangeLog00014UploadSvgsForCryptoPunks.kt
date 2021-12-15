@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.Deferred

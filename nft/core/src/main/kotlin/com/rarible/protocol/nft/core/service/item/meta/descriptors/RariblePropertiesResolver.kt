@@ -10,8 +10,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -26,7 +26,7 @@ import scalether.transaction.MonoTransactionSender
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class RariblePropertiesResolver(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

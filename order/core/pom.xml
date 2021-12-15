@@ -22,11 +22,6 @@
     </build>
 
     <dependencies>
-        <!-- =========== Internal dependencies =========== -->
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-order-indexer-contract</artifactId>
-        </dependency>
 
         <!-- =============== Protocol-API ================ -->
         <dependency>
@@ -47,6 +42,12 @@
         </dependency>
 
         <!-- =============== Rarible-core ================ -->
+        <dependency>
+            <groupId>com.rarible.protocol.contracts</groupId>
+            <artifactId>protocol-ethereum-contracts-order</artifactId>
+            <version>${rarible.ethereum.contracts.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-common</artifactId>

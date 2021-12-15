@@ -4,14 +4,12 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomWord
+import com.rarible.core.test.ext.MongoCleanup
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrderVersion
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.LogEventKey
-import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import io.daonomic.rpc.domain.Word
 import io.mockk.mockk
@@ -31,7 +29,6 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
@@ -40,6 +37,7 @@ import java.math.BigDecimal
 
 @MongoTest
 @DataMongoTest
+@MongoCleanup
 @EnableAutoConfiguration
 @ContextConfiguration(classes = [RepositoryConfiguration::class])
 @Import(OrderVersionRepositoryTest.ProtocolOrderPublisherTestConfiguration::class)
@@ -102,6 +100,24 @@ internal class OrderVersionRepositoryTest {
         assertTrue(orderVersionRepository.existsByOnChainOrderKey(key).awaitFirst())
         orderVersionRepository.deleteByOnChainOrderKey(key).awaitFirstOrNull()
         assertFalse(orderVersionRepository.existsByOnChainOrderKey(key).awaitFirst())
+    }
+
+    @Test
+    fun `get all by hash and target platform`() = runBlocking<Unit> {
+        val version1 = createOrderVersion().copy(platform = Platform.RARIBLE)
+        val version2 = createOrderVersion().copy(platform = Platform.RARIBLE)
+        val version3 = createOrderVersion().copy(platform = Platform.CRYPTO_PUNKS)
+        val version4 = createOrderVersion().copy(platform = Platform.OPEN_SEA)
+
+        listOf(version1, version2, version3, version4).forEach {
+            orderVersionRepository.save(it).awaitFirst()
+        }
+        val targetOrderVersions = orderVersionRepository
+            .findAllByHash(null, null, platforms = listOf(Platform.RARIBLE))
+            .collectList().awaitFirst()
+
+        assertThat(targetOrderVersions).hasSize(2)
+        assertThat(targetOrderVersions.map { it.hash }).containsExactlyInAnyOrder(version1.hash, version2.hash)
     }
 
     @Test

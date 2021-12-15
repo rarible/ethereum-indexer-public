@@ -12,11 +12,17 @@ import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.MediaMeta
+import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
+import io.mockk.coEvery
 import io.mockk.every
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
@@ -85,6 +91,17 @@ abstract class SpringContainerBaseTest {
     @Autowired
     private lateinit var featureFlags: FeatureFlags
 
+    @Qualifier("mockStandardTokenPropertiesResolver")
+    protected lateinit var mockTokenStandardPropertiesResolver: StandardTokenPropertiesResolver
+
+    @Autowired
+    @Qualifier("mockOpenseaTokenPropertiesResolver")
+    protected lateinit var mockTokenOpenseaPropertiesResolver: OpenseaTokenPropertiesResolver
+
+    @Autowired
+    @Qualifier("mockMediaMetaService")
+    protected lateinit var mockMediaMetaService: MediaMetaService
+
     @LocalServerPort
     private var port: Int = 0
 
@@ -101,6 +118,9 @@ abstract class SpringContainerBaseTest {
         clearMocks(mockItemPropertiesResolver)
         every { mockItemPropertiesResolver.name } returns "MockResolver"
         every { mockItemPropertiesResolver.canBeCached } returns true
+        coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
+        coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
+        coEvery { mockMediaMetaService.getMediaMeta(any()) } returns MediaMeta("image/png")
     }
 
     @PostConstruct

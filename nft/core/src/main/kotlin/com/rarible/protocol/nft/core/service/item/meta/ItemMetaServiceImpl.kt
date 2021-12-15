@@ -5,13 +5,13 @@ import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemMetaServiceImpl(
     private val itemPropertiesService: ItemPropertiesService,
     private val mediaMetaService: MediaMetaService

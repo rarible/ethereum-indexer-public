@@ -52,7 +52,7 @@ class CryptoPunksPropertiesResolver(
 }
 
 @Component
-@CaptureSpan(type = META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class CryptoPunksRepository(private val mongo: ReactiveMongoOperations) {
 
     fun findById(id: BigInteger): Mono<CryptoPunksMeta> {

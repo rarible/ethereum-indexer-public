@@ -1,14 +1,26 @@
 package com.rarible.protocol.nft.api.service.colllection
 
+import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ExtendedToken
+import com.rarible.protocol.nft.core.model.SignedTokenId
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenFilter
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
@@ -20,21 +32,34 @@ import java.math.BigInteger
 @Component
 class CollectionService(
     operator: OperatorProperties,
+    private val conversionService: ConversionService,
     private val tokenRegistrationService: TokenRegistrationService,
     private val tokenRepository: TokenRepository,
-    private val tokenIdRepository: TokenIdRepository
+    private val tokenIdRepository: TokenIdRepository,
+    private val tokenMetaService: TokenMetaService
 ) {
     private val operatorPrivateKey = Numeric.toBigInt(Hex.toBytes(operator.privateKey))
     private val operatorPublicKey = Sign.publicKeyFromPrivate(operatorPrivateKey)
 
-    suspend fun get(collectionId: Address): Token {
-        return tokenRepository.findById(collectionId).awaitFirstOrNull()
+    suspend fun get(collectionId: Address): NftCollectionDto {
+        val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
+        return conversionService.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }
 
-    suspend fun search(filter: TokenFilter): List<Token> {
-        return tokenRepository.search(filter).collectList().awaitFirst()
+    suspend fun resetMeta(collectionId: Address) {
+        tokenMetaService.reset(collectionId)
+    }
+
+    suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {
+        val tokens = tokenRepository.search(filter).collectList().awaitFirst()
+        tokens.map { token ->
+            async {
+                val meta = tokenMetaService.get(token.id)
+                ExtendedToken(token, meta)
+            }
+        }.awaitAll()
     }
 
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {

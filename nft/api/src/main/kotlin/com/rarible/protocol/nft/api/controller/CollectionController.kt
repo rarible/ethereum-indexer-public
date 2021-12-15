@@ -21,10 +21,13 @@ class CollectionController(
     override suspend fun getNftCollectionById(
         collection: String
     ): ResponseEntity<NftCollectionDto> {
-        val result = collectionService
-            .get(Address.apply(collection))
-            .let { conversionService.convert<NftCollectionDto>(it) }
+        val result = collectionService.get(Address.apply(collection))
         return ResponseEntity.ok(result)
+    }
+
+    override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
+        collectionService.resetMeta(conversionService.convert(collection))
+        return ResponseEntity.noContent().build()
     }
 
     override suspend fun searchNftAllCollections(
@@ -64,11 +67,11 @@ class CollectionController(
     private suspend fun searchCollections(filter: TokenFilter): NftCollectionsDto {
         val collections = collectionService.search(filter)
         val continuation =
-            if (collections.isEmpty() || collections.size < filter.size) null else collections.last().id.toString()
+            if (collections.isEmpty() || collections.size < filter.size) null else collections.last().token.id.toString()
 
         return NftCollectionsDto(
             total = collections.size.toLong(),
-            collections = collections.map { conversionService.convert<NftCollectionDto>(it) },
+            collections = collections.map { conversionService.convert(it) },
             continuation = continuation
         )
     }

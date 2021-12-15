@@ -83,8 +83,9 @@
             <artifactId>rarible-ethereum-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-erc20-indexer-contract</artifactId>
+            <groupId>com.rarible.protocol.contracts</groupId>
+            <artifactId>protocol-ethereum-contracts-erc20</artifactId>
+            <version>${rarible.ethereum.contracts.version}</version>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>

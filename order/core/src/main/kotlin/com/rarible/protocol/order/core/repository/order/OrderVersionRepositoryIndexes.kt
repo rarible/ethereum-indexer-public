@@ -83,6 +83,12 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val HASH_PLATFORM_AND_ID_DEFINITION: Index = Index()
+        .on(OrderVersion::hash.name, Sort.Direction.ASC)
+        .on(OrderVersion::platform.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION: Index = Index()
         .on("${OrderVersion::onChainOrderKey.name}.${LogEventKey::databaseKey.name}", Sort.Direction.ASC)
         .sparse()
@@ -101,6 +107,7 @@ internal object OrderVersionRepositoryIndexes {
         ITEM_TAKE_PRICE_USD_BID_DEFINITION,
         ITEM_TAKE_PRICE_BID_DEFINITION,
         HASH_AND_ID_DEFINITION,
-        ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION
+        ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION,
+        HASH_PLATFORM_AND_ID_DEFINITION
     )
 }

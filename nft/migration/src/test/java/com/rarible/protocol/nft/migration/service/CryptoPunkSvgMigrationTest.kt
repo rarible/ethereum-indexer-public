@@ -5,7 +5,7 @@ import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.IpfsService
+import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest

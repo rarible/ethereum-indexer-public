@@ -21,8 +21,10 @@ data class NftIndexerProperties(
     val nftItemMetaExtenderWorkersCount: Int = 4,
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
+    val nftCollectionMetaExtenderWorkersCount: Int = 4,
     val confirmationBlocks: Int = 12
 ) {
+
     data class FactoryAddresses(
         val erc721Rarible: String,
         val erc721RaribleUser: String,

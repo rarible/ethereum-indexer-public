@@ -9,11 +9,6 @@ import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.Erc20DecimalBalanceDto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.OrderActivityDto
-import com.rarible.protocol.dto.OrderFilterDto
-import com.rarible.protocol.dto.OrderFilterSellByCollectionDto
-import com.rarible.protocol.dto.OrderFilterSellByItemDto
-import com.rarible.protocol.dto.OrderFilterSellByMakerDto
-import com.rarible.protocol.dto.OrderFilterSellDto
 import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PlatformDto
@@ -35,6 +30,11 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderFilter
+import com.rarible.protocol.order.core.model.OrderFilterSell
+import com.rarible.protocol.order.core.model.OrderFilterSellByCollection
+import com.rarible.protocol.order.core.model.OrderFilterSellByItem
+import com.rarible.protocol.order.core.model.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
@@ -614,7 +614,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(realOrder.toForm(privateKey).withSignature(signature))
 
         val orders = orderService.findOrders(
-            OrderFilterSellDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -635,7 +635,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order.toForm(privateKey))
 
         val orders = orderService.findOrders(
-            OrderFilterSellDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -657,7 +657,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey))
 
         val orders = orderService.findOrders(
-            OrderFilterSellDto(origin, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(origin, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -681,10 +681,10 @@ class OrderServiceIt : AbstractOrderIt() {
 
         val orders =
             orderService.findOrders(
-                OrderFilterSellByMakerDto(
+                OrderFilterSellByMaker(
                     null,
                     emptyList(),
-                    OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                    OrderFilter.Sort.LAST_UPDATE_DESC,
                     null,
                     null,
                     signer2
@@ -717,7 +717,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10, null
             )
 
@@ -727,7 +727,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMakerDto(null, emptyList(), OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC, null, null, signer2),
                 10,
                 continuation.toString()
             )
@@ -753,20 +753,20 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc1155Order2.toForm(privateKey2))
 
         val orders1 = orderService.findOrders(
-            OrderFilterSellByCollectionDto(
+            OrderFilterSellByCollection(
                 null,
                 emptyList(),
-                OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
+                OrderFilter.Sort.LAST_UPDATE_DESC, null, null,
                 collection1
             ), 10, null
         )
         assertThat(orders1).hasSize(1)
 
         val orders2 = orderService.findOrders(
-            OrderFilterSellByCollectionDto(
+            OrderFilterSellByCollection(
                 null,
                 emptyList(),
-                OrderFilterDto.Sort.LAST_UPDATE_DESC, null, null,
+                OrderFilter.Sort.LAST_UPDATE_DESC, null, null,
                 collection2
             ), 10, null
         )
@@ -794,10 +794,10 @@ class OrderServiceIt : AbstractOrderIt() {
         orderRepository.save(erc1155Order2)
 
         val orders1 = orderService.findOrders(
-            OrderFilterSellByItemDto(
+            OrderFilterSellByItem(
                 contract = collection1,
                 tokenId = tokenId1.value,
-                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
                 origin = null,
                 platforms = emptyList(),
                 maker = null
@@ -806,10 +806,10 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(orders1).hasSize(1)
 
         val orders2 = orderService.findOrders(
-            OrderFilterSellByItemDto(
+            OrderFilterSellByItem(
                 contract = collection2,
                 tokenId = tokenId2.value,
-                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
                 origin = null,
                 platforms = emptyList(),
                 maker = null

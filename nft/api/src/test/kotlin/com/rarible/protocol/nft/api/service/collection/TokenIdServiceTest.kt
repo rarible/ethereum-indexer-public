@@ -35,7 +35,7 @@ class CollectionServiceIt {
     private val tokenRepository = mockk<TokenRepository>()
     private val tokenIdRepository = mockk<TokenIdRepository>()
     private val tokenRegistrationService = mockk<TokenRegistrationService>()
-    private val collectionService = CollectionService(operator, tokenRegistrationService, tokenRepository, tokenIdRepository)
+    private val collectionService = CollectionService(operator, mockk(), tokenRegistrationService, tokenRepository, tokenIdRepository, mockk())
 
     @BeforeEach
     fun setup() {

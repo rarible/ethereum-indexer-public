@@ -12,13 +12,13 @@ import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.OrderEventDto
-import com.rarible.protocol.dto.OrderFilterBidByItemDto
-import com.rarible.protocol.dto.OrderFilterDto
-import com.rarible.protocol.dto.OrderFilterSellByItemDto
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.ItemId
+import com.rarible.protocol.order.core.model.OrderFilter
+import com.rarible.protocol.order.core.model.OrderFilterBidByItem
+import com.rarible.protocol.order.core.model.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.OrderKind
 import com.rarible.protocol.order.core.service.OrderRepositoryService
 import com.rarible.protocol.order.listener.service.order.OrderPriceUpdateService
@@ -55,18 +55,18 @@ class OrderUpdateConsumerEventHandler(
 
     private suspend fun updateItemOrders(itemId: ItemId, kind: OrderKind, at: Instant) {
         val orderFilter = when (kind) {
-            OrderKind.SELL -> OrderFilterSellByItemDto(
+            OrderKind.SELL -> OrderFilterSellByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null
             )
-            OrderKind.BID -> OrderFilterBidByItemDto(
+            OrderKind.BID -> OrderFilterBidByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilterDto.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null

@@ -26,10 +26,6 @@
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-nft-indexer-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol</groupId>
-            <artifactId>protocol-nft-indexer-contract</artifactId>
-        </dependency>
 
         <!-- =============== Rarible-core ================ -->
         <dependency>

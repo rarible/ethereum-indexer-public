@@ -9,6 +9,10 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.dto.NftCollectionEventDto
+import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftCollectionMetaDto
+import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
@@ -21,6 +25,10 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
@@ -28,6 +36,7 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
+import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
@@ -66,6 +75,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
+import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -81,6 +91,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     @Qualifier("mockItemPropertiesResolver")
     protected lateinit var mockItemPropertiesResolver: ItemPropertiesResolver
+
+    @Autowired
+    @Qualifier("mockStandardTokenPropertiesResolver")
+    protected lateinit var mockStandardTokenPropertiesResolver: StandardTokenPropertiesResolver
 
     @Autowired
     protected lateinit var itemRepository: ItemRepository
@@ -119,8 +133,12 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     private lateinit var itemEventConsumer: RaribleKafkaConsumer<NftItemEventDto>
 
+    private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
+
     private val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
     private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
+    private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
+
     private lateinit var consumingJobs: List<Job>
 
     @BeforeEach
@@ -141,6 +159,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @BeforeEach
     fun setUpEventConsumers() {
         itemEventConsumer = createItemEventConsumer()
+        collectionEventConsumer = createCollectionEventConsumer()
         ownershipEventConsumer = createOwnershipEventConsumer()
         consumingJobs = listOf(
             GlobalScope.launch {
@@ -151,6 +170,11 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             GlobalScope.launch {
                 createOwnershipEventConsumer().receive().collect {
                     ownershipEvents += it.value
+                }
+            },
+            GlobalScope.launch {
+                collectionEventConsumer.receive().collect {
+                    collectionEvents += it.value
                 }
             }
         )
@@ -202,6 +226,18 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = NftItemEventDto::class.java,
             defaultTopic = NftItemEventTopicProvider.getTopic(application.name, properties.blockchain.value),
+            bootstrapServers = properties.kafkaReplicaSet,
+            offsetResetStrategy = OffsetResetStrategy.EARLIEST
+        )
+    }
+
+    private fun createCollectionEventConsumer(): RaribleKafkaConsumer<NftCollectionEventDto> {
+        return RaribleKafkaConsumer(
+            clientId = "test-consumer-collection-event",
+            consumerGroup = "test-group-collection-event",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = NftCollectionEventDto::class.java,
+            defaultTopic = NftCollectionEventTopicProvider.getTopic(application.name, properties.blockchain.value),
             bootstrapServers = properties.kafkaReplicaSet,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST
         )
@@ -261,6 +297,16 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         }
     }
 
+    protected suspend fun checkMetaWasPublished(
+        meta: NftCollectionMetaDto
+    ) = coroutineScope {
+        Wait.waitAssert {
+            assertThat(collectionEvents).anyMatch {
+                it is NftCollectionUpdateEventDto && it.collection.meta == meta
+            }
+        }
+    }
+
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
         val receipt = waitReceipt()
         Assertions.assertTrue(receipt.success())
@@ -285,7 +331,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         return Triple(address, sender, privateKey)
     }
 
-    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
         val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
         val publicKey = Sign.publicKeyFromPrivate(privateKey)
         val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
@@ -295,5 +341,18 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
         featureFlags.reduceVersion = version
         runBlocking(EmptyCoroutineContext, block)
+    }
+
+    protected fun createToken(): Token {
+        return Token(
+            id = AddressFactory.create(),
+            owner = AddressFactory.create(),
+            name = UUID.randomUUID().toString(),
+            symbol = UUID.randomUUID().toString(),
+            status = ContractStatus.values().random(),
+            features = (1..10).map {  TokenFeature.values().random() }.toSet(),
+            standard = TokenStandard.values().random(),
+            version = null
+        )
     }
 }

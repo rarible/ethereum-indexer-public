@@ -5,11 +5,6 @@ import com.rarible.core.logging.withMdc
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemFilterAllDto
-import com.rarible.protocol.dto.NftItemFilterByCollectionDto
-import com.rarible.protocol.dto.NftItemFilterByCreatorDto
-import com.rarible.protocol.dto.NftItemFilterByOwnerDto
-import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
@@ -17,8 +12,14 @@ import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.ItemFilterByCollection
+import com.rarible.protocol.nft.core.model.ItemFilterByCreator
+import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.page.PageSize
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
@@ -38,7 +39,7 @@ class ItemController(
     private val burnLazyNftValidator: BurnLazyNftValidator
 ) : NftItemControllerApi {
 
-    private val defaultSorting = NftItemFilterDto.Sort.LAST_UPDATE
+    private val defaultSorting = ItemFilter.Sort.LAST_UPDATE
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
         val result = itemService.get(conversionService.convert(itemId))
@@ -74,6 +75,7 @@ class ItemController(
         return deleteLazyMintNftAssetInternal(itemId, burnLazyNftFormDto)
     }
 
+    @ExperimentalCoroutinesApi
     @Deprecated("Hidden in release 1.17, should be completely removed later")
     @DeleteMapping(
         value = ["/v0.1/items/{itemId}/lazy"],
@@ -104,7 +106,7 @@ class ItemController(
         lastUpdatedFrom: Long?,
         lastUpdatedTo: Long?
     ): ResponseEntity<NftItemsDto> {
-        val filter = NftItemFilterAllDto(
+        val filter = ItemFilterAll(
             defaultSorting,
             showDeleted ?: false,
             lastUpdatedFrom?.let { Instant.ofEpochMilli(it) }
@@ -122,7 +124,7 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
-        val filter = NftItemFilterByOwnerDto(
+        val filter = ItemFilterByOwner(
             defaultSorting,
             Address.apply(owner)
         )
@@ -136,7 +138,7 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
-        val filter = NftItemFilterByCreatorDto(
+        val filter = ItemFilterByCreator(
             defaultSorting,
             Address.apply(creator)
         )
@@ -151,7 +153,7 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
-        val filter = NftItemFilterByCollectionDto(
+        val filter = ItemFilterByCollection(
             defaultSorting,
             Address.apply(collection),
             owner?.let { Address.apply(it) }
@@ -162,7 +164,7 @@ class ItemController(
     }
 
     private suspend fun getItems(
-        filter: NftItemFilterDto,
+        filter: ItemFilter,
         continuation: String?,
         size: Int?
     ): NftItemsDto {

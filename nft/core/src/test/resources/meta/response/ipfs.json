@@ -1,0 +1,8 @@
+{
+  "name": "Feudalz",
+  "description": "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
+  "image": "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
+  "external_link": "https://feudalz.io",
+  "seller_fee_basis_points": 250,
+  "fee_recipient": "0x6EF5129faca91E410fa27188495753a33c36E305"
+}

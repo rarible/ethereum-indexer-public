@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
+import com.rarible.protocol.nft.core.service.IpfsService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat

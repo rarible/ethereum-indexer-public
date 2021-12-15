@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.protocol.dto.OrderFilterDto
 import com.rarible.protocol.order.core.misc.toContinuation
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderFilterCriteria.toCriteria
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import kotlinx.coroutines.flow.Flow
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 class OrderRepositoryService(
     private val orderRepository: OrderRepository
 ) {
-    suspend fun search(filter: OrderFilterDto, batchSize: Int): Flow<List<Order>> = flow {
+    suspend fun search(filter: OrderFilter, batchSize: Int): Flow<List<Order>> = flow {
         var continuation: String? = null
         do {
             val orders = orderRepository.search(filter.toCriteria(continuation, batchSize))

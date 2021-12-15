@@ -4,7 +4,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.OrderFilterDto
 import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.api.exceptions.EntityNotFoundApiException
@@ -21,6 +20,7 @@ import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderFilter
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
@@ -94,7 +94,7 @@ class OrderService(
     suspend fun updateMakeStock(hash: Word): Order =
         orderUpdateService.updateMakeStock(hash) ?: throw EntityNotFoundApiException("Order", hash)
 
-    suspend fun findOrders(legacyFilter: OrderFilterDto, size: Int, continuation: String?): List<Order> {
+    suspend fun findOrders(legacyFilter: OrderFilter, size: Int, continuation: String?): List<Order> {
         return orderRepository.search(legacyFilter.toCriteria(continuation, size))
     }
 
