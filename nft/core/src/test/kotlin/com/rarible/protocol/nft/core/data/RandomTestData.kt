@@ -146,3 +146,16 @@ fun createRandomOwnershipChangeLazyValueEvent(): OwnershipEvent.ChangeLazyValueE
         minorLogIndex = randomInt()
     )
 }
+fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEvent {
+    return OwnershipEvent.LazyTransferToEvent(
+        value = EthUInt256.of(randomInt()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        status = BlockchainEntityEvent.Status.values().random(),
+        entityId = randomString(),
+        timestamp = randomLong(),
+        transactionHash = randomString(),
+        address = randomString(),
+        minorLogIndex = randomInt()
+    )
+}

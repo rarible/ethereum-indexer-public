@@ -11,9 +11,10 @@ import org.springframework.stereotype.Component
 @Component
 class OwnershipReducer(
     eventStatusOwnershipReducer: EventStatusOwnershipReducer,
-    private val lazyOwnershipReducer: LazyOwnershipReducer
+    lazyOwnershipReducer: LazyOwnershipReducer
 ) : Reducer<OwnershipEvent, Ownership> {
     private val eventStatusOwnershipReducer = OwnershipDeleteReducer.wrap(eventStatusOwnershipReducer)
+    private val lazyOwnershipReducer = OwnershipDeleteReducer.wrap(lazyOwnershipReducer)
 
     override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
         return when (event) {

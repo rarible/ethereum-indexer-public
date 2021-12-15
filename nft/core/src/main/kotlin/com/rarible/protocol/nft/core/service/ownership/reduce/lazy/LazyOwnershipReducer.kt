@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.lazy
 
 import com.rarible.core.entity.reducer.service.Reducer
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import org.springframework.stereotype.Component
@@ -23,8 +22,7 @@ class LazyOwnershipReducer : Reducer<OwnershipEvent, Ownership> {
             entity.copy(
                 lazyValue = lazyValue,
                 value = lazyValue,
-                lastLazyEventTimestamp = event.timestamp,
-                deleted = lazyValue == EthUInt256.ZERO
+                lastLazyEventTimestamp = event.timestamp
             )
         }
     }

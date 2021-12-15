@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class InactiveChainOwnershipReducer(
-    ownershipInactiveEventApplyPolicy: OwnershipInactiveEventApplyPolicy
+    ownershipInactiveEventApplyPolicy: OwnershipInactiveEventApplyPolicy,
 ) : EntityChainReducer<OwnershipId, OwnershipEvent, Ownership>(
     ownershipInactiveEventApplyPolicy
 )
