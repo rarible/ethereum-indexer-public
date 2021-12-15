@@ -10,7 +10,7 @@ class ReversedLazyValueItemReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return when (event) {
             is ItemEvent.ItemMintEvent -> {
-                if (entity.lastLazyEventTimestamp != null) {
+                if (entity.isLazyItem()) {
                     entity.copy(
                         lazySupply = entity.lazySupply + event.supply,
                         supply = entity.supply + event.supply

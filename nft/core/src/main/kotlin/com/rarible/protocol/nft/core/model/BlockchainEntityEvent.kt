@@ -10,6 +10,8 @@ abstract class BlockchainEntityEvent<T> : Comparable<BlockchainEntityEvent<T>> {
     abstract val minorLogIndex: Int
     abstract val status: Status
 
+    open fun invert(): T = throw IllegalArgumentException("${this.javaClass} event can't invert")
+
     override fun compareTo(other: BlockchainEntityEvent<T>): Int {
         return when (status) {
             Status.CONFIRMED, Status.REVERTED -> {

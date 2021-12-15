@@ -5,27 +5,21 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class PendingOwnersItemReducer : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
+        val ownerships = entity.ownerships.toMutableMap()
         return when (event) {
             is ItemEvent.ItemTransferEvent-> {
-                val ownerships = entity.ownerships.toMutableMap()
-                val toValue = ownerships[event.to] ?: EthUInt256.ZERO
-                val fromValue = ownerships[event.from] ?: EthUInt256.ZERO
-
-                ownerships[event.to] = toValue
-                ownerships[event.from] = fromValue
-                entity.copy(ownerships = ownerships)
+                val to = event.to
+                entity.copy(ownerships = addOwner(ownerships, to))
             }
             is ItemEvent.ItemMintEvent -> {
-                val ownerships = entity.ownerships.toMutableMap()
-                val ownerValue = ownerships[event.owner] ?: EthUInt256.ZERO
-
-                ownerships[event.owner] = ownerValue
-                entity.copy(ownerships = ownerships)
+                val owner = event.owner
+                entity.copy(ownerships = addOwner(ownerships, owner))
             }
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemCreatorsEvent -> entity
@@ -33,5 +27,11 @@ class PendingOwnersItemReducer : Reducer<ItemEvent, Item> {
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }
+    }
+
+    private fun addOwner(ownerships: MutableMap<Address, EthUInt256>, owner: Address): MutableMap<Address, EthUInt256> {
+        val ownerValue = ownerships[owner] ?: EthUInt256.ZERO
+        ownerships[owner] = ownerValue
+        return ownerships
     }
 }
