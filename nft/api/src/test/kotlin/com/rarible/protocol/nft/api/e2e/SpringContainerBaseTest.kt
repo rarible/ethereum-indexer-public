@@ -91,6 +91,7 @@ abstract class SpringContainerBaseTest {
     @Autowired
     private lateinit var featureFlags: FeatureFlags
 
+    @Autowired
     @Qualifier("mockStandardTokenPropertiesResolver")
     protected lateinit var mockTokenStandardPropertiesResolver: StandardTokenPropertiesResolver
 

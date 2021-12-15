@@ -27,7 +27,7 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 }
                 is ItemEvent.LazyItemBurnEvent -> {
                     entity.copy(
-                        ownerships = convert(entity.creators, event.supply),
+                        supply = entity.supply - entity.lazySupply,
                         lazySupply = EthUInt256.ZERO,
                         lastLazyEventTimestamp = event.timestamp
                     )
