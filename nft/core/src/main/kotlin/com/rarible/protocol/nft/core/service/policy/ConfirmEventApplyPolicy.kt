@@ -19,17 +19,7 @@ open class ConfirmEventApplyPolicy<T : BlockchainEntityEvent<T>>(
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
         val lastAppliedEvent = events.lastOrNull { it.isConfirmed }
-
-        return if (lastAppliedEvent == null || lastAppliedEvent < event) {
-            false
-        } else {
-            val firstAppliedEvent = events.firstOrNull { it.isConfirmed }
-            when  {
-                firstAppliedEvent == null -> false
-                firstAppliedEvent > lastAppliedEvent -> throw IllegalStateException("Can't decide if need to apply event")
-                else -> false
-            }
-        }
+        return !(lastAppliedEvent == null || lastAppliedEvent < event)
     }
 
     private fun isReverted(incomeEvent: T, current: T): Boolean {
