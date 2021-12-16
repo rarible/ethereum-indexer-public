@@ -22,12 +22,14 @@ object ItemEventConverter {
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
                         owner = data.owner,
+                        date = data.date,
                         log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
                     data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
                         supply = data.value,
                         owner = data.from,
+                        date = data.date,
                         log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )

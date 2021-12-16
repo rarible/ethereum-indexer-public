@@ -129,6 +129,7 @@ fun createRandomMintItemEvent(
     return ItemEvent.ItemMintEvent(
         owner = randomAddress(),
         supply = EthUInt256.of(randomInt()),
+        date = nowMillis(),
         entityId = randomString(),
         log = createRandomEthereumLog(transactionSender = transactionSender)
     )
@@ -138,6 +139,7 @@ fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
     return ItemEvent.ItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
         owner = randomAddress(),
+        date = nowMillis(),
         entityId = randomString(),
         log = createRandomEthereumLog()
     )

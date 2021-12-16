@@ -80,6 +80,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
 
+        assertThat(item.mintedAt).isEqualTo(transfer.date)
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
