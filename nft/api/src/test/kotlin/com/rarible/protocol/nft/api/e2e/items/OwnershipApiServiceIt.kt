@@ -35,10 +35,10 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
         saveOwnership(Address.ONE(), Address.TWO(), Address.THREE())
         saveOwnership(Address.TWO(), Address.TWO(), Address.FOUR())
 
-        var ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort), null, 10)
+        var ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort, false), null, 10)
         Assertions.assertThat(ownerships).hasSize(2)
 
-        ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort), null, 1)
+        ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort, false), null, 1)
         Assertions.assertThat(ownerships).hasSize(1)
     }
 
