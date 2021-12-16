@@ -65,10 +65,6 @@ class NftItemHistoryRepository(
         return mongo.save(event, COLLECTION)
     }
 
-    fun remove(event: LogEvent): Mono<Boolean> {
-        return mongo.remove(event, COLLECTION).map { it.wasAcknowledged() }
-    }
-
     fun findAllItemsHistory(): Flux<HistoryLog> {
         return findItemsHistory(null, null)
     }

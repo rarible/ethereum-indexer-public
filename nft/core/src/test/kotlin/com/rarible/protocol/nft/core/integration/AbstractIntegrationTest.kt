@@ -222,8 +222,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                             }
                         }
                     }
-                    assertThat(filteredEvents).hasSize(1)
-                    assertThat(filteredEvents.single()).isInstanceOf(eventType)
+                    assertThat(filteredEvents)
+                        .hasSizeGreaterThanOrEqualTo(1)
+                        .allSatisfy { assertThat(it).isInstanceOf(eventType) }
                 }
         }
     }

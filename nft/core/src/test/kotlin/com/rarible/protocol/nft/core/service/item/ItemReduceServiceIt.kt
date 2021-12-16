@@ -25,6 +25,7 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository.Companion.COLLECTION
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
@@ -41,6 +42,9 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
@@ -195,7 +199,8 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
 
         val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
-        nftItemHistoryRepository.remove(pendingMint.log).awaitFirst()
+        mongo.remove(Query(Criteria("_id").isEqualTo(pendingMint.log.id)), LogEvent::class.java, COLLECTION).awaitFirst()
+        assertThat(nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst()).isEmpty()
 
         saveItemHistory(
             ItemTransfer(
