@@ -46,7 +46,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle revert event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.PENDING)) }
+            .let { it.copy(log = it.log.copy(status = Log.Status.REVERTED)) }
         val item = createRandomItem()
 
         coEvery { reversedChainItemReducer.reduce(item, event) } returns item

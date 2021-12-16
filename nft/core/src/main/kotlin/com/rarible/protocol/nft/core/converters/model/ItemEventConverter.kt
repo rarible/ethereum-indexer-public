@@ -68,6 +68,5 @@ object ItemEventConverter {
 
     fun convert(source: LogEvent): ItemEvent? {
         return convert(LogEventToReversedEthereumLogRecordConverter.convert(source))
-
     }
 }

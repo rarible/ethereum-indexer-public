@@ -20,11 +20,48 @@ internal class ItemDeleteReducerTest {
             supply = EthUInt256.ZERO,
             lazySupply = EthUInt256.ZERO,
             revertableEvents = listOf(
-                createRandomBurnItemEvent().withNewValues(status = Log.Status.PENDING)
+                createRandomBurnItemEvent().withNewValues(status = Log.Status.CONFIRMED)
             )
         )
         val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
         assertThat(reducedItem.deleted).isTrue
-        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
+    fun `should not mark item as deleted as it has pending log`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(
+            deleted = false,
+            supply = EthUInt256.ZERO,
+            lazySupply = EthUInt256.ZERO,
+            revertableEvents = listOf(
+                createRandomBurnItemEvent().withNewValues(status = Log.Status.PENDING)
+            )
+        )
+        val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
+        assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should not mark item as deleted as it has supply`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(
+            deleted = false,
+            supply = EthUInt256.ONE,
+            lazySupply = EthUInt256.ZERO,
+            revertableEvents = emptyList()
+        )
+        val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
+        assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should not mark item as deleted as it has lazy supply`() = runBlocking<Unit> {
+        val item = createRandomItem().copy(
+            deleted = false,
+            supply = EthUInt256.ZERO,
+            lazySupply = EthUInt256.ONE,
+            revertableEvents = emptyList()
+        )
+        val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
+        assertThat(reducedItem.deleted).isFalse()
     }
 }

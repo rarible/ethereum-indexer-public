@@ -42,14 +42,39 @@ fun EthereumLog.withNewValues(
 ) = copy(
     status = status ?: this.status,
     createdAt = createdAt ?: this.createdAt,
-    blockNumber = if (this.blockNumber != null && blockNumber == null) null else this.blockNumber ?: blockNumber
+    blockNumber = blockNumber ?: if (this.blockNumber != null && blockNumber == null) null else this.blockNumber
 )
-fun ItemEvent.ItemMintEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null, blockNumber: Long? = null) = copy(log = log.withNewValues(status, createdAt, blockNumber))
-fun ItemEvent.ItemBurnEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
-fun ItemEvent.ItemTransferEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
-fun ItemEvent.ItemCreatorsEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
-fun ItemEvent.LazyItemMintEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
-fun ItemEvent.LazyItemBurnEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+
+fun ItemEvent.ItemMintEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+
+fun ItemEvent.ItemBurnEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null
+) = copy(log = log.withNewValues(status, createdAt))
+
+fun ItemEvent.ItemTransferEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null
+) = copy(log = log.withNewValues(status, createdAt))
+
+fun ItemEvent.ItemCreatorsEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null
+) = copy(log = log.withNewValues(status, createdAt))
+
+fun ItemEvent.LazyItemMintEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null
+) = copy(log = log.withNewValues(status, createdAt))
+
+fun ItemEvent.LazyItemBurnEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null
+) = copy(log = log.withNewValues(status, createdAt))
 
 fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
     return ItemEvent.ItemCreatorsEvent(

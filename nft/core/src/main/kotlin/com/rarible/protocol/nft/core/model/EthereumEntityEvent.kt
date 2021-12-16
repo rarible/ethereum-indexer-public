@@ -28,21 +28,15 @@ abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
         }
     }
 
-    private val confirmBlockComparator: Comparator<EthereumEntityEvent<*>> = Comparator
-        .comparingLong<EthereumEntityEvent<*>> { requireNotNull(it.log.blockNumber) }
-        .thenComparingInt { requireNotNull(it.log.logIndex) }
-        .thenComparingInt { it.log.minorLogIndex }
+    private companion object {
+        val confirmBlockComparator: Comparator<EthereumEntityEvent<*>> = Comparator
+            .comparingLong<EthereumEntityEvent<*>> { requireNotNull(it.log.blockNumber) }
+            .thenComparingInt { requireNotNull(it.log.logIndex) }
+            .thenComparingInt { it.log.minorLogIndex }
 
-    private val pendingBlockComparator: Comparator<EthereumEntityEvent<*>> = Comparator
-        .comparing<EthereumEntityEvent<*>, String>({ it.log.transactionHash }, { t1, t2 -> t1.compareTo(t2) })
-        .thenComparing({ it.log.address.toString() }, { a1, a2 -> a1.compareTo(a2) })
-        .thenComparingInt { it.log.minorLogIndex }
-
-    enum class Status {
-        PENDING,
-        CONFIRMED,
-        INACTIVE,
-        DROPPED,
-        REVERTED
+        val pendingBlockComparator: Comparator<EthereumEntityEvent<*>> = Comparator
+            .comparing<EthereumEntityEvent<*>, String>({ it.log.transactionHash }, { t1, t2 -> t1.compareTo(t2) })
+            .thenComparing({ it.log.address.toString() }, { a1, a2 -> a1.compareTo(a2) })
+            .thenComparingInt { it.log.minorLogIndex }
     }
 }

@@ -79,6 +79,8 @@ class ItemReduceServiceV2(
                     topic = Word.apply(ByteArray(32)),
                     transactionHash = Word.apply(ByteArray(32)),
                     status = LogEventStatus.CONFIRMED,
+                    createdAt = it.date,
+                    updatedAt = it.date,
                     blockNumber = -1,
                     logIndex = -1,
                     index = 0,
