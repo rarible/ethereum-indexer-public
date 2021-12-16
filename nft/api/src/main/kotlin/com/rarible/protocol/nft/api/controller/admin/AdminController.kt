@@ -1,13 +1,16 @@
 package com.rarible.protocol.nft.api.controller.admin
 
 import com.rarible.core.task.Task
+import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
 import com.rarible.protocol.nft.api.dto.TokenDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -20,11 +23,27 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 
+@ExperimentalCoroutinesApi
 @RestController
 class AdminController(
     private val reindexTokenService: ReindexTokenService,
-    private val tokenUpdateService: TokenUpdateService
+    private val tokenUpdateService: TokenUpdateService,
+    private val itemReduceService: ItemReduceService
 ) {
+
+    @PostMapping(
+        value = ["/admin/nft/items/{itemId}/reduce"],
+        produces = ["application/json"],
+        consumes = ["application/json"]
+    )
+    suspend fun reduceItemById(
+        @PathVariable("itemId") itemId: String
+    ): ResponseEntity<Void> {
+        val id = ItemIdConverter.convert(itemId)
+        itemReduceService.update(id.token, id.tokenId).subscribe()
+        return ResponseEntity.noContent().build()
+    }
+
     @GetMapping(
         value = ["/admin/nft/collections/{collectionId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
