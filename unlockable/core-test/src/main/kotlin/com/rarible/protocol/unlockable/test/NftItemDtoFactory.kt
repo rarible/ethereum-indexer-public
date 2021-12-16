@@ -20,7 +20,7 @@ object NftItemDtoFactory {
         owners = listOf(address),
         royalties = emptyList(),
         pending = emptyList(),
-        date = nowMillis(),
+        lastUpdatedAt = nowMillis(),
         deleted = false,
         meta = NftItemMetaDto("Test", null, null, null, null)
     )
