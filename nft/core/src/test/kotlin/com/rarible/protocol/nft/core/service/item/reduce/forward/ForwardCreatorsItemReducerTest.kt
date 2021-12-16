@@ -96,7 +96,7 @@ internal class ForwardCreatorsItemReducerTest {
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(serviceCreators)
-        assertThat(reducedItem.mintedAt).isEqualTo(event.log.createdAt)
+        assertThat(reducedItem.mintedAt).isEqualTo(event.date)
         assertThat(reducedItem.creatorsFinal).isFalse()
     }
 }
