@@ -13,26 +13,32 @@ import com.rarible.protocol.dto.NftItemFilterDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
+import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.page.PageSize
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.time.Instant
 
+@ExperimentalCoroutinesApi
 @RestController
 class ItemController(
     private val itemService: ItemService,
+    private val itemReduceService: ItemReduceService,
     private val mintService: MintService,
     private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator
@@ -65,6 +71,21 @@ class ItemController(
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
         itemService.resetMeta(conversionService.convert(itemId))
         return ResponseEntity.noContent().build()
+    }
+
+    @PostMapping(
+        value = ["/v0.1/items/{itemId}/reduce"],
+        produces = ["application/json"],
+        consumes = ["application/json"]
+    )
+    suspend fun reduceItemById(
+        @PathVariable("itemId") itemId: String
+    ): ResponseEntity<Unit> {
+        return withMdc {
+            val id = ItemIdConverter.convert(itemId)
+            itemReduceService.update(id.token, id.tokenId).collectList()
+            ResponseEntity.ok().build()
+        }
     }
 
     override suspend fun deleteLazyMintNftAsset(
