@@ -1,9 +1,10 @@
 package com.rarible.protocol.nft.core.service.policy
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.entity.reducer.service.EventApplyPolicy
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
+import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
-open class RevertEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPolicy<T> {
+open class RevertEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy<T> {
     override fun reduce(events: List<T>, event: T): List<T> {
         val confirmedEvent = findConfirmedEvent(events, event)
         return if (confirmedEvent != null) events - event else events
@@ -15,8 +16,7 @@ open class RevertEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPoli
 
     private fun findConfirmedEvent(events: List<T>, event: T): T? {
         return events.firstOrNull { current ->
-            current.isConfirmed && current.compareTo(event) == 0
+            current.log.status == Log.Status.CONFIRMED && current.compareTo(event) == 0
         }
     }
 }
-

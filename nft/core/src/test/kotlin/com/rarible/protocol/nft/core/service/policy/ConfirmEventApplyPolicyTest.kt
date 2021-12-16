@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.core.service.policy
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
+import com.rarible.protocol.nft.core.data.withNewValues
 import com.rarible.protocol.nft.core.model.ItemEvent
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -11,22 +12,22 @@ internal class ConfirmEventApplyPolicyTest {
 
     @Test
     fun `should say false on event if not any confirms events in list`() {
-        val events = notConfirmStatuses().map { createRandomMintItemEvent().copy(status = it) }
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.CONFIRMED)
-        assertThat(policy.wasApplied(events, event)).isFalse()
+        val events = notConfirmStatuses().map { createRandomMintItemEvent().withNewValues(status = it) }
+        val event = createRandomMintItemEvent().withNewValues(status = Log.Status.CONFIRMED)
+        assertThat(policy.wasApplied(events, event)).isFalse
     }
 
     @Test
     fun `should say false on event if confirm event is latest`() {
         val events = (1L..20).map { blockNumber ->
-            createRandomMintItemEvent().copy(
-                status = BlockchainEntityEvent.Status.CONFIRMED,
+            createRandomMintItemEvent().withNewValues(
+                status = Log.Status.CONFIRMED,
                 blockNumber = blockNumber
             )
-        } + notConfirmStatuses().map { createRandomMintItemEvent().copy(status = it) }
+        } + notConfirmStatuses().map { createRandomMintItemEvent().withNewValues(status = it) }
 
-        val event = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val event = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 21
         )
         assertThat(policy.wasApplied(events, event)).isFalse()
@@ -35,18 +36,18 @@ internal class ConfirmEventApplyPolicyTest {
     @Test
     fun `should say true on event if confirm event is from past`() {
         val events = (10L..20).map { blockNumber ->
-            createRandomMintItemEvent().copy(
-                status = BlockchainEntityEvent.Status.CONFIRMED,
+            createRandomMintItemEvent().withNewValues(
+                status = Log.Status.CONFIRMED,
                 blockNumber = blockNumber
             )
-        } + notConfirmStatuses().map { createRandomMintItemEvent().copy(status = it) }
+        } + notConfirmStatuses().map { createRandomMintItemEvent().withNewValues(status = it) }
 
-        val event1 = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val event1 = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 9
         )
-        val event2 = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val event2 = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 1
         )
         assertThat(policy.wasApplied(events, event1)).isTrue()
@@ -56,14 +57,14 @@ internal class ConfirmEventApplyPolicyTest {
     @Test
     fun `should add latest event to list`() {
         val events = (1L..5).map { blockNumber ->
-            createRandomMintItemEvent().copy(
-                status = BlockchainEntityEvent.Status.CONFIRMED,
+            createRandomMintItemEvent().withNewValues(
+                status = Log.Status.CONFIRMED,
                 blockNumber = blockNumber
             )
-        } + notConfirmStatuses().map { createRandomMintItemEvent().copy(status = it) }
+        } + notConfirmStatuses().map { createRandomMintItemEvent().withNewValues(status = it) }
 
-        val event = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val event = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 6
         )
         val newEvents = policy.reduce(events, event)
@@ -72,31 +73,31 @@ internal class ConfirmEventApplyPolicyTest {
 
     @Test
     fun `should add latest event to list and remove not revertable events`() {
-        val notRevertedEvent1 = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val notRevertedEvent1 = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 1
         )
-        val notRevertedEvent2 = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val notRevertedEvent2 = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 2
         )
-        val notRevertedEvent3 = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val notRevertedEvent3 = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 3
         )
-        val notConfirmEvent1 = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.PENDING)
-        val notConfirmEvent2 = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.PENDING)
+        val notConfirmEvent1 = createRandomMintItemEvent().withNewValues(status = Log.Status.PENDING)
+        val notConfirmEvent2 = createRandomMintItemEvent().withNewValues(status = Log.Status.PENDING)
         val events = listOf(notRevertedEvent1, notRevertedEvent2, notRevertedEvent3, notConfirmEvent1, notConfirmEvent2)
 
-        val confirmEvent = createRandomMintItemEvent().copy(
-            status = BlockchainEntityEvent.Status.CONFIRMED,
+        val confirmEvent = createRandomMintItemEvent().withNewValues(
+            status = Log.Status.CONFIRMED,
             blockNumber = 20
         )
         val newEvents = policy.reduce(events, confirmEvent)
         assertThat(newEvents).isEqualTo(listOf(notRevertedEvent3, notConfirmEvent1, notConfirmEvent2, confirmEvent))
     }
 
-    private fun notConfirmStatuses(): List<BlockchainEntityEvent.Status> {
-        return BlockchainEntityEvent.Status.values().filter { it != BlockchainEntityEvent.Status.CONFIRMED }
+    private fun notConfirmStatuses(): List<Log.Status> {
+        return Log.Status.values().filter { it != Log.Status.CONFIRMED }
     }
 }

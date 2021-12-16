@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.entity.reducer.service.Reducer
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
@@ -19,20 +19,12 @@ class EventStatusItemReducer(
 ) : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return when (event.status) {
-            BlockchainEntityEvent.Status.CONFIRMED -> {
-                forwardChainItemReducer.reduce(entity, event)
-            }
-            BlockchainEntityEvent.Status.PENDING -> {
-                pendingChainItemReducer.reduce(entity, event)
-            }
-            BlockchainEntityEvent.Status.REVERTED -> {
-                reversedChainItemReducer.reduce(entity, event)
-            }
-            BlockchainEntityEvent.Status.INACTIVE,
-            BlockchainEntityEvent.Status.DROPPED -> {
-                inactiveChainItemReducer.reduce(entity, event)
-            }
+        return when (event.log.status) {
+            Log.Status.CONFIRMED -> forwardChainItemReducer.reduce(entity, event)
+            Log.Status.PENDING -> pendingChainItemReducer.reduce(entity, event)
+            Log.Status.REVERTED -> reversedChainItemReducer.reduce(entity, event)
+            Log.Status.INACTIVE,
+            Log.Status.DROPPED -> inactiveChainItemReducer.reduce(entity, event)
         }
     }
 }

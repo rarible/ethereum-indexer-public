@@ -1,31 +1,61 @@
 package com.rarible.protocol.nft.core.data
 
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.Part
+import io.daonomic.rpc.domain.Word
+import java.time.Instant
 
 fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
 }
 
+fun createRandomEthereumLog(): EthereumLog =
+    EthereumLog(
+        transactionHash = randomWord(),
+        status = Log.Status.values().random(),
+        address = randomAddress(),
+        topic = Word.apply(randomWord()),
+        blockHash = Word.apply(randomWord()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        minorLogIndex = randomInt(),
+        index = randomInt(),
+        createdAt = nowMillis(),
+        updatedAt = nowMillis()
+    )
+
+fun EthereumLog.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null
+) = copy(
+    status = status ?: this.status,
+    createdAt = createdAt ?: this.createdAt,
+    blockNumber = if (this.blockNumber != null && blockNumber == null) null else this.blockNumber ?: blockNumber
+)
+fun ItemEvent.ItemMintEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null, blockNumber: Long? = null) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+fun ItemEvent.ItemBurnEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+fun ItemEvent.ItemTransferEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+fun ItemEvent.ItemCreatorsEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+fun ItemEvent.LazyItemMintEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+fun ItemEvent.LazyItemBurnEvent.withNewValues(status: Log.Status? = null, createdAt: Instant? = null) = copy(log = log.withNewValues(status, createdAt))
+
 fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
     return ItemEvent.ItemCreatorsEvent(
         creators = listOf(Part.fullPart(randomAddress()), Part.fullPart(randomAddress())),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -34,14 +64,8 @@ fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
         from = randomAddress(),
         to = randomAddress(),
         value = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -49,14 +73,8 @@ fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {
     return ItemEvent.ItemMintEvent(
         owner = randomAddress(),
         supply = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -64,14 +82,8 @@ fun createRandomBurnItemEvent(): ItemEvent.ItemBurnEvent {
     return ItemEvent.ItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
         owner = randomAddress(),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -79,27 +91,15 @@ fun createRandomLazyMintItemEvent(): ItemEvent.LazyItemMintEvent {
     return ItemEvent.LazyItemMintEvent(
         supply = EthUInt256.of(randomInt()),
         creators = emptyList(),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 fun createRandomLazyBurnItemEvent(): ItemEvent.LazyItemBurnEvent {
     return ItemEvent.LazyItemBurnEvent(
         supply = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -107,14 +107,8 @@ fun createRandomOwnershipTransferToEvent(): OwnershipEvent.TransferToEvent {
     return OwnershipEvent.TransferToEvent(
         from = randomAddress(),
         value = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
@@ -122,40 +116,22 @@ fun createRandomOwnershipTransferFromEvent(): OwnershipEvent.TransferFromEvent {
     return OwnershipEvent.TransferFromEvent(
         to = randomAddress(),
         value = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 
 fun createRandomOwnershipChangeLazyValueEvent(): OwnershipEvent.ChangeLazyValueEvent {
     return OwnershipEvent.ChangeLazyValueEvent(
         value = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }
 fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEvent {
     return OwnershipEvent.LazyTransferToEvent(
         value = EthUInt256.of(randomInt()),
-        blockNumber = randomLong(),
-        logIndex = randomInt(),
-        status = BlockchainEntityEvent.Status.values().random(),
         entityId = randomString(),
-        timestamp = randomLong(),
-        transactionHash = randomString(),
-        address = randomString(),
-        minorLogIndex = randomInt()
+        log = createRandomEthereumLog()
     )
 }

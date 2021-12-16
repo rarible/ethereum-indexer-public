@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.inactive.InactiveChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.pending.PendingChainItemReducer
@@ -29,7 +29,8 @@ internal class EventStatusItemReducerTest {
 
     @Test
     fun `should handle confirm event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.CONFIRMED)
+        val event = createRandomMintItemEvent()
+            .let { it.copy(log = it.log.copy(status = Log.Status.CONFIRMED)) }
         val item = createRandomItem()
 
         coEvery { forwardChainItemReducer.reduce(item, event) } returns item
@@ -44,7 +45,8 @@ internal class EventStatusItemReducerTest {
 
     @Test
     fun `should handle revert event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.REVERTED)
+        val event = createRandomMintItemEvent()
+            .let { it.copy(log = it.log.copy(status = Log.Status.PENDING)) }
         val item = createRandomItem()
 
         coEvery { reversedChainItemReducer.reduce(item, event) } returns item
@@ -59,7 +61,8 @@ internal class EventStatusItemReducerTest {
 
     @Test
     fun `should handle pending event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.PENDING)
+        val event = createRandomMintItemEvent()
+            .let { it.copy(log = it.log.copy(status = Log.Status.PENDING)) }
         val item = createRandomItem()
 
         coEvery { pendingChainItemReducer.reduce(item, event) } returns item
@@ -74,7 +77,8 @@ internal class EventStatusItemReducerTest {
 
     @Test
     fun `should handle inactive event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.INACTIVE)
+        val event = createRandomMintItemEvent()
+            .let { it.copy(log = it.log.copy(status = Log.Status.INACTIVE)) }
         val item = createRandomItem()
 
         coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
@@ -89,7 +93,8 @@ internal class EventStatusItemReducerTest {
 
     @Test
     fun `should handle drop event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent().copy(status = BlockchainEntityEvent.Status.DROPPED)
+        val event = createRandomMintItemEvent()
+            .let { it.copy(log = it.log.copy(status = Log.Status.DROPPED)) }
         val item = createRandomItem()
 
         coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
