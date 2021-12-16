@@ -2,7 +2,14 @@ package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import scalether.domain.Address
 
 object ItemEventConverter {
@@ -15,38 +22,20 @@ object ItemEventConverter {
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
                         owner = data.owner,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        minorLogIndex = source.minorLogIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
                     data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
                         supply = data.value,
                         owner = data.from,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        minorLogIndex = source.minorLogIndex,
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
                     else -> ItemEvent.ItemTransferEvent(
                         value = data.value,
                         from = data.from,
                         to = data.owner,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        minorLogIndex = source.minorLogIndex,
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
                 }
@@ -54,40 +43,22 @@ object ItemEventConverter {
             is ItemLazyMint -> {
                 ItemEvent.LazyItemMintEvent(
                     supply = data.value,
-                    timestamp = data.date.epochSecond,
                     creators = data.creators,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex,
-                    minorLogIndex = source.minorLogIndex,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash.toString(),
-                    address = source.address.prefixed(),
+                    log = source.log,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
             is BurnItemLazyMint -> {
                 ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
-                    timestamp = data.date.epochSecond,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex,
-                    minorLogIndex = source.minorLogIndex,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash.toString(),
-                    address = source.address.prefixed(),
+                    log = source.log,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
             is ItemCreators -> {
                 ItemEvent.ItemCreatorsEvent(
                     creators = data.creators,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex,
-                    minorLogIndex = source.minorLogIndex,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash.toString(),
-                    address = source.address.prefixed(),
-                    timestamp = source.createdAt.epochSecond,
+                    log = source.log,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
@@ -100,4 +71,3 @@ object ItemEventConverter {
 
     }
 }
-

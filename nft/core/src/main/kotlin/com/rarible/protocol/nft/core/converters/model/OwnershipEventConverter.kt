@@ -3,7 +3,16 @@ package com.rarible.protocol.nft.core.converters.model
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.OwnershipEvent
+import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -19,13 +28,7 @@ class OwnershipEventConverter(
                     OwnershipEvent.TransferToEvent(
                         from = data.from,
                         value = data.value,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        minorLogIndex = source.minorLogIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, owner).stringValue
                     )
                 }
@@ -33,13 +36,7 @@ class OwnershipEventConverter(
                     OwnershipEvent.TransferFromEvent(
                         to = data.owner,
                         value = data.value,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        minorLogIndex = source.minorLogIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, from).stringValue
                     )
                 }
@@ -51,13 +48,7 @@ class OwnershipEventConverter(
                 }?.let { lazyOwner ->
                     OwnershipEvent.ChangeLazyValueEvent(
                         value = data.value,
-                        blockNumber = source.blockNumber,
-                        logIndex = source.logIndex,
-                        minorLogIndex = source.minorLogIndex,
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash.toString(),
-                        address = source.address.prefixed(),
-                        timestamp = source.createdAt.epochSecond,
+                        log = source.log,
                         entityId = OwnershipId(data.token, data.tokenId, lazyOwner).stringValue
                     )
                 }
@@ -66,13 +57,7 @@ class OwnershipEventConverter(
             is ItemLazyMint -> {
                 val lazyTransferTo = OwnershipEvent.LazyTransferToEvent(
                     value = data.value,
-                    blockNumber = source.blockNumber,
-                    logIndex = source.logIndex,
-                    minorLogIndex = source.minorLogIndex,
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash.toString(),
-                    address = source.address.prefixed(),
-                    timestamp = source.createdAt.epochSecond,
+                    log = source.log,
                     entityId = OwnershipId(data.token, data.tokenId, data.owner).stringValue
                 )
                 listOf(lazyTransferTo)
@@ -92,4 +77,3 @@ class OwnershipEventConverter(
         return itemUpdateService.get(ItemId(token, tokenId))
     }
 }
-

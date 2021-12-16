@@ -1,9 +1,10 @@
 package com.rarible.protocol.nft.core.service.policy
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.entity.reducer.service.EventApplyPolicy
-import com.rarible.protocol.nft.core.model.BlockchainEntityEvent
+import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
-open class InactiveEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPolicy<T> {
+open class InactiveEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy<T> {
 
     override fun reduce(events: List<T>, event: T): List<T> {
         val pendingEvent = findPendingEvent(events, event)
@@ -16,7 +17,7 @@ open class InactiveEventApplyPolicy<T : BlockchainEntityEvent<T>> : EventApplyPo
 
     private fun findPendingEvent(events: List<T>, event: T): T? {
         return events.firstOrNull { current ->
-            current.isPending && current.compareTo(event) == 0
+            current.log.status == Log.Status.PENDING && current.compareTo(event) == 0
         }
     }
 }

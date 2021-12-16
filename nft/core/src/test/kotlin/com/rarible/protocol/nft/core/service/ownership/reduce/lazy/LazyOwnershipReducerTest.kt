@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.repository.data.createOwnership
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 internal class LazyOwnershipReducerTest {
     private val lazyOwnershipReducer = LazyOwnershipReducer()
@@ -33,9 +34,10 @@ internal class LazyOwnershipReducerTest {
             lastLazyEventTimestamp = 10
         )
         val event = createRandomOwnershipLazyTransferToEvent().copy(
-            value = EthUInt256.TEN,
-            timestamp = 1
-        )
+            value = EthUInt256.TEN
+        ).let {
+            it.copy(log = it.log.copy(createdAt = Instant.EPOCH))
+        }
         val reducedOwnership = lazyOwnershipReducer.reduce(ownership, event)
         assertThat(reducedOwnership.lazyValue).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedOwnership.value).isEqualTo(EthUInt256.ONE)

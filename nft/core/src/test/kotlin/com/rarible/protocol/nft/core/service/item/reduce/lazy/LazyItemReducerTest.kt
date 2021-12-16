@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.Part
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.time.Instant
 
 internal class LazyItemReducerTest {
     private val lazyItemReducer = LazyItemReducer()
@@ -17,9 +18,10 @@ internal class LazyItemReducerTest {
     fun `should handle lazy mint event`() = runBlocking<Unit> {
         val event = createRandomLazyMintItemEvent().copy(
             supply = EthUInt256.TEN,
-            creators = listOf(Part(randomAddress(), 1), Part(randomAddress(), 2)),
-            timestamp = 1
-        )
+            creators = listOf(Part(randomAddress(), 1), Part(randomAddress(), 2))
+        ).let {
+            it.copy(log = it.log.copy(createdAt = Instant.EPOCH))
+        }
         val item = createRandomItem().copy(lastLazyEventTimestamp = null)
 
         val reducedItem = lazyItemReducer.reduce(item, event)
@@ -35,9 +37,10 @@ internal class LazyItemReducerTest {
     @Test
     fun `should handle lazy burn event`() = runBlocking<Unit> {
         val event = createRandomLazyBurnItemEvent().copy(
-            supply = EthUInt256.TEN,
-            timestamp = 1
-        )
+            supply = EthUInt256.TEN
+        ).let {
+            it.copy(log = it.log.copy(createdAt = Instant.EPOCH))
+        }
         val item = createRandomItem().copy(lastLazyEventTimestamp = null)
 
         val reducedItem = lazyItemReducer.reduce(item, event)

@@ -7,14 +7,8 @@ object ItemEventInverter {
         return ItemEvent.ItemBurnEvent(
             supply = event.supply,
             owner = event.owner,
-            blockNumber = event.blockNumber,
-            logIndex = event.logIndex,
-            minorLogIndex = event.minorLogIndex,
-            status = event.status,
             entityId = event.entityId,
-            timestamp = event.timestamp,
-            transactionHash = event.transactionHash,
-            address = event.address
+            log = event.log
         )
     }
 
@@ -22,14 +16,8 @@ object ItemEventInverter {
         return ItemEvent.ItemMintEvent(
             supply = event.supply,
             owner = event.owner,
-            blockNumber = event.blockNumber,
-            logIndex = event.logIndex,
-            minorLogIndex = event.minorLogIndex,
-            status = event.status,
             entityId = event.entityId,
-            timestamp = event.timestamp,
-            transactionHash = event.transactionHash,
-            address = event.address
+            log = event.log
         )
     }
 
