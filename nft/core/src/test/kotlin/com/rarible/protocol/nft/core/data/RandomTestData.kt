@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
@@ -11,10 +12,23 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
+import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.repository.data.createAddress
+import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import io.daonomic.rpc.domain.Word
+import scalether.domain.AddressFactory
+import java.math.BigInteger
 import java.time.Instant
+import java.util.concurrent.ThreadLocalRandom
+import kotlin.math.min
+
+fun createRandomItemId(): ItemId {
+    return ItemId(randomAddress(), EthUInt256.of(randomBigInt()))
+}
 
 fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
@@ -38,28 +52,38 @@ fun createRandomEthereumLog(): EthereumLog =
 fun EthereumLog.withNewValues(
     status: Log.Status? = null,
     createdAt: Instant? = null,
-    blockNumber: Long? = null
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
 ) = copy(
     status = status ?: this.status,
     createdAt = createdAt ?: this.createdAt,
-    blockNumber = blockNumber ?: if (this.blockNumber != null && blockNumber == null) null else this.blockNumber
+    blockNumber = blockNumber ?: if (this.blockNumber != null && blockNumber == null) null else this.blockNumber,
+    logIndex = logIndex ?: if (this.logIndex != null && logIndex == null) null else this.logIndex,
+    minorLogIndex = minorLogIndex ?: this.minorLogIndex
 )
 
 fun ItemEvent.ItemMintEvent.withNewValues(
     status: Log.Status? = null,
     createdAt: Instant? = null,
-    blockNumber: Long? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemBurnEvent.withNewValues(
     status: Log.Status? = null,
-    createdAt: Instant? = null
-) = copy(log = log.withNewValues(status, createdAt))
+    createdAt: Instant? = null,
+    blockNumber: Long? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber))
 
 fun ItemEvent.ItemTransferEvent.withNewValues(
     status: Log.Status? = null,
-    createdAt: Instant? = null
-) = copy(log = log.withNewValues(status, createdAt))
+    createdAt: Instant? = null,
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
     status: Log.Status? = null,
@@ -137,6 +161,26 @@ fun createRandomOwnershipTransferToEvent(): OwnershipEvent.TransferToEvent {
     )
 }
 
+fun createRandomOwnershipId(): OwnershipId {
+    return OwnershipId(randomAddress(), EthUInt256.of(randomBigInt()), randomAddress())
+}
+
+fun createRandomOwnership(): Ownership {
+    val token = createAddress()
+    val owner = createAddress()
+    val tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
+    return Ownership(
+        token = token,
+        tokenId = tokenId,
+        creators = listOf(Part(AddressFactory.create(), 1000)),
+        owner = owner,
+        value = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
+        lazyValue = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
+        date = nowMillis(),
+        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemHistory() }
+    )
+}
+
 fun createRandomOwnershipTransferFromEvent(): OwnershipEvent.TransferFromEvent {
     return OwnershipEvent.TransferFromEvent(
         to = randomAddress(),
@@ -160,3 +204,25 @@ fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEve
         log = createRandomEthereumLog()
     )
 }
+
+fun OwnershipEvent.LazyTransferToEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+
+fun OwnershipEvent.TransferFromEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
+
+fun OwnershipEvent.TransferToEvent.withNewValues(
+    status: Log.Status? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
