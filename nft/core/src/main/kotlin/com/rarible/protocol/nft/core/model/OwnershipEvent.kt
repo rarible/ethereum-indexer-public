@@ -1,31 +1,39 @@
 package com.rarible.protocol.nft.core.model
 
-import java.time.Instant
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
+import com.rarible.ethereum.domain.EthUInt256
+import scalether.domain.Address
 
-data class OwnershipEvent(
-    val id: String,
-    val entityId: String,
-    val timestamp: Instant,
-    val subEvents: List<OwnershipSubEvent>
-)
+sealed class OwnershipEvent : EthereumEntityEvent<OwnershipEvent>() {
+    abstract val value: EthUInt256
 
-sealed class OwnershipSubEvent {
-    abstract val type: SubOwnershipEventType
-}
+    data class TransferToEvent(
+        val from: Address,
+        override val value: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : OwnershipEvent() {
+        fun isMint(): Boolean = from == Address.ZERO()
+    }
 
-data class UpdateOwnershipEvent(
-    val ownership: Ownership
-) : OwnershipSubEvent() {
-    override val type: SubOwnershipEventType = SubOwnershipEventType.OWNERSHIP_UPDATED
-}
+    data class TransferFromEvent(
+        val to: Address,
+        override val value: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : OwnershipEvent() {
+        fun isBurn(): Boolean = to == Address.ZERO()
+    }
 
-data class DeleteOwnershipEvent(
-    val ownershipId: String
-) : OwnershipSubEvent() {
-    override val type: SubOwnershipEventType = SubOwnershipEventType.OWNERSHIP_DELETED
-}
+    data class ChangeLazyValueEvent(
+        override val value: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : OwnershipEvent()
 
-enum class SubOwnershipEventType {
-    OWNERSHIP_UPDATED,
-    OWNERSHIP_DELETED,
+    data class LazyTransferToEvent(
+        override val value: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : OwnershipEvent()
 }

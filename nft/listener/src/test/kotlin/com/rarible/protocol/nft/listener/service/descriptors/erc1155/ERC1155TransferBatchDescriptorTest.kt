@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemType
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
@@ -18,6 +19,8 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.findAll
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -33,8 +36,9 @@ import kotlin.random.Random
 @IntegrationTest
 class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun convert() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun convert(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -42,9 +46,8 @@ class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
         val token = TestERC1155.deployAndWait(
             userSender,
             poller,

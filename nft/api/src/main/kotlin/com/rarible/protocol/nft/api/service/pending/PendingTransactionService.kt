@@ -197,7 +197,7 @@ class PendingTransactionService(
                         token = to,
                         tokenId = EthUInt256(it._2()),
                         date = nowMillis(),
-                        from = it._1(),
+                        from = Address.ZERO(),
                         value = EthUInt256.ONE
                     ), to, TransferEvent.id()
                 )

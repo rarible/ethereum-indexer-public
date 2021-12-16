@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.PendingLogItemProperties
@@ -41,7 +42,9 @@ class PendingLogItemPropertiesResolver(
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return null
-        val isPendingMinting = item.pending.any { it.from == Address.ZERO() }
+        val isPendingMinting =
+            item.pending.any { it.from == Address.ZERO() } || item.getPendingEvents().any { it is ItemEvent.ItemMintEvent }
+
         if (!isPendingMinting) {
             logProperties(itemId, "removing properties of an already confirmed item")
             // Minted items must provide properties from the contract.

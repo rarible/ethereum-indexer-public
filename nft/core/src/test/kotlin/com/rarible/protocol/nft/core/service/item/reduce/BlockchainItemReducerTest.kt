@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.core.entity.reducer.exception.ReduceException
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardValueItemReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -13,7 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
 internal class BlockchainItemReducerTest {
-    private val itemBlockchainItemReducer = BlockchainItemReducer()
+    private val itemBlockchainItemReducer = ForwardValueItemReducer()
 
     @Test
     fun `should reduce mint event`() = runBlocking<Unit> {
@@ -23,7 +23,6 @@ internal class BlockchainItemReducerTest {
         val reducedItem = itemBlockchainItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
-        assertThat(reducedItem.deleted).isEqualTo(false)
     }
 
     @Test
@@ -34,21 +33,10 @@ internal class BlockchainItemReducerTest {
         val reducedItem = itemBlockchainItemReducer.reduce(item, event)
 
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.deleted).isEqualTo(true)
     }
 
     companion object {
         @JvmStatic
         fun invalidReduceEvents() = Stream.of(createRandomLazyMintItemEvent(), createRandomLazyBurnItemEvent())
-    }
-
-    @ParameterizedTest
-    @MethodSource("invalidReduceEvents")
-    fun `should throw exception on invalid event`(event: ItemEvent) = runBlocking<Unit> {
-        assertThrows<ReduceException> {
-            runBlocking {
-                itemBlockchainItemReducer.reduce(createRandomItem(), event)
-            }
-        }
     }
 }

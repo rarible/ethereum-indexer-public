@@ -13,18 +13,22 @@ import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -50,6 +54,7 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
+import kotlin.coroutines.EmptyCoroutineContext
 
 @FlowPreview
 abstract class AbstractIntegrationTest {
@@ -88,6 +93,9 @@ abstract class AbstractIntegrationTest {
     @Autowired
     private lateinit var application: ApplicationEnvironmentInfo
 
+    @Autowired
+    private lateinit var featureFlags: FeatureFlags
+
     private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
 
     @BeforeEach
@@ -106,9 +114,8 @@ abstract class AbstractIntegrationTest {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             Numeric.toBigInt("0x0a2853fac2c0a03f463f04c4567839473c93f3307da459132b7dd1ca633c0e16"),
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
     }
 
     protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
@@ -201,5 +208,10 @@ abstract class AbstractIntegrationTest {
                 }
         }
         job.cancel()
+    }
+
+    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        featureFlags.reduceVersion = version
+        runBlocking(EmptyCoroutineContext, block)
     }
 }

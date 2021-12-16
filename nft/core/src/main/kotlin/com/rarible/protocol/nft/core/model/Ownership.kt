@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.common.nowMillis
+import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
@@ -25,17 +27,33 @@ data class Ownership(
     val value: EthUInt256,
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
-    val pending: List<ItemTransfer>
-) {
+    @Deprecated("Should use getPendingEvents()")
+    val pending: List<ItemTransfer>,
+    val deleted: Boolean = false,
+    val lastLazyEventTimestamp: Long? = null,
+    override val revertableEvents: List<OwnershipEvent> = emptyList()
+) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
     private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
+    fun getPendingEvents(): List<OwnershipEvent> {
+        return revertableEvents.filter { it.log.status == Log.Status.PENDING }
+    }
+
+    fun isLazyOwnership(): Boolean {
+        return lastLazyEventTimestamp != null
+    }
+
     @get:Id
     @get:AccessType(AccessType.Type.PROPERTY)
-    var id: OwnershipId
+    override var id: OwnershipId
         get() = _id
         set(_) {}
+
+    override fun withRevertableEvents(events: List<OwnershipEvent>): Ownership {
+        return copy(revertableEvents = events)
+    }
 
     companion object {
 

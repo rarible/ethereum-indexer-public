@@ -17,6 +17,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.toEth
@@ -40,6 +41,8 @@ import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
@@ -75,8 +78,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
-    @Test
-    fun `pending minting`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `pending minting`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -134,11 +138,24 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
-            assertThat(item.owners.single()).isEqualTo(address)
+
+            assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty()).isEqualTo(true)
+            if (item.owners.isNotEmpty()) {
+                assertThat(item.owners.single()).isEqualTo(address)
+            }
+            if (item.ownerships.isNotEmpty()) {
+                assertThat(item.ownerships.keys.single()).isEqualTo(address)
+            }
             assertThat(item.creators.single().account).isEqualTo(address)
 
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending).hasSize(1)
+            assertThat(item.pending.isNotEmpty() || item.getPendingEvents().isNotEmpty()).isEqualTo(true)
+            if (item.pending.isNotEmpty()) {
+                assertThat(item.pending).hasSize(1)
+            }
+            if (item.getPendingEvents().isNotEmpty()) {
+                assertThat(item.getPendingEvents()).hasSize(1)
+            }
 
             assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(
                 resolvedItemProperties, ItemProperties::rawJsonContent.name
@@ -151,14 +168,23 @@ class PendingTransactionFt : SpringContainerBaseTest() {
 
         // Confirm the logs, run the item reducer.
         val pendingItem = itemRepository.findById(ItemId(token.address(), tokenId)).awaitFirstOrNull()
-        assertThat(pendingItem?.pending).hasSize(1)
 
-        val history = nftItemHistoryRepository.findItemsHistory(token = token.address(), tokenId = tokenId)
+        assertThat(pendingItem?.pending?.isNotEmpty() == true || pendingItem?.getPendingEvents()?.isNotEmpty() == true).isEqualTo(true)
+        if (pendingItem?.pending?.isNotEmpty() == true) {
+            assertThat(pendingItem?.pending).hasSize(1)
+        }
+        if (pendingItem?.getPendingEvents()?.isNotEmpty() == true) {
+            assertThat(pendingItem?.getPendingEvents()).hasSize(1)
+        }
+
+        val history = nftItemHistoryRepository
+            .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
+
         assertThat(history).hasSize(1)
         val pendingLogEvent = history.single().log
         assertThat(pendingLogEvent.status).isEqualTo(LogEventStatus.PENDING)
-        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED)
+        val confirmedLogEvent = pendingLogEvent.copy(status = LogEventStatus.CONFIRMED, blockNumber = 10, logIndex = 10)
         nftItemHistoryRepository.save(confirmedLogEvent).awaitFirst()
         blockProcessor.postProcessLogs(listOf(confirmedLogEvent)).awaitFirstOrNull()
 
@@ -174,8 +200,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         }
     }
 
-    @Test
-    fun simpleMintAndTransfer() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun simpleMintAndTransfer(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -189,12 +216,19 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending).hasSize(1)
+            assertThat(item.pending.isNotEmpty() || item.getPendingEvents()?.isNotEmpty()).isEqualTo(true)
+            if (item.pending.isNotEmpty()) {
+                assertThat(item.pending).hasSize(1)
+            }
+            if (item.getPendingEvents().isNotEmpty()) {
+                assertThat(item.getPendingEvents()).hasSize(1)
+            }
         }
     }
 
-    @Test
-    fun `should mintAndTransfer when minter == creator`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should mintAndTransfer when minter == creator`(version: ReduceVersion) = withReducer(version) {
         val tx = CreateTransactionRequestDto(
             hash = Word.apply("0xf6bdeff6eb8aaddece60810dd6b71ad4c80ed0a735d49b305ee85a5351bf7fca"),
             from = Address.apply("0x19d2a55f2bd362a9e09f674b722782329f63f3fb"),
@@ -215,8 +249,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         assertEquals(1, eventLogs.size)
     }
 
-    @Test
-    fun `should mintAndTransfer when minter != creator`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should mintAndTransfer when minter != creator`(version: ReduceVersion) = withReducer(version) {
         val tx = CreateTransactionRequestDto(
             hash = Word.apply("0xf6bdeff6eb8aaddece60810dd6b71ad4c80ed0a735d49b305ee85a5351bf7fca"),
             from = Address.apply("0xeb19d2a55f2bd362a9e09f674b722782329f63f3"),

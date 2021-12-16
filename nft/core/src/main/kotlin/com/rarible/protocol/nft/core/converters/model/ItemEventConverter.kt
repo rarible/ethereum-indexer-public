@@ -1,7 +1,15 @@
 package com.rarible.protocol.nft.core.converters.model
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import scalether.domain.Address
 
 object ItemEventConverter {
@@ -9,54 +17,56 @@ object ItemEventConverter {
         return when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
                 when {
+                    data.from == Address.ZERO() && data.owner == Address.ZERO() -> null
+
                     data.from == Address.ZERO() -> ItemEvent.ItemMintEvent(
                         supply = data.value,
-                        blockNumber = source.blockNumber ?: error("Can't be null"),
-                        logIndex = source.logIndex ?: error("Can't be null"),
-                        status = BlockchainStatusConverter.convert(source.status),
-                        minorLogIndex = source.minorLogIndex,
-                        transactionHash = source.transactionHash,
-                        timestamp = source.createdAt.epochSecond,
+                        owner = data.owner,
+                        log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
                     data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
                         supply = data.value,
-                        blockNumber = source.blockNumber ?: error("Can't be null"),
-                        logIndex = source.logIndex ?: error("Can't be null"),
-                        status = BlockchainStatusConverter.convert(source.status),
-                        transactionHash = source.transactionHash,
-                        minorLogIndex = source.minorLogIndex,
-                        timestamp = source.createdAt.epochSecond,
+                        owner = data.from,
+                        log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
-                    else -> null
+                    else -> ItemEvent.ItemTransferEvent(
+                        value = data.value,
+                        from = data.from,
+                        to = data.owner,
+                        log = source.log,
+                        entityId = ItemId(data.token, data.tokenId).stringValue
+                    )
                 }
             }
             is ItemLazyMint -> {
-                ItemEvent.ItemMintEvent(
+                ItemEvent.LazyItemMintEvent(
                     supply = data.value,
-                    blockNumber = source.blockNumber ?: error("Can't be null"),
-                    logIndex = source.logIndex ?: error("Can't be null"),
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash,
-                    minorLogIndex = source.minorLogIndex,
-                    timestamp = source.createdAt.epochSecond,
+                    creators = data.creators,
+                    log = source.log,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
             is BurnItemLazyMint -> {
-                ItemEvent.ItemBurnEvent(
+                ItemEvent.LazyItemBurnEvent(
                     supply = data.value,
-                    blockNumber = source.blockNumber ?: error("Can't be null"),
-                    logIndex = source.logIndex ?: error("Can't be null"),
-                    status = BlockchainStatusConverter.convert(source.status),
-                    transactionHash = source.transactionHash,
-                    minorLogIndex = source.minorLogIndex,
-                    timestamp = source.createdAt.epochSecond,
+                    log = source.log,
                     entityId = ItemId(data.token, data.tokenId).stringValue
                 )
             }
-            is ItemCreators, is ItemRoyalty, null -> null
+            is ItemCreators -> {
+                ItemEvent.ItemCreatorsEvent(
+                    creators = data.creators,
+                    log = source.log,
+                    entityId = ItemId(data.token, data.tokenId).stringValue
+                )
+            }
+            is ItemRoyalty, null -> null
         }
+    }
+
+    fun convert(source: LogEvent): ItemEvent? {
+        return convert(LogEventToReversedEthereumLogRecordConverter.convert(source))
     }
 }

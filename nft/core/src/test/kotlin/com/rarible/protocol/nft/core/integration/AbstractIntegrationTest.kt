@@ -18,13 +18,13 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
-import com.rarible.protocol.dto.NftMediaDto
-import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -41,6 +41,7 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -76,6 +77,7 @@ import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.coroutines.EmptyCoroutineContext
 
 @FlowPreview
 @Suppress("UNCHECKED_CAST")
@@ -123,6 +125,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var tokenHistoryRepository: NftHistoryRepository
+
+    @Autowired
+    private lateinit var featureFlags: FeatureFlags
 
     private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
 
@@ -184,7 +189,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         data: T,
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
-        logIndex: Int? = null,
+        logIndex: Int? = 0,
         status: LogEventStatus = LogEventStatus.CONFIRMED
     ): T {
         return nftItemHistoryRepository.save(
@@ -326,11 +331,16 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         return Triple(address, sender, privateKey)
     }
 
-    protected fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
         val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
         val publicKey = Sign.publicKeyFromPrivate(privateKey)
         val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         return NewKeys(privateKey, publicKey, signer)
+    }
+
+    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        featureFlags.reduceVersion = version
+        runBlocking(EmptyCoroutineContext, block)
     }
 
     protected fun createToken(): Token {

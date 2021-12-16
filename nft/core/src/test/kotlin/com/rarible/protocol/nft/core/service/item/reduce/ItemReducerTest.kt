@@ -2,7 +2,8 @@ package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.model.ItemEvent
-import com.rarible.protocol.nft.core.service.EntityEventRevertService
+import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
+import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import io.mockk.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.params.ParameterizedTest
@@ -11,9 +12,8 @@ import java.util.stream.Stream
 
 internal class ItemReducerTest {
     private val lazyItemReducer = mockk<LazyItemReducer>()
-    private val blockchainItemReducer = mockk<BlockchainItemReducer>()
-    private val entityEventRevertService = mockk<EntityEventRevertService>()
-    private val itemReducer = ItemReducer(lazyItemReducer, blockchainItemReducer, entityEventRevertService)
+    private val eventStatusItemReducer = mockk<EventStatusItemReducer>()
+    private val itemReducer = ItemReducer(eventStatusItemReducer, lazyItemReducer)
 
     companion object {
         @JvmStatic
@@ -34,12 +34,10 @@ internal class ItemReducerTest {
     fun `should reduce blockchain events`(event: ItemEvent) = runBlocking<Unit> {
         val item = createRandomItem()
 
-        coEvery { blockchainItemReducer.reduce(item, event) } returns item
-        coEvery { entityEventRevertService.canBeReverted(event, event) } returns false
+        coEvery { eventStatusItemReducer.reduce(item, event) } returns item
         itemReducer.reduce(item, event)
 
-        coVerify(exactly = 1) { blockchainItemReducer.reduce(item, event) }
-        coVerify(exactly = 1) { entityEventRevertService.canBeReverted(event, event) }
+        coVerify(exactly = 1) { eventStatusItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { lazyItemReducer.reduce(any(), any()) }
     }
 
@@ -52,7 +50,6 @@ internal class ItemReducerTest {
         itemReducer.reduce(item, event)
 
         coVerify(exactly = 1) { lazyItemReducer.reduce(item, event) }
-        coVerify(exactly = 0) { blockchainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { entityEventRevertService.canBeReverted(any(), any()) }
+        coVerify(exactly = 0) { eventStatusItemReducer.reduce(any(), any()) }
     }
 }

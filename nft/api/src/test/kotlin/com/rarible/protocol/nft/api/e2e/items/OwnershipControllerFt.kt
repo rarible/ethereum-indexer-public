@@ -56,4 +56,30 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         assertThat(res.ownerships.firstOrNull())
             .hasFieldOrPropertyWithValue("id", ownership.id.decimalStringValue)
     }
+
+    @Test
+    fun `should get only not deleted ownerships`() = runBlocking<Unit> {
+        val ownership1 = createOwnership().copy(deleted = false)
+        val ownership2 = createOwnership().copy(deleted = true)
+        ownershipRepository.save(ownership1).awaitFirst()
+        ownershipRepository.save(ownership2).awaitFirst()
+
+        val ownershipDto = nftOwnershipApiClient.getNftAllOwnerships(null, null, null).awaitFirst()
+        assertThat(ownershipDto.ownerships).hasSize(1)
+        assertThat(ownershipDto.ownerships.single().id).isEqualTo(ownership1.id.decimalStringValue)
+    }
+
+    @Test
+    fun `should get deleted ownerships`() = runBlocking<Unit> {
+        val ownership1 = createOwnership().copy(deleted = false)
+        val ownership2 = createOwnership().copy(deleted = true)
+        ownershipRepository.save(ownership1).awaitFirst()
+        ownershipRepository.save(ownership2).awaitFirst()
+
+        val ownershipDto = nftOwnershipApiClient.getNftAllOwnerships(null, null, true).awaitFirst()
+        assertThat(ownershipDto.ownerships).hasSize(2)
+        assertThat(ownershipDto.ownerships.map { it.id }).containsExactlyInAnyOrder(
+            ownership1.id.decimalStringValue, ownership2.id.decimalStringValue
+        )
+    }
 }

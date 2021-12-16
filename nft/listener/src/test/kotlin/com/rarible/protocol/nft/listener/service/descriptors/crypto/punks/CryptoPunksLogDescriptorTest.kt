@@ -14,9 +14,9 @@ import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -30,8 +30,9 @@ import java.math.BigInteger
 @FlowPreview
 class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun getPunkTest() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun getPunkTest(version: ReduceVersion) = withReducer(version) {
         val market = deployCryptoPunkMarket()
 
         val (punk33OwnerAddress, punk33Sender) = newSender()
@@ -71,18 +72,21 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @Test
-    fun transferPunkTest() {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun transferPunkTest(version: ReduceVersion) = withReducer(version) {
         transferOrBuyPunkTest(true)
     }
 
-    @Test
-    fun buyPunkTest() {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun buyPunkTest(version: ReduceVersion) = withReducer(version) {
         transferOrBuyPunkTest(false)
     }
 
-    @Test
-    fun acceptBidForPunk() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun acceptBidForPunk(version: ReduceVersion) = withReducer(version) {
         val market = deployCryptoPunkMarket()
 
         val (ownerAddress, ownerSender) = newSender()
@@ -101,7 +105,7 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         assertOwnership(market.address(), punkTokenId, bidderAddress, ownerAddress)
     }
 
-    private fun transferOrBuyPunkTest(transferOrBuy: Boolean) = runBlocking {
+    private suspend fun transferOrBuyPunkTest(transferOrBuy: Boolean) {
         val market = deployCryptoPunkMarket()
 
         val (sellerAddress, sellerSender) = newSender()
@@ -170,13 +174,17 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         expectedCreator: Address
     ) {
         Wait.waitAssert {
-            val ownerships = ownershipRepository.search(Query(Criteria.where(Ownership::token.name).isEqualTo(token)))
+            val ownerships = ownershipRepository.search(
+                Query(
+                    Criteria.where(Ownership::token.name).isEqualTo(token).and(Ownership::deleted.name).isEqualTo(false)
+                )
+            )
 
             assertEquals(1, ownerships.size)
             val ownership = ownerships.single()
             assertEquals(tokenId, ownership.tokenId)
             assertEquals(expectedOwner, ownership.owner)
-            assertEquals(listOf(Part(expectedCreator, 10000)), ownership.creators)
+            //assertEquals(listOf(Part(expectedCreator, 10000)), ownership.creators) //TODO: Remove it
         }
     }
 

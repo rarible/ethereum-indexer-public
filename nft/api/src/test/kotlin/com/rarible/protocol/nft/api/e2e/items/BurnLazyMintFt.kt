@@ -23,16 +23,19 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
+import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import io.mockk.coVerify
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -42,6 +45,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -77,8 +82,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemMetaService: ItemMetaService
 
-    @Test
-    fun `should burn mint lazy item`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -111,8 +117,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val signature = sign(privateKey, msg).toBinary()
 
         val lazyDto = BurnLazyNftFormDto(lazyItemDto.creators.map { it.account }, listOf(signature))
-        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto)
-            .awaitFirstOrNull()
+        delay(2000)
+        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
         coVerify(exactly = 1) { mockItemPropertiesResolver.reset(itemId) }
         coEvery { mockItemPropertiesResolver.resolve(itemId) } returns null
         assertThat(itemMetaService.getItemMetadata(itemId)).isEqualTo(ItemMeta(ItemProperties.EMPTY, ContentMeta.EMPTY))
@@ -121,8 +127,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         assertTrue(item.deleted)
     }
 
-    @Test
-    fun `should burn lazy item after minting`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should burn lazy item after minting`(version: ReduceVersion) = withReducer(version) {
         val privateKey = BigInteger.valueOf(100)
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -155,8 +162,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logMint = LogEvent(
             data = eventMint,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 2,
             logIndex = 2,
@@ -173,10 +180,10 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logCreator = LogEvent(
             data = eventCreator,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
-            blockNumber = 1,
+            blockNumber = 3,
             logIndex = 1,
             index = 1,
             minorLogIndex = 0
@@ -186,7 +193,15 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         // checking after minting
         val item = itemRepository.findById(itemId).awaitSingle()
-        assertEquals(creator, item.owners[0])
+
+        assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty())
+        if (item.owners.isNotEmpty()) {
+            assertEquals(creator, item.owners[0])
+        }
+        if (item.ownerships.isNotEmpty()) {
+            assertThat(item.ownerships.keys.single()).isEqualTo(creator)
+        }
+
         assertEquals(EthUInt256.ONE, item.supply)
         assertEquals(EthUInt256.ZERO, item.lazySupply)
 
@@ -202,8 +217,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logBurn = LogEvent(
             data = eventBurn,
             address = Address.ZERO(),
-            topic = ItemReduceService.WORD_ZERO,
-            transactionHash = ItemReduceService.WORD_ZERO,
+            topic = ItemReduceServiceV1.WORD_ZERO,
+            transactionHash = ItemReduceServiceV1.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 4,
             logIndex = Int.MAX_VALUE,

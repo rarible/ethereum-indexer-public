@@ -1,7 +1,8 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.blockchain.scanner.framework.model.Log
 import com.rarible.core.common.nowMillis
-import com.rarible.core.entity.reducer.model.RevertableEntity
+import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
@@ -24,13 +25,16 @@ data class Item(
     val supply: EthUInt256,
     val lazySupply: EthUInt256 = EthUInt256.ZERO,
     val royalties: List<Part>,
+    @Deprecated("Should use ownerships field")
     val owners: List<Address> = emptyList(),
     val date: Instant,
+    @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,
-    val lastLazyEventTimestamp: Long = Instant.EPOCH.epochSecond,
-    override val events: List<ItemEvent> = emptyList()
-) : RevertableEntity<ItemId, ItemEvent, Item> {
+    val lastLazyEventTimestamp: Long? = null,
+    override val revertableEvents: List<ItemEvent> = emptyList(),
+    val ownerships: Map<Address, EthUInt256> = emptyMap()
+) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
     private val _id: ItemId = ItemId(token, tokenId)
@@ -41,12 +45,23 @@ data class Item(
         get() = _id
         set(_) {}
 
-    override fun withEvents(events: List<ItemEvent>): Item {
-        return copy(events = events)
+    fun getPendingEvents(): List<ItemEvent> {
+        return revertableEvents.filter { it.log.status == Log.Status.PENDING }
+    }
+
+    fun getLazyOwner(): Address? {
+        return if (lazySupply != EthUInt256.ZERO) creators.firstOrNull()?.account else null
+    }
+
+    fun isLazyItem(): Boolean {
+        return lastLazyEventTimestamp != null
+    }
+
+    override fun withRevertableEvents(events: List<ItemEvent>): Item {
+        return copy(revertableEvents = events)
     }
 
     companion object {
-
         fun parseId(id: String): ItemId {
             val parts = id.split(":")
             if (parts.size < 2) {
@@ -64,7 +79,7 @@ data class Item(
                 lazySupply = EthUInt256.ZERO,
                 royalties = emptyList(),
                 date = nowMillis(),
-                events = emptyList()
+                revertableEvents = emptyList()
             )
         }
     }

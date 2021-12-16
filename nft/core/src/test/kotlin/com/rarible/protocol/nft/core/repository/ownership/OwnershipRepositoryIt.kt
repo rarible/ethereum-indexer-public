@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Ownership
-import com.rarible.protocol.nft.core.repository.data.createOwnership
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -25,7 +25,7 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 
     @Test
     fun `should save and get ownership`() = runBlocking<Unit> {
-        val item = createOwnership()
+        val item = createRandomOwnership()
 
         ownershipRepository.save(item).awaitFirst()
 
@@ -35,7 +35,7 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 
     @Test
     fun `test ownership raw format`() = runBlocking<Unit> {
-        val ownership = createOwnership()
+        val ownership = createRandomOwnership()
 
         ownershipRepository.save(ownership).awaitFirst()
 

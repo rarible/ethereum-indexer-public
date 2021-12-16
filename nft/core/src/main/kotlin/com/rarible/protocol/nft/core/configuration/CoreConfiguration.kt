@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.configuration
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
 import com.rarible.protocol.nft.core.model.CollectionEventType
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -22,7 +23,7 @@ class CoreConfiguration(
     private val properties: NftIndexerProperties
 ) {
     @Bean
-    fun featureFlags(): NftIndexerProperties.FeatureFlags {
+    fun featureFlags(): FeatureFlags {
         return properties.featureFlags
     }
 
