@@ -26,7 +26,9 @@ class ForwardCreatorsItemReducer(
                 } else {
                     entity.creators
                 }
-                entity.copy(creators = getCreator(entity.id, creators))
+                entity.copy(
+                    mintedAt = event.log.createdAt,
+                    creators = getCreator(entity.id, creators))
             }
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent -> {
