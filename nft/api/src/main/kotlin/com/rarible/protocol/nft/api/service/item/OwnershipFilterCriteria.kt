@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
@@ -22,7 +23,7 @@ object OwnershipFilterCriteria {
 
     fun OwnershipFilter.toCriteria(continuation: OwnershipContinuation?, limit: Int?): Query {
         val criteria = when (this) {
-            is OwnershipFilterAll -> all()
+            is OwnershipFilterAll -> all(showDeleted)
             is OwnershipFilterByCollection -> byCollection(collection)
             is OwnershipFilterByCreator -> byCreator(creator)
             is OwnershipFilterByOwner -> byOwner(owner)
@@ -37,7 +38,7 @@ object OwnershipFilterCriteria {
         ).limit(limit ?: DEFAULT_LIMIT)
     }
 
-    private fun all() = Criteria()
+    private fun all(showDeleted: Boolean) = Criteria() showDeleted showDeleted
 
     private fun byOwner(user: Address): Criteria =
         Criteria(Ownership::owner.name).`is`(user)
@@ -74,4 +75,8 @@ object OwnershipFilterCriteria {
                 )
             )
         }
+
+    private infix fun Criteria.showDeleted(showDeleted: Boolean): Criteria {
+        return if (showDeleted) this else and(Ownership::deleted).ne(true)
+    }
 }

@@ -9,11 +9,11 @@ sealed class OwnershipFilter {
     enum class Sort {
         LAST_UPDATE
     }
-
 }
 
 data class OwnershipFilterAll(
-    override val sort: Sort
+    override val sort: Sort,
+    val showDeleted: Boolean
 ) : OwnershipFilter()
 
 data class OwnershipFilterByOwner(

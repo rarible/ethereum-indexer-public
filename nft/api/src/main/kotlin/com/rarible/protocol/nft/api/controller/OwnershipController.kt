@@ -23,8 +23,12 @@ class OwnershipController(
 
     private val defaultSorting = OwnershipFilter.Sort.LAST_UPDATE
 
-    override suspend fun getNftAllOwnerships(continuation: String?, size: Int?): ResponseEntity<NftOwnershipsDto> {
-        val filter = OwnershipFilterAll(defaultSorting)
+    override suspend fun getNftAllOwnerships(
+        continuation: String?,
+        size: Int?,
+        showDeleted: Boolean?
+    ): ResponseEntity<NftOwnershipsDto> {
+        val filter = OwnershipFilterAll(defaultSorting, showDeleted ?: false)
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
@@ -58,7 +62,7 @@ class OwnershipController(
         return NftOwnershipsDto(
             ownerships.size.toLong(),
             cont,
-            ownerships.map { conversionService.convert<NftOwnershipDto>(it) }
+            ownerships.map { conversionService.convert(it) }
         )
     }
 }
