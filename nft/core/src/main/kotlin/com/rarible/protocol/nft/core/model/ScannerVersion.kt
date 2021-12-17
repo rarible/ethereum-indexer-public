@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
-enum class ReduceVersion {
+enum class ScannerVersion {
     V1,
     V2
 }
-
