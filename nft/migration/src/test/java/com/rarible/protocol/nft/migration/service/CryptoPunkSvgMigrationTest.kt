@@ -24,6 +24,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 @IntegrationTest
+@Disabled
 class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
 
     @Autowired
@@ -66,8 +67,6 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         )
     }
 
-    // It's a very slow test
-    @Disabled
     @Test
     fun `should upload all svg images`() = runBlocking {
         ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(cryptoPunksPropertiesResolver)
