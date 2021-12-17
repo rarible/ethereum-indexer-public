@@ -75,6 +75,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
+    @Autowired
+    private lateinit var ipfsService: IpfsService
+
     @Test
     fun `pending minting`() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
@@ -115,10 +118,10 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 mockRariblePropertiesResolver.resolve(itemId)
         }
         val resolvedItemProperties = itemProperties.copy(
-            image = IpfsService.RARIBLE_IPFS + '/' + itemProperties.image,
-            imagePreview = IpfsService.RARIBLE_IPFS + '/' + itemProperties.imagePreview,
-            imageBig = IpfsService.RARIBLE_IPFS + '/' + itemProperties.imageBig,
-            animationUrl = IpfsService.RARIBLE_IPFS + '/' + itemProperties.animationUrl
+            image = ipfsService.resolveHttpUrl(itemProperties.image!!),
+            imagePreview = ipfsService.resolveHttpUrl(itemProperties.imagePreview!!),
+            imageBig = ipfsService.resolveHttpUrl(itemProperties.imageBig!!),
+            animationUrl = ipfsService.resolveHttpUrl(itemProperties.animationUrl!!)
         )
 
         val receipt = token.mint(
