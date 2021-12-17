@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -22,6 +23,16 @@ class OwnershipUpdateService(
     override suspend fun update(entity: Ownership): Ownership {
         val savedOwnership = ownershipRepository.save(entity).awaitFirst()
         eventListenerListener.onOwnershipChanged(savedOwnership).awaitFirstOrNull()
+
+        logUpdatedOwnership(savedOwnership)
         return savedOwnership
+    }
+
+    private fun logUpdatedOwnership(ownership: Ownership) {
+        logger.info("Updated ownershipId {}: {}", ownership.id, ownership)
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(OwnershipUpdateService::class.java)
     }
 }

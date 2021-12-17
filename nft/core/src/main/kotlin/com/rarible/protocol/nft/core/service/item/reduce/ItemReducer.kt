@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.ItemDeleteReducer
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -17,6 +18,7 @@ class ItemReducer(
     private val lazyItemReducer = ItemDeleteReducer.wrap(lazyItemReducer)
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
+        logEvent(entity, event)
         return when (event) {
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemMintEvent,
@@ -28,5 +30,17 @@ class ItemReducer(
                 lazyItemReducer.reduce(entity, event)
             }
         }
+    }
+
+    private fun logEvent(entity: Item, event: ItemEvent) {
+        val log = event.log
+        logger.info(
+            "Item: {}, event: {}, status: {}, block: {}, logEvent: {}, minorLogIndex: {}",
+            entity.id, event::class.java.simpleName, log.status, log.blockNumber, log.logIndex, log.minorLogIndex
+        )
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ItemReducer::class.java)
     }
 }

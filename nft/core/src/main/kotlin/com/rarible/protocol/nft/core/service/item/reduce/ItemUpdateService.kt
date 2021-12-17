@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ReduceEventListenerListener
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -22,6 +23,16 @@ class ItemUpdateService(
     override suspend fun update(entity: Item): Item {
         val savedItem = itemRepository.save(entity).awaitFirst()
         eventListenerListener.onItemChanged(savedItem).awaitFirstOrNull()
+
+        logUpdatedItem(savedItem)
         return savedItem
+    }
+
+    private fun logUpdatedItem(item: Item) {
+        logger.info("Updated itemId {}: {}", item.id, item)
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ItemUpdateService::class.java)
     }
 }
