@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -26,6 +27,7 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
+import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.gte
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -100,6 +102,21 @@ class MongoOrderRepository(
 
     override fun findAll(): Flow<Order> {
         return template.findAll<Order>().asFlow()
+    }
+
+    override fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order> {
+        return template.query<Order>().matching(
+            Query(
+                Criteria().andOperator(
+                    listOfNotNull(
+                        Order::platform isEqualTo platform,
+                        Order::status isEqualTo status,
+                        if (fromHash != null) Order::hash gt fromHash else null
+                    )
+                )
+            ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
+                .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
+        ).all().asFlow()
     }
 
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {
