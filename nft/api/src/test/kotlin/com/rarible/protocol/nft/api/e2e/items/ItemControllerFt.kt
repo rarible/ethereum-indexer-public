@@ -21,12 +21,14 @@ import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.PendingLogItemProperties
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
@@ -72,6 +74,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     protected lateinit var nftIndexerProperties: NftIndexerProperties
+
+    @Autowired
+    protected lateinit var featureFlags: FeatureFlags
 
     companion object {
         @JvmStatic
@@ -174,8 +179,16 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(itemDto.contract).isEqualTo(item.token)
         assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
         assertThat(itemDto.supply).isEqualTo(item.supply.value)
-        assertThat(itemDto.owners).isEqualTo(item.owners)
         assertThat(itemDto.meta).isNotNull
+
+        when (featureFlags.reduceVersion) {
+            ReduceVersion.V1 -> {
+                assertThat(itemDto.owners).isEqualTo(item.owners)
+            }
+            ReduceVersion.V2 -> {
+                assertThat(itemDto.owners).containsExactlyElementsOf(item.ownerships.keys)
+            }
+        }
 
         assertThat(itemDto.creators.size).isEqualTo(item.creators.size)
         itemDto.creators.forEachIndexed { index, partDto ->
