@@ -1,24 +1,23 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.protocol.dto.ItemTransferDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class ExtendedItemDtoConverter(
-    @Value("\${nft.api.item.owners.size.limit:5000}") private val ownersSizeLimit: Int
+    @Value("\${nft.api.item.owners.size.limit:5000}") private val ownersSizeLimit: Int,
+    private val featureFlags: FeatureFlags
 ) : Converter<ExtendedItem, NftItemDto> {
     override fun convert(source: ExtendedItem): NftItemDto {
         val (item, meta) = source
-        // TODO: RPN-497: until we've found a better solution, we limit the number of owners in the NftItem
-        //  to avoid "too big Kafka message" errors.
-        val limitedOwners = if (item.ownerships.isNotEmpty()) {
-            item.ownerships.keys.take(ownersSizeLimit)
-        } else {
-            item.owners.take(ownersSizeLimit)
-        }
         return NftItemDto(
             id = item.id.decimalStringValue,
             contract = item.token,
@@ -26,12 +25,30 @@ class ExtendedItemDtoConverter(
             creators = item.creators.map { PartDtoConverter.convert(it) },
             supply = item.supply.value,
             lazySupply = item.lazySupply.value,
-            owners = limitedOwners,
+            // TODO: RPN-497: until we've found a better solution, we limit the number of owners in the NftItem
+            //  to avoid "too big Kafka message" errors.
+            owners = convertOwnership(item).take(ownersSizeLimit),
             royalties = item.royalties.map { PartDtoConverter.convert(it) },
             date = item.date,
-            pending = item.pending.map { ItemTransferDtoConverter.convert(it) },
+            pending = convertPending(item),
             deleted = item.deleted,
             meta = NftItemMetaDtoConverter.convert(meta)
         )
+    }
+
+    private fun convertOwnership(item: Item): Collection<Address> {
+        return if (featureFlags.reduceVersion == ReduceVersion.V1) {
+            item.owners
+        } else {
+            item.ownerships.keys
+        }
+    }
+
+    private fun convertPending(item: Item): List<ItemTransferDto> {
+        return if (featureFlags.reduceVersion == ReduceVersion.V1) {
+            item.pending.map { ItemTransferDtoConverter.convert(it) }
+        } else {
+            item.getPendingEvents().mapNotNull { ItemTransferDtoConverter.convert(it) }
+        }
     }
 }

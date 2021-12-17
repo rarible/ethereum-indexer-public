@@ -9,6 +9,8 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.dto.ItemHistoryDto
+import com.rarible.protocol.dto.ItemTransferDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftCollectionMetaDto
@@ -26,6 +28,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -247,6 +250,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         token: Address,
         tokenId: EthUInt256,
         itemMeta: NftItemMetaDto,
+        pendingSize: Int,
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
         Wait.waitAssert {
@@ -259,6 +263,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                                 event.item.contract == token
                                         && event.item.tokenId == tokenId.value
                                         && event.item.meta == itemMeta
+                                        && (event.item.pending?.size ?: 0) == pendingSize
                             }
                             is NftItemDeleteEventDto -> {
                                 event.item.token == token && event.item.tokenId == tokenId.value

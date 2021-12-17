@@ -75,7 +75,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
     }
 
     @ParameterizedTest
@@ -110,7 +110,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(creator)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
     }
 
     @ParameterizedTest
@@ -123,7 +123,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-        saveItemHistory(
+        val transfer = saveItemHistory(
             ItemTransfer(
                 owner = owner,
                 token = token,
@@ -134,11 +134,12 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             ),
             status = LogEventStatus.PENDING
         )
+
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 1, NftItemUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
 
         val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
@@ -161,7 +162,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
     }
 
@@ -220,7 +221,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         }
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO, deleted = true)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemDeleteEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
@@ -338,7 +339,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(item.deleted).isEqualTo(true)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemDeleteEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 

@@ -46,7 +46,7 @@ data class Item(
         set(_) {}
 
     fun getPendingEvents(): List<ItemEvent> {
-        return revertableEvents.filter { it.log.status == Log.Status.PENDING }
+        return revertableEvents.filter { event -> event.log.status == Log.Status.PENDING }
     }
 
     fun getLazyOwner(): Address? {
