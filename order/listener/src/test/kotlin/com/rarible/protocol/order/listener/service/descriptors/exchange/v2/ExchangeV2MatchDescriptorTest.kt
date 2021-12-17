@@ -152,6 +152,115 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
     }
 
     @Test
+    fun `fully match make-fill sell order - data V2`() = runBlocking<Unit> {
+        /*
+        Sell order: 10 NFT -> 100 ERC20
+         */
+        val sellOrder = OrderVersion(
+            maker = userSender1.from(),
+            taker = null,
+            make = Asset(Erc1155AssetType(token1155.address(), EthUInt256.ONE), EthUInt256.TEN),
+            take = Asset(Erc20AssetType(token2.address()), EthUInt256.of(100)),
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = true),
+            signature = null,
+            createdAt = nowMillis(),
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null
+        )
+
+        // to make the makeStock = 10
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns sellOrder.make.value
+        orderUpdateService.save(sellOrder).let {
+            assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
+        }
+
+        token1155.mint(userSender1.from(), EthUInt256.ONE.value, EthUInt256.TEN.value, ByteArray(0))
+            .execute().verifySuccess()
+        token2.mint(userSender2.from(), sellOrder.take.value.value)
+            .execute().verifySuccess()
+
+        val signature = eip712Domain.hashToSign(Order.hash(sellOrder)).sign(privateKey1)
+
+        val prepared = prepareTxService.prepareTransaction(
+            sellOrder.copy(signature = signature).toOrderExactFields(),
+            PrepareOrderTxFormDto(
+                maker = userSender2.from(),
+                amount = sellOrder.make.value.value,
+                payouts = emptyList(),
+                originFees = emptyList()
+            )
+        )
+
+        // Imitate the balance of the seller: 0 ERC1155
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ZERO
+
+        userSender2.sendTransaction(
+            Transaction(
+                exchange.address(),
+                userSender2.from(),
+                500000.toBigInteger(),
+                BigInteger.ZERO,
+                BigInteger.ZERO,
+                prepared.transaction.data,
+                null
+            )
+        ).verifySuccess()
+        val rightOrderHash = Order.hashKey(userSender2.from(), sellOrder.take.type, sellOrder.make.type, BigInteger.ZERO, sellOrder.data)
+
+        assertThat(exchange.fills(sellOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.TEN)
+
+        Wait.waitAssert {
+            val historyItems = exchangeHistoryRepository.findByItemType(ItemType.ORDER_SIDE_MATCH)
+                .collectList().awaitFirst()
+            assertThat(historyItems).hasSize(2)
+
+            val (left, right) = historyItems.map { it.data as OrderSideMatch }
+                .associateBy { it.side }
+                .let { it[OrderSide.LEFT] to it[OrderSide.RIGHT] }
+            assertThat(left).isNotNull; left!!
+            assertThat(right).isNotNull; right!!
+
+            assertThat(left.hash).isEqualTo(sellOrder.hash)
+            assertThat(left.fill).isEqualTo(EthUInt256.TEN)
+            assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
+            assertThat(left.adhoc).isFalse
+            assertThat(left.counterAdhoc).isTrue
+
+            assertThat(right.hash).isEqualTo(rightOrderHash)
+            assertThat(right.fill).isEqualTo(EthUInt256.of(100))
+            assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
+            assertThat(right.adhoc).isTrue
+            assertThat(right.counterAdhoc).isFalse()
+        }
+
+        Wait.waitAssert {
+            val filledOrder = orderRepository.findById(sellOrder.hash)
+            assertThat(filledOrder).isNotNull; filledOrder!!
+            assertThat(filledOrder.fill).isEqualTo(EthUInt256.TEN)
+            assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.ZERO)
+            assertThat(filledOrder.status).isEqualTo(OrderStatus.FILLED)
+            assertThat(orderDtoConverter.convert(filledOrder).fillValue).isEqualTo(BigDecimal.valueOf(10))
+        }
+
+        checkActivityWasPublished {
+            assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
+                assertThat(it.left.hash).isEqualTo(sellOrder.hash)
+                assertThat(it.left.type).isEqualTo(OrderActivityMatchSideDto.Type.SELL)
+                assertThat(it.right.hash).isEqualTo(rightOrderHash)
+                assertThat(it.right.type).isEqualTo(OrderActivityMatchSideDto.Type.BID)
+            }
+        }
+    }
+
+    @Test
     fun `partially match take-fill bid order - data V2`() = runBlocking<Unit> {
         /*
         Bid order: 100 ERC20 -> 10 NFT
