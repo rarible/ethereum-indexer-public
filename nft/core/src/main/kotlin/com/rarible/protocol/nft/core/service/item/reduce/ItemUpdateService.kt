@@ -23,13 +23,23 @@ class ItemUpdateService(
     override suspend fun update(entity: Item): Item {
         val savedItem = itemRepository.save(entity).awaitFirst()
         eventListenerListener.onItemChanged(savedItem).awaitFirstOrNull()
-
         logUpdatedItem(savedItem)
         return savedItem
     }
 
     private fun logUpdatedItem(item: Item) {
-        logger.info("Updated itemId {}: {}", item.id, item)
+        logger.info(buildString {
+            append("Updated item: ")
+            append("id=${item.id}, ")
+            append("supply=${item.supply}, ")
+            append("lazySupply=${item.lazySupply}, ")
+            append("lastLazyEventTimestamp=${item.lastLazyEventTimestamp}, ")
+            append("deleted=${item.deleted}, ")
+            append("creators=${item.creators}")
+            append("creatorsFinal=${item.creatorsFinal}")
+            append("ownerships=${item.ownerships}, ")
+            append("revertableEvents=${item.revertableEvents}, ")
+        })
     }
 
     companion object {

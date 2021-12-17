@@ -22,6 +22,7 @@ import java.time.Instant
 data class Ownership(
     val token: Address,
     val tokenId: EthUInt256,
+    @Deprecated("Should be removed")
     val creators: List<Part> = emptyList(),
     val owner: Address,
     val value: EthUInt256,

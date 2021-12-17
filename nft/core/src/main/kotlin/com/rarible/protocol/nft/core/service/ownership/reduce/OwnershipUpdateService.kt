@@ -29,7 +29,15 @@ class OwnershipUpdateService(
     }
 
     private fun logUpdatedOwnership(ownership: Ownership) {
-        logger.info("Updated ownershipId {}: {}", ownership.id, ownership)
+        logger.info(buildString {
+            append("Updated ownership: ")
+            append("id=${ownership.id}, ")
+            append("value=${ownership.value}, ")
+            append("lazyValue=${ownership.lazyValue}, ")
+            append("lastLazyEventTimestamp=${ownership.lastLazyEventTimestamp}, ")
+            append("deleted=${ownership.deleted}, ")
+            append("revertableEvents=${ownership.revertableEvents}, ")
+        })
     }
 
     companion object {

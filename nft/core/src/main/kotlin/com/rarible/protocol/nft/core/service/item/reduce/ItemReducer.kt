@@ -1,24 +1,35 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.core.entity.reducer.service.Reducer
+import com.rarible.protocol.nft.core.misc.combineIntoChain
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.ItemDeleteReducer
-import org.slf4j.LoggerFactory
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.stereotype.Component
 
 @Component
+@ExperimentalCoroutinesApi
 class ItemReducer(
     eventStatusItemReducer: EventStatusItemReducer,
     lazyItemReducer: LazyItemReducer
 ) : Reducer<ItemEvent, Item> {
-    private val eventStatusItemReducer = ItemDeleteReducer.wrap(eventStatusItemReducer)
-    private val lazyItemReducer = ItemDeleteReducer.wrap(lazyItemReducer)
+
+    private val eventStatusItemReducer = combineIntoChain(
+        LoggingReducer(),
+        eventStatusItemReducer,
+        ItemDeleteReducer()
+    )
+    private val lazyItemReducer = combineIntoChain(
+        LoggingReducer(),
+        lazyItemReducer,
+        ItemDeleteReducer()
+    )
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        logEvent(entity, event)
         return when (event) {
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemMintEvent,
@@ -30,17 +41,5 @@ class ItemReducer(
                 lazyItemReducer.reduce(entity, event)
             }
         }
-    }
-
-    private fun logEvent(entity: Item, event: ItemEvent) {
-        val log = event.log
-        logger.info(
-            "Item: {}, event: {}, status: {}, block: {}, logEvent: {}, minorLogIndex: {}",
-            entity.id, event::class.java.simpleName, log.status, log.blockNumber, log.logIndex, log.minorLogIndex
-        )
-    }
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(ItemReducer::class.java)
     }
 }
