@@ -16,9 +16,9 @@ import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.ItemId
-import com.rarible.protocol.order.core.model.OrderFilter
-import com.rarible.protocol.order.core.model.OrderFilterBidByItem
-import com.rarible.protocol.order.core.model.OrderFilterSellByItem
+import com.rarible.protocol.order.core.model.order.Filter
+import com.rarible.protocol.order.core.model.order.FilterBidByItem
+import com.rarible.protocol.order.core.model.order.FilterSellByItem
 import com.rarible.protocol.order.core.model.OrderKind
 import com.rarible.protocol.order.core.service.OrderRepositoryService
 import com.rarible.protocol.order.listener.service.order.OrderPriceUpdateService
@@ -55,18 +55,18 @@ class OrderUpdateConsumerEventHandler(
 
     private suspend fun updateItemOrders(itemId: ItemId, kind: OrderKind, at: Instant) {
         val orderFilter = when (kind) {
-            OrderKind.SELL -> OrderFilterSellByItem(
+            OrderKind.SELL -> FilterSellByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = Filter.Sort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null
             )
-            OrderKind.BID -> OrderFilterBidByItem(
+            OrderKind.BID -> FilterBidByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = Filter.Sort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null
