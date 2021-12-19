@@ -147,6 +147,11 @@
                             <packageName>com.rarible.protocol.contracts.erc721.rarible.factory.beacon</packageName>
                             <type>MONO</type>
                         </contract>
+                        <contract>
+                            <truffle>src/main/truffle/erc721/FakeCreatorERC721.json</truffle>
+                            <packageName>com.rarible.protocol.contracts.erc721.fakeCreator</packageName>
+                            <type>MONO</type>
+                        </contract>
                         <!--ERC-1155-->
                         <contract>
                             <truffle>src/main/truffle/erc1155/sale/ERC1155Sale_v1.json</truffle>

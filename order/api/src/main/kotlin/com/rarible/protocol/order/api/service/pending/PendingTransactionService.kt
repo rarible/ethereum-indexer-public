@@ -1,7 +1,5 @@
 package com.rarible.protocol.order.api.service.pending
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -69,6 +67,7 @@ class PendingTransactionService(
                 topic = pendingLog.topic,
                 transactionHash = hash,
                 status = LogEventStatus.PENDING,
+                from = from,
                 index = 0,
                 minorLogIndex = index
             )

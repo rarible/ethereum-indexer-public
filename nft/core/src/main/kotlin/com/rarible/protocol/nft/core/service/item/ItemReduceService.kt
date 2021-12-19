@@ -9,7 +9,18 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.BurnItemLazyMint
+import com.rarible.protocol.nft.core.model.HistoryLog
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -231,17 +242,11 @@ class ItemReduceService(
     }
 
     private fun itemReducer(item: Item, log: HistoryLog): Item {
-        val (event, status) = log
-        return when (status.status) {
+        val (event, logEvent) = log
+        return when (logEvent.status) {
             LogEventStatus.CONFIRMED -> {
                 when (event) {
-                    is ItemTransfer -> {
-                        when {
-                            event.from == Address.ZERO() && item.creators.isEmpty() && !item.creatorsFinal ->
-                                item.copy(creators = listOf(Part.fullPart(event.owner)))
-                            else -> item
-                        }
-                    }
+                    is ItemTransfer -> item.safeProcessTransfer(event, logEvent.from)
                     is ItemRoyalty -> {
                         logger.info("Ignoring ItemRoyalty event: $event")
                         item
@@ -262,13 +267,28 @@ class ItemReduceService(
                 when (event) {
                     is ItemTransfer -> {
                         val pending = item.pending + event
-                        val creators = if (event.from == Address.ZERO() && item.creators.isEmpty() && !item.creatorsFinal) listOf(Part.fullPart(event.owner)) else item.creators
-                        item.copy(creators = creators, pending = pending)
+                        item.safeProcessTransfer(event, logEvent.from).copy(pending = pending)
                     }
                     else -> item
                 }
             }
             else -> item
+        }
+    }
+
+    /**
+     * Makes sure the creator is not forged by artificial contract events.
+     */
+    private fun Item.safeProcessTransfer(itemTransfer: ItemTransfer, transactionSender: Address?): Item {
+        return if (
+            itemTransfer.from == Address.ZERO()
+            && creators.isEmpty()
+            && !creatorsFinal
+            && itemTransfer.owner == transactionSender
+        ) {
+            copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
+        } else {
+            this
         }
     }
 
