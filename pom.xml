@@ -173,6 +173,7 @@
         </profile>
     </profiles>
     <modules>
+        <module>block-scanner</module>
         <module>erc20</module>
         <module>nft</module>
         <module>order</module>

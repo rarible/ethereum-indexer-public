@@ -1,0 +1,47 @@
+application:
+  project: protocol
+
+server:
+  shutdown: graceful
+  port: 8080
+
+spring:
+  application.name: protocol-${blockchain}-block-scanner
+  main:
+    banner-mode: log
+
+rarible:
+  core:
+    apm:
+      agent:
+        enabled: true
+        server: http://elk_apm-server:8200
+        packages: com.rarible.protocol.block.scanner
+      annotation:
+        enabled: true
+
+blockchain:
+  scanner:
+    kafka:
+      maxPollRecords: 100
+    ethereum:
+      optimisticLockRetries: 3
+      retryPolicy:
+        scan:
+          reconnectDelay: 2s
+          reconnectAttempts: 1
+        client:
+          delay: 2s
+          attempts: 3
+      job:
+        pendingLogs:
+          interval: 12Y
+          initialDelay: 12Y
+        reconciliation:
+          enabled: false
+          batchSize: 5
+      monitoring:
+        enabled: true
+        rootPath: "blockchain.scanner"
+        worker:
+          pollingPeriod: 1m
