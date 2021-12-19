@@ -20,7 +20,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
         "application.environment = e2e",
-        "blockchain = ethereum",
         "spring.cloud.service-registry.auto-registration.enabled = false",
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",
@@ -28,7 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
-@ActiveProfiles("integration")
-@Testcontainers
+@ActiveProfiles("integration",  "ethereum")
 @Import(TestPropertiesConfiguration::class)
+@Testcontainers
 annotation class IntegrationTest

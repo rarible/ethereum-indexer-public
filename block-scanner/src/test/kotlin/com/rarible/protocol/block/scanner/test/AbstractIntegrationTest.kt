@@ -1,23 +1,31 @@
 package com.rarible.protocol.block.scanner.test
 
+import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
 import com.rarible.blockchain.scanner.framework.data.BlockEvent
+import com.rarible.blockchain.scanner.util.getBlockTopic
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.test.ext.KafkaTestExtension.Companion.kafkaContainer
 import com.rarible.core.test.wait.Wait
-import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.common.NewKeys
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.async
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -27,16 +35,27 @@ import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
+import scalether.domain.Address
+import scalether.domain.request.Transaction
+import scalether.domain.response.TransactionReceipt
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
+import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
+@DelicateCoroutinesApi
 @FlowPreview
 abstract class AbstractIntegrationTest {
     private lateinit var sender: MonoTransactionSender
+
+    @Autowired
+    protected lateinit var application: ApplicationEnvironmentInfo
+
+    @Autowired
+    protected lateinit var scannerProperties: EthereumScannerProperties
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations
@@ -47,19 +66,40 @@ abstract class AbstractIntegrationTest {
     @Autowired
     protected lateinit var poller: MonoTransactionPoller
 
-    @Autowired
-    private lateinit var application: ApplicationEnvironmentInfo
+    private lateinit var consumer: RaribleKafkaConsumer<BlockEvent>
 
-    private lateinit var blockConsumer: RaribleKafkaConsumer<BlockEvent>
+    private lateinit var consumingJob: Job
+
+    private val blockEvents = CopyOnWriteArrayList<BlockEvent>()
+
+    private fun Mono<Word>.waitReceipt(): TransactionReceipt {
+        val value = this.block()
+        require(value != null) { "txHash is null" }
+        return ethereum.ethGetTransactionReceipt(value).block()!!.get()
+    }
 
     @BeforeEach
-    fun cleanDatabase() {
+    fun startConsumers() {
+        consumingJob = GlobalScope.launch {
+            consumer
+                .receive()
+                .collect { blockEvents.add(it.value) }
+        }
+    }
+
+    @AfterEach
+    fun stopConsumers() = runBlocking {
+        consumingJob.cancelAndJoin()
+    }
+
+    @BeforeEach
+    fun cleanDatabase() = runBlocking<Unit> {
+        delay(300)
+
         mongo.collectionNames
             .filter { !it.startsWith("system") }
             .flatMap { mongo.remove(Query(), it) }
-            .then().block()
-
-        //blockConsumer = createNftActivityConsumer()
+            .then().awaitFirstOrNull()
     }
 
     @PostConstruct
@@ -70,97 +110,64 @@ abstract class AbstractIntegrationTest {
             Numeric.toBigInt("0x0a2853fac2c0a03f463f04c4567839473c93f3307da459132b7dd1ca633c0e16"),
             BigInteger.valueOf(8000000)
         ) { Mono.just(BigInteger.ZERO) }
+
+        consumer = createConsumer()
     }
 
-//    protected suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-//        val receipt = waitReceipt()
-//        Assertions.assertTrue(receipt.success())
-//        return receipt
-//    }
-//
-//    protected fun newSender(privateKey0: BigInteger? = null): Pair<Address, MonoSigningTransactionSender> {
-//        val (privateKey, _, address) = generateNewKeys(privateKey0)
-//        val sender = MonoSigningTransactionSender(
-//            ethereum,
-//            MonoSimpleNonceProvider(ethereum),
-//            privateKey,
-//            BigInteger.valueOf(8000000),
-//            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-//        )
-//        return address to sender
-//    }
-//
-//    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
-//        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
-//        val publicKey = Sign.publicKeyFromPrivate(privateKey)
-//        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
-//        return NewKeys(privateKey, publicKey, signer)
-//    }
-//
-//    private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
-//        val value = this.awaitFirstOrNull()
-//        require(value != null) { "txHash is null" }
-//        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
-//    }
-//
-//    private fun createNftActivityConsumer(): RaribleKafkaConsumer<BlockEvent> {
-//        return RaribleKafkaConsumer(
-//            clientId = "test-consumer-order-activity",
-//            consumerGroup = "test-group-order-activity",
-//            valueDeserializerClass = JsonDeserializer::class.java,
-//            valueClass = BlockEvent::class.java,
-//            defaultTopic = ActivityTopicProvider.getTopic(application.name, nftIndexerProperties.blockchain.value),
-//            bootstrapServers = nftIndexerProperties.kafkaReplicaSet,
-//            offsetResetStrategy = OffsetResetStrategy.EARLIEST
-//        )
-//    }
-//
-//    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
-//        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
-//
-//    protected suspend fun checkActivityWasPublished(
-//        token: Address,
-//        tokenId: EthUInt256,
-//        topic: Word,
-//        activityType: Class<out NftActivityDto>
-//    ) = coroutineScope {
-//        val logEvent = nftItemHistoryRepository.findItemsHistory(token, tokenId)
-//            .filter { it.log.topic == topic }
-//            .map { it.log }
-//            .awaitFirstOrNull()
-//
-//        assertThat(logEvent).isNotNull
-//
-//        val events = CopyOnWriteArrayList<KafkaMessage<ActivityDto>>()
-//
-//        val job = async {
-//           activityConsumer
-//                .receive()
-//                .collect { events.add(it) }
-//        }
-//        Wait.waitAssert {
-//            assertThat(events)
-//                .hasSizeGreaterThanOrEqualTo(1)
-//                .satisfies {
-//                    val event = it.firstOrNull { event -> event.value.id == logEvent?.id.toString() }
-//                    val activity = event?.value
-//                    assertThat(activity?.javaClass).isEqualTo(activityType)
-//
-//                    when (activity) {
-//                        is MintDto -> {
-//                            assertThat(activity.id).isEqualTo(logEvent?.id.toString())
-//                            assertThat(activity.contract).isEqualTo(token)
-//                            assertThat(activity.tokenId).isEqualTo(tokenId.value)
-//                        }
-//                        is TransferDto -> {
-//                            assertThat(activity.id).isEqualTo(logEvent?.id.toString())
-//                            assertThat(activity.contract).isEqualTo(token)
-//                            assertThat(activity.tokenId).isEqualTo(tokenId.value)
-//                        }
-//                        else -> Assertions.fail<String>("Unexpected event type ${activity?.javaClass}")
-//                    }
-//                }
-//        }
-//        job.cancel()
-//    }
+    protected fun depositTransaction(to: Address, amount: BigInteger): TransactionReceipt {
+        val coinBaseWalletPrivateKey = BigInteger(
+            Numeric.hexStringToByteArray("00120de4b1518cf1f16dc1b02f6b4a8ac29e870174cb1d8575f578480930250a")
+        )
+        val (coinBaseAddress, coinBaseSender) = newSender(coinBaseWalletPrivateKey)
+
+        return coinBaseSender.sendTransaction(
+            Transaction(
+                to,
+                coinBaseAddress,
+                BigInteger.valueOf(8000000),
+                BigInteger.ZERO,
+                amount,
+                Binary(ByteArray(1)),
+                null
+            )
+        ).waitReceipt()
+    }
+
+    protected fun newSender(privateKey0: BigInteger? = null): Triple<Address, MonoSigningTransactionSender, BigInteger> {
+        val (privateKey, _, address) = generateNewKeys(privateKey0)
+        val sender = MonoSigningTransactionSender(
+            ethereum,
+            MonoSimpleNonceProvider(ethereum),
+            privateKey,
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
+        return Triple(address, sender, privateKey)
+    }
+
+    private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
+        val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
+        return NewKeys(privateKey, publicKey, signer)
+    }
+
+    private fun createConsumer(): RaribleKafkaConsumer<BlockEvent> {
+        return RaribleKafkaConsumer(
+            clientId = "test-consumer-block-event",
+            consumerGroup = "test-group-block-event",
+            valueDeserializerClass = JsonDeserializer::class.java,
+            valueClass = BlockEvent::class.java,
+            defaultTopic = getBlockTopic(application.name, scannerProperties.service, scannerProperties.blockchain),
+            bootstrapServers = kafkaContainer.kafkaBoostrapServers(),
+            offsetResetStrategy = OffsetResetStrategy.LATEST
+        )
+    }
+
+    protected suspend fun checkBlockEventWasPublished(asserter: BlockEvent.() -> Unit) = coroutineScope {
+        Wait.waitAssert {
+            assertThat(blockEvents)
+                .hasSizeGreaterThanOrEqualTo(1)
+                .anySatisfy { it.asserter() }
+        }
+    }
 }

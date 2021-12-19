@@ -68,6 +68,7 @@ blockchain:
     kafka:
       maxPollRecords: 100
     ethereum:
+      service: "scanner"
       optimisticLockRetries: 3
       retryPolicy:
         scan:
