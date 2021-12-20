@@ -1,6 +1,30 @@
 global:
   blockchain: ethereum
   network: mainnet
+ethereum-block-scanner: &protocol-block-scanner
+  image:
+    repository: ethereum-indexer-block-scanner
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/block-scanner'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-block-scanner:
+  <<: *protocol-block-scanner
+  blockchain: polygon
+
 ethereum-erc20-api: &protocol-erc20-api
   image:
     repository: ethereum-indexer-erc20-api

@@ -3,6 +3,14 @@ name: protocol
 version: 0.1.0
 dependencies:
 - name: rarible-helm-chart
+  alias: ethereum-block-scanner
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: polygon-block-scanner
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
   alias: ethereum-erc20-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
