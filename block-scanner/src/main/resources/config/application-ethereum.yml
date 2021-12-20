@@ -1,1 +1,2 @@
-blockchain: ethereum
+scanner:
+  blockchain: ethereum

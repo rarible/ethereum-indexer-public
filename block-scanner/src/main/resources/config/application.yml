@@ -6,7 +6,7 @@ server:
   port: 8080
 
 spring:
-  application.name: protocol-${blockchain}-block-scanner
+  application.name: protocol-${scanner.blockchain}-block-scanner
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
@@ -40,7 +40,7 @@ blockchain:
     kafka:
       maxPollRecords: 100
     ethereum:
-      blockchain: ${blockchain}
+      blockchain: ${scanner.blockchain}
       service: "scanner"
       optimisticLockRetries: 3
       scan:
