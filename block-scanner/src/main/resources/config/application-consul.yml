@@ -1,0 +1,9 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}
+
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}

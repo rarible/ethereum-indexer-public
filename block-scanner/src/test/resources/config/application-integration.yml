@@ -1,0 +1,9 @@
+rarible:
+  core:
+    apm:
+      agent:
+        enabled: false
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}

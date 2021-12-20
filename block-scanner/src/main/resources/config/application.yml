@@ -6,23 +6,18 @@ server:
   port: 8080
 
 spring:
-  application.name: protocol-${common.blockchain}-nft-listener
+  application.name: protocol-${blockchain}-block-scanner
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
     deserialization:
       FAIL_ON_UNKNOWN_PROPERTIES: false
     default-property-inclusion: non_null
-  codec:
-    max-in-memory-size: 50MB
   aop:
     proxy-target-class: false
   main:
     banner-mode: log
     web-application-type: reactive
-mongock:
-  change-logs-scan-package:
-    - com.rarible.ethereum.listener.log.mongock
 
 rarible:
   core:
@@ -30,38 +25,15 @@ rarible:
       agent:
         enabled: true
         server: http://elk_apm-server:8200
-        packages: com.rarible.protocol.nft.listener
+        packages: com.rarible.protocol.block.scanner
+      annotation:
+        enabled: true
   ethereum:
     max-frame-size: 104857600
     converter:
       enabled: true
     read-only-transaction-sender:
       enabled: true
-  cache:
-    use-locks: true
-
-ethereumMaxFrameSize: 104857600
-ethereumBlockBatchSize: 50
-
-common:
-  cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
-  feature-flags:
-    scanner-version: V1
-
-api:
-  opensea:
-    url: https://api.opensea.io/api/v1
-    api-key: test
-    read-timeout: 10000
-    connect-timeout: 3000
-    request-timeout: 20000
-  properties:
-    api-url: https://api.rarible.com/images
-    cache-timeout: 315360000000 # 10 years (effectively, forever)
-    request-timeout: 20000
-    media-meta-timeout: 10000
-  royalty:
-    cache-timeout: 600000 # 10 min
 
 blockchain:
   scanner:
@@ -71,7 +43,7 @@ blockchain:
       service: "scanner"
       optimisticLockRetries: 3
       scan:
-        block-publish:
+        event-consume:
           enabled: false
       retryPolicy:
         scan:
@@ -82,13 +54,17 @@ blockchain:
           attempts: 3
       job:
         pendingLogs:
-          interval: 1s
-          initialDelay: 1s
+          interval: 12M
+          initialDelay: 12M
         reconciliation:
           enabled: false
           batchSize: 5
       monitoring:
-        enabled: false
+        enabled: true
         rootPath: "blockchain.scanner"
         worker:
           pollingPeriod: 1m
+
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration
