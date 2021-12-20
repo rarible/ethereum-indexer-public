@@ -70,6 +70,9 @@ blockchain:
     ethereum:
       service: "scanner"
       optimisticLockRetries: 3
+      scan:
+        block-publish:
+          enabled: false
       retryPolicy:
         scan:
           reconnectDelay: 2s

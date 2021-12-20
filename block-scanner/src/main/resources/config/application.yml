@@ -42,6 +42,9 @@ blockchain:
     ethereum:
       service: "scanner"
       optimisticLockRetries: 3
+      scan:
+        event-consume:
+          enabled: false
       retryPolicy:
         scan:
           reconnectDelay: 2s
