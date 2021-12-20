@@ -27,7 +27,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
 )
-@ActiveProfiles("integration",  "ethereum")
+@ActiveProfiles("integration",  "polygon")
 @Import(TestPropertiesConfiguration::class)
 @Testcontainers
 annotation class IntegrationTest
