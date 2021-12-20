@@ -16,7 +16,6 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
-import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -34,11 +33,14 @@ class ItemReduceServiceV2(
 ) : ItemReduceService {
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
-        logger.info("onHistories ${logs.size} logs")
+        if (logs.isNotEmpty()) {
+            logger.info("onHistories ${logs.size} logs")
+        }
         return logs.toFlux()
             .map { it.data as ItemHistory }
-            .map { history -> ItemId(history.token, history.tokenId) }
             .filter { skipTokens.allowReducing(it.token, it.tokenId) }
+            .flatMap { Flux.just(ItemId(it.token, it.tokenId)) }
+            .distinct()
             .flatMap { update(token = it.token, tokenId = it.tokenId, from = null) }
             .then()
     }

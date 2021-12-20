@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.composit
 
 import com.rarible.core.entity.reducer.service.EntityService
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CompositeEntity
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.reduce.ItemUpdateService
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class CompositeUpdateService(
     private val itemUpdateService: ItemUpdateService,
-    private val ownershipUpdateService: OwnershipUpdateService
+    private val ownershipUpdateService: OwnershipUpdateService,
+    private val properties: NftIndexerProperties
 ) : EntityService<ItemId, CompositeEntity> {
 
     override suspend fun get(id: ItemId): CompositeEntity? {
@@ -27,12 +29,15 @@ class CompositeUpdateService(
                     itemUpdateService.update(it)
                 }
             }
-            val savedOwnerships = entity.ownerships.map {
-                async {
-                    ownershipUpdateService.update(it)
+            val savedOwnerships = entity.ownerships.chunked(properties.ownershipSaveBatch)
+                .flatMap { ownerships ->
+                    ownerships.map {
+                        async {
+                            ownershipUpdateService.update(it)
+                        }
+                    }.awaitAll()
                 }
-            }
-            CompositeEntity(entity.id, savedItem?.await(), savedOwnerships.awaitAll())
+            CompositeEntity(entity.id, savedItem?.await(), savedOwnerships)
         }
     }
 }
