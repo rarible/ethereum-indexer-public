@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.core.entity.reducer.model.Entity
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.Indexed
@@ -9,7 +10,7 @@ import scalether.domain.Address
 @Document(collection = "token")
 data class Token(
     @Id
-    val id: Address,
+    override val id: Address,
     val owner: Address? = null,
     val name: String,
     val symbol: String? = null,
@@ -24,8 +25,15 @@ data class Token(
     val version: Long? = null,
 
     // Better off would be to introduce a TokenVersion enum (RPN-1264).
-    val isRaribleContract: Boolean = false
-) {
+    val isRaribleContract: Boolean = false,
+    val deleted: Boolean = false,
+    override val revertableEvents: List<TokenEvent> = emptyList()
+) : Entity<Address, TokenEvent, Token> {
+
+    override fun withRevertableEvents(events: List<TokenEvent>): Token {
+        return copy(revertableEvents = events)
+    }
+
     companion object {
         fun empty() = Token(
             id = Address.ZERO(),
