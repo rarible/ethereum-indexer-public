@@ -2,16 +2,12 @@ package com.rarible.protocol.nft.core.repository
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Royalty
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.count
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = SpanType.DB)
@@ -22,14 +18,8 @@ class RoyaltyRepository(
         return mongo.save(royalty)
     }
 
-    fun findByTokenAndId(address: Address, tokenId: EthUInt256): Mono<Royalty> {
-        val query = Query(
-            Criteria().andOperator(
-                Royalty::address isEqualTo address,
-                Royalty::tokenId isEqualTo tokenId
-            )
-        )
-        return mongo.findOne<Royalty>(query, Royalty::class.java)
+    fun findByItemId(itemId: ItemId): Mono<Royalty> {
+        return mongo.findById(itemId, Royalty::class.java)
     }
 
     fun count(): Mono<Long> {

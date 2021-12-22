@@ -69,7 +69,7 @@ class RoyaltyTaskHandlerTest : AbstractIntegrationTest() {
 
         // check royalty in the cache
         assertEquals(1, royaltyRepository.count().awaitFirst())
-        val royaltyPE = royaltyRepository.findByTokenAndId(item.token, item.tokenId).awaitFirstOrNull()
+        val royaltyPE = royaltyRepository.findByItemId(item.id).awaitFirstOrNull()
         Assertions.assertNotNull(royaltyPE)
         assertEquals(royalty1._1, royaltyPE?.royalty?.get(0)?.account)
         assertEquals(royalty1._2.toInt(), royaltyPE?.royalty?.get(0)?.value)
