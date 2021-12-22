@@ -4,6 +4,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature.*
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -15,6 +16,8 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -27,8 +30,9 @@ import java.math.BigInteger
 @IntegrationTest
 class CollectionDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun `should get CreateERC1155RaribleUserEvent event`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should get CreateERC1155RaribleUserEvent event`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -36,9 +40,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val token = ERC1155RaribleUser.deployAndWait(userSender, poller).awaitFirst()
         token.__ERC1155RaribleUser_init("Test", "TestSymbol", "BASE", "URI", arrayOf()).execute().verifySuccess()
@@ -46,7 +49,7 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
             val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
-            assertThat(savedToken).isEqualTo(
+            assertThat(savedToken).isEqualToIgnoringGivenFields(
                 Token(
                     id = token.address(),
                     owner = address,
@@ -65,13 +68,15 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
                     isRaribleContract = true
-                )
+                ),
+                Token::revertableEvents.name
             )
         }
     }
 
-    @Test
-    fun `should get CreateERC1155RaribleEvent event`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should get CreateERC1155RaribleEvent event`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -89,7 +94,7 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         Wait.waitAssert {
             assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
             val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
-            assertThat(savedToken).isEqualTo(
+            assertThat(savedToken).isEqualToIgnoringGivenFields(
                 Token(
                     id = token.address(),
                     owner = address,
@@ -108,7 +113,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
                     standard = TokenStandard.ERC1155,
                     version = savedToken?.version,
                     isRaribleContract = true
-                )
+                ),
+                Token::revertableEvents.name
             )
         }
     }

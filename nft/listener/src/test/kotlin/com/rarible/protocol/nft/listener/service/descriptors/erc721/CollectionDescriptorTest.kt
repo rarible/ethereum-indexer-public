@@ -5,14 +5,15 @@ import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -25,8 +26,9 @@ import java.math.BigInteger
 @IntegrationTest
 class CollectionDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun convert() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun convert(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -63,8 +65,9 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @Test
-    fun `should get CreateERC721RaribleUserEvent event`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should get CreateERC721RaribleUserEvent event`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -90,8 +93,9 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @Test
-    fun `should get CreateERC721RaribleEvent event`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should get CreateERC721RaribleEvent event`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -99,9 +103,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val token = ERC721Rarible.deployAndWait(userSender, poller).awaitFirst()
         token.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()

@@ -12,6 +12,7 @@ import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.util.concurrent.CopyOnWriteArrayList
@@ -72,8 +75,9 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         consumingJobs.forEach { it.cancelAndJoin() }
     }
 
-    @Test
-    fun `on minting the ownership is transferred from the zero address`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `on minting the ownership is transferred from the zero address`(version: ReduceVersion) = withReducer(version) {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
@@ -116,8 +120,9 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @Test
-    fun `ownership transferred`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `ownership transferred`(version: ReduceVersion) = withReducer(version) {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
