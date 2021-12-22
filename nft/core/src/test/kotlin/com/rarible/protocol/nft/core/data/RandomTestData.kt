@@ -74,8 +74,10 @@ fun ItemEvent.ItemMintEvent.withNewValues(
 fun ItemEvent.ItemBurnEvent.withNewValues(
     status: Log.Status? = null,
     createdAt: Instant? = null,
-    blockNumber: Long? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemTransferEvent.withNewValues(
     status: Log.Status? = null,

@@ -44,6 +44,24 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should reduce revert simple mint event`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val item = initial()
+
+        val mint = createRandomMintItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+        val revertedMint = mint
+            .withNewValues(Log.Status.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(item, mint, revertedMint)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.ownerships.keys).hasSize(0)
+        assertThat(reducedItem.deleted).isTrue()
+    }
+
+    @Test
     fun `should reduce simple mint and full burn event`() = runBlocking<Unit> {
         val minter = randomAddress()
         val item = initial()
@@ -60,6 +78,31 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.ownerships.keys).hasSize(0)
         assertThat(reducedItem.deleted).isTrue()
+    }
+
+    @Test
+    fun `should reduce simple mint and revert full burn event`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val item = initial()
+
+        val mint = createRandomMintItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+        val burn = createRandomBurnItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+        val revertedBurn = burn
+            .withNewValues(Log.Status.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+
+        val burnItem = reduce(item, mint, burn)
+        assertThat(burnItem.deleted).isTrue()
+
+        val revertedItem = reduce(burnItem, revertedBurn)
+        assertThat(revertedItem.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(revertedItem.ownerships.keys).hasSize(1)
+        assertThat(revertedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedItem.deleted).isFalse()
     }
 
     @Test
@@ -101,6 +144,31 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.ownerships.keys).hasSize(1)
         assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
         assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should reduce mint and one revert full transfer`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val owner = randomAddress()
+        val item = initial()
+
+        val mint = createRandomMintItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+        val transfer = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.TEN, from = minter, to = owner)
+        val revertedTransfer = transfer
+            .withNewValues(Log.Status.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(item, mint, transfer)
+
+        val revertedItem = reduce(reducedItem, revertedTransfer)
+        assertThat(revertedItem.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(revertedItem.ownerships.keys).hasSize(1)
+        assertThat(revertedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedItem.deleted).isFalse()
     }
 
     @Test
