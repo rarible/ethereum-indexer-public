@@ -5,9 +5,9 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
-import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
 import io.daonomic.rpc.RpcCodeException
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -32,7 +32,7 @@ class RoyaltyService(
     suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
         if (featureFlags.isRoyaltyServiceEnabled.not()) return emptyList()
 
-        val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
+        val cachedRoyalties = royaltyRepository.findByItemId(ItemId(address, tokenId)).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
             return cachedRoyalties.royalty
         }
