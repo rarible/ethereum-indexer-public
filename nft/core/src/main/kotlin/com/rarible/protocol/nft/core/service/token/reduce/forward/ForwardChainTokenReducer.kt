@@ -11,5 +11,6 @@ import scalether.domain.Address
 class ForwardChainTokenReducer(
     tokenConfirmEventApplyPolicy: TokenConfirmEventApplyPolicy
 ) : EntityChainReducer<Address, TokenEvent, Token>(
-    tokenConfirmEventApplyPolicy
+    tokenConfirmEventApplyPolicy,
+    ForwardTokenReducer()
 )

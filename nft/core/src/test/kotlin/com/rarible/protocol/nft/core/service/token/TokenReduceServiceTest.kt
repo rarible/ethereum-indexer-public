@@ -12,14 +12,16 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.model.TokenStandard
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.AddressFactory
@@ -30,8 +32,9 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
     @Autowired
     lateinit var tokenRegistrationService: TokenRegistrationService
 
-    @Test
-    fun `change owner for a token registered via service`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `change owner for a token registered via service`(version: ReduceVersion) = withReducer(version) {
         val id = randomAddress()
         val previousOwner = randomAddress()
         val newOwner = randomAddress()
@@ -56,6 +59,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 topic = OwnershipTransferredEvent.id(),
                 transactionHash = Word.apply(randomWord()),
                 status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
                 index = 0
@@ -72,12 +76,14 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 standard = TokenStandard.ERC721
             ),
             Token::lastEventId.name,
-            Token::version.name
+            Token::version.name,
+            Token::revertableEvents.name,
         )
     }
 
-    @Test
-    fun `return token registered with via service having no log events`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `return token registered with via service having no log events`(version: ReduceVersion) = withReducer(version) {
         val id = randomAddress()
         val token = Token(
             id = id,
@@ -91,8 +97,9 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         assertThat(updated).isEqualTo(updated)
     }
 
-    @Test
-    fun `should not change lastEventId`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should not change lastEventId`(version: ReduceVersion) = withReducer(version) {
         val collectionId = randomAddress()
         prepareStorage(
             CreateCollection(
@@ -104,14 +111,21 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         )
         val token = tokenReduceService.updateToken(collectionId)
         assertNotNull(token)
-        assertNotNull(token!!.lastEventId)
 
+        when (version) {
+            ReduceVersion.V1 -> assertNotNull(token!!.lastEventId)
+            ReduceVersion.V2 -> {
+                assertThat(token!!.revertableEvents).hasSize(1)
+                assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
+            }
+        }
         val sameToken = tokenReduceService.updateToken(collectionId)
         assertEquals(token.copy(version = 0), sameToken?.copy(version = 0))
     }
 
-    @Test
-    fun `should change lastEventId if a new event is added`() = runBlocking<Unit> {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should change lastEventId if a new event is added`(version: ReduceVersion) = withReducer(version) {
         val collectionId = randomAddress()
         val previousOwner = randomAddress()
         prepareStorage(
@@ -120,11 +134,18 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 previousOwner,
                 "Test",
                 "TEST"
-            )
+            ),
+            blockNumber = 1
         )
         val token = tokenReduceService.updateToken(collectionId)
         assertNotNull(token)
-        assertNotNull(token!!.lastEventId)
+        when (version) {
+            ReduceVersion.V1 -> assertNotNull(token!!.lastEventId)
+            ReduceVersion.V2 -> {
+                assertThat(token!!.revertableEvents).hasSize(1)
+                assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
+            }
+        }
 
         val newOwner = randomAddress()
         prepareStorage(
@@ -132,7 +153,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                 collectionId,
                 previousOwner,
                 newOwner
-            )
+            ),
+            blockNumber = 2
         )
 
         val withUpdatedOwner = tokenReduceService.updateToken(collectionId)
@@ -141,10 +163,20 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
 
         assertNotNull(withUpdatedOwner)
         assertEquals(newOwner, withUpdatedOwner!!.owner)
-        assertNotEquals(token.lastEventId, withUpdatedOwner.lastEventId)
+        when (version) {
+            ReduceVersion.V1 -> assertNotEquals(token.lastEventId, withUpdatedOwner.lastEventId)
+            ReduceVersion.V2 -> {
+                assertThat(withUpdatedOwner.revertableEvents).hasSize(2)
+                assertThat(withUpdatedOwner.revertableEvents[0]).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
+                assertThat(withUpdatedOwner.revertableEvents[1]).isInstanceOf(TokenEvent.TokenChangeOwnershipEvent::class.java)
+            }
+        }
     }
 
-    private suspend fun prepareStorage(vararg events: CollectionEvent) {
+    private suspend fun prepareStorage(
+        vararg events: CollectionEvent,
+        blockNumber: Long = System.currentTimeMillis()
+    ) {
         events.forEach { event ->
             tokenHistoryRepository.save(
                 LogEvent(
@@ -153,7 +185,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
                     topic = if (event is CreateCollection) CreateEvent.id() else Word.apply(randomWord()),
                     transactionHash = Word.apply(randomWord()),
                     status = LogEventStatus.CONFIRMED,
-                    blockNumber = System.currentTimeMillis(),
+                    blockNumber = blockNumber,
                     logIndex = 0,
                     minorLogIndex = 0,
                     index = 0,
@@ -163,5 +195,4 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             ).awaitFirst()
         }
     }
-
 }

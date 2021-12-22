@@ -11,5 +11,6 @@ import scalether.domain.Address
 class PendingChainTokenReducer(
     tokenPendingEventApplyPolicy: TokenPendingEventApplyPolicy
 ) : EntityChainReducer<Address, TokenEvent, Token>(
-    tokenPendingEventApplyPolicy
+    tokenPendingEventApplyPolicy,
+    PendingTokenReducer()
 )

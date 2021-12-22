@@ -9,14 +9,11 @@ sealed class TokenEvent : EthereumEntityEvent<TokenEvent>() {
         val owner: Address,
         val name: String,
         val symbol: String,
-        val features: List<FeatureFlags>,
-        val standard: TokenStandard,
-        val status: ContractStatus,
         override val entityId: String,
         override val log: EthereumLog
     ) : TokenEvent()
 
-    data class ItemChangeOwnershipEvent(
+    data class TokenChangeOwnershipEvent(
         val owner: Address,
         val previousOwner: Address,
         override val entityId: String,

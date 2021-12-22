@@ -11,5 +11,6 @@ import scalether.domain.Address
 class ReversedChainTokenReducer(
     tokenRevertEventApplyPolicy: TokenRevertEventApplyPolicy
 ) : RevertedEntityChainReducer<Address, TokenEvent, Token>(
-    tokenRevertEventApplyPolicy
+    tokenRevertEventApplyPolicy,
+    RevertedTokenReducer()
 )
