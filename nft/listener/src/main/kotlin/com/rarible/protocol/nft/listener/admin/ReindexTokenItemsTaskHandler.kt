@@ -16,7 +16,6 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
@@ -24,7 +23,6 @@ import scalether.core.MonoEthereum
 /**
  * Background job that re-indexes all items of a token (specified by `param`).
  */
-@Component
 class ReindexTokenItemsTaskHandler(
     private val taskRepository: TaskRepository,
     private val logListenService: LogListenService,

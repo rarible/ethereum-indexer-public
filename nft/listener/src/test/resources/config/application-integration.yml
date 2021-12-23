@@ -46,6 +46,13 @@ blockchain:
   scanner:
     kafka:
       broker-replica-set: ${kafka.hosts}
+    ethereum:
+      scan:
+        block-batch-load:
+          enabled: true
+          confirmation-block-distance: 20
+        block-publish:
+          enabled: true
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false

@@ -12,7 +12,6 @@ import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC11
 import com.rarible.protocol.nft.listener.service.descriptors.erc721.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -22,7 +21,6 @@ import scalether.domain.Address
 /**
  * Background job that re-indexes tokens (specified by `param`).
  */
-@Component
 class ReindexTokenTaskHandler(
     private val logListenService: LogListenService,
     private val tokenRegistrationService: TokenRegistrationService,

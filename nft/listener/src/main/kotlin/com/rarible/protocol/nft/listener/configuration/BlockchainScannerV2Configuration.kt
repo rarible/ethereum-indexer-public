@@ -6,19 +6,19 @@ import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormPr
 import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.application.ApplicationInfo
-import com.rarible.ethereum.listener.log.EnableLogListeners
+import com.rarible.ethereum.listener.log.LogEventDescriptor
+import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.EntityEventListener
-import com.rarible.protocol.nft.listener.NftListenerApplication
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ConditionalOnProperty(name = ["common.feature-flags.scanner-version"], havingValue = "V2")
-@EnableLogListeners(scanPackage = [NftListenerApplication::class])
 @EnableEthereumScanner
 class BlockchainScannerV2Configuration(
     private val nftIndexerProperties: NftIndexerProperties,
@@ -49,5 +49,12 @@ class BlockchainScannerV2Configuration(
             blockchain = nftIndexerProperties.blockchain.value,
             service = applicationInfo.serviceName
         ).apply { start(entityEventListener.associateBy { it.groupId }) }
+    }
+
+    //TODO: Remove this workaround after full migrate to blockchain scanner v2
+    @Bean
+    @ConditionalOnMissingBean(LogEventDescriptorHolder::class)
+    fun logEventDescriptorHolder(list: List<LogEventDescriptor<*>>): LogEventDescriptorHolder {
+        return LogEventDescriptorHolder(list)
     }
 }
