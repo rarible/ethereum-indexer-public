@@ -46,6 +46,9 @@ class InternalItemHandler(
         }
     } catch (e: Throwable) {
         logger.error("Failed to handle $event", e)
+        if (e is Error) {
+            throw RuntimeException(e)
+        }
         throw e
     }
 
