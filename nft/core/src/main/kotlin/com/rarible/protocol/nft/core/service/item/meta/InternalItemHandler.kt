@@ -14,6 +14,7 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import java.util.*
@@ -33,17 +34,24 @@ class InternalItemHandler(
     private val protocolNftEventPublisher: ProtocolNftEventPublisher
 ) : ConsumerEventHandler<NftItemEventDto> {
 
-    override suspend fun handle(event: NftItemEventDto) = when (event) {
-        is NftItemUpdateEventDto -> {
-            val meta = itemMetaService.getItemMetadata(ItemId.parseId(event.item.id))
-            val metaDto = conversionService.convert<NftItemMetaDto>(meta)
-            val extendedItem = event.item.copy(meta = metaDto)
-            protocolNftEventPublisher.publish(event.copy(item = extendedItem))
+    override suspend fun handle(event: NftItemEventDto) = try {
+        when (event) {
+            is NftItemUpdateEventDto -> {
+                val meta = itemMetaService.getItemMetadata(ItemId.parseId(event.item.id))
+                val metaDto = conversionService.convert<NftItemMetaDto>(meta)
+                val extendedItem = event.item.copy(meta = metaDto)
+                protocolNftEventPublisher.publish(event.copy(item = extendedItem))
+            }
+            is NftItemDeleteEventDto -> protocolNftEventPublisher.publish(event)
         }
-        is NftItemDeleteEventDto -> protocolNftEventPublisher.publish(event)
+    } catch (e: Throwable) {
+        logger.error("Failed to handle $event", e)
+        throw e
     }
 
     companion object {
+        private val logger = LoggerFactory.getLogger(InternalItemHandler::class.java)
+
         fun getInternalTopic(environment: String, blockchain: String): String =
             "protocol.$environment.$blockchain.indexer.nft.item.internal"
 
