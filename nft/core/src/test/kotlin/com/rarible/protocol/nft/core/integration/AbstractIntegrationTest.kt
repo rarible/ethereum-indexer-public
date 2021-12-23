@@ -63,6 +63,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
+import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 
 @FlowPreview
@@ -260,6 +261,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         Assertions.assertTrue(receipt.success())
         return receipt
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
+
 
     protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
