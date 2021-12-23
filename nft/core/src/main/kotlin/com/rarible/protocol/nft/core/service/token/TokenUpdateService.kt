@@ -7,7 +7,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
-@Component
+@Component("LegacyTokenUpdateService")
 class TokenUpdateService(
     private val tokenRepository: TokenRepository,
     private val tokenReduceService: TokenReduceService,
