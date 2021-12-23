@@ -4,9 +4,20 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.NftActivityDto
+import com.rarible.protocol.dto.NftCollectionEventDto
+import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftItemDeleteEventDto
+import com.rarible.protocol.dto.NftItemEventDto
+import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.collect
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -42,6 +53,11 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         itemEventsProducer.send(message).ensureSuccess()
+        val shortEvent = when (event) {
+            is NftItemUpdateEventDto -> event.copy(item = event.item.copy(owners = emptyList()))
+            is NftItemDeleteEventDto -> event
+        }
+        logger.info("Sent item event ${event.itemId}: $shortEvent")
     }
 
     suspend fun publishInternalItem(event: NftItemEventDto) {
@@ -87,5 +103,9 @@ class ProtocolNftEventPublisher(
             headers = ownershipEventHeaders,
             id = event.eventId
         )
+    }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(ProtocolNftEventPublisher::class.java)
     }
 }
