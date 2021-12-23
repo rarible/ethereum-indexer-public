@@ -51,6 +51,7 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
                 topic = CreateEvent.id(),
                 transactionHash = Word.apply(randomWord()),
                 status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
                 logIndex = 0,
                 minorLogIndex = 0,
                 index = 0

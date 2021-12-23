@@ -229,6 +229,253 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should reduce mint and revert multi transfers`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val owner1 = randomAddress()
+        val owner2 = randomAddress()
+        val owner3 = randomAddress()
+        val owner4 = randomAddress()
+        val owner5 = randomAddress()
+        val owner6 = randomAddress()
+        val owner7 = randomAddress()
+        val item = initial()
+
+        val mint = createRandomMintItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+        val revertedMint = mint
+            .withNewValues(Log.Status.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val transfer1 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(2), from = minter, to = owner1)
+        val revertedTransfer1 = transfer1
+            .withNewValues(Log.Status.REVERTED, blockNumber = 2, logIndex = 1, minorLogIndex = 1)
+
+        val transfer2 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
+        val revertedTransfer2 = transfer2
+            .withNewValues(Log.Status.REVERTED, blockNumber = 3, logIndex = 1, minorLogIndex = 1)
+
+        val transfer3 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(1), from = owner1, to = owner2)
+        val revertedTransfer3 = transfer3
+            .withNewValues(Log.Status.REVERTED, blockNumber = 4, logIndex = 1, minorLogIndex = 1)
+
+        val transfer4 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(5), from = minter, to = owner3)
+        val revertedTransfer4 = transfer4
+            .withNewValues(Log.Status.REVERTED, blockNumber = 5, logIndex = 1, minorLogIndex = 1)
+
+        val transfer5 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(1), from = owner3, to = owner4)
+        val revertedTransfer5 = transfer5
+            .withNewValues(Log.Status.REVERTED, blockNumber = 6, logIndex = 1, minorLogIndex = 1)
+
+        val transfer6 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(2), from = owner3, to = owner5)
+        val revertedTransfer6 = transfer6
+            .withNewValues(Log.Status.REVERTED, blockNumber = 7, logIndex = 1, minorLogIndex = 1)
+
+        val transfer7 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(2), from = owner3, to = owner6)
+        val revertedTransfer7 = transfer7
+            .withNewValues(Log.Status.REVERTED, blockNumber = 8, logIndex = 1, minorLogIndex = 1)
+
+        val transfer8 = createRandomTransferItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
+            .copy(value = EthUInt256.of(1), from = owner5, to = owner7)
+        val revertedTransfer8 = transfer8
+            .withNewValues(Log.Status.REVERTED, blockNumber = 9, logIndex = 1, minorLogIndex = 1)
+
+        val burn = createRandomBurnItemEvent()
+            .withNewValues(Log.Status.CONFIRMED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.of(1), owner = owner7)
+        val revertedBurn = burn
+            .withNewValues(Log.Status.REVERTED, blockNumber = 10, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(
+            item,
+            mint,
+            transfer1,
+            transfer2,
+            transfer3,
+            transfer4,
+            transfer5,
+            transfer6,
+            transfer7,
+            transfer8,
+            burn
+        )
+        assertThat(reducedItem.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4, transfer5, transfer6, transfer7, transfer8, burn
+            )
+        )
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(9))
+        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(9)
+        assertThat(reducedItem.ownerships.keys).hasSize(5)
+        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(reducedItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(reducedItem.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
+        assertThat(reducedItem.ownerships[owner5]).isEqualTo(EthUInt256.of(1))
+        assertThat(reducedItem.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
+        assertThat(reducedItem.deleted).isFalse()
+
+        //Revert burn event
+        val revertedBurnItem = reduce(reducedItem, revertedBurn)
+        assertThat(revertedBurnItem.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4, transfer5, transfer6, transfer7, transfer8
+            )
+        )
+        assertThat(revertedBurnItem.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedBurnItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedBurnItem.ownerships.keys).hasSize(6)
+        assertThat(revertedBurnItem.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(revertedBurnItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedBurnItem.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedBurnItem.ownerships[owner5]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedBurnItem.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedBurnItem.ownerships[owner7]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedBurnItem.deleted).isFalse()
+
+        //Revert transfer8 event
+        val revertedTransfer8Item = reduce(revertedBurnItem, revertedTransfer8)
+        assertThat(revertedTransfer8Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4, transfer5, transfer6, transfer7
+            )
+        )
+        assertThat(revertedTransfer8Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer8Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer8Item.ownerships.keys).hasSize(5)
+        assertThat(revertedTransfer8Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(revertedTransfer8Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer8Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedTransfer8Item.ownerships[owner5]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer8Item.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer8Item.deleted).isFalse()
+
+        //Revert transfer7 event
+        val revertedTransfer7Item = reduce(revertedTransfer8Item, revertedTransfer7)
+        assertThat(revertedTransfer7Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4, transfer5, transfer6
+            )
+        )
+        assertThat(revertedTransfer7Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer7Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer7Item.ownerships.keys).hasSize(5)
+        assertThat(revertedTransfer7Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(revertedTransfer7Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer7Item.ownerships[owner3]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer7Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedTransfer7Item.ownerships[owner5]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer7Item.deleted).isFalse()
+
+        //Revert transfer6 event
+        val revertedTransfer6Item = reduce(revertedTransfer7Item, revertedTransfer6)
+        assertThat(revertedTransfer6Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4, transfer5
+            )
+        )
+        assertThat(revertedTransfer6Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer6Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer6Item.ownerships.keys).hasSize(4)
+        assertThat(revertedTransfer6Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(revertedTransfer6Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer6Item.ownerships[owner3]).isEqualTo(EthUInt256.of(4))
+        assertThat(revertedTransfer6Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedTransfer6Item.deleted).isFalse()
+
+        //Revert transfer5 event
+        val revertedTransfer5Item = reduce(revertedTransfer6Item, revertedTransfer5)
+        assertThat(revertedTransfer5Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3, transfer4
+            )
+        )
+        assertThat(revertedTransfer5Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer5Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer5Item.ownerships.keys).hasSize(3)
+        assertThat(revertedTransfer5Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
+        assertThat(revertedTransfer5Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer5Item.ownerships[owner3]).isEqualTo(EthUInt256.of(5))
+        assertThat(revertedTransfer5Item.deleted).isFalse()
+
+        //Revert transfer4 event
+        val revertedTransfer4Item = reduce(revertedTransfer5Item, revertedTransfer4)
+        assertThat(revertedTransfer4Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2, transfer3
+            )
+        )
+        assertThat(revertedTransfer4Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer4Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer4Item.ownerships.keys).hasSize(2)
+        assertThat(revertedTransfer4Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
+        assertThat(revertedTransfer4Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer4Item.deleted).isFalse()
+
+        //Revert transfer3 event
+        val revertedTransfer3Item = reduce(revertedTransfer4Item, revertedTransfer3)
+        assertThat(revertedTransfer3Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1, transfer2
+            )
+        )
+        assertThat(revertedTransfer3Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer3Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer3Item.ownerships.keys).hasSize(3)
+        assertThat(revertedTransfer3Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
+        assertThat(revertedTransfer3Item.ownerships[owner1]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedTransfer3Item.ownerships[owner2]).isEqualTo(EthUInt256.of(1))
+        assertThat(revertedTransfer3Item.deleted).isFalse()
+
+        //Revert transfer2 event
+        val revertedTransfer2Item = reduce(revertedTransfer3Item, revertedTransfer2)
+        assertThat(revertedTransfer2Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint, transfer1
+            )
+        )
+        assertThat(revertedTransfer2Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer2Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer2Item.ownerships.keys).hasSize(2)
+        assertThat(revertedTransfer2Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
+        assertThat(revertedTransfer2Item.ownerships[owner1]).isEqualTo(EthUInt256.of(2))
+        assertThat(revertedTransfer2Item.deleted).isFalse()
+
+        //Revert transfer1 event
+        val revertedTransfer1Item = reduce(revertedTransfer2Item, revertedTransfer1)
+        assertThat(revertedTransfer1Item.revertableEvents).containsExactlyElementsOf(
+            listOf(
+                mint
+            )
+        )
+        assertThat(revertedTransfer1Item.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(revertedTransfer1Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(revertedTransfer1Item.ownerships.keys).hasSize(1)
+        assertThat(revertedTransfer1Item.ownerships[minter]).isEqualTo(EthUInt256.of(10))
+        assertThat(revertedTransfer1Item.deleted).isFalse()
+
+        //Revert mint event
+        val revertedMintItem = reduce(revertedTransfer1Item, revertedMint)
+        assertThat(revertedMintItem.revertableEvents).hasSize(0)
+        assertThat(revertedMintItem.supply).isEqualTo(EthUInt256.ZERO)
+        assertThat(revertedMintItem.ownerships.keys).hasSize(0)
+        assertThat(revertedMintItem.deleted).isTrue()
+    }
+
+    @Test
     fun `should has only needed confirm events in the revertableEvents`() = runBlocking<Unit> {
         val item = initial()
 
