@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 
 abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
     abstract val entityId: String
@@ -13,14 +13,18 @@ abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
     override fun compareTo(other: EthereumEntityEvent<T>): Int {
         val o1 = this
         return when (o1.log.status) {
-            Log.Status.CONFIRMED, Log.Status.REVERTED -> {
-                require(other.log.status == Log.Status.CONFIRMED || other.log.status == Log.Status.REVERTED) {
+            EthereumLogStatus.CONFIRMED, EthereumLogStatus.REVERTED -> {
+                require(other.log.status == EthereumLogStatus.CONFIRMED || other.log.status == EthereumLogStatus.REVERTED) {
                     "Can't compare $o1 and $other"
                 }
                 confirmBlockComparator.compare(o1, other)
             }
-            Log.Status.PENDING, Log.Status.INACTIVE, Log.Status.DROPPED -> {
-                require(other.log.status == Log.Status.PENDING || other.log.status == Log.Status.INACTIVE || other.log.status == Log.Status.DROPPED) {
+            EthereumLogStatus.PENDING, EthereumLogStatus.INACTIVE, EthereumLogStatus.DROPPED -> {
+                require(
+                    other.log.status == EthereumLogStatus.PENDING
+                            || other.log.status == EthereumLogStatus.INACTIVE
+                            || other.log.status == EthereumLogStatus.DROPPED
+                ) {
                     "Can't compare $o1 and $other"
                 }
                 pendingBlockComparator.compare(o1, other)

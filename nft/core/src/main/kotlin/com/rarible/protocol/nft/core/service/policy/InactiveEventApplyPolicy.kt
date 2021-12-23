@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.policy
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.entity.reducer.service.EventApplyPolicy
 import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
@@ -17,7 +17,7 @@ open class InactiveEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPoli
 
     private fun findPendingEvent(events: List<T>, event: T): T? {
         return events.firstOrNull { current ->
-            current.log.status == Log.Status.PENDING && current.compareTo(event) == 0
+            current.log.status == EthereumLogStatus.PENDING && current.compareTo(event) == 0
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.entity.reducer.model.Entity
 import com.rarible.ethereum.domain.EthUInt256
@@ -46,7 +46,7 @@ data class Item(
         set(_) {}
 
     fun getPendingEvents(): List<ItemEvent> {
-        return revertableEvents.filter { event -> event.log.status == Log.Status.PENDING }
+        return revertableEvents.filter { event -> event.log.status == EthereumLogStatus.PENDING }
     }
 
     fun getLazyOwner(): Address? {

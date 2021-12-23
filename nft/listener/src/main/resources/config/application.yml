@@ -81,9 +81,6 @@ blockchain:
           delay: 2s
           attempts: 3
       job:
-        pendingLogs:
-          interval: 1s
-          initialDelay: 1s
         reconciliation:
           enabled: false
           batchSize: 5
