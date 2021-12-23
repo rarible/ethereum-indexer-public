@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.listener.consumer
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.RetryProperties
@@ -34,11 +35,12 @@ class KafkaEntityEventConsumer(
             .forEach { it.start() }
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun consumer(group: SubscriberGroup, listener: EntityEventListener): ConsumerBatchWorker<*> {
-        val kafkaConsumer = RaribleKafkaConsumer(
+        val kafkaConsumer: RaribleKafkaConsumer<LogRecordEvent<ReversedEthereumLogRecord>> = RaribleKafkaConsumer(
             clientId = "$clientIdPrefix.log-event-consumer.$service.$group",
             valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = ReversedEthereumLogRecord::class.java,
+            valueClass = LogRecordEvent::class.java,
             consumerGroup = group,
             defaultTopic = "$topicPrefix.$group",
             bootstrapServers = properties.brokerReplicaSet,
@@ -47,7 +49,7 @@ class KafkaEntityEventConsumer(
                 "max.poll.records" to properties.maxPollRecords.toString(),
                 "allow.auto.create.topics" to "false"
             )
-        )
+        ) as RaribleKafkaConsumer<LogRecordEvent<ReversedEthereumLogRecord>>
         return ConsumerBatchWorker(
             consumer = kafkaConsumer,
             properties = daemonProperties,
@@ -61,8 +63,8 @@ class KafkaEntityEventConsumer(
 
     private class BlockEventHandler(
         private val entityEventListener: EntityEventListener
-    ) : ConsumerBatchEventHandler<ReversedEthereumLogRecord> {
-        override suspend fun handle(event: List<ReversedEthereumLogRecord>) {
+    ) : ConsumerBatchEventHandler<LogRecordEvent<ReversedEthereumLogRecord>> {
+        override suspend fun handle(event: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
             entityEventListener.onEntityEvents(event)
         }
     }

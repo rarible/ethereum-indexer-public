@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.SubscriberGroup
@@ -20,9 +21,9 @@ class OwnershipEventReduceService(
 
     override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 
-    override suspend fun onEntityEvents(events: List<ReversedEthereumLogRecord>) {
+    override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         events
-            .flatMap { eventConverter.convert(it) }
+            .flatMap { eventConverter.convert(it.record) }
             .let { delegate.reduceAll(it) }
     }
 }
