@@ -6,11 +6,9 @@ import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.EntityEventListener
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.stereotype.Component
 
 @Component
-@ExperimentalCoroutinesApi
 class OwnershipEventReduceService(
     entityService: OwnershipUpdateService,
     entityIdService: OwnershipIdService,

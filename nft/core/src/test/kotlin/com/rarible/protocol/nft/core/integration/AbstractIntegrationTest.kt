@@ -9,8 +9,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.ItemHistoryDto
-import com.rarible.protocol.dto.ItemTransferDto
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.dto.NftCollectionEventTopicProvider
 import com.rarible.protocol.dto.NftCollectionMetaDto
@@ -25,10 +23,9 @@ import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -45,7 +42,6 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -82,7 +78,6 @@ import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
 
-@FlowPreview
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired

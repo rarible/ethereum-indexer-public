@@ -9,13 +9,11 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 
-@FlowPreview
 @IntegrationTest
 class HistoryRepositoryIt : AbstractIntegrationTest() {
 

@@ -20,7 +20,6 @@ import com.rarible.protocol.nft.listener.admin.FindNonParseableLogEntriesTaskHan
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -35,7 +34,6 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 /**
  * Test for [FindNonParseableLogEntriesTaskHandler].
  */
-@FlowPreview
 @IntegrationTest
 class FindNonParseableLogEntriesTaskHandlerTest : AbstractIntegrationTest() {
 

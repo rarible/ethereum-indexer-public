@@ -12,7 +12,6 @@ import com.rarible.ethereum.common.NewKeys
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -47,7 +46,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
 @DelicateCoroutinesApi
-@FlowPreview
 abstract class AbstractIntegrationTest {
     private lateinit var sender: MonoTransactionSender
 

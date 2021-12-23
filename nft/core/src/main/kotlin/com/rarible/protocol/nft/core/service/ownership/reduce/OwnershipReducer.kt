@@ -8,11 +8,9 @@ import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.lazy.LazyOwnershipReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.status.EventStatusOwnershipReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.status.OwnershipDeleteReducer
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.stereotype.Component
 
 @Component
-@ExperimentalCoroutinesApi
 class OwnershipReducer(
     eventStatusOwnershipReducer: EventStatusOwnershipReducer,
     lazyOwnershipReducer: LazyOwnershipReducer

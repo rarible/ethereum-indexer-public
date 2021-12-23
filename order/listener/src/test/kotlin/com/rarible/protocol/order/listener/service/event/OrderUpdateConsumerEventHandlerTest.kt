@@ -3,11 +3,15 @@ package com.rarible.protocol.order.listener.service.event
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderKind
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -19,7 +23,6 @@ import scalether.domain.AddressFactory
 import java.util.*
 import java.util.stream.Stream
 
-@FlowPreview
 @IntegrationTest
 internal class OrderUpdateConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Autowired

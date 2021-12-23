@@ -5,7 +5,6 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceVersion
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -14,7 +13,6 @@ import scalether.domain.Address
 
 @Primary
 @Component
-@ExperimentalCoroutinesApi
 class FeaturedItemReduceService(
     private val reducerV1: ItemReduceServiceV1,
     private val reducerV2: ItemReduceServiceV2,

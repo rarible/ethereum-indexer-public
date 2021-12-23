@@ -8,11 +8,9 @@ import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.ItemDeleteReducer
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.stereotype.Component
 
 @Component
-@ExperimentalCoroutinesApi
 class ItemReducer(
     eventStatusItemReducer: EventStatusItemReducer,
     lazyItemReducer: LazyItemReducer

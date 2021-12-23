@@ -5,7 +5,6 @@ import com.rarible.core.logging.RaribleMDCContext
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.nft.api.service.pending.PendingTransactionService
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -14,7 +13,6 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import com.rarible.ethereum.log.domain.TransactionDto as Transaction
 
-@ExperimentalCoroutinesApi
 @RestController
 class TransactionController(
     private val conversionService: ConversionService,

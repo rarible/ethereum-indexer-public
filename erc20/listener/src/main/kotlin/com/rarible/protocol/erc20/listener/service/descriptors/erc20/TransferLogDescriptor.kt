@@ -10,7 +10,6 @@ import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.descriptors.Erc20LogEventDescriptor
 import com.rarible.protocol.erc20.listener.service.token.Erc20RegistrationService
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,7 +19,6 @@ import scalether.domain.response.Log
 import java.util.*
 
 @Service
-@ExperimentalCoroutinesApi
 class TransferLogDescriptor(
     private val registrationService: Erc20RegistrationService,
     properties: Erc20ListenerProperties

@@ -15,7 +15,6 @@ import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -28,7 +27,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,7 +34,6 @@ import scalether.domain.Address
 import java.util.concurrent.CopyOnWriteArrayList
 
 @IntegrationTest
-@FlowPreview
 class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
 
     @Autowired

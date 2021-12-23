@@ -4,7 +4,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.erc721.rarible.user.CreateERC721RaribleUserEvent
@@ -14,12 +13,10 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
@@ -31,7 +28,6 @@ import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
 
 @IntegrationTest
-@FlowPreview
 class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
 
     @Autowired
@@ -131,4 +127,3 @@ class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
         value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))
     )
 }
-

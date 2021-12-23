@@ -27,7 +27,6 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
@@ -43,7 +42,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @IntegrationTest
-@FlowPreview
 class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
     @Test

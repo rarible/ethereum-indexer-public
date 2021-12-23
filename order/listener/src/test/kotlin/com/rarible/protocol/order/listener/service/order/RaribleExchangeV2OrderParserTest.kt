@@ -16,7 +16,6 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
-@FlowPreview
 @IntegrationTest
 internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
 

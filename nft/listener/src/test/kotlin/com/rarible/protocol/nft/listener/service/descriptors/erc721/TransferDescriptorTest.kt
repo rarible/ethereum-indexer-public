@@ -5,28 +5,27 @@ import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.MintDto
-import com.rarible.protocol.dto.NftActivitiesDto
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemType
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 class TransferDescriptorTest : AbstractIntegrationTest() {
 

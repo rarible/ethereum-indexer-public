@@ -8,8 +8,6 @@ import com.rarible.core.daemon.sequential.SequentialDaemonWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.telemetry.metrics.increment
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onCompletion
@@ -28,8 +26,6 @@ class ConsumerWorker<T>(
     private val backPressureSize = properties.backpressureSize
     private val downtimeLiveness = DowntimeLivenessHealthIndicator(errorDelay + WORKER_DOWN_TIME)
 
-    @FlowPreview
-    @ExperimentalCoroutinesApi
     override suspend fun handle() {
         try {
             consumer.receive()

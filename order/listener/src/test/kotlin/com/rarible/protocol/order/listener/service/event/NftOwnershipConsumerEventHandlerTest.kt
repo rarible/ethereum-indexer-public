@@ -15,14 +15,16 @@ import com.rarible.protocol.order.listener.data.createNftOwnershipDto
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 import java.time.Duration
 import java.util.*
 
-@FlowPreview
 @IntegrationTest
 internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() {
     @Test

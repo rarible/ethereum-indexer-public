@@ -5,16 +5,19 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AuctionActivityBidDto
 import com.rarible.protocol.dto.AuctionUpdateEventDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AuctionHistoryType
+import com.rarible.protocol.order.core.model.AuctionStatus
+import com.rarible.protocol.order.core.model.BidDataV1
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.BidV1
+import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test

@@ -33,7 +33,6 @@ import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -56,7 +55,6 @@ import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
-@FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender

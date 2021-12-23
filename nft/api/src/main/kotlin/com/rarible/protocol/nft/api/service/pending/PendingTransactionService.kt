@@ -35,7 +35,6 @@ import com.rarible.protocol.nft.core.service.BlockProcessor
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Service
@@ -48,7 +47,6 @@ import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken as Mintable
 import com.rarible.protocol.contracts.erc721.v4.MintableOwnableToken as MintableOwnableTokenV4
 
 @Service
-@ExperimentalCoroutinesApi
 class PendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,

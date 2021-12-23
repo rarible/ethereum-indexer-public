@@ -38,7 +38,6 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.integration.TestPropertiesConfiguration
 import com.rarible.protocol.order.listener.misc.sign
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
@@ -54,7 +53,6 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @IntegrationTest
-@FlowPreview
 class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
     private lateinit var exchangeV2: ExchangeV2

@@ -16,7 +16,6 @@ import com.rarible.protocol.order.listener.job.OrderStartEndCheckerJob
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -31,7 +30,6 @@ import scalether.domain.AddressFactory
 import java.time.Duration
 
 @IntegrationTest
-@FlowPreview
 internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
 
     @Autowired

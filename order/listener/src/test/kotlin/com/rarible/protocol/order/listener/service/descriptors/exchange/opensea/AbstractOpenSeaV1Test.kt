@@ -9,7 +9,6 @@ import com.rarible.protocol.contracts.common.wyvern.token.TestToken
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -22,7 +21,6 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
-@FlowPreview
 abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
     protected val logger = LoggerFactory.getLogger(javaClass)
 

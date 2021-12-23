@@ -7,11 +7,9 @@ import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.token.reduce.status.EventStatusTokenReducer
 import com.rarible.protocol.nft.core.service.token.reduce.status.TokenDeleteReducer
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.stereotype.Component
 
 @Component
-@ExperimentalCoroutinesApi
 class TokenReducer(
     eventStatusTokenReducer: EventStatusTokenReducer,
 ) : Reducer<TokenEvent, Token> {

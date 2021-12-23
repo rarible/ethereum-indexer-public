@@ -3,13 +3,11 @@ package com.rarible.protocol.block.scanner
 import com.rarible.protocol.block.scanner.test.AbstractIntegrationTest
 import com.rarible.protocol.block.scanner.test.IntegrationTest
 import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 @DelicateCoroutinesApi
 internal class BlockIndexerApplicationFt : AbstractIntegrationTest() {
@@ -23,4 +21,3 @@ internal class BlockIndexerApplicationFt : AbstractIntegrationTest() {
         }
     }
 }
-

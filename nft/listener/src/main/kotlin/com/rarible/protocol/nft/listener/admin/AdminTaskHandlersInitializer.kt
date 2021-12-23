@@ -8,8 +8,6 @@ import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam.Co
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.ADMIN_REINDEX_TOKEN_ITEMS
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.ADMIN_REINDEX_TOKEN
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
@@ -18,8 +16,6 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
-@ExperimentalCoroutinesApi
-@FlowPreview
 @Profile("!integration")
 class AdminTaskHandlersInitializer(
     private val taskService: TaskService,

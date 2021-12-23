@@ -22,7 +22,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
@@ -45,7 +44,6 @@ import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.response.TransactionReceipt
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
@@ -56,7 +54,6 @@ import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 import kotlin.coroutines.EmptyCoroutineContext
 
-@FlowPreview
 abstract class AbstractIntegrationTest {
     private lateinit var sender: MonoTransactionSender
 

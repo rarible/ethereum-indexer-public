@@ -3,14 +3,12 @@ package com.rarible.protocol.nft.core.repository
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.TokenId
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-@FlowPreview
 @IntegrationTest
 class TokenIdRepositoryIt : AbstractIntegrationTest() {
 

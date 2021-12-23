@@ -5,7 +5,6 @@ import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Ownership
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 
-@FlowPreview
 @IntegrationTest
 internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 

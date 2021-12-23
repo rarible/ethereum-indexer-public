@@ -5,12 +5,10 @@ import com.rarible.protocol.dto.AuctionActivityOpenDto
 import com.rarible.protocol.dto.AuctionUpdateEventDto
 import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-@FlowPreview
 @IntegrationTest
 internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
@@ -50,4 +48,3 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
         }
     }
 }
-

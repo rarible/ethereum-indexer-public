@@ -5,13 +5,16 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.CompositeEvent
+import com.rarible.protocol.nft.core.model.HistoryLog
+import com.rarible.protocol.nft.core.model.ItemHistory
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.composit.CompositeFullReduceService
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
@@ -23,7 +26,6 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
 @Component
-@ExperimentalCoroutinesApi
 class ItemReduceServiceV2(
     private val skipTokens: ReduceSkipTokens,
     private val compositeFullReduceService: CompositeFullReduceService,

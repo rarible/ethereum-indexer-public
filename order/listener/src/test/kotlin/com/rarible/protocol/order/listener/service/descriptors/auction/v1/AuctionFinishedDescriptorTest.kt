@@ -3,17 +3,15 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AuctionActivityFinishDto
-import com.rarible.protocol.dto.AuctionActivityOpenDto
 import com.rarible.protocol.dto.AuctionUpdateEventDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AuctionFinished
+import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-@FlowPreview
 @IntegrationTest
 internal class AuctionFinishedDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test

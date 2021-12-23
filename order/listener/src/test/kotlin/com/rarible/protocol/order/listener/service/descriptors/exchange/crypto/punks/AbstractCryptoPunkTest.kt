@@ -6,7 +6,6 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import java.time.Instant
 import java.time.temporal.ChronoField
 
-@FlowPreview
 abstract class AbstractCryptoPunkTest : AbstractIntegrationTest() {
 
     @Autowired

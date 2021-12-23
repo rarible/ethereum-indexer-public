@@ -27,7 +27,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -39,7 +38,6 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
-@ExperimentalCoroutinesApi
 @Service
 @CaptureSpan(type = SpanType.APP)
 class ItemReduceServiceV1(

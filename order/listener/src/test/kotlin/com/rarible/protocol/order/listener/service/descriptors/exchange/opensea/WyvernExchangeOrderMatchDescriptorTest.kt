@@ -5,14 +5,28 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.Transfer
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.sign
 import io.daonomic.rpc.domain.Binary
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,7 +38,6 @@ import scalether.domain.Address
 import scalether.domain.request.Transaction
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() {
     @Autowired
@@ -286,4 +299,3 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         }
     }
 }
-

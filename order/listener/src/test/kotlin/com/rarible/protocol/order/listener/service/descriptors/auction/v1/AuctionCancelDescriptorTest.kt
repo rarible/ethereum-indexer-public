@@ -2,20 +2,16 @@ package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.AuctionActivityCancelDto
-import com.rarible.protocol.dto.AuctionActivityFinishDto
 import com.rarible.protocol.dto.AuctionUpdateEventDto
 import com.rarible.protocol.order.core.model.AuctionCancelled
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
-import java.time.Duration
 
-@FlowPreview
 @IntegrationTest
 internal class AuctionCancelDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test

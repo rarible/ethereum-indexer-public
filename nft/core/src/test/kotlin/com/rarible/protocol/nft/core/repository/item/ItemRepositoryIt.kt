@@ -5,12 +5,15 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.data.createItem
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.bson.*
+import org.bson.BsonArray
+import org.bson.BsonDocument
+import org.bson.BsonInt64
+import org.bson.BsonString
+import org.bson.Document
 import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.findOne
 import org.springframework.data.mongodb.core.query.Query
@@ -19,7 +22,6 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.updateFirst
 import scalether.domain.AddressFactory
 
-@FlowPreview
 @IntegrationTest
 internal class ItemRepositoryIt : AbstractIntegrationTest() {
 

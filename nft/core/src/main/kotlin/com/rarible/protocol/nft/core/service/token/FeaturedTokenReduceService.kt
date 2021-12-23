@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.token
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -11,7 +10,6 @@ import scalether.domain.Address
 
 @Primary
 @Component
-@ExperimentalCoroutinesApi
 class FeaturedTokenReduceService(
     private val reducerV1: TokenReduceServiceV1,
     private val reducerV2: TokenReduceServiceV2,

@@ -5,16 +5,12 @@ import com.rarible.protocol.order.core.repository.order.OpenSeaOrderRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 @IntegrationTest
 internal class LoadOpenSeaOrdersTaskHandlerTest : AbstractIntegrationTest() {
     @Autowired

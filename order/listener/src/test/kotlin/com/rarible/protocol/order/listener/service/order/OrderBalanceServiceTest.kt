@@ -20,7 +20,6 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -28,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 
 @IntegrationTest
-@FlowPreview
 class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Autowired

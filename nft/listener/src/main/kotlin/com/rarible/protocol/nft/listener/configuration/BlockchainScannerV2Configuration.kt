@@ -12,14 +12,10 @@ import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.listener.NftListenerApplication
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-@FlowPreview
-@ExperimentalCoroutinesApi
 @Configuration
 @ConditionalOnProperty(name = ["common.feature-flags.scanner-version"], havingValue = "V2")
 @EnableLogListeners(scanPackage = [NftListenerApplication::class])

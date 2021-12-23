@@ -28,7 +28,6 @@ import com.rarible.protocol.order.core.service.SignUtils
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -46,7 +45,6 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 @IntegrationTest
-@FlowPreview
 class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
     @Autowired
     private lateinit var prepareTxService: PrepareTxService
@@ -59,7 +57,7 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             MonoSimpleNonceProvider(ethereum),
             privateKey,
             BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+            { Mono.just(BigInteger.ZERO) }
         )
 
         val buyerPrivateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
@@ -68,7 +66,7 @@ class ExchangeBuyDescriptorTest : AbstractIntegrationTest() {
             MonoSimpleNonceProvider(ethereum),
             buyerPrivateKey,
             BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
+            { Mono.just(BigInteger.ZERO) }
         )
 
         val beneficiary = Address.THREE()

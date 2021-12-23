@@ -8,11 +8,16 @@ import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.test.crypto.punks.PunkTransferEvent
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.TransferDto
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.ItemType
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
@@ -27,7 +32,6 @@ import scalether.domain.request.Transaction
 import java.math.BigInteger
 
 @IntegrationTest
-@FlowPreview
 class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
 
     @ParameterizedTest
@@ -226,4 +230,3 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
 
     private fun BigInteger.ethToWei() = this.multiply(BigInteger.TEN.pow(18))
 }
-

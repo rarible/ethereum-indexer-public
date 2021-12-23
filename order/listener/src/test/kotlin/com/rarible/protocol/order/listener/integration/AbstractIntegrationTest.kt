@@ -36,7 +36,6 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -79,7 +78,6 @@ import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
-@FlowPreview
 abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     private val logger = LoggerFactory.getLogger(javaClass)
     protected lateinit var sender: MonoTransactionSender

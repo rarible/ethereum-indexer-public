@@ -11,12 +11,22 @@ import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemCreators
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.ItemRoyalty
+import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.assertj.core.api.Assertions.assertThat
@@ -32,9 +42,7 @@ import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.util.stream.Stream
 
-@FlowPreview
 @IntegrationTest
-@ExperimentalCoroutinesApi
 internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
