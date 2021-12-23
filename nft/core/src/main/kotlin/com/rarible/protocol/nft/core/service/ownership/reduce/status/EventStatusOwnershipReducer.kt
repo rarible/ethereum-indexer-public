@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.status
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
@@ -20,11 +20,11 @@ class EventStatusOwnershipReducer(
 
     override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
         return when (event.log.status) {
-            Log.Status.CONFIRMED -> forwardOwnershipReducer.reduce(entity, event)
-            Log.Status.PENDING -> pendingOwnershipReducer.reduce(entity, event)
-            Log.Status.REVERTED -> reversedOwnershipReducer.reduce(entity, event)
-            Log.Status.INACTIVE,
-            Log.Status.DROPPED -> inactiveOwnershipReducer.reduce(entity, event)
+            EthereumLogStatus.CONFIRMED -> forwardOwnershipReducer.reduce(entity, event)
+            EthereumLogStatus.PENDING -> pendingOwnershipReducer.reduce(entity, event)
+            EthereumLogStatus.REVERTED -> reversedOwnershipReducer.reduce(entity, event)
+            EthereumLogStatus.INACTIVE,
+            EthereumLogStatus.DROPPED -> inactiveOwnershipReducer.reduce(entity, event)
         }
     }
 }

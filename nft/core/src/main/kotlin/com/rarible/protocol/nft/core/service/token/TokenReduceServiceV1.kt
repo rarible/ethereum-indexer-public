@@ -103,4 +103,3 @@ class TokenReduceServiceV1(
         val logger: Logger = LoggerFactory.getLogger(TokenReduceService::class.java)
     }
 }
-

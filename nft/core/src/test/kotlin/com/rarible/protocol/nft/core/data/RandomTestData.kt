@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.data
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -24,7 +24,6 @@ import scalether.domain.AddressFactory
 import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.ThreadLocalRandom
-import kotlin.math.min
 
 fun createRandomItemId(): ItemId {
     return ItemId(randomAddress(), EthUInt256.of(randomBigInt()))
@@ -37,7 +36,7 @@ fun createRandomItem(): Item {
 fun createRandomEthereumLog(): EthereumLog =
     EthereumLog(
         transactionHash = randomWord(),
-        status = Log.Status.values().random(),
+        status = EthereumLogStatus.values().random(),
         address = randomAddress(),
         topic = Word.apply(randomWord()),
         blockHash = Word.apply(randomWord()),
@@ -50,7 +49,7 @@ fun createRandomEthereumLog(): EthereumLog =
     )
 
 fun EthereumLog.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -64,7 +63,7 @@ fun EthereumLog.withNewValues(
 )
 
 fun ItemEvent.ItemMintEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -72,7 +71,7 @@ fun ItemEvent.ItemMintEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemBurnEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -80,7 +79,7 @@ fun ItemEvent.ItemBurnEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemTransferEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -88,17 +87,17 @@ fun ItemEvent.ItemTransferEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null
 ) = copy(log = log.withNewValues(status, createdAt))
 
 fun ItemEvent.LazyItemMintEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null
 ) = copy(log = log.withNewValues(status, createdAt))
 
 fun ItemEvent.LazyItemBurnEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null
 ) = copy(log = log.withNewValues(status, createdAt))
 
@@ -208,13 +207,13 @@ fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEve
 }
 
 fun OwnershipEvent.LazyTransferToEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber))
 
 fun OwnershipEvent.TransferFromEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,
@@ -222,7 +221,7 @@ fun OwnershipEvent.TransferFromEvent.withNewValues(
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun OwnershipEvent.TransferToEvent.withNewValues(
-    status: Log.Status? = null,
+    status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null,
     logIndex: Int? = null,

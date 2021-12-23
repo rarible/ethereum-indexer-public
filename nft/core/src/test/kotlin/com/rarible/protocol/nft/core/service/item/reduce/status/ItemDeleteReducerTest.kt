@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
 import com.rarible.protocol.nft.core.data.createRandomItem
@@ -20,7 +20,7 @@ internal class ItemDeleteReducerTest {
             supply = EthUInt256.ZERO,
             lazySupply = EthUInt256.ZERO,
             revertableEvents = listOf(
-                createRandomBurnItemEvent().withNewValues(status = Log.Status.CONFIRMED)
+                createRandomBurnItemEvent().withNewValues(status = EthereumLogStatus.CONFIRMED)
             )
         )
         val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
@@ -34,7 +34,7 @@ internal class ItemDeleteReducerTest {
             supply = EthUInt256.ZERO,
             lazySupply = EthUInt256.ZERO,
             revertableEvents = listOf(
-                createRandomBurnItemEvent().withNewValues(status = Log.Status.PENDING)
+                createRandomBurnItemEvent().withNewValues(status = EthereumLogStatus.PENDING)
             )
         )
         val reducedItem = reducer.reduce(item, createRandomMintItemEvent())

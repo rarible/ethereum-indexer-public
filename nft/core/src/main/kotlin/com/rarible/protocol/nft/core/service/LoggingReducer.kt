@@ -10,8 +10,14 @@ class LoggingReducer<Id, Event : EthereumEntityEvent<Event>, E : Entity<Id, Even
         val log = event.log
 
         logger.info(
-            "event: {}, status: {}, block: {}, logEvent: {}, minorLogIndex: {}, id: {}",
-            event::class.java.simpleName, log.status, log.blockNumber, log.logIndex, log.minorLogIndex, entity.id
+            "event: {}, status: {}, block: {}, logIndex: {}, minorLogIndex: {}, index: {}, id: {}",
+            event::class.java.simpleName,
+            log.status,
+            log.blockNumber,
+            log.logIndex,
+            log.minorLogIndex,
+            log.index,
+            entity.id
         )
         return entity
     }

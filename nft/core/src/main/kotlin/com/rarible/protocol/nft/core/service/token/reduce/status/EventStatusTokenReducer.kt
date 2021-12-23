@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.token.reduce.status
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
@@ -20,11 +20,11 @@ class EventStatusTokenReducer(
 
     override suspend fun reduce(entity: Token, event: TokenEvent): Token {
         return when (event.log.status) {
-            Log.Status.CONFIRMED -> forwardChainTokenReducer.reduce(entity, event)
-            Log.Status.PENDING -> pendingChainTokenReducer.reduce(entity, event)
-            Log.Status.REVERTED -> reversedChainTokenReducer.reduce(entity, event)
-            Log.Status.INACTIVE,
-            Log.Status.DROPPED -> inactiveChainTokenReducer.reduce(entity, event)
+            EthereumLogStatus.CONFIRMED -> forwardChainTokenReducer.reduce(entity, event)
+            EthereumLogStatus.PENDING -> pendingChainTokenReducer.reduce(entity, event)
+            EthereumLogStatus.REVERTED -> reversedChainTokenReducer.reduce(entity, event)
+            EthereumLogStatus.INACTIVE,
+            EthereumLogStatus.DROPPED -> inactiveChainTokenReducer.reduce(entity, event)
         }
     }
 }

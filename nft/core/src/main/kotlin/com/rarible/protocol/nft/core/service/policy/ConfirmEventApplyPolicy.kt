@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.policy
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.entity.reducer.service.EventApplyPolicy
 import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
@@ -11,10 +11,10 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
     override fun reduce(events: List<T>, event: T): List<T> {
         val newEventList = (events + event)
         val lastNotRevertableEvent = newEventList.lastOrNull { current ->
-            current.log.status == Log.Status.CONFIRMED && isNotReverted(incomeEvent = event, current = current)
+            current.log.status == EthereumLogStatus.CONFIRMED && isNotReverted(incomeEvent = event, current = current)
         }
         return newEventList.filter { current ->
-            current.log.status != Log.Status.CONFIRMED || current == lastNotRevertableEvent || isReverted(
+            current.log.status != EthereumLogStatus.CONFIRMED || current == lastNotRevertableEvent || isReverted(
                 incomeEvent = event,
                 current = current
             )
@@ -22,7 +22,7 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
     }
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
-        val lastAppliedEvent = events.lastOrNull { it.log.status == Log.Status.CONFIRMED }
+        val lastAppliedEvent = events.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }
         return !(lastAppliedEvent == null || lastAppliedEvent < event)
     }
 

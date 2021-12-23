@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce.status
 
-import com.rarible.blockchain.scanner.framework.model.Log
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
@@ -30,7 +30,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle confirm event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.CONFIRMED)) }
+            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.CONFIRMED)) }
         val item = createRandomItem()
 
         coEvery { forwardChainItemReducer.reduce(item, event) } returns item
@@ -46,7 +46,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle revert event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.REVERTED)) }
+            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.REVERTED)) }
         val item = createRandomItem()
 
         coEvery { reversedChainItemReducer.reduce(item, event) } returns item
@@ -62,7 +62,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle pending event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.PENDING)) }
+            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.PENDING)) }
         val item = createRandomItem()
 
         coEvery { pendingChainItemReducer.reduce(item, event) } returns item
@@ -78,7 +78,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle inactive event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.INACTIVE)) }
+            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.INACTIVE)) }
         val item = createRandomItem()
 
         coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
@@ -94,7 +94,7 @@ internal class EventStatusItemReducerTest {
     @Test
     fun `should handle drop event`() = runBlocking<Unit> {
         val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = Log.Status.DROPPED)) }
+            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.DROPPED)) }
         val item = createRandomItem()
 
         coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
