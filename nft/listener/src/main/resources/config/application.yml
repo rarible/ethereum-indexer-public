@@ -68,6 +68,7 @@ blockchain:
     kafka:
       maxPollRecords: 100
     ethereum:
+      blockchain: ${common.blockchain}
       block-service: "scanner"
       log-service: "nft"
       optimisticLockRetries: 3
