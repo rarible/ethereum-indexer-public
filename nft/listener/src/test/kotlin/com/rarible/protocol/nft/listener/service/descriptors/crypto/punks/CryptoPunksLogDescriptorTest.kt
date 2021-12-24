@@ -8,7 +8,7 @@ import com.rarible.protocol.contracts.test.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.test.crypto.punks.PunkTransferEvent
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.TransferDto
-import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.Ownership
@@ -19,10 +19,11 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -57,11 +58,11 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         }
 
         Wait.waitAssert {
-            val punkItems = mongo.findAll<Item>().collectList().awaitFirst()
-            assertEquals(1, punkItems.size)
+            val itemId = ItemId(market.address(), EthUInt256(punkIndex))
+            val punkItem = itemRepository.findById(itemId).awaitFirstOrNull()
+            assertThat(punkItem).isNotNull
 
-            val punkItem = punkItems.single()
-            assertEquals(market.address(), punkItem.token)
+            assertEquals(market.address(), punkItem!!.token)
             assertEquals(punkIndex, punkItem.tokenId.value)
             assertEquals(EthUInt256.of(1), punkItem.supply)
 

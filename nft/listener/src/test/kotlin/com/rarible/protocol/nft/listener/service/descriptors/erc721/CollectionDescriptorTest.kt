@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -18,7 +19,6 @@ import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
@@ -36,9 +36,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         //todo move to test contracts
         val token = poller.waitForTransaction(
@@ -55,10 +54,10 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         assertThat(token.success()).isTrue()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.contractAddress()).awaitFirst()
+            val savedToken = tokenRepository.findById(token.contractAddress()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
 
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
+            assertEquals(savedToken!!.status, ContractStatus.CONFIRMED)
             assertEquals(savedToken.name, "Test")
             assertEquals(savedToken.owner, address)
             assertEquals(savedToken.symbol, "TST")
@@ -75,18 +74,17 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val token = ERC721RaribleUserMinimal.deployAndWait(userSender, poller).awaitFirst()
         token.__ERC721RaribleUser_init("Test", "TestSymbol", "BASE", "URI", arrayOf()).execute().verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.address()).awaitFirst()
+            val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
 
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
+            assertEquals(savedToken!!.status, ContractStatus.CONFIRMED)
             assertEquals(savedToken.name, "Test")
             assertEquals(savedToken.owner, address)
             assertEquals(savedToken.symbol, "TestSymbol")
@@ -110,10 +108,10 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         token.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.address()).awaitFirst()
+            val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
 
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
+            assertEquals(savedToken!!.status, ContractStatus.CONFIRMED)
             assertEquals(savedToken.name, "Test")
             assertEquals(savedToken.owner, address)
             assertEquals(savedToken.symbol, "TestSymbol")

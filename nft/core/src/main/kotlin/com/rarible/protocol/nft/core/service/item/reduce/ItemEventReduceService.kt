@@ -15,7 +15,8 @@ class ItemEventReduceService(
     entityService: ItemUpdateService,
     entityIdService: ItemIdService,
     templateProvider: ItemTemplateProvider,
-    reducer: ItemReducer
+    reducer: ItemReducer,
+    private val onNftItemLogEventListener: OnNftItemLogEventListener
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
@@ -25,6 +26,7 @@ class ItemEventReduceService(
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         events
+            .onEach { onNftItemLogEventListener.onLogEvent(it) }
             .mapNotNull { ItemEventConverter.convert(it.record) }
             .let { delegate.reduceAll(it) }
     }

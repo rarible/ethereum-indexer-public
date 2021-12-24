@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainClient
 import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.mono.WebClientTransport
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
@@ -24,6 +25,7 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
+    @ConditionalOnProperty(name = ["common.feature-flags.scanner-version"], havingValue = "V2")
     fun testEthereumBlockchainClient(
         blockchainClient: EthereumBlockchainClient
     ): EthereumBlockchainClient {

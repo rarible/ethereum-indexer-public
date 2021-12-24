@@ -5,21 +5,19 @@ import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.MintDto
-import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.springframework.data.mongodb.core.findAll
-import org.springframework.data.mongodb.core.findById
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoSigningTransactionSender
@@ -42,7 +40,8 @@ class TransferDescriptorTest : AbstractIntegrationTest() {
         ) { Mono.just(BigInteger.ZERO) }
 
         val token = TestERC721.deployAndWait(userSender, poller, "TEST", "TST").awaitFirst()
-        token.mint(userSender.from(), BigInteger.ONE,"").execute().verifySuccess()
+        val itemId = ItemId(token.address(), EthUInt256(BigInteger.ONE))
+        token.mint(userSender.from(), itemId.tokenId.value,"").execute().verifySuccess()
 
         Wait.waitAssert {
             val transfers = nftItemHistoryRepository
@@ -53,26 +52,22 @@ class TransferDescriptorTest : AbstractIntegrationTest() {
             assertThat(transfers).hasSize(1)
         }
         Wait.waitAssert {
-            val savedNftItems = mongo.findAll<Item>().collectList().awaitFirst()
-            assertThat(savedNftItems).hasSize(1)
+            val savedNftItem = itemRepository.findById(itemId).awaitFirstOrNull()
+            assertThat(savedNftItem).isNotNull
 
-            val savedNftItem = savedNftItems.single()
-            assertThat(savedNftItem.token).isEqualTo(token.address())
+            assertThat(savedNftItem!!.token).isEqualTo(token.address())
             assertThat(savedNftItem.supply).isEqualTo(EthUInt256.of(1))
 
-            val savedNftTokens = tokenRepository.findAll().collectList().awaitFirst()
-            assertThat(savedNftTokens).hasSize(1)
+            val savedNft = tokenRepository.findById(itemId.token).awaitFirstOrNull()
+            assertThat(savedNft).isNotNull
 
-            val savedNft = savedNftTokens.single()
-            assertThat(savedNft.id).isEqualTo(token.address())
+            assertThat(savedNft!!.id).isEqualTo(token.address())
             assertThat(savedNft.standard).isEqualTo(TokenStandard.ERC721)
+            assertThat(savedNft.features)
+                .contains(TokenFeature.APPROVE_FOR_ALL)
+                .doesNotContain(TokenFeature.MINT_AND_TRANSFER)
 
             checkActivityWasPublished(savedNftItem.token, savedNftItem.tokenId, TransferEvent.id(), MintDto::class.java)
         }
-
-        val savedToken = mongo.findById<Token>(token.address()).awaitFirst()
-        assertThat(savedToken.features)
-            .contains(TokenFeature.APPROVE_FOR_ALL)
-            .doesNotContain(TokenFeature.MINT_AND_TRANSFER)
     }
 }

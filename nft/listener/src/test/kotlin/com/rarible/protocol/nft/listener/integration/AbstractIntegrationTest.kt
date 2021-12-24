@@ -15,6 +15,7 @@ import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.ScannerVersion
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -91,7 +92,7 @@ abstract class AbstractIntegrationTest {
     private lateinit var application: ApplicationEnvironmentInfo
 
     @Autowired
-    private lateinit var featureFlags: FeatureFlags
+    protected lateinit var featureFlags: FeatureFlags
 
     private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
 
@@ -208,6 +209,11 @@ abstract class AbstractIntegrationTest {
 
     fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
         featureFlags.reduceVersion = version
-        runBlocking(EmptyCoroutineContext, block)
+
+        if (featureFlags.scannerVersion == ScannerVersion.V1 ||
+            (featureFlags.scannerVersion == ScannerVersion.V2 && featureFlags.reduceVersion == ReduceVersion.V2)
+        ) {
+            runBlocking(EmptyCoroutineContext, block)
+        }
     }
 }

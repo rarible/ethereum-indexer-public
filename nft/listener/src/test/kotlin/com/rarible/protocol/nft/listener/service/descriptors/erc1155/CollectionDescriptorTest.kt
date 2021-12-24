@@ -12,10 +12,8 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
@@ -47,8 +45,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         token.__ERC1155RaribleUser_init("Test", "TestSymbol", "BASE", "URI", arrayOf()).execute().verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
             val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
             assertThat(savedToken).isEqualToIgnoringGivenFields(
                 Token(
                     id = token.address(),
@@ -92,8 +90,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         token.__ERC1155Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
             val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
             assertThat(savedToken).isEqualToIgnoringGivenFields(
                 Token(
                     id = token.address(),

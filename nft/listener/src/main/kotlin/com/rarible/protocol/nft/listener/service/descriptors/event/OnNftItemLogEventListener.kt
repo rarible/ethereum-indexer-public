@@ -10,7 +10,7 @@ import kotlinx.coroutines.reactor.mono
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
-@Component
+@Component("LegacyOnNftItemLogEventListener")
 class OnNftItemLogEventListener(
     private val eventPublisher: ProtocolNftEventPublisher
 ) : OnLogEventListener {

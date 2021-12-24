@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.protocol.dto.BurnDto
 import com.rarible.protocol.dto.MintDto
@@ -7,13 +8,26 @@ import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.daonomic.rpc.domain.Word
-import org.bson.types.ObjectId
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
+    fun convert(logEvent: ReversedEthereumLogRecord): NftActivityDto? {
+        val transactionHash = logEvent.transactionHash
+        val blockHash = logEvent.blockHash ?: DEFAULT_BLOCK_HASH
+        val blockNumber = logEvent.blockNumber ?: DEFAULT_BLOCK_NUMBER
+        val logIndex = logEvent.logIndex ?: DEFAULT_LOG_INDEX
+
+        return when(val eventData = logEvent.data) {
+            is ItemTransfer -> {
+                toDto(eventData, logEvent.id, Word.apply(transactionHash), blockHash, blockNumber, logIndex)
+            }
+            else -> null
+        }
+    }
+
     override fun convert(logEvent: LogEvent): NftActivityDto? {
         val transactionHash = logEvent.transactionHash
         val blockHash = logEvent.blockHash ?: DEFAULT_BLOCK_HASH
@@ -22,7 +36,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
 
             return when(val eventData = logEvent.data) {
             is ItemTransfer -> {
-                toDto(eventData, logEvent.id, transactionHash, blockHash, blockNumber, logIndex)
+                toDto(eventData, logEvent.id.toString(), transactionHash, blockHash, blockNumber, logIndex)
             }
             else -> null
         }
@@ -30,7 +44,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
 
     private fun toDto(
         itemTransfer: ItemTransfer,
-        id: ObjectId,
+        id: String,
         transactionHash: Word,
         blockHash: Word,
         blockNumber: Long,
@@ -39,7 +53,7 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
         return when {
             itemTransfer.from == Address.ZERO() -> {
                 MintDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.owner,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
