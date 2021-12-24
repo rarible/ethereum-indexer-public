@@ -32,7 +32,7 @@
         <rarible.ethereum.version>1.4.5</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.0</rarible.ethereum.contracts.version>
         <rarible.core.version>2.0.11</rarible.core.version>
-        <rarible.blockchain.scanner.version>2.1.7</rarible.blockchain.scanner.version>
+        <rarible.blockchain.scanner.version>2.1.8</rarible.blockchain.scanner.version>
 
         <rarible.protocol.ethereum.version>1.21.6</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.19.0</rarible.protocol.currency.version>
