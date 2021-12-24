@@ -41,10 +41,10 @@ blockchain:
       maxPollRecords: 100
     ethereum:
       blockchain: ${scanner.blockchain}
-      service: "scanner"
+      block-service: "scanner"
       optimisticLockRetries: 3
       scan:
-        event-consume:
+        log-consume:
           enabled: false
       retryPolicy:
         scan:

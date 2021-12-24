@@ -155,7 +155,7 @@ abstract class AbstractIntegrationTest {
             consumerGroup = "test-group-block-event",
             valueDeserializerClass = JsonDeserializer::class.java,
             valueClass = BlockEvent::class.java,
-            defaultTopic = getBlockTopic(application.name, scannerProperties.service, scannerProperties.blockchain),
+            defaultTopic = getBlockTopic(application.name, scannerProperties.blockService, scannerProperties.blockchain),
             bootstrapServers = kafkaContainer.kafkaBoostrapServers(),
             offsetResetStrategy = OffsetResetStrategy.LATEST
         )
