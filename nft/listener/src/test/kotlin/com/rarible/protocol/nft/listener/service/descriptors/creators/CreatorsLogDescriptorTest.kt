@@ -8,11 +8,11 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -23,7 +23,6 @@ import scala.Tuple2
 import scala.Tuple5
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.util.Hex
@@ -32,8 +31,9 @@ import java.math.BigInteger
 @IntegrationTest
 class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
 
-    @Test
-    fun `should handle mint event`() = runBlocking {
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should handle mint event`(version: ReduceVersion) = withReducer(version) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -41,9 +41,8 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         val token = ERC721Rarible.deployAndWait(userSender, poller).awaitFirst()
         token.__ERC721Rarible_init("Test", "TestSymbol", "BASE", "URI").execute().verifySuccess()
@@ -70,10 +69,10 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
             .verifySuccess()
 
         Wait.waitAssert {
-            assertThat(tokenRepository.count().awaitFirst()).isEqualTo(1)
-            val savedToken = tokenRepository.findById(token.address()).awaitFirst()
+            val savedToken = tokenRepository.findById(token.address()).awaitFirstOrNull()
+            assertThat(savedToken).isNotNull
 
-            assertEquals(savedToken.status, ContractStatus.CONFIRMED)
+            assertEquals(savedToken!!.status, ContractStatus.CONFIRMED)
             assertEquals(savedToken.name, "Test")
             assertEquals(savedToken.owner, address)
             assertEquals(savedToken.symbol, "TestSymbol")

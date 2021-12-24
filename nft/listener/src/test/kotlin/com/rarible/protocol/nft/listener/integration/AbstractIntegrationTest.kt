@@ -30,6 +30,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions

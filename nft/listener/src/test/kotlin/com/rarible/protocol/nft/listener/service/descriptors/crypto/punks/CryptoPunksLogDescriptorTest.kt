@@ -66,11 +66,10 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
             assertEquals(punkIndex, punkItem.tokenId.value)
             assertEquals(EthUInt256.of(1), punkItem.supply)
 
-            val savedNftTokens = tokenRepository.findAll().collectList().awaitFirst()
-            assertEquals(1, savedNftTokens.size)
+            val savedNft = tokenRepository.findById(market.address()).awaitFirstOrNull()
+            assertThat(savedNft).isNotNull
 
-            val savedNft = savedNftTokens.single()
-            assertEquals(market.address(), savedNft.id)
+            assertEquals(market.address(), savedNft!!.id)
             assertEquals(TokenStandard.CRYPTO_PUNKS, savedNft.standard)
 
             checkActivityWasPublished(punkItem.token, punkItem.tokenId, AssignEvent.id(), MintDto::class.java)

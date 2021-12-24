@@ -19,7 +19,9 @@ import java.time.Instant
 
 @Component
 @CaptureSpan(type = SpanType.EVENT)
-class CreatorsLogDescriptor(properties: NftListenerProperties) : ItemHistoryLogEventDescriptor<ItemCreators> {
+class CreatorsLogDescriptor(
+    properties: NftListenerProperties
+) : ItemHistoryLogEventDescriptor<ItemCreators> {
     private val skipContracts = properties.skipContracts.map { Address.apply(it) }
 
     override val topic: Word = CreatorsEvent.id()
