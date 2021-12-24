@@ -2,10 +2,10 @@ package com.rarible.protocol.nft.listener.configuration
 
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
+import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
 import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
 import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.application.ApplicationInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -23,9 +23,9 @@ import org.springframework.context.annotation.Configuration
 class BlockchainScannerV2Configuration(
     private val nftIndexerProperties: NftIndexerProperties,
     private val nftListenerProperties: NftListenerProperties,
+    private val ethereumScannerProperties: EthereumScannerProperties,
     private val meterRegistry: MeterRegistry,
-    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo,
-    private val applicationInfo: ApplicationInfo
+    private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     @Bean
     fun reconciliationFromProvider(): ReconciliationFromProvider {
@@ -47,8 +47,8 @@ class BlockchainScannerV2Configuration(
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = nftIndexerProperties.blockchain.value,
-            service = applicationInfo.serviceName
-        ).apply { start(entityEventListener.associateBy { it.groupId }) }
+            service = ethereumScannerProperties.service
+        ).apply { start(entityEventListener.associateBy { it.id }) }
     }
 
     //TODO: Remove this workaround after full migrate to blockchain scanner v2

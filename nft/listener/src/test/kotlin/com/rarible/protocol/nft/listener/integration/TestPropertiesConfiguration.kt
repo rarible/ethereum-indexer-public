@@ -1,9 +1,12 @@
 package com.rarible.protocol.nft.listener.integration
 
+import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainClient
+import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.mono.WebClientTransport
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import scalether.core.MonoEthereum
 import scalether.transaction.MonoTransactionPoller
 
@@ -17,5 +20,13 @@ class TestPropertiesConfiguration {
     @Bean
     fun poller(ethereum: MonoEthereum): MonoTransactionPoller {
         return MonoTransactionPoller(ethereum)
+    }
+
+    @Bean
+    @Primary
+    fun testEthereumBlockchainClient(
+        blockchainClient: EthereumBlockchainClient
+    ): EthereumBlockchainClient {
+        return TestEthereumBlockchainClient(blockchainClient)
     }
 }

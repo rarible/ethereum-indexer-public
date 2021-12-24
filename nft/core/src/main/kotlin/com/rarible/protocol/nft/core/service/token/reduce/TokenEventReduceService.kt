@@ -4,6 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.converters.model.TokenEventConverter
+import com.rarible.protocol.nft.core.model.EntityEventListeners
 import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.EntityEventListener
@@ -17,6 +18,8 @@ class TokenEventReduceService(
     reducer: TokenReducer
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
+
+    override val id: String = EntityEventListeners.TOKEN_HISTORY_LISTENER
 
     override val groupId: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
 

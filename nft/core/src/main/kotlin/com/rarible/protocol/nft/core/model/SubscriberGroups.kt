@@ -4,3 +4,4 @@ object SubscriberGroups {
     const val ITEM_HISTORY = "item-history"
     const val TOKEN_HISTORY = "token-history"
 }
+
