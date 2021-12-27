@@ -1,12 +1,9 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.contracts.erc721.fakeCreator.FakeCreatorERC721
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
@@ -30,8 +27,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
-import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.assertj.core.api.Assertions.assertThat
@@ -45,7 +40,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import java.math.BigInteger
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -80,7 +74,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer, logIndex = 0)
+        saveItemHistory(transfer, logIndex = 0, from = owner)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 
@@ -384,7 +378,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = AddressFactory.create(),
             value = EthUInt256.ZERO
         )
-        saveItemHistory(mint, token = token, status = LogEventStatus.CONFIRMED, logIndex = 0)
+        saveItemHistory(mint, token = token, status = LogEventStatus.CONFIRMED, logIndex = 0, from = from)
         saveItemHistory(transfer, token = token, status = LogEventStatus.PENDING, logIndex = 1)
 
         historyService.update(token, tokenId).then().awaitFirstOrNull()
@@ -919,42 +913,6 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
      *
      * Make sure we do not set creator to an arbitrary address if the mint transaction was sent by another user.
      */
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should leave creators empty if minted by random random user`(version: ReduceVersion) = withReducer(version) {
-        val tokenId = EthUInt256.of(BigInteger.TEN)
-        val (_, deployerSender) = newSender()
-        val fakeCreatorERC721 = FakeCreatorERC721.deployAndWait(deployerSender, poller).awaitFirst()
-        val token = fakeCreatorERC721.address()
-        val (_, mintSender) = newSender()
-        val famousAddress = randomAddress()
-        val receipt = fakeCreatorERC721.mintDirect_without_CreatorsEvent(famousAddress, tokenId.value)
-            .withSender(mintSender)
-            .execute().verifySuccess()
-        val mintInstant = receipt.getTimestamp()
-        Wait.waitAssert {
-            assertThat(nftItemHistoryRepository.findAllItemsHistory().asFlow().toList()).anySatisfy { (_, logEvent) ->
-                val data = logEvent.data
-                assertThat(data).isEqualTo(
-                    ItemTransfer(
-                        owner = famousAddress,
-                        token = token,
-                        tokenId = tokenId,
-                        date = mintInstant,
-                        from = Address.ZERO(),
-                        value = EthUInt256.ONE
-                    )
-                )
-            }
-        }
-
-        Wait.waitAssert {
-            val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirstOrNull()
-            assertThat(item).isNotNull; item!!
-            assertThat(item.creators).isEmpty()
-        }
-    }
-
     @Test
     @Disabled
     fun `should calculate royalties after real mint of lazy nft`() = withReducer(ReduceVersion.V1) {

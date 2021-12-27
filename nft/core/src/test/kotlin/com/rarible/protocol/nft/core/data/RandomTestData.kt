@@ -20,6 +20,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import io.daonomic.rpc.domain.Word
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 import java.time.Instant
@@ -33,7 +34,9 @@ fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
 }
 
-fun createRandomEthereumLog(): EthereumLog =
+fun createRandomEthereumLog(
+    transactionSender: Address = randomAddress()
+): EthereumLog =
     EthereumLog(
         transactionHash = randomWord(),
         status = EthereumLogStatus.values().random(),
@@ -44,7 +47,7 @@ fun createRandomEthereumLog(): EthereumLog =
         logIndex = randomInt(),
         minorLogIndex = randomInt(),
         index = randomInt(),
-        from = randomAddress(),
+        from = transactionSender,
         blockTimestamp = nowMillis().epochSecond,
         createdAt = nowMillis()
     )
@@ -120,12 +123,14 @@ fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
     )
 }
 
-fun createRandomMintItemEvent(): ItemEvent.ItemMintEvent {
+fun createRandomMintItemEvent(
+    transactionSender: Address = randomAddress()
+): ItemEvent.ItemMintEvent {
     return ItemEvent.ItemMintEvent(
         owner = randomAddress(),
         supply = EthUInt256.of(randomInt()),
         entityId = randomString(),
-        log = createRandomEthereumLog()
+        log = createRandomEthereumLog(transactionSender = transactionSender)
     )
 }
 

@@ -18,7 +18,7 @@ internal class ForwardCreatorsItemReducerTest {
     private val forwardCreatorsItemReducer = ForwardCreatorsItemReducer(creatorService)
 
     @Test
-    fun `should get creators form creators event`() = runBlocking<Unit> {
+    fun `should get creators from creators event`() = runBlocking<Unit> {
         val creators = listOf(Part.fullPart(randomAddress()), Part.fullPart(randomAddress()))
         val event = createRandomCreatorsItemEvent().copy(creators = creators)
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
@@ -47,13 +47,28 @@ internal class ForwardCreatorsItemReducerTest {
     @Test
     fun `should get creator as a minter`() = runBlocking<Unit> {
         val owner = listOf(Part.fullPart(randomAddress()))
-        val event = createRandomMintItemEvent().copy(owner = owner.single().account)
+        val event = createRandomMintItemEvent(transactionSender = owner.single().account)
+            .copy(owner = owner.single().account)
         val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
 
         coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(owner)
+        assertThat(reducedItem.creatorsFinal).isFalse()
+    }
+
+    @Test
+    fun `should not get creator as a minter if sent by another address`() = runBlocking<Unit> {
+        val owner = listOf(Part.fullPart(randomAddress()))
+        val event = createRandomMintItemEvent(transactionSender = randomAddress())
+            .copy(owner = owner.single().account)
+        val item = createRandomItem().copy(creators = emptyList(), creatorsFinal = false)
+
+        coEvery { creatorService.getCreator(item.id) } returns Mono.empty()
+
+        val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
+        assertThat(reducedItem.creators).isEmpty()
         assertThat(reducedItem.creatorsFinal).isFalse()
     }
 

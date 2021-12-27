@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.core.integration
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
@@ -186,10 +188,11 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     suspend fun <T> saveItemHistory(
         data: T,
-        token: Address = AddressFactory.create(),
-        transactionHash: Word = WordFactory.create(),
+        token: Address = randomAddress(),
+        transactionHash: Word = Word.apply(randomWord()),
         logIndex: Int? = 0,
-        status: LogEventStatus = LogEventStatus.CONFIRMED
+        status: LogEventStatus = LogEventStatus.CONFIRMED,
+        from: Address = randomAddress()
     ): T {
         return nftItemHistoryRepository.save(
             LogEvent(
@@ -198,6 +201,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                 topic = WordFactory.create(),
                 transactionHash = transactionHash,
                 status = status,
+                from = from,
                 index = 0,
                 logIndex = logIndex,
                 blockNumber = 1,
