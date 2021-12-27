@@ -284,7 +284,7 @@ class ItemReduceServiceV1(
             && !creatorsFinal
             && itemTransfer.owner == transactionSender
         ) {
-            copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
+            copy(creators = listOf(Part.fullPart(itemTransfer.owner)), mintedAt = itemTransfer.date)
         } else {
             this
         }

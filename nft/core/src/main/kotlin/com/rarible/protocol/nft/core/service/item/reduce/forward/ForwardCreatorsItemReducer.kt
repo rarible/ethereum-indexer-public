@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class ForwardCreatorsItemReducer(
@@ -27,7 +28,7 @@ class ForwardCreatorsItemReducer(
                     entity.creators
                 }
                 entity.copy(
-                    mintedAt = event.date,
+                    mintedAt = event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
                     creators = getCreator(entity.id, creators))
             }
             is ItemEvent.ItemTransferEvent,

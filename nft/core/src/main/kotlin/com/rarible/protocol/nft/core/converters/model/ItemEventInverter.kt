@@ -7,7 +7,6 @@ object ItemEventInverter {
         return ItemEvent.ItemBurnEvent(
             supply = event.supply,
             owner = event.owner,
-            date = event.date,
             entityId = event.entityId,
             log = event.log
         )
@@ -17,7 +16,6 @@ object ItemEventInverter {
         return ItemEvent.ItemMintEvent(
             supply = event.supply,
             owner = event.owner,
-            date = event.date,
             entityId = event.entityId,
             log = event.log
         )

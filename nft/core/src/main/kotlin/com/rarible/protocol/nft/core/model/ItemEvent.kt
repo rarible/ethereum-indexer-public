@@ -4,14 +4,12 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.converters.model.ItemEventInverter
 import scalether.domain.Address
-import java.time.Instant
 
 sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
 
     data class ItemMintEvent(
         val supply: EthUInt256,
         val owner: Address,
-        val date: Instant,
         override val entityId: String,
         override val log: EthereumLog
     ) : ItemEvent() {
@@ -21,7 +19,6 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
     data class ItemBurnEvent(
         val owner: Address,
         val supply: EthUInt256,
-        val date: Instant,
         override val entityId: String,
         override val log: EthereumLog
     ) : ItemEvent() {
