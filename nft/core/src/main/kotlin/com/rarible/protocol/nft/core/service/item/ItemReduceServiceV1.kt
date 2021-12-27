@@ -244,13 +244,7 @@ class ItemReduceServiceV1(
         return when (status.status) {
             LogEventStatus.CONFIRMED -> {
                 when (event) {
-                    is ItemTransfer -> {
-                        when {
-                            event.from == Address.ZERO() && item.creators.isEmpty() && !item.creatorsFinal ->
-                                item.copy(creators = listOf(Part.fullPart(event.owner)))
-                            else -> item
-                        }
-                    }
+                    is ItemTransfer -> item.safeProcessTransfer(event, status.from)
                     is ItemRoyalty -> {
                         logger.info("Ignoring ItemRoyalty event: $event")
                         item
@@ -271,10 +265,7 @@ class ItemReduceServiceV1(
                 when (event) {
                     is ItemTransfer -> {
                         val pending = item.pending + event
-                        val creators = if (event.from == Address.ZERO() && item.creators.isEmpty() && !item.creatorsFinal) listOf(
-                            Part.fullPart(event.owner)
-                        ) else item.creators
-                        item.copy(creators = creators, pending = pending)
+                        item.safeProcessTransfer(event, status.from).copy(pending = pending)
                     }
                     else -> item
                 }
@@ -282,6 +273,23 @@ class ItemReduceServiceV1(
             else -> item
         }
     }
+
+    /**
+     * Makes sure the creator is not forged by artificial contract events.
+     */
+    private fun Item.safeProcessTransfer(itemTransfer: ItemTransfer, transactionSender: Address?): Item {
+        return if (
+            itemTransfer.from == Address.ZERO()
+            && creators.isEmpty()
+            && !creatorsFinal
+            && itemTransfer.owner == transactionSender
+        ) {
+            copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
+        } else {
+            this
+        }
+    }
+
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {
         val (event, _) = log

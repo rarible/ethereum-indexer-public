@@ -86,6 +86,7 @@ class PendingTransactionService(
             LogEvent(
                 data = event,
                 address = address,
+                from = from,
                 topic = topic,
                 transactionHash = hash,
                 status = LogEventStatus.PENDING,

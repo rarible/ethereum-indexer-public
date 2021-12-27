@@ -25,6 +25,8 @@ object LogEventToReversedEthereumLogRecordConverter {
             address = source.address,
             blockHash = source.blockHash,
             blockNumber = source.blockNumber,
+            from = source.from,
+            blockTimestamp = source.blockTimestamp,
             logIndex = source.logIndex,
             visible = source.visible,
             createdAt = source.createdAt,

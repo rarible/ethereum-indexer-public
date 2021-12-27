@@ -1,9 +1,12 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.contracts.erc721.fakeCreator.FakeCreatorERC721
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
@@ -27,6 +30,8 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.assertj.core.api.Assertions.assertThat
@@ -40,6 +45,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigInteger
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -895,6 +901,58 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(owner1, token, tokenId, expValue = EthUInt256.Companion.of(4), expLazyValue = EthUInt256.Companion.of(0))
         checkOwnership(owner2, token, tokenId, expValue = EthUInt256.Companion.of(5), expLazyValue = EthUInt256.Companion.of(0))
         checkItem(token, tokenId, expSupply = value, expLazySupply = EthUInt256.Companion.of(0))
+    }
+
+    /**
+     * Tests for RPN-106: make sure the Item "creators" is set only for true creators.
+     *
+     * We use the following fake contract that imitates a malicious ERC721 token
+     * whose goal is to trick our indexer to consider the "creators" be a famous address.
+     *
+     * ```
+     *   contract FakeCreatorERC721 is ERC721Upgradeable {
+     *     function mintDirect_without_CreatorsEvent(address to, uint tokenId) external {
+     *         _mint(to, tokenId);
+     *     }
+     *   }
+     *```
+     *
+     * Make sure we do not set creator to an arbitrary address if the mint transaction was sent by another user.
+     */
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should leave creators empty if minted by random random user`(version: ReduceVersion) = withReducer(version) {
+        val tokenId = EthUInt256.of(BigInteger.TEN)
+        val (_, deployerSender) = newSender()
+        val fakeCreatorERC721 = FakeCreatorERC721.deployAndWait(deployerSender, poller).awaitFirst()
+        val token = fakeCreatorERC721.address()
+        val (_, mintSender) = newSender()
+        val famousAddress = randomAddress()
+        val receipt = fakeCreatorERC721.mintDirect_without_CreatorsEvent(famousAddress, tokenId.value)
+            .withSender(mintSender)
+            .execute().verifySuccess()
+        val mintInstant = receipt.getTimestamp()
+        Wait.waitAssert {
+            assertThat(nftItemHistoryRepository.findAllItemsHistory().asFlow().toList()).anySatisfy { (_, logEvent) ->
+                val data = logEvent.data
+                assertThat(data).isEqualTo(
+                    ItemTransfer(
+                        owner = famousAddress,
+                        token = token,
+                        tokenId = tokenId,
+                        date = mintInstant,
+                        from = Address.ZERO(),
+                        value = EthUInt256.ONE
+                    )
+                )
+            }
+        }
+
+        Wait.waitAssert {
+            val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirstOrNull()
+            assertThat(item).isNotNull; item!!
+            assertThat(item.creators).isEmpty()
+        }
     }
 
     @Test

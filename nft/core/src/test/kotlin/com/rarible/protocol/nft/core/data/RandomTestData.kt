@@ -44,8 +44,9 @@ fun createRandomEthereumLog(): EthereumLog =
         logIndex = randomInt(),
         minorLogIndex = randomInt(),
         index = randomInt(),
-        createdAt = nowMillis(),
-        updatedAt = nowMillis()
+        from = randomAddress(),
+        blockTimestamp = nowMillis().epochSecond,
+        createdAt = nowMillis()
     )
 
 fun EthereumLog.withNewValues(

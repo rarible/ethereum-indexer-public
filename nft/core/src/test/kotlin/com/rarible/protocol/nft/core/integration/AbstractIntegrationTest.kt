@@ -74,6 +74,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
@@ -330,6 +331,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         )
         return Triple(address, sender, privateKey)
     }
+
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
         val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))

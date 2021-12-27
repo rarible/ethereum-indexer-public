@@ -8,7 +8,6 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
-import java.lang.IllegalArgumentException
 
 @Component
 class ForwardCreatorsItemReducer(
@@ -22,7 +21,7 @@ class ForwardCreatorsItemReducer(
                 entity.copy(creators = getCreator(entity.id, creators), creatorsFinal = true)
             }
             is ItemEvent.ItemMintEvent -> {
-                val creators = if (entity.creatorsFinal.not()) {
+                val creators = if (!entity.creatorsFinal && event.log.from == event.owner) {
                     listOf(Part.fullPart(event.owner))
                 } else {
                     entity.creators
