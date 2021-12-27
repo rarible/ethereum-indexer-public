@@ -87,7 +87,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer)
+        saveItemHistory(transfer, from = owner)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 

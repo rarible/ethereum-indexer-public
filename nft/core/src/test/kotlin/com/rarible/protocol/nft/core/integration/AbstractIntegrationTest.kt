@@ -160,7 +160,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         token: Address = AddressFactory.create(),
         transactionHash: Word = WordFactory.create(),
         logIndex: Int? = null,
-        status: LogEventStatus = LogEventStatus.CONFIRMED
+        status: LogEventStatus = LogEventStatus.CONFIRMED,
+        from: Address? = null
     ): T {
         return nftItemHistoryRepository.save(
             LogEvent(
@@ -170,6 +171,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                 transactionHash = transactionHash,
                 status = status,
                 index = 0,
+                from = from,
                 logIndex = logIndex,
                 blockNumber = 1,
                 minorLogIndex = 0
