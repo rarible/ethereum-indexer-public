@@ -15,6 +15,8 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import java.math.BigInteger
@@ -38,6 +40,16 @@ import java.math.BigInteger
 class ItemCreatorMinterValidationIt : AbstractIntegrationTest() {
 
     private val tokenId = EthUInt256.of(BigInteger.TEN)
+
+    @BeforeEach
+    fun enableFlag() {
+        nftIndexerProperties.featureFlags.validateCreatorByTransactionSender = true
+    }
+
+    @AfterEach
+    fun disableFlag() {
+        nftIndexerProperties.featureFlags.validateCreatorByTransactionSender = false
+    }
 
     /**
      * Make sure we do not set creator to an arbitrary address if the mint transaction was sent by another user.
