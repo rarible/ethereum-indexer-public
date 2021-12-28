@@ -44,6 +44,7 @@ ethereumMaxFrameSize: 104857600
 ethereumBlockBatchSize: 50
 
 common:
+  metric-root-path: "protocol.nft.indexer"
   cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
   feature-flags:
     scanner-version: V1
@@ -87,7 +88,7 @@ blockchain:
           enabled: false
           batchSize: 5
       monitoring:
-        enabled: false
-        rootPath: "blockchain.scanner"
+        enabled: true
+        rootPath: ${common.metric-root-path}
         worker:
           pollingPeriod: 1m

@@ -13,7 +13,7 @@ abstract class AbstractMetricReducer<Event, E>(
 ) : Reducer<Event, E> {
 
     private val blockchain = properties.blockchain.value
-    private val fullPrefix = "protocol.nft.indexer.reduce.$prefix"
+    private val fullPrefix = "${properties.metricRootPath}.reduce.$prefix"
     private val counters = ConcurrentHashMap<Class<out Event>, Counter>()
 
     override suspend fun reduce(entity: E, event: Event): E {

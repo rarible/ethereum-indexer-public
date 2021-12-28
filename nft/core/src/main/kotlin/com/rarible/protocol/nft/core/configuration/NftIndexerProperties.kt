@@ -13,6 +13,7 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 data class NftIndexerProperties(
     val kafkaReplicaSet: String,
     val blockchain: Blockchain,
+    val metricRootPath: String,
     val maxPollRecords: Int = 100,
     var cryptoPunksContractAddress: String,
     var openseaLazyMintAddress: String,
