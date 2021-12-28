@@ -280,16 +280,20 @@ class ItemReduceService(
      * Makes sure the creator is not forged by artificial contract events.
      */
     private fun Item.safeProcessTransfer(itemTransfer: ItemTransfer, transactionSender: Address?): Item {
-        return if (
+        if (
             itemTransfer.from == Address.ZERO()
             && creators.isEmpty()
             && !creatorsFinal
-            && itemTransfer.owner == transactionSender
         ) {
-            copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
-        } else {
-            this
+            if (featureFlags.validateCreatorByTransactionSender
+                && transactionSender != null
+                && itemTransfer.owner != transactionSender
+            ) {
+                return this
+            }
+            return copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
         }
+        return this
     }
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {

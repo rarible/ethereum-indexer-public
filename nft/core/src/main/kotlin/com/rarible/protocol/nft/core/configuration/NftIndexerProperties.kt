@@ -29,6 +29,7 @@ data class NftIndexerProperties(
 
     data class FeatureFlags(
         var isRoyaltyServiceEnabled: Boolean = true,
-        var ownershipBatchHandle: Boolean = false
+        var ownershipBatchHandle: Boolean = false,
+        val validateCreatorByTransactionSender: Boolean = false
     )
 }
