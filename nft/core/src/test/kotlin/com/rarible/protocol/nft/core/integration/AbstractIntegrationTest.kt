@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomAddress
@@ -192,7 +193,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         transactionHash: Word = Word.apply(randomWord()),
         logIndex: Int? = 0,
         status: LogEventStatus = LogEventStatus.CONFIRMED,
-        from: Address = randomAddress()
+        from: Address = randomAddress(),
+        blockTimestamp: Instant = nowMillis()
     ): T {
         return nftItemHistoryRepository.save(
             LogEvent(
@@ -205,7 +207,8 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                 index = 0,
                 logIndex = logIndex,
                 blockNumber = 1,
-                minorLogIndex = 0
+                minorLogIndex = 0,
+                blockTimestamp = blockTimestamp.epochSecond
             )
         ).awaitFirst().data as T
     }

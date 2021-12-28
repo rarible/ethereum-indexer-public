@@ -40,6 +40,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.time.Instant
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -62,6 +63,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+        val blockTimestamp = Instant.ofEpochSecond(12)
 
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
@@ -74,13 +76,17 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             from = Address.ZERO(),
             value = EthUInt256.ONE
         )
-        saveItemHistory(transfer, logIndex = 0, from = owner)
+        saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
 
-        assertThat(item.mintedAt).isEqualTo(transfer.date)
+        when (version) {
+            ReduceVersion.V1 -> assertThat(item.mintedAt).isEqualTo(transfer.date)
+            ReduceVersion.V2 -> assertThat(item.mintedAt).isEqualTo(blockTimestamp)
+        }
+
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 

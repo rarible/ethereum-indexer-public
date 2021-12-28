@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
-import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.service.AbstractMetricReducer
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class OwnershipMetricReducer(
-    properties: EthereumScannerProperties,
+    properties: NftIndexerProperties,
     meterRegistry: MeterRegistry,
 ) : AbstractMetricReducer<OwnershipEvent, Ownership>(properties, meterRegistry, "ownership") {
 

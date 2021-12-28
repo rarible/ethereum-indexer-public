@@ -35,10 +35,12 @@ internal class ItemReducerTest {
     fun `should reduce blockchain events`(event: ItemEvent) = runBlocking<Unit> {
         val item = createRandomItem()
 
+        coEvery { itemMetricReducer.reduce(item, event) } returns item
         coEvery { eventStatusItemReducer.reduce(item, event) } returns item
         itemReducer.reduce(item, event)
 
         coVerify(exactly = 1) { eventStatusItemReducer.reduce(item, event) }
+        coVerify(exactly = 1) { itemMetricReducer.reduce(item, event) }
         coVerify(exactly = 0) { lazyItemReducer.reduce(any(), any()) }
     }
 
@@ -47,10 +49,12 @@ internal class ItemReducerTest {
     fun `should reduce lazy events`(event: ItemEvent) = runBlocking<Unit> {
         val item = createRandomItem()
 
+        coEvery { itemMetricReducer.reduce(item, event) } returns item
         coEvery { lazyItemReducer.reduce(item, event) } returns item
         itemReducer.reduce(item, event)
 
         coVerify(exactly = 1) { lazyItemReducer.reduce(item, event) }
+        coVerify(exactly = 1) { itemMetricReducer.reduce(item, event) }
         coVerify(exactly = 0) { eventStatusItemReducer.reduce(any(), any()) }
     }
 }

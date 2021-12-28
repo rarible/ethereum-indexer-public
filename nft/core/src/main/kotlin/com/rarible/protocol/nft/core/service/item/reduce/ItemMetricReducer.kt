@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
-import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.AbstractMetricReducer
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class ItemMetricReducer(
-    properties: EthereumScannerProperties,
+    properties: NftIndexerProperties,
     meterRegistry: MeterRegistry,
 ) : AbstractMetricReducer<ItemEvent, Item>(properties, meterRegistry, "item") {
 
