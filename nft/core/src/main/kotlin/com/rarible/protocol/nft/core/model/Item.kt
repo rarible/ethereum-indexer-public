@@ -27,7 +27,8 @@ data class Item(
     val royalties: List<Part>,
     @Deprecated("Should use ownerships field")
     val owners: List<Address> = emptyList(),
-    val date: Instant,
+    val date: Instant, // == lastUpdatedAt
+    val mintedAt: Instant? = null,
     @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,

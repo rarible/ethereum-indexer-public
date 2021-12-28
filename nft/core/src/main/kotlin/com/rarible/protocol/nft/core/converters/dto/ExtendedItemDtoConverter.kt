@@ -29,7 +29,7 @@ class ExtendedItemDtoConverter(
             //  to avoid "too big Kafka message" errors.
             owners = convertOwnership(item).take(ownersSizeLimit),
             royalties = item.royalties.map { PartDtoConverter.convert(it) },
-            date = item.date,
+            lastUpdatedAt = item.date,
             pending = convertPending(item),
             deleted = item.deleted,
             meta = NftItemMetaDtoConverter.convert(meta)

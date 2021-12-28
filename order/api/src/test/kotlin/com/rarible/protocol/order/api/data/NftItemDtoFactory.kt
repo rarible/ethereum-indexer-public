@@ -37,7 +37,7 @@ fun createNftItemDto(token: Address = AddressFactory.create(), tokenId: BigInteg
         royalties = emptyList(),
         supply = BigInteger.ONE,
         deleted = false,
-        date = nowMillis(),
+        lastUpdatedAt = nowMillis(),
         pending = emptyList(),
         meta = NftItemMetaDto("Test", null, null, null, null)
     )

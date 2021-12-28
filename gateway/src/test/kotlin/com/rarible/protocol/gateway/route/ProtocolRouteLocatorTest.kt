@@ -145,7 +145,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             royalties = emptyList(),
             deleted = false,
             pending = emptyList(),
-            date = null,
+            lastUpdatedAt = null,
             meta = createItemMeta()
         )
         mockNftServerClient

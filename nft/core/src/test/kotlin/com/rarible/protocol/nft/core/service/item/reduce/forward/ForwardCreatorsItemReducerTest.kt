@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
+import java.time.Instant
 
 internal class ForwardCreatorsItemReducerTest {
     private val creatorService = mockk<ItemCreatorService>()
@@ -96,6 +97,7 @@ internal class ForwardCreatorsItemReducerTest {
 
         val reducedItem = forwardCreatorsItemReducer.reduce(item, event)
         assertThat(reducedItem.creators).isEqualTo(serviceCreators)
+        assertThat(reducedItem.mintedAt).isEqualTo(Instant.ofEpochSecond(event.log.blockTimestamp!!))
         assertThat(reducedItem.creatorsFinal).isFalse()
     }
 }
