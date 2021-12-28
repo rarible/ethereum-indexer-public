@@ -12,8 +12,9 @@ import java.util.stream.Stream
 
 internal class ItemReducerTest {
     private val lazyItemReducer = mockk<LazyItemReducer>()
+    private val itemMetricReducer = mockk<ItemMetricReducer>()
     private val eventStatusItemReducer = mockk<EventStatusItemReducer>()
-    private val itemReducer = ItemReducer(eventStatusItemReducer, lazyItemReducer)
+    private val itemReducer = ItemReducer(eventStatusItemReducer, lazyItemReducer, itemMetricReducer)
 
     companion object {
         @JvmStatic

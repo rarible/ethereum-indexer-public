@@ -13,16 +13,19 @@ import org.springframework.stereotype.Component
 @Component
 class OwnershipReducer(
     eventStatusOwnershipReducer: EventStatusOwnershipReducer,
-    lazyOwnershipReducer: LazyOwnershipReducer
+    lazyOwnershipReducer: LazyOwnershipReducer,
+    ownershipMetricReducer: OwnershipMetricReducer
 ) : Reducer<OwnershipEvent, Ownership> {
 
     private val eventStatusOwnershipReducer = combineIntoChain(
         LoggingReducer(),
+        ownershipMetricReducer,
         eventStatusOwnershipReducer,
         OwnershipDeleteReducer()
     )
     private val lazyOwnershipReducer = combineIntoChain(
         LoggingReducer(),
+        ownershipMetricReducer,
         lazyOwnershipReducer,
         OwnershipDeleteReducer()
     )

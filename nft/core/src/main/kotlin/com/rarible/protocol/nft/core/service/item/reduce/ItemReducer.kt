@@ -13,16 +13,19 @@ import org.springframework.stereotype.Component
 @Component
 class ItemReducer(
     eventStatusItemReducer: EventStatusItemReducer,
-    lazyItemReducer: LazyItemReducer
+    lazyItemReducer: LazyItemReducer,
+    itemMetricReducer: ItemMetricReducer
 ) : Reducer<ItemEvent, Item> {
 
     private val eventStatusItemReducer = combineIntoChain(
         LoggingReducer(),
+        itemMetricReducer,
         eventStatusItemReducer,
         ItemDeleteReducer()
     )
     private val lazyItemReducer = combineIntoChain(
         LoggingReducer(),
+        itemMetricReducer,
         lazyItemReducer,
         ItemDeleteReducer()
     )

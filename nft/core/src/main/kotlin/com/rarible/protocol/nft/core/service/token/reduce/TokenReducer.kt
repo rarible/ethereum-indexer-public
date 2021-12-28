@@ -12,10 +12,12 @@ import org.springframework.stereotype.Component
 @Component
 class TokenReducer(
     eventStatusTokenReducer: EventStatusTokenReducer,
+    tokenMetricReducer: TokenMetricReducer
 ) : Reducer<TokenEvent, Token> {
 
     private val eventStatusTokenReducer = combineIntoChain(
         LoggingReducer(),
+        tokenMetricReducer,
         eventStatusTokenReducer,
         TokenDeleteReducer()
     )
