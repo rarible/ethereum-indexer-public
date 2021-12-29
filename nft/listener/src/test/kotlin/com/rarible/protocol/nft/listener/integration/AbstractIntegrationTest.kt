@@ -21,6 +21,7 @@ import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -30,12 +31,12 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.convert.MongoConverter
 import org.springframework.data.mongodb.core.query.Query
@@ -95,6 +96,10 @@ abstract class AbstractIntegrationTest {
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
 
+    @Autowired
+    @Qualifier("testEthereumBlockchainClient")
+    lateinit var testEthereumBlockchainClient: TestEthereumBlockchainClient
+
     private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
 
     @BeforeEach
@@ -105,6 +110,12 @@ abstract class AbstractIntegrationTest {
             .then().block()
 
         activityConsumer = createNftActivityConsumer()
+    }
+
+    @BeforeEach
+    fun ignoreOldBlocks() = runBlocking<Unit> {
+        val currentBlockNumber = ethereum.ethBlockNumber().awaitFirst().toLong()
+        testEthereumBlockchainClient.startingBlock = currentBlockNumber + 1
     }
 
     @PostConstruct
