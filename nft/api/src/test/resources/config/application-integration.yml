@@ -19,3 +19,8 @@ common:
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
+
+blockchain:
+  scanner:
+    kafka:
+      broker-replica-set: ${kafka.hosts}

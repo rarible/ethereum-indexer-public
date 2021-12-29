@@ -18,7 +18,13 @@ class LogEventServiceTest : AbstractIntegrationTest() {
 
     @Test
     fun allPresentInMap() {
-        assertThat(service.map)
-            .isEqualTo(descriptors.associate { it.topic to it.collection })
+        val expectedMap = descriptors.associate { it.topic to it.collection }
+        val map = service.map
+
+        assertThat(map.size).isEqualTo(expectedMap.size)
+
+        expectedMap.forEach { (topic, collection) ->
+            assertThat(map[topic]).isEqualTo(collection)
+        }
     }
 }

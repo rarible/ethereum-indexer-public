@@ -53,3 +53,35 @@ api:
 common:
   metric-root-path: "protocol.nft.indexer"
   cryptoPunksContractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB"
+
+blockchain:
+  scanner:
+    kafka:
+      maxPollRecords: 0
+    ethereum:
+      blockchain: ${common.blockchain}
+      optimisticLockRetries: 3
+      scan:
+        block-publish:
+          enabled: false
+        log-consume:
+          enabled: false
+      retryPolicy:
+        scan:
+          reconnectDelay: 2s
+          reconnectAttempts: 1
+        client:
+          delay: 2s
+          attempts: 3
+      job:
+        reconciliation:
+          enabled: false
+          batchSize: 5
+      monitoring:
+        enabled: false
+        worker:
+          pollingPeriod: 1m
+
+mongock:
+  change-logs-scan-package:
+    - com.rarible.blockchain.scanner.ethereum.migration

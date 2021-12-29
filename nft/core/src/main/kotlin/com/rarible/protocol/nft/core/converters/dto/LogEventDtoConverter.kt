@@ -1,29 +1,30 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.protocol.dto.LogEventDto
+import io.daonomic.rpc.domain.Word
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-object LogEventDtoConverter : Converter<LogEvent, LogEventDto> {
-    override fun convert(source: LogEvent): LogEventDto {
+object LogEventDtoConverter : Converter<ReversedEthereumLogRecord, LogEventDto> {
+    override fun convert(source: ReversedEthereumLogRecord): LogEventDto {
         return LogEventDto(
-            transactionHash = source.transactionHash,
+            transactionHash = Word.apply(source.transactionHash),
             status = convert(source.status),
             address = source.address,
             topic = source.topic
         )
     }
 
-    private fun convert(source: LogEventStatus): LogEventDto.Status {
+    private fun convert(source: EthereumLogStatus): LogEventDto.Status {
         return when (source) {
-            LogEventStatus.PENDING -> LogEventDto.Status.PENDING
-            LogEventStatus.CONFIRMED -> LogEventDto.Status.CONFIRMED
-            LogEventStatus.REVERTED -> LogEventDto.Status.REVERTED
-            LogEventStatus.DROPPED -> LogEventDto.Status.DROPPED
-            LogEventStatus.INACTIVE -> LogEventDto.Status.INACTIVE
+            EthereumLogStatus.PENDING -> LogEventDto.Status.PENDING
+            EthereumLogStatus.CONFIRMED -> LogEventDto.Status.CONFIRMED
+            EthereumLogStatus.REVERTED -> LogEventDto.Status.REVERTED
+            EthereumLogStatus.DROPPED -> LogEventDto.Status.DROPPED
+            EthereumLogStatus.INACTIVE -> LogEventDto.Status.INACTIVE
         }
     }
 }
