@@ -143,7 +143,7 @@ class ItemReduceService(
         }
     }
 
-    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux<Ownership> {
+    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux {
         logger.info("Start processing ownership ${item.id}")
         val needRemove = ownerships.filter { ownership -> ownership.needRemove() }
         val needRemoveIds = needRemove.map { ownership -> ownership.id }
@@ -158,8 +158,8 @@ class ItemReduceService(
         val needUpdateIds = needUpdate.map { ownership -> ownership.id }
 
         if (needRemove.isNotEmpty()) {
-            ownershipService.removeAll(needRemoveIds)
-            eventListenerListener.onOwnershipsDeleted(needRemoveIds)
+            val deleted = ownershipService.removeAll(needRemoveIds)
+            eventListenerListener.onOwnershipsDeleted(deleted.map { it.id })
         }
         if (needUpdate.isNotEmpty()) {
             ownershipService.removeAll(needUpdateIds)
@@ -220,7 +220,7 @@ class ItemReduceService(
                 ownershipService
                     .delete(marker, ownership)
                     .then(eventListenerListener.onOwnershipDeleted(ownership.id))
-                    .then(Mono.empty<Ownership>())
+                    .then(Mono.empty())
             }
             else -> {
                 buildOwnership(marker, ownership, item).let {
