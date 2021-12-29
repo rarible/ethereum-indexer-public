@@ -64,7 +64,7 @@ class OrderAggregationController(
             PlatformDto.RARIBLE -> HistorySource.RARIBLE
             PlatformDto.OPEN_SEA -> HistorySource.OPEN_SEA
             PlatformDto.ALL -> null
-            else -> HistorySource.RARIBLE
+            else -> null
         }
     }
 
