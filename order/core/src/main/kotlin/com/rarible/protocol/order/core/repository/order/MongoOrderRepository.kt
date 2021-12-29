@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
@@ -131,8 +132,14 @@ class MongoOrderRepository(
     }
 
     override fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
-        val criteria = (Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
-            .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        val criteria = Criteria().andOperator(
+            Order::make / Asset::type / NftAssetType::token isEqualTo token,
+            Criteria().orOperator(
+                Order::make / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                (Order::make / Asset::type / NftAssetType::tokenId exists false)
+                    .and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
+            )
+        )
         return template.findDistinct<AssetType>(
             Query(criteria),
             "${Order::take.name}.${Asset::type.name}",
@@ -143,8 +150,14 @@ class MongoOrderRepository(
 
     override fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType> {
         @Suppress("DuplicatedCode")
-        val criteria = (Order::take / Asset::type / NftAssetType::token).isEqualTo(token)
-            .and(Order::take / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+        val criteria = Criteria().andOperator(
+            Order::take / Asset::type / NftAssetType::token isEqualTo token,
+            Criteria().orOperator(
+                Order::take / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                (Order::take / Asset::type / NftAssetType::tokenId exists false)
+                    .and(Order::take / Asset::type / NftAssetType::nft).isEqualTo(true)
+            )
+        )
         return template.findDistinct<AssetType>(
             Query(criteria),
             "${Order::make.name}.${Asset::type.name}",
