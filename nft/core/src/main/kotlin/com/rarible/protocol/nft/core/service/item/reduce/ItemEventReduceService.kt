@@ -4,9 +4,7 @@ import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
-import com.rarible.protocol.nft.core.model.EntityEventListeners
-import com.rarible.protocol.nft.core.model.SubscriberGroup
-import com.rarible.protocol.nft.core.model.SubscriberGroups
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import org.springframework.stereotype.Component
 
@@ -23,6 +21,10 @@ class ItemEventReduceService(
     override val id: String = EntityEventListeners.ITEM_HISTORY_LISTENER
 
     override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
+
+    suspend fun reduce(events: List<ItemEvent>) {
+        delegate.reduceAll(events)
+    }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         events
