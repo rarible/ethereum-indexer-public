@@ -3,8 +3,6 @@ package com.rarible.protocol.nft.listener.configuration
 import com.rarible.blockchain.scanner.configuration.KafkaProperties
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.blockchain.scanner.ethereum.configuration.EthereumScannerProperties
-import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
-import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.ethereum.listener.log.LogEventDescriptorHolder
@@ -28,18 +26,12 @@ class BlockchainScannerV2Configuration(
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
     @Bean
-    fun reconciliationFromProvider(): ReconciliationFromProvider {
-        return DefaultReconciliationFormProvider()
-    }
-
-    @Bean
     fun entityEventConsumer(
         entityEventListener: List<EntityEventListener>
     ): KafkaEntityEventConsumer {
         return KafkaEntityEventConsumer(
             properties = KafkaProperties(
                 brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
-                enabled = true,
                 maxPollRecords = nftIndexerProperties.maxPollRecords
             ),
             daemonProperties = nftListenerProperties.eventConsumerWorker,
@@ -47,7 +39,7 @@ class BlockchainScannerV2Configuration(
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = nftIndexerProperties.blockchain.value,
-            service = ethereumScannerProperties.logService
+            service = ethereumScannerProperties.service
         ).apply { start(entityEventListener.associateBy { it.id }) }
     }
 

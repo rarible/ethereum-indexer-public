@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.integration
 
-import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
-import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.protocol.dto.NftCollectionEventDto
@@ -39,11 +37,6 @@ class TestPropertiesConfiguration {
     @Bean
     fun skipTokens(): ReduceSkipTokens {
         return ReduceSkipTokens(hashSetOf())
-    }
-
-    @Bean
-    fun reconciliationFromProvider(): ReconciliationFromProvider {
-        return DefaultReconciliationFormProvider()
     }
 
     @Bean

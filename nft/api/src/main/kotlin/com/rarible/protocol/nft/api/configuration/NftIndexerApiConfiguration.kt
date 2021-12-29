@@ -2,8 +2,6 @@ package com.rarible.protocol.nft.api.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
-import com.rarible.blockchain.scanner.reconciliation.DefaultReconciliationFormProvider
-import com.rarible.blockchain.scanner.reconciliation.ReconciliationFromProvider
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.core.loggingfilter.EnableLoggingContextFilter
@@ -48,10 +46,5 @@ class NftIndexerApiConfiguration(
             erc1271SignService,
             EIP712DomainNftFactory(BigInteger.valueOf(nftIndexerApiProperties.chainId))
         )
-    }
-
-    @Bean
-    fun reconciliationFromProvider(): ReconciliationFromProvider {
-        return DefaultReconciliationFormProvider()
     }
 }

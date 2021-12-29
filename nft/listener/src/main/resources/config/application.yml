@@ -70,8 +70,7 @@ blockchain:
       maxPollRecords: 100
     ethereum:
       blockchain: ${common.blockchain}
-      block-service: "scanner"
-      log-service: "nft"
+      service: "nft"
       optimisticLockRetries: 3
       scan:
         block-publish:
@@ -83,10 +82,6 @@ blockchain:
         client:
           delay: 2s
           attempts: 3
-      job:
-        reconciliation:
-          enabled: false
-          batchSize: 5
       monitoring:
         enabled: true
         rootPath: ${common.metric-root-path}

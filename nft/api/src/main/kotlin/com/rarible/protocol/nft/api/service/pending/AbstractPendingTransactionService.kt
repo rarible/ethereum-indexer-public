@@ -4,7 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumDescriptor
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.service.EthereumLogService
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
-import com.rarible.blockchain.scanner.framework.data.Source
 import com.rarible.ethereum.log.domain.TransactionDto
 import com.rarible.protocol.nft.core.model.HistoryTopics
 import com.rarible.protocol.nft.core.model.SubscriberGroups
@@ -31,7 +30,7 @@ abstract class AbstractPendingTransactionService(
             .map { saveOrReturn(it) }
             .toList()
 
-        val events = records.map { LogRecordEvent(it, Source.BLOCKCHAIN, reverted = false) }
+        val events = records.map { LogRecordEvent(it, reverted = false) }
         entityEventListeners.forEach { listener -> listener.onEntityEvents(events) }
         return records
     }
