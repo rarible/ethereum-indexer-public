@@ -47,6 +47,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.time.Instant
 import java.util.stream.Stream
 
 @FlowPreview
@@ -377,6 +378,9 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
             value = EthUInt256.of(3)
         )
         saveItemHistory(transfer2)
+        ownershipRepository.save(Ownership(
+            token = token, tokenId = tokenId, owner = owner, value = EthUInt256.ONE, date = Instant.now(), pending = emptyList()
+        )).awaitFirst()
 
         historyService.update(token, tokenId).then().block()
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
