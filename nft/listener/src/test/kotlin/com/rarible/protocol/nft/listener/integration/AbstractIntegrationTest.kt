@@ -96,9 +96,9 @@ abstract class AbstractIntegrationTest {
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
 
-    @Autowired
+    @Autowired(required = false)
     @Qualifier("testEthereumBlockchainClient")
-    lateinit var testEthereumBlockchainClient: TestEthereumBlockchainClient
+    protected var testEthereumBlockchainClient: TestEthereumBlockchainClient? = null
 
     private lateinit var activityConsumer: RaribleKafkaConsumer<ActivityDto>
 
@@ -115,7 +115,7 @@ abstract class AbstractIntegrationTest {
     @BeforeEach
     fun ignoreOldBlocks() = runBlocking<Unit> {
         val currentBlockNumber = ethereum.ethBlockNumber().awaitFirst().toLong()
-        testEthereumBlockchainClient.startingBlock = currentBlockNumber + 1
+        testEthereumBlockchainClient?.startingBlock = currentBlockNumber + 1
     }
 
     @PostConstruct
