@@ -14,7 +14,7 @@ class OwnershipFullReduceService(
     reducer: OwnershipReducer
 ) : StreamFullReduceService<OwnershipId, OwnershipEvent, Ownership>(
     entityService = entityService,
-    entityEventService = entityIdService,
+    entityIdService = entityIdService,
     templateProvider = templateProvider,
     reducer = reducer
 )

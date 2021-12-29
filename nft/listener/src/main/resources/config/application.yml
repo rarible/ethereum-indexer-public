@@ -75,10 +75,10 @@ blockchain:
       scan:
         block-publish:
           enabled: false
-      retryPolicy:
+      retry-policy:
         scan:
-          reconnectDelay: 2s
-          reconnectAttempts: 1
+          reconnect-delay: 2s
+          reconnect-attempts: 3
         client:
           delay: 2s
           attempts: 3

@@ -14,7 +14,7 @@ class ItemFullReduceService(
     reducer: ItemReducer
 ) : StreamFullReduceService<ItemId, ItemEvent, Item>(
     entityService = entityService,
-    entityEventService = entityIdService,
+    entityIdService = entityIdService,
     templateProvider = templateProvider,
     reducer = reducer
 )

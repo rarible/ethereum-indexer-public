@@ -62,10 +62,7 @@ blockchain:
       blockchain: ${common.blockchain}
       optimisticLockRetries: 3
       scan:
-        block-publish:
-          enabled: false
-        log-consume:
-          enabled: false
+        enabled: false
       retryPolicy:
         scan:
           reconnectDelay: 2s
@@ -73,10 +70,6 @@ blockchain:
         client:
           delay: 2s
           attempts: 3
-      job:
-        reconciliation:
-          enabled: false
-          batchSize: 5
       monitoring:
         enabled: false
         worker:

@@ -10,7 +10,7 @@
     <parent>
         <groupId>com.rarible</groupId>
         <artifactId>rarible-parent-pom</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.4</version>
     </parent>
 
     <repositories>
@@ -29,13 +29,13 @@
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible.ethereum.version>1.4.6</rarible.ethereum.version>
-        <rarible.ethereum.contracts.version>1.0.2</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.0.11</rarible.core.version>
-        <rarible.blockchain.scanner.version>2.1.20</rarible.blockchain.scanner.version>
+        <rarible.ethereum.version>1.4.8</rarible.ethereum.version>
+        <rarible.ethereum.contracts.version>1.0.3</rarible.ethereum.contracts.version>
+        <rarible.core.version>2.0.13</rarible.core.version>
+        <rarible.blockchain.scanner.version>2.1.21</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.21.7</rarible.protocol.ethereum.version>
-        <rarible.protocol.currency.version>1.19.0</rarible.protocol.currency.version>
+        <rarible.protocol.ethereum.version>1.21.8</rarible.protocol.ethereum.version>
+        <rarible.protocol.currency.version>1.19.2</rarible.protocol.currency.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
 
