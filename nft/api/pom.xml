@@ -90,6 +90,10 @@
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.daonomic.scalether</groupId>
+            <artifactId>transport-mono_${scala.major.version}</artifactId>
+        </dependency>
 
         <!-- ================== Test ===================== -->
         <dependency>
