@@ -33,7 +33,7 @@ class ParseCreatorsEventTest {
         return parseCreatorsEvent(
             Log(
                 BigInteger.ZERO, BigInteger.ZERO, topics[0], topics[0], BigInteger.ZERO, Address.ZERO(),
-                data, Lists.toScala(topics), ""
+                data, false, Lists.toScala(topics), ""
             )
         )
     }
