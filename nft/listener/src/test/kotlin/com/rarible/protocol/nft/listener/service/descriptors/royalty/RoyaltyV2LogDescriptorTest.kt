@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.test.royalties.v2.RoyaltiesV2TestImpl
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -28,7 +29,7 @@ import java.math.BigInteger
 class RoyaltyV2LogDescriptorTest : AbstractIntegrationTest() {
 
     @Test
-    fun convert() = runBlocking {
+    fun convert() = withReducer(ReduceVersion.V1) {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
