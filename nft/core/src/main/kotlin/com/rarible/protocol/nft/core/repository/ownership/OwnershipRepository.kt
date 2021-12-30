@@ -54,8 +54,8 @@ class OwnershipRepository(
             .awaitFirst()
     }
 
-    fun deleteById(id: OwnershipId): Mono<Void> {
-        return mongo.remove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java).then()
+    fun deleteById(id: OwnershipId): Mono<Ownership> {
+        return mongo.findAndRemove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java)
     }
 
     private suspend fun query(criteria: Criteria?, limit: Int, sort: Sort?): List<Ownership> {

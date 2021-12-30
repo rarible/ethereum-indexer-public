@@ -9,13 +9,9 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.OwnershipSaveResult
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
-import org.springframework.data.mongodb.core.findAllAndRemove
-import org.springframework.data.mongodb.core.query.Criteria
-import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -56,19 +52,8 @@ class OwnershipService(
             }
     }
 
-    fun delete(marker: Marker, ownership: Ownership): Mono<Void> {
-        val id = ownership.id
-        val delete = Mono.`when`(ownershipRepository.deleteById(id))
-
-        return ownershipRepository.findById(id).toOptional()
-            .flatMap { opt ->
-                if (opt.isPresent) {
-                    logger.info(marker, "Deleting Ownership ${ownership.id}")
-                    delete
-                } else {
-                    Mono.empty()
-                }
-            }
+    fun delete(marker: Marker, ownership: Ownership): Mono<Ownership> {
+        return ownershipRepository.deleteById(ownership.id)
     }
 
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {

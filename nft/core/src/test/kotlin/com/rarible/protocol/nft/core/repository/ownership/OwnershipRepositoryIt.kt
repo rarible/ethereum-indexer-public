@@ -12,6 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -31,6 +32,25 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 
         val savedItem = ownershipRepository.findById(item.id).awaitFirstOrNull()
         Assertions.assertThat(savedItem).isEqualTo(item)
+    }
+
+    @Test
+    fun `should return ownership if removed`() = runBlocking {
+        val ownership = createOwnership()
+
+        ownershipRepository.save(ownership).awaitFirst()
+        val deleted = ownershipRepository.deleteById(ownership.id).awaitFirst()
+
+        assertEquals(deleted, ownership)
+    }
+
+    @Test
+    fun `should return empty mono if not removed`() = runBlocking {
+        val ownership = createOwnership()
+
+        val deleted = ownershipRepository.deleteById(ownership.id).awaitFirstOrNull()
+
+        assertNull(deleted)
     }
 
     @Test

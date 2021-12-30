@@ -219,7 +219,7 @@ class ItemReduceService(
             ownership.needRemove() -> {
                 ownershipService
                     .delete(marker, ownership)
-                    .then(eventListenerListener.onOwnershipDeleted(ownership.id))
+                    .flatMap { eventListenerListener.onOwnershipDeleted(it.id) }
                     .then(Mono.empty())
             }
             else -> {
