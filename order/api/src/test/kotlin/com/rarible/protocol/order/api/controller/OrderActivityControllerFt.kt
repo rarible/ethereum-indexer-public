@@ -519,6 +519,21 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )
+            },
+            run {
+                val token = AddressFactory.create()
+                val tokenId = EthUInt256.of(BigInteger.valueOf((1L..1000L).random()))
+
+                Arguments.of(
+                    listOf(createCollectionBidOrderVersion().withTakeToken(token)),
+                    listOf(createErc721ListOrderVersion()),
+                    OrderActivityFilterByItemDto(
+                        token,
+                        tokenId.value,
+                        listOf(OrderActivityFilterByItemDto.Types.BID)
+                    ),
+                    ActivitySortDto.LATEST_FIRST
+                )
             }
         )
 
