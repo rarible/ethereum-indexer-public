@@ -81,10 +81,10 @@ class OrderUpdateService(
         return if (order.makeStock != updated.makeStock) {
             val savedOrder = orderRepository.save(updated)
             orderListener.onOrder(savedOrder)
-            logger.info("Make stock of order ${savedOrder.hash} updated: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
+            logger.info("Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
             savedOrder
         } else {
-            logger.info("Make stock of order ${updated.hash} did not change: makeStock=${updated.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
+            logger.info("Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
             order
         }
     }
