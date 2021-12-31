@@ -191,8 +191,8 @@ data class Order(
             data: OrderData
         ): OrderStatus {
             return when {
-                data.isMakeFillOrder && fill == make.value -> OrderStatus.FILLED
-                fill == take.value -> OrderStatus.FILLED
+                data.isMakeFillOrder && fill >= make.value -> OrderStatus.FILLED
+                fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
@@ -223,11 +223,11 @@ data class Order(
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
             } else if (data.isMakeFillOrder) {
-                val make = makeValue - fill
+                val make = if (makeValue > fill) makeValue - fill else EthUInt256.ZERO
                 val take = make * takeValue / makeValue
                 make to take
             } else {
-                val take = takeValue - fill
+                val take = if (takeValue > fill) takeValue - fill else EthUInt256.ZERO
                 val make = take * makeValue / takeValue
                 make to take
             }
