@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -18,7 +16,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 class RoyaltyService(
     private val sender: MonoTransactionSender,
     private val nftIndexerProperties: NftIndexerProperties,

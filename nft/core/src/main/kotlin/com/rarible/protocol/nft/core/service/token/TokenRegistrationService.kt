@@ -5,8 +5,6 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.common.component1
 import com.rarible.core.common.component2
 import com.rarible.core.common.component3
@@ -39,7 +37,6 @@ import scalether.transaction.MonoTransactionSender
 import java.util.*
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 class TokenRegistrationService(
     private val tokenRepository: TokenRepository,
     private val sender: MonoTransactionSender,
