@@ -14,7 +14,7 @@ open class PendingEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolic
         return findPendingEvent(events, event) != null
     }
 
-    private fun findPendingEvent(events: List<T>, event: T): T? {
+    protected fun findPendingEvent(events: List<T>, event: T): T? {
         return events.firstOrNull { current ->
             current.log.status == EthereumLogStatus.PENDING && current.compareTo(event) == 0
         }

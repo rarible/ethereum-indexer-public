@@ -127,11 +127,13 @@ abstract class SpringContainerBaseTest {
 
         historyTopics.values.forEach { collection ->
             val indexOps = mongo.indexOps(collection)
+            val indexes = indexOps.indexInfo.collectList().awaitFirst()
 
-            indexOps.dropIndex(
-                ChangeLog00001.VISIBLE_INDEX_NAME
-            ).awaitFirstOrNull()
-
+            if (indexes.any { it.name == ChangeLog00001.VISIBLE_INDEX_NAME }) {
+                indexOps.dropIndex(
+                    ChangeLog00001.VISIBLE_INDEX_NAME
+                ).awaitFirstOrNull()
+            }
             indexOps.ensureIndex(
                 Index()
                     .on("visible", Sort.Direction.ASC)
