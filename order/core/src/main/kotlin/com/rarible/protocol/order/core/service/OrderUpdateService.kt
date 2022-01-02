@@ -62,11 +62,14 @@ class OrderUpdateService(
         }
     }
 
+    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? =
+        updateMakeStockFull(hash, knownMakeBalance).first
+
     /**
      * Updates the order's make stock and prices without calling the OrderReduceService.
      */
-    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
-        val order = orderRepository.findById(hash) ?: return null
+    suspend fun updateMakeStockFull(hash: Word, knownMakeBalance: EthUInt256? = null): Pair<Order?, Boolean> {
+        val order = orderRepository.findById(hash) ?: return null to false
 
         val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order)
 
@@ -82,10 +85,10 @@ class OrderUpdateService(
             val savedOrder = orderRepository.save(updated)
             orderListener.onOrder(savedOrder)
             logger.info("Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
-            savedOrder
+            savedOrder to true
         } else {
             logger.info("Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
-            order
+            order to false
         }
     }
 }

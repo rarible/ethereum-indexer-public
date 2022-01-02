@@ -37,9 +37,11 @@ class OrderUpdateTaskHandler(
     }
 
     private suspend fun handleOrder(order: Order) {
-        orderUpdateService.updateMakeStock(hash = order.hash)
-        logger.info("Order ${order.hash} has been updated by task '$ORDER_UPDATE'")
-        delay(Duration.ofMillis(properties.publishTaskDelayMs))
+        val (_, updated) = orderUpdateService.updateMakeStockFull(hash = order.hash)
+        if (updated) {
+            logger.info("Order ${order.hash} has been updated by task '$ORDER_UPDATE'")
+            delay(Duration.ofMillis(properties.publishTaskDelayMs))
+        }
     }
 
     companion object {
