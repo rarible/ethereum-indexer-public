@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository.item
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
@@ -21,7 +19,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class ItemRepository(
     private val mongo: ReactiveMongoOperations
 ) {

@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.api.service.item
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.convert
@@ -30,7 +28,6 @@ import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 
 @Component
-@CaptureSpan(SpanType.APP)
 class ItemService(
     private val conversionService: ConversionService,
     private val itemMetaService: ItemMetaService,

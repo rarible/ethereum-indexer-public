@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.reactive.awaitFirst
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class OwnershipRepository(
     private val mongo: ReactiveMongoOperations
 ) {
