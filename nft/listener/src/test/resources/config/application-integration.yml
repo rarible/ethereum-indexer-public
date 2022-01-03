@@ -42,6 +42,7 @@ common:
     erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
   feature-flags:
     scanner-version: V1
+    validate-creator-by-transaction-sender: true
 
 blockchain:
   scanner:
