@@ -48,7 +48,7 @@ class ItemPropertiesService(
 
         override fun getMaxAge(value: CachedItemProperties?): Long =
             when {
-                value == null -> DateUtils.MILLIS_PER_MINUTE * 5
+                value == null -> DateUtils.MILLIS_PER_DAY
                 value.canBeCached -> cacheTimeout
                 else -> 0
             }

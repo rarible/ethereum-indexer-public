@@ -1,6 +1,9 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
+import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.flow.collect
@@ -13,12 +16,15 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Instant
+import java.util.UUID
 
 @Component
 @Profile("!integration")
 class OrderStartEndCheckerJob(
+    reactiveMongoTemplate: ReactiveMongoTemplate,
     private val properties: OrderListenerProperties,
-    reactiveMongoTemplate: ReactiveMongoTemplate
+    private val orderDtoConverter: OrderDtoConverter,
+    private val publisher: ProtocolOrderPublisher
 ) {
     private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerJob::class.java)
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
@@ -44,7 +50,13 @@ class OrderStartEndCheckerJob(
             } else {
                 alive++
             }
-            orderRepository.save(order.withUpdatedStatus())
+            val saved = orderRepository.save(order.withUpdatedStatus())
+            val updateEvent = OrderUpdateEventDto(
+                eventId = UUID.randomUUID().toString(),
+                orderId = saved.hash.toString(),
+                order = orderDtoConverter.convert(saved)
+            )
+            publisher.publish(updateEvent)
             val all = alive + expired
             if (all % 10000L == 0L) {
                 logger.info("Fixed $all orders")

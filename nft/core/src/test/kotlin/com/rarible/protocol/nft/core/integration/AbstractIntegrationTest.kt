@@ -44,16 +44,10 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -72,7 +66,6 @@ import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import scalether.domain.response.TransactionReceipt
-import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
@@ -82,6 +75,7 @@ import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
 
+@FlowPreview
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
@@ -273,8 +267,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                             }
                         }
                     }
-                    assertThat(filteredEvents).hasSize(1)
-                    assertThat(filteredEvents.single()).isInstanceOf(eventType)
+                    assertThat(filteredEvents)
+                        .hasSizeGreaterThanOrEqualTo(1)
+                        .allSatisfy { assertThat(it).isInstanceOf(eventType) }
                 }
         }
     }
@@ -321,6 +316,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         return receipt
     }
 
+    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
+        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
+
+
     protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
@@ -333,14 +332,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            MonoGasPriceProvider { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
         return Triple(address, sender, privateKey)
     }
-
-    protected suspend fun TransactionReceipt.getTimestamp(): Instant =
-        Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
     private fun generateNewKeys(privateKey0: BigInteger? = null): NewKeys {
         val privateKey = privateKey0 ?: Numeric.toBigInt(RandomUtils.nextBytes(32))

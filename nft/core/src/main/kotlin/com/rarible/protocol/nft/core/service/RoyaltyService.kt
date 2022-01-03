@@ -1,11 +1,10 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.external.royalties.IRoyaltiesProvider
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.Royalty
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
@@ -18,7 +17,6 @@ import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 
 @Service
-@CaptureSpan(type = SpanType.EXT)
 class RoyaltyService(
     private val sender: MonoTransactionSender,
     private val nftIndexerProperties: NftIndexerProperties,
@@ -32,7 +30,7 @@ class RoyaltyService(
     suspend fun getRoyaltyDeprecated(address: Address, tokenId: EthUInt256): List<Part> {
         if (featureFlags.isRoyaltyServiceEnabled.not()) return emptyList()
 
-        val cachedRoyalties = royaltyRepository.findByTokenAndId(address, tokenId).awaitFirstOrNull()
+        val cachedRoyalties = royaltyRepository.findByItemId(ItemId(address, tokenId)).awaitFirstOrNull()
         if (cachedRoyalties != null && cachedRoyalties.royalty.isNotEmpty()) {
             return cachedRoyalties.royalty
         }

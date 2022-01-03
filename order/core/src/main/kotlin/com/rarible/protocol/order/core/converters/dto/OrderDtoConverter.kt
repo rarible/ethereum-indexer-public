@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.isMakeFillOrder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
 import java.math.BigInteger
@@ -59,7 +60,11 @@ class OrderDtoConverter(
                 taker = source.taker,
                 take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
-                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
+                fillValue = if (source.data.isMakeFillOrder) {
+                    priceNormalizer.normalize(source.make.type, source.fill.value)
+                } else {
+                    priceNormalizer.normalize(source.take.type, source.fill.value)
+               },
                 makeStock = source.makeStock.value,
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,

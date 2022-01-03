@@ -77,7 +77,7 @@ data class Order(
     val version: Long? = 1
 ) {
     init {
-        status = calculateStatus(fill, take, makeStock, cancelled, start, end)
+        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data)
     }
 
     fun forV1Tx() = run {
@@ -136,7 +136,7 @@ data class Order(
     }
 
     fun withUpdatedStatus(): Order {
-        return copy(status = calculateStatus(fill, take, makeStock, cancelled, start, end))
+        return copy(status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data))
     }
 
     fun isEnded() = Companion.isEnded(end)
@@ -180,9 +180,19 @@ data class Order(
             }
         }
 
-        private fun calculateStatus(fill: EthUInt256, take: Asset, makeStock: EthUInt256, cancelled: Boolean, start: Long?, end: Long?): OrderStatus {
+        private fun calculateStatus(
+            fill: EthUInt256,
+            make: Asset,
+            take: Asset,
+            makeStock: EthUInt256,
+            cancelled: Boolean,
+            start: Long?,
+            end: Long?,
+            data: OrderData
+        ): OrderStatus {
             return when {
-                fill == take.value -> OrderStatus.FILLED
+                data.isMakeFillOrder && fill >= make.value -> OrderStatus.FILLED
+                fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
@@ -213,11 +223,11 @@ data class Order(
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
             } else if (data.isMakeFillOrder) {
-                val make = makeValue - fill
+                val make = if (makeValue > fill) makeValue - fill else EthUInt256.ZERO
                 val take = make * takeValue / makeValue
                 make to take
             } else {
-                val take = takeValue - fill
+                val take = if (takeValue > fill) takeValue - fill else EthUInt256.ZERO
                 val make = take * makeValue / takeValue
                 make to take
             }

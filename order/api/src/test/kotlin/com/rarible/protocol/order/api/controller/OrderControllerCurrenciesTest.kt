@@ -12,6 +12,7 @@ import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.AssetTypeDtoConverter
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -146,6 +147,22 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
         saveOrderVersions(inactiveVersion)
 
         checkBidCurrencies(currency, inactiveCurrency)
+    }
+
+    @Test
+    fun `sell currencies - collection asset`() = runBlocking<Unit> {
+        val asset = Asset(CollectionAssetType(token), EthUInt256.ONE)
+        val currency = Asset(EthAssetType, EthUInt256.ONE)
+        saveOrderVersions(createOrderVersion(asset, currency))
+        checkSellCurrencies(currency)
+    }
+
+    @Test
+    fun `bid currencies - collection asset`() = runBlocking<Unit> {
+        val asset = Asset(CollectionAssetType(token), EthUInt256.ONE)
+        val currency = Asset(EthAssetType, EthUInt256.ONE)
+        saveOrderVersions(createOrderVersion(currency, asset))
+        checkBidCurrencies(currency)
     }
 
     private suspend fun checkSellCurrencies(vararg currencies: Asset) {

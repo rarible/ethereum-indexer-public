@@ -27,6 +27,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -38,6 +39,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 
+@ExperimentalCoroutinesApi
 @Service
 @CaptureSpan(type = SpanType.APP)
 class ItemReduceServiceV1(
@@ -63,7 +65,7 @@ class ItemReduceServiceV1(
                 .filter { skipTokens.allowReducing(it.token, it.tokenId) }
                 .flatMap { Flux.just(Pair(it.token, it.tokenId)) }
                 .distinct()
-                .flatMap { update(token = it.first, tokenId = it.second, from = null) }
+                .flatMap { update(token = it.first, tokenId = it.second) }
                 .then()
         }
     }
@@ -133,7 +135,7 @@ class ItemReduceServiceV1(
         }
     }
 
-    private fun handleOwnerships(marker: Marker, item: Item, ownerships: List<Ownership>): Flux<Ownership> {
+    private fun handleOwnerships(marker: Marker, item: Item, ownerships: List<Ownership>): Flux<Ownership>  {
         return if (featureFlags.ownershipBatchHandle) {
             handleOwnershipWithBatch(marker, item, ownerships)
         } else {
@@ -141,7 +143,7 @@ class ItemReduceServiceV1(
         }
     }
 
-    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux<Ownership> {
+    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux {
         logger.info("Start processing ownership ${item.id}")
         val needRemove = ownerships.filter { ownership -> ownership.needRemove() }
         val needRemoveIds = needRemove.map { ownership -> ownership.id }
@@ -156,8 +158,8 @@ class ItemReduceServiceV1(
         val needUpdateIds = needUpdate.map { ownership -> ownership.id }
 
         if (needRemove.isNotEmpty()) {
-            ownershipService.removeAll(needRemoveIds)
-            eventListenerListener.onOwnershipsDeleted(needRemoveIds)
+            val deleted = ownershipService.removeAll(needRemoveIds)
+            eventListenerListener.onOwnershipsDeleted(deleted.map { it.id })
         }
         if (needUpdate.isNotEmpty()) {
             ownershipService.removeAll(needUpdateIds)
@@ -194,7 +196,7 @@ class ItemReduceServiceV1(
             .map { creator ->
                 val newCreators = creator.orNull()?.let { listOf(Part.fullPart(it)) } ?: item.creators
                 item.copy(creators = newCreators)
-        }
+            }
     }
 
     private fun saveItem(marker: Marker, item: Item, ownerships: List<Ownership>): Mono<Item> {
@@ -217,8 +219,8 @@ class ItemReduceServiceV1(
             ownership.needRemove() -> {
                 ownershipService
                     .delete(marker, ownership)
-                    .then(eventListenerListener.onOwnershipDeleted(ownership.id))
-                    .then(Mono.empty<Ownership>())
+                    .flatMap { eventListenerListener.onOwnershipDeleted(it.id) }
+                    .then(Mono.empty())
             }
             else -> {
                 buildOwnership(marker, ownership, item).let {
@@ -240,11 +242,11 @@ class ItemReduceServiceV1(
     }
 
     private fun itemReducer(item: Item, log: HistoryLog): Item {
-        val (event, status) = log
-        return when (status.status) {
+        val (event, logEvent) = log
+        return when (logEvent.status) {
             LogEventStatus.CONFIRMED -> {
                 when (event) {
-                    is ItemTransfer -> item.safeProcessTransfer(event, status.from)
+                    is ItemTransfer -> item.safeProcessTransfer(event, logEvent.from)
                     is ItemRoyalty -> {
                         logger.info("Ignoring ItemRoyalty event: $event")
                         item
@@ -265,7 +267,7 @@ class ItemReduceServiceV1(
                 when (event) {
                     is ItemTransfer -> {
                         val pending = item.pending + event
-                        item.safeProcessTransfer(event, status.from).copy(pending = pending)
+                        item.safeProcessTransfer(event, logEvent.from).copy(pending = pending)
                     }
                     else -> item
                 }
@@ -278,19 +280,21 @@ class ItemReduceServiceV1(
      * Makes sure the creator is not forged by artificial contract events.
      */
     private fun Item.safeProcessTransfer(itemTransfer: ItemTransfer, transactionSender: Address?): Item {
-        val creators = if (
+        if (
             itemTransfer.from == Address.ZERO()
             && creators.isEmpty()
             && !creatorsFinal
-            && itemTransfer.owner == transactionSender
         ) {
-            listOf(Part.fullPart(itemTransfer.owner))
-        } else {
-            this.creators
+            if (featureFlags.validateCreatorByTransactionSender
+                && transactionSender != null
+                && itemTransfer.owner != transactionSender
+            ) {
+                return this
+            }
+            return copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
         }
-        return this.copy(creators = creators, mintedAt = itemTransfer.date)
+        return this
     }
-
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {
         val (event, _) = log

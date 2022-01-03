@@ -19,6 +19,7 @@ import com.rarible.protocol.nft.core.model.ItemFilterByCreator
 import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.page.PageSize
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.time.Instant
 
+@ExperimentalCoroutinesApi
 @RestController
 class ItemController(
     private val itemService: ItemService,

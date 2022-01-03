@@ -67,8 +67,8 @@ class PendingTransactionService(
                 topic = pendingLog.topic,
                 transactionHash = hash,
                 status = LogEventStatus.PENDING,
-                index = 0,
                 from = from,
+                index = 0,
                 minorLogIndex = index
             )
         }

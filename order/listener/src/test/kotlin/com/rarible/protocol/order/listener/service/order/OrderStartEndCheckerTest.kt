@@ -2,11 +2,13 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
@@ -34,11 +36,17 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var reactiveMongoTemplate: ReactiveMongoTemplate
+    @Autowired
+    private lateinit var  protocolOrderPublisher: ProtocolOrderPublisher
+    @Autowired
+    private lateinit var orderDtoConverter: OrderDtoConverter
 
     private val updaterJob
         get() = OrderStartEndCheckerJob(
+            reactiveMongoTemplate,
             OrderListenerProperties(updateStatusByStartEndEnabled = true),
-            reactiveMongoTemplate
+            orderDtoConverter,
+            protocolOrderPublisher
         )
 
     @BeforeEach

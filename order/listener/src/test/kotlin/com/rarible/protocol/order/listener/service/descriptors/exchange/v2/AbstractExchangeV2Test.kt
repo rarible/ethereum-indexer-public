@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
+import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -48,6 +49,8 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     protected lateinit var prepareTxService: PrepareTxService
     @Autowired
     protected lateinit var erc721SignService: ERC1271SignService
+    @Autowired
+    protected lateinit var orderDtoConverter: OrderDtoConverter
 
     @BeforeEach
     fun before() {

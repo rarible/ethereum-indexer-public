@@ -40,16 +40,15 @@ class PendingLogItemPropertiesResolver(
         }
     }
 
+    // This resolver is applicable only while the item is in pending minting state.
+    // Confirmed Minted items must provide properties from the contract.
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return null
         val isPendingMinting =
             item.pending.any { it.from == Address.ZERO() } || item.getPendingEvents().any { it is ItemEvent.ItemMintEvent }
 
         if (!isPendingMinting) {
-            logProperties(itemId, "removing properties of an already confirmed item")
-            // Minted items must provide properties from the contract.
-            // This resolver is applicable only while the item is in pending minting state.
-            pendingLogItemPropertiesRepository.deleteById(itemId.decimalStringValue).awaitFirstOrNull()
+            // TODO: add a background cleanup job that removes properties for confirmed pending mints.
             return null
         }
         return pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue)

@@ -39,7 +39,7 @@ class OrderUpdateService(
      * Orders are identified by [OrderVersion.hash].
      *
      * [orderVersion] **must be** a valid order update having the same values for significant fields
-     * (`data`, `start`, `end`, etc).
+     * (`data`, `start`, `end` etc.).
      * **Validation is not part of this function**. So make sure the source of order version updates is trustworthy.
      * On API level validation is performed in `OrderValidator.validate(existing: Order, update: OrderVersion)`.
      */
@@ -62,13 +62,16 @@ class OrderUpdateService(
         }
     }
 
+    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? =
+        updateMakeStockFull(hash, knownMakeBalance).first
+
     /**
      * Updates the order's make stock and prices without calling the OrderReduceService.
      */
-    suspend fun updateMakeStock(hash: Word, knownMakeBalance: EthUInt256? = null): Order? {
-        val order = orderRepository.findById(hash) ?: return null
+    suspend fun updateMakeStockFull(hash: Word, knownMakeBalance: EthUInt256? = null): Pair<Order?, Boolean> {
+        val order = orderRepository.findById(hash) ?: return null to false
 
-        val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order) ?: EthUInt256.ZERO
+        val makeBalance = knownMakeBalance ?: assetMakeBalanceProvider.getMakeBalance(order)
 
         val protocolCommission = protocolCommissionProvider.get()
         val withNewMakeStock = order.withMakeBalance(makeBalance, protocolCommission)
@@ -81,11 +84,11 @@ class OrderUpdateService(
         return if (order.makeStock != updated.makeStock) {
             val savedOrder = orderRepository.save(updated)
             orderListener.onOrder(savedOrder)
-            logger.info("Make stock of order ${savedOrder.hash} updated: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
-            savedOrder
+            logger.info("Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")
+            savedOrder to true
         } else {
-            logger.info("Make stock of order ${updated.hash} did not change: makeStock=${updated.makeStock}, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
-            order
+            logger.info("Make stock of order did not change ${updated.hash}: makeStock=${updated.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${updated.cancelled}")
+            order to false
         }
     }
 }

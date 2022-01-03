@@ -7,6 +7,7 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.collect
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -33,6 +34,7 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         collectionEventsProducer.send(message).ensureSuccess()
+        logger.info("Sent collection event ${event.eventId}: $event")
     }
 
     suspend fun publishInternalCollection(event: NftCollectionEventDto) {
@@ -43,6 +45,7 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         internalCollectionEventsProducer.send(message).ensureSuccess()
+        logger.info("Sent internal collection event ${event.eventId}: $event")
     }
 
     suspend fun publish(event: NftItemEventDto) {
@@ -53,6 +56,7 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         itemEventsProducer.send(message).ensureSuccess()
+        logger.info("Sent item event ${event.itemId}: ${event.toShort()}")
     }
 
     suspend fun publishInternalItem(event: NftItemEventDto) {
@@ -63,17 +67,22 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
         internalItemEventsProducer.send(message).ensureSuccess()
+        logger.info("Sent internal item event ${event.itemId}: ${event.toShort()}")
     }
 
     suspend fun publish(event: NftOwnershipEventDto) {
         val message = prepareOwnershipKafkaMessage(event)
         ownershipEventProducer.send(message).ensureSuccess()
+        logger.info("Sent ownership event ${event.eventId}: $event")
     }
 
     suspend fun publish(events: List<NftOwnershipEventDto>) {
         val messages = events.map { event -> prepareOwnershipKafkaMessage(event) }
         ownershipEventProducer.send(messages).collect { result ->
             result.ensureSuccess()
+        }
+        events.forEach {
+            logger.info("Sent ownership event ${it.eventId}: $it")
         }
     }
 
@@ -86,6 +95,7 @@ class ProtocolNftEventPublisher(
             id = itemId
         )
         nftItemActivityProducer.send(message).ensureSuccess()
+        logger.info("Sent item activity event ${event.id}: $event")
     }
 
     private fun prepareOwnershipKafkaMessage(event: NftOwnershipEventDto): KafkaMessage<NftOwnershipEventDto> {
@@ -99,4 +109,15 @@ class ProtocolNftEventPublisher(
             id = event.eventId
         )
     }
+
+    private companion object {
+        private val logger = LoggerFactory.getLogger(ProtocolNftEventPublisher::class.java)
+    }
+
+    private fun NftItemEventDto.toShort() =
+        when (this) {
+            is NftItemUpdateEventDto -> copy(item = item.copy(owners = emptyList()))
+            is NftItemDeleteEventDto -> this
+        }
+
 }

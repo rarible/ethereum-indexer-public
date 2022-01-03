@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.reactive.awaitFirst
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
 @Component
-@CaptureSpan(type = SpanType.DB)
 class OwnershipRepository(
     private val mongo: ReactiveMongoOperations
 ) {
@@ -54,8 +51,8 @@ class OwnershipRepository(
             .awaitFirst()
     }
 
-    fun deleteById(id: OwnershipId): Mono<Void> {
-        return mongo.remove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java).then()
+    fun deleteById(id: OwnershipId): Mono<Ownership> {
+        return mongo.findAndRemove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java)
     }
 
     private suspend fun query(criteria: Criteria?, limit: Int, sort: Sort?): List<Ownership> {

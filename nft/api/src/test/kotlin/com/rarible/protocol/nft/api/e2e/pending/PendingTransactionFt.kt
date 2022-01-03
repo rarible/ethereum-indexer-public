@@ -78,6 +78,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
+    @Autowired
+    private lateinit var ipfsService: IpfsService
+
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `pending minting`(version: ReduceVersion) = withReducer(version) {
@@ -119,10 +122,10 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             mockRariblePropertiesResolver.resolve(itemId)
         }
         val resolvedItemProperties = itemProperties.copy(
-            image = IpfsService.RARIBLE_IPFS + '/' + itemProperties.image,
-            imagePreview = IpfsService.RARIBLE_IPFS + '/' + itemProperties.imagePreview,
-            imageBig = IpfsService.RARIBLE_IPFS + '/' + itemProperties.imageBig,
-            animationUrl = IpfsService.RARIBLE_IPFS + '/' + itemProperties.animationUrl
+            image = ipfsService.resolveHttpUrl(itemProperties.image!!),
+            imagePreview = ipfsService.resolveHttpUrl(itemProperties.imagePreview!!),
+            imageBig = ipfsService.resolveHttpUrl(itemProperties.imageBig!!),
+            animationUrl = ipfsService.resolveHttpUrl(itemProperties.animationUrl!!)
         )
 
         val receipt = token.mint(
@@ -196,7 +199,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             // Wait while the 'itemPropertiesService' requests the pending log resolver again and this resolver invalidates the cache.
             assertThat(itemPropertiesService.resolve(itemId))
                 .isEqualToIgnoringGivenFields(resolvedItemProperties, ItemProperties::rawJsonContent.name)
-            assertThat(pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue).awaitFirstOrNull()).isNull()
         }
     }
 
