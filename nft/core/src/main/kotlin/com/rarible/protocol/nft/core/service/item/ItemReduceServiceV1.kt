@@ -280,7 +280,7 @@ class ItemReduceServiceV1(
      * Makes sure the creator is not forged by artificial contract events.
      */
     private fun Item.safeProcessTransfer(itemTransfer: ItemTransfer, transactionSender: Address?): Item {
-        if (
+        val creators = if (
             itemTransfer.from == Address.ZERO()
             && creators.isEmpty()
             && !creatorsFinal
@@ -289,11 +289,14 @@ class ItemReduceServiceV1(
                 && transactionSender != null
                 && itemTransfer.owner != transactionSender
             ) {
-                return this
+                this.creators
+            } else {
+                listOf(Part.fullPart(itemTransfer.owner))
             }
-            return copy(creators = listOf(Part.fullPart(itemTransfer.owner)))
+        } else {
+            this.creators
         }
-        return this
+        return this.copy(creators = creators, mintedAt = itemTransfer.date)
     }
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {
