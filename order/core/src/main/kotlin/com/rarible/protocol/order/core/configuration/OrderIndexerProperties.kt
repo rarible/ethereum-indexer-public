@@ -60,6 +60,7 @@ data class OrderIndexerProperties(
 
     data class FeatureFlags(
         val showAllOrdersByDefault: Boolean = false,
-        val showOpenSeaOrdersWithOtherPlatforms: Boolean = false
+        val showOpenSeaOrdersWithOtherPlatforms: Boolean = false,
+        val hideOpenSeaSignatures: Boolean = false,
     )
 }
