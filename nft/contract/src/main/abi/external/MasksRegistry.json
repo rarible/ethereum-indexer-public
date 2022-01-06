@@ -1,0 +1,117 @@
+[
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [],
+    "name": "DATASTORE_CONTRACT",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MASKS_CONTRACT",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "maxMasksSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "startingIndexFromMasksContract",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "maskId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTraitsOfMaskId",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "character",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "mask",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "eyeColor",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "skinColor",
+        "type": "string"
+      },
+      {
+        "internalType": "string",
+        "name": "item",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "maskId",
+        "type": "uint256"
+      }
+    ],
+    "name": "getIPFSHashOfMaskId",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "ipfsHash",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

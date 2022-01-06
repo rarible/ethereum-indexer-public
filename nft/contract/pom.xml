@@ -29,6 +29,11 @@
                             <type>MONO</type>
                         </contract>
                         <contract>
+                            <abi>src/main/abi/external/MasksRegistry.json</abi>
+                            <packageName>com.rarible.protocol.contracts.external.hashmasks</packageName>
+                            <type>MONO</type>
+                        </contract>
+                        <contract>
                             <abi>src/main/abi/external/Hegic.json</abi>
                             <packageName>com.rarible.protocol.contracts.external.hegic</packageName>
                             <type>MONO</type>

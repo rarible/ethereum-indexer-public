@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
@@ -28,6 +29,7 @@ class ItemPropertiesResolverProvider(
     waifusionResolver: WaifusionPropertiesResolver,
     cryptoPunksResolver: CryptoPunksPropertiesResolver,
     pendingLogItemPropertiesResolver: PendingLogItemPropertiesResolver,
+    hashmasksPropertiesResolver: HashmasksPropertiesResolver,
     lazyItemPropertiesResolver: LazyItemPropertiesResolver
 ) {
     /**
@@ -43,6 +45,7 @@ class ItemPropertiesResolverProvider(
         yInsureResolver,
         hegicResolver,
         waifusionResolver,
+        hashmasksPropertiesResolver,
         cryptoPunksResolver,
         cryptoKittiesResolver,
         lootResolver,
