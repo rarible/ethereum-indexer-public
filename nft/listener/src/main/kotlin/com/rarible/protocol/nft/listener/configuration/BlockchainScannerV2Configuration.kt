@@ -39,7 +39,8 @@ class BlockchainScannerV2Configuration(
             host = applicationEnvironmentInfo.host,
             environment = applicationEnvironmentInfo.name,
             blockchain = nftIndexerProperties.blockchain.value,
-            service = ethereumScannerProperties.service
+            service = ethereumScannerProperties.service,
+            workerCount = nftListenerProperties.logConsumeWorkerCount
         ).apply { start(entityEventListener.associateBy { it.id }) }
     }
 

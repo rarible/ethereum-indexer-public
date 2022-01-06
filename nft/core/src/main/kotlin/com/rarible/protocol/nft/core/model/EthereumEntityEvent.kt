@@ -41,6 +41,7 @@ abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
         val pendingBlockComparator: Comparator<EthereumEntityEvent<*>> = Comparator
             .comparing<EthereumEntityEvent<*>, String>({ it.log.transactionHash }, { t1, t2 -> t1.compareTo(t2) })
             .thenComparing({ it.log.address.toString() }, { a1, a2 -> a1.compareTo(a2) })
+            .thenComparing({ it.log.topic.toString() }, { a1, a2 -> a1.compareTo(a2) })
             .thenComparingInt { it.log.minorLogIndex }
     }
 }

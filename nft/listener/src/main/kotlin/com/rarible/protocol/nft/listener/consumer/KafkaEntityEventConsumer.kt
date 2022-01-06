@@ -22,20 +22,28 @@ class KafkaEntityEventConsumer(
     host: String,
     environment: String,
     blockchain: String,
-    private val service: String
+    private val service: String,
+    private val workerCount: Int
 ) : EntityEventConsumer {
 
     private val topicPrefix = getLogTopicPrefix(environment, service, blockchain)
     private val clientIdPrefix = "$environment.$host.${java.util.UUID.randomUUID()}.$blockchain"
+    private val batchedConsumerWorkers = mutableSetOf<BatchedConsumerWorker<*>>()
 
     override fun start(handler: Map<String, EntityEventListener>) {
-        handler
-            .map { consumer(it.key, it.value)  }
-            .forEach { it.start() }
+        batchedConsumerWorkers.addAll(
+            handler
+                .map { consumer(it.key, it.value) }
+                .onEach { consumer -> consumer.start() }
+        )
+    }
+
+    override fun close() {
+        batchedConsumerWorkers.forEach { consumer -> consumer.close() }
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun consumer(id: String, listener: EntityEventListener): ConsumerBatchWorker<*> {
+    private fun consumer(id: String, listener: EntityEventListener): BatchedConsumerWorker<*> {
         val kafkaConsumer = RaribleKafkaConsumer(
             clientId = "$clientIdPrefix.log-event-consumer.$service.$id",
             valueDeserializerClass = JsonDeserializer::class.java,
@@ -49,15 +57,18 @@ class KafkaEntityEventConsumer(
                 "allow.auto.create.topics" to "false"
             )
         )
-        return ConsumerBatchWorker(
-            consumer = kafkaConsumer,
-            properties = daemonProperties,
-            // Block consumer should NOT skip events, so there is we're using endless retry
-            retryProperties = RetryProperties(attempts = Integer.MAX_VALUE, delay = Duration.ofMillis(1000)),
-            eventHandler = BlockEventHandler(listener),
-            meterRegistry = meterRegistry,
-            workerName = "log-event-consumer-$id"
-        )
+        val workers = (1..workerCount).map {
+            ConsumerBatchWorker(
+                consumer = kafkaConsumer,
+                properties = daemonProperties,
+                // Block consumer should NOT skip events, so there is we're using endless retry
+                retryProperties = RetryProperties(attempts = Integer.MAX_VALUE, delay = Duration.ofMillis(1000)),
+                eventHandler = BlockEventHandler(listener),
+                meterRegistry = meterRegistry,
+                workerName = "log-event-consumer-$id-$it"
+            )
+        }
+        return BatchedConsumerWorker(workers)
     }
 
     private class BlockEventHandler(
