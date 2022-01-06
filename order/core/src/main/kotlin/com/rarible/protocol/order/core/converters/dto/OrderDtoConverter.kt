@@ -9,12 +9,14 @@ import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.isMakeFillOrder
 import com.rarible.protocol.order.core.service.PriceNormalizer
+import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
 import java.math.BigInteger
 
@@ -22,7 +24,8 @@ import java.math.BigInteger
 class OrderDtoConverter(
     private val priceNormalizer: PriceNormalizer,
     private val assetDtoConverter: AssetDtoConverter,
-    private val orderExchangeHistoryDtoConverter: OrderExchangeHistoryDtoConverter
+    private val orderExchangeHistoryDtoConverter: OrderExchangeHistoryDtoConverter,
+    private val properties: OrderIndexerProperties,
 ) {
 
     suspend fun convert(source: Order): OrderDto {
@@ -96,7 +99,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature.orEmpty(),
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else source.signature.orEmpty(),
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
