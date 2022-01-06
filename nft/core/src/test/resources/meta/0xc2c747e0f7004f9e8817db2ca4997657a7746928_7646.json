@@ -1,0 +1,38 @@
+{
+  "name": "African Warrior",
+  "description": "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
+  "image": {
+    "url": {
+      "ORIGINAL": "https://rarible.mypinata.cloud/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh"
+    },
+    "meta": {
+      "ORIGINAL": {
+        "type": "image/jpeg",
+        "width": 666,
+        "height": 180
+      }
+    }
+  },
+  "attributes": [
+    {
+      "key": "character",
+      "value": "Male"
+    },
+    {
+      "key": "eyeColor",
+      "value": "Green"
+    },
+    {
+      "key": "item",
+      "value": "No Item"
+    },
+    {
+      "key": "mask",
+      "value": "Doodle"
+    },
+    {
+      "key": "skinColor",
+      "value": "Dark"
+    }
+  ]
+}
