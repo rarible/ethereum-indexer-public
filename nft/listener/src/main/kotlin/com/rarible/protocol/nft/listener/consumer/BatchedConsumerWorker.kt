@@ -1,9 +1,9 @@
 package com.rarible.protocol.nft.listener.consumer
 
-import com.rarible.core.daemon.sequential.ConsumerBatchWorker
+import com.rarible.core.daemon.sequential.ConsumerWorker
 
 class BatchedConsumerWorker<T>(
-    private val workers: List<ConsumerBatchWorker<T>>
+    private val workers: List<ConsumerWorker<T>>
 ) : KafkaConsumerWorker<T> {
 
     override fun start() {

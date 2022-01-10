@@ -6,8 +6,8 @@ import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.RetryProperties
-import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
-import com.rarible.core.daemon.sequential.ConsumerBatchWorker
+import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.protocol.nft.core.service.EntityEventListener
@@ -58,7 +58,7 @@ class KafkaEntityEventConsumer(
             )
         )
         val workers = (1..workerCount).map {
-            ConsumerBatchWorker(
+            ConsumerWorker(
                 consumer = kafkaConsumer,
                 properties = daemonProperties,
                 // Block consumer should NOT skip events, so there is we're using endless retry
@@ -73,14 +73,14 @@ class KafkaEntityEventConsumer(
 
     private class BlockEventHandler(
         private val entityEventListener: EntityEventListener
-    ) : ConsumerBatchEventHandler<EthereumLogRecordEvent> {
-        override suspend fun handle(event: List<EthereumLogRecordEvent>) {
-            entityEventListener.onEntityEvents(event.map {
+    ) : ConsumerEventHandler<EthereumLogRecordEvent> {
+        override suspend fun handle(event: EthereumLogRecordEvent) {
+            entityEventListener.onEntityEvents(listOf(
                 LogRecordEvent(
-                    record = it.record,
-                    reverted = it.reverted
+                    record = event.record,
+                    reverted = event.reverted
                 )
-            })
+            ))
         }
     }
 
