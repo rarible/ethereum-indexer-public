@@ -145,6 +145,16 @@ class ItemPropertiesService(
                 ) {
                     return rarible
                 }
+                if (fieldName == "name"
+                    && rarible is String
+                    && rarible.isNotEmpty()
+                    && openSea is String
+                    && openSea.endsWith("#${itemId.tokenId.value}")
+                ) {
+                    // Apparently, the OpenSea resolver has returned a dummy name as <collection name> #tokenId
+                    // We don't want to override the Rarible resolver result.
+                    return rarible
+                }
                 logProperties(itemId, "extending $fieldName from OpenSea: rarible = [$rarible], openSea = [$openSea]")
                 return openSea
             }
