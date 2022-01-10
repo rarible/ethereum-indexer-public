@@ -204,8 +204,9 @@ class MongoOrderRepository(
     fun findExpiredOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
-                Order::status isEqualTo OrderStatus.ACTIVE,
+                Order::status inValues listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE),
                 Order::end exists true,
+                Order::end gt 0,
                 Order::end lt now.epochSecond
             )
         )
@@ -217,7 +218,10 @@ class MongoOrderRepository(
             Criteria().andOperator(
                 Order::status isEqualTo OrderStatus.NOT_STARTED,
                 Criteria().orOperator(
-                    Order::end exists false,
+                    Criteria().orOperator(
+                        Order::end exists false,
+                        Order::end isEqualTo 0,
+                    ),
                     Criteria().andOperator(
                         Order::end exists true,
                         Order::end gte now.epochSecond
