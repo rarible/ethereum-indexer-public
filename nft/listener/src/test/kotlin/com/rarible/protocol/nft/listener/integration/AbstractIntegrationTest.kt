@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.listener.integration
 
+import com.rarible.blockchain.scanner.block.Block
 import com.rarible.blockchain.scanner.block.BlockRepository
-import com.rarible.blockchain.scanner.event.block.Block
-import com.rarible.blockchain.scanner.event.block.BlockStatus
+import com.rarible.blockchain.scanner.block.BlockStatus
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer

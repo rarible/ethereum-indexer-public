@@ -4,7 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainBlock
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainClient
 import com.rarible.blockchain.scanner.ethereum.client.EthereumBlockchainLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumDescriptor
-import com.rarible.blockchain.scanner.framework.data.BlockHeader
 import com.rarible.blockchain.scanner.framework.data.FullBlock
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.onEach
@@ -46,9 +45,13 @@ class TestEthereumBlockchainClient(
 
     override fun getBlockLogs(
         descriptor: EthereumDescriptor,
-        blocks: List<BlockHeader>,
+        blocks: List<EthereumBlockchainBlock>,
         stable: Boolean
     ): Flow<FullBlock<EthereumBlockchainBlock, EthereumBlockchainLog>> {
         return delegate.getBlockLogs(descriptor, blocks, stable)
+    }
+
+    override suspend fun getFirstAvailableBlock(): EthereumBlockchainBlock {
+        return delegate.getFirstAvailableBlock()
     }
 }
