@@ -8,19 +8,17 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
 
-data class FilterSellByMaker(
+data class OrderFilterSell(
     override val origin: Address? = null,
     override val platforms: List<PlatformDto>,
     override val sort: Sort,
-    override val status: List<OrderStatusDto>? = null,
-    val maker: Address
-) : Filter() {
+    override val status: List<OrderStatusDto>? = null
+) : OrderFilter() {
 
     override fun toQuery(continuation: String?, limit: Int): Query {
         return Query(
             Criteria()
                 .sell()
-                .forMaker(maker)
                 .forPlatform(platforms.mapNotNull { convert(it) })
                 .fromOrigin(origin)
                 .forStatus(status)
@@ -29,10 +27,20 @@ data class FilterSellByMaker(
     }
 
     private fun hint(): Document {
-        return if (platforms.isEmpty()) {
-            OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_DEFINITION.indexKeys
+        val hasPlatforms = platforms.isNotEmpty()
+        val hasStatuses = !status.isNullOrEmpty()
+        return if (hasPlatforms) {
+            if (hasStatuses) {
+                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
+            } else {
+                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
+            }
         } else {
-            OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexKeys
+            if (hasStatuses) {
+                OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
+            } else {
+                OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
+            }
         }
     }
 }

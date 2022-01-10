@@ -23,7 +23,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 
-sealed class Filter {
+sealed class OrderFilter {
 
     abstract val origin: Address?
     abstract val platforms: List<PlatformDto>
@@ -33,7 +33,7 @@ sealed class Filter {
     abstract fun toQuery(continuation: String?, limit: Int): Query
 
     protected fun Criteria.fromOrigin(origin: Address?) = origin?.let {
-        and("${Order::data.name}.${OrderRaribleV2DataV1::originFees.name}")
+        and(Order::data / OrderRaribleV2DataV1::originFees)
             .elemMatch(Criteria.where(Part::account.name).`is`(origin))
     } ?: this
 
@@ -64,13 +64,13 @@ sealed class Filter {
         } ?: this
     }
 
-    protected fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker.name).isEqualTo(it) } ?: this
+    protected fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker).isEqualTo(it) } ?: this
 
-    protected fun Criteria.forCollection(collection: Address) = and("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}").isEqualTo(collection)
+    protected fun Criteria.forCollection(collection: Address) = and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
 
-    protected fun Criteria.sell() = and("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+    protected fun Criteria.sell() = and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
 
-    protected fun Criteria.bid() = and("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+    protected fun Criteria.bid() = and(Order::take / Asset::type / AssetType::nft).isEqualTo(true)
 
     protected fun Criteria.scrollTo(continuation: String?, sort: Sort?) = when (sort) {
         Sort.LAST_UPDATE_ASC -> {

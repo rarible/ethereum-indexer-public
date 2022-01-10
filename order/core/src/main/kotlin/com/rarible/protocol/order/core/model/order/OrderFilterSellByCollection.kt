@@ -8,13 +8,13 @@ import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
 
-data class FilterSellByCollection(
+data class OrderFilterSellByCollection(
     override val origin: Address? = null,
     override val platforms: List<PlatformDto>,
     override val sort: Sort,
     override val status: List<OrderStatusDto>? = null,
     val collection: Address
-) : Filter() {
+) : OrderFilter() {
 
     override fun toQuery(continuation: String?, limit: Int): Query {
         return Query(
