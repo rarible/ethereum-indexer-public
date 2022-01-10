@@ -28,11 +28,8 @@ data class OrderFilterSellByCollection(
         ).limit(limit).with(sort(sort)).withHint(hint())
     }
 
-    private fun hint(): Document {
-        return if (platforms.isEmpty()) {
-            OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_DEFINITION.indexKeys
-        } else {
-            OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION.indexKeys
-        }
+    private fun hint(): Document = when {
+        platforms.isEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_DEFINITION.indexKeys
+        else -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION.indexKeys
     }
 }

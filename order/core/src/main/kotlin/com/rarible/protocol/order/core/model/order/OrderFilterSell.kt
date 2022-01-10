@@ -26,21 +26,10 @@ data class OrderFilterSell(
         ).limit(limit).with(sort(sort)).withHint(hint())
     }
 
-    private fun hint(): Document {
-        val hasPlatforms = platforms.isNotEmpty()
-        val hasStatuses = !status.isNullOrEmpty()
-        return if (hasPlatforms) {
-            if (hasStatuses) {
-                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
-            } else {
-                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
-            }
-        } else {
-            if (hasStatuses) {
-                OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
-            } else {
-                OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
-            }
-        }
+    private fun hint(): Document = when {
+        hasPlatforms && hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
+        hasPlatforms && !hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
+        hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
+        else -> OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
     }
 }

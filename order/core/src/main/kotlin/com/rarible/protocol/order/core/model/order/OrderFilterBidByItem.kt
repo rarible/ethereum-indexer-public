@@ -51,12 +51,9 @@ data class OrderFilterBidByItem(
         )
     }
 
-    fun hint(): Document {
-        return if (currency != null) {
-            return OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
-        } else {
-            if (platforms.isEmpty()) OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
-            else OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexKeys
-        }
+    private fun hint(): Document = when {
+        currency != null -> OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
+        platforms.isEmpty() -> OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
+        else -> OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexKeys
     }
 }

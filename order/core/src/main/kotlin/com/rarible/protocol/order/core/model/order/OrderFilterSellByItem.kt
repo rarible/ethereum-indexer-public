@@ -53,12 +53,9 @@ data class OrderFilterSellByItem(
         )
     }
 
-    fun hint(): Document {
-        return if (currency != null) {
-            return OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_SORT_BY_PRICE_DEFINITION.indexKeys
-        } else {
-            if (platforms.isEmpty()) OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_SORT_BY_USD_PRICE_DEFINITION.indexKeys
-            else OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION.indexKeys
-        }
+    private fun hint(): Document = when {
+        currency != null -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_SORT_BY_PRICE_DEFINITION.indexKeys
+        platforms.isEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_SORT_BY_USD_PRICE_DEFINITION.indexKeys
+        else -> OrderRepositoryIndexes.SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION.indexKeys
     }
 }

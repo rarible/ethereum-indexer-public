@@ -30,6 +30,9 @@ sealed class OrderFilter {
     abstract val sort: Sort
     abstract val status: List<OrderStatusDto>?
 
+    val hasPlatforms get() = platforms.isNotEmpty()
+    val hasStatuses get() = !status.isNullOrEmpty()
+
     abstract fun toQuery(continuation: String?, limit: Int): Query
 
     protected fun Criteria.fromOrigin(origin: Address?) = origin?.let {
