@@ -71,17 +71,12 @@ blockchain:
     ethereum:
       blockchain: ${common.blockchain}
       service: "nft"
-      optimisticLockRetries: 3
-      scan:
-        block-publish:
-          enabled: false
+      optimisticLockRetries: 5
       retry-policy:
         scan:
           reconnect-delay: 2s
-          reconnect-attempts: 3
         client:
           delay: 2s
-          attempts: 3
       monitoring:
         enabled: true
         rootPath: ${common.metric-root-path}
