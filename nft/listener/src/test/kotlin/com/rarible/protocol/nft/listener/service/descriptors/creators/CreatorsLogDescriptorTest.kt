@@ -21,7 +21,9 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.data.mongodb.core.query.Criteria
@@ -41,6 +43,18 @@ import java.math.BigInteger
 
 @IntegrationTest
 class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
+
+    private val tokenId = EthUInt256.of(BigInteger.TEN)
+
+    @BeforeEach
+    fun enableFlag() {
+        nftIndexerProperties.featureFlags.validateCreatorByTransactionSender = true
+    }
+
+    @AfterEach
+    fun disableFlag() {
+        nftIndexerProperties.featureFlags.validateCreatorByTransactionSender = false
+    }
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
@@ -123,10 +137,23 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
+    /**
+     * Tests for RPN-106: make sure the Item "creators" is set only for true creators.
+     *
+     * We use the following fake contract that imitates a malicious ERC721 token
+     * whose goal is to trick our indexer to consider the "creators" be a famous address.
+     *
+     * ```
+     *   contract FakeCreatorERC721 is ERC721Upgradeable {
+     *     function mintDirect_without_CreatorsEvent(address to, uint tokenId) external {
+     *         _mint(to, tokenId);
+     *     }
+     *   }
+     *```
+     */
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `should leave creators empty if minted by random user`(version: ReduceVersion) = withReducer(version) {
-        val tokenId = EthUInt256.of(BigInteger.TEN)
         val (_, deployerSender) = newSender()
         val fakeCreatorERC721 = FakeCreatorERC721.deployAndWait(deployerSender, poller).awaitFirst()
         val token = fakeCreatorERC721.address()

@@ -1,12 +1,14 @@
 package com.rarible.protocol.nft.core.service.item.reduce.forward
 
 import com.rarible.core.test.data.randomAddress
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomCreatorsItemEvent
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.service.item.ItemCreatorService
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -16,7 +18,10 @@ import java.time.Instant
 
 internal class ForwardCreatorsItemReducerTest {
     private val creatorService = mockk<ItemCreatorService>()
-    private val forwardCreatorsItemReducer = ForwardCreatorsItemReducer(creatorService)
+    private val nftIndexerProperties = mockk<NftIndexerProperties> {
+        every { featureFlags.validateCreatorByTransactionSender } returns false
+    }
+    private val forwardCreatorsItemReducer = ForwardCreatorsItemReducer(creatorService, nftIndexerProperties)
 
     @Test
     fun `should get creators from creators event`() = runBlocking<Unit> {
@@ -61,6 +66,7 @@ internal class ForwardCreatorsItemReducerTest {
 
     @Test
     fun `should not get creator as a minter if sent by another address`() = runBlocking<Unit> {
+        every { nftIndexerProperties.featureFlags.validateCreatorByTransactionSender } returns true
         val owner = listOf(Part.fullPart(randomAddress()))
         val event = createRandomMintItemEvent(transactionSender = randomAddress())
             .copy(owner = owner.single().account)
