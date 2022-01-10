@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.reduce.forward
 
 import com.rarible.core.entity.reducer.service.Reducer
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -12,7 +13,8 @@ import java.time.Instant
 
 @Component
 class ForwardCreatorsItemReducer(
-    private val creatorService: ItemCreatorService
+    private val creatorService: ItemCreatorService,
+    private val nftIndexerProperties: NftIndexerProperties
 ) : Reducer<ItemEvent, Item> {
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
@@ -22,14 +24,21 @@ class ForwardCreatorsItemReducer(
                 entity.copy(creators = getCreator(entity.id, creators), creatorsFinal = true)
             }
             is ItemEvent.ItemMintEvent -> {
-                val creators = if (!entity.creatorsFinal && event.log.from == event.owner) {
-                    listOf(Part.fullPart(event.owner))
+                val creators = if (!entity.creatorsFinal) {
+                    if (!nftIndexerProperties.featureFlags.validateCreatorByTransactionSender
+                        || event.log.from == event.owner
+                    ) {
+                        listOf(Part.fullPart(event.owner))
+                    } else {
+                        emptyList()
+                    }
                 } else {
                     entity.creators
                 }
                 entity.copy(
                     mintedAt = event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
-                    creators = getCreator(entity.id, creators))
+                    creators = getCreator(entity.id, creators)
+                )
             }
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent -> {
