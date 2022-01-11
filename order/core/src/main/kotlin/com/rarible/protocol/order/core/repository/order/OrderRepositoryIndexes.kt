@@ -54,7 +54,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION = Index()
+    val SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -63,14 +63,14 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- getSellOrdersByCollection ---------------------//
-    private val SELL_ORDERS_BY_COLLECTION_DEFINITION = Index()
+    val SELL_ORDERS_BY_COLLECTION_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION = Index()
+    val SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -79,14 +79,14 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- getSellOrdersByMaker ---------------------//
-    private val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
+    val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
+    val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -110,7 +110,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
+    val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -121,14 +121,14 @@ object OrderRepositoryIndexes {
     // --------------------- getBidsByMaker ---------------------//
     // TODO these indices have 0 usage in prod, need to check them
 
-    private val BIDS_BY_MAKER_DEFINITION = Index()
+    val BIDS_BY_MAKER_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
+    val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)

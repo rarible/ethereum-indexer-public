@@ -5,8 +5,8 @@ import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderFilter
-import com.rarible.protocol.order.core.model.OrderFilterAll
+import com.rarible.protocol.order.core.model.order.OrderFilterAll
+import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,7 +24,7 @@ internal class OrderRepositoryServiceTest : AbstractIntegrationTest() {
             orderRepository.save(createOrder())
         }
         Wait.waitAssert {
-            val filter = OrderFilterAll(sort = OrderFilter.Sort.LAST_UPDATE_DESC, platforms = emptyList())
+            val filter = OrderFilterAll(sort = OrderFilterSort.LAST_UPDATE_DESC, platforms = emptyList())
             val collectedOrders = mutableListOf<Order>()
 
             orderRepositoryService.search(filter, 3).collect {

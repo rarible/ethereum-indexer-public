@@ -30,15 +30,16 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
-import com.rarible.protocol.order.core.model.OrderFilter
-import com.rarible.protocol.order.core.model.OrderFilterSell
-import com.rarible.protocol.order.core.model.OrderFilterSellByCollection
-import com.rarible.protocol.order.core.model.OrderFilterSellByItem
-import com.rarible.protocol.order.core.model.OrderFilterSellByMaker
+import com.rarible.protocol.order.core.model.order.OrderFilter
+import com.rarible.protocol.order.core.model.order.OrderFilterSell
+import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
+import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
+import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -614,7 +615,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(realOrder.toForm(privateKey).withSignature(signature))
 
         val orders = orderService.findOrders(
-            OrderFilterSell(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -635,7 +636,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order.toForm(privateKey))
 
         val orders = orderService.findOrders(
-            OrderFilterSell(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -657,7 +658,7 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order2.toForm(privateKey))
 
         val orders = orderService.findOrders(
-            OrderFilterSell(origin, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC),
+            OrderFilterSell(origin, emptyList(), OrderFilterSort.LAST_UPDATE_DESC),
             10,
             null
         )
@@ -684,8 +685,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 OrderFilterSellByMaker(
                     null,
                     emptyList(),
-                    OrderFilter.Sort.LAST_UPDATE_DESC,
-                    null,
+                    OrderFilterSort.LAST_UPDATE_DESC,
                     null,
                     signer2
                 ), 10, null
@@ -717,7 +717,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMaker(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null,  signer2),
                 10, null
             )
 
@@ -727,7 +727,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMaker(null, emptyList(), OrderFilter.Sort.LAST_UPDATE_DESC, null, null, signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null, signer2),
                 10,
                 continuation.toString()
             )
@@ -756,7 +756,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollection(
                 null,
                 emptyList(),
-                OrderFilter.Sort.LAST_UPDATE_DESC, null, null,
+                OrderFilterSort.LAST_UPDATE_DESC, null,
                 collection1
             ), 10, null
         )
@@ -766,7 +766,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByCollection(
                 null,
                 emptyList(),
-                OrderFilter.Sort.LAST_UPDATE_DESC, null, null,
+                OrderFilterSort.LAST_UPDATE_DESC, null,
                 collection2
             ), 10, null
         )
@@ -797,7 +797,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByItem(
                 contract = collection1,
                 tokenId = tokenId1.value,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilterSort.LAST_UPDATE_DESC,
                 origin = null,
                 platforms = emptyList(),
                 maker = null
@@ -809,7 +809,7 @@ class OrderServiceIt : AbstractOrderIt() {
             OrderFilterSellByItem(
                 contract = collection2,
                 tokenId = tokenId2.value,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilterSort.LAST_UPDATE_DESC,
                 origin = null,
                 platforms = emptyList(),
                 maker = null
