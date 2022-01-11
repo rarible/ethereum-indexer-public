@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.model.order
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.misc.div
@@ -14,6 +15,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.math.BigInteger
 
 data class OrderFilterSellByItem(
@@ -39,6 +41,29 @@ data class OrderFilterSellByItem(
                 .scrollTo(continuation, sort, currency)
         ).limit(limit).with(sort(sort, currency)).withHint(hint())
     }
+
+    override fun toContinuation(order: Order) = when (sort) {
+        OrderFilterSort.LAST_UPDATE_DESC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
+        OrderFilterSort.LAST_UPDATE_ASC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
+        OrderFilterSort.TAKE_PRICE_DESC -> {
+            if (currency != null) {
+                Continuation.Price(order.takePrice ?: BigDecimal.ZERO, order.hash)
+            } else {
+                Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
+            }
+        }
+        OrderFilterSort.MAKE_PRICE_ASC -> {
+            if (currency != null) {
+                Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)
+            } else {
+                Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
+            }
+        }
+    }.toString()
 
     private fun Criteria.forToken(token: Address, tokenId: BigInteger): Criteria {
         return this.andOperator(

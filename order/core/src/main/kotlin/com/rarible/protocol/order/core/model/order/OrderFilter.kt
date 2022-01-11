@@ -37,7 +37,7 @@ sealed class OrderFilter {
 
     abstract fun toQuery(continuation: String?, limit: Int): Query
 
-    fun toContinuation(order: Order) = when (sort) {
+    open fun toContinuation(order: Order) = when (sort) {
         OrderFilterSort.LAST_UPDATE_DESC -> {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }

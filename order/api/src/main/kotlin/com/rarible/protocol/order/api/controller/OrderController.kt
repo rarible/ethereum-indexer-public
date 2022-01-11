@@ -31,16 +31,16 @@ import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.order.OrderFilter
+import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSell
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
-import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.order.OrderFilter
-import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
@@ -494,29 +494,12 @@ class OrderController(
         val result = orderService.findOrders(filter, requestSize, continuation)
 
         val nextContinuation =
-            if (result.isEmpty() || result.size < requestSize) null else toContinuation(filter, result.last())
+            if (result.isEmpty() || result.size < requestSize) null else filter.toContinuation(result.last())
 
         return OrdersPaginationDto(
             result.map { orderDtoConverter.convert(it) },
             nextContinuation
         )
-    }
-
-    private fun toContinuation(legacyFilter: OrderFilter, order: Order): String {
-        return (when (legacyFilter.sort) {
-            OrderFilterSort.LAST_UPDATE_DESC -> {
-                Continuation.LastDate(order.lastUpdateAt, order.hash)
-            }
-            OrderFilterSort.LAST_UPDATE_ASC -> {
-                Continuation.LastDate(order.lastUpdateAt, order.hash)
-            }
-            OrderFilterSort.TAKE_PRICE_DESC -> {
-                Continuation.Price(order.takePrice ?: BigDecimal.ZERO, order.hash)
-            }
-            OrderFilterSort.MAKE_PRICE_ASC -> {
-                Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)
-            }
-        }).toString()
     }
 
     private fun safeAddress(value: String?): Address? {
