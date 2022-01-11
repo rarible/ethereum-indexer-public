@@ -52,122 +52,6 @@ sealed class OrderFilter {
         }
     }.toString()
 
-    protected fun Criteria.fromOrigin(origin: Address?) = origin?.let {
-        and(Order::data / OrderRaribleV2DataV1::originFees)
-            .elemMatch(Criteria.where(Part::account.name).`is`(origin))
-    } ?: this
-
-    protected fun Criteria.forStatus(status: List<OrderStatusDto>?) =
-        if (status?.isNotEmpty() == true) {
-            var statuses = status.map { OrderStatus.valueOf(it.name) }.toMutableList()
-            if (OrderStatus.INACTIVE in statuses) {
-                statuses += listOf(OrderStatus.ENDED, OrderStatus.NOT_STARTED)
-            }
-            and(Order::status).inValues(statuses)
-        } else this
-
-    protected fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
-        return if (platforms.isEmpty()) {
-            this
-        } else {
-            and(Order::platform).inValues(platforms)
-        }
-    }
-
-    protected fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker).isEqualTo(it) } ?: this
-
-    protected fun Criteria.forCollection(collection: Address) =
-        and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
-
-    protected fun Criteria.sell() = and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
-
-    protected fun Criteria.bid() = and(Order::take / Asset::type / AssetType::nft).isEqualTo(true)
-
-    protected fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort) {
-        OrderFilterSort.TAKE_PRICE_DESC -> {
-            val price = Continuation.parse<Continuation.Price>(continuation)
-            price?.let { c ->
-                this.orOperator(
-                    Order::takePriceUsd lt c.afterPrice,
-                    Criteria().andOperator(
-                        Order::takePriceUsd isEqualTo c.afterPrice,
-                        Order::hash lt c.afterId
-                    )
-                )
-            }
-        }
-        OrderFilterSort.MAKE_PRICE_ASC -> {
-            val price = Continuation.parse<Continuation.Price>(continuation)
-            price?.let { c ->
-                this.orOperator(
-                    Order::makePriceUsd gt c.afterPrice,
-                    Criteria().andOperator(
-                        Order::makePriceUsd isEqualTo c.afterPrice,
-                        Order::hash gt c.afterId
-                    )
-                )
-            }
-        }
-        OrderFilterSort.LAST_UPDATE_ASC -> {
-            val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
-            lastDate?.let { c ->
-                this.orOperator(
-                    Order::lastUpdateAt gt c.afterDate,
-                    Criteria().andOperator(
-                        Order::lastUpdateAt isEqualTo c.afterDate,
-                        Order::hash gt c.afterId
-                    )
-                )
-            }
-        }
-        OrderFilterSort.LAST_UPDATE_DESC -> {
-            val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
-            lastDate?.let { c ->
-                this.orOperator(
-                    Order::lastUpdateAt lt c.afterDate,
-                    Criteria().andOperator(
-                        Order::lastUpdateAt isEqualTo c.afterDate,
-                        Order::hash lt c.afterId
-                    )
-                )
-            }
-        }
-    } ?: this
-
-    protected fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort, currency: Address?): Criteria {
-        return if (currency == null) {
-            scrollTo(continuation, sort)
-        } else {
-            when (sort) {
-                OrderFilterSort.TAKE_PRICE_DESC -> {
-                    val price = Continuation.parse<Continuation.Price>(continuation)
-                    price?.let { c ->
-                        this.orOperator(
-                            Order::takePrice lt c.afterPrice,
-                            Criteria().andOperator(
-                                Order::takePrice isEqualTo c.afterPrice,
-                                Order::hash lt c.afterId
-                            )
-                        )
-                    }
-                }
-                OrderFilterSort.MAKE_PRICE_ASC -> {
-                    val price = Continuation.parse<Continuation.Price>(continuation)
-                    price?.let { c ->
-                        this.orOperator(
-                            Order::makePrice gt c.afterPrice,
-                            Criteria().andOperator(
-                                Order::makePrice isEqualTo c.afterPrice,
-                                Order::hash gt c.afterId
-                            )
-                        )
-                    }
-                }
-                else -> null
-            } ?: scrollTo(continuation, sort)
-        }
-    }
-
     protected fun sort(sort: OrderFilterSort): Sort {
         return when (sort) {
             OrderFilterSort.LAST_UPDATE_ASC -> Sort.by(
@@ -221,4 +105,120 @@ fun Criteria.forCurrency(currency: Address?): Criteria {
             and(Order::take / Asset::type / AssetType::token).isEqualTo(Address.apply(it))
         }
     } ?: this
+}
+
+fun Criteria.fromOrigin(origin: Address?) = origin?.let {
+    and(Order::data / OrderRaribleV2DataV1::originFees)
+        .elemMatch(Criteria.where(Part::account.name).`is`(origin))
+} ?: this
+
+fun Criteria.forStatus(status: List<OrderStatusDto>?) =
+    if (status?.isNotEmpty() == true) {
+        var statuses = status.map { OrderStatus.valueOf(it.name) }.toMutableList()
+        if (OrderStatus.INACTIVE in statuses) {
+            statuses += listOf(OrderStatus.ENDED, OrderStatus.NOT_STARTED)
+        }
+        and(Order::status).inValues(statuses)
+    } else this
+
+fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
+    return if (platforms.isEmpty()) {
+        this
+    } else {
+        and(Order::platform).inValues(platforms)
+    }
+}
+
+fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker).isEqualTo(it) } ?: this
+
+fun Criteria.forCollection(collection: Address) =
+    and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
+
+fun Criteria.sell() = and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
+
+fun Criteria.bid() = and(Order::take / Asset::type / AssetType::nft).isEqualTo(true)
+
+fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort) {
+    OrderFilterSort.TAKE_PRICE_DESC -> {
+        val price = Continuation.parse<Continuation.Price>(continuation)
+        price?.let { c ->
+            this.orOperator(
+                Order::takePriceUsd lt c.afterPrice,
+                Criteria().andOperator(
+                    Order::takePriceUsd isEqualTo c.afterPrice,
+                    Order::hash lt c.afterId
+                )
+            )
+        }
+    }
+    OrderFilterSort.MAKE_PRICE_ASC -> {
+        val price = Continuation.parse<Continuation.Price>(continuation)
+        price?.let { c ->
+            this.orOperator(
+                Order::makePriceUsd gt c.afterPrice,
+                Criteria().andOperator(
+                    Order::makePriceUsd isEqualTo c.afterPrice,
+                    Order::hash gt c.afterId
+                )
+            )
+        }
+    }
+    OrderFilterSort.LAST_UPDATE_ASC -> {
+        val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+        lastDate?.let { c ->
+            this.orOperator(
+                Order::lastUpdateAt gt c.afterDate,
+                Criteria().andOperator(
+                    Order::lastUpdateAt isEqualTo c.afterDate,
+                    Order::hash gt c.afterId
+                )
+            )
+        }
+    }
+    OrderFilterSort.LAST_UPDATE_DESC -> {
+        val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
+        lastDate?.let { c ->
+            this.orOperator(
+                Order::lastUpdateAt lt c.afterDate,
+                Criteria().andOperator(
+                    Order::lastUpdateAt isEqualTo c.afterDate,
+                    Order::hash lt c.afterId
+                )
+            )
+        }
+    }
+} ?: this
+
+fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort, currency: Address?): Criteria {
+    return if (currency == null) {
+        scrollTo(continuation, sort)
+    } else {
+        when (sort) {
+            OrderFilterSort.TAKE_PRICE_DESC -> {
+                val price = Continuation.parse<Continuation.Price>(continuation)
+                price?.let { c ->
+                    this.orOperator(
+                        Order::takePrice lt c.afterPrice,
+                        Criteria().andOperator(
+                            Order::takePrice isEqualTo c.afterPrice,
+                            Order::hash lt c.afterId
+                        )
+                    )
+                }
+            }
+            OrderFilterSort.MAKE_PRICE_ASC -> {
+                val price = Continuation.parse<Continuation.Price>(continuation)
+                price?.let { c ->
+                    this.orOperator(
+                        Order::makePrice gt c.afterPrice,
+                        Criteria().andOperator(
+                            Order::makePrice isEqualTo c.afterPrice,
+                            Order::hash gt c.afterId
+                        )
+                    )
+                }
+            }
+            else -> null
+        } ?: scrollTo(continuation, sort)
+    }
 }
