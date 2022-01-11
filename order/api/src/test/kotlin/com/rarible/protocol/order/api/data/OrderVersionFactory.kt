@@ -33,7 +33,7 @@ fun OrderVersion.withTakeToken(token: Address): OrderVersion {
         is Erc721AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
         is Erc1155AssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
         is CryptoPunksAssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
-        is CollectionAssetType -> copy(make = take.copy(type = takeType.copy(token = token)))
+        is CollectionAssetType -> copy(take = take.copy(type = takeType.copy(token = token)))
         else -> throw IllegalArgumentException("Unsupported take assert type ${takeType.javaClass}")
     }
 }
@@ -110,6 +110,12 @@ fun createErc721ListOrderVersion(): OrderVersion {
 fun createCollectionOrderVersion(): OrderVersion {
     val make = createCollectionAsset()
     val take = createEthAsset()
+    return createOrderVersion(make, take)
+}
+
+fun createCollectionBidOrderVersion(): OrderVersion {
+    val make = createEthAsset()
+    val take = createCollectionAsset()
     return createOrderVersion(make, take)
 }
 

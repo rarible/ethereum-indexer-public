@@ -1,11 +1,14 @@
 package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.misc.safeQueryParam
 import com.rarible.protocol.order.core.model.Continuation
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
@@ -173,7 +176,12 @@ sealed class ItemActivityOrderVersionFilter : CollectionActivityOrderVersionFilt
         override fun getCriteria(): Criteria {
             val takeNftContractCriteria = takeNftContractKey isEqualTo contract
             val takeNftTokenIdCriteria = takeNftTokenIdKey isEqualTo tokenId
-            return Criteria().andOperator(takeNftContractCriteria, takeNftTokenIdCriteria)
+            return Criteria().andOperator(
+                takeNftContractCriteria,
+                Criteria().orOperator(takeNftTokenIdCriteria,
+                    (takeNftTokenIdKey exists false)
+                        .and(OrderVersion::take / Asset::type / AssetType::nft).isEqualTo(true)
+                ))
                 .scrollTo(activitySort, continuation)
         }
     }
