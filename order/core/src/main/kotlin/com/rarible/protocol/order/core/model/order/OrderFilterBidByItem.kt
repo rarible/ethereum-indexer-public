@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model.order
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
@@ -68,7 +69,7 @@ data class OrderFilterBidByItem(
         return this.andOperator(
             Order::take / Asset::type / NftAssetType::token isEqualTo token,
             Criteria().orOperator(
-                Order::take / Asset::type / NftAssetType::tokenId isEqualTo tokenId,
+                Order::take / Asset::type / NftAssetType::tokenId isEqualTo EthUInt256(tokenId),
                 Criteria().andOperator(
                     Order::take / Asset::type / NftAssetType::tokenId exists false,
                     Order::take / Asset::type / NftAssetType::nft isEqualTo true)
