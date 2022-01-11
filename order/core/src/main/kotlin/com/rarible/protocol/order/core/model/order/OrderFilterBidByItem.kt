@@ -18,7 +18,7 @@ import java.math.BigInteger
 data class OrderFilterBidByItem(
     override val origin: Address? = null,
     override val platforms: List<PlatformDto>,
-    override val sort: Sort,
+    override val sort: OrderFilterSort,
     override val status: List<OrderStatusDto>? = null,
     val currency: Address? = null,
     val contract: Address,

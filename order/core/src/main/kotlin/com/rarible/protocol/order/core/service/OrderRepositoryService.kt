@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.protocol.order.core.misc.toContinuation
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.repository.order.OrderRepository

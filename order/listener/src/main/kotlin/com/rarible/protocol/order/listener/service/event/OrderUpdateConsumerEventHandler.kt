@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.OrderKind
+import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.service.OrderRepositoryService
 import com.rarible.protocol.order.listener.service.order.OrderPriceUpdateService
 import kotlinx.coroutines.flow.collect
@@ -58,7 +59,7 @@ class OrderUpdateConsumerEventHandler(
             OrderKind.SELL -> OrderFilterSellByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilterSort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null
@@ -66,7 +67,7 @@ class OrderUpdateConsumerEventHandler(
             OrderKind.BID -> OrderFilterBidByItem(
                 tokenId = itemId.tokenId,
                 contract = itemId.contract,
-                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                sort = OrderFilterSort.LAST_UPDATE_DESC,
                 platforms = emptyList(),
                 maker = null,
                 origin = null

@@ -41,6 +41,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.order.OrderFilterAll
+import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
 import com.rarible.protocol.order.core.service.OrderReduceService
@@ -170,7 +171,7 @@ class OrderController(
         val filter = OrderFilterAll(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -201,7 +202,7 @@ class OrderController(
         val filter = OrderFilterSell(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -223,7 +224,7 @@ class OrderController(
             maker = safeAddress(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.MAKE_PRICE_ASC,
+            sort = OrderFilterSort.MAKE_PRICE_ASC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -247,7 +248,7 @@ class OrderController(
             maker = safeAddress(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.MAKE_PRICE_ASC,
+            sort = OrderFilterSort.MAKE_PRICE_ASC,
             status = convertStatus(status),
             currency = currencyId?.let { Address.apply(currencyId) }
         )
@@ -266,7 +267,7 @@ class OrderController(
             collection = Address.apply(collection),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -285,7 +286,7 @@ class OrderController(
             collection = Address.apply(collection),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
@@ -303,7 +304,7 @@ class OrderController(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -322,7 +323,7 @@ class OrderController(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = convertStatus(status)
         )
         val result = searchOrders(filter, continuation, size)
@@ -362,7 +363,7 @@ class OrderController(
             maker = safeAddress(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.TAKE_PRICE_DESC,
+            sort = OrderFilterSort.TAKE_PRICE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -412,7 +413,7 @@ class OrderController(
             maker = Address.apply(maker),
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+            sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
         )
         val result = searchOrders(filter, continuation, size)
@@ -503,16 +504,16 @@ class OrderController(
 
     private fun toContinuation(legacyFilter: OrderFilter, order: Order): String {
         return (when (legacyFilter.sort) {
-            OrderFilter.Sort.LAST_UPDATE_DESC -> {
+            OrderFilterSort.LAST_UPDATE_DESC -> {
                 Continuation.LastDate(order.lastUpdateAt, order.hash)
             }
-            OrderFilter.Sort.LAST_UPDATE_ASC -> {
+            OrderFilterSort.LAST_UPDATE_ASC -> {
                 Continuation.LastDate(order.lastUpdateAt, order.hash)
             }
-            OrderFilter.Sort.TAKE_PRICE_DESC -> {
+            OrderFilterSort.TAKE_PRICE_DESC -> {
                 Continuation.Price(order.takePrice ?: BigDecimal.ZERO, order.hash)
             }
-            OrderFilter.Sort.MAKE_PRICE_ASC -> {
+            OrderFilterSort.MAKE_PRICE_ASC -> {
                 Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)
             }
         }).toString()
@@ -532,8 +533,8 @@ class OrderController(
 
     private fun convert(
         source: OrderSortDto?,
-        default: OrderFilter.Sort = OrderFilter.Sort.LAST_UPDATE_DESC
-    ): OrderFilter.Sort {
+        default: OrderFilterSort = OrderFilterSort.LAST_UPDATE_DESC
+    ): OrderFilterSort {
         return source?.let { OrderSortDtoConverter.convert(it) } ?: default
     }
 

@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
@@ -22,18 +23,34 @@ import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
+import java.math.BigDecimal
 
 sealed class OrderFilter {
 
     abstract val origin: Address?
     abstract val platforms: List<PlatformDto>
-    abstract val sort: Sort
+    abstract val sort: OrderFilterSort
     abstract val status: List<OrderStatusDto>?
 
     val hasPlatforms get() = platforms.isNotEmpty()
     val hasStatuses get() = !status.isNullOrEmpty()
 
     abstract fun toQuery(continuation: String?, limit: Int): Query
+
+    fun toContinuation(order: Order) = when (sort) {
+        OrderFilterSort.LAST_UPDATE_DESC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
+        OrderFilterSort.LAST_UPDATE_ASC -> {
+            Continuation.LastDate(order.lastUpdateAt, order.hash)
+        }
+        OrderFilterSort.TAKE_PRICE_DESC -> {
+            Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
+        }
+        OrderFilterSort.MAKE_PRICE_ASC -> {
+            Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
+        }
+    }.toString()
 
     protected fun Criteria.fromOrigin(origin: Address?) = origin?.let {
         and(Order::data / OrderRaribleV2DataV1::originFees)
@@ -57,26 +74,41 @@ sealed class OrderFilter {
         }
     }
 
-    fun Criteria.forCurrency(currency: Address?): Criteria {
-        return currency?.let {
-            if (it.equals(Address.ZERO())) { // zero means ETH
-                and(Order::take / Asset::type / AssetType::token).exists(false)
-            } else {
-                and(Order::take / Asset::type / AssetType::token).isEqualTo(Address.apply(it))
-            }
-        } ?: this
-    }
-
     protected fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker).isEqualTo(it) } ?: this
 
-    protected fun Criteria.forCollection(collection: Address) = and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
+    protected fun Criteria.forCollection(collection: Address) =
+        and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
 
     protected fun Criteria.sell() = and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
 
     protected fun Criteria.bid() = and(Order::take / Asset::type / AssetType::nft).isEqualTo(true)
 
-    protected fun Criteria.scrollTo(continuation: String?, sort: Sort?) = when (sort) {
-        Sort.LAST_UPDATE_ASC -> {
+    protected fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort) {
+        OrderFilterSort.TAKE_PRICE_DESC -> {
+            val price = Continuation.parse<Continuation.Price>(continuation)
+            price?.let { c ->
+                this.orOperator(
+                    Order::takePriceUsd lt c.afterPrice,
+                    Criteria().andOperator(
+                        Order::takePriceUsd isEqualTo c.afterPrice,
+                        Order::hash lt c.afterId
+                    )
+                )
+            }
+        }
+        OrderFilterSort.MAKE_PRICE_ASC -> {
+            val price = Continuation.parse<Continuation.Price>(continuation)
+            price?.let { c ->
+                this.orOperator(
+                    Order::makePriceUsd gt c.afterPrice,
+                    Criteria().andOperator(
+                        Order::makePriceUsd isEqualTo c.afterPrice,
+                        Order::hash gt c.afterId
+                    )
+                )
+            }
+        }
+        OrderFilterSort.LAST_UPDATE_ASC -> {
             val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
             lastDate?.let { c ->
                 this.orOperator(
@@ -88,7 +120,7 @@ sealed class OrderFilter {
                 )
             }
         }
-        else -> {
+        OrderFilterSort.LAST_UPDATE_DESC -> {
             val lastDate = Continuation.parse<Continuation.LastDate>(continuation)
             lastDate?.let { c ->
                 this.orOperator(
@@ -102,12 +134,12 @@ sealed class OrderFilter {
         }
     } ?: this
 
-    protected fun Criteria.scrollTo(continuation: String?, sort: Sort, currency: Address?): Criteria {
+    protected fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort, currency: Address?): Criteria {
         return if (currency == null) {
             scrollTo(continuation, sort)
         } else {
             when (sort) {
-                Sort.TAKE_PRICE_DESC -> {
+                OrderFilterSort.TAKE_PRICE_DESC -> {
                     val price = Continuation.parse<Continuation.Price>(continuation)
                     price?.let { c ->
                         this.orOperator(
@@ -119,7 +151,7 @@ sealed class OrderFilter {
                         )
                     }
                 }
-                Sort.MAKE_PRICE_ASC -> {
+                OrderFilterSort.MAKE_PRICE_ASC -> {
                     val price = Continuation.parse<Continuation.Price>(continuation)
                     price?.let { c ->
                         this.orOperator(
@@ -136,33 +168,33 @@ sealed class OrderFilter {
         }
     }
 
-    protected fun sort(sort: Sort): org.springframework.data.domain.Sort {
+    protected fun sort(sort: OrderFilterSort): Sort {
         return when (sort) {
-            Sort.LAST_UPDATE_ASC -> org.springframework.data.domain.Sort.by(
-                org.springframework.data.domain.Sort.Direction.ASC,
+            OrderFilterSort.LAST_UPDATE_ASC -> Sort.by(
+                Sort.Direction.ASC,
                 Order::lastUpdateAt.name,
                 Order::hash.name
             )
-            else -> org.springframework.data.domain.Sort.by(
-                org.springframework.data.domain.Sort.Direction.DESC,
+            else -> Sort.by(
+                Sort.Direction.DESC,
                 Order::lastUpdateAt.name,
                 Order::hash.name
             )
         }
     }
 
-    protected fun sort(sort: Sort, currency: Address?): org.springframework.data.domain.Sort {
+    protected fun sort(sort: OrderFilterSort, currency: Address?): Sort {
         return when (sort) {
-            Sort.MAKE_PRICE_ASC -> {
-                org.springframework.data.domain.Sort.by(
-                    org.springframework.data.domain.Sort.Direction.ASC,
+            OrderFilterSort.MAKE_PRICE_ASC -> {
+                Sort.by(
+                    Sort.Direction.ASC,
                     (currency?.let { Order::makePrice } ?: Order::makePriceUsd).name,
                     Order::hash.name
                 )
             }
-            Sort.TAKE_PRICE_DESC -> {
-                org.springframework.data.domain.Sort.by(
-                    org.springframework.data.domain.Sort.Direction.DESC,
+            OrderFilterSort.TAKE_PRICE_DESC -> {
+                Sort.by(
+                    Sort.Direction.DESC,
                     (currency?.let { Order::takePrice } ?: Order::takePriceUsd).name,
                     Order::hash.name
                 )
@@ -172,12 +204,21 @@ sealed class OrderFilter {
     }
 
     protected fun convert(platform: PlatformDto): Platform? = PlatformConverter.convert(platform)
+}
 
-    enum class Sort {
-        LAST_UPDATE_DESC,
-        LAST_UPDATE_ASC,
-        TAKE_PRICE_DESC,
-        MAKE_PRICE_ASC
-    }
+enum class OrderFilterSort {
+    LAST_UPDATE_DESC,
+    LAST_UPDATE_ASC,
+    TAKE_PRICE_DESC,
+    MAKE_PRICE_ASC
+}
 
+fun Criteria.forCurrency(currency: Address?): Criteria {
+    return currency?.let {
+        if (it.equals(Address.ZERO())) { // zero means ETH
+            and(Order::take / Asset::type / AssetType::token).exists(false)
+        } else {
+            and(Order::take / Asset::type / AssetType::token).isEqualTo(Address.apply(it))
+        }
+    } ?: this
 }

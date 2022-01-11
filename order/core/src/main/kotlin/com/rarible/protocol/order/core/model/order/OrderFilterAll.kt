@@ -9,7 +9,7 @@ import scalether.domain.Address
 data class OrderFilterAll(
     override val origin: Address? = null,
     override val platforms: List<PlatformDto>,
-    override val sort: Sort,
+    override val sort: OrderFilterSort,
     override val status: List<OrderStatusDto>? = null
 ) : OrderFilter() {
 
