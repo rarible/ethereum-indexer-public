@@ -30,6 +30,7 @@ class ExtendedItemDtoConverter(
             owners = convertOwnership(item).take(ownersSizeLimit),
             royalties = item.royalties.map { PartDtoConverter.convert(it) },
             lastUpdatedAt = item.date,
+            mintedAt = item.mintedAt,
             pending = convertPending(item),
             deleted = item.deleted,
             meta = NftItemMetaDtoConverter.convert(meta)
