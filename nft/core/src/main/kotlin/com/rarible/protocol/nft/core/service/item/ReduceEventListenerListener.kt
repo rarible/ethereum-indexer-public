@@ -14,7 +14,8 @@ import reactor.core.publisher.Mono
 @Component
 class ReduceEventListenerListener(
     private val publisher: ProtocolNftEventPublisher,
-    private val conversionService: ConversionService
+    private val conversionService: ConversionService,
+    private val ownershipEventDtoFromOwnershipConverter: OwnershipEventDtoFromOwnershipConverter
 ) {
     fun onItemChanged(item: Item): Mono<Void> = mono {
         val eventDto = conversionService.convert<NftItemEventDto>(ExtendedItem(item, ItemMeta.EMPTY))
@@ -22,7 +23,7 @@ class ReduceEventListenerListener(
     }.then()
 
     fun onOwnershipChanged(ownership: Ownership): Mono<Void> = mono {
-        val eventDto = OwnershipEventDtoFromOwnershipConverter.convert(ownership)
+        val eventDto = ownershipEventDtoFromOwnershipConverter.convert(ownership)
         publisher.publish(eventDto)
     }.then()
 
