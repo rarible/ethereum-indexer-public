@@ -9,7 +9,10 @@ import org.springframework.stereotype.Component
 import java.util.*
 
 @Component
-object OwnershipEventDtoFromOwnershipConverter : Converter<Ownership, NftOwnershipEventDto> {
+class OwnershipEventDtoFromOwnershipConverter(
+    private val ownershipDtoConverter: OwnershipDtoConverter
+) : Converter<Ownership, NftOwnershipEventDto> {
+
     override fun convert(source: Ownership): NftOwnershipEventDto {
         return if (source.deleted) {
             NftOwnershipDeleteEventDto(
@@ -21,7 +24,7 @@ object OwnershipEventDtoFromOwnershipConverter : Converter<Ownership, NftOwnersh
             NftOwnershipUpdateEventDto(
                 UUID.randomUUID().toString(),
                 source.id.decimalStringValue,
-                OwnershipDtoConverter.convert(source)
+                ownershipDtoConverter.convert(source)
             )
         }
     }

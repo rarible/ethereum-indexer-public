@@ -1,9 +1,7 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.ItemTransferDto
-import com.rarible.protocol.nft.core.model.ItemEvent
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.*
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -52,6 +50,30 @@ object ItemTransferDtoConverter : Converter<ItemTransfer, ItemTransferDto> {
             is ItemEvent.LazyItemBurnEvent,
             is ItemEvent.LazyItemMintEvent,
             is ItemEvent.ItemCreatorsEvent -> null
+        }
+    }
+
+    fun convert(source: OwnershipEvent): ItemTransferDto? {
+        val ownershipId = OwnershipId.parseId(source.entityId)
+        return when (source) {
+            is OwnershipEvent.TransferToEvent -> ItemTransferDto(
+                owner = ownershipId.owner,
+                from = source.from,
+                contract = ownershipId.token,
+                tokenId = ownershipId.tokenId.value,
+                date = source.log.createdAt,
+                value = source.value.value,
+            )
+            is OwnershipEvent.TransferFromEvent -> ItemTransferDto(
+                owner = source.to,
+                from = ownershipId.owner,
+                contract = ownershipId.token,
+                tokenId = ownershipId.tokenId.value,
+                date = source.log.createdAt,
+                value = source.value.value,
+            )
+            is OwnershipEvent.ChangeLazyValueEvent,
+            is OwnershipEvent.LazyTransferToEvent -> null
         }
     }
 }

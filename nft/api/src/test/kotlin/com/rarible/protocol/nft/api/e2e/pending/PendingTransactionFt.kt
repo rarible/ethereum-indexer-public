@@ -142,24 +142,19 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
 
-            assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty()).isEqualTo(true)
-            if (item.owners.isNotEmpty()) {
-                assertThat(item.owners.single()).isEqualTo(address)
-            }
-            if (item.ownerships.isNotEmpty()) {
-                assertThat(item.ownerships.keys.single()).isEqualTo(address)
-            }
             assertThat(item.creators.single().account).isEqualTo(address)
-
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending.isNotEmpty() || item.getPendingEvents().isNotEmpty()).isEqualTo(true)
-            if (item.pending.isNotEmpty()) {
-                assertThat(item.pending).hasSize(1)
-            }
-            if (item.getPendingEvents().isNotEmpty()) {
-                assertThat(item.getPendingEvents()).hasSize(1)
-            }
 
+            when (version) {
+                ReduceVersion.V1 -> {
+                    assertThat(item.owners.single()).isEqualTo(address)
+                    assertThat(item.pending).hasSize(1)
+                }
+                ReduceVersion.V2 -> {
+                    assertThat(item.ownerships.keys.single()).isEqualTo(address)
+                    assertThat(item.getPendingEvents()).hasSize(1)
+                }
+            }
             assertThat(itemPropertiesService.resolve(itemId)).isEqualToIgnoringGivenFields(
                 resolvedItemProperties, ItemProperties::rawJsonContent.name
             )
@@ -170,15 +165,17 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         }
 
         // Confirm the logs, run the item reducer.
-        val pendingItem = itemRepository.findById(ItemId(token.address(), tokenId)).awaitFirstOrNull()
-
-        assertThat(pendingItem?.pending?.isNotEmpty() == true || pendingItem?.getPendingEvents()?.isNotEmpty() == true).isEqualTo(true)
-        if (pendingItem?.pending?.isNotEmpty() == true) {
-            assertThat(pendingItem?.pending).hasSize(1)
+        val pendingItem = itemRepository.findById(itemId).awaitFirstOrNull()
+        when (version) {
+            ReduceVersion.V1 -> {
+                assertThat(pendingItem?.pending).hasSize(1)
+            }
+            ReduceVersion.V2 -> {
+                assertThat(pendingItem?.getPendingEvents()).hasSize(1)
+            }
         }
-        if (pendingItem?.getPendingEvents()?.isNotEmpty() == true) {
-            assertThat(pendingItem?.getPendingEvents()).hasSize(1)
-        }
+        val pendingItemDtp = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
+        assertThat(pendingItemDtp?.pending).hasSize(1)
 
         val history = nftItemHistoryRepository
             .findItemsHistory(token = token.address(), tokenId = tokenId)
@@ -218,12 +215,14 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         Wait.waitAssert {
             val item = itemRepository.search(Query()).first()
             assertThat(item).hasFieldOrPropertyWithValue(Item::supply.name, EthUInt256.ZERO)
-            assertThat(item.pending.isNotEmpty() || item.getPendingEvents()?.isNotEmpty()).isEqualTo(true)
-            if (item.pending.isNotEmpty()) {
-                assertThat(item.pending).hasSize(1)
-            }
-            if (item.getPendingEvents().isNotEmpty()) {
-                assertThat(item.getPendingEvents()).hasSize(1)
+
+            when (version) {
+                ReduceVersion.V1 -> {
+                    assertThat(item.pending).hasSize(1)
+                }
+                ReduceVersion.V2 -> {
+                    assertThat(item.getPendingEvents()).hasSize(1)
+                }
             }
         }
     }

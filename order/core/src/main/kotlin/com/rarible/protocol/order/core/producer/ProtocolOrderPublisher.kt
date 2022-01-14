@@ -117,6 +117,6 @@ class ProtocolOrderPublisher(
         get() = when (this) {
             Platform.RARIBLE -> true
             Platform.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
-            Platform.CRYPTO_PUNKS -> false
+            Platform.CRYPTO_PUNKS -> true
         }
 }
