@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import java.math.BigInteger
 import java.time.Instant
 
 @Service
@@ -28,16 +29,18 @@ class ERC1155TransferBatchLogDescriptor(
             .flatMapMany { standard ->
                 if (standard == TokenStandard.ERC1155) {
                     val e = TransferBatchEvent.apply(log)
-                    if (e._ids().size != e._values().size) {
-                        Mono.error<ItemTransfer>(IllegalStateException(
+                    if (e._ids().isEmpty() && e._values().all { value -> value == BigInteger.ZERO }) {
+                        Mono.empty()
+                    } else if (e._ids().size != e._values().size) {
+                        Mono.error(IllegalStateException(
                             buildString {
-                                appendln("Invalid TransferBatchEvent for transaction ${log.transactionHash()} logIndex ${log.logIndex()}")
-                                appendln("ids (${e._ids().size}): ${e._ids().toList()}")
-                                appendln("values (${e._values().size}): ${e._values().toList()}")
+                                appendLine("Invalid TransferBatchEvent for transaction ${log.transactionHash()} logIndex ${log.logIndex()}")
+                                appendLine("ids (${e._ids().size}): ${e._ids().toList()}")
+                                appendLine("values (${e._values().size}): ${e._values().toList()}")
                             }
                         ))
                     } else if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
-                        Mono.empty<ItemTransfer>()
+                        Mono.empty()
                     } else {
                         e._ids().zip(e._values())
                             .map {
