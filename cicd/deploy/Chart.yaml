@@ -42,14 +42,14 @@ dependencies:
   alias: polygon-order-listener
   repository: file://../resources/helm/rarible
   version: 0.1.0
-  #- name: rarible-helm-chart
-  #  alias: ethereum-order-migration
-  #  repository: file://../resources/helm/rarible
-  #  version: 0.1.0
-  #- name: rarible-helm-chart
-  #  alias: polygon-order-migration
-  #  repository: file://../resources/helm/rarible
-  #  version: 0.1.0
+- name: rarible-helm-chart
+  alias: ethereum-order-migration
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
+- name: rarible-helm-chart
+  alias: polygon-order-migration
+  repository: file://../resources/helm/rarible
+  version: 0.1.0
 - name: rarible-helm-chart
   alias: ethereum-unlockable-api
   repository: file://../resources/helm/rarible
