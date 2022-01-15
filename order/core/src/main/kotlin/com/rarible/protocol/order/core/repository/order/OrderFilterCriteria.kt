@@ -246,20 +246,17 @@ object OrderFilterCriteria {
     private fun Criteria.withNoHint() = Pair<Criteria, Document?>(this, null)
 
     private fun OrderFilterSell.withSellHint(): Document {
-        val hasPlatforms = this.platforms.mapNotNull { convert(it) }.isNotEmpty()
-        val hasStatuses = !this.status.isNullOrEmpty()
-        return if (hasPlatforms) {
-            if (hasStatuses) {
-                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
-            } else {
-                OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
-            }
-        } else {
-            if (hasStatuses) {
-                OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
-            } else {
-                OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
-            }
+        val platforms = this.platforms.mapNotNull { convert(it) }
+        val statuses = this.status
+
+        val singlePlatform = platforms.size == 1
+        val singleStatus = statuses?.size == 1
+
+        return when {
+            singlePlatform && singleStatus -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
+            singlePlatform -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
+            singleStatus -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
+            else -> OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
         }
     }
 }

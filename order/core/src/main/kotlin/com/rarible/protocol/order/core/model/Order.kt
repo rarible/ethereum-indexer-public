@@ -205,7 +205,7 @@ data class Order(
 
         private fun isEnded(end: Long?): Boolean {
             val now = Instant.now().epochSecond
-            return end?.let { it < now } ?: false
+            return end?.let { it in 1 until now } ?: false
         }
 
         private fun isStarted(start: Long?): Boolean {

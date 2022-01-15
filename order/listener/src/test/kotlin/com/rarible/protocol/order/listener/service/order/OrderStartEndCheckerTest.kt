@@ -19,6 +19,7 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -86,6 +87,51 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should make order expired if it is already inactive`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
+            end = nowMillis().plus(Duration.ofHours(1)).epochSecond
+        )
+        val order = orderUpdateService.save(orderVersion)
+        val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
+        assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
+
+        // rewind end for matching expired query
+        mongo.updateMulti(Query(), Update().set("end", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
+
+        updaterJob.update(nowMillis())
+        check(orderVersion.hash, OrderStatus.ENDED)
+    }
+
+    @Test
+    fun `should make order expired if it is already inactive and end = 0`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = nowMillis().minus(Duration.ofHours(1)).epochSecond,
+            end = 0
+        )
+        val order = orderUpdateService.save(orderVersion)
+        val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
+        assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
+
+        updaterJob.update(nowMillis())
+        check(orderVersion.hash, OrderStatus.INACTIVE)
+    }
+
+    @Test
     fun `should change order status to active if order is alive`() = runBlocking<Unit> {
         val targetMaker = AddressFactory.create()
         val targetToken = AddressFactory.create()
@@ -97,6 +143,30 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
             take = take,
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(2)).epochSecond
+        )
+        val order = orderUpdateService.save(orderVersion)
+        assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
+
+        // rewind start for matching (start, end) interval
+        mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
+        check(orderVersion.hash, OrderStatus.NOT_STARTED)
+
+        updaterJob.update()
+        check(orderVersion.hash, OrderStatus.ACTIVE)
+    }
+
+    @Test
+    fun `should change order status to active if end = 0`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
+            end = 0
         )
         val order = orderUpdateService.save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
@@ -146,6 +216,30 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
             take = take,
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = null
+        )
+        val order = orderUpdateService.save(orderVersion)
+        assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
+
+        // rewind start for matching (start, end) interval
+        mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
+        check(orderVersion.hash, OrderStatus.NOT_STARTED)
+
+        updaterJob.update()
+        check(orderVersion.hash, OrderStatus.ACTIVE)
+    }
+
+    @Test
+    fun `should change order status if order is alive with end = 0`() = runBlocking<Unit> {
+        val targetMaker = AddressFactory.create()
+        val targetToken = AddressFactory.create()
+        val make = Asset(Erc20AssetType(targetToken), EthUInt256.TEN)
+        val take = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN), EthUInt256.TEN)
+        val orderVersion = createOrderVersion().copy(
+            maker = targetMaker,
+            make = make,
+            take = take,
+            start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
+            end = 0
         )
         val order = orderUpdateService.save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
