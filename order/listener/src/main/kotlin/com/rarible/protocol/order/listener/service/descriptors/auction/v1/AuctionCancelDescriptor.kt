@@ -28,6 +28,7 @@ class AuctionCancelDescriptor(
         return listOf(
             AuctionCancelled(
                 auctionId = auctionId,
+                seller = auction?.seller,
                 sell = auction?.sell,
                 date = date,
                 contract = contract,

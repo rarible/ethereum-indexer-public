@@ -7,9 +7,11 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.repository.exchange.AuctionHistoryRepositoryIndexes.ALL_INDEXES
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -68,6 +70,12 @@ class AuctionHistoryRepository(
 
     fun findAll(): Flux<LogEvent> {
         return template.findAll(COLLECTION)
+    }
+
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            template.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
+        }
     }
 
     companion object {

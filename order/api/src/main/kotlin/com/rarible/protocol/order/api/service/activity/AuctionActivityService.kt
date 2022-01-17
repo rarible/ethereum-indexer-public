@@ -3,7 +3,7 @@ package com.rarible.protocol.order.api.service.activity
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.ActivityResult
-import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.AuctionActivitySort
 import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
@@ -17,7 +17,7 @@ class AuctionActivityService(
 ) {
     suspend fun search(
         historyFilters: List<ActivityAuctionHistoryFilter>,
-        sort: ActivitySort,
+        sort: AuctionActivitySort,
         size: Int
     ): List<ActivityResult> {
         val histories = historyFilters.map { filter ->
@@ -26,8 +26,20 @@ class AuctionActivityService(
                 .map { ActivityResult.History(it) }
         }
         return Flux.mergeOrdered<ActivityResult>(
-            ActivityResult.comparator(sort),
+            comparator(sort),
             *(histories).toTypedArray()
         ).take(size.toLong()).collectList().awaitFirst()
+    }
+
+    companion object {
+        private val COMPARATOR = compareByDescending(ActivityResult::getDate)
+            .then(compareByDescending(ActivityResult::getId))
+
+        fun comparator(sort: AuctionActivitySort): Comparator<ActivityResult> =
+            when(sort) {
+                AuctionActivitySort.LATEST_FIRST -> COMPARATOR
+                AuctionActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
+                else -> throw IllegalArgumentException("$sort sorting is not possible here")
+            }
     }
 }

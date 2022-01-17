@@ -70,6 +70,7 @@ data class AuctionFinished(
 
 data class AuctionCancelled(
     val auctionId: EthUInt256,
+    val seller: Address?,
     val sell: Asset?,
     override val hash: Word,
     override val contract: Address,

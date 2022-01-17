@@ -9,8 +9,10 @@ import com.rarible.protocol.order.api.service.activity.AuctionActivityService
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
 import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
+import com.rarible.protocol.order.core.converters.model.AuctionActivitySortConverter
 import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.AuctionActivitySort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -28,7 +30,7 @@ class AuctionActivityController(
         sort: ActivitySortDto?
     ): ResponseEntity<AuctionActivitiesDto> {
         val requestSize = PageSize.AUCTION_ACTIVITY.limit(size)
-        val activitySort = sort?.let { ActivitySortConverter.convert(sort) } ?: ActivitySort.LATEST_FIRST
+        val activitySort = sort?.let { AuctionActivitySortConverter.convert(sort) } ?: AuctionActivitySort.LATEST_FIRST
         val historyFilters = auctionHistoryFilterConverter.convert(filter, activitySort, continuation)
         val result = auctionActivityService.search(historyFilters, activitySort, requestSize)
             .mapNotNull {

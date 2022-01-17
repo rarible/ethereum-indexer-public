@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.data
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomBigInt
-import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -21,6 +20,7 @@ import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
+import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -75,6 +75,10 @@ fun randomAuctionV1DataV1(): RaribleAuctionV1DataV1 {
 fun randomAuctionCreated(): OnChainAuction {
     val contract = randomAddress()
     val auctionId = EthUInt256.ONE
+    return randomAuctionCreated(contract, auctionId)
+}
+
+fun randomAuctionCreated(contract: Address, auctionId: EthUInt256): OnChainAuction {
     return OnChainAuction(
         auctionType = AuctionType.RARIBLE_V1,
         seller = randomAddress(),
@@ -89,6 +93,27 @@ fun randomAuctionCreated(): OnChainAuction {
         protocolFee = EthUInt256.ZERO,
         createdAt = Instant.now(),
         auctionId = auctionId,
+        contract = contract,
+        hash = Auction.raribleV1HashKey(contract, auctionId),
+        date = Instant.now(),
+        source = HistorySource.RARIBLE
+    )
+}
+
+fun randomBidPlaced(): BidPlaced {
+    val contract = randomAddress()
+    val auctionId = EthUInt256.ONE
+    return randomBidPlaced(contract, auctionId)
+}
+
+fun randomBidPlaced(contract: Address, auctionId: EthUInt256): BidPlaced {
+    return BidPlaced(
+        bid = randomBid(),
+        buyer = randomAddress(),
+        endTime = EthUInt256.ZERO,
+        auctionId = auctionId,
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
+        bidValue = BigDecimal.ONE,
         hash = Auction.raribleV1HashKey(contract, auctionId),
         contract = contract,
         date = Instant.now(),
@@ -96,29 +121,19 @@ fun randomAuctionCreated(): OnChainAuction {
     )
 }
 
-fun randomBidPlaced(hash: Word): BidPlaced {
-    return BidPlaced(
-        bid = randomBid(),
-        buyer = randomAddress(),
-        endTime = EthUInt256.ZERO,
-        auctionId = EthUInt256.ONE,
-        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
-        bidValue = BigDecimal.ONE,
-        hash = hash,
-        contract = randomAddress(),
-        date = Instant.now(),
-        source = HistorySource.RARIBLE
-    )
+fun randomCanceled(): AuctionCancelled {
+    val contract = randomAddress()
+    val auctionId = EthUInt256.ONE
+    return randomCanceled(contract, auctionId)
 }
 
-fun randomBidPlaced() = randomBidPlaced(Word.apply(randomWord()))
-
-fun randomCanceled(): AuctionCancelled {
+fun randomCanceled(contract: Address, auctionId: EthUInt256): AuctionCancelled {
     return AuctionCancelled(
-        auctionId = EthUInt256.ONE,
+        auctionId = auctionId,
+        seller = null,
         sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
-        hash = Word.apply(randomWord()),
-        contract = randomAddress(),
+        hash = Auction.raribleV1HashKey(contract, auctionId),
+        contract = contract,
         date = Instant.now(),
         source = HistorySource.RARIBLE
     )
@@ -127,6 +142,10 @@ fun randomCanceled(): AuctionCancelled {
 fun randomFinished(): AuctionFinished {
     val contract = randomAddress()
     val auctionId = EthUInt256.ONE
+    return randomFinished(contract, auctionId)
+}
+
+fun randomFinished(contract: Address, auctionId: EthUInt256): AuctionFinished {
     return AuctionFinished(
         seller = randomAddress(),
         buyer = null,
@@ -156,3 +175,15 @@ fun createAuctionLogEvent(data: AuctionHistory) = LogEvent(
     minorLogIndex = 0,
     status = LogEventStatus.CONFIRMED
 )
+
+
+fun randomLogList(auctions: List<Auction>): List<LogEvent> {
+    return auctions.flatMap { auction ->
+        listOf(
+            createAuctionLogEvent(randomAuctionCreated().copy(sell = auction.sell)),
+            createAuctionLogEvent(randomBidPlaced(auction.contract, auction.auctionId).copy(sell = auction.sell)),
+            createAuctionLogEvent(randomCanceled().copy(sell = auction.sell)),
+            createAuctionLogEvent(randomFinished().copy(sell = auction.sell))
+        )
+    }
+}
