@@ -102,6 +102,7 @@ fun randomBidPlaced(hash: Word): BidPlaced {
         buyer = randomAddress(),
         endTime = EthUInt256.ZERO,
         auctionId = EthUInt256.ONE,
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
         bidValue = BigDecimal.ONE,
         hash = hash,
         contract = randomAddress(),
@@ -115,6 +116,7 @@ fun randomBidPlaced() = randomBidPlaced(Word.apply(randomWord()))
 fun randomCanceled(): AuctionCancelled {
     return AuctionCancelled(
         auctionId = EthUInt256.ONE,
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
         hash = Word.apply(randomWord()),
         contract = randomAddress(),
         date = Instant.now(),
