@@ -30,7 +30,7 @@ fun randomAuction(): Auction {
         status = AuctionStatus.ACTIVE,
         seller = randomAddress(),
         buyer = randomAddress(),
-        sell = Asset(EthAssetType, EthUInt256.of(randomBigInt())),
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
         buy = EthAssetType,
         lastBid = null,
         startTime = Instant.EPOCH,
@@ -72,13 +72,49 @@ fun randomAuctionV1DataV1(): RaribleAuctionV1DataV1 {
     )
 }
 
-fun randomBidPlaced(): BidPlaced {
+fun randomAuctionCreated(): OnChainAuction {
+    val contract = randomAddress()
+    val auctionId = EthUInt256.ONE
+    return OnChainAuction(
+        auctionType = AuctionType.RARIBLE_V1,
+        seller = randomAddress(),
+        buyer = null,
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
+        buy = Erc721AssetType(randomAddress(), EthUInt256.ONE),
+        lastBid = null,
+        endTime = Instant.now(),
+        minimalStep = EthUInt256.ONE,
+        minimalPrice = EthUInt256.ONE,
+        data = randomAuctionV1DataV1(),
+        protocolFee = EthUInt256.ZERO,
+        createdAt = Instant.now(),
+        auctionId = auctionId,
+        hash = Auction.raribleV1HashKey(contract, auctionId),
+        contract = contract,
+        date = Instant.now(),
+        source = HistorySource.RARIBLE
+    )
+}
+
+fun randomBidPlaced(hash: Word): BidPlaced {
     return BidPlaced(
         bid = randomBid(),
         buyer = randomAddress(),
         endTime = EthUInt256.ZERO,
         auctionId = EthUInt256.ONE,
         bidValue = BigDecimal.ONE,
+        hash = hash,
+        contract = randomAddress(),
+        date = Instant.now(),
+        source = HistorySource.RARIBLE
+    )
+}
+
+fun randomBidPlaced() = randomBidPlaced(Word.apply(randomWord()))
+
+fun randomCanceled(): AuctionCancelled {
+    return AuctionCancelled(
+        auctionId = EthUInt256.ONE,
         hash = Word.apply(randomWord()),
         contract = randomAddress(),
         date = Instant.now(),
@@ -86,6 +122,28 @@ fun randomBidPlaced(): BidPlaced {
     )
 }
 
+fun randomFinished(): AuctionFinished {
+    val contract = randomAddress()
+    val auctionId = EthUInt256.ONE
+    return AuctionFinished(
+        seller = randomAddress(),
+        buyer = null,
+        sell = Asset(Erc721AssetType(randomAddress(), EthUInt256.ONE), EthUInt256.ONE),
+        buy = Erc721AssetType(randomAddress(), EthUInt256.ONE),
+        lastBid = null,
+        endTime = Instant.now(),
+        minimalStep = EthUInt256.ONE,
+        minimalPrice = EthUInt256.ONE,
+        data = randomAuctionV1DataV1(),
+        protocolFee = EthUInt256.ZERO,
+        createdAt = Instant.now(),
+        source = HistorySource.RARIBLE,
+        auctionId = auctionId,
+        contract = contract,
+        hash = Auction.raribleV1HashKey(contract, auctionId),
+        date = Instant.now(),
+    )
+}
 
 fun createAuctionLogEvent(data: AuctionHistory) = LogEvent(
     data = data,

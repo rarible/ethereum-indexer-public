@@ -12,6 +12,7 @@ import com.rarible.protocol.client.NoopWebClientCustomizer
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
+import com.rarible.protocol.order.api.client.AuctionActivityControllerApi
 import com.rarible.protocol.order.api.client.AuctionControllerApi
 import com.rarible.protocol.order.api.client.FixedOrderIndexerApiServiceUriProvider
 import com.rarible.protocol.order.api.client.OrderActivityControllerApi
@@ -197,6 +198,7 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     protected lateinit var orderBidsClient: OrderBidControllerApi
     protected lateinit var transactionApi: OrderTransactionControllerApi
     protected lateinit var auctionClient: AuctionControllerApi
+    protected lateinit var auctionActivityClient: AuctionActivityControllerApi
 
     @LocalServerPort
     private var port: Int = 0
@@ -235,5 +237,6 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         orderAggregationApi = clientsFactory.createOrderAggregationApiClient(Blockchain.ETHEREUM.name)
         transactionApi = clientsFactory.createOrderTransactionApiClient(Blockchain.ETHEREUM.name)
         auctionClient = clientsFactory.createAuctionApiClient(Blockchain.ETHEREUM.name)
+        auctionActivityClient = clientsFactory.createAuctionActivityApiClient(Blockchain.ETHEREUM.name)
     }
 }

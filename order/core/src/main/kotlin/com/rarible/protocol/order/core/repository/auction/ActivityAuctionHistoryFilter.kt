@@ -1,8 +1,8 @@
 package com.rarible.protocol.order.core.repository.auction
 
 import com.rarible.core.mongo.util.div
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.continuation.DateIdContinuation
 import com.rarible.protocol.order.core.continuation.PriceIdContinuation
 import com.rarible.protocol.order.core.model.*
@@ -10,6 +10,7 @@ import io.daonomic.rpc.domain.Word
 import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
+import scalether.domain.Address
 
 sealed class ActivityAuctionHistoryFilter {
     internal abstract fun getCriteria(): Criteria
@@ -78,4 +79,89 @@ sealed class ActivityAuctionHistoryFilter {
                 .scrollTo(auctionActivitySort, continuation)
         }
     }
+
+    class AuctionByType(
+        private val type: AuctionHistoryType,
+        private val continuation: String? = null
+    ): ActivityAuctionHistoryFilter() {
+        override val auctionActivitySort: AuctionActivitySort = AuctionActivitySort.LATEST_FIRST
+
+        override fun getCriteria(): Criteria {
+            return (LogEvent::data / AuctionHistory::type).isEqualTo(type)
+                .scrollTo(auctionActivitySort, continuation)
+        }
+    }
+}
+
+sealed class AuctionByUser(
+    private val type: AuctionHistoryType,
+    private val continuation: String? = null
+): ActivityAuctionHistoryFilter() {
+
+    override val auctionActivitySort: AuctionActivitySort = AuctionActivitySort.LATEST_FIRST
+
+    override fun getCriteria(): Criteria {
+        return Criteria().andOperator((LogEvent::data / AuctionHistory::type) isEqualTo type, extraCriteria)
+            .scrollTo(auctionActivitySort, continuation)
+    }
+
+    abstract val extraCriteria: Criteria
+
+    class Created(
+        val user: Address,
+        continuation: String? = null
+    ) : AuctionByUser(AuctionHistoryType.ON_CHAIN_AUCTION, continuation) {
+        override val extraCriteria = (LogEvent::data / OnChainAuction::seller).isEqualTo(user)
+    }
+
+    class Bid(
+        val user: Address,
+        continuation: String? = null
+    ) : AuctionByUser(AuctionHistoryType.BID_PLACED, continuation) {
+        override val extraCriteria = (LogEvent::data / BidPlaced::buyer).isEqualTo(user)
+    }
+
+    class Finished(
+        val user: Address,
+        continuation: String? = null
+    ) : AuctionByUser(AuctionHistoryType.AUCTION_FINISHED, continuation) {
+        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).isEqualTo(user)
+    }
+}
+
+sealed class AuctionByItem(
+    private val token: Address,
+    private val tokenId: EthUInt256,
+    private val type: AuctionHistoryType,
+    private val continuation: String? = null
+): ActivityAuctionHistoryFilter() {
+
+    override val auctionActivitySort: AuctionActivitySort = AuctionActivitySort.LATEST_FIRST
+
+    override fun getCriteria(): Criteria {
+        var criteria = (LogEvent::data / Auction::sell / Asset::type / NftAssetType::token).isEqualTo(token)
+            .and(LogEvent::data / Auction::sell / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
+            .and(LogEvent::data / AuctionHistory::type).isEqualTo(type)
+        return criteria.scrollTo(auctionActivitySort, continuation)
+    }
+
+    class Created(
+        token: Address,
+        tokenId: EthUInt256,
+        continuation: String? = null) : AuctionByItem(token, tokenId, AuctionHistoryType.ON_CHAIN_AUCTION, continuation)
+
+    class Bid(
+        token: Address,
+        tokenId: EthUInt256,
+        continuation: String? = null) : AuctionByItem(token, tokenId, AuctionHistoryType.BID_PLACED, continuation)
+
+    class Cancel(
+        token: Address,
+        tokenId: EthUInt256,
+        continuation: String? = null) : AuctionByItem(token, tokenId, AuctionHistoryType.AUCTION_CANCELLED, continuation)
+
+    class Finished(
+        token: Address,
+        tokenId: EthUInt256,
+        continuation: String? = null) : AuctionByItem(token, tokenId, AuctionHistoryType.AUCTION_FINISHED, continuation)
 }

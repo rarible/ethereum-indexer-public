@@ -10,7 +10,11 @@ sealed class ActivityResult {
 
     data class History(val value: LogEvent): ActivityResult() {
         override fun getId(): ObjectId = this.value.id
-        override fun getDate(): Instant = (this.value.data as OrderExchangeHistory).date
+        override fun getDate(): Instant = when (this.value.data) {
+            is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
+            is AuctionHistory -> (this.value.data as AuctionHistory).date
+            else -> throw IllegalArgumentException("Unknown history type for activityResult")
+        }
     }
 
     data class Version(val value: OrderVersion): ActivityResult() {
