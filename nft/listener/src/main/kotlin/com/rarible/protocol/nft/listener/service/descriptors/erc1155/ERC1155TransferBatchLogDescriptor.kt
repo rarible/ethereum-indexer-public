@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.TransferBatchEvent
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.contracts.erc1155.TransferBatchEventWithFullData
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -28,7 +29,10 @@ class ERC1155TransferBatchLogDescriptor(
         return tokenRegistrationService.getTokenStandard(log.address())
             .flatMapMany { standard ->
                 if (standard == TokenStandard.ERC1155) {
-                    val e = TransferBatchEvent.apply(log)
+                    val e = when (log.topics().size()) {
+                        1 -> TransferBatchEventWithFullData.apply(log)
+                        else -> TransferBatchEvent.apply(log)
+                    }
                     if (e._ids().isEmpty() && e._values().all { value -> value == BigInteger.ZERO }) {
                         Mono.empty()
                     } else if (e._ids().size != e._values().size) {

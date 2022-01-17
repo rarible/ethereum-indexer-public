@@ -30,7 +30,7 @@
         <mockserver.version>1.15.3</mockserver.version>
 
         <rarible.ethereum.version>1.4.14</rarible.ethereum.version>
-        <rarible.ethereum.contracts.version>1.0.6</rarible.ethereum.contracts.version>
+        <rarible.ethereum.contracts.version>1.0.7</rarible.ethereum.contracts.version>
         <rarible.core.version>2.0.13</rarible.core.version>
         <rarible.blockchain.scanner.version>2.1.32</rarible.blockchain.scanner.version>
 
