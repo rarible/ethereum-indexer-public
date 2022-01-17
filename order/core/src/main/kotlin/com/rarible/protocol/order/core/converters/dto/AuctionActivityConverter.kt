@@ -1,87 +1,96 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.dto.AuctionActivityBidDto
+import com.rarible.protocol.dto.AuctionActivityCancelDto
+import com.rarible.protocol.dto.AuctionActivityDto
+import com.rarible.protocol.dto.AuctionActivityFinishDto
+import com.rarible.protocol.dto.AuctionActivityOpenDto
+import com.rarible.protocol.order.core.model.AuctionCancelled
+import com.rarible.protocol.order.core.model.AuctionFinished
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainAuction
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
-import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import java.lang.IllegalArgumentException
-import java.math.BigInteger
-import java.time.Instant
 
 @Component
 class AuctionActivityConverter(
-    private val priceNormalizer: PriceNormalizer,
-    private val assetDtoConverter: AssetDtoConverter,
+    private val auctionDtoConverter: AuctionDtoConverter,
     private val auctionBidDtoConverter: AuctionBidDtoConverter,
     private val auctionRepository: AuctionRepository
 ) {
+
+    private val logger: Logger = LoggerFactory.getLogger(javaClass)
+
     suspend fun convert(history: LogEvent): AuctionActivityDto? {
         val transactionHash = history.transactionHash
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = history.logIndex ?: DEFAULT_LOG_INDEX
 
-        return when (val source = history.data as AuctionHistory) {
+        val auctionHistory = history.data as AuctionHistory
+        val auction = auctionRepository.findById(auctionHistory.hash)
+        if (auction == null) {
+            logger.warn("Auction with hash {} not found for LogEvent {}", auctionHistory.hash, history)
+            return null
+        }
+
+        val auctionDto = auctionDtoConverter.convert(auction)
+        val source = convert(auctionHistory.source)
+
+        return when (auctionHistory) {
             is OnChainAuction -> {
-                val (startTime, duration) = getAuctionParams(source.data)
                 AuctionActivityOpenDto(
                     id = history.id.toString(),
-                    date = source.date,
-                    seller = source.seller,
-                    sell = assetDtoConverter.convert(source.sell),
-                    buy = AssetTypeDtoConverter.convert(source.buy),
-                    startTime = startTime,
-                    endTime = source.endTime,
-                    duration = duration,
-                    minimalStep = priceNormalizer.normalize(source.buy, source.minimalStep.value),
-                    minimalPrice = priceNormalizer.normalize(source.buy, source.minimalPrice.value),
-                    hash = source.hash,
+                    date = auctionHistory.date,
+                    source = source,
+                    auction = auctionDto,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex,
-                    source = convert(source.source)
+                    logIndex = logIndex
                 )
             }
             is BidPlaced -> {
-                val buyAssetType = auctionRepository.findById(source.hash)?.buy ?: return null
                 AuctionActivityBidDto(
                     id = history.id.toString(),
-                    date = source.date,
-                    bid = auctionBidDtoConverter.convert(buyAssetType, source.buyer, source.bid),
-                    hash = source.hash,
+                    date = auctionHistory.date,
+                    source = source,
+                    auction = auctionDto,
+                    bid = auctionBidDtoConverter.convert(auction.buy, auctionHistory.buyer, auctionHistory.bid),
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    source = convert(source.source)
                 )
             }
             is AuctionFinished -> {
                 AuctionActivityFinishDto(
                     id = history.id.toString(),
-                    date = source.date,
-                    hash = source.hash,
+                    date = auctionHistory.date,
+                    source = source,
+                    auction = auctionDto,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex,
-                    source = convert(source.source)
+                    logIndex = logIndex
                 )
             }
             is AuctionCancelled -> {
                 AuctionActivityCancelDto(
                     id = history.id.toString(),
-                    date = source.date,
-                    hash = source.hash,
+                    date = auctionHistory.date,
+                    source = source,
+                    auction = auctionDto,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex,
-                    source = convert(source.source)
+                    logIndex = logIndex
                 )
             }
         }
@@ -93,13 +102,6 @@ class AuctionActivityConverter(
                 AuctionActivityDto.Source.RARIBLE
             HistorySource.OPEN_SEA, HistorySource.CRYPTO_PUNKS ->
                 throw IllegalArgumentException("Not supported auction history source")
-        }
-    }
-
-    private fun getAuctionParams(data: AuctionData): Pair<Instant?, BigInteger?> {
-        return when (data) {
-            is RaribleAuctionV1DataV1 ->
-                data.startTime?.let { Instant.ofEpochSecond(it.value.toLong()) } to data.duration.value
         }
     }
 

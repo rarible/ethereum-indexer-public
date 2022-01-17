@@ -1,21 +1,18 @@
 package com.rarible.protocol.order.listener.service.descriptors.event
 
-import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.OnLogEventListener
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AuctionActivityDto
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 
-@Component
-@CaptureSpan(type = SpanType.EVENT)
+//@Component
+//@CaptureSpan(type = SpanType.EVENT)
 class OnAuctionLogEventListener(
     private val eventPublisher: ProtocolAuctionPublisher,
     private val auctionActivityConverter: AuctionActivityConverter
