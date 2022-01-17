@@ -39,7 +39,7 @@ internal class AuctionCancelDescriptorTest : AbstractAuctionDescriptorTest() {
             }
             checkActivityWasPublished {
                 Assertions.assertThat(this).isInstanceOfSatisfying(AuctionActivityCancelDto::class.java) {
-                    Assertions.assertThat(it.hash).isEqualTo(chainAuction.hash)
+                    Assertions.assertThat(it.auction.hash).isEqualTo(chainAuction.hash)
                 }
             }
         }

@@ -7,11 +7,7 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
 import com.rarible.protocol.dto.AssetTypeDto
-import com.rarible.protocol.dto.AuctionActivityBidDto
-import com.rarible.protocol.dto.AuctionActivityCancelDto
 import com.rarible.protocol.dto.AuctionActivityDto
-import com.rarible.protocol.dto.AuctionActivityFinishDto
-import com.rarible.protocol.dto.AuctionActivityOpenDto
 import com.rarible.protocol.dto.AuctionDeleteEventDto
 import com.rarible.protocol.dto.AuctionDto
 import com.rarible.protocol.dto.AuctionEventDto
@@ -55,12 +51,7 @@ class ProtocolAuctionPublisher(
     }
 
     suspend fun publish(event: AuctionActivityDto) {
-        val key = when (event) {
-            is AuctionActivityOpenDto -> event.transactionHash.toString()
-            is AuctionActivityBidDto -> event.transactionHash.toString()
-            is AuctionActivityFinishDto -> event.transactionHash.toString()
-            is AuctionActivityCancelDto -> event.transactionHash.toString()
-        }
+        val key = event.auction.hash.toString()
         val message = KafkaMessage(
             key = key,
             value = event as ActivityDto,

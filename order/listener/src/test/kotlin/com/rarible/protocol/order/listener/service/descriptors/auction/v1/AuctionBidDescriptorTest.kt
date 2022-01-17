@@ -61,7 +61,7 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
             }
             checkActivityWasPublished {
                 Assertions.assertThat(this).isInstanceOfSatisfying(AuctionActivityBidDto::class.java) {
-                    Assertions.assertThat(it.hash).isEqualTo(chainAuction.hash)
+                    Assertions.assertThat(it.auction.hash).isEqualTo(chainAuction.hash)
                 }
             }
         }
