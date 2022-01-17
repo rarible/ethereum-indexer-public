@@ -23,6 +23,7 @@ class AuctionBidDescriptor(
 
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<BidPlaced> {
         val event = BidPlacedEvent.apply(log)
+        val buyer = event.buyer()
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
         val bid = event.bid().toAuctionBid()
@@ -33,7 +34,7 @@ class AuctionBidDescriptor(
 
         return listOf(
             BidPlaced(
-                buyer = transaction.from(),
+                buyer = buyer,
                 bid = bid,
                 bidValue = bidValue,
                 endTime = endTime,
