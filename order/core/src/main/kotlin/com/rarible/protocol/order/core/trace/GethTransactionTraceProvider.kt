@@ -53,6 +53,10 @@ class GethTransactionTraceProvider(
             ?.toSimpleTraceResult()
     }
 
+    override suspend fun traceAndFindAllCallsTo(transactionHash: Word, to: Address, id: Binary): List<SimpleTraceResult> {
+        TODO("Not yet implemented")
+    }
+
     data class TraceResult(
         val from: Address,
         val to: Address?,

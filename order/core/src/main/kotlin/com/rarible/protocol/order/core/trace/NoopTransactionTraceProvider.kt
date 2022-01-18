@@ -9,4 +9,8 @@ class NoopTransactionTraceProvider : TransactionTraceProvider {
     override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
         return null
     }
+
+    override suspend fun traceAndFindAllCallsTo(transactionHash: Word, to: Address, id: Binary): List<SimpleTraceResult> {
+        return emptyList()
+    }
 }

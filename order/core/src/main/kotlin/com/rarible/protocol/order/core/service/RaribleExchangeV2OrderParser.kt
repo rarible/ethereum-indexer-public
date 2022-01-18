@@ -34,7 +34,7 @@ class RaribleExchangeV2OrderParser(
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): RaribleMatchedOrders? {
         val signature = ExchangeV2.matchOrdersSignature()
-        val input = traceCallService.findRequiredCallInput(
+        val input = traceCallService.findFirstRequiredCallInput(
             txHash,
             txInput,
             exchangeContractAddresses.v2,
