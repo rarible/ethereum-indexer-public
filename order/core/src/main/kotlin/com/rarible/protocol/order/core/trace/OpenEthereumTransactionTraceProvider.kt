@@ -33,8 +33,14 @@ class OpenEthereumTransactionTraceProvider(
             .firstOrNull()
     }
 
-    override suspend fun traceAndFindAllCallsTo(transactionHash: Word, to: Address, id: Binary): List<SimpleTraceResult> {
-        return traces(transactionHash).mapNotNull { convert(it) }
+    override suspend fun traceAndFindAllCallsTo(
+        transactionHash: Word,
+        to: Address,
+        id: Binary
+    ): List<SimpleTraceResult> {
+        return traces(transactionHash)
+            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
+            .mapNotNull { convert(it) }
     }
 
     private suspend fun traces(transactionHash: Word): Array<Trace> {
