@@ -35,7 +35,10 @@ class TraceCallService(
             var attempts = 0
             do {
                 val tracesFound = traceProvider.traceAndFindAllCallsTo(txHash, to, id)
-                return tracesFound.mapNotNull { it.input }
+
+                if (tracesFound.size > 0) {
+                    return tracesFound.mapNotNull { it.input }
+                }
                 delay(200)
             } while (attempts++ < 5)
         }
