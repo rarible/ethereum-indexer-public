@@ -155,6 +155,13 @@ class ItemPropertiesService(
                     // We don't want to override the Rarible resolver result.
                     return rarible
                 }
+                if (fieldName == "image"
+                    && rarible is String
+                    && rarible.isNotEmpty()
+                ) {
+                    // Sometimes OpenSea returns invalid original image URL.
+                    return rarible
+                }
                 logProperties(itemId, "extending $fieldName from OpenSea: rarible = [$rarible], openSea = [$openSea]")
                 return openSea
             }
