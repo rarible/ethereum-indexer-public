@@ -1,15 +1,18 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.RoyaltyRepository
+import com.rarible.protocol.nft.core.service.RoyaltyService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -21,6 +24,7 @@ import scala.Tuple2
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
+import java.time.Instant
 
 @IntegrationTest
 @Disabled
@@ -31,6 +35,9 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var royaltyRepository: RoyaltyRepository
+
+    @Autowired
+    private lateinit var royaltyService: RoyaltyService
 
     @Test
     fun `should get royalty from contract`() = runBlocking {
@@ -131,6 +138,28 @@ class RoyaltyRegistryTest : AbstractIntegrationTest() {
 
         // check royalty cache size
         assertEquals(1, royaltyRepository.count().awaitFirst())
+    }
+
+    @Test
+    fun `should get royalty from lazy mint`() = runBlocking<Unit> {
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+
+        val itemLazyMint = ItemLazyMint(
+            token = token,
+            tokenId = tokenId,
+            value = EthUInt256.ONE,
+            date = Instant.now(),
+            uri = "",
+            standard = TokenStandard.ERC721,
+            creators = listOf(Part(randomAddress(), 1000)),
+            royalties = listOf(Part(randomAddress(), 1000)),
+            signatures = emptyList()
+        )
+        lazyNftItemHistoryRepository.save(itemLazyMint).awaitFirstOrNull()
+
+        val royalties = royaltyService.getByToken(token, tokenId)
+        assertThat(royalties).isEqualTo(itemLazyMint.royalties)
     }
 
     // restoring address after tests
