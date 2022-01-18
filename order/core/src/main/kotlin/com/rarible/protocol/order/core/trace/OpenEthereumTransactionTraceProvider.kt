@@ -25,7 +25,7 @@ class OpenEthereumTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
         return traces(transactionHash)
             .asSequence()
             .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }

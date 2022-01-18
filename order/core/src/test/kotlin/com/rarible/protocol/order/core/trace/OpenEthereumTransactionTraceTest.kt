@@ -19,7 +19,7 @@ class OpenEthereumTransactionTraceTest {
     fun `find trace work for openethereum`() = runBlocking<Unit> {
         val ethereum = MonoEthereum(WebClientTransport("https://node-mainnet.rarible.com", MonoEthereum.mapper(), 10000, 10000))
         val testing = OpenEthereumTransactionTraceProvider(ethereum)
-        val traceResult = testing.traceAndFindCallTo(
+        val traceResult = testing.traceAndFindFirstCallTo(
             Word.apply("0x237297ec53bf5bb32e949853e7ffeae0663916885236a8bc33b5f5fbc1209197"),
             Address.apply("0x7be8076f4ea4a4ad08075c2508e481d6c946d12b"),
             Binary.apply("0xab834bab")

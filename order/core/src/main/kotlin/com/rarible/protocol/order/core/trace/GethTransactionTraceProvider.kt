@@ -28,7 +28,7 @@ class GethTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
         val result = ethereum.executeRaw(
             Request(
                 1, "debug_traceTransaction", Lists.toScala(

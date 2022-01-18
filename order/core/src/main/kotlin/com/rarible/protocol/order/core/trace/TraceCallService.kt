@@ -17,7 +17,7 @@ class TraceCallService(
         } else {
             var attempts = 0
             do {
-                val traceFound = traceProvider.traceAndFindCallTo(txHash, to, id)
+                val traceFound = traceProvider.traceAndFindFirstCallTo(txHash, to, id)
 
                 if (traceFound?.input != null) {
                     return traceFound.input

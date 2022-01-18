@@ -6,7 +6,7 @@ import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 
 class NoopTransactionTraceProvider : TransactionTraceProvider {
-    override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
         return null
     }
 

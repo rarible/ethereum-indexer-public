@@ -12,7 +12,7 @@ interface TransactionTraceProvider {
     /**
      * Finds the first call to specific contract with specific identifier
      */
-    suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult?
+    suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult?
 
     /**
      * Finds all calls to specific contract with specific identifier

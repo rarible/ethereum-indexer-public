@@ -19,7 +19,7 @@ class GethTransactionTraceTest {
     fun `find trace work for geth`() = runBlocking<Unit> {
         val ethereum = MonoEthereum(WebClientTransport("https://node-rinkeby.rarible.com", MonoEthereum.mapper(), 10000, 10000))
         val testing = GethTransactionTraceProvider(ethereum)
-        val traceResult = testing.traceAndFindCallTo(
+        val traceResult = testing.traceAndFindFirstCallTo(
             Word.apply("0x44ed2d81065b98d33bbb6bf0c409422efe8bd746189fd2a1a04f7effa89b7a80"),
             Address.apply("0x04792a5109e55d518db3b65285516cca55db46fe"),
             Binary.apply("0xe6a43905")
