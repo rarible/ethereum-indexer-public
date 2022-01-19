@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
@@ -61,7 +62,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val rightTake = Asset(leftOrder.make.type, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
 
-        val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.hash(), transaction.input())
+        val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), MatchEvent.apply(log))
         val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
         val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO

@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
@@ -32,17 +33,40 @@ class RaribleExchangeV2OrderParser(
     private val traceCallService: TraceCallService
 ) {
 
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): RaribleMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEvent): RaribleMatchedOrders? {
         val signature = ExchangeV2.matchOrdersSignature()
-        val input = traceCallService.findRequiredCallInput(
+        val inputs = traceCallService.findAllRequiredCallInputs(
             txHash,
             txInput,
             exchangeContractAddresses.v2,
             signature.id()
         )
 
-        val decoded = signature.`in`().decode(input, 4)
+        val leftAssetType = event.leftAsset().toAssetType()
+        val rightAssetType = event.rightAsset().toAssetType()
 
+        return inputs.map { parseMatchedOrders(it) }.firstOrNull { orders ->
+            val leftHash = Order.hashKey(
+                event.leftMaker(),
+                leftAssetType,
+                rightAssetType,
+                orders.left.salt.value,
+                orders.left.data
+            )
+            val rightHash = Order.hashKey(
+                event.rightMaker(),
+                rightAssetType,
+                leftAssetType,
+                orders.right.salt.value,
+                orders.right.data
+            )
+            Word.apply(event.leftHash()) == leftHash && Word.apply(event.rightHash()) == rightHash
+        }
+    }
+
+    suspend fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
+        val signature = ExchangeV2.matchOrdersSignature()
+        val decoded = signature.`in`().decode(input, 4)
         return RaribleMatchedOrders(
             left = SimpleOrder(
                 data = convertOrderData(

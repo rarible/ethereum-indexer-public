@@ -59,9 +59,13 @@ class ItemMintedAtTaskHandler(
         when (data) {
             is ItemTransfer -> {
                 val itemId = ItemId(data.token, data.tokenId)
-                val item = itemRepository.findById(itemId).awaitSingle()
-                itemRepository.save(item.copy(mintedAt = data.date)).awaitFirstOrNull()
-                logger.info("Save item $itemId with mintedAt date: ${data.date}")
+                val item = itemRepository.findById(itemId).awaitFirstOrNull()
+                if (item != null) {
+                    itemRepository.save(item.copy(mintedAt = data.date)).awaitFirstOrNull()
+                    logger.info("Save item $itemId with mintedAt date: ${data.date}")
+                } else {
+                    logger.error("Can't get item $itemId to set mintedAt date: ${data.date}")
+                }
             }
             else -> IllegalArgumentException("LogEvent with id=${logEvent.id} is not Transfer Event")
         }

@@ -8,29 +8,20 @@ import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
-import com.rarible.protocol.dto.LazyErc1155Dto
-import com.rarible.protocol.dto.LazyErc721Dto
-import com.rarible.protocol.dto.LazyNftDto
-import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.model.ContentMeta
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -113,6 +104,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
         val itemProperties = createLazyItemProperties()
         val itemId = ItemId(contract.address(), tokenId)
+        val ownershipId = OwnershipId(contract.address(), tokenId, creator)
         coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
         val lazyItemDto = createLazyErc721Dto().copy(
             contract = contract.address(),
@@ -123,7 +115,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownershipId.decimalStringValue).awaitFirst()
         checkItemDto(lazyItemDto, itemDto, itemProperties)
+        checkOwnershipDto(lazyItemDto, ownershipDto)
     }
 
     @ParameterizedTest
@@ -225,6 +219,25 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
         assertThatThrownBy {
             runBlocking { nftLazyMintApiClient.mintNftAsset(lazyNftDto).awaitFirst() }
+        }
+    }
+
+    private fun checkOwnershipDto(
+        lazyItemDto: LazyNftDto,
+        ownershipDto: NftOwnershipDto
+    ) {
+        assertThat(ownershipDto.owner).isEqualTo(lazyItemDto.creators.first().account)
+        assertThat(ownershipDto.tokenId).isEqualTo(lazyItemDto.tokenId)
+        assertThat(ownershipDto.contract).isEqualTo(lazyItemDto.contract)
+        when (lazyItemDto) {
+            is LazyErc1155Dto -> {
+                assertThat(ownershipDto.value).isEqualTo(lazyItemDto.supply)
+                assertThat(ownershipDto.lazyValue).isEqualTo(lazyItemDto.supply)
+            }
+            is LazyErc721Dto -> {
+                assertThat(ownershipDto.value).isEqualTo(BigInteger.ONE)
+                assertThat(ownershipDto.lazyValue).isEqualTo(BigInteger.ONE)
+            }
         }
     }
 
