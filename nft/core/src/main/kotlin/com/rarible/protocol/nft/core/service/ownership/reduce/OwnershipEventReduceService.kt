@@ -6,7 +6,10 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.EntityEventListeners
+import com.rarible.protocol.nft.core.model.OwnershipEvent
+import com.rarible.protocol.nft.core.model.SubscriberGroup
+import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import org.springframework.stereotype.Component
 
@@ -24,7 +27,7 @@ class OwnershipEventReduceService(
 
     override val id: String = EntityEventListeners.ownershipHistoryListenerId(environmentInfo.name, properties.blockchain)
 
-    override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
+    override val subscriberGroup: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 
     suspend fun reduce(events: List<OwnershipEvent>) {
         delegate.reduceAll(events)

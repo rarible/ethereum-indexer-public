@@ -44,12 +44,13 @@ class KafkaEntityEventConsumer(
     @Suppress("UNCHECKED_CAST")
     private fun consumer(listener: EntityEventListener): ConsumerWorkerHolder<EthereumLogRecordEvent> {
         val workers = (1..workerCount).map { index ->
+            val consumerGroup = listener.id
             val kafkaConsumer = RaribleKafkaConsumer(
                 clientId = "$clientIdPrefix.log-event-consumer.$service.${listener.id}-$index",
                 valueDeserializerClass = JsonDeserializer::class.java,
                 valueClass = EthereumLogRecordEvent::class.java,
-                consumerGroup = listener.id, //TODO[anufriev]: bug?
-                defaultTopic = "$topicPrefix.${listener.groupId}",
+                consumerGroup = consumerGroup,
+                defaultTopic = "$topicPrefix.${listener.subscriberGroup}",
                 bootstrapServers = properties.brokerReplicaSet,
                 offsetResetStrategy = OffsetResetStrategy.EARLIEST,
                 autoCreateTopic = false

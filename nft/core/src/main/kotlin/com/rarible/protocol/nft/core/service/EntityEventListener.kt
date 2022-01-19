@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.model.SubscriberGroup
 interface EntityEventListener {
     val id: String
 
-    val groupId: SubscriberGroup
+    val subscriberGroup: SubscriberGroup
 
     suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>)
 }

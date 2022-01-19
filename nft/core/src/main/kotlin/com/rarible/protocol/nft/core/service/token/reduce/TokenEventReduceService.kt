@@ -25,7 +25,7 @@ class TokenEventReduceService(
 
     override val id: String = EntityEventListeners.tokenHistoryListenerId(environmentInfo.name, properties.blockchain)
 
-    override val groupId: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
+    override val subscriberGroup: SubscriberGroup = SubscriberGroups.TOKEN_HISTORY
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         events
