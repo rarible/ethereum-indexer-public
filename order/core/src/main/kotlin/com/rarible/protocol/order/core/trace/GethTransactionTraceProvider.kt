@@ -28,7 +28,19 @@ class GethTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+        return trace(transactionHash).findTrace(to, id)?.toSimpleTraceResult()
+    }
+
+    override suspend fun traceAndFindAllCallsTo(
+        transactionHash: Word,
+        to: Address,
+        id: Binary
+    ): List<SimpleTraceResult> {
+        return trace(transactionHash).findTraces(to, id).mapNotNull { it.toSimpleTraceResult() }
+    }
+
+    suspend fun trace(transactionHash: Word): TraceResult {
         val result = ethereum.executeRaw(
             Request(
                 1, "debug_traceTransaction", Lists.toScala(
@@ -48,9 +60,7 @@ class GethTransactionTraceProvider(
         }
 
         @Suppress("BlockingMethodInNonBlockingContext")
-        val traceResult = mapper.treeToValue(result.result().get(), TraceResult::class.java)
-        return traceResult.findTrace(to, id)
-            ?.toSimpleTraceResult()
+        return mapper.treeToValue(result.result().get(), TraceResult::class.java)
     }
 
     data class TraceResult(
@@ -67,6 +77,10 @@ class GethTransactionTraceProvider(
                 .asSequence()
                 .mapNotNull { it.findTrace(to, id) }
                 .firstOrNull()
+        }
+
+        fun findTraces(to: Address, id: Binary): List<TraceResult> {
+            return calls.mapNotNull { it.findTrace(to, id) }
         }
 
         fun toSimpleTraceResult(): SimpleTraceResult {

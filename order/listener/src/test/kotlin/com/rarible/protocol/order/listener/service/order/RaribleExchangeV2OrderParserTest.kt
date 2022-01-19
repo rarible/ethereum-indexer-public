@@ -114,7 +114,7 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
 
         val input = prepareTxService.prepareTxFor2Orders(orderLeft, orderRight).transaction.data
 
-        val result = raribleExchangeV2OrderParser.parseMatchedOrders(WordFactory.create(), input)
+        val result = raribleExchangeV2OrderParser.parseMatchedOrders(input)
         assertThat(result).isNotNull
         assertThat(result!!.left.data).isEqualTo(leftData)
         assertThat(result.right.data).isEqualTo(rightData)

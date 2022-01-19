@@ -25,7 +25,25 @@ class OpenEthereumTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
+        return traces(transactionHash)
+            .asSequence()
+            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
+            .mapNotNull { convert(it) }
+            .firstOrNull()
+    }
+
+    override suspend fun traceAndFindAllCallsTo(
+        transactionHash: Word,
+        to: Address,
+        id: Binary
+    ): List<SimpleTraceResult> {
+        return traces(transactionHash)
+            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
+            .mapNotNull { convert(it) }
+    }
+
+    private suspend fun traces(transactionHash: Word): Array<Trace> {
         val request = Request(1, "trace_transaction", Lists.toScala(transactionHash.toString()), "2.0")
         val result = ethereum.executeRaw(request).awaitFirst()
 
@@ -40,10 +58,6 @@ class OpenEthereumTransactionTraceProvider(
 
         @Suppress("BlockingMethodInNonBlockingContext")
         return mapper.treeToValue<Array<Trace>>(result.result().get())!!
-            .asSequence()
-            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
-            .mapNotNull { convert(it) }
-            .firstOrNull()
     }
 
     private fun convert(trace: Trace): SimpleTraceResult? {

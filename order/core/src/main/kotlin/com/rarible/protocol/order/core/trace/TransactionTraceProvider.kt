@@ -10,8 +10,13 @@ import scalether.domain.Address
 @CaptureSpan(type = SpanType.EXT)
 interface TransactionTraceProvider {
     /**
-     * Finds call to specific contract with specific identifier
+     * Finds the first call to specific contract with specific identifier
      */
-    suspend fun traceAndFindCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult?
+    suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult?
+
+    /**
+     * Finds all calls to specific contract with specific identifier
+     */
+    suspend fun traceAndFindAllCallsTo(transactionHash: Word, to: Address, id: Binary): List<SimpleTraceResult>
 }
 
