@@ -24,7 +24,7 @@ class OwnershipEventReduceService(
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
-    override val id: String = EntityEventListeners.ownershipHistoryListenerId(environmentInfo.name, properties.blockchain.name)
+    override val id: String = EntityEventListeners.ownershipHistoryListenerId(environmentInfo.name, properties.blockchain)
 
     override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 
