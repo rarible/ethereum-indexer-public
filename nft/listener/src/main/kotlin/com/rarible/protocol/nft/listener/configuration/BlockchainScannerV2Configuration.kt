@@ -41,7 +41,7 @@ class BlockchainScannerV2Configuration(
             blockchain = nftIndexerProperties.blockchain.value,
             service = ethereumScannerProperties.service,
             workerCount = nftListenerProperties.logConsumeWorkerCount
-        ).apply { start(entityEventListener.associateBy { it.id }) }
+        ).apply { start(entityEventListener) }
     }
 
     //TODO: Remove this workaround after full migrate to blockchain scanner v2

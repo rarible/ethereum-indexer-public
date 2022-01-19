@@ -25,15 +25,15 @@ class KafkaEntityEventConsumer(
     blockchain: String,
     private val service: String,
     private val workerCount: Int
-) : EntityEventConsumer {
+) : AutoCloseable {
 
     private val topicPrefix = getLogTopicPrefix(environment, service, blockchain)
     private val clientIdPrefix = "$environment.$host.${java.util.UUID.randomUUID()}.$blockchain"
     private val batchedConsumerWorkers = arrayListOf<ConsumerWorkerHolder<*>>()
 
-    override fun start(handler: Map<String, EntityEventListener>) {
-        batchedConsumerWorkers += handler
-            .map { consumer(it.key, it.value) }
+    fun start(entityEventListeners: List<EntityEventListener>) {
+        batchedConsumerWorkers += entityEventListeners
+            .map { consumer(it) }
             .onEach { consumer -> consumer.start() }
     }
 
@@ -42,21 +42,19 @@ class KafkaEntityEventConsumer(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun consumer(id: String, listener: EntityEventListener): ConsumerWorkerHolder<EthereumLogRecordEvent> {
-        val kafkaConsumer = RaribleKafkaConsumer(
-            clientId = "$clientIdPrefix.log-event-consumer.$service.$id",
-            valueDeserializerClass = JsonDeserializer::class.java,
-            valueClass = EthereumLogRecordEvent::class.java,
-            consumerGroup = id,
-            defaultTopic = "$topicPrefix.${listener.groupId}",
-            bootstrapServers = properties.brokerReplicaSet,
-            offsetResetStrategy = OffsetResetStrategy.EARLIEST,
-            properties = mapOf(
-                "max.poll.records" to properties.maxPollRecords.toString(),
-                "allow.auto.create.topics" to "false"
+    private fun consumer(listener: EntityEventListener): ConsumerWorkerHolder<EthereumLogRecordEvent> {
+        val workers = (1..workerCount).map { index ->
+            val kafkaConsumer = RaribleKafkaConsumer(
+                clientId = "$clientIdPrefix.log-event-consumer.$service.${listener.id}-$index",
+                valueDeserializerClass = JsonDeserializer::class.java,
+                valueClass = EthereumLogRecordEvent::class.java,
+                consumerGroup = listener.id, //TODO[anufriev]: bug?
+                defaultTopic = "$topicPrefix.${listener.groupId}",
+                bootstrapServers = properties.brokerReplicaSet,
+                offsetResetStrategy = OffsetResetStrategy.EARLIEST,
+                autoCreateTopic = false
             )
-        )
-        val workers = (1..workerCount).map {
+
             ConsumerWorker(
                 consumer = kafkaConsumer,
                 properties = daemonProperties,
@@ -64,7 +62,7 @@ class KafkaEntityEventConsumer(
                 retryProperties = RetryProperties(attempts = Integer.MAX_VALUE, delay = Duration.ofMillis(1000)),
                 eventHandler = BlockEventHandler(listener),
                 meterRegistry = meterRegistry,
-                workerName = "log-event-consumer-$id-$it"
+                workerName = "log-event-consumer-${listener.id}-$index"
             )
         }
         return ConsumerWorkerHolder(workers)
