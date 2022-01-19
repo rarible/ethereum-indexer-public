@@ -1,2 +1,12 @@
 global:
   network: rinkeby
+
+ethereum-nft-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+
+polygon-nft-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 1024
