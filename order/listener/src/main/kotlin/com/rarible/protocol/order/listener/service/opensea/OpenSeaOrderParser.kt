@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -10,6 +11,7 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -18,12 +20,23 @@ import org.springframework.stereotype.Component
 @Component
 class OpenSeaOrderParser(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceCallService: TraceCallService
+    private val traceCallService: TraceCallService,
+    private val commonSigner: CommonSigner
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
-        val input = traceCallService.findRequiredCallInput(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
+        val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
+        return inputs.map(::parseMatchedOrders).firstOrNull { orders ->
+            when {
+                event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash())
+                event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash())
+                else -> false
+            }
+        }
+    }
 
+    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders {
+        val signature = WyvernExchange.atomicMatch_Signature()
         val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()
         val uints = decoded.value()._2()
@@ -134,4 +147,9 @@ class OpenSeaOrderParser(
             salt = uints[8]
         )
     }
+
+    private fun ByteArray.notEmpty(): Boolean = this.any { it != 0.toByte() }
+
+    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray): Boolean =
+        commonSigner.openSeaHashToSign(order.hash) == Word.apply(signedHash)
 }
