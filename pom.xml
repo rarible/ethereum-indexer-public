@@ -29,9 +29,9 @@
         <mockserver-netty.version>5.11.2</mockserver-netty.version>
         <mockserver.version>1.15.3</mockserver.version>
 
-        <rarible.ethereum.version>1.4.14</rarible.ethereum.version>
+        <rarible.ethereum.version>1.5.0</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.7</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.0.13</rarible.core.version>
+        <rarible.core.version>2.2.0</rarible.core.version>
         <rarible.blockchain.scanner.version>2.1.32</rarible.blockchain.scanner.version>
 
         <rarible.protocol.ethereum.version>1.22.3</rarible.protocol.ethereum.version>
