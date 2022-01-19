@@ -76,6 +76,8 @@ class AuctionOngoingUpdateJob(
             hash = auction.hash,
             date = auction.startTime ?: auction.createdAt,
             contract = auction.contract,
+            seller = auction.seller,
+            sell = auction.sell,
             source = HistorySource.RARIBLE,
             type = type
         )

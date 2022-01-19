@@ -12,6 +12,8 @@ data class AuctionOffchainHistory(
     val hash: Word,
     val date: Instant,
     val contract: Address,
+    val seller: Address,
+    val sell: Asset,
     val source: HistorySource,
     val type: Type
 ) {
