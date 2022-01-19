@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.descriptors.auction.v1
 
 import com.rarible.contracts.test.erc20.TestERC20
+import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomAddress
@@ -33,6 +34,7 @@ import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -52,9 +54,11 @@ import scalether.transaction.MonoSigningTransactionSender
 import java.math.BigInteger
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoField
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
+@FlowPreview
 abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender
@@ -147,7 +151,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
     protected suspend fun withStartedAuction(
         seller: MonoSigningTransactionSender,
-        startTime: EthUInt256 = EthUInt256.of(Instant.now().epochSecond + 60),
+        startTime: Instant = nowMillis().plusSeconds(60).with(ChronoField.MILLI_OF_SECOND, 0),
         checkAction: suspend (StartedAuction) -> Unit
     ) {
         val erc721AssetType = mintErc721(seller)
@@ -269,6 +273,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
 
         fun toExpectedAuction(
             createdAt: Instant,
+            startTime: Instant? = null,
             endTime: Instant? = null,
             auctionId: EthUInt256 = EthUInt256.ONE,
             lastEventId: String? = null,
@@ -286,11 +291,13 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
                 sell = sell,
                 buy = buy,
                 lastBid = null,
+                startTime = startTime,
                 endTime = endTime,
                 minimalStep = minimalStep,
                 minimalPrice = minimalPrice,
                 data = data,
                 protocolFee = EthUInt256.ZERO,
+                ongoing = false,
                 finished = finished,
                 cancelled = cancelled,
                 deleted = false,

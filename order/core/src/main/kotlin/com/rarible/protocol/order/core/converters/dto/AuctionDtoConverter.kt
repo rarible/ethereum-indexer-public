@@ -16,7 +16,6 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.time.Instant
 
 @Component
 class AuctionDtoConverter(
@@ -56,9 +55,9 @@ class AuctionDtoConverter(
         return when (source) {
             is RaribleAuctionV1DataV1 -> RaribleAuctionV1DataV1Dto(
                 originFees = convert(source.originFees),
-                payouts  = convert(source.payouts),
-                startTime = source.startTime?.value?.toLong()?.let { Instant.ofEpochSecond(it) },
-                duration  = source.duration.value,
+                payouts = convert(source.payouts),
+                startTime = source.startTime,
+                duration = source.duration.value,
                 buyOutPrice = source.buyOutPrice?.value?.let { normalizerPrice(assetType, it) }
             )
         }

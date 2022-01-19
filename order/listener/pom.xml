@@ -132,6 +132,13 @@
 
         <!-- ================== Test ===================== -->
         <dependency>
+            <groupId>com.rarible.protocol</groupId>
+            <artifactId>protocol-order-indexer-core</artifactId>
+            <classifier>tests</classifier>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-contracts-test</artifactId>
             <scope>test</scope>

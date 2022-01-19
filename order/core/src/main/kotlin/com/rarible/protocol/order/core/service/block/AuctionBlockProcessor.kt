@@ -35,7 +35,11 @@ class AuctionBlockProcessor(
         return LoggingUtils.withMarker { marker ->
             mono {
                 // Reduce events first in order to have Auctions in DB
-                auctionReduceService.onEvents(events)
+                try {
+                    auctionReduceService.onEvents(events)
+                } catch (e: Exception) {
+                    logger.error("OOPS", e)
+                }
                 // Then send all kafka Auction Activity events with attached actual Auctions
                 auctionEvents.filter { it.status == LogEventStatus.CONFIRMED }
                     .forEach { publicActivity(it) }

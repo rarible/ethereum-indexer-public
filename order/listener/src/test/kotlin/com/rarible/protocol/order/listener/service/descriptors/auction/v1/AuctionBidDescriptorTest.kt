@@ -17,12 +17,13 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
+import java.time.Instant
 
 @IntegrationTest
 internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
     @Test
     fun `should put bid`() = runBlocking<Unit> {
-        withStartedAuction(seller = userSender1, startTime = EthUInt256.ZERO) { (_, chainAuction) ->
+        withStartedAuction(seller = userSender1, startTime = Instant.EPOCH) { (_, chainAuction) ->
             val bid = BidV1(
                 amount = EthUInt256.ONE,
                 data = BidDataV1(

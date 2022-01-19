@@ -9,10 +9,12 @@ import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrderVersion
-import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.LogEventKey
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
-import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -26,9 +28,6 @@ import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Import
 import org.springframework.dao.DuplicateKeyException
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
@@ -40,11 +39,7 @@ import java.math.BigDecimal
 @MongoCleanup
 @EnableAutoConfiguration
 @ContextConfiguration(classes = [RepositoryConfiguration::class])
-@Import(OrderVersionRepositoryTest.ProtocolOrderPublisherTestConfiguration::class)
 internal class OrderVersionRepositoryTest {
-
-    @Autowired
-    private lateinit var publisher: ProtocolOrderPublisher
 
     @Autowired
     private lateinit var orderVersionRepository: OrderVersionRepository
@@ -143,12 +138,5 @@ internal class OrderVersionRepositoryTest {
 
     private suspend fun save(vararg order: OrderVersion) {
         order.forEach { orderVersionRepository.save(it).awaitFirst() }
-    }
-
-
-    @TestConfiguration
-    class ProtocolOrderPublisherTestConfiguration {
-        @Bean
-        fun mockProtocolOrderPublisher(): ProtocolOrderPublisher = mockk()
     }
 }

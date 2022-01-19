@@ -30,9 +30,10 @@ internal class AuctionCreatedDescriptorTest : AbstractAuctionDescriptorTest() {
                     finished = false,
                     createdAt = auction!!.createdAt,
                     endTime = auction.endTime,
+                    startTime = auction.startTime,
                     lastEventId = auction.lastEventId
                 )
-                assertThat(expectedAuction).isEqualTo(auction)
+                assertThat(auction.copy(version = null)).isEqualTo(expectedAuction)
             }
             checkAuctionEventWasPublished {
                 assertThat(this).isInstanceOfSatisfying(AuctionUpdateEventDto::class.java) {

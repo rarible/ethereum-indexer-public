@@ -5,7 +5,21 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionCancelled
+import com.rarible.protocol.order.core.model.AuctionFinished
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionReduceEvent
+import com.rarible.protocol.order.core.model.AuctionReduceSnapshot
+import com.rarible.protocol.order.core.model.AuctionStatus
+import com.rarible.protocol.order.core.model.AuctionType
+import com.rarible.protocol.order.core.model.BaseAuction
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OnChainAuction
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -49,6 +63,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
                 finished = false,
                 cancelled = false,
                 lastUpdateAt = history.date,
+                startTime = history.data.startTime,
                 createdAt = history.date,
                 auctionId = history.auctionId,
                 contract = auctionUpdate.contract,
@@ -104,9 +119,11 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
             sell = Asset(EthAssetType, EthUInt256.ZERO),
             buy = EthAssetType,
             lastBid = null,
+            startTime = null,
             endTime = Instant.EPOCH,
             minimalStep = EthUInt256.ZERO,
             minimalPrice = EthUInt256.ZERO,
+            ongoing = false,
             finished = false,
             cancelled = false,
             deleted = false,
@@ -114,7 +131,7 @@ class AuctionReducer : Reducer<AuctionReduceEvent, AuctionReduceSnapshot, Long, 
                 originFees = emptyList(),
                 payouts = emptyList(),
                 duration = EthUInt256.ZERO,
-                startTime = EthUInt256.ZERO,
+                startTime = null,
                 buyOutPrice = EthUInt256.ZERO
             ),
             createdAt = Instant.EPOCH,
