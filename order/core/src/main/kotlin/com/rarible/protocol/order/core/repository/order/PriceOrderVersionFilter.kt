@@ -114,6 +114,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     ) : PriceOrderVersionFilter() {
         override val sort = getSort(null)
         override val limit = size
+        override val hint = OrderVersionRepositoryIndexes.MAKER_TAKE_PRICE_USD_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val criteria = listOfNotNull(

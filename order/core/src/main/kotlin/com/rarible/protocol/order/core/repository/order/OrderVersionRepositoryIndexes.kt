@@ -78,6 +78,13 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val MAKER_TAKE_PRICE_USD_BID_DEFINITION: Index = Index()
+        .on("${OrderVersion::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on(OrderVersion::maker.name, Sort.Direction.ASC)
+        .on(OrderVersion::takePriceUsd.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val HASH_AND_ID_DEFINITION: Index = Index()
         .on(OrderVersion::hash.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
@@ -106,6 +113,7 @@ internal object OrderVersionRepositoryIndexes {
         ITEM_BID_DEFINITION,
         ITEM_TAKE_PRICE_USD_BID_DEFINITION,
         ITEM_TAKE_PRICE_BID_DEFINITION,
+        MAKER_TAKE_PRICE_USD_BID_DEFINITION,
         HASH_AND_ID_DEFINITION,
         ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION,
         HASH_PLATFORM_AND_ID_DEFINITION
