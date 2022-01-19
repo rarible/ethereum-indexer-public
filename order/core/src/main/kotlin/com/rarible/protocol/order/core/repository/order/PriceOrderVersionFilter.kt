@@ -114,9 +114,11 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     ) : PriceOrderVersionFilter() {
         override val sort = getSort(null)
         override val limit = size
+        override val hint = OrderVersionRepositoryIndexes.MAKER_TAKE_PRICE_USD_BID_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             val criteria = listOfNotNull(
+                takeNftKey isEqualTo true,
                 maker?.let { OrderVersion::maker isEqualTo it },
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
