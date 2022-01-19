@@ -11,7 +11,6 @@ internal const val RARIBLE_PROTOCOL_LISTENER = "listener"
 @ConfigurationProperties(RARIBLE_PROTOCOL_LISTENER)
 class OrderListenerProperties(
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
-    val priceUpdateEnabled: Boolean = false,
     val publishTaskDelayMs: Long = 1000L,
     val loadOpenSeaOrders: Boolean = false,
     val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),

@@ -53,8 +53,6 @@ common:
   eip712-domain-version: 2
 
 listener:
-  priceUpdateScheduleRate: PT12H # 12 hours to ms
-  priceUpdateEnabled: false
   updateStatusByStartEndRate: PT1H # 1 hour period
   updateStatusByStartEndEnabled: false
   openSeaEndpoint: "https://api.opensea.io"
