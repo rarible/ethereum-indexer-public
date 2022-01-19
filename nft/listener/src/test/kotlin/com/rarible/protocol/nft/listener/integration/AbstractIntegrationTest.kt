@@ -209,7 +209,7 @@ abstract class AbstractIntegrationTest {
 
         val job = async {
            activityConsumer
-                .receive()
+                .receiveAutoAck()
                 .collect { events.add(it) }
         }
         Wait.waitAssert {

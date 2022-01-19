@@ -61,7 +61,7 @@ internal class LockServiceIt {
         val consumer = createConsumer()
         val events = CopyOnWriteArrayList<KafkaMessage<UnlockableEventDto>>()
         val job: Deferred<Unit> = async {
-            consumer.receive().collect { events.add(it) }
+            consumer.receiveAutoAck().collect { events.add(it) }
         }
 
         val itemId = "0x67abb7fc7a1b120ec9e0ad741336ceaff051485a:1"

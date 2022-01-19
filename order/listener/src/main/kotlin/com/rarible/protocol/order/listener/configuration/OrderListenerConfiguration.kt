@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.DaemonWorkerProperties
+import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
@@ -22,7 +23,6 @@ import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepos
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
-import com.rarible.protocol.order.listener.service.event.ConsumerWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OrderUpdateConsumerEventHandler
@@ -79,27 +79,37 @@ class OrderListenerConfiguration(
             consumerGroup = erc20BalanceConsumerGroup,
             blockchain = blockchain()
         )
+        val consumer = RaribleKafkaConsumer<Erc20BalanceEventDto>(
+            clientId = args.clientId,
+            consumerGroup = args.consumerGroup,
+            valueDeserializerClass = args.valueDeserializerClass,
+            defaultTopic = args.defaultTopic,
+            bootstrapServers = args.bootstrapServers,
+            offsetResetStrategy = args.offsetResetStrategy
+        )
         return ConsumerWorker(
-            consumer = RaribleKafkaConsumer(args.clientId, args.consumerGroup, args.valueDeserializerClass, args.defaultTopic, args.bootstrapServers, args.offsetResetStrategy),
-            properties = listenerProperties.monitoringWorker,
+            consumer = consumer,
             eventHandler = Erc20BalanceConsumerEventHandler(orderBalanceService),
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "erc20-balance-handler"
         ).apply { start() }
     }
 
     @Bean
     fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<NftOwnershipEventDto> {
+        val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
+            ownershipBalanceConsumerGroup,
+            blockchain = blockchain()
+        )
         return ConsumerWorker(
-            consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
-                ownershipBalanceConsumerGroup,
-                blockchain = blockchain()
-            ),
-            properties = listenerProperties.monitoringWorker,
+            consumer = consumer,
             eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "ownership-handler"
         ).apply { start() }
     }
 
+    // TODO: this bean is apparently configured in the ethereum-core (BlockchainMonitoringConfiguration), no need to configure here.
     @Bean
     fun blockchainMonitoringWorker(): BlockchainMonitoringWorker {
         return BlockchainMonitoringWorker(
@@ -107,7 +117,7 @@ class OrderListenerConfiguration(
             blockchain = commonProperties.blockchain,
             meterRegistry = meterRegistry,
             blockRepository = blockRepository
-        ).apply { start() }
+        )
     }
 
     @Bean
@@ -145,14 +155,15 @@ class OrderListenerConfiguration(
         orderBalanceService: OrderBalanceService,
         orderUpdateConsumerEventHandler: OrderUpdateConsumerEventHandler
     ): ConsumerWorker<OrderEventDto> {
+        val consumer = orderIndexerEventsConsumerFactory.createOrderEventsConsumer(
+            orderUpdateConsumerGroup,
+            blockchain = blockchain()
+        )
         return ConsumerWorker(
-            consumer = orderIndexerEventsConsumerFactory.createOrderEventsConsumer(
-                orderUpdateConsumerGroup,
-                blockchain = blockchain()
-            ),
-            properties = listenerProperties.monitoringWorker,
+            consumer = consumer,
             eventHandler = orderUpdateConsumerEventHandler,
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "order-updater"
         ).apply { start() }
     }
 }

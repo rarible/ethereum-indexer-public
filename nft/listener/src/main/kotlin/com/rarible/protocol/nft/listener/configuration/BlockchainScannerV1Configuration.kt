@@ -25,6 +25,7 @@ class BlockchainScannerV1Configuration(
     private val meterRegistry: MeterRegistry,
     private val blockRepository: BlockRepository
 ) {
+    // TODO: this bean is apparently configured in the ethereum-core (BlockchainMonitoringConfiguration), no need to configure here.
     @Bean
     fun blockchainMonitoringWorker(): BlockchainMonitoringWorker {
         return BlockchainMonitoringWorker(

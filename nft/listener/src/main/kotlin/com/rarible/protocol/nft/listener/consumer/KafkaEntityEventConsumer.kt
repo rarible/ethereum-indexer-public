@@ -8,6 +8,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.RetryProperties
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.protocol.nft.core.service.EntityEventListener
@@ -28,14 +29,12 @@ class KafkaEntityEventConsumer(
 
     private val topicPrefix = getLogTopicPrefix(environment, service, blockchain)
     private val clientIdPrefix = "$environment.$host.${java.util.UUID.randomUUID()}.$blockchain"
-    private val batchedConsumerWorkers = mutableSetOf<BatchedConsumerWorker<*>>()
+    private val batchedConsumerWorkers = arrayListOf<ConsumerWorkerHolder<*>>()
 
     override fun start(handler: Map<String, EntityEventListener>) {
-        batchedConsumerWorkers.addAll(
-            handler
-                .map { consumer(it.key, it.value) }
-                .onEach { consumer -> consumer.start() }
-        )
+        batchedConsumerWorkers += handler
+            .map { consumer(it.key, it.value) }
+            .onEach { consumer -> consumer.start() }
     }
 
     override fun close() {
@@ -43,7 +42,7 @@ class KafkaEntityEventConsumer(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun consumer(id: String, listener: EntityEventListener): BatchedConsumerWorker<*> {
+    private fun consumer(id: String, listener: EntityEventListener): ConsumerWorkerHolder<EthereumLogRecordEvent> {
         val kafkaConsumer = RaribleKafkaConsumer(
             clientId = "$clientIdPrefix.log-event-consumer.$service.$id",
             valueDeserializerClass = JsonDeserializer::class.java,
@@ -68,7 +67,7 @@ class KafkaEntityEventConsumer(
                 workerName = "log-event-consumer-$id-$it"
             )
         }
-        return BatchedConsumerWorker(workers)
+        return ConsumerWorkerHolder(workers)
     }
 
     private class BlockEventHandler(
