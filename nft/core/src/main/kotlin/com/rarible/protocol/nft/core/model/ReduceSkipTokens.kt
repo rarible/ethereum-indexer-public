@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 class ReduceSkipTokens(tokens: Collection<ItemId>) {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val skipCounters = tokens.associateWith { AtomicLong(ALLOWING_PERIOD) }
+    private val skipCounters = tokens.associateWith { AtomicLong(ALLOWING_PERIOD - 1) }
 
     fun allowReducing(token: Address, tokenId: EthUInt256): Boolean {
         val itemId = ItemId(token, tokenId)
