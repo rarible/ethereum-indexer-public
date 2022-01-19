@@ -47,7 +47,7 @@ class LegacyMintService(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.resetMetadata(itemId)
+        itemMetaService.removeMeta(itemId)
         optimisticLock {
             itemReduceService.update(token = itemId.token, tokenId = itemId.tokenId).awaitFirst()
         }

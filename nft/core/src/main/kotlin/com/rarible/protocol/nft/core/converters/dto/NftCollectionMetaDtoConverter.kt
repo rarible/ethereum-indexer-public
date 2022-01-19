@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
-import com.rarible.protocol.nft.core.model.MediaMeta
 import com.rarible.protocol.nft.core.model.TokenMeta
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
@@ -33,7 +33,7 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
         }
     }
 
-    private fun convert(source: MediaMeta): NftMediaMetaDto {
+    private fun convert(source: ContentMeta): NftMediaMetaDto {
         return NftMediaMetaDto(
             type = source.type,
             width = source.width,

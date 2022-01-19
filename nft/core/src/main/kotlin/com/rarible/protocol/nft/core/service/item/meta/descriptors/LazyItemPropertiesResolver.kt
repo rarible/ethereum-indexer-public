@@ -31,11 +31,14 @@ class LazyItemPropertiesResolver(
             .collectList()
             .awaitFirstOrNull()
             ?: return null
-        // Make sure we do not return URI if the item was already burned.
+        // Make sure we do not return URI if the item was already burnt.
         val lazyMint = lazyHistories.filterIsInstance<ItemLazyMint>().firstOrNull()
         val lazyBurn = lazyHistories.filterIsInstance<BurnItemLazyMint>().firstOrNull()
         return when {
-            lazyMint != null && lazyBurn != null -> null
+            lazyMint != null && lazyBurn != null -> {
+                logMetaLoading(itemId, "returning nothing for a burnt item", warn = true)
+                null
+            }
             lazyMint != null -> lazyMint.uri
             else -> null
         }

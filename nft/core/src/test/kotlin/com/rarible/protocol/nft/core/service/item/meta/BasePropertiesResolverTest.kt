@@ -1,8 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.test.data.randomString
-import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -57,14 +54,3 @@ abstract class BasePropertiesResolverTest {
     }
 
 }
-
-fun randomItemProperties() = ItemProperties(
-    name = randomString(),
-    description = randomString(),
-    image = randomString(),
-    imagePreview = randomString(),
-    imageBig = randomString(),
-    animationUrl = randomString(),
-    attributes = listOf(ItemAttribute(randomString(), randomString(), randomString(), randomString())),
-    rawJsonContent = null
-)

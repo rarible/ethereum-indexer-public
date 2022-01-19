@@ -6,16 +6,13 @@ import com.rarible.core.common.convert
 import com.rarible.core.common.mapAsync
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
-import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
-import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.ExtendedItem
-import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
@@ -23,6 +20,7 @@ import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import kotlinx.coroutines.coroutineScope
@@ -42,12 +40,13 @@ class ItemService(
     private val ownershipApiService: OwnershipApiService,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
-    suspend fun get(itemId: ItemId): NftItemDto {
+    suspend fun getWithAvailableMeta(itemId: ItemId): NftItemDto {
         val item = itemRepository
             .findById(itemId).awaitFirstOrNull()
-            ?: throw EntityNotFoundApiException("Item ", itemId)
-        val meta = itemMetaService.getItemMetadata(itemId)
-        return conversionService.convert(ExtendedItem(item, meta))
+            ?: throw EntityNotFoundApiException("Item", itemId)
+        val itemMeta = itemMetaService.getAvailableMetaOrScheduleLoading(itemId)
+        val extendedItem = ExtendedItem(item, itemMeta)
+        return conversionService.convert(extendedItem)
     }
 
     suspend fun getLazy(itemId: ItemId): LazyNftDto {
@@ -57,21 +56,11 @@ class ItemService(
             ?: throw EntityNotFoundApiException("Lazy Item", itemId)
     }
 
-    suspend fun getMeta(itemId: ItemId): NftItemMetaDto {
-        return itemMetaService
-            .getItemMetadata(itemId)
-            .let { conversionService.convert(it) }
-    }
-
     suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {
         val parts = cacheService
             .get(itemId.toString(), royaltyCacheDescriptor, true)
             .awaitSingle()
         NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
-    }
-
-    suspend fun resetMeta(itemId: ItemId) {
-        itemMetaService.resetMetadata(itemId)
     }
 
     suspend fun search(
@@ -81,7 +70,10 @@ class ItemService(
     ): List<ExtendedItem> = coroutineScope {
         val requestSize = PageSize.ITEM.limit(size)
         val items = itemRepository.search(filter.toCriteria(continuation, requestSize))
-        toExtend(items)
+        items.mapAsync { item ->
+            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id)
+            ExtendedItem(item, meta)
+        }
     }
 
     suspend fun searchByOwner(
@@ -95,22 +87,18 @@ class ItemService(
 
         val items = itemRepository.searchByIds(ownerships.keys)
         items.mapAsync { item ->
-                val meta = itemMetaService.getItemMetadata(item.id)
+            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id)
 
-                // We need to replace item's date with ownership's date due to correct ordering
-                val date = ownerships[item.id] ?: item.date
-                ExtendedItem(item.copy(date = date), meta)
+            // We need to replace item's date with ownership's date due to correct ordering
+            val date = ownerships[item.id] ?: item.date
+            ExtendedItem(item.copy(date = date), meta)
         }.sortedBy { it.item.date }.reversed()
     }
 
     suspend fun search(list: Set<ItemId>): List<ExtendedItem> = coroutineScope {
         val items = itemRepository.searchByIds(list)
-        toExtend(items)
-    }
-
-    suspend fun toExtend(items: List<Item>): List<ExtendedItem> = coroutineScope {
         items.mapAsync { item ->
-            val meta = itemMetaService.getItemMetadata(item.id)
+            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id)
             ExtendedItem(item, meta)
         }
     }

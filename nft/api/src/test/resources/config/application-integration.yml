@@ -3,6 +3,15 @@ rarible:
     apm:
       agent:
         enabled: false
+  loader:
+    retry:
+      job:
+        runner:
+          period: 100000000000000 # Disabled in the tests.
+
+api:
+  metaSyncLoadingTimeout: 3000
+
 common:
   kafka-replica-set: ${kafka.hosts}
   blockchain: ethereum

@@ -1,20 +1,25 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.content.meta.loader.ContentMeta
+import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.NftItemDeleteEventDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
@@ -48,7 +53,7 @@ import java.time.Instant
 import java.util.stream.Stream
 
 @IntegrationTest
-internal class ItemReduceServiceIt : AbstractIntegrationTest() {
+class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var historyService: ItemReduceService
@@ -58,7 +63,7 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @BeforeEach
     fun setUpMeta() {
-        coEvery { mockItemPropertiesResolver.resolve(any()) } returns itemProperties
+        coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns itemMeta
     }
 
     @ParameterizedTest
@@ -94,7 +99,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 0,
+            NftItemUpdateEventDto::class.java
+        )
     }
 
     @ParameterizedTest
@@ -129,7 +140,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(creator)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 0,
+            NftItemUpdateEventDto::class.java
+        )
     }
 
     @ParameterizedTest
@@ -158,7 +175,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 1, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 1,
+            NftItemUpdateEventDto::class.java
+        )
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
 
         val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
@@ -182,7 +205,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
         checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemUpdateEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 0,
+            NftItemUpdateEventDto::class.java
+        )
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
     }
 
@@ -241,7 +270,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         }
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO, deleted = true)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 0,
+            NftItemDeleteEventDto::class.java
+        )
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
@@ -362,7 +397,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(item.deleted).isEqualTo(true)
 
-        checkItemEventWasPublished(token, tokenId, expectedItemMeta, pendingSize = 0, NftItemDeleteEventDto::class.java)
+        checkItemEventWasPublished(
+            token,
+            tokenId,
+            NftItemMetaDtoConverter.convert(itemMeta),
+            pendingSize = 0,
+            NftItemDeleteEventDto::class.java
+        )
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
@@ -851,23 +892,21 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(realItem.royalties).isEqualTo(realRoyalties)
     }
 
-    private val itemProperties = ItemProperties(
-        name = "Test Item",
-        description = "Test Description",
-        image = null,
-        imagePreview = null,
-        imageBig = null,
-        animationUrl = null,
-        attributes = emptyList(),
-        rawJsonContent = null
-    )
-
-    private val expectedItemMeta = NftItemMetaDto(
-        name = itemProperties.name,
-        description = itemProperties.description,
-        attributes = emptyList(),
-        image = null,
-        animation = null
+    private val itemMeta = ItemMeta(
+        properties = ItemProperties(
+            name = "Test Item",
+            description = "Test Description",
+            image = "imageUrl",
+            imagePreview = null,
+            imageBig = null,
+            animationUrl = null,
+            attributes = listOf(ItemAttribute(randomString(), randomString())),
+            rawJsonContent = null
+        ),
+        itemContentMeta = ItemContentMeta(
+            imageMeta = ContentMeta("imageUrl", 123, 456),
+            animationMeta = null
+        )
     )
 
     private suspend fun saveToken(token: Token) {

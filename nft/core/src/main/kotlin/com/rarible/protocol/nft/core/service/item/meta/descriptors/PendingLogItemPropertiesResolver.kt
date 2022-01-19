@@ -4,55 +4,37 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.PendingLogItemProperties
-import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
-import reactor.core.publisher.Mono
-import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class PendingLogItemPropertiesResolver(
-    private val pendingLogItemPropertiesRepository: PendingLogItemPropertiesRepository,
     private val itemRepository: ItemRepository,
     private val rariblePropertiesResolver: RariblePropertiesResolver
 ) : ItemPropertiesResolver {
 
     override val name: String get() = "Pending"
 
-    override val canBeCached: Boolean get() = false
-
-    suspend fun savePendingLogItemPropertiesByUri(itemId: ItemId, uri: String) {
-        try {
-            val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, uri)
-            if (itemProperties == null) {
-                logMetaLoading(itemId, "no properties resolved with Rarible resolver for the pending item")
-                return
-            }
-            val pendingLogItemProperties = PendingLogItemProperties(itemId.decimalStringValue, itemProperties)
-            pendingLogItemPropertiesRepository.save(pendingLogItemProperties).awaitFirstOrNull()
-        } catch (e: Exception) {
-            logMetaLoading(itemId, "failed to save pending log item properties", warn = true)
-        }
-    }
-
     // This resolver is applicable only while the item is in pending minting state.
     // Confirmed Minted items must provide properties from the contract.
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return null
-        val isPendingMinting =
-            item.pending.any { it.from == Address.ZERO() } || item.getPendingEvents().any { it is ItemEvent.ItemMintEvent }
-
-        if (!isPendingMinting) {
-            // TODO: add a background cleanup job that removes properties for confirmed pending mints.
+        val tokenUri = item.pending.mapNotNull { it.tokenUri }.firstOrNull()
+            ?: item.getPendingEvents().asSequence()
+                .filterIsInstance<ItemEvent.ItemMintEvent>()
+                .mapNotNull { it.tokenUri }
+                .firstOrNull()
+        if (tokenUri == null) {
+            if (item.getPendingEvents().any { it is ItemEvent.ItemMintEvent }) {
+                logMetaLoading(itemId, "no tokenURI found for pending item", warn = true)
+            }
             return null
         }
-        return pendingLogItemPropertiesRepository.findById(itemId.decimalStringValue)
-            .onErrorResume { Mono.empty() }
-            .awaitFirstOrNull()?.value
+        logMetaLoading(itemId, "pending item has tokenURI '$tokenUri'")
+        return rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri)
     }
 }

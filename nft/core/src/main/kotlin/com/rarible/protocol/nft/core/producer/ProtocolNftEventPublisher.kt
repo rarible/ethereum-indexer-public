@@ -4,7 +4,17 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.NftActivityDto
+import com.rarible.protocol.dto.NftCollectionEventDto
+import com.rarible.protocol.dto.NftCollectionEventTopicProvider
+import com.rarible.protocol.dto.NftItemDeleteEventDto
+import com.rarible.protocol.dto.NftItemEventDto
+import com.rarible.protocol.dto.NftItemEventTopicProvider
+import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.collect
 import org.slf4j.LoggerFactory
@@ -16,7 +26,6 @@ class ProtocolNftEventPublisher(
     private val collectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val internalCollectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
-    private val internalItemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>
 ) {
@@ -57,17 +66,6 @@ class ProtocolNftEventPublisher(
         )
         itemEventsProducer.send(message).ensureSuccess()
         logger.info("Sent item event ${event.itemId}: ${event.toShort()}")
-    }
-
-    suspend fun publishInternalItem(event: NftItemEventDto) {
-        val message = KafkaMessage(
-            key = event.itemId,
-            value = event,
-            headers = itemEventHeaders,
-            id = event.eventId
-        )
-        internalItemEventsProducer.send(message).ensureSuccess()
-        logger.info("Sent internal item event ${event.itemId}: ${event.toShort()}")
     }
 
     suspend fun publish(event: NftOwnershipEventDto) {

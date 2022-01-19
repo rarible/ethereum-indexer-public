@@ -1,23 +1,19 @@
 package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomString
-import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.service.item.ItemService
-import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemFilterAll
 import com.rarible.protocol.nft.core.model.ItemFilterByCollection
 import com.rarible.protocol.nft.core.model.ItemFilterByCreator
 import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -44,10 +40,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
         var result = itemService.search(ItemFilterAll(defaultSort, true, null), null, 10)
-        assertSizeAndMeta(result, 3)
+        assertThat(result).hasSize(3)
 
         result = itemService.search(ItemFilterAll(defaultSort, true, null), null, 1)
-        assertSizeAndMeta(result, 1)
+        assertThat(result).hasSize(1)
     }
 
     @Test
@@ -57,10 +53,10 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
         var result = itemService.search(ItemFilterAll(defaultSort, false, null), null, 10)
-        assertSizeAndMeta(result, 2)
+        assertThat(result).hasSize(2)
 
         result = itemService.search(ItemFilterAll(defaultSort, false, null), null, 1)
-        assertSizeAndMeta(result, 1)
+        assertThat(result).hasSize(1)
     }
 
     @Test
@@ -82,7 +78,7 @@ class ItemServiceIt : SpringContainerBaseTest() {
             ItemContinuation(now + Duration.ofHours(5), ItemId.MAX_ID),
             10
         )
-        assertSizeAndMeta(result, 3)
+        assertThat(result).hasSize(3)
         assertThat(result.any { it.item.id == item2.id }).isTrue()
         assertThat(result.any { it.item.id == item3.id }).isTrue()
         assertThat(result.any { it.item.id == item4.id }).isTrue()
@@ -94,11 +90,13 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(ItemFilterByCollection(defaultSort, Address.ONE()), null, 10)
-        assertSizeAndMeta(result, 1)
+        var result =
+            itemService.search(ItemFilterByCollection(defaultSort, Address.ONE()), null, 10)
+        assertThat(result).hasSize(1)
 
-        result = itemService.search(ItemFilterByCollection(defaultSort, Address.TWO()), null, 10)
-        assertSizeAndMeta(result, 1)
+        result =
+            itemService.search(ItemFilterByCollection(defaultSort, Address.TWO()), null, 10)
+        assertThat(result).hasSize(1)
     }
 
     @Test
@@ -107,14 +105,15 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(ItemFilterByOwner(defaultSort, Address.ONE()), null, 10)
-        assertSizeAndMeta(result, 0)
+        var result =
+            itemService.search(ItemFilterByOwner(defaultSort, Address.ONE()), null, 10)
+        assertThat(result).hasSize(0)
 
         result = itemService.search(ItemFilterByOwner(defaultSort, Address.THREE()), null, 10)
-        assertSizeAndMeta(result, 2)
+        assertThat(result).hasSize(2)
 
         result = itemService.search(ItemFilterByOwner(defaultSort, Address.FOUR()), null, 10)
-        assertSizeAndMeta(result, 1)
+        assertThat(result).hasSize(1)
     }
 
     @Test
@@ -123,21 +122,12 @@ class ItemServiceIt : SpringContainerBaseTest() {
         saveItem(Address.TWO(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()))
         saveItem(Address.THREE(), Address.TWO(), listOf(Address.THREE(), Address.FOUR()), deleted = true)
 
-        var result = itemService.search(ItemFilterByCreator(defaultSort, Address.ONE()), null, 10)
-        assertSizeAndMeta(result, 0)
+        var result =
+            itemService.search(ItemFilterByCreator(defaultSort, Address.ONE()), null, 10)
+        assertThat(result).hasSize(0)
 
         result = itemService.search(ItemFilterByCreator(defaultSort, Address.TWO()), null, 10)
-        assertSizeAndMeta(result, 2)
-    }
-
-    private fun assertSizeAndMeta(result: List<ExtendedItem>, expectedSize: Int) {
-        assertThat(result).hasSize(expectedSize)
-        assertThat(result).allSatisfy {
-            assertThat(it.itemMeta.properties).isEqualToIgnoringGivenFields(
-                itemProperties,
-                ItemProperties::rawJsonContent.name
-            )
-        }
+        assertThat(result).hasSize(2)
     }
 
     private suspend fun saveItem(
@@ -152,20 +142,6 @@ class ItemServiceIt : SpringContainerBaseTest() {
     }
 
     private suspend fun saveItem(vararg items: Item) {
-        items.forEach {
-            itemRepository.save(it).awaitFirst()
-            coEvery { mockItemPropertiesResolver.resolve(it.id) } returns itemProperties
-        }
+        items.forEach { itemRepository.save(it).awaitFirst() }
     }
-
-    private val itemProperties = ItemProperties(
-        name = randomString(),
-        description = randomString(),
-        image = "https://" + randomString(),
-        imagePreview = "https://" + randomString(),
-        imageBig = "https://" + randomString(),
-        animationUrl = "https://" + randomString(),
-        attributes = emptyList(),
-        rawJsonContent = null
-    )
 }

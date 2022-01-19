@@ -11,7 +11,11 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         val supply: EthUInt256,
         val owner: Address,
         override val entityId: String,
-        override val log: EthereumLog
+        override val log: EthereumLog,
+        /**
+         * Token URI. Applicable only to pending logs.
+         */
+        val tokenUri: String? = null
     ) : ItemEvent() {
         override fun invert(): ItemBurnEvent = ItemEventInverter.invert(this)
     }

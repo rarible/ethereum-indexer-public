@@ -21,7 +21,6 @@ data class NftIndexerProperties(
     var openseaLazyMintAddress: String,
     var royaltyRegistryAddress: String,
     val factory: FactoryAddresses,
-    val nftItemMetaExtenderWorkersCount: Int = 4,
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
     val nftCollectionMetaExtenderWorkersCount: Int = 4,

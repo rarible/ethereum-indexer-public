@@ -22,7 +22,7 @@ import scalether.transaction.MonoTransactionSender
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LootPropertiesResolver(
-    val sender: MonoTransactionSender,
+    sender: MonoTransactionSender,
     val mapper: ObjectMapper,
     val ipfsService: IpfsService
 ) : ItemPropertiesResolver {
@@ -37,8 +37,8 @@ class LootPropertiesResolver(
         }
         logMetaLoading(itemId, "getting Loot properties")
         val tokenId = itemId.tokenId.value
-        return coroutineScope {
-            val ll = listOf(
+        val ll = coroutineScope {
+            listOf(
                 contract.getChest(tokenId),
                 contract.getFoot(tokenId),
                 contract.getHand(tokenId),
@@ -48,31 +48,32 @@ class LootPropertiesResolver(
                 contract.getWaist(tokenId),
                 contract.getWeapon(tokenId)
             ).map { async { it.call().awaitFirstOrNull() ?: "" } }.awaitAll()
-            val def = "chest foot hand head neck ring waist weapon".split(" ")
-            val attrs = ll.mapIndexed { i, v -> ItemAttribute(def[i], v) }.toList()
-            val tokenUri = contract.tokenURI(tokenId).call().awaitSingle()
-            check(tokenUri.startsWith(BASE_64_JSON_PREFIX))
-            val node = mapper.readTree(base64MimeToBytes(tokenUri.removePrefix(BASE_64_JSON_PREFIX))) as ObjectNode
-            val imageUrl = node.getText("image")?.let {
-                check(it.startsWith(BASE_64_SVG_PREFIX))
-                val svgBytes = base64MimeToBytes(it.removePrefix(BASE_64_SVG_PREFIX))
-                ipfsService.upload("image-${tokenId}.svg", svgBytes, "image/svg+xml")
-            }
-            ItemProperties(
-                name = node.getText("name") ?: DEFAULT_TITLE,
-                description = node.getText("description"),
-                image = imageUrl,
-                imagePreview = null,
-                animationUrl = imageUrl,
-                imageBig = null,
-                attributes = attrs,
-                rawJsonContent = null
-            )
         }
+        val def = "chest foot hand head neck ring waist weapon".split(" ")
+        val attrs = ll.mapIndexed { i, v -> ItemAttribute(def[i], v) }.toList()
+        val tokenUri = contract.tokenURI(tokenId).call().awaitSingle()
+        check(tokenUri.startsWith(BASE_64_JSON_PREFIX))
+        @Suppress("BlockingMethodInNonBlockingContext")
+        val node = mapper.readTree(base64MimeToBytes(tokenUri.removePrefix(BASE_64_JSON_PREFIX))) as ObjectNode
+        val imageUrl = node.getText("image")?.let {
+            check(it.startsWith(BASE_64_SVG_PREFIX))
+            val svgBytes = base64MimeToBytes(it.removePrefix(BASE_64_SVG_PREFIX))
+            ipfsService.upload("image-${tokenId}.svg", svgBytes, "image/svg+xml")
+        }
+        val name = node.getText("name") ?: return null
+        return ItemProperties(
+            name = name,
+            description = node.getText("description"),
+            image = imageUrl,
+            imagePreview = null,
+            animationUrl = imageUrl,
+            imageBig = null,
+            attributes = attrs,
+            rawJsonContent = null
+        )
     }
 
     companion object {
-        private const val DEFAULT_TITLE = "Untitled"
         val LOOT_ADDRESS: Address = Address.apply("0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7")
     }
 

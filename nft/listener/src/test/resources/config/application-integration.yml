@@ -15,6 +15,11 @@ rarible:
       exchange-contract-addresses:
         v1: "0000000000000000000000000000000000000000"
         v2: "0000000000000000000000000000000000000000"
+  loader:
+    retry:
+      job:
+        runner:
+          period: 100000000000000 # Disabled in the tests.
 
 mongoUrls: ${rarible.common.mongoUrls}
 mongoDatabase: ${rarible.common.mongoDatabase}

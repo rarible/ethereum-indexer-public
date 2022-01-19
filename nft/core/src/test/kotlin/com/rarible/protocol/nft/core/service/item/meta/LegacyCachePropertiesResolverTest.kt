@@ -7,6 +7,7 @@ import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.ext.MongoCleanup
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.randomItemProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.BaseLegacyCachePropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirst

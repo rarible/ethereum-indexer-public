@@ -12,6 +12,16 @@ common:
   reduceProperties:
     skipOwnerships: true
 
+rarible:
+  loader:
+    broker-replica-set: ${kafka.hosts}
+    workers: 4
+    retry:
+      backoffDelaysMillis: [100, 200]
+      job:
+        runner:
+          period: 100000000000000 # Disabled in the tests, run the RetryTasksService manually.
+
 api:
   opensea:
     url: https://api.opensea.io/api/v1

@@ -10,6 +10,8 @@ import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
+import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -23,12 +25,11 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -36,21 +37,24 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
+import java.time.Duration
 import java.time.Instant
 
 @ExperimentalCoroutinesApi
 @RestController
 class ItemController(
     private val itemService: ItemService,
+    private val itemMetaService: ItemMetaService,
     private val mintService: MintService,
     private val conversionService: ConversionService,
-    private val burnLazyNftValidator: BurnLazyNftValidator
+    private val burnLazyNftValidator: BurnLazyNftValidator,
+    private val nftIndexerApiProperties: NftIndexerApiProperties
 ) : NftItemControllerApi {
 
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
-        val result = itemService.get(conversionService.convert(itemId))
+        val result = itemService.getWithAvailableMeta(conversionService.convert(itemId))
         return ResponseEntity.ok(result)
     }
 
@@ -60,10 +64,11 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val result = withContext(NonCancellable) {
-            itemService.getMeta(conversionService.convert(itemId))
-        }
-        return ResponseEntity.ok(result)
+        val availableMeta = itemMetaService.getAvailableMetaOrScheduleAndWait(
+            itemId = conversionService.convert(itemId),
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
+        return ResponseEntity.ok(conversionService.convert(availableMeta))
     }
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
@@ -72,7 +77,7 @@ class ItemController(
     }
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
-        itemService.resetMeta(conversionService.convert(itemId))
+        itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId))
         return ResponseEntity.noContent().build()
     }
 
@@ -90,7 +95,7 @@ class ItemController(
         consumes = ["application/json"]
     )
     suspend fun deleteLazyMintNftAssetDeprecated(
-        @PathVariable("itemId") itemId: kotlin.String,
+        @PathVariable("itemId") itemId: String,
         @RequestBody burnLazyNftFormDto: BurnLazyNftFormDto
     ): ResponseEntity<Unit> {
         return withMdc { deleteLazyMintNftAssetInternal(itemId, burnLazyNftFormDto) }

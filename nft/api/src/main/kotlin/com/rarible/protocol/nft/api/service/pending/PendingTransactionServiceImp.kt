@@ -27,10 +27,11 @@ import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.HistoryTopics
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.EntityEventListener
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -46,7 +47,6 @@ import java.math.BigInteger
 class PendingTransactionServiceImp(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
-    private val pendingLogItemPropertiesResolver: PendingLogItemPropertiesResolver,
     private val properties: NftIndexerProperties,
     entityEventListeners: List<EntityEventListener>,
     ethereumLogService: EthereumLogService,
@@ -190,7 +190,6 @@ class PendingTransactionServiceImp(
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {
-            savePendingItemProperties(token = to, tokenId = it._2(), uri = it._3())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -199,7 +198,8 @@ class PendingTransactionServiceImp(
                         tokenId = EthUInt256(it._2()),
                         date = nowMillis(),
                         from = Address.ZERO(),
-                        value = EthUInt256.ONE
+                        value = EthUInt256.ONE,
+                        tokenUri = it._3()
                     ), to, TransferEvent.id()
                 )
             )
@@ -219,7 +219,6 @@ class PendingTransactionServiceImp(
             )
         }
         checkTx(id, data, Signatures.erc721V3mintSignature())?.let {
-            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._5())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -228,13 +227,13 @@ class PendingTransactionServiceImp(
                         tokenId = EthUInt256(it._1()),
                         date = nowMillis(),
                         from = Address.ZERO(),
-                        value = EthUInt256.ONE
+                        value = EthUInt256.ONE,
+                        tokenUri = it._5()
                     ), to, TransferEvent.id()
                 )
             )
         }
         checkTx(id, data, Signatures.erc721V4mintSignature())?.let {
-            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._6())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -243,7 +242,8 @@ class PendingTransactionServiceImp(
                         tokenId = EthUInt256(it._1()),
                         date = nowMillis(),
                         from = Address.ZERO(),
-                        value = EthUInt256.ONE
+                        value = EthUInt256.ONE,
+                        tokenUri = it._6()
                     ), to, TransferEvent.id()
                 )
             )
@@ -277,7 +277,6 @@ class PendingTransactionServiceImp(
             )
         }
         checkTx(id, data, Signatures.erc1155MintSignatureV1())?.let {
-            savePendingItemProperties(token = to, tokenId = it._1(), uri = it._7())
             return listOf(
                 PendingLog(
                     ItemTransfer(
@@ -286,7 +285,8 @@ class PendingTransactionServiceImp(
                         tokenId = EthUInt256(it._1()),
                         date = nowMillis(),
                         from = Address.ZERO(),
-                        value = EthUInt256(it._6())
+                        value = EthUInt256(it._6()),
+                        tokenUri = it._7()
                     ), to, TransferSingleEvent.id()
                 )
             )
@@ -306,7 +306,6 @@ class PendingTransactionServiceImp(
             )
         }
         checkTx(id, data, ERC721Rarible.mintAndTransferSignature())?.let {
-            savePendingItemProperties(token = to, tokenId = it._1()._1(), uri = it._1()._2())
             val creator = it._1()._3()[0]._1()
             val mint = PendingLog(
                 ItemTransfer(
@@ -315,7 +314,8 @@ class PendingTransactionServiceImp(
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
                     from = Address.ZERO(),
-                    value = EthUInt256.ONE
+                    value = EthUInt256.ONE,
+                    tokenUri = it._1()._2()
                 ), to, TransferEvent.id()
             )
             if (creator == it._2()) {
@@ -336,7 +336,6 @@ class PendingTransactionServiceImp(
             }
         }
         checkTx(id, data, ERC1155Rarible.mintAndTransferSignature())?.let {
-            savePendingItemProperties(token = to, tokenId = it._1()._1(), uri = it._1()._2())
             val creator = it._1()._4()[0]._1()
             val mint = PendingLog(
                 ItemTransfer(
@@ -345,7 +344,8 @@ class PendingTransactionServiceImp(
                     tokenId = EthUInt256(it._1()._1()),
                     date = nowMillis(),
                     from = Address.ZERO(),
-                    value = EthUInt256.of(it._3())
+                    value = EthUInt256.of(it._3()),
+                    tokenUri = it._1()._2()
                 ), to, TransferSingleEvent.id()
             )
             if (creator == it._2()) {
@@ -366,11 +366,6 @@ class PendingTransactionServiceImp(
             }
         }
         return null
-    }
-
-    private suspend fun savePendingItemProperties(token: Address, tokenId: BigInteger, uri: String) {
-        val itemId = ItemId(token, EthUInt256(tokenId))
-        pendingLogItemPropertiesResolver.savePendingLogItemPropertiesByUri(itemId, uri)
     }
 
     private fun processTxToCreate(from: Address, nonce: Long, input: Binary): PendingLog? {

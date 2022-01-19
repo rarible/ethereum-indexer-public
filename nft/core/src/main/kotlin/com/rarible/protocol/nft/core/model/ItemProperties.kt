@@ -9,20 +9,7 @@ data class ItemProperties(
     val animationUrl: String?,
     val attributes: List<ItemAttribute>,
     val rawJsonContent: String?
-) {
-    companion object {
-        val EMPTY = ItemProperties(
-            name = "Untitled",
-            description = null,
-            image = null,
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
-            attributes = listOf(),
-            rawJsonContent = null
-        )
-    }
-}
+)
 
 data class ItemAttribute(
     val key: String,

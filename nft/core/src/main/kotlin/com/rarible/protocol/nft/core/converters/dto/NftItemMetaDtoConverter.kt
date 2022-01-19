@@ -1,10 +1,14 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.dto.*
+import com.rarible.core.content.meta.loader.ContentMeta
+import com.rarible.protocol.dto.NftItemAttributeDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
+import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.model.MediaMeta
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -26,7 +30,7 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
                     source.properties.toUrlMap(NftMediaSizeDto.BIG) { it.imageBig } +
                     source.properties.toUrlMap(NftMediaSizeDto.PREVIEW) { it.imagePreview }
 
-            val meta = source.meta.imageMeta
+            val meta = source.itemContentMeta.imageMeta
                 ?.let { convert(it) }
                 ?.let { mapOf((if (source.properties.imagePreview != null) NftMediaSizeDto.PREVIEW.name else NftMediaSizeDto.ORIGINAL.name) to it) }
                 ?: emptyMap()
@@ -40,7 +44,7 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
         return if (source.properties.animationUrl != null) {
             val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL) { it.animationUrl }
 
-            val meta = source.meta.animationMeta
+            val meta = source.itemContentMeta.animationMeta
                 ?.let { convert(it) }
                 ?.let { mapOf(NftMediaSizeDto.ORIGINAL.name to it) }
                 ?: emptyMap()
@@ -55,7 +59,7 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
             ?.let { mapOf(size.name to it) }
             ?: emptyMap()
 
-    private fun convert(source: MediaMeta): NftMediaMetaDto {
+    private fun convert(source: ContentMeta): NftMediaMetaDto {
         return NftMediaMetaDto(
             type = source.type,
             width = source.width,

@@ -1,94 +1,30 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.cache.CacheDescriptor
-import com.rarible.core.cache.CacheService
-import com.rarible.core.cache.get
-import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacyCachePropertiesResolver
-import kotlinx.coroutines.reactive.awaitFirstOrNull
-import kotlinx.coroutines.reactor.mono
-import org.apache.commons.lang3.time.DateUtils
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
-import java.time.Instant
 
 @Service
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
-    private val ipfsService: IpfsService,
-    @Value("\${api.properties.cache-timeout}") private val cacheTimeout: Long,
-    @Autowired(required = false) private val cacheService: CacheService?
+    private val ipfsService: IpfsService
 ) {
 
-    private data class CachedItemProperties(
-        val properties: ItemProperties,
-        val fetchAt: Instant,
-        val canBeCached: Boolean
-    )
-
-    private val cacheDescriptor = object : CacheDescriptor<CachedItemProperties> {
-        override val collection get() = ITEM_METADATA_COLLECTION
-
-        override fun get(id: String) = mono {
-            val resolveResult = doResolve(ItemId.parseId(id)) ?: return@mono null
-            val itemProperties = resolveResult.first.fixIpfsUrls()
-            val resolver = resolveResult.second
-            CachedItemProperties(itemProperties, nowMillis(), resolver.canBeCached)
-        }
-
-        override fun getMaxAge(value: CachedItemProperties?): Long =
-            when {
-                value == null -> DateUtils.MILLIS_PER_DAY
-                value.canBeCached -> cacheTimeout
-                else -> 0
-            }
+    suspend fun resolve(itemId: ItemId): ItemProperties? {
+        val resolveResult = doResolve(itemId) ?: return null
+        return resolveResult.fixIpfsUrls()
     }
 
-    suspend fun resolve(itemId: ItemId, returnOnlyCacheMeta: Boolean = false): ItemProperties? {
-        if (returnOnlyCacheMeta) {
-            val onlyCachedDescriptor = object : CacheDescriptor<CachedItemProperties> {
-                override val collection: String get() = cacheDescriptor.collection
-
-                override fun get(id: String): Mono<CachedItemProperties> = Mono.empty()
-
-                override fun getMaxAge(value: CachedItemProperties?): Long = 0
-            }
-            return cacheService?.getCached(
-                itemId.decimalStringValue,
-                onlyCachedDescriptor,
-                immediatelyIfCached = true
-            )?.awaitFirstOrNull()?.properties
-        }
-        return cacheService.get(
-            itemId.decimalStringValue,
-            cacheDescriptor,
-            immediatelyIfCached = false
-        ).awaitFirstOrNull()?.properties
-    }
-
-    suspend fun resetProperties(itemId: ItemId) {
-        logMetaLoading(itemId, "resetting properties")
-        cacheService?.reset(itemId.decimalStringValue, cacheDescriptor)
-            ?.onErrorResume { Mono.empty() }
-            ?.awaitFirstOrNull()
-
-        itemPropertiesResolverProvider.orderedResolvers.forEach { runCatching { it.reset(itemId) } }
-    }
-
-    private suspend fun callResolvers(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? {
+    private suspend fun callResolvers(itemId: ItemId): ItemProperties? {
         for (resolver in itemPropertiesResolverProvider.orderedResolvers) {
             try {
                 val itemProperties = resolver.resolve(itemId)
                 if (itemProperties != null) {
-                    return itemProperties to resolver
+                    return itemProperties
                 }
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
@@ -97,23 +33,18 @@ class ItemPropertiesService(
         return null
     }
 
-    private suspend fun doResolve(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? {
+    private suspend fun doResolve(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId, "started getting")
-        val resolveResult = try {
+        val itemProperties = try {
             callResolvers(itemId)
         } catch (e: Exception) {
             logMetaLoading(itemId, "failed: ${e.message}", warn = true)
             return fallbackToOpenSea(itemId)
         }
-        if (resolveResult == null) {
+        if (itemProperties == null) {
             logMetaLoading(itemId, "not found")
             return fallbackToOpenSea(itemId)
         }
-        if (resolveResult.second.name == OpenSeaLegacyCachePropertiesResolver.NAME) {
-            logMetaLoading(itemId, "returned from legacy OpenSea cache")
-            return resolveResult
-        }
-        val itemProperties = resolveResult.first
         if (itemProperties.name.isNotBlank()
             && itemProperties.image != null
             && itemProperties.imagePreview != null
@@ -121,25 +52,24 @@ class ItemPropertiesService(
             && itemProperties.attributes.isNotEmpty()
         ) {
             logMetaLoading(itemId, "fetched item meta solely with Rarible algorithm")
-            return resolveResult
+            return itemProperties
         }
-        val extendedProperties = extendWithOpenSea(itemId, itemProperties)
-        return resolveResult.copy(first = extendedProperties)
+        return extendWithOpenSea(itemId, itemProperties)
     }
 
     private suspend fun extendWithOpenSea(itemId: ItemId, itemProperties: ItemProperties): ItemProperties {
         logMetaLoading(itemId, "resolving additional properties using OpenSea")
-        val openSeaResult = resolveOpenSeaProperties(itemId)?.first ?: return itemProperties
+        val openSeaResult = resolveOpenSeaProperties(itemId) ?: return itemProperties
         return extendWithOpenSea(itemProperties, openSeaResult, itemId)
     }
 
-    private suspend fun fallbackToOpenSea(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? {
+    private suspend fun fallbackToOpenSea(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId, "falling back to OpenSea")
         return resolveOpenSeaProperties(itemId)
     }
 
-    private suspend fun resolveOpenSeaProperties(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? = try {
-        itemPropertiesResolverProvider.openSeaResolver.resolve(itemId)?.let { it to itemPropertiesResolverProvider.openSeaResolver }
+    private suspend fun resolveOpenSeaProperties(itemId: ItemId): ItemProperties? = try {
+        itemPropertiesResolverProvider.openSeaResolver.resolve(itemId)
     } catch (e: Exception) {
         logMetaLoading(itemId, "unable to get properties from OpenSea: ${e.message}", warn = true)
         null
@@ -200,9 +130,5 @@ class ItemPropertiesService(
             imageBig = imageBig.resolveHttpUrl(),
             animationUrl = animationUrl.resolveHttpUrl()
         )
-    }
-
-    companion object {
-        const val ITEM_METADATA_COLLECTION = "item_metadata"
     }
 }

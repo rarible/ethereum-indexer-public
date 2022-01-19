@@ -51,7 +51,11 @@ data class ItemTransfer(
     override val tokenId: EthUInt256,
     override val date: Instant,
     val from: Address,
-    val value: EthUInt256 = EthUInt256.ONE
+    val value: EthUInt256 = EthUInt256.ONE,
+    /**
+     * URI of the token metadata. Currently, available only for pending logs.
+     */
+    val tokenUri: String? = null
 ) : ItemHistory(ItemType.TRANSFER)
 
 data class ItemRoyalty(

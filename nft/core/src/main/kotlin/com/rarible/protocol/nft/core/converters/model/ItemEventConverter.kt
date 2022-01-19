@@ -23,7 +23,8 @@ object ItemEventConverter {
                         supply = data.value,
                         owner = data.owner,
                         log = source.log,
-                        entityId = ItemId(data.token, data.tokenId).stringValue
+                        entityId = ItemId(data.token, data.tokenId).stringValue,
+                        tokenUri = data.tokenUri
                     )
                     data.owner == Address.ZERO() -> ItemEvent.ItemBurnEvent(
                         supply = data.value,

@@ -4,7 +4,6 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.nft.core.misc.div
 import com.rarible.protocol.nft.core.model.HistoryLog
 import com.rarible.protocol.nft.core.model.ItemHistory
@@ -17,7 +16,10 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -70,8 +72,7 @@ class NftItemHistoryRepository(
     fun findItemsHistory(
         token: Address? = null,
         tokenId: EthUInt256? = null,
-        from: ItemId? = null,
-        statuses: List<LogEventStatus>? = null
+        from: ItemId? = null
     ): Flux<HistoryLog> {
         val criteria = tokenCriteria(token, tokenId, from)
         return mongo

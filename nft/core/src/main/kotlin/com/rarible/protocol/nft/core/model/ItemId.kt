@@ -13,9 +13,7 @@ data class ItemId(
     val decimalStringValue: String
         get() = "$token:${tokenId.value}"
 
-    override fun toString(): String {
-        return stringValue
-    }
+    override fun toString(): String = decimalStringValue
 
     companion object {
         fun parseId(itemId: String): ItemId {

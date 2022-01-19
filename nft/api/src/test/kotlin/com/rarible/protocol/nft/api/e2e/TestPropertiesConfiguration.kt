@@ -2,10 +2,8 @@ package com.rarible.protocol.nft.api.e2e
 
 import com.rarible.core.cache.CacheService
 import com.rarible.ethereum.nft.validation.LazyNftValidator
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolverProvider
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
@@ -24,27 +22,8 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    @Qualifier("mockItemPropertiesResolver")
-    fun mockItemPropertiesResolver(): ItemPropertiesResolver = mockk {
-        every { name } returns "MockResolver"
-        every { canBeCached } returns true
-    }
-
-    @Bean
-    @Primary
-    @Qualifier("mockRariblePropertiesResolver")
-    fun mockRariblePropertiesResolver(): RariblePropertiesResolver = mockk {
-        every { name } returns "MockRariblePropertiesResolver"
-        every { canBeCached } returns true
-    }
-
-    @Bean
-    @Primary
-    fun mockItemPropertiesResolverProvider(
-        @Qualifier("mockItemPropertiesResolver") mockItemPropertiesResolver: ItemPropertiesResolver
-    ): ItemPropertiesResolverProvider = mockk {
-        every { orderedResolvers } returns listOf(mockItemPropertiesResolver)
-    }
+    @Qualifier("mockItemMetaResolver")
+    fun mockItemMetaResolver(): ItemMetaResolver = mockk()
 
     @Bean
     @Primary

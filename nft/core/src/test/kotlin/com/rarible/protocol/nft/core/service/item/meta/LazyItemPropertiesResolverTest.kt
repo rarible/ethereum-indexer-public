@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.randomItemProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.Part
@@ -19,7 +20,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 
-@ItemMetaTest
 class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()

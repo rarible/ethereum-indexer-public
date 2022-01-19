@@ -1,11 +1,7 @@
 package com.rarible.protocol.nft.api.e2e
 
-import com.github.cloudyrock.mongock.driver.api.lock.guard.invoker.LockGuardInvokerImpl
-import com.github.cloudyrock.mongock.driver.core.lock.DefaultLockManager
-import com.github.cloudyrock.mongock.driver.mongodb.springdata.v3.decorator.impl.MongockTemplate
-import com.github.cloudyrock.mongock.driver.mongodb.sync.v4.repository.MongoSync4LockRepository
-import com.github.cloudyrock.mongock.utils.TimeService
 import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
+import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.client.NoopWebClientCustomizer
 import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
@@ -16,33 +12,31 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
-import com.rarible.protocol.nft.core.model.*
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.HistoryTopics
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.TokenProperties
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import io.mockk.every
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.bson.Document
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.MongoTemplate
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.web.reactive.function.client.WebClient
 import org.web3j.utils.Numeric
@@ -56,7 +50,6 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.net.URI
-import java.util.*
 import javax.annotation.PostConstruct
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -93,12 +86,8 @@ abstract class SpringContainerBaseTest {
     protected lateinit var ethereum: MonoEthereum
 
     @Autowired
-    @Qualifier("mockItemPropertiesResolver")
-    protected lateinit var mockItemPropertiesResolver: ItemPropertiesResolver
-
-    @Autowired
-    @Qualifier("mockRariblePropertiesResolver")
-    protected lateinit var mockRariblePropertiesResolver: RariblePropertiesResolver
+    @Qualifier("mockItemMetaResolver")
+    protected lateinit var mockItemMetaResolver: ItemMetaResolver
 
     @Autowired
     private lateinit var featureFlags: FeatureFlags
@@ -145,12 +134,10 @@ abstract class SpringContainerBaseTest {
 
     @BeforeEach
     fun clear() {
-        clearMocks(mockItemPropertiesResolver)
-        every { mockItemPropertiesResolver.name } returns "MockResolver"
-        every { mockItemPropertiesResolver.canBeCached } returns true
+        clearMocks(mockItemMetaResolver)
         coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
         coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
-        coEvery { mockMediaMetaService.getMediaMeta(any()) } returns MediaMeta("image/png")
+        coEvery { mockMediaMetaService.getMediaMeta(any()) } returns ContentMeta("image/png")
     }
 
     @PostConstruct

@@ -37,15 +37,14 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.token.TokenReduceService
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
-import io.mockk.every
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -63,6 +62,7 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.core.convert.ConversionService
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
@@ -82,7 +82,6 @@ import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
 
-@FlowPreview
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
@@ -92,12 +91,15 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var tokenRepository: TokenRepository
 
     @Autowired
-    @Qualifier("mockItemPropertiesResolver")
-    protected lateinit var mockItemPropertiesResolver: ItemPropertiesResolver
+    @Qualifier("mockItemMetaResolver")
+    protected lateinit var mockItemMetaResolver: ItemMetaResolver
 
     @Autowired
     @Qualifier("mockStandardTokenPropertiesResolver")
     protected lateinit var mockStandardTokenPropertiesResolver: StandardTokenPropertiesResolver
+
+    @Autowired
+    protected lateinit var itemMetaService: ItemMetaService
 
     @Autowired
     protected lateinit var itemRepository: ItemRepository
@@ -132,13 +134,16 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     @Autowired
     private lateinit var featureFlags: FeatureFlags
 
+    @Autowired
+    protected lateinit var conversionService: ConversionService
+
     private lateinit var ownershipEventConsumer: RaribleKafkaConsumer<NftOwnershipEventDto>
 
     private lateinit var itemEventConsumer: RaribleKafkaConsumer<NftItemEventDto>
 
     private lateinit var collectionEventConsumer: RaribleKafkaConsumer<NftCollectionEventDto>
 
-    private val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
+    protected val itemEvents = CopyOnWriteArrayList<NftItemEventDto>()
     private val ownershipEvents = CopyOnWriteArrayList<NftOwnershipEventDto>()
     private val collectionEvents = CopyOnWriteArrayList<NftCollectionEventDto>()
 
@@ -146,9 +151,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @BeforeEach
     fun clearMock() {
-        clearMocks(mockItemPropertiesResolver)
-        every { mockItemPropertiesResolver.name } returns "MockResolver"
-        every { mockItemPropertiesResolver.canBeCached } returns true
+        clearMocks(mockItemMetaResolver)
     }
 
     @BeforeEach
@@ -164,6 +167,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         itemEventConsumer = createItemEventConsumer()
         collectionEventConsumer = createCollectionEventConsumer()
         ownershipEventConsumer = createOwnershipEventConsumer()
+        @Suppress("EXPERIMENTAL_API_USAGE")
         consumingJobs = listOf(
             GlobalScope.launch {
                 itemEventConsumer.receiveAutoAck().collect {
@@ -327,7 +331,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         Instant.ofEpochSecond(ethereum.ethGetFullBlockByHash(blockHash()).map { it.timestamp() }.awaitFirst().toLong())
 
 
-    protected suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
+    private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
         val value = this.awaitFirstOrNull()
         require(value != null) { "txHash is null" }
         return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
@@ -363,7 +367,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
             name = UUID.randomUUID().toString(),
             symbol = UUID.randomUUID().toString(),
             status = ContractStatus.values().random(),
-            features = (1..10).map {  TokenFeature.values().random() }.toSet(),
+            features = (1..10).map { TokenFeature.values().random() }.toSet(),
             standard = TokenStandard.values().random(),
             version = null
         )

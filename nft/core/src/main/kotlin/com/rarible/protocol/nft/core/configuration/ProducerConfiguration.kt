@@ -32,9 +32,6 @@ class ProducerConfiguration(
     fun itemEventsProducer(producerFactory: ProducerFactory) = producerFactory.createItemEventsProducer()
 
     @Bean
-    fun internalItemEventsProducer(producerFactory: ProducerFactory) = producerFactory.createInternalItemEventsProducer()
-
-    @Bean
     fun ownershipEventsProducer(producerFactory: ProducerFactory) = producerFactory.createOwnershipEventsProducer()
 
     @Bean

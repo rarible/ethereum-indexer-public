@@ -1,14 +1,19 @@
 package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.ethereum.log.service.LogEventService
+import com.rarible.loader.cache.CacheLoaderService
+import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
 import com.rarible.protocol.nft.core.model.CollectionEventType
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.Package
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -17,6 +22,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 
 @Configuration
+@EnableRaribleCacheLoader
 @EnableConfigurationProperties(NftIndexerProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
 @ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
@@ -27,6 +33,14 @@ class CoreConfiguration(
     fun featureFlags(): FeatureFlags {
         return properties.featureFlags
     }
+
+
+    @Bean
+    @Qualifier("meta.cache.loader.service")
+    fun metaCacheLoaderService(
+        cacheLoaderServices: List<CacheLoaderService<*>>
+    ): CacheLoaderService<ItemMeta> =
+        @Suppress("UNCHECKED_CAST")(cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
 
     @Bean
     fun historyTopics(): HistoryTopics {

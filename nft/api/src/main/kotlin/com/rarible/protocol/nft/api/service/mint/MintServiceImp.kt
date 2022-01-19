@@ -54,7 +54,7 @@ class MintServiceImp(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.resetMetadata(itemId)
+        itemMetaService.removeMeta(itemId)
         val itemEvent = ItemEventConverter.convert(savedItemHistory.wrapWithEthereumLogRecord())
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
     }

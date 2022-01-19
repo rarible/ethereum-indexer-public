@@ -50,9 +50,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             every { orderedResolvers } returns listOf(hashmasksPropertiesResolver, rariblePropertiesResolver)
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        ipfsService = IpfsService(),
-        cacheTimeout = 10000,
-        cacheService = null
+        ipfsService = IpfsService()
     )
 
     private val jacksonObjectMapper = jacksonObjectMapper()

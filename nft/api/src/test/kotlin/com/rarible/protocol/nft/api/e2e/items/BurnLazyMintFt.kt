@@ -10,18 +10,18 @@ import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.controller.ItemController
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
-import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
-import com.rarible.protocol.nft.core.model.ContentMeta
+import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -31,10 +31,11 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
-import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -79,9 +80,6 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemReduceService: ItemReduceService
 
-    @Autowired
-    private lateinit var itemMetaService: ItemMetaService
-
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
@@ -92,25 +90,24 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val bs = Binary.apply(creator.bytes().plus(ByteArray(12)))
         val tokenId = Uint256Type.decode(bs, 0).value()
 
-        val lazyItemDto = createNft(tokenId, listOf(PartDto(creator, 10000)))
+        val lazyItemDto = createLazyNft(tokenId, listOf(PartDto(creator, 10000)))
 
         // lazy mint
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
 
-        val itemProperties = createLazyItemProperties()
         val itemId = ItemId(lazyItemDto.contract, EthUInt256(lazyItemDto.tokenId))
+        val itemMeta = randomItemMeta()
 
-        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns itemProperties
+        setupItemMeta(itemId, lazyItemDto.uri, itemMeta)
 
         coEvery { lazyNftValidator.validate(any()) } returns ValidationResult.Valid
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
+        assertThat(itemDto.meta).isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
-
-        assertThat(itemMetaService.getItemMetadata(itemId).properties).isEqualToIgnoringGivenFields(itemProperties, ItemProperties::rawJsonContent.name)
 
         // burn
         val msg = ItemController.BURN_MSG.format(tokenId)
@@ -118,10 +115,13 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val lazyDto = BurnLazyNftFormDto(lazyItemDto.creators.map { it.account }, listOf(signature))
         delay(2000)
-        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto).awaitFirstOrNull()
-        coVerify(exactly = 1) { mockItemPropertiesResolver.reset(itemId) }
-        coEvery { mockItemPropertiesResolver.resolve(itemId) } returns null
-        assertThat(itemMetaService.getItemMetadata(itemId)).isEqualTo(ItemMeta(ItemProperties.EMPTY, ContentMeta.EMPTY))
+        nftItemApiClient.deleteLazyMintNftAsset("${lazyItemDto.contract}:${lazyItemDto.tokenId}", lazyDto)
+            .awaitFirstOrNull()
+
+        // Meta of the burnt item must not be resolved now.
+        assertThrows<NftItemControllerApi.ErrorGetNftItemMetaById> {
+            nftItemApiClient.getNftItemMetaById(itemId.decimalStringValue).awaitFirstOrNull()
+        }
 
         val item = itemRepository.findById(itemId).awaitSingle()
         assertTrue(item.deleted)
@@ -137,7 +137,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val bs = Binary.apply(creator.bytes().plus(ByteArray(12)))
         val tokenId = Uint256Type.decode(bs, 0).value()
 
-        val lazyItemDto = createNft(tokenId, listOf(PartDto(creator, 10000)))
+        val lazyItemDto = createLazyNft(tokenId, listOf(PartDto(creator, 10000)))
 
         // lazy mint
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
@@ -243,7 +243,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val bs = Binary.apply(creator.bytes().plus(ByteArray(12)))
         val tokenId = Uint256Type.decode(bs, 0).value()
 
-        val lazyItemDto = createNft(tokenId, listOf(PartDto(creator, 10000)))
+        val lazyItemDto = createLazyNft(tokenId, listOf(PartDto(creator, 10000)))
 
         // lazy mint
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
@@ -262,7 +262,33 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         assertEquals(HttpStatus.BAD_REQUEST, ex.statusCode)
     }
 
-    private fun createNft(tokenId: BigInteger, creators: List<PartDto>): LazyErc721Dto {
+    /**
+     * Here we set up item meta resolution of the item [itemId] to return [itemMeta].
+     *
+     * We imitate the way the [LazyItemPropertiesResolver] works: it resolves "tokenURI" from the ItemLazyMint event
+     * and uses [RariblePropertiesResolver] as a delegate to resolve the meta by this URI.
+     *
+     * When the item gets burned, the [LazyItemPropertiesResolver] returns `null`.
+     */
+    private fun setupItemMeta(
+        itemId: ItemId,
+        tokenUri: String,
+        itemMeta: ItemMeta
+    ) {
+        val rariblePropertiesResolver = mockk<RariblePropertiesResolver>()
+        coEvery { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) } returns itemMeta.properties
+
+        val lazyItemPropertiesResolver = LazyItemPropertiesResolver(
+            rariblePropertiesResolver,
+            lazyNftItemHistoryRepository
+        )
+        coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
+            val itemProperties = lazyItemPropertiesResolver.resolve(itemId) ?: return@coAnswers null
+            ItemMeta(itemProperties, itemMeta.itemContentMeta)
+        }
+    }
+
+    private fun createLazyNft(tokenId: BigInteger, creators: List<PartDto>): LazyErc721Dto {
         val contract = createAddress()
         return LazyErc721Dto(
             contract = contract,

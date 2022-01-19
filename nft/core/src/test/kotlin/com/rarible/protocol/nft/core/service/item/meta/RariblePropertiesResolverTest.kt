@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
@@ -29,7 +28,6 @@ import scalether.domain.Address
 class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
-    private val pendingLogItemPropertiesRepository = mockk<PendingLogItemPropertiesRepository>()
     private val rariblePropertiesResolver: RariblePropertiesResolver = RariblePropertiesResolver(
         sender = createSender(),
         tokenRepository = tokenRepository,
@@ -41,10 +39,9 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
     @BeforeEach
     @Suppress("ReactiveStreamsUnusedPublisher")
     private fun before() {
-        clearMocks(lazyNftItemHistoryRepository, pendingLogItemPropertiesRepository)
+        clearMocks(lazyNftItemHistoryRepository)
         every { lazyNftItemHistoryRepository.findLazyMintById(any()) } returns Mono.empty()
         every { lazyNftItemHistoryRepository.find(any(), any(), any()) } returns Flux.empty()
-        every { pendingLogItemPropertiesRepository.findById(any<String>()) } returns Mono.empty()
     }
 
     /**
