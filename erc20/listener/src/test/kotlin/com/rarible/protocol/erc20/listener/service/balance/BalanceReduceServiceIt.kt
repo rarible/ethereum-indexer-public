@@ -63,7 +63,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         val events = CopyOnWriteArrayList<KafkaMessage<Erc20BalanceEventDto>>()
         val job = async {
             consumer
-                .receive()
+                .receiveAutoAck()
                 .collect { events.add(it) }
         }
 
@@ -106,7 +106,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         val events = CopyOnWriteArrayList<KafkaMessage<Erc20BalanceEventDto>>()
         val job = async {
             consumer
-                .receive()
+                .receiveAutoAck()
                 .collect { events.add(it) }
         }
 

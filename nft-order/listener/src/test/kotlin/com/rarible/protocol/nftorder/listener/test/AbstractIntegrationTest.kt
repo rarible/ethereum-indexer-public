@@ -68,10 +68,10 @@ abstract class AbstractIntegrationTest {
     fun <T> runWithKafka(block: suspend CoroutineScope.() -> T): T =
         runBlocking<T> {
             ownershipEvents = CopyOnWriteArrayList<KafkaMessage<NftOrderOwnershipEventDto>>()
-            ownershipJob = async { ownershipConsumer.receive().collect { ownershipEvents?.add(it) } }
+            ownershipJob = async { ownershipConsumer.receiveAutoAck().collect { ownershipEvents?.add(it) } }
 
             itemEvents = CopyOnWriteArrayList<KafkaMessage<NftOrderItemEventDto>>()
-            itemJob = async { itemConsumer.receive().collect { itemEvents?.add(it) } }
+            itemJob = async { itemConsumer.receiveAutoAck().collect { itemEvents?.add(it) } }
 
             val result = try {
                 block()

@@ -44,10 +44,17 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -159,17 +166,17 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         ownershipEventConsumer = createOwnershipEventConsumer()
         consumingJobs = listOf(
             GlobalScope.launch {
-                itemEventConsumer.receive().collect {
+                itemEventConsumer.receiveAutoAck().collect {
                     itemEvents += it.value
                 }
             },
             GlobalScope.launch {
-                createOwnershipEventConsumer().receive().collect {
+                createOwnershipEventConsumer().receiveAutoAck().collect {
                     ownershipEvents += it.value
                 }
             },
             GlobalScope.launch {
-                collectionEventConsumer.receive().collect {
+                collectionEventConsumer.receiveAutoAck().collect {
                     collectionEvents += it.value
                 }
             }

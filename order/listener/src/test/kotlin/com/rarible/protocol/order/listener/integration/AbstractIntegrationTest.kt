@@ -145,7 +145,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     fun startConsumers() {
         consumingJob = GlobalScope.launch {
             consumer
-                .receive()
+                .receiveAutoAck()
                 .collect { activities.add(it.value) }
         }
     }

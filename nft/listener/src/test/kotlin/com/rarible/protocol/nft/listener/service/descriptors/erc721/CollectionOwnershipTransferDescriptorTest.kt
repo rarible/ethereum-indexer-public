@@ -60,7 +60,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         )
         consumingJobs = listOf(
             GlobalScope.launch {
-                collectionEventConsumer.receive().collect {
+                collectionEventConsumer.receiveAutoAck().collect {
                     collectionEvents += it.value
                 }
             }

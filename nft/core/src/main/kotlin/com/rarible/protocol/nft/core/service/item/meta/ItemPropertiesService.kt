@@ -13,8 +13,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacy
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.time.DateUtils
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -62,7 +60,7 @@ class ItemPropertiesService(
         ).awaitFirstOrNull()?.properties
 
     suspend fun resetProperties(itemId: ItemId) {
-        logProperties(itemId, "resetting properties")
+        logMetaLoading(itemId, "resetting properties")
         cacheService?.reset(itemId.decimalStringValue, cacheDescriptor)
             ?.onErrorResume { Mono.empty() }
             ?.awaitFirstOrNull()
@@ -78,26 +76,26 @@ class ItemPropertiesService(
                     return itemProperties to resolver
                 }
             } catch (e: Exception) {
-                logProperties(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
+                logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
             }
         }
         return null
     }
 
     private suspend fun doResolve(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? {
-        logProperties(itemId, "started getting")
+        logMetaLoading(itemId, "started getting")
         val resolveResult = try {
             callResolvers(itemId)
         } catch (e: Exception) {
-            logProperties(itemId, "failed: ${e.message}", warn = true)
+            logMetaLoading(itemId, "failed: ${e.message}", warn = true)
             return fallbackToOpenSea(itemId)
         }
         if (resolveResult == null) {
-            logProperties(itemId, "not found")
+            logMetaLoading(itemId, "not found")
             return fallbackToOpenSea(itemId)
         }
         if (resolveResult.second.name == OpenSeaLegacyCachePropertiesResolver.NAME) {
-            logProperties(itemId, "returned from legacy OpenSea cache")
+            logMetaLoading(itemId, "returned from legacy OpenSea cache")
             return resolveResult
         }
         val itemProperties = resolveResult.first
@@ -107,7 +105,7 @@ class ItemPropertiesService(
             && itemProperties.imageBig != null
             && itemProperties.attributes.isNotEmpty()
         ) {
-            logProperties(itemId, "fetched item meta solely with Rarible algorithm")
+            logMetaLoading(itemId, "fetched item meta solely with Rarible algorithm")
             return resolveResult
         }
         val extendedProperties = extendWithOpenSea(itemId, itemProperties)
@@ -115,20 +113,20 @@ class ItemPropertiesService(
     }
 
     private suspend fun extendWithOpenSea(itemId: ItemId, itemProperties: ItemProperties): ItemProperties {
-        logProperties(itemId, "resolving additional properties using OpenSea")
+        logMetaLoading(itemId, "resolving additional properties using OpenSea")
         val openSeaResult = resolveOpenSeaProperties(itemId)?.first ?: return itemProperties
         return extendWithOpenSea(itemProperties, openSeaResult, itemId)
     }
 
     private suspend fun fallbackToOpenSea(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? {
-        logProperties(itemId, "falling back to OpenSea")
+        logMetaLoading(itemId, "falling back to OpenSea")
         return resolveOpenSeaProperties(itemId)
     }
 
     private suspend fun resolveOpenSeaProperties(itemId: ItemId): Pair<ItemProperties, ItemPropertiesResolver>? = try {
         itemPropertiesResolverProvider.openSeaResolver.resolve(itemId)?.let { it to itemPropertiesResolverProvider.openSeaResolver }
     } catch (e: Exception) {
-        logProperties(itemId, "unable to get properties from OpenSea: ${e.message}", warn = true)
+        logMetaLoading(itemId, "unable to get properties from OpenSea: ${e.message}", warn = true)
         null
     }
 
@@ -162,7 +160,7 @@ class ItemPropertiesService(
                     // Sometimes OpenSea returns invalid original image URL.
                     return rarible
                 }
-                logProperties(itemId, "extending $fieldName from OpenSea: rarible = [$rarible], openSea = [$openSea]")
+                logMetaLoading(itemId, "extending $fieldName from OpenSea: rarible = [$rarible], openSea = [$openSea]")
                 return openSea
             }
             return rarible
@@ -190,17 +188,6 @@ class ItemPropertiesService(
     }
 
     companion object {
-        private val logger: Logger = LoggerFactory.getLogger(ItemPropertiesService::class.java)
-
-        fun logProperties(itemId: ItemId, message: String, warn: Boolean = false) {
-            val logMessage = "Meta of ${itemId.decimalStringValue}: $message"
-            if (warn) {
-                logger.warn(logMessage)
-            } else {
-                logger.info(logMessage)
-            }
-        }
-
         const val ITEM_METADATA_COLLECTION = "item_metadata"
     }
 }

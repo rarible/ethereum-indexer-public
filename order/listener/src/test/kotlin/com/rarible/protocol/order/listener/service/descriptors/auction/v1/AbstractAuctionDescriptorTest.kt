@@ -91,7 +91,7 @@ abstract class AbstractAuctionDescriptorTest : AbstractIntegrationTest() {
     fun startAuctionConsumers() {
         auctionEventConsumingJob = GlobalScope.launch {
             auctionEventConsumer
-                .receive()
+                .receiveAutoAck()
                 .collect { auctionEvents.add(it.value) }
         }
     }

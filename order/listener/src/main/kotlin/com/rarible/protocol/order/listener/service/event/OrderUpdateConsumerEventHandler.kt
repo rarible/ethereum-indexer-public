@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.event
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -16,10 +17,9 @@ import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.ItemId
-import com.rarible.protocol.order.core.model.order.OrderFilter
+import com.rarible.protocol.order.core.model.OrderKind
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
-import com.rarible.protocol.order.core.model.OrderKind
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.service.OrderRepositoryService
 import com.rarible.protocol.order.listener.service.order.OrderPriceUpdateService
