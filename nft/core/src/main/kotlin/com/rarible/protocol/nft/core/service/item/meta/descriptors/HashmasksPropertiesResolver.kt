@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -35,7 +35,7 @@ class HashmasksPropertiesResolver(
         if (itemId.token != HASH_MASKS_ADDRESS) {
             return null
         }
-        ItemPropertiesService.logProperties(itemId, "resolving Hashmasks properties")
+        logMetaLoading(itemId, "resolving Hashmasks properties")
         val tokenName = hashmasks.tokenNameByIndex(itemId.tokenId.value)
             .call().awaitFirstOrNull() ?: return null
         val ipfsHash = hashmasksRegistry.getIPFSHashOfMaskId(itemId.tokenId.value)

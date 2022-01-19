@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.model.PendingLogItemProperties
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -30,13 +30,13 @@ class PendingLogItemPropertiesResolver(
         try {
             val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, uri)
             if (itemProperties == null) {
-                logProperties(itemId, "no properties resolved with Rarible resolver for the pending item")
+                logMetaLoading(itemId, "no properties resolved with Rarible resolver for the pending item")
                 return
             }
             val pendingLogItemProperties = PendingLogItemProperties(itemId.decimalStringValue, itemProperties)
             pendingLogItemPropertiesRepository.save(pendingLogItemProperties).awaitFirstOrNull()
         } catch (e: Exception) {
-            logProperties(itemId, "failed to save pending log item properties", warn = true)
+            logMetaLoading(itemId, "failed to save pending log item properties", warn = true)
         }
     }
 

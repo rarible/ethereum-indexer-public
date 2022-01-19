@@ -13,7 +13,7 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -44,16 +44,16 @@ class RariblePropertiesResolver(
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val tokenUri = getUri(itemId)
         if (tokenUri.isNullOrBlank()) {
-            logProperties(itemId, "empty token URI", warn = true)
+            logMetaLoading(itemId, "empty token URI", warn = true)
             return null
         }
-        logProperties(itemId, "got URI from token contract: $tokenUri")
+        logMetaLoading(itemId, "got URI from token contract: $tokenUri")
         return resolveByTokenUri(itemId, tokenUri)
     }
 
     suspend fun resolveByTokenUri(itemId: ItemId, tokenUri: String): ItemProperties? {
         if ("{id}" in tokenUri) {
-            logProperties(itemId, "got token URI with {id} placeholder: $tokenUri")
+            logMetaLoading(itemId, "got token URI with {id} placeholder: $tokenUri")
             val substitutions = listOf(
                 itemId.tokenId.toString().removePrefix("0x"),
                 itemId.tokenId.toString(),
@@ -63,7 +63,7 @@ class RariblePropertiesResolver(
                 val fixedTokenUri = tokenUri.replace("{id}", substitution)
                 val itemProperties = resolve(itemId, fixedTokenUri)
                 if (itemProperties != null) {
-                    logProperties(itemId, "substitution of {id} with $fixedTokenUri did work")
+                    logMetaLoading(itemId, "substitution of {id} with $fixedTokenUri did work")
                     return itemProperties
                 }
             }
@@ -85,7 +85,7 @@ class RariblePropertiesResolver(
         val collectionName = try {
             getCollectionName(itemId)
         } catch (e: Exception) {
-            logProperties(itemId, "unable to fetch collection name: ${e.message}", warn = true)
+            logMetaLoading(itemId, "unable to fetch collection name: ${e.message}", warn = true)
             return this
         }
         val tokenId = "#${itemId.tokenId.value}"
@@ -94,11 +94,11 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun parseFromBase64(itemId: ItemId, uri: String): ItemProperties? {
-        logProperties(itemId, "parsing properties as Base64")
+        logMetaLoading(itemId, "parsing properties as Base64")
         val decodedJson = try {
             String(base64MimeToBytes(uri))
         } catch (e: Exception) {
-            logProperties(itemId, "failed to decode Base64: ${e.message}", warn = true)
+            logMetaLoading(itemId, "failed to decode Base64: ${e.message}", warn = true)
             return null
         }
         return parseJsonProperties(itemId, decodedJson)
@@ -106,29 +106,29 @@ class RariblePropertiesResolver(
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         val httpUrl = ipfsService.resolveHttpUrl(uri)
-        logProperties(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
+        logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
         val clientSpec = try {
             externalHttpClient.get(httpUrl)
         } catch (e: Exception) {
-            logProperties(itemId, "failed to parse URI: $httpUrl: ${e.message}", warn = true)
+            logMetaLoading(itemId, "failed to parse URI: $httpUrl: ${e.message}", warn = true)
             return null
         }
         return clientSpec
             .bodyToMono<String>()
             .timeout(timeout)
             .onErrorResume {
-                logProperties(itemId, "failed to get properties by URI $httpUrl: ${it.message}", warn = true)
+                logMetaLoading(itemId, "failed to get properties by URI $httpUrl: ${it.message}", warn = true)
                 Mono.empty()
             }
             .flatMap {
-                logProperties(itemId, "parsing properties by URI: $httpUrl")
+                logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
                 if (it.length > 1_000_000) {
-                    logProperties(itemId, "suspiciously big item properties ${it.length} for $httpUrl", warn = true)
+                    logMetaLoading(itemId, "suspiciously big item properties ${it.length} for $httpUrl", warn = true)
                 }
                 mono { parseJsonProperties(itemId, it) }
             }
             .onErrorResume {
-                logProperties(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
+                logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
                 Mono.empty()
             }.awaitFirstOrNull()
     }
@@ -138,7 +138,7 @@ class RariblePropertiesResolver(
         val node = try {
             mapper.readTree(jsonBody) as ObjectNode
         } catch (e: Exception) {
-            logProperties(itemId, "failed to parse properties from json: ${e.message}", warn = true)
+            logMetaLoading(itemId, "failed to parse properties from json: ${e.message}", warn = true)
             return null
         }
         val imageUrl = node.getText("image", "image_url", "image_content", "image_data")?.let { parseImageUrl(it) }
@@ -178,7 +178,7 @@ class RariblePropertiesResolver(
     private suspend fun getUri(itemId: ItemId): String? {
         val token = tokenRepository.findById(itemId.token).awaitFirstOrNull()
         if (token == null) {
-            logProperties(itemId, "token is not found", warn = true)
+            logMetaLoading(itemId, "token is not found", warn = true)
             return null
         }
         return when (token.standard) {
@@ -196,7 +196,7 @@ class RariblePropertiesResolver(
             TokenStandard.ERC721 -> MintableToken(itemId.token, sender).name()
             else -> Mono.empty()
         }.onErrorResume {
-            logProperties(itemId, "failed to get name() from contract: ${it.message}", warn = true)
+            logMetaLoading(itemId, "failed to get name() from contract: ${it.message}", warn = true)
             Mono.empty()
         }.awaitFirstOrNull()
     }
@@ -206,7 +206,7 @@ class RariblePropertiesResolver(
             .uri(itemId.tokenId.value)
             .timeout(timeout)
             .onErrorResume {
-                logProperties(itemId, "failed to get 'uri' from contract: ${it.message}", warn = true)
+                logMetaLoading(itemId, "failed to get 'uri' from contract: ${it.message}", warn = true)
                 Mono.empty()
             }.awaitFirstOrNull()
     }
@@ -216,7 +216,7 @@ class RariblePropertiesResolver(
             .tokenURI(itemId.tokenId.value)
             .timeout(timeout)
             .onErrorResume {
-                logProperties(itemId, "failed get 'tokenURI' from contract: ${it.message}", warn = true)
+                logMetaLoading(itemId, "failed get 'tokenURI' from contract: ${it.message}", warn = true)
                 Mono.empty()
             }.awaitFirstOrNull()
     }

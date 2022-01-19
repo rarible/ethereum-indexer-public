@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -48,7 +48,7 @@ class HegicPropertiesResolver(
         }
         return hegic.getUnderlyingOptionParams(itemId.tokenId.value).call()
             .onErrorResume {
-                ItemPropertiesService.logProperties(itemId, "hegic failed on 'getUnderlyingOptionParams': ${it.message}", warn = true)
+                logMetaLoading(itemId, "hegic failed on 'getUnderlyingOptionParams': ${it.message}", warn = true)
                 Mono.empty()
             }
             .flatMap { tuple ->
@@ -63,7 +63,7 @@ class HegicPropertiesResolver(
                 val expirationDateUTCText = formatterUTC.format(expirationDate)
                 hegic.getOptionCostETH(period, amount, strike, optionType).call()
                     .onErrorResume {
-                        ItemPropertiesService.logProperties(itemId, "hegic failed on 'getOptionCostETH': ${it.message}", warn = true)
+                        logMetaLoading(itemId, "hegic failed on 'getOptionCostETH': ${it.message}", warn = true)
                         Mono.empty()
                     }
                     .map {

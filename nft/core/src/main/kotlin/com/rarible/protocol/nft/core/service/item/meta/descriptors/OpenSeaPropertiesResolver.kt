@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService.Companion.logProperties
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -28,7 +28,7 @@ class OpenSeaPropertiesResolver(
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         if (externalHttpClient.openseaUrl.isBlank()) return null
         val openSeaUrl = "${externalHttpClient.openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
-        logProperties(itemId, "OpenSea: getting properties from $openSeaUrl")
+        logMetaLoading(itemId, "OpenSea: getting properties from $openSeaUrl")
         return externalHttpClient
             .get(openSeaUrl)
             .bodyToMono<ObjectNode>()
@@ -50,7 +50,7 @@ class OpenSeaPropertiesResolver(
             }
             .timeout(Duration.ofMillis(requestTimeout))
             .onErrorResume {
-                logProperties(
+                logMetaLoading(
                     itemId,
                     "OpenSea: failed to get properties" + if (it is WebClientResponseException) {
                         " ${it.rawStatusCode}: ${it.statusText}"

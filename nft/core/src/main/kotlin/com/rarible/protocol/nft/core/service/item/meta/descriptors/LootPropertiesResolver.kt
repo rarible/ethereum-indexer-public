@@ -9,7 +9,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -35,7 +35,7 @@ class LootPropertiesResolver(
         if (itemId.token != LOOT_ADDRESS) {
             return null
         }
-        ItemPropertiesService.logProperties(itemId, "getting Loot properties")
+        logMetaLoading(itemId, "getting Loot properties")
         val tokenId = itemId.tokenId.value
         return coroutineScope {
             val ll = listOf(
