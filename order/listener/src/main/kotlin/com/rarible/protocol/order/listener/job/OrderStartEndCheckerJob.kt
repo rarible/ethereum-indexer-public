@@ -51,6 +51,7 @@ class OrderStartEndCheckerJob(
                 alive++
             }
             val saved = orderRepository.save(order.withUpdatedStatus())
+            logger.info("Change order ${saved.hash} status to ${saved.status}")
             val updateEvent = OrderUpdateEventDto(
                 eventId = UUID.randomUUID().toString(),
                 orderId = saved.hash.toString(),
