@@ -5,13 +5,11 @@ import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderEventDto
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
-import com.rarible.protocol.order.api.data.createErc20BalanceDto
-import com.rarible.protocol.order.api.data.createNftItemDto
-import com.rarible.protocol.order.api.data.createNftOwnershipDto
+import com.rarible.protocol.order.core.data.createNftItemDto
+import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.mono.WebClientTransport
@@ -21,7 +19,6 @@ import io.mockk.mockk
 import org.apache.commons.lang3.RandomUtils
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
 import org.springframework.web.client.RestTemplate

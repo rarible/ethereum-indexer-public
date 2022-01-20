@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.data
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
@@ -127,8 +128,8 @@ fun createErc1155ListOrderVersion(): OrderVersion {
 
 fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
     hash = Word.apply(RandomUtils.nextBytes(32)),
-    maker = createAddress(),
-    taker = createAddress(),
+    maker = randomAddress(),
+    taker = randomAddress(),
     makePriceUsd = (1..100).random().toBigDecimal(),
     takePriceUsd = (1..100).random().toBigDecimal(),
     makePrice = (1..100).random().toBigDecimal(),

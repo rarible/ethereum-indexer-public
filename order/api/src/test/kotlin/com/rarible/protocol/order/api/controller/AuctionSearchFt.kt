@@ -1,20 +1,31 @@
 package com.rarible.protocol.order.api.controller
 
-import com.nhaarman.mockitokotlin2.same
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
-import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
-import com.rarible.protocol.dto.*
-import com.rarible.protocol.order.api.data.*
+import com.rarible.protocol.dto.AuctionBidDto
+import com.rarible.protocol.dto.AuctionDto
+import com.rarible.protocol.dto.AuctionIdsDto
+import com.rarible.protocol.dto.AuctionSortDto
+import com.rarible.protocol.dto.AuctionStatusDto
+import com.rarible.protocol.dto.AuctionsPaginationDto
+import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 import com.rarible.protocol.order.api.integration.IntegrationTest
-import com.rarible.protocol.order.core.model.*
-import io.daonomic.rpc.domain.Word
+import com.rarible.protocol.order.core.data.createAuctionLogEvent
+import com.rarible.protocol.order.core.data.randomAuction
+import com.rarible.protocol.order.core.data.randomAuctionV1DataV1
+import com.rarible.protocol.order.core.data.randomBid
+import com.rarible.protocol.order.core.data.randomBidPlaced
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.Part
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -26,6 +37,7 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Duration
 import java.util.stream.Stream
+import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClient
 
 
 @IntegrationTest

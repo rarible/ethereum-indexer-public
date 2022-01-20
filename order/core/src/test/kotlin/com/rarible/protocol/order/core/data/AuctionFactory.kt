@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.api.data
+package com.rarible.protocol.order.core.data
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
@@ -7,7 +7,18 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionStatus
+import com.rarible.protocol.order.core.model.AuctionType
+import com.rarible.protocol.order.core.model.BidDataV1
+import com.rarible.protocol.order.core.model.BidPlaced
+import com.rarible.protocol.order.core.model.BidV1
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.RaribleAuctionV1DataV1
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import java.math.BigDecimal
@@ -22,9 +33,11 @@ fun randomAuction(): Auction {
         sell = Asset(EthAssetType, EthUInt256.of(randomBigInt())),
         buy = EthAssetType,
         lastBid = null,
+        startTime = Instant.EPOCH,
         endTime = Instant.EPOCH,
         minimalStep = EthUInt256.ZERO,
         minimalPrice = EthUInt256.ZERO,
+        ongoing = false,
         finished = false,
         cancelled = false,
         deleted = false,
@@ -54,7 +67,7 @@ fun randomAuctionV1DataV1(): RaribleAuctionV1DataV1 {
         originFees = emptyList(),
         payouts = emptyList(),
         duration = EthUInt256.ZERO,
-        startTime = EthUInt256.ZERO,
+        startTime = Instant.EPOCH,
         buyOutPrice = EthUInt256.ZERO
     )
 }
@@ -76,7 +89,7 @@ fun randomBidPlaced(): BidPlaced {
 
 fun createAuctionLogEvent(data: AuctionHistory) = LogEvent(
     data = data,
-    address = createAddress(),
+    address = randomAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
     transactionHash = Word.apply(RandomUtils.nextBytes(32)),
     index = RandomUtils.nextInt(),

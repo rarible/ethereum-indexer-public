@@ -6,9 +6,9 @@ import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.Tuple2
-import scala.Tuple6
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
@@ -22,11 +22,13 @@ data class Auction(
     override val sell: Asset,
     override val buy: AssetType,
     override val lastBid: Bid?,
+    val startTime: Instant?,
     override val endTime: Instant?,
     override val minimalStep: EthUInt256,
     override val minimalPrice: EthUInt256,
     override val data: AuctionData,
     override val protocolFee: EthUInt256,
+    val ongoing: Boolean,
     val finished: Boolean,
     val cancelled: Boolean,
     val deleted: Boolean,
@@ -38,7 +40,10 @@ data class Auction(
     val pending: List<AuctionHistory>,
     val buyPrice: BigDecimal?,
     val buyPriceUsd: BigDecimal?,
-    val platform: Platform
+    val platform: Platform,
+
+    @Version
+    val version: Long? = null
 ) : BaseAuction {
 
     @Transient
@@ -52,8 +57,8 @@ data class Auction(
 
     fun withCalculatedState(): Auction {
         return when {
-            cancelled -> copy(status = AuctionStatus.CANCELLED)
-            finished -> copy(status = AuctionStatus.FINISHED)
+            cancelled -> copy(status = AuctionStatus.CANCELLED, ongoing = false)
+            finished -> copy(status = AuctionStatus.FINISHED, ongoing = false)
             else -> copy(status = AuctionStatus.ACTIVE)
         }
     }

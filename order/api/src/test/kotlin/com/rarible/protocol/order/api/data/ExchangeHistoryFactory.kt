@@ -1,10 +1,19 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.CryptoPunksAssetType
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
@@ -181,7 +190,7 @@ fun orderErc721BidCancel(): OrderCancel {
 
 fun createLogEvent(data: OrderExchangeHistory) = LogEvent(
     data = data,
-    address = createAddress(),
+    address = randomAddress(),
     topic = Word.apply(RandomUtils.nextBytes(32)),
     transactionHash = Word.apply(RandomUtils.nextBytes(32)),
     index = RandomUtils.nextInt(),
@@ -196,8 +205,8 @@ fun orderSideMatch(make: Asset, take: Asset): OrderSideMatch = OrderSideMatch(
     fill = EthUInt256.ONE,
     make = make,
     take = take,
-    maker = createAddress(),
-    taker = createAddress(),
+    maker = randomAddress(),
+    taker = randomAddress(),
     makeUsd = null,
     takeUsd = null,
     makePriceUsd = null,
@@ -209,7 +218,7 @@ fun orderSideMatch(make: Asset, take: Asset): OrderSideMatch = OrderSideMatch(
 
 fun orderCancel(make: Asset, take: Asset): OrderCancel = OrderCancel(
     hash = Word.apply(RandomUtils.nextBytes(32)),
-    maker = createAddress(),
+    maker = randomAddress(),
     make = make,
     take = take,
     date = nowMillis(),

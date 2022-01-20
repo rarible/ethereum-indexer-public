@@ -24,6 +24,14 @@
                 <artifactId>protocol-order-indexer-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-order-indexer-core</artifactId>
+                <classifier>tests</classifier>
+                <type>test-jar</type>
+                <scope>test</scope>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- =============== Other dependencies ================ -->
             <dependency>

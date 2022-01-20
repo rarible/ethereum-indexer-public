@@ -55,6 +55,8 @@ common:
 listener:
   updateStatusByStartEndRate: PT1H # 1 hour period
   updateStatusByStartEndEnabled: false
+  updateAuctionOngoingState: PT1M
+  updateAuctionOngoingStateEnabled: false
   openSeaEndpoint: "https://api.opensea.io"
 
 ethereumMaxFrameSize: 209715200
