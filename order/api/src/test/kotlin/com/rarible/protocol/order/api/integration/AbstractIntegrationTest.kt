@@ -26,6 +26,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionOffchainHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -107,6 +108,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
 
     @Autowired
     protected lateinit var auctionHistoryRepository: AuctionHistoryRepository
+
+    @Autowired
+    protected lateinit var offchainHistoryRepository: AuctionOffchainHistoryRepository
 
     @Autowired
     protected lateinit var orderIndexerProvider: OrderIndexerProperties

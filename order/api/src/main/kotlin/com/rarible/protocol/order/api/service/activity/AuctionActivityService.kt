@@ -3,9 +3,12 @@ package com.rarible.protocol.order.api.service.activity
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.model.ActivityResult
+import com.rarible.protocol.order.core.model.AuctionActivityResult
 import com.rarible.protocol.order.core.model.AuctionActivitySort
 import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
+import com.rarible.protocol.order.core.repository.auction.ActivityAuctionOffchainFilter
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
+import com.rarible.protocol.order.core.repository.auction.AuctionOffchainHistoryRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -13,21 +16,28 @@ import reactor.core.publisher.Flux
 @Component
 @CaptureSpan(type = SpanType.APP)
 class AuctionActivityService(
-    private val auctionHistoryRepository: AuctionHistoryRepository
+    private val auctionHistoryRepository: AuctionHistoryRepository,
+    private val offchainHistoryRepository: AuctionOffchainHistoryRepository
 ) {
     suspend fun search(
         historyFilters: List<ActivityAuctionHistoryFilter>,
+        offchainFilters: List<ActivityAuctionOffchainFilter>,
         sort: AuctionActivitySort,
         size: Int
-    ): List<ActivityResult> {
+    ): List<AuctionActivityResult> {
         val histories = historyFilters.map { filter ->
              auctionHistoryRepository
                 .searchActivity(filter, size)
-                .map { ActivityResult.History(it) }
+                .map { AuctionActivityResult.History(it) }
         }
-        return Flux.mergeOrdered<ActivityResult>(
+        val offchains = offchainFilters.map { filter ->
+            offchainHistoryRepository
+                .search(filter, size)
+                .map { AuctionActivityResult.OffchainHistory(it) }
+        }
+        return Flux.mergeOrdered(
             comparator(sort),
-            *(histories).toTypedArray()
+            *(histories + offchains).toTypedArray()
         ).take(size.toLong()).collectList().awaitFirst()
     }
 

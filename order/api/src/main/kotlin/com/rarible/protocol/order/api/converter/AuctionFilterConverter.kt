@@ -30,6 +30,7 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterAllDto.Types.BID -> listOf(ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.BID_PLACED, continuation, sort))
                     AuctionActivityFilterAllDto.Types.CANCEL -> listOf(ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort))
                     AuctionActivityFilterAllDto.Types.FINISHED -> listOf(ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_FINISHED, continuation, sort))
+                    else -> emptyList()
                 }
             }
             is AuctionActivityFilterByUserDto -> source.types.flatMap {
@@ -38,6 +39,7 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.user, continuation, sort))
                     AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.user, continuation, sort))
                     AuctionActivityFilterByUserDto.Types.FINISHED -> listOf(AuctionByUser.Finished(source.user, continuation, sort))
+                    else -> emptyList()
                 }
             }
             is AuctionActivityFilterByItemDto -> source.types.flatMap {
@@ -46,6 +48,7 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterByItemDto.Types.BID -> listOf(AuctionByItem.Bid(source.contract, EthUInt256.of(source.tokenId), continuation, sort))
                     AuctionActivityFilterByItemDto.Types.CANCEL -> listOf(AuctionByItem.Cancel(source.contract, EthUInt256.of(source.tokenId), continuation, sort))
                     AuctionActivityFilterByItemDto.Types.FINISHED -> listOf(AuctionByItem.Finished(source.contract, EthUInt256.of(source.tokenId), continuation, sort))
+                    else -> emptyList()
                 }
             }
             is AuctionActivityFilterByCollectionDto -> source.types.flatMap {
@@ -54,6 +57,7 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterByCollectionDto.Types.BID -> listOf(AuctionByCollection.Bid(source.contract, continuation, sort))
                     AuctionActivityFilterByCollectionDto.Types.CANCEL -> listOf(AuctionByCollection.Cancel(source.contract, continuation, sort))
                     AuctionActivityFilterByCollectionDto.Types.FINISHED -> listOf(AuctionByCollection.Finished(source.contract, continuation, sort))
+                    else -> emptyList()
                 }
             }
         }

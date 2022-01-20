@@ -100,9 +100,13 @@ class AuctionActivityConverter(
         }
     }
 
-    suspend fun convert(history: AuctionOffchainHistory, auction: Auction): AuctionActivityDto {
-
-        val auctionDto = auctionDtoConverter.convert(auction)
+    suspend fun convert(history: AuctionOffchainHistory, auction: Auction? = null): AuctionActivityDto? {
+        val existingAuction = auction ?: auctionRepository.findById(history.hash)
+        if (existingAuction == null) {
+            logger.warn("Auction with hash {} not found for AuctionOffchainHistory {}", history.hash, history)
+            return null
+        }
+        val auctionDto = auctionDtoConverter.convert(existingAuction)
         val source = convert(history.source)
 
         return when (history.type) {

@@ -7,7 +7,10 @@ import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -19,6 +22,18 @@ class AuctionOffchainHistoryRepository(
 
     suspend fun save(logEvent: AuctionOffchainHistory): AuctionOffchainHistory {
         return template.save(logEvent, COLLECTION).awaitFirst()
+    }
+
+    fun search(filter: ActivityAuctionOffchainFilter, size: Int): Flux<AuctionOffchainHistory> {
+        val hint = filter.hint
+        val criteria = filter.getCriteria()
+
+        val query = Query(criteria).limit(size)
+
+        if (hint != null) {
+            query.withHint(hint)
+        }
+        return template.find(query, COLLECTION)
     }
 
     companion object {

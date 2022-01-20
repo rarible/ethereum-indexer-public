@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.model.AuctionCancelled
 import com.rarible.protocol.order.core.model.AuctionFinished
 import com.rarible.protocol.order.core.model.AuctionHistory
+import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.core.model.AuctionType
 import com.rarible.protocol.order.core.model.BidDataV1
@@ -180,7 +181,6 @@ fun createAuctionLogEvent(data: AuctionHistory) = LogEvent(
     status = LogEventStatus.CONFIRMED
 )
 
-
 fun randomLogList(auctions: List<Auction>): List<LogEvent> {
     return auctions.flatMap { auction ->
         listOf(
@@ -191,3 +191,13 @@ fun randomLogList(auctions: List<Auction>): List<LogEvent> {
         )
     }
 }
+
+fun createOffchainHistoryEvent(auction: Auction, type: AuctionOffchainHistory.Type) = AuctionOffchainHistory(
+    hash = auction.hash,
+    date = auction.startTime ?: auction.createdAt,
+    contract = auction.contract,
+    seller = auction.seller,
+    sell = auction.sell,
+    source = HistorySource.RARIBLE,
+    type = type
+)
