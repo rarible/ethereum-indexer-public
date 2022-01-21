@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.OrderActivityResult
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -23,18 +24,18 @@ class OrderActivityService(
         versionFilters: List<ActivityOrderVersionFilter>,
         sort: ActivitySort,
         size: Int
-    ): List<ActivityResult> {
+    ): List<OrderActivityResult> {
         val histories = historyFilters.map { filter ->
             exchangeHistoryRepository
                 .searchActivity(filter)
-                .map { ActivityResult.History(it) }
+                .map { OrderActivityResult.History(it) }
         }
         val versions = versionFilters.map { filter ->
             orderVersionRepository
                 .search(filter)
-                .map { ActivityResult.Version(it) }
+                .map { OrderActivityResult.Version(it) }
         }
-        return Flux.mergeOrdered<ActivityResult>(
+        return Flux.mergeOrdered(
             ActivityResult.comparator(sort),
             *(histories + versions).toTypedArray()
         ).take(size.toLong()).collectList().awaitFirst()

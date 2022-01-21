@@ -40,7 +40,7 @@ class OnExchangeLogEventListener(
             || source.data is OnChainOrder
             || source.data is OrderCancel
         ) {
-            ActivityResult.History(source)
+            OrderActivityResult.History(source)
         } else {
             null
         }

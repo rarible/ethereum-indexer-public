@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainOrder
+import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -32,10 +33,10 @@ class OrderActivityConverter(
     private val assetDtoConverter: AssetDtoConverter
 ) {
 
-    suspend fun convert(ar: ActivityResult): OrderActivityDto? {
+    suspend fun convert(ar: OrderActivityResult): OrderActivityDto? {
         return when (ar) {
-            is ActivityResult.History -> convertHistory(ar.value)
-            is ActivityResult.Version -> convertVersion(ar.value)
+            is OrderActivityResult.History -> convertHistory(ar.value)
+            is OrderActivityResult.Version -> convertVersion(ar.value)
         }
     }
 

@@ -94,7 +94,7 @@ internal class OrderActivityConverterTest {
         type: OrderActivityMatchDto.Type,
         leftType: Type, rightType: Type
     ) = runBlocking {
-        val ac = ActivityResult.History(logEvent)
+        val ac = OrderActivityResult.History(logEvent)
         val orderDto = orderActivityConverter.convert(ac) as OrderActivityMatchDto
         assertEquals(type, orderDto.type)
         assertEquals(leftType, orderDto.left.type)

@@ -37,6 +37,7 @@ class AuctionBidDescriptor(
                 buyer = buyer,
                 bid = bid,
                 bidValue = bidValue,
+                sell = auction?.sell,
                 endTime = endTime,
                 date = date,
                 contract = contract,

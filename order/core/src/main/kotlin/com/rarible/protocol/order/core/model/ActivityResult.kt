@@ -8,16 +8,6 @@ sealed class ActivityResult {
     abstract fun getId(): ObjectId
     abstract fun getDate(): Instant
 
-    data class History(val value: LogEvent): ActivityResult() {
-        override fun getId(): ObjectId = this.value.id
-        override fun getDate(): Instant = (this.value.data as OrderExchangeHistory).date
-    }
-
-    data class Version(val value: OrderVersion): ActivityResult() {
-        override fun getId(): ObjectId = this.value.id
-        override fun getDate(): Instant = value.createdAt
-    }
-
     companion object {
         private val COMPARATOR = compareByDescending(ActivityResult::getDate)
             .then(compareByDescending(ActivityResult::getId))
@@ -27,5 +17,39 @@ sealed class ActivityResult {
                 ActivitySort.LATEST_FIRST -> COMPARATOR
                 ActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
             }
+    }
+}
+
+sealed class OrderActivityResult: ActivityResult() {
+
+    data class History(val value: LogEvent): OrderActivityResult() {
+        override fun getId(): ObjectId = this.value.id
+        override fun getDate(): Instant = when (this.value.data) {
+            is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
+            is AuctionHistory -> (this.value.data as AuctionHistory).date
+            else -> throw IllegalArgumentException("Unknown history type for activityResult")
+        }
+    }
+
+    data class Version(val value: OrderVersion): OrderActivityResult() {
+        override fun getId(): ObjectId = this.value.id
+        override fun getDate(): Instant = value.createdAt
+    }
+}
+
+sealed class AuctionActivityResult: ActivityResult() {
+
+    data class History(val value: LogEvent): AuctionActivityResult() {
+        override fun getId(): ObjectId = this.value.id
+        override fun getDate(): Instant = when (this.value.data) {
+            is OrderExchangeHistory -> (this.value.data as OrderExchangeHistory).date
+            is AuctionHistory -> (this.value.data as AuctionHistory).date
+            else -> throw IllegalArgumentException("Unknown history type for activityResult")
+        }
+    }
+
+    data class OffchainHistory(val value: AuctionOffchainHistory): AuctionActivityResult() {
+        override fun getId(): ObjectId = ObjectId(this.value.id)
+        override fun getDate(): Instant = value.date
     }
 }

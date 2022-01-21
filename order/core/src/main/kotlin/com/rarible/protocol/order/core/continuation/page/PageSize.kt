@@ -13,6 +13,7 @@ data class PageSize(
         val ORDER_AGGREGATION = PageSize(50, 1000)
         val AUCTION = PageSize(50, 1000)
         val AUCTION_BIDS = PageSize(50, 1000)
+        val AUCTION_ACTIVITY = PageSize(50, 1000)
     }
 
     fun limit(size: Int?): Int {
