@@ -7,7 +7,6 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.repository.exchange.AuctionHistoryRepositoryIndexes.ALL_INDEXES
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -18,6 +17,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -73,9 +73,33 @@ class AuctionHistoryRepository(
     }
 
     suspend fun createIndexes() {
-        ALL_INDEXES.forEach { index ->
+        AuctionHistoryIndexes.ALL_INDEXES.forEach { index ->
             template.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
         }
+    }
+
+    private object AuctionHistoryIndexes {
+        val BY_TYPE_TOKEN_ID_DEFINITION: Index = Index()
+            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${LogEvent::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::token::name}", Sort.Direction.ASC)
+            .on("${LogEvent::data.name}.${Auction::sell.name}.${Asset::type.name}.${NftAssetType::tokenId::name}", Sort.Direction.ASC)
+            .background()
+
+        val BY_TYPE_SELLER_DEFINITION: Index = Index()
+            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${LogEvent::data.name}.${OnChainAuction::seller.name}", Sort.Direction.ASC)
+            .background()
+
+        val BY_TYPE_BUYER_DEFINITION: Index = Index()
+            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on("${LogEvent::data.name}.${OnChainAuction::buyer.name}", Sort.Direction.ASC)
+            .background()
+
+        val ALL_INDEXES = listOf(
+            BY_TYPE_TOKEN_ID_DEFINITION,
+            BY_TYPE_SELLER_DEFINITION,
+            BY_TYPE_BUYER_DEFINITION
+        )
     }
 
     companion object {

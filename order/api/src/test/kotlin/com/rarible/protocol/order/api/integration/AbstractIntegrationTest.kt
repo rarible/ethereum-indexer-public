@@ -227,6 +227,8 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
         exchangeHistoryRepository.createIndexes()
         exchangeHistoryRepository.dropIndexes()
         auctionRepository.createIndexes()
+        auctionHistoryRepository.createIndexes()
+        offchainHistoryRepository.createIndexes()
     }
 
     @PostConstruct
