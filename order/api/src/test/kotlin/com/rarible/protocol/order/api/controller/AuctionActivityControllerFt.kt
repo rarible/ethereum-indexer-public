@@ -541,7 +541,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
-                    emptyList<AuctionOffchainHistory>(),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.STARTED)),
                     ActivitySortDto.LATEST_FIRST
                 )
@@ -550,9 +550,27 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
-                    emptyList<AuctionOffchainHistory>(),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
                     AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED)),
                     ActivitySortDto.LATEST_FIRST
+                )
+            }, run {  // all filter with all statuses
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED, AuctionActivityFilterAllDto.Types.STARTED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run {  // all filter with all statuses reversed
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)).asReversed(),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED, AuctionActivityFilterAllDto.Types.STARTED)),
+                    ActivitySortDto.EARLIEST_FIRST
                 )
             }, run { // user
                 val auction = randomAuction()
@@ -563,7 +581,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     AuctionActivityFilterByUserDto(auction.seller, listOf(AuctionActivityFilterByUserDto.Types.STARTED)),
                     ActivitySortDto.LATEST_FIRST
                 )
-            }, run { // user
+            }, run {
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
@@ -571,6 +589,96 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     emptyList<AuctionOffchainHistory>(),
                     AuctionActivityFilterByUserDto(auction.seller, listOf(AuctionActivityFilterByUserDto.Types.ENDED)),
                     ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // user filter with all statuses
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction) + randomAuctions,
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    randomAuctions.map { createOffchainHistoryEvent(it, AuctionOffchainHistory.Type.STARTED) },
+                    AuctionActivityFilterByUserDto(auction.seller, listOf(AuctionActivityFilterByUserDto.Types.STARTED, AuctionActivityFilterByUserDto.Types.ENDED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // user filter with all statuses reversed
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction) + randomAuctions,
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)).asReversed(),
+                    randomAuctions.map { createOffchainHistoryEvent(it, AuctionOffchainHistory.Type.ENDED) },
+                    AuctionActivityFilterByUserDto(auction.seller, listOf(AuctionActivityFilterByUserDto.Types.STARTED, AuctionActivityFilterByUserDto.Types.ENDED)),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            }, run { // item
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run {
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.ENDED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // user filter with all statuses
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // user filter with all statuses reversed
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)).asReversed(),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)),
+                    ActivitySortDto.EARLIEST_FIRST
+                )
+            }, run { // collection
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run {
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // collection filter with all statuses
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED, AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    ActivitySortDto.LATEST_FIRST
+                )
+            }, run { // collection filter with all statuses reversed
+                val auction = randomAuction()
+                Arguments.of(
+                    listOf(auction),
+                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)).asReversed(),
+                    emptyList<AuctionOffchainHistory>(),
+                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED, AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    ActivitySortDto.EARLIEST_FIRST
                 )
             }
         )
@@ -586,7 +694,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         sort: ActivitySortDto
     ) = runBlocking<Unit> {
         saveAuction(*auctions.shuffled().toTypedArray())
-        saveHistory(*logs.shuffled().toTypedArray())
+        saveHistory(*(logs + otherLogs).shuffled().toTypedArray())
         val allActivities = auctionActivityClient.getAuctionActivities(filter, null, null, sort).awaitSingle()
 
         assertThat(allActivities.items).hasSize(logs.size)
@@ -606,7 +714,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         sort: ActivitySortDto
     ) = runBlocking<Unit> {
         saveAuction(*auctions.shuffled().toTypedArray())
-        saveOffchainHistory(*logs.shuffled().toTypedArray())
+        saveOffchainHistory(*(logs + otherLogs).shuffled().toTypedArray())
         val allActivities = auctionActivityClient.getAuctionActivities(filter, null, null, sort).awaitSingle()
 
         assertThat(allActivities.items).hasSize(logs.size)
@@ -626,7 +734,7 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         sort: ActivitySortDto
     ) = runBlocking {
         saveAuction(*auctions.shuffled().toTypedArray())
-        saveHistory(*logs.shuffled().toTypedArray())
+        saveHistory(*(logs + otherLogs).shuffled().toTypedArray())
 
         val allActivities = mutableListOf<AuctionActivityDto>()
 
@@ -646,7 +754,34 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         }
     }
 
-    // TODO: add paginating
+    @ParameterizedTest
+    @MethodSource("activityOffchainFilterData")
+    fun `should find offchain auction activity by pagination`(
+        auctions: List<Auction>,
+        logs: List<AuctionOffchainHistory>,
+        otherLogs: List<AuctionOffchainHistory>,
+        filter: AuctionActivityFilterDto,
+        sort: ActivitySortDto
+    ) = runBlocking<Unit> {
+        saveAuction(*auctions.shuffled().toTypedArray())
+        saveOffchainHistory(*(logs + otherLogs).shuffled().toTypedArray())
+        val allActivities = mutableListOf<AuctionActivityDto>()
+
+        var continuation: String? = null
+        do {
+            val activities = auctionActivityClient.getAuctionActivities(filter, continuation, 1, sort).awaitSingle()
+            assertThat(activities.items).hasSizeLessThanOrEqualTo(1)
+
+            allActivities.addAll(activities.items)
+            continuation = activities.continuation
+        } while (continuation != null)
+
+        assertThat(allActivities).hasSize(logs.size)
+
+        allActivities.forEachIndexed { index, orderActivityDto ->
+            checkAuctionActivityDto(orderActivityDto, logs[index])
+        }
+    }
 
     private fun checkAuctionActivityDto(auctionActivityDto: AuctionActivityDto, history: LogEvent) {
         assertThat(auctionActivityDto.id).isEqualTo(history.id.toString())

@@ -33,7 +33,7 @@ class AuctionOffchainHistoryRepository(
         if (hint != null) {
             query.withHint(hint)
         }
-        return template.find(query, COLLECTION)
+        return template.find(query.with(filter.sort), COLLECTION)
     }
 
     companion object {
