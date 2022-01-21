@@ -81,7 +81,7 @@ internal class OrderReconciliationServiceTest {
 
     private fun mockGetOrdersAll(continuation: String?, size: Int, result: OrdersPaginationDto): Unit {
         every {
-            orderControllerApi.getOrdersAll(null, PlatformDto.ALL, continuation, size)
+            orderControllerApi.getOrdersAll(null, null, continuation, size)
         } returns Mono.just(result)
     }
 

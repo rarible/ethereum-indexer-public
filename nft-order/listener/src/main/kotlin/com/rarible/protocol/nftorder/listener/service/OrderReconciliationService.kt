@@ -21,7 +21,7 @@ class OrderReconciliationService(
         logger.info("Fetching Orders from [{}]", lastUpdateContinuation)
         val page = orderControllerApi.getOrdersAll(
             null,
-            PlatformDto.ALL,
+            null,
             lastUpdateContinuation,
             orderReconciliationConfig.batchSize
         ).awaitFirst()

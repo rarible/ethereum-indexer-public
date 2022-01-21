@@ -19,8 +19,21 @@ class PlatformFeaturedFilterTest {
         val raribleOnly = filter.filter(null)
         assertThat(raribleOnly).isEqualTo(listOf(PlatformDto.RARIBLE))
 
-        val allExceptOpenSea = filter.filter(PlatformDto.ALL)
-        assertThat(allExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS))
+        val onlyOpenSea = filter.filter(PlatformDto.OPEN_SEA)
+        assertThat(onlyOpenSea).isEqualTo(listOf(PlatformDto.OPEN_SEA))
+    }
+
+    @Test
+    fun `show only rarible, opensea enabled`() {
+        val filter = PlatformFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                showAllOrdersByDefault = false,
+                showOpenSeaOrdersWithOtherPlatforms = true
+            )
+        )
+
+        val raribleOnly = filter.filter(null)
+        assertThat(raribleOnly).isEqualTo(listOf(PlatformDto.RARIBLE))
 
         val onlyOpenSea = filter.filter(PlatformDto.OPEN_SEA)
         assertThat(onlyOpenSea).isEqualTo(listOf(PlatformDto.OPEN_SEA))
@@ -43,12 +56,12 @@ class PlatformFeaturedFilterTest {
     fun `show all, opensea enabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
-                showAllOrdersByDefault = false,
+                showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = true
             )
         )
 
-        val allWithOpenSea = filter.filter(PlatformDto.ALL)
+        val allWithOpenSea = filter.filter(null)
         assertThat(allWithOpenSea).isEqualTo(
             listOf(
                 PlatformDto.RARIBLE,

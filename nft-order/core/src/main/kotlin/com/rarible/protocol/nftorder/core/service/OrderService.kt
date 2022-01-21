@@ -114,7 +114,7 @@ class OrderService(
     private suspend fun withPreferredRariblePlatform(
         clientCall: suspend (platform: PlatformDto) -> Mono<OrdersPaginationDto>
     ): OrderDto? {
-        val bestOfAll = fetchApi(clientCall(PlatformDto.ALL))
+        val bestOfAll = fetchApi(clientCall(null))
         logger.debug("Found best order from ALL platforms: [{}]", bestOfAll)
         if (bestOfAll == null || RaribleOrderChecker.isRaribleOrder(bestOfAll)) {
             return bestOfAll
