@@ -42,6 +42,22 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should reduce simple mint event with pending and revert it`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val item = initial()
+        val mint = createRandomMintItemEvent()
+            .withNewValues(EthereumLogStatus.PENDING, blockNumber = null, minorLogIndex = 0)
+            .copy(supply = EthUInt256.TEN, owner = minter)
+
+        val reducedItem1 = reduce(item, mint)
+        assertThat(reducedItem1.revertableEvents).hasSize(1)
+
+        val inactiveMint = mint.withNewValues(EthereumLogStatus.INACTIVE)
+        val reducedItem2 = reduce(reducedItem1, inactiveMint)
+        assertThat(reducedItem2.revertableEvents).hasSize(0)
+    }
+
+    @Test
     fun `should reduce revert simple mint event`() = runBlocking<Unit> {
         val minter = randomAddress()
         val item = initial()
