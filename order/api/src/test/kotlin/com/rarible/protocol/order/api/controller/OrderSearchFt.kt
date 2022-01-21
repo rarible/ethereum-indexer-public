@@ -281,7 +281,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should find bid-orders by currency and sort desc`() = runBlocking<Unit> {
+    fun `should find bid-orders by currency and maker and sorted desc`() = runBlocking<Unit> {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val order1V = createErc721BidOrderVersion().copy(
@@ -290,7 +290,6 @@ class OrderSearchFt : AbstractIntegrationTest() {
             takePrice = BigDecimal.valueOf(1L)
         )
         val order2V = createErc721BidOrderVersion().copy(
-            maker = order1V.maker,
             make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L)
@@ -301,7 +300,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
             OrderStatusDto.values().toList(),
-            order1V.maker.toString(),
+            listOf(order1V.maker, order2V.maker),
             null,
             PlatformDto.ALL,
             null, 1, currencyToken.hex(), null, null
@@ -313,7 +312,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
             OrderStatusDto.values().toList(),
-            order1V.maker.toString(),
+            listOf(order1V.maker, order2V.maker),
             null,
             PlatformDto.ALL,
             result.continuation, 2, currencyToken.hex(), null, null
@@ -361,7 +360,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
             OrderStatusDto.values().toList(),
-            order1V.maker.toString(),
+            listOf(order1V.maker),
             null,
             PlatformDto.ALL,
             null, 1, currencyToken.hex(), null, null
@@ -392,7 +391,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
             OrderStatusDto.values().toList(),
-            order1V.maker.toString(),
+            listOf(order1V.maker),
             null,
             PlatformDto.ALL,
             null, 2, currencyToken.hex(), null, null
@@ -445,7 +444,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             contract.prefixed(),
             take.type.tokenId?.value.toString(),
             listOf(OrderStatusDto.ACTIVE),
-            maker.prefixed(),
+            listOf(maker),
             null,
             PlatformDto.ALL,
             null,

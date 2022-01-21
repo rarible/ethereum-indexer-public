@@ -351,7 +351,7 @@ class OrderController(
     override suspend fun getOrderBidsByItem(
         contract: String,
         tokenId: String,
-        maker: String?,
+        maker: List<Address>?,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
@@ -360,7 +360,7 @@ class OrderController(
         val filter = OrderFilterBidByItem(
             contract = Address.apply(contract),
             tokenId = BigInteger(tokenId),
-            maker = safeAddress(maker),
+            maker = maker,
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.TAKE_PRICE_DESC,
@@ -374,7 +374,7 @@ class OrderController(
         contract: String,
         tokenId: String,
         status: List<OrderStatusDto>,
-        maker: String?,
+        maker: List<Address>?,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
@@ -385,12 +385,11 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
-        val makerAddress = if (maker == null) null else Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
         val filter = PriceOrderVersionFilter.BidByItem(
             Address.apply(contract),
             EthUInt256.of(tokenId),
-            makerAddress,
+            maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             currencyId?.let { Address.apply(currencyId) },
