@@ -144,7 +144,7 @@ class OrderVersionControllerDepricatedFt : AbstractIntegrationTest() {
             params.token.hex(),
             params.tokenId.value.toString(),
             params.status,
-            params.maker?.hex(),
+            params.maker?.let { listOf(it) },
             params.origin?.hex(),
             params.platform,
             params.startDate,

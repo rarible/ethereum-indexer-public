@@ -32,7 +32,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
     data class BidByItem(
         private val contract: Address,
         private val tokenId: EthUInt256,
-        private val maker: Address?,
+        private val makers: List<Address>?,
         private val origin: Address?,
         private val platforms: List<Platform>,
         val currencyId: Address?,
@@ -45,9 +45,10 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         override val limit = size
 
         override fun getCriteria(): Criteria {
+            val makersCriteria = if (makers.isNullOrEmpty()) null else OrderVersion::maker inValues makers
             val criteria = listOfNotNull(
                 tokenCondition(),
-                maker?.let { OrderVersion::maker isEqualTo it },
+                makersCriteria,
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
                 currencyId?.let {

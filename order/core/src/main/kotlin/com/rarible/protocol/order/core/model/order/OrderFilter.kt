@@ -131,6 +131,10 @@ fun Criteria.forPlatform(platforms: List<Platform>): Criteria {
 
 fun Criteria.forMaker(maker: Address?) = maker?.let { and(Order::maker).isEqualTo(it) } ?: this
 
+fun Criteria.forMakers(maker: List<Address>?): Criteria {
+    return if (maker.isNullOrEmpty()) this else and(Order::maker).inValues(maker)
+}
+
 fun Criteria.forCollection(collection: Address) =
     and(Order::make / Asset::type / NftAssetType::token).isEqualTo(collection)
 

@@ -33,7 +33,7 @@ class OrderBidController(
         contract: String,
         tokenId: String,
         status: List<OrderBidStatusDto>,
-        maker: String?,
+        maker: List<Address>?,
         origin: String?,
         platform: PlatformDto?,
         startDate: Instant?,
@@ -43,12 +43,11 @@ class OrderBidController(
     ): ResponseEntity<OrderBidsPaginationDto> {
         val requestSize = PageSize.ORDER_BID.limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
-        val makerAddress = if (maker == null) null else Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
         val filter = PriceOrderVersionFilter.BidByItem(
             Address.apply(contract),
             EthUInt256.of(tokenId),
-            makerAddress,
+            maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             null,

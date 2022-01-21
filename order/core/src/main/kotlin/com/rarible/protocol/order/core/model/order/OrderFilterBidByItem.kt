@@ -26,7 +26,7 @@ data class OrderFilterBidByItem(
     val currency: Address? = null,
     val contract: Address,
     val tokenId: BigInteger,
-    val maker: Address? = null
+    val maker: List<Address>? = null
 ) : OrderFilter() {
 
     override fun toQuery(continuation: String?, limit: Int): Query {
@@ -35,7 +35,7 @@ data class OrderFilterBidByItem(
                 .forToken(contract, tokenId)
                 .forPlatform(platforms.mapNotNull { convert(it) })
                 .forCurrency(currency)
-                .forMaker(maker)
+                .forMakers(maker)
                 .fromOrigin(origin)
                 .forStatus(status)
                 .scrollTo(continuation, sort, currency)
