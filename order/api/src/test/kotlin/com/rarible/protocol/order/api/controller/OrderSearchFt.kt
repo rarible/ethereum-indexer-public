@@ -226,7 +226,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
                 order2.make.type.tokenId?.value.toString(),
                 order2.maker.toString(),
                 null,
-                PlatformDto.ALL,
+                null,
                 null, 1, null, null
             ).awaitFirst()
             assertThat(result.orders.size).isEqualTo(1)
@@ -261,7 +261,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1.make.type.tokenId?.value.toString(),
             order1.maker.toString(),
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, null, currencyToken.hex()
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -272,7 +272,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1.make.type.tokenId?.value.toString(),
             order1.maker.toString(),
             null,
-            PlatformDto.ALL,
+            null,
             result.continuation, 2, null, currencyToken.hex()
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
@@ -302,7 +302,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             OrderStatusDto.values().toList(),
             listOf(order1V.maker, order2V.maker),
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -314,7 +314,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             OrderStatusDto.values().toList(),
             listOf(order1V.maker, order2V.maker),
             null,
-            PlatformDto.ALL,
+            null,
             result.continuation, 2, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
@@ -338,7 +338,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             order1.make.type.tokenId?.value.toString(),
             order1.maker.toString(),
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, null, currencyToken.hex()
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -362,7 +362,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             OrderStatusDto.values().toList(),
             listOf(order1V.maker),
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -393,7 +393,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             OrderStatusDto.values().toList(),
             listOf(order1V.maker),
             null,
-            PlatformDto.ALL,
+            null,
             null, 2, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -446,7 +446,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             listOf(OrderStatusDto.ACTIVE),
             listOf(maker),
             null,
-            PlatformDto.ALL,
+            null,
             null,
             null,
             null,

@@ -208,7 +208,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
 
         // Fetching best bid order, which is OpenSeaOrder - and there is no Rarible best order
         val openSeaBestBid = randomOpenSeaV1OrderDto(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId, null, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE)
         // TODO we could avoid this query, should be optimized in future
         orderControllerApiMock.mockGetById(openSeaBestBid)
@@ -221,7 +221,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
         assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(openSeaBestBid))
 
         verify(exactly = 1) {
-            orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.ALL), any(), any())
+            orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(null), any(), any())
         }
         verify(exactly = 1) {
             orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.RARIBLE), any(), any())
@@ -245,7 +245,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
 
         // Fetching best bid order, which is OpenSeaOrder - and there is no Rarible best order
         val openSeaBestBid = randomOpenSeaV1OrderDto(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId, null, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE)
         orderControllerApiMock.mockGetById(openSeaBestBid)
 
@@ -267,7 +267,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
         // Fetching best bid order, which is OpenSeaOrder, but we also have Rarible bestBid
         val openSeaBestBid = randomOpenSeaV1OrderDto(itemId)
         val raribleBestBid = randomLegacyOrderDto(itemId)
-        orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.ALL, openSeaBestBid)
+        orderControllerApiMock.mockGetBidOrdersByItem(itemId, null, openSeaBestBid)
         orderControllerApiMock.mockGetBidOrdersByItem(itemId, PlatformDto.RARIBLE, raribleBestBid)
         // TODO we could avoid this query, should be optimized in future
         orderControllerApiMock.mockGetById(raribleBestBid)
@@ -280,7 +280,7 @@ class OrderEventHandlerIt : AbstractEventHandlerIt() {
         assertThat(updatedMakeItem.bestBidOrder).isEqualTo(ShortOrderConverter.convert(raribleBestBid))
 
         verify(exactly = 1) {
-            orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.ALL), any(), any())
+            orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(null), any(), any())
         }
         verify(exactly = 1) {
             orderControllerApi.getOrderBidsByItem(any(), any(), any(), any(), eq(PlatformDto.RARIBLE), any(), any())

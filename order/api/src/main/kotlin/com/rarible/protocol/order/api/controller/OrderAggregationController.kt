@@ -63,7 +63,6 @@ class OrderAggregationController(
         return when (source) {
             PlatformDto.RARIBLE -> HistorySource.RARIBLE
             PlatformDto.OPEN_SEA -> HistorySource.OPEN_SEA
-            PlatformDto.ALL -> null
             else -> null
         }
     }

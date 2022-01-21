@@ -32,7 +32,7 @@ class OrderControllerApiMock(
     }
 
     fun mockGetSellOrdersByItem(itemId: ItemId, vararg returnOrders: OrderDto) {
-        mockGetSellOrdersByItem(itemId, PlatformDto.ALL, *returnOrders)
+        mockGetSellOrdersByItem(itemId, null, *returnOrders)
     }
 
     fun mockGetSellOrdersByItem(itemId: ItemId, platform: PlatformDto, vararg returnOrders: OrderDto) {
@@ -50,7 +50,7 @@ class OrderControllerApiMock(
     }
 
     fun mockGetSellOrdersByItem(ownershipId: OwnershipId, vararg returnOrders: OrderDto) {
-        mockGetSellOrdersByItem(ownershipId, PlatformDto.ALL, *returnOrders)
+        mockGetSellOrdersByItem(ownershipId, null, *returnOrders)
     }
 
     fun mockGetSellOrdersByItem(ownershipId: OwnershipId, platform: PlatformDto, vararg returnOrders: OrderDto) {
@@ -68,7 +68,7 @@ class OrderControllerApiMock(
     }
 
     fun mockGetBidOrdersByItem(itemId: ItemId, vararg returnOrders: OrderDto) {
-        mockGetBidOrdersByItem(itemId, PlatformDto.ALL, *returnOrders)
+        mockGetBidOrdersByItem(itemId, null, *returnOrders)
     }
 
     fun mockGetBidOrdersByItem(itemId: ItemId, platform: PlatformDto, vararg returnOrders: OrderDto) {
