@@ -17,8 +17,8 @@ class ItemMetaServiceImpl(
     private val mediaMetaService: MediaMetaService
 ) : ItemMetaService {
 
-    override suspend fun getItemMetadata(itemId: ItemId): ItemMeta {
-        val itemProperties = itemPropertiesService.resolve(itemId) ?: return ItemMeta.EMPTY
+    override suspend fun getItemMetadata(itemId: ItemId, returnOnlyCachedMeta: Boolean): ItemMeta {
+        val itemProperties = itemPropertiesService.resolve(itemId, returnOnlyCachedMeta) ?: return ItemMeta.EMPTY
         val contentMeta = getContentMetaForProperties(itemProperties)
         return ItemMeta(itemProperties.fixAnimationUrl(), contentMeta)
     }

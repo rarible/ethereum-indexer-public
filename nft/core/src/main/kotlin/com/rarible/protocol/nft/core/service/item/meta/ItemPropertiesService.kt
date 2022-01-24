@@ -54,12 +54,27 @@ class ItemPropertiesService(
             }
     }
 
-    suspend fun resolve(itemId: ItemId): ItemProperties? =
-        cacheService.get(
+    suspend fun resolve(itemId: ItemId, returnOnlyCacheMeta: Boolean = false): ItemProperties? {
+        if (returnOnlyCacheMeta) {
+            val onlyCachedDescriptor = object : CacheDescriptor<CachedItemProperties> {
+                override val collection: String get() = cacheDescriptor.collection
+
+                override fun get(id: String): Mono<CachedItemProperties> = Mono.empty()
+
+                override fun getMaxAge(value: CachedItemProperties?): Long = 0
+            }
+            return cacheService?.getCached(
+                itemId.decimalStringValue,
+                onlyCachedDescriptor,
+                immediatelyIfCached = true
+            )?.awaitFirstOrNull()?.properties
+        }
+        return cacheService.get(
             itemId.decimalStringValue,
             cacheDescriptor,
             immediatelyIfCached = false
         ).awaitFirstOrNull()?.properties
+    }
 
     suspend fun resetProperties(itemId: ItemId) {
         logProperties(itemId, "resetting properties")
