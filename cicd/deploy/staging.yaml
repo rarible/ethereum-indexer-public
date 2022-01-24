@@ -5,8 +5,10 @@ ethereum-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
+      max_direct_memory_megabytes: 128
 
 polygon-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
+      max_direct_memory_megabytes: 128
