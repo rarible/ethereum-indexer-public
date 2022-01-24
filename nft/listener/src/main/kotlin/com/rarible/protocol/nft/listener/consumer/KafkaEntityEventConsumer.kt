@@ -53,7 +53,6 @@ class KafkaEntityEventConsumer(
             bootstrapServers = properties.brokerReplicaSet,
             offsetResetStrategy = OffsetResetStrategy.EARLIEST,
             properties = mapOf(
-                "max.poll.records" to properties.maxPollRecords.toString(),
                 "allow.auto.create.topics" to "false"
             )
         )

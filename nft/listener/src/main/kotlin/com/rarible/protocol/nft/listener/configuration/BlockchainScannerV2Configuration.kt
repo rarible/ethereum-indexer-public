@@ -32,7 +32,6 @@ class BlockchainScannerV2Configuration(
         return KafkaEntityEventConsumer(
             properties = KafkaProperties(
                 brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,
-                maxPollRecords = nftIndexerProperties.maxPollRecords
             ),
             daemonProperties = nftListenerProperties.eventConsumerWorker,
             meterRegistry = meterRegistry,
