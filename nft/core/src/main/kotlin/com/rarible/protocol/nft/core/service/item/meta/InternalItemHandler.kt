@@ -55,11 +55,16 @@ class InternalItemHandler(
         throw e
     }
 
-    private suspend fun getItemMeta(event: NftItemUpdateEventDto): ItemMeta =
-        itemMetaService.getItemMetadata(
+    private suspend fun getItemMeta(event: NftItemUpdateEventDto): ItemMeta {
+        val itemMeta = itemMetaService.getItemMetadata(
             ItemId.parseId(event.item.id),
             nftIndexerProperties.returnOnlyCacheItemMeta
         )
+        if (nftIndexerProperties.returnOnlyCacheItemMeta && itemMeta == ItemMeta.EMPTY) {
+            logger.info("Meta for item ${event.itemId} is not available, sending empty meta")
+        }
+        return itemMeta
+    }
 
     companion object {
         private val logger = LoggerFactory.getLogger(InternalItemHandler::class.java)
