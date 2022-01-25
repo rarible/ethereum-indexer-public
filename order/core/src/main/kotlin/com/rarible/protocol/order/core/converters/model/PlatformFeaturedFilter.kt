@@ -19,6 +19,8 @@ class PlatformFeaturedFilter(
             val all = ArrayList(allPlatforms)
             if (!featureFlags.showOpenSeaOrdersWithOtherPlatforms) {
                 all.remove(PlatformDto.OPEN_SEA)
+            } else {
+                return emptyList() // means there is no filter by platform
             }
             return all
         }

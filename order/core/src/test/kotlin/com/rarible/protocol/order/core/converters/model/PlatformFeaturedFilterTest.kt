@@ -50,11 +50,7 @@ class PlatformFeaturedFilterTest {
 
         val allWithOpenSea = filter.filter(PlatformDto.ALL)
         assertThat(allWithOpenSea).isEqualTo(
-            listOf(
-                PlatformDto.RARIBLE,
-                PlatformDto.OPEN_SEA,
-                PlatformDto.CRYPTO_PUNKS
-            )
+            emptyList<PlatformDto>()
         )
     }
 
