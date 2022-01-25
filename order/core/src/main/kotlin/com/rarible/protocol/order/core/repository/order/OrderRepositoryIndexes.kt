@@ -62,7 +62,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    // Best sell order by status - without platform (used by Union to find best non-rarible order)
+    // Best sell order by status
     val SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_SORT_BY_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
@@ -72,13 +72,11 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    // Best sell order by status - with platform (used by Union to find Rarible best order)
-    val SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_PLATFORM_SORT_BY_PRICE_DEFINITION = Index()
+    // Best sell order by ownership (used by Union to find best sell order for ownership)
+    val SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
-        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
-        .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::makePrice.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
@@ -211,7 +209,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_ITEM_SORT_BY_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_SORT_BY_PRICE_DEFINITION,
-        SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_PLATFORM_SORT_BY_PRICE_DEFINITION,
+        SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION,
 
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION,
