@@ -12,7 +12,9 @@ import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
@@ -31,13 +33,14 @@ import java.util.*
 class InternalItemHandler(
     private val itemMetaService: ItemMetaService,
     private val conversionService: ConversionService,
-    private val protocolNftEventPublisher: ProtocolNftEventPublisher
+    private val protocolNftEventPublisher: ProtocolNftEventPublisher,
+    private val nftIndexerProperties: NftIndexerProperties
 ) : ConsumerEventHandler<NftItemEventDto> {
 
     override suspend fun handle(event: NftItemEventDto) = try {
         when (event) {
             is NftItemUpdateEventDto -> {
-                val meta = itemMetaService.getItemMetadata(ItemId.parseId(event.item.id))
+                val meta = getItemMeta(event)
                 val metaDto = conversionService.convert<NftItemMetaDto>(meta)
                 val extendedItem = event.item.copy(meta = metaDto)
                 protocolNftEventPublisher.publish(event.copy(item = extendedItem))
@@ -50,6 +53,17 @@ class InternalItemHandler(
             throw RuntimeException(e)
         }
         throw e
+    }
+
+    private suspend fun getItemMeta(event: NftItemUpdateEventDto): ItemMeta {
+        val itemMeta = itemMetaService.getItemMetadata(
+            ItemId.parseId(event.item.id),
+            nftIndexerProperties.returnOnlyCacheItemMeta
+        )
+        if (nftIndexerProperties.returnOnlyCacheItemMeta && itemMeta == ItemMeta.EMPTY) {
+            logger.info("Meta for item ${event.itemId} is not available, sending empty meta")
+        }
+        return itemMeta
     }
 
     companion object {

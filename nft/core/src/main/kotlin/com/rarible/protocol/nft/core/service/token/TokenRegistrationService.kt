@@ -47,10 +47,17 @@ class TokenRegistrationService(
         .build<Address, TokenStandard>()
 
     fun getTokenStandard(address: Address): Mono<TokenStandard> {
-        cache.getIfPresent(address)?.let { return it.toMono() }
-        return register(address)
-            .map { it.standard }
-            .doOnNext { cache.put(address, it) }
+        return LoggingUtils.withMarker { marker ->
+            val cached = cache.getIfPresent(address)
+            if (cached != null) {
+                cached.toMono()
+            } else {
+                logger.info(marker, "getTokenStandard $address")
+                register(address)
+                    .map { it.standard }
+                    .doOnNext { cache.put(address, it) }
+            }
+        }
     }
 
     fun register(address: Address): Mono<Token> = getOrSaveToken(address, ::fetchToken)

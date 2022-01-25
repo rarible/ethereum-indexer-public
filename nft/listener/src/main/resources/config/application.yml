@@ -72,6 +72,10 @@ blockchain:
       blockchain: ${common.blockchain}
       service: "nft"
       optimisticLockRetries: 5
+      scan:
+        batch-load:
+          enabled: true
+          batch-size: 50
       retry-policy:
         scan:
           reconnect-delay: 2s

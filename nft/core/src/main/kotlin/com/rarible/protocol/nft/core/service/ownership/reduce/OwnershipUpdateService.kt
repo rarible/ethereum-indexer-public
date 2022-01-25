@@ -36,7 +36,7 @@ class OwnershipUpdateService(
             append("lazyValue=${ownership.lazyValue}, ")
             append("lastLazyEventTimestamp=${ownership.lastLazyEventTimestamp}, ")
             append("deleted=${ownership.deleted}, ")
-            append("revertableEvents=${ownership.revertableEvents}, ")
+            append("last revertableEvents=${ownership.revertableEvents.lastOrNull()}, ")
         })
     }
 
