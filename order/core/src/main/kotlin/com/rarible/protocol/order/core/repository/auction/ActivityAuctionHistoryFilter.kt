@@ -12,6 +12,7 @@ import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
+import java.time.Instant
 
 sealed class ActivityAuctionHistoryFilter {
     internal abstract fun getCriteria(): Criteria
@@ -104,10 +105,13 @@ sealed class AuctionByUser(
     sort: AuctionActivitySort
 ) : ActivityAuctionHistoryFilter() {
 
+    abstract val from: Instant?
+    abstract val to: Instant?
     override val auctionActivitySort: AuctionActivitySort = sort
 
     override fun getCriteria(): Criteria {
         return Criteria().andOperator((LogEvent::data / AuctionHistory::type) isEqualTo type, extraCriteria)
+            .dateBoundary(auctionActivitySort, continuation, from, to)
             .scrollTo(auctionActivitySort, continuation)
     }
 
@@ -115,6 +119,8 @@ sealed class AuctionByUser(
 
     class Created(
         val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.ON_CHAIN_AUCTION, continuation, sort) {
@@ -123,6 +129,8 @@ sealed class AuctionByUser(
 
     class Bid(
         val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.BID_PLACED, continuation, sort) {
@@ -131,18 +139,34 @@ sealed class AuctionByUser(
 
     class Cancel(
         val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort) {
         override val extraCriteria = (LogEvent::data / AuctionCancelled::seller).inValues(users)
     }
 
-    class Finished(
-        val users: List<Address>,
+    private fun Criteria.dateBoundary(
+        activitySort: AuctionActivitySort,
         continuation: String?,
-        sort: AuctionActivitySort
-    ) : AuctionByUser(AuctionHistoryType.AUCTION_FINISHED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).inValues(users)
+        from: Instant?,
+        to: Instant?
+    ): Criteria {
+        if (from == null && to == null) {
+            return this
+        }
+        val start = from ?: Instant.EPOCH
+        val end = to ?: Instant.now()
+
+        if (continuation == null) {
+            return this.and(LogEvent::data / AuctionHistory::date).gte(start).lte(end)
+        }
+        return when (activitySort) {
+            AuctionActivitySort.LATEST_FIRST -> this.and(LogEvent::data / AuctionHistory::date).gte(start)
+            AuctionActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / AuctionHistory::date).lte(end)
+            else -> this
+        }
     }
 }
 

@@ -150,7 +150,9 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     randomLogList(randomAuctions),
                     AuctionActivityFilterByUserDto(
                         listOf(data.seller),
-                        listOf(AuctionActivityFilterByUserDto.Types.CREATED)
+                        listOf(AuctionActivityFilterByUserDto.Types.CREATED),
+                        Instant.now().minusMillis(100_000).epochSecond,
+                        Instant.now().plusMillis(100_000).epochSecond
                     ),
                     ActivitySortDto.LATEST_FIRST
                 )

@@ -6,7 +6,6 @@ import com.rarible.protocol.dto.AuctionActivityFilterByCollectionDto
 import com.rarible.protocol.dto.AuctionActivityFilterByItemDto
 import com.rarible.protocol.dto.AuctionActivityFilterByUserDto
 import com.rarible.protocol.dto.AuctionActivityFilterDto
-import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.model.AuctionActivitySort
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
@@ -14,6 +13,7 @@ import com.rarible.protocol.order.core.repository.auction.AuctionByCollection
 import com.rarible.protocol.order.core.repository.auction.AuctionByItem
 import com.rarible.protocol.order.core.repository.auction.AuctionByUser
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class AuctionHistoryFilterConverter {
@@ -34,10 +34,12 @@ class AuctionHistoryFilterConverter {
                 }
             }
             is AuctionActivityFilterByUserDto -> source.types.flatMap {
+                val from = source.from?.let { from -> Instant.ofEpochSecond(from) }
+                val to = source.to?.let { to -> Instant.ofEpochSecond(to) }
                 when (it) {
-                    AuctionActivityFilterByUserDto.Types.CREATED -> listOf(AuctionByUser.Created(source.users ?: emptyList(), continuation, sort))
-                    AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.users ?: emptyList(), continuation, sort))
-                    AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.users ?: emptyList(), continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.CREATED -> listOf(AuctionByUser.Created(source.users ?: emptyList(), from, to, continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.users ?: emptyList(), from, to, continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.users ?: emptyList(), from, to, continuation, sort))
                     else -> emptyList()
                 }
             }
