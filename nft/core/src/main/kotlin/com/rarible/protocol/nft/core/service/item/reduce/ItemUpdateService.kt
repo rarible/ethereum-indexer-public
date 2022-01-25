@@ -38,7 +38,7 @@ class ItemUpdateService(
             append("creators=${item.creators}")
             append("creatorsFinal=${item.creatorsFinal}")
             append("ownerships=${item.ownerships}, ")
-            append("revertableEvents=${item.revertableEvents}, ")
+            append("last revertableEvent=${item.revertableEvents.lastOrNull()}")
         })
     }
 
