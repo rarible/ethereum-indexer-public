@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.event
 
+import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import org.slf4j.LoggerFactory

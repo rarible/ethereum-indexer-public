@@ -14,6 +14,7 @@ import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.continuation.page.PageSize
+import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.OrderFilter

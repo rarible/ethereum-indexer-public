@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.DaemonWorkerProperties
+import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
@@ -22,7 +23,6 @@ import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepos
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
-import com.rarible.protocol.order.listener.service.event.ConsumerWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.OrderUpdateConsumerEventHandler
@@ -83,7 +83,8 @@ class OrderListenerConfiguration(
             consumer = RaribleKafkaConsumer(args.clientId, args.consumerGroup, args.valueDeserializerClass, args.defaultTopic, args.bootstrapServers, args.offsetResetStrategy),
             properties = listenerProperties.monitoringWorker,
             eventHandler = Erc20BalanceConsumerEventHandler(orderBalanceService),
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "erc20-balance-change-worker"
         ).apply { start() }
     }
 
@@ -96,7 +97,8 @@ class OrderListenerConfiguration(
             ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "ownership-change-worker"
         ).apply { start() }
     }
 
@@ -106,7 +108,7 @@ class OrderListenerConfiguration(
             properties = listenerProperties.monitoringWorker,
             blockchain = commonProperties.blockchain,
             meterRegistry = meterRegistry,
-            blockRepository = blockRepository
+            blockRepository = blockRepository,
         ).apply { start() }
     }
 
@@ -152,7 +154,8 @@ class OrderListenerConfiguration(
             ),
             properties = listenerProperties.monitoringWorker,
             eventHandler = orderUpdateConsumerEventHandler,
-            meterRegistry = meterRegistry
+            meterRegistry = meterRegistry,
+            workerName = "order-update-consumer-worker"
         ).apply { start() }
     }
 }
