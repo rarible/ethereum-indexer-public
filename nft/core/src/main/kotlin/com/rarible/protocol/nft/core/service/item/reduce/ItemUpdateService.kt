@@ -35,9 +35,10 @@ class ItemUpdateService(
             append("lazySupply=${item.lazySupply}, ")
             append("lastLazyEventTimestamp=${item.lastLazyEventTimestamp}, ")
             append("deleted=${item.deleted}, ")
-            append("creators=${item.creators}")
-            append("creatorsFinal=${item.creatorsFinal}")
-            append("ownerships=${item.ownerships}, ")
+            append("creators=${item.creators}, ")
+            append("creatorsFinal=${item.creatorsFinal}, ")
+            append("ownerships size=${item.ownerships.size}, ")
+            append("ownerships=${item.ownerships.entries.take(10)}, ")
             append("last revertableEvent=${item.revertableEvents.lastOrNull()}")
         })
     }
