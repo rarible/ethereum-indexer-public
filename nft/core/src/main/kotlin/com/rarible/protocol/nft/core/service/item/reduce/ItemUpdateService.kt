@@ -37,8 +37,7 @@ class ItemUpdateService(
             append("deleted=${item.deleted}, ")
             append("creators=${item.creators}, ")
             append("creatorsFinal=${item.creatorsFinal}, ")
-            append("ownerships size=${item.ownerships.size}, ")
-            append("ownerships=${item.ownerships.entries.take(10)}, ")
+            append("ownerships=${item.ownerships.size}, ")
             append("last revertableEvent=${item.revertableEvents.lastOrNull()}")
         })
     }
