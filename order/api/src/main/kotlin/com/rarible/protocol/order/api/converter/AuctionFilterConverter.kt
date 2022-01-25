@@ -35,10 +35,9 @@ class AuctionHistoryFilterConverter {
             }
             is AuctionActivityFilterByUserDto -> source.types.flatMap {
                 when (it) {
-                    AuctionActivityFilterByUserDto.Types.CREATED -> listOf(AuctionByUser.Created(source.user, continuation, sort))
-                    AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.user, continuation, sort))
-                    AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.user, continuation, sort))
-                    AuctionActivityFilterByUserDto.Types.FINISHED -> listOf(AuctionByUser.Finished(source.user, continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.CREATED -> listOf(AuctionByUser.Created(source.users ?: emptyList(), continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.users ?: emptyList(), continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.users ?: emptyList(), continuation, sort))
                     else -> emptyList()
                 }
             }

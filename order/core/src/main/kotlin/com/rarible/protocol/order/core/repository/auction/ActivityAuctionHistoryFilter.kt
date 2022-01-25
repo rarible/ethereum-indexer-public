@@ -114,35 +114,35 @@ sealed class AuctionByUser(
     abstract val extraCriteria: Criteria
 
     class Created(
-        val user: Address,
+        val users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.ON_CHAIN_AUCTION, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / OnChainAuction::seller).isEqualTo(user)
+        override val extraCriteria = (LogEvent::data / OnChainAuction::seller).inValues(users)
     }
 
     class Bid(
-        val user: Address,
+        val users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.BID_PLACED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / BidPlaced::buyer).isEqualTo(user)
+        override val extraCriteria = (LogEvent::data / BidPlaced::buyer).inValues(users)
     }
 
     class Cancel(
-        val user: Address,
+        val users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / AuctionCancelled::seller).isEqualTo(user)
+        override val extraCriteria = (LogEvent::data / AuctionCancelled::seller).inValues(users)
     }
 
     class Finished(
-        val user: Address,
+        val users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
     ) : AuctionByUser(AuctionHistoryType.AUCTION_FINISHED, continuation, sort) {
-        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).isEqualTo(user)
+        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).inValues(users)
     }
 }
 

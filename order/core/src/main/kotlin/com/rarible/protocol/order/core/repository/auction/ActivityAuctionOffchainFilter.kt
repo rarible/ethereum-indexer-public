@@ -12,6 +12,7 @@ import org.bson.Document
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
@@ -77,7 +78,7 @@ sealed class ActivityAuctionOffchainFilter {
 }
 
 sealed class AuctionOffchainByUser(
-    val user: Address,
+    val users: List<Address>,
     private val type: AuctionOffchainHistory.Type,
     private val continuation: String?,
     sort: AuctionActivitySort
@@ -89,22 +90,22 @@ sealed class AuctionOffchainByUser(
         return (AuctionOffchainHistory::type).isEqualTo(type)
             .andOperator(
                 AuctionOffchainHistory::type isEqualTo type,
-                AuctionOffchainHistory::seller isEqualTo user
+                AuctionOffchainHistory::seller inValues users
             )
             .scrollTo(auctionActivitySort, continuation)
     }
 
     class Started(
-        user: Address,
+        users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
-    ) : AuctionOffchainByUser(user, AuctionOffchainHistory.Type.STARTED, continuation, sort)
+    ) : AuctionOffchainByUser(users, AuctionOffchainHistory.Type.STARTED, continuation, sort)
 
     class Ended(
-        user: Address,
+        users: List<Address>,
         continuation: String?,
         sort: AuctionActivitySort
-    ) : AuctionOffchainByUser(user, AuctionOffchainHistory.Type.ENDED, continuation, sort)
+    ) : AuctionOffchainByUser(users, AuctionOffchainHistory.Type.ENDED, continuation, sort)
 }
 
 sealed class AuctionOffchainByItem(
