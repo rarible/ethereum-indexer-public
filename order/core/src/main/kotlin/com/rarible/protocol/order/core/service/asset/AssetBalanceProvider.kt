@@ -38,23 +38,21 @@ class AssetBalanceProviderImpl(
                     .getBalance(asset.type.token, owner)
                     ?.let { balance -> EthUInt256.of(balance.balance) }
             }
-            is Erc721AssetType, is Erc1155AssetType, is CryptoPunksAssetType -> {
+            is Erc721AssetType,
+            is Erc1155AssetType,
+            is CryptoPunksAssetType,
+            is Erc721LazyAssetType,
+            is Erc1155LazyAssetType -> {
                 val ownershipId = asset.type.ownershipId(owner)
                 nftOwnershipApi
                     .getOwnershipById(ownershipId)
                     ?.let { ownership -> EthUInt256.of(ownership.value) }
-            }
-            is Erc721LazyAssetType -> {
-                EthUInt256.ONE
             }
             is GenerativeArtAssetType -> {
                 EthUInt256.of(Long.MAX_VALUE)
             }
             is CollectionAssetType -> {
                 EthUInt256.of(Long.MAX_VALUE)
-            }
-            is Erc1155LazyAssetType -> {
-                asset.type.supply
             }
             is EthAssetType -> {
                 ethBalanceService.getBalance(owner)
