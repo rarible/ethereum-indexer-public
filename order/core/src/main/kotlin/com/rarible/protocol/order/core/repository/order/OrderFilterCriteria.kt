@@ -43,7 +43,7 @@ object OrderFilterCriteria {
             is OrderFilterSell -> sell().withHint(withSellHint())
             is OrderFilterSellByItem -> sellByItem(contract, EthUInt256(tokenId), maker, currency).withNoHint()
             is OrderFilterSellByCollection -> sellByCollection(collection).withNoHint()
-            is OrderFilterSellByMaker -> sellByMaker(maker).withNoHint()
+            is OrderFilterSellByMaker -> sellByMaker(maker).withHint(withSellMakerHint())
             is OrderFilterBidByItem -> bidByItem(contract, EthUInt256(tokenId), maker).withNoHint()
             is OrderFilterBidByMaker -> bidByMaker(maker).withNoHint()
         }
@@ -257,6 +257,13 @@ object OrderFilterCriteria {
             singlePlatform -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
             singleStatus -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
             else -> OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
+        }
+    }
+
+    private fun OrderFilterSellByMaker.withSellMakerHint(): Document {
+        return when {
+            platforms.isEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_DEFINITION.indexKeys
+            else -> OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexKeys
         }
     }
 }

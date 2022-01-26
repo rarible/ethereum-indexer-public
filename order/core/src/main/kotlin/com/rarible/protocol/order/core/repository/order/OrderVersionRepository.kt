@@ -41,7 +41,8 @@ class OrderVersionRepository(
             "take.type.nft_1_take.type.token_1_createdAt_-1_id_-1",
             "take.type.token_1_take.type.tokenId_1_createdAt_-1_id_-1",
             "take.type.token_1_take.type.tokenId_1_createdAt_1_takePriceUsd_1__id_1",
-            "hash_1"
+            "hash_1",
+            "makeStock_-1_lastUpdateAt_-1__id_1"
         )
     }
 
