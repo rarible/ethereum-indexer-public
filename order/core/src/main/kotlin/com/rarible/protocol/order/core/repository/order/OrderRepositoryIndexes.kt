@@ -98,14 +98,14 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- getSellOrdersByMaker ---------------------//
-    private val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
+    val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    private val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
+    val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::platform.name, Sort.Direction.ASC)
@@ -188,16 +188,6 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- Other ---------------------//
-    // TODO these indices have 0 usage in prod, need to check them
-
-    val BY_MAKE_STOCK_DEFINITION = Index()
-        // orders with non-zero makeStock should be first
-        .on(Order::makeStock.name, Sort.Direction.ASC)
-        // recently updated orders should be first
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        // for queries with continuation
-        .on("_id", Sort.Direction.ASC)
-        .background()
 
     val ALL_INDEXES = listOf(
         SELL_ORDERS_DEFINITION,
@@ -229,7 +219,6 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
-        BY_MAKE_STOCK_DEFINITION,
         BY_STATUS_AND_END_START
     )
 }
