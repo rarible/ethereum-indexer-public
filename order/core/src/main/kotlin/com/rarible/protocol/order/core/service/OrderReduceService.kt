@@ -142,7 +142,7 @@ class OrderReduceService(
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> {
-                    if (orderExchangeHistory.adhoc == true) {
+                    if (orderExchangeHistory.adhoc == true && type == OrderType.CRYPTO_PUNKS) {
                         /*
                          * Do not apply side matches to "virtual" orders, which are created solely for the exchange moment.
                          * This only happens to on-chain orders that have the same salt for all events.
