@@ -113,6 +113,15 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val SELL_ORDERS_BY_MAKER_PLATFORM_STATUS_DEFINITION = Index()
+        .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     // --------------------- getBidsByItem ---------------------//
     //
     val BIDS_BY_ITEM_DEFINITION_DEPRECATED = Index()
@@ -206,6 +215,7 @@ object OrderRepositoryIndexes {
 
         SELL_ORDERS_BY_MAKER_DEFINITION,
         SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION,
+        SELL_ORDERS_BY_MAKER_PLATFORM_STATUS_DEFINITION,
 
         BIDS_BY_ITEM_DEFINITION_DEPRECATED,
         BIDS_BY_ITEM_DEFINITION,
