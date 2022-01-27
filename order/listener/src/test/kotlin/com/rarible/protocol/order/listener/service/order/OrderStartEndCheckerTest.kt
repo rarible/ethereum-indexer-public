@@ -47,7 +47,8 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
             reactiveMongoTemplate,
             OrderListenerProperties(updateStatusByStartEndEnabled = true),
             orderDtoConverter,
-            protocolOrderPublisher
+            protocolOrderPublisher,
+            meterRegistry
         )
 
     @BeforeEach

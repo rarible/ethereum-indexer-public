@@ -30,6 +30,7 @@ common:
 
 listener:
   load-open-sea-orders: false
+  metricJobStartEnd: "protocol.order.indexer.job-start-end"
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
