@@ -25,12 +25,19 @@ data class NftIndexerProperties(
     val nftCollectionMetaExtenderWorkersCount: Int = 4,
     val confirmationBlocks: Int = 12,
     val ownershipSaveBatch: Int = 20,
-    val returnOnlyCacheItemMeta: Boolean = false
+    val returnOnlyCacheItemMeta: Boolean = false,
+    val reduceProperties: ReduceProperties = ReduceProperties(),
 ) {
+
+    data class ReduceProperties(
+        val skipOwnerships: Boolean = false
+    )
+
     data class FactoryAddresses(
         val erc721Rarible: String,
         val erc721RaribleUser: String,
         val erc1155Rarible: String,
         val erc1155RaribleUser: String
     )
+
 }

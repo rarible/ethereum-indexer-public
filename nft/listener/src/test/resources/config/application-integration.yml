@@ -43,6 +43,8 @@ common:
   feature-flags:
     scanner-version: V1
     validate-creator-by-transaction-sender: true
+  reduceProperties:
+    skipOwnerships: true
 
 blockchain:
   scanner:

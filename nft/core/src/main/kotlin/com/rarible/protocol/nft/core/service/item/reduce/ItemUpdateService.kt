@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.core.entity.reducer.service.EntityService
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -13,7 +14,8 @@ import org.springframework.stereotype.Component
 @Component
 class ItemUpdateService(
     private val itemRepository: ItemRepository,
-    private val eventListenerListener: ReduceEventListenerListener
+    private val eventListenerListener: ReduceEventListenerListener,
+    private val nftIndexerProperties: NftIndexerProperties,
 ) : EntityService<ItemId, Item> {
 
     override suspend fun get(id: ItemId): Item? {
@@ -21,7 +23,12 @@ class ItemUpdateService(
     }
 
     override suspend fun update(entity: Item): Item {
-        val savedItem = itemRepository.save(entity).awaitFirst()
+        val finalEntity = if (nftIndexerProperties.reduceProperties.skipOwnerships) {
+            entity.copy(ownerships = emptyMap())
+        } else {
+            entity
+        }
+        val savedItem = itemRepository.save(finalEntity).awaitFirst()
         eventListenerListener.onItemChanged(savedItem).awaitFirstOrNull()
         logUpdatedItem(savedItem)
         return savedItem
