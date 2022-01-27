@@ -13,12 +13,14 @@ import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import io.micrometer.core.instrument.MeterRegistry
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
+import scalether.domain.Address
 import java.time.Duration
 
 class KafkaEntityEventConsumer(
     private val properties: KafkaProperties,
     private val daemonProperties: DaemonWorkerProperties,
     private val meterRegistry: MeterRegistry,
+    private val ignoreContracts: Set<Address>,
     host: String,
     environment: String,
     blockchain: String,
@@ -62,7 +64,7 @@ class KafkaEntityEventConsumer(
                 properties = daemonProperties,
                 // Block consumer should NOT skip events, so there is we're using endless retry
                 retryProperties = RetryProperties(attempts = Integer.MAX_VALUE, delay = Duration.ofMillis(1000)),
-                eventHandler = BlockEventHandler(listener),
+                eventHandler = BlockEventHandler(listener, ignoreContracts),
                 meterRegistry = meterRegistry,
                 workerName = "log-event-consumer-$id-$it"
             )
@@ -71,15 +73,18 @@ class KafkaEntityEventConsumer(
     }
 
     private class BlockEventHandler(
-        private val entityEventListener: EntityEventListener
+        private val entityEventListener: EntityEventListener,
+        private val ignoreContracts: Set<Address>,
     ) : ConsumerEventHandler<EthereumLogRecordEvent> {
         override suspend fun handle(event: EthereumLogRecordEvent) {
-            entityEventListener.onEntityEvents(listOf(
-                LogRecordEvent(
-                    record = event.record,
-                    reverted = event.reverted
-                )
-            ))
+            if (!ignoreContracts.contains(event.record.address)) {
+                entityEventListener.onEntityEvents(listOf(
+                    LogRecordEvent(
+                        record = event.record,
+                        reverted = event.reverted
+                    )
+                ))
+            }
         }
     }
 
