@@ -51,6 +51,7 @@ protocol:
 common:
   eip712-domain-name: Exchange
   eip712-domain-version: 2
+  metric-root-path: "protocol.order.indexer"
 
 listener:
   priceUpdateScheduleRate: PT12H # 12 hours to ms
@@ -58,6 +59,7 @@ listener:
   updateStatusByStartEndRate: PT1H # 1 hour period
   updateStatusByStartEndEnabled: false
   openSeaEndpoint: "https://api.opensea.io"
+  metricJobStartEnd: "${common.metric-root-path}.job-start-end"
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50

@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.runBlocking
@@ -24,16 +25,19 @@ class OrderStartEndCheckerJob(
     reactiveMongoTemplate: ReactiveMongoTemplate,
     private val properties: OrderListenerProperties,
     private val orderDtoConverter: OrderDtoConverter,
-    private val publisher: ProtocolOrderPublisher
+    private val publisher: ProtocolOrderPublisher,
+    meterRegistry: MeterRegistry
 ) {
     private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerJob::class.java)
     private val orderRepository = MongoOrderRepository(reactiveMongoTemplate)
+    private val counter = meterRegistry.counter(properties.metricJobStartEnd)
 
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.updateStatusByStartEndRate}")
     @CaptureTransaction(value = "order_status")
     fun update() = runBlocking {
         if (properties.updateStatusByStartEndEnabled.not()) return@runBlocking
         update(Instant.now())
+        counter.increment()
     }
 
     suspend fun update(now: Instant) {
