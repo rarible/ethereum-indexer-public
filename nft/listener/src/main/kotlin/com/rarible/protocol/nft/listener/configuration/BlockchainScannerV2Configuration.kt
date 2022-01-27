@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
+import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
@@ -26,10 +27,13 @@ class BlockchainScannerV2Configuration(
     private val meterRegistry: MeterRegistry,
     private val applicationEnvironmentInfo: ApplicationEnvironmentInfo
 ) {
+    private val logger = LoggerFactory.getLogger(BlockchainScannerV2Configuration::class.java)
+
     @Bean
     fun entityEventConsumer(
         entityEventListener: List<EntityEventListener>
     ): KafkaEntityEventConsumer {
+        logger.info("Creating KafkaEntityEventConsumer with config: $nftIndexerProperties $nftListenerProperties")
         return KafkaEntityEventConsumer(
             properties = KafkaProperties(
                 brokerReplicaSet = nftIndexerProperties.kafkaReplicaSet,

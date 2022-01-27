@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
@@ -24,7 +25,13 @@ class ERC1155TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
     properties: NftListenerProperties,
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
+
     private val skipContracts = properties.skipTransferContracts.map { Address.apply(it) }
+    private val logger = LoggerFactory.getLogger(ERC1155TransferLogDescriptor::class.java)
+
+    init {
+        logger.info("Creating ERC1155TransferLogDescriptor with config: $properties")
+    }
 
     override fun convert(log: Log, date: Instant): Mono<ItemTransfer> {
         if (log.address() in skipContracts) {
