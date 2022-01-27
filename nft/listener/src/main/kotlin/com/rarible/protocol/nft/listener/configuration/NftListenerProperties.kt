@@ -11,6 +11,7 @@ internal const val RARIBLE_PROTOCOL_LISTENER_STORAGE = "listener"
 data class NftListenerProperties(
     val skipReduceTokens: List<String> = emptyList(),
     val skipContracts: List<String> = emptyList(),
+    val skipTransferContracts: List<String> = emptyList(),
     val logConsumeWorkerCount: Int = 10,
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties()
