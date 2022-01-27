@@ -262,8 +262,6 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             }
         }
 
-        assertThat(itemDto.owners).isEqualTo(listOf(lazyItemDto.creators.first().account))
-
         //TODO: Fix
         //assertThat(itemDto.royalties.size).isEqualTo(lazyItemDto.royalties.size)
 

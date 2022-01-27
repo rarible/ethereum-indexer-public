@@ -33,6 +33,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
@@ -126,6 +127,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     lateinit var currencyApi: CurrencyControllerApi
+
+    @Autowired
+    lateinit var meterRegistry: MeterRegistry
 
     protected lateinit var parity: MonoParity
 

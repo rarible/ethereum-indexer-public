@@ -3,24 +3,13 @@ package com.rarible.protocol.order.core.data
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.AssetDto
 import com.rarible.protocol.dto.Erc20AssetTypeDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.RaribleV2OrderDto
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc1155AssetType
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderData
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
-import com.rarible.protocol.order.core.model.OrderSide
-import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.AddressFactory
@@ -144,3 +133,24 @@ fun createOrderSideMatch(): OrderSideMatch {
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
 fun randomErc1155(value: EthUInt256) = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), value)
+
+fun randomErc1155LazyAssetType() =
+    Erc1155LazyAssetType(
+        token = AddressFactory.create(),
+        tokenId = EthUInt256(randomBigInt()),
+        uri = randomString(),
+        creators = emptyList(),
+        royalties = emptyList(),
+        signatures = emptyList(),
+        supply = EthUInt256.TEN
+    )
+
+fun randomErc721LazyAssetType() =
+    Erc721LazyAssetType(
+        token = AddressFactory.create(),
+        tokenId = EthUInt256(randomBigInt()),
+        uri = randomString(),
+        creators = emptyList(),
+        royalties = emptyList(),
+        signatures = emptyList()
+    )

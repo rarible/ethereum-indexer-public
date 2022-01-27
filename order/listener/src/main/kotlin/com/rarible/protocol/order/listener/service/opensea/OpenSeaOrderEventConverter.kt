@@ -61,8 +61,14 @@ class OpenSeaOrderEventConverter(
         val at = nowMillis()
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = at)
         val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = at)
-        val buyAdhoc = buyOrder.maker == from
-        val sellAdhoc = sellOrder.maker == from
+
+        var buyAdhoc = buyOrder.maker == from
+        var sellAdhoc = sellOrder.maker == from
+
+        if (buyAdhoc && sellAdhoc) {
+            buyAdhoc = EthUInt256.of(buyOrder.salt) == EthUInt256.ZERO
+            sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
+        }
 
         return listOf(
             OrderSideMatch(

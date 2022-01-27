@@ -151,7 +151,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                     assertThat(item.pending).hasSize(1)
                 }
                 ReduceVersion.V2 -> {
-                    assertThat(item.ownerships.keys.single()).isEqualTo(address)
                     assertThat(item.getPendingEvents()).hasSize(1)
                 }
             }

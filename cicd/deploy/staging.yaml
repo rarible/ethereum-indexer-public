@@ -7,7 +7,7 @@ ethereum-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 1024
-      max_direct_memory_megabytes: 128
+      max_direct_memory_megabytes: 256
 
 polygon-nft-listener:
   livenessProbe:

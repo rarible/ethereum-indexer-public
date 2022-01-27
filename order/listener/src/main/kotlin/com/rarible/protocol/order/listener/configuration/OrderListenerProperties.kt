@@ -19,7 +19,8 @@ data class OrderListenerProperties(
     val openSeaOrderSide: OrderSide? = null,
     val updateStatusByStartEndEnabled: Boolean = false,
     val updateAuctionOngoingStateEnabled: Boolean = false,
-    val openSeaClientUserAgents: String = ""
+    val openSeaClientUserAgents: String = "",
+    val metricJobStartEnd: String = ""
 ) {
     enum class OrderSide {
         ALL,

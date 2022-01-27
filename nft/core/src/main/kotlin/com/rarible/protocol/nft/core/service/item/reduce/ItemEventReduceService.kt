@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.item.reduce
 
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
+import com.rarible.core.apm.withTransaction
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -11,6 +12,7 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.EntityEventListener
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
 
 @Component
@@ -20,7 +22,7 @@ class ItemEventReduceService(
     templateProvider: ItemTemplateProvider,
     reducer: ItemReducer,
     private val onNftItemLogEventListener: OnNftItemLogEventListener,
-    properties: NftIndexerProperties,
+    private val properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
@@ -34,9 +36,13 @@ class ItemEventReduceService(
     }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
-        events
-            .onEach { onNftItemLogEventListener.onLogEvent(it) }
-            .mapNotNull { ItemEventConverter.convert(it.record) }
-            .let { delegate.reduceAll(it) }
+        withContext(ReduceContext(skipOwnerships = properties.reduceProperties.skipOwnerships)) {
+            withTransaction(name = "onItemEvents", labels = listOf("size" to events.size)) {
+                events
+                    .onEach { onNftItemLogEventListener.onLogEvent(it) }
+                    .mapNotNull { ItemEventConverter.convert(it.record) }
+                    .let { delegate.reduceAll(it) }
+            }
+        }
     }
 }
