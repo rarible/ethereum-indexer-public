@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.service.EntityEventListener
+import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
 
 @Component
@@ -18,7 +19,7 @@ class ItemEventReduceService(
     templateProvider: ItemTemplateProvider,
     reducer: ItemReducer,
     private val onNftItemLogEventListener: OnNftItemLogEventListener,
-    properties: NftIndexerProperties,
+    private val properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
@@ -32,11 +33,13 @@ class ItemEventReduceService(
     }
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
-        withTransaction(name = "onItemEvents", labels = listOf("size" to events.size)) {
-            events
-                .onEach { onNftItemLogEventListener.onLogEvent(it) }
-                .mapNotNull { ItemEventConverter.convert(it.record) }
-                .let { delegate.reduceAll(it) }
+        withContext(ReduceContext(skipOwnerships = properties.reduceProperties.skipOwnerships)) {
+            withTransaction(name = "onItemEvents", labels = listOf("size" to events.size)) {
+                events
+                    .onEach { onNftItemLogEventListener.onLogEvent(it) }
+                    .mapNotNull { ItemEventConverter.convert(it.record) }
+                    .let { delegate.reduceAll(it) }
+            }
         }
     }
 }
