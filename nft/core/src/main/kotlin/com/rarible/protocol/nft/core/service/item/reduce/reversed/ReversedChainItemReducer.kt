@@ -10,10 +10,12 @@ class ReversedChainItemReducer(
     itemRevertEventApplyPolicy: ItemRevertEventApplyPolicy,
     reversedValueItemReducer: ReversedValueItemReducer,
     reversedLazyValueItemReducer: ReversedLazyValueItemReducer,
+    reversedLazyOwnershipValueItemReducer: ReversedLazyOwnershipValueItemReducer,
     reversedOwnersItemReducer: ReversedOwnersItemReducer
 ) : RevertedEntityChainReducer<ItemId, ItemEvent, Item>(
     itemRevertEventApplyPolicy,
     reversedValueItemReducer,
+    reversedLazyOwnershipValueItemReducer,
     reversedLazyValueItemReducer,
     reversedOwnersItemReducer
 )

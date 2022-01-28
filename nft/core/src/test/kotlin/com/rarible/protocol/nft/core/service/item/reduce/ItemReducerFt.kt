@@ -3,15 +3,12 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
-import com.rarible.protocol.nft.core.data.createRandomItemId
-import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
-import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
-import com.rarible.protocol.nft.core.data.withNewValues
+import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.Part
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -183,6 +180,69 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedItem.ownerships.keys).hasSize(1)
         assertThat(revertedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should reduce lazy mint, mint, transfer and creator`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val creators = listOf(Part.fullPart(minter))
+        val owner = randomAddress()
+        val item = initial()
+
+        val lazyMint = createRandomLazyMintItemEvent()
+            .copy(supply = EthUInt256.ONE, creators = creators)
+        val mint = createRandomMintItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1)
+            .copy(supply = EthUInt256.ONE, owner = minter)
+        val transfer = createRandomTransferItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 2)
+            .copy(value = EthUInt256.ONE, from = minter, to = owner)
+        val creator = createRandomCreatorsItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3)
+            .copy(creators = creators)
+
+        val reducedItem = reduce(item, lazyMint, mint, transfer, creator)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.creators).isEqualTo(creators)
+        assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should reduce lazy mint, mint, transfer and creator and revert them all`() = runBlocking<Unit> {
+        val minter = randomAddress()
+        val creators = listOf(Part.fullPart(minter))
+        val owner = randomAddress()
+        val item = initial()
+
+        val lazyMint = createRandomLazyMintItemEvent()
+            .copy(supply = EthUInt256.ONE, creators = creators)
+
+        val mint = createRandomMintItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+            .copy(supply = EthUInt256.ONE, owner = minter)
+        val revertedMint = mint
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val transfer = createRandomTransferItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
+            .copy(value = EthUInt256.ONE, from = minter, to = owner)
+        val revertedTransfer = transfer
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
+
+        val creator = createRandomCreatorsItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3)
+            .copy(creators = creators)
+
+        val reducedItem = reduce(item, lazyMint, mint, transfer, creator, revertedTransfer, revertedMint)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.creators).isEqualTo(creators)
+        assertThat(reducedItem.deleted).isFalse()
     }
 
     @Test
