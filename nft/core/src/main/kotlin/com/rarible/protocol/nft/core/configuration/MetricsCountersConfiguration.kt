@@ -22,7 +22,6 @@ class MetricsCountersConfiguration(
     @Bean
     @Qualifier("ItemDataQualityJobRunRegisteredCounter")
     fun itemDataQualityJobRunRegisteredCounter(): RegisteredCounter {
-        //0xf4a9ad499fbcb6cdac208e41e1688e7fb4a6afe9000000000000000000000001
         return ItemDataQualityJobRunMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }
