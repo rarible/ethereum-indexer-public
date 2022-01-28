@@ -13,6 +13,7 @@ class OrderListenerProperties(
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val priceUpdateEnabled: Boolean = false,
     val publishTaskDelayMs: Long = 1000L,
+    val parallelOrderUpdateStreams: Int = 10,
     val loadOpenSeaOrders: Boolean = false,
     val loadOpenSeaPeriod: Duration = Duration.ofSeconds(1),
     val loadOpenSeaDelay: Duration = Duration.ofSeconds(5),
