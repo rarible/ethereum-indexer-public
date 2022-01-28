@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.nft.api.domain.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -35,7 +35,7 @@ class ItemServiceIt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
-    private val defaultSort = ItemFilter.Sort.LAST_UPDATE
+    private val defaultSort = ItemFilter.Sort.LAST_UPDATE_DESC
 
     @Test
     fun `should find all items`() = runBlocking<Unit> {

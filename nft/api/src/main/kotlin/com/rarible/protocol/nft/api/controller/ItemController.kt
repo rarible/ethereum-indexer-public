@@ -8,7 +8,7 @@ import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
-import com.rarible.protocol.nft.api.domain.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -40,7 +40,7 @@ class ItemController(
     private val burnLazyNftValidator: BurnLazyNftValidator
 ) : NftItemControllerApi {
 
-    private val defaultSorting = ItemFilter.Sort.LAST_UPDATE
+    private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
         val result = itemService.get(conversionService.convert(itemId))

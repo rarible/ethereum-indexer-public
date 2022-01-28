@@ -11,11 +11,13 @@ class ForwardChainItemReducer(
     forwardCreatorsItemReducer: ForwardCreatorsItemReducer,
     forwardValueItemReducer: ForwardValueItemReducer,
     forwardLazyValueItemReducer: ForwardLazyValueItemReducer,
+    forwardLazyOwnershipValueItemReducer: ForwardLazyOwnershipValueItemReducer,
     forwardOwnersItemReducer: ForwardOwnersItemReducer
 ) : EntityChainReducer<ItemId, ItemEvent, Item>(
     itemConfirmEventApplyPolicy,
     forwardCreatorsItemReducer,
     forwardLazyValueItemReducer,
+    forwardLazyOwnershipValueItemReducer,
     forwardValueItemReducer,
     forwardOwnersItemReducer
 )

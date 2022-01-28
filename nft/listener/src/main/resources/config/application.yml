@@ -64,6 +64,9 @@ api:
   royalty:
     cache-timeout: 600000 # 10 min
 
+listener:
+  itemAndOwnershipsCheckRate: PT8H
+
 blockchain:
   scanner:
     kafka:

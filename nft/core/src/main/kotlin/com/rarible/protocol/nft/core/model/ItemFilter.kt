@@ -7,9 +7,9 @@ sealed class ItemFilter {
     abstract val sort: Sort
 
     enum class Sort {
-        LAST_UPDATE
+        LAST_UPDATE_DESC,
+        LAST_UPDATE_ASC,
     }
-
 }
 
 data class ItemFilterAll(

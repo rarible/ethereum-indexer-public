@@ -5,6 +5,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc165.IERC165
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.contracts.ownable.Ownable
+import com.rarible.core.apm.withSpan
 import com.rarible.core.common.component1
 import com.rarible.core.common.component2
 import com.rarible.core.common.component3
@@ -117,7 +118,7 @@ class TokenRegistrationService(
                 standard = standard,
                 owner = owner.orNull()
             )
-        }
+        }.withSpan(name = "fetchToken", labels = listOf("address" to address.toString()))
     }
 
     private fun <T> Mono<T>.emptyIfError(): Mono<Optional<T>> {

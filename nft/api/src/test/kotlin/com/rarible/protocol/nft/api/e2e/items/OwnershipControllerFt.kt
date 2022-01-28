@@ -1,5 +1,8 @@
 package com.rarible.protocol.nft.api.e2e.items
 
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.ItemTransferDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
@@ -65,6 +68,20 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         ownershipRepository.save(ownership2).awaitFirst()
 
         val ownershipDto = nftOwnershipApiClient.getNftAllOwnerships(null, null, null).awaitFirst()
+        assertThat(ownershipDto.ownerships).hasSize(1)
+        assertThat(ownershipDto.ownerships.single().id).isEqualTo(ownership1.id.decimalStringValue)
+    }
+
+    @Test
+    fun `should get only not deleted ownerships with filter`() = runBlocking<Unit> {
+        val token = randomAddress()
+        val tokenId = EthUInt256.of(randomBigInt())
+        val ownership1 = createOwnership().copy(token = token, tokenId = tokenId, deleted = false)
+        val ownership2 = createOwnership().copy(token = token, tokenId = tokenId, deleted = true)
+        ownershipRepository.save(ownership1).awaitFirst()
+        ownershipRepository.save(ownership2).awaitFirst()
+
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipsByItem(token.hex(), tokenId.value.toString(), null,null).awaitFirst()
         assertThat(ownershipDto.ownerships).hasSize(1)
         assertThat(ownershipDto.ownerships.single().id).isEqualTo(ownership1.id.decimalStringValue)
     }

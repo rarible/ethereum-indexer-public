@@ -1,7 +1,7 @@
-package com.rarible.protocol.nft.api.service.item
+package com.rarible.protocol.nft.core.repository.ownership
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.api.domain.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
@@ -23,12 +23,12 @@ object OwnershipFilterCriteria {
 
     fun OwnershipFilter.toCriteria(continuation: OwnershipContinuation?, limit: Int?): Query {
         val criteria = when (this) {
-            is OwnershipFilterAll -> all(showDeleted)
+            is OwnershipFilterAll -> all()
             is OwnershipFilterByCollection -> byCollection(collection)
             is OwnershipFilterByCreator -> byCreator(creator)
             is OwnershipFilterByOwner -> byOwner(owner)
             is OwnershipFilterByItem -> byItem(contract, EthUInt256(tokenId))
-        } scrollTo continuation
+        } showDeleted showDeleted scrollTo continuation
 
         return Query.query(criteria).with(
             this.sort.toMongoSort() ?: Sort.by(
@@ -38,7 +38,7 @@ object OwnershipFilterCriteria {
         ).limit(limit ?: DEFAULT_LIMIT)
     }
 
-    private fun all(showDeleted: Boolean) = Criteria() showDeleted showDeleted
+    private fun all() = Criteria()
 
     private fun byOwner(user: Address): Criteria =
         Criteria(Ownership::owner.name).`is`(user)
