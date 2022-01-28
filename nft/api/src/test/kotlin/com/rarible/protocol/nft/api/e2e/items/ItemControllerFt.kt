@@ -20,6 +20,7 @@ import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
+import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -33,6 +34,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -65,6 +67,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var itemRepository: ItemRepository
+
+    @Autowired
+    private lateinit var ownershipRepository: OwnershipRepository
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
@@ -171,8 +176,11 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Test
     fun `should get item by id`() = runBlocking<Unit> {
-        val item = createItem()
+        val owner = AddressFactory.create()
+        val item = createItem().copy(owners = listOf(owner))
         itemRepository.save(item).awaitFirst()
+        val ownership = createOwnership(item.token, item.tokenId, null, owner)
+        ownershipRepository.save(ownership).awaitFirst()
 
         val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst()
         assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
@@ -201,7 +209,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             assertThat(royaltyDto.value).isEqualTo(item.royalties[index].value)
         }
 
-        val list = nftItemApiClient.getNftItemsByOwner(item.owners.first().hex(), null, null).awaitFirst()
+        val list = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, null).awaitFirst()
         assertThat(list.items)
             .hasSize(1)
         assertThat(list.items.firstOrNull())
@@ -216,11 +224,11 @@ class ItemControllerFt : SpringContainerBaseTest() {
     @Test
     fun `should get all items by owner`() = runBlocking {
         val owner = AddressFactory.create()
-        val item1 = createItem().copy(owners = listOf(owner))
-        val item2 = createItem().copy(owners = listOf(owner, AddressFactory.create()))
-        val item3 = createItem().copy(owners = listOf(owner))
-        val item4 = createItem().copy(owners = listOf(owner, AddressFactory.create()))
-        val item5 = createItem().copy(owners = listOf(owner, AddressFactory.create()))
+        val item1 = createItem()
+        val item2 = createItem()
+        val item3 = createItem()
+        val item4 = createItem()
+        val item5 = createItem()
 
         listOf(
             createItem(),
@@ -232,6 +240,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
             item5,
             createItem()
         ).forEach { itemRepository.save(it).awaitFirst() }
+
+        listOf(item1,  item2, item3, item4, item5)
+            .map { createOwnership(it.token, it.tokenId, null, owner) }
+            .forEach { ownershipRepository.save(it).awaitFirst() }
 
         val allItems = mutableListOf<NftItemDto>()
         var continuation: String? = null
@@ -319,9 +331,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
     @Test
     fun `should get null continuation`() = runBlocking<Unit> {
         val owner = AddressFactory.create()
-        val item1 = createItem().copy(owners = listOf(owner))
-
-        listOf(item1).forEach { itemRepository.save(it).awaitFirst() }
+        val item = createItem()
+        itemRepository.save(item).awaitFirst()
+        val ownership = createOwnership(item.token, item.tokenId, null, owner)
+        ownershipRepository.save(ownership).awaitFirst()
 
         val itemsDto = nftItemApiClient.getNftItemsByOwner(owner.hex(), null, 2).awaitFirst()
 

@@ -9,15 +9,17 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.nft.api.domain.ItemContinuation
+import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemFilterAll
 import com.rarible.protocol.nft.core.model.ItemFilterByCollection
 import com.rarible.protocol.nft.core.model.ItemFilterByCreator
-import com.rarible.protocol.nft.core.model.ItemFilterByOwner
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
@@ -124,13 +126,14 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
-        val filter = ItemFilterByOwner(
-            defaultSorting,
-            Address.apply(owner)
-        )
-
-        val result = getItems(filter, continuation, size)
-        return ResponseEntity.ok(result)
+        val ownershipContinuation = continuation?.let { c ->
+            ItemContinuation.parse(c)?.let {
+                OwnershipContinuation(it.afterDate, OwnershipId(it.afterId.token, it.afterId.tokenId, Address.apply(owner)))
+            }
+        }
+        val requestSize = PageSize.ITEM.limit(size)
+        val result = itemService.searchByOwner(Address.apply(owner), ownershipContinuation, requestSize)
+        return ResponseEntity.ok(result2Dto(result, requestSize))
     }
 
     override suspend fun getNftItemsByCreator(
@@ -170,6 +173,10 @@ class ItemController(
     ): NftItemsDto {
         val requestSize = PageSize.ITEM.limit(size)
         val result = itemService.search(filter, ItemContinuation.parse(continuation), requestSize)
+        return result2Dto(result, requestSize)
+    }
+
+    private fun result2Dto(result: List<ExtendedItem>, requestSize: Int): NftItemsDto {
         val last = if (result.isEmpty() || result.size < requestSize) null else result.last()
         val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
         val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
