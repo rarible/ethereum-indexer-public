@@ -95,13 +95,11 @@ fun ItemEvent.ItemTransferEvent.withNewValues(
 
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
     status: EthereumLogStatus? = null,
-    createdAt: Instant? = null
-) = copy(log = log.withNewValues(status, createdAt))
-
-fun ItemEvent.LazyItemMintEvent.withNewValues(
-    status: EthereumLogStatus? = null,
-    createdAt: Instant? = null
-) = copy(log = log.withNewValues(status, createdAt))
+    createdAt: Instant? = null,
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
 
 fun ItemEvent.LazyItemBurnEvent.withNewValues(
     status: EthereumLogStatus? = null,
@@ -115,6 +113,7 @@ fun createRandomCreatorsItemEvent(): ItemEvent.ItemCreatorsEvent {
         log = createRandomEthereumLog()
     )
 }
+
 
 fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
     return ItemEvent.ItemTransferEvent(
