@@ -1,7 +1,7 @@
-package com.rarible.protocol.nft.api.service.item
+package com.rarible.protocol.nft.core.repository.ownership
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.api.domain.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll

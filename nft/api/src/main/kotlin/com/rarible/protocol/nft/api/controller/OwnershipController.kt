@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.api.controller
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipsDto
-import com.rarible.protocol.nft.api.domain.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll

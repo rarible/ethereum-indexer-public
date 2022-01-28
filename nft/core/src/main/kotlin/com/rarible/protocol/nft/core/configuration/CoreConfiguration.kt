@@ -18,7 +18,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 
 @Configuration
 @EnableConfigurationProperties(NftIndexerProperties::class)
-@Import(RepositoryConfiguration::class, ProducerConfiguration::class)
+@Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
 @ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
 class CoreConfiguration(
     private val properties: NftIndexerProperties

@@ -8,10 +8,10 @@ import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
-import com.rarible.protocol.nft.api.domain.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
-import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
+import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
