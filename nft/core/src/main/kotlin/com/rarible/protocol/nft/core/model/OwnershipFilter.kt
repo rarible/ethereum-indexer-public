@@ -5,6 +5,7 @@ import java.math.BigInteger
 
 sealed class OwnershipFilter {
     abstract val sort: Sort
+    abstract val showDeleted: Boolean
 
     enum class Sort {
         LAST_UPDATE
@@ -13,26 +14,34 @@ sealed class OwnershipFilter {
 
 data class OwnershipFilterAll(
     override val sort: Sort,
-    val showDeleted: Boolean
+    override val showDeleted: Boolean
 ) : OwnershipFilter()
 
 data class OwnershipFilterByOwner(
     override val sort: Sort,
     val owner: Address
-) : OwnershipFilter()
+) : OwnershipFilter() {
+    override val showDeleted: Boolean = false
+}
 
 data class OwnershipFilterByCreator(
     override val sort: Sort,
     val creator: Address
-) : OwnershipFilter()
+) : OwnershipFilter() {
+    override val showDeleted: Boolean = false
+}
 
 data class OwnershipFilterByCollection(
     override val sort: Sort,
     val collection: Address
-) : OwnershipFilter()
+) : OwnershipFilter() {
+    override val showDeleted: Boolean = false
+}
 
 data class OwnershipFilterByItem(
     override val sort: Sort,
     val contract: Address,
     val tokenId: BigInteger
-) : OwnershipFilter()
+) : OwnershipFilter() {
+    override val showDeleted: Boolean = false
+}
