@@ -117,7 +117,7 @@ class OrderListenerConfiguration(
             blockchain = commonProperties.blockchain,
             meterRegistry = meterRegistry,
             blockRepository = blockRepository
-        ).apply { start() }
+        )
     }
 
     @Bean
