@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
+import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.elemMatch
@@ -20,14 +21,17 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import org.springframework.data.mongodb.core.query.lte
 import scalether.domain.Address
+import java.math.BigDecimal
 import java.time.Instant
 
 sealed class PriceOrderVersionFilter : OrderVersionFilter() {
+    // TODO this continuation will NOT work in right way for order_version repository,
+    // TODO since it contains order hash, but _id in entities is random Object()
     abstract val continuation: Continuation.Price?
     abstract override val limit: Int
 
-    abstract fun withContinuation(continuation: Continuation.Price?): PriceOrderVersionFilter
-    abstract infix fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria
+    abstract fun withContinuation(continuation: InternalPriceContinuation?): PriceOrderVersionFilter
+    abstract fun Criteria.scrollToContinuation(): Criteria
 
     data class BidByItem(
         private val contract: Address,
@@ -39,7 +43,8 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         private val startDate: Instant?,
         private val endDate: Instant?,
         private val size: Int,
-        override val continuation: Continuation.Price?
+        override val continuation: Continuation.Price?,
+        private val internalContinuation: InternalPriceContinuation? = null
     ) : PriceOrderVersionFilter() {
         override val sort = getSort(currencyId)
         override val limit = size
@@ -60,7 +65,7 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
                 startDate?.let { OrderVersion::createdAt gte it },
                 endDate?.let { OrderVersion::createdAt lte it }
             )
-            return Criteria().andOperator(*criteria.toTypedArray()) scrollTo continuation
+            return Criteria().andOperator(*criteria.toTypedArray()).scrollToContinuation()
         }
 
         private fun tokenCondition(): Criteria {
@@ -78,25 +83,32 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
             )
         }
 
-        override fun withContinuation(continuation: Continuation.Price?): BidByItem {
-            return copy(continuation = continuation)
+        override fun withContinuation(continuation: InternalPriceContinuation?): BidByItem {
+            return copy(internalContinuation = continuation)
         }
 
-        override fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria {
-            return if (continuation == null) {
+        override fun Criteria.scrollToContinuation(): Criteria {
+            // TODO
+            // Internal continuation used for sub-requests only, otherwise - legacy logic
+            // (which are not correct, originally - order hash can't be used in filter)
+            val afterPrice = internalContinuation?.afterPrice ?: continuation?.afterPrice
+            val afterId = internalContinuation?.afterId ?: continuation?.afterId
+
+            // Both of them are null or not null
+            return if (afterPrice == null || afterId == null) {
                 this
             } else {
                 if (currencyId == null) {
                     this.orOperator(
-                        OrderVersion::takePriceUsd lt continuation.afterPrice,
-                        (OrderVersion::takePriceUsd isEqualTo continuation.afterPrice).and("_id")
-                            .lt(continuation.afterId)
+                        OrderVersion::takePriceUsd lt afterPrice,
+                        (OrderVersion::takePriceUsd isEqualTo afterPrice).and("_id")
+                            .lt(afterId)
                     )
                 } else {
                     this.orOperator(
-                        OrderVersion::takePrice lt continuation.afterPrice,
-                        (OrderVersion::takePrice isEqualTo continuation.afterPrice).and("_id")
-                            .lt(continuation.afterId)
+                        OrderVersion::takePrice lt afterPrice,
+                        (OrderVersion::takePrice isEqualTo afterPrice).and("_id")
+                            .lt(afterId)
                     )
                 }
             }
@@ -110,7 +122,8 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         private val startDate: Instant?,
         private val endDate: Instant?,
         private val size: Int,
-        override val continuation: Continuation.Price?
+        override val continuation: Continuation.Price?,
+        val internalContinuation: InternalPriceContinuation? = null
     ) : PriceOrderVersionFilter() {
         override val sort = getSort(null)
         override val limit = size
@@ -125,20 +138,27 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
                 startDate?.let { OrderVersion::createdAt gte it },
                 endDate?.let { OrderVersion::createdAt lte it }
             )
-            return Criteria().andOperator(*criteria.toTypedArray()) scrollTo continuation
+            return Criteria().andOperator(*criteria.toTypedArray()).scrollToContinuation()
         }
 
-        override fun withContinuation(continuation: Continuation.Price?): BidByMaker {
-            return copy(continuation = continuation)
+        override fun withContinuation(continuation: InternalPriceContinuation?): BidByMaker {
+            return copy(internalContinuation = continuation)
         }
 
-        override fun Criteria.scrollTo(continuation: Continuation.Price?): Criteria {
-            return if (continuation == null) {
+        override fun Criteria.scrollToContinuation(): Criteria {
+            // TODO
+            // Internal continuation used for sub-requests only, otherwise - legacy logic
+            // (which are not correct, originally - order hash can't be used in filter)
+            val afterPrice = internalContinuation?.afterPrice ?: continuation?.afterPrice
+            val afterId = internalContinuation?.afterId ?: continuation?.afterId
+
+            // Both of them are null or not null
+            return if (afterPrice == null || afterId == null) {
                 this
             } else {
                 this.orOperator(
-                    OrderVersion::takePriceUsd lt continuation.afterPrice,
-                    (OrderVersion::takePriceUsd isEqualTo continuation.afterPrice).and("_id").lt(continuation.afterId)
+                    OrderVersion::takePriceUsd lt afterPrice,
+                    (OrderVersion::takePriceUsd isEqualTo afterPrice).and("_id").lt(afterId)
                 )
             }
         }
@@ -154,3 +174,11 @@ sealed class PriceOrderVersionFilter : OrderVersionFilter() {
         }
     }
 }
+
+// Workaround for case, when we need to request order versions several times in single request.
+// Continuation with afterId as order hash will NOT work here since _id in order_versions is mongoId
+// and when we use hash of order as part of continuation, it doesn't work
+data class InternalPriceContinuation(
+    val afterPrice: BigDecimal,
+    val afterId: ObjectId
+)

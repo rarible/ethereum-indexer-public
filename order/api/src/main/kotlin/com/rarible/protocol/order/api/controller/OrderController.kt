@@ -542,6 +542,7 @@ class OrderController(
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {
+        // TODO usage of hash here doesn't work ATM
         return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash).toString()
     }
 
