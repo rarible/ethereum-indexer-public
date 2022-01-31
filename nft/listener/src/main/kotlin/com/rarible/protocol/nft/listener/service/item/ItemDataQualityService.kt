@@ -38,7 +38,7 @@ class ItemDataQualityService(
                     val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
                     if (ownershipsValue != item.supply) {
                         logger.info(
-                            "Find potential data corruption for item ${item.id.decimalStringValue}: supply=${item.supply}, ownershipsValue=$ownershipsValue"
+                            "Find potential data corruption for item ${item.id}: supply=${item.supply}, ownershipsValue=$ownershipsValue"
                         )
                         itemDataQualityErrorRegisteredCounter.increment()
                     }
