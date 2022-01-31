@@ -26,9 +26,16 @@ fun createOwnership(
     token: Address,
     creator: Address?,
     owners: Address
+) = createOwnership(token, EthUInt256.ONE, creator, owners)
+
+fun createOwnership(
+    token: Address,
+    tokenId: EthUInt256,
+    creator: Address?,
+    owners: Address,
 ) = Ownership(
     token = token,
-    tokenId = EthUInt256.ONE,
+    tokenId = tokenId,
     value = EthUInt256.TEN,
     lazyValue = EthUInt256.TEN,
     creators = creator?.let { listOf(createPart().copy(account = it)) } ?: listOf(createPart(), createPart()),

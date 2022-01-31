@@ -14,6 +14,7 @@ import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
@@ -38,6 +39,14 @@ class ItemRepository(
     }
 
     suspend fun search(query: Query): List<Item> {
+        return mongo.query<Item>().matching(query)
+            .all()
+            .collectList()
+            .awaitFirst()
+    }
+
+    suspend fun searchByIds(ids: Set<ItemId>): List<Item> {
+        val query = Query(Item::id inValues ids)
         return mongo.query<Item>().matching(query)
             .all()
             .collectList()
