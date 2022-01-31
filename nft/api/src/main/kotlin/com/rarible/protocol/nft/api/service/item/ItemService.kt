@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.service.item
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.convert
+import com.rarible.core.common.mapAsync
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemMetaDto
@@ -24,8 +25,6 @@ import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -95,15 +94,13 @@ class ItemService(
             .associate { ItemId(it.token, it.tokenId) to it.date }
 
         val items = itemRepository.searchByIds(ownerships.keys)
-        items.map { item ->
-            async {
+        items.mapAsync { item ->
                 val meta = itemMetaService.getItemMetadata(item.id)
 
                 // We need to replace item's date with ownership's date due to correct ordering
                 val date = ownerships[item.id] ?: item.date
                 ExtendedItem(item.copy(date = date), meta)
-            }
-        }.awaitAll().sortedBy { it.item.date }.reversed()
+        }.sortedBy { it.item.date }.reversed()
     }
 
     suspend fun search(list: Set<ItemId>): List<ExtendedItem> = coroutineScope {
@@ -112,11 +109,9 @@ class ItemService(
     }
 
     suspend fun toExtend(items: List<Item>): List<ExtendedItem> = coroutineScope {
-        items.map { item ->
-            async {
-                val meta = itemMetaService.getItemMetadata(item.id)
-                ExtendedItem(item, meta)
-            }
-        }.awaitAll()
+        items.mapAsync { item ->
+            val meta = itemMetaService.getItemMetadata(item.id)
+            ExtendedItem(item, meta)
+        }
     }
 }
