@@ -24,6 +24,7 @@ import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
@@ -184,11 +185,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         ownershipRepository.save(ownership).awaitFirst()
 
         val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst()
-        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
-        assertThat(itemDto.contract).isEqualTo(item.token)
-        assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
-        assertThat(itemDto.supply).isEqualTo(item.supply.value)
-        assertThat(itemDto.meta).isNotNull
+        checkDto(itemDto, item)
 
         when (featureFlags.reduceVersion) {
             ReduceVersion.V1 -> {
@@ -421,12 +418,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
         val items = nftItemApiClient.getNftItemsByIds(NftItemIdsDto(listOf(item.id.decimalStringValue))).collectList().awaitFirst()
         assertThat(items).hasSize(1)
-        val itemDto = items[0]
-        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
-        assertThat(itemDto.contract).isEqualTo(item.token)
-        assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
-        assertThat(itemDto.supply).isEqualTo(item.supply.value)
-        assertThat(itemDto.meta).isNotNull
+        checkDto(items[0], item)
     }
 
     @ParameterizedTest
@@ -457,6 +449,14 @@ class ItemControllerFt : SpringContainerBaseTest() {
             }
             else -> throw IllegalArgumentException("Unexpected token standard ${itemLazyMint.standard}")
         }
+    }
+
+    fun checkDto(itemDto: NftItemDto, item: Item) {
+        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
+        assertThat(itemDto.contract).isEqualTo(item.token)
+        assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
+        assertThat(itemDto.supply).isEqualTo(item.supply.value)
+        assertThat(itemDto.meta).isNotNull
     }
 
     // restoring address after tests
