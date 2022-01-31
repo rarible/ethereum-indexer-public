@@ -5,6 +5,7 @@ import com.rarible.core.logging.withMdc
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
@@ -23,6 +24,7 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
@@ -148,6 +150,10 @@ class ItemController(
 
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
+    }
+
+    override fun getNftItemsByIds(nftItemIdsDto: NftItemIdsDto): ResponseEntity<Flow<NftItemDto>> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun getNftItemsByCollection(
