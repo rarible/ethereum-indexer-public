@@ -14,6 +14,7 @@ import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
@@ -81,12 +82,7 @@ class ItemService(
     ): List<ExtendedItem> = coroutineScope {
         val requestSize = PageSize.ITEM.limit(size)
         val items = itemRepository.search(filter.toCriteria(continuation, requestSize))
-        items.map { item ->
-            async {
-                val meta = itemMetaService.getItemMetadata(item.id)
-                ExtendedItem(item, meta)
-            }
-        }.awaitAll()
+        toExtend(items)
     }
 
     suspend fun searchByOwner(
@@ -108,5 +104,19 @@ class ItemService(
                 ExtendedItem(item.copy(date = date), meta)
             }
         }.awaitAll().sortedBy { it.item.date }.reversed()
+    }
+
+    suspend fun search(list: Set<ItemId>): List<ExtendedItem> = coroutineScope {
+        val items = itemRepository.searchByIds(list)
+        toExtend(items)
+    }
+
+    suspend fun toExtend(items: List<Item>): List<ExtendedItem> = coroutineScope {
+        items.map { item ->
+            async {
+                val meta = itemMetaService.getItemMetadata(item.id)
+                ExtendedItem(item, meta)
+            }
+        }.awaitAll()
     }
 }

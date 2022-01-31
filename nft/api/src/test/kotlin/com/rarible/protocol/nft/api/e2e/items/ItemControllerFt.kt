@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
@@ -411,6 +412,21 @@ class ItemControllerFt : SpringContainerBaseTest() {
         // get from api
         val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
         assertEquals(NftItemRoyaltyListDto(listOf(NftItemRoyaltyDto(royalty._1, royalty._2.intValueExact()))), dto)
+    }
+
+    @Test
+    fun `should get item by ids`() = runBlocking<Unit> {
+        val item = createItem()
+        itemRepository.save(item).awaitFirst()
+
+        val items = nftItemApiClient.getNftItemsByIds(NftItemIdsDto(listOf(item.id.decimalStringValue))).collectList().awaitFirst()
+        assertThat(items).hasSize(1)
+        val itemDto = items[0]
+        assertThat(itemDto.id).isEqualTo(item.id.decimalStringValue)
+        assertThat(itemDto.contract).isEqualTo(item.token)
+        assertThat(itemDto.tokenId).isEqualTo(item.tokenId.value)
+        assertThat(itemDto.supply).isEqualTo(item.supply.value)
+        assertThat(itemDto.meta).isNotNull
     }
 
     @ParameterizedTest
