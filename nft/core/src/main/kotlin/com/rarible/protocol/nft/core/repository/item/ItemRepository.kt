@@ -2,12 +2,14 @@ package com.rarible.protocol.nft.core.repository.item
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.repository.item.ItemRepository.Indexes.ALL_INDEXES
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -21,6 +23,12 @@ import scalether.domain.Address
 class ItemRepository(
     private val mongo: ReactiveMongoOperations
 ) {
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            mongo.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
+        }
+    }
+
     fun save(item: Item): Mono<Item> {
         return mongo.save(item)
     }
@@ -59,6 +67,54 @@ class ItemRepository(
             Sort.by(Sort.Direction.ASC, Item::token.name, Item::tokenId.name)
         )
         return mongo.query<Item>().matching(queue).all().asFlow()
+    }
+
+    private object Indexes {
+        val BY_OWNER_DEFINITION: Index = Index()
+            .on(Item::owners.name, Sort.Direction.ASC)
+            .on(Item::date.name, Sort.Direction.DESC)
+            .on("_id", Sort.Direction.DESC)
+            .background()
+
+        val BY_COLLECTION_DEFINITION: Index = Index()
+            .on(Item::token.name, Sort.Direction.ASC)
+            .on(Item::date.name, Sort.Direction.DESC)
+            .on("_id", Sort.Direction.DESC)
+            .background()
+
+        val BY_TOKEN_TOKEN_ID_DEFINITION: Index = Index()
+            .on(Item::token.name, Sort.Direction.ASC)
+            .on(Item::tokenId.name, Sort.Direction.ASC)
+            .on(Item::date.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
+        val BY_RECIPIENT_DEFINITION: Index = Index()
+            .on("${Item::creators.name}.recipient", Sort.Direction.ASC)
+            .on(Item::date.name, Sort.Direction.DESC)
+            .on("_id", Sort.Direction.DESC)
+            .background()
+
+        val FOR_ALL_DEFINITION: Index = Index()
+            .on(Item::date.name, Sort.Direction.DESC)
+            .on("_id", Sort.Direction.DESC)
+            .background()
+
+        val BY_COLLECTION_AND_OWNER_DEFINITION: Index = Index()
+            .on(Item::token.name, Sort.Direction.ASC)
+            .on(Item::owners.name, Sort.Direction.ASC)
+            .on(Item::date.name, Sort.Direction.DESC)
+            .on("_id", Sort.Direction.DESC)
+            .background()
+
+        val ALL_INDEXES = listOf(
+            BY_OWNER_DEFINITION,
+            BY_COLLECTION_DEFINITION,
+            BY_TOKEN_TOKEN_ID_DEFINITION,
+            BY_RECIPIENT_DEFINITION,
+            FOR_ALL_DEFINITION,
+            BY_COLLECTION_AND_OWNER_DEFINITION
+        )
     }
 
     companion object {
