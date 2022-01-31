@@ -1,18 +1,20 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
+import com.rarible.core.logging.RaribleMDCContext
 import com.rarible.core.logging.withMdc
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
-import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemFilterAll
 import com.rarible.protocol.nft.core.model.ItemFilterByCollection
@@ -23,6 +25,9 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
@@ -128,7 +133,10 @@ class ItemController(
     ): ResponseEntity<NftItemsDto> {
         val ownershipContinuation = continuation?.let { c ->
             ItemContinuation.parse(c)?.let {
-                OwnershipContinuation(it.afterDate, OwnershipId(it.afterId.token, it.afterId.tokenId, Address.apply(owner)))
+                OwnershipContinuation(
+                    it.afterDate,
+                    OwnershipId(it.afterId.token, it.afterId.tokenId, Address.apply(owner))
+                )
             }
         }
         val requestSize = PageSize.ITEM.limit(size)
@@ -148,6 +156,14 @@ class ItemController(
 
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
+    }
+
+    override fun getNftItemsByIds(nftItemIdsDto: NftItemIdsDto): ResponseEntity<Flow<NftItemDto>> {
+        val ids = nftItemIdsDto.ids.map { ItemId.parseId(it) }.toSet()
+        val items = flow<NftItemDto> {
+            itemService.search(ids).forEach { emit(conversionService.convert(it)) }
+        }.flowOn(RaribleMDCContext())
+        return ResponseEntity.ok(items)
     }
 
     override suspend fun getNftItemsByCollection(
