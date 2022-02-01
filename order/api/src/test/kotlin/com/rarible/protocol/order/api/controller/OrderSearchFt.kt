@@ -30,6 +30,7 @@ import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.bson.types.ObjectId
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -39,6 +40,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
+import java.util.*
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
 
@@ -204,7 +206,8 @@ class OrderSearchFt : AbstractIntegrationTest() {
     @ParameterizedTest
     @MethodSource("orders4All")
     fun `should find all orders by query`(
-        orders: List<Order>, order: Order, statuses: List<OrderStatusDto>?) = runBlocking<Unit> {
+        orders: List<Order>, order: Order, statuses: List<OrderStatusDto>?
+    ) = runBlocking<Unit> {
         saveOrder(*orders.shuffled().toTypedArray())
 
         Wait.waitAssert {
@@ -217,7 +220,12 @@ class OrderSearchFt : AbstractIntegrationTest() {
     @Test
     fun `should find with SellOrdersByItemAndByStatus`() = runBlocking<Unit> {
         val order1 = createOrderFully()
-        val order2 = createOrderFully().copy(make = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.TEN))
+        val order2 = createOrderFully().copy(
+            make = Asset(
+                Erc721AssetType(AddressFactory.create(), EthUInt256.ONE),
+                EthUInt256.TEN
+            )
+        )
         saveOrder(order1, order2)
 
         Wait.waitAssert {
@@ -320,6 +328,58 @@ class OrderSearchFt : AbstractIntegrationTest() {
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].make.value).isEqualTo(1)
         assertThat(result2.continuation).isNull()
+    }
+
+    @Test
+    fun `should find best bid from versions with same take price`() = runBlocking<Unit> {
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+
+        val order1V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.ONE),
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(1L),
+            // Imitating ordering by ID
+            id = ObjectId(Date(nowMillis().toEpochMilli() - 1000))
+        )
+
+        val order2V = createErc721BidOrderVersion().copy(
+            make = order1V.make,
+            take = order1V.take,
+            takePrice = order1V.takePrice
+        )
+
+        saveOrderVersions(order1V, order2V)
+
+        // orderV1 should be associated with existing active order to be retrieved as ACTIVE
+        val order1 = createOrderFully().copy(hash = order1V.hash)
+        orderRepository.save(order1)
+
+        // Ensure for all statuses we got "historical" order only
+        val result = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            null,
+            null,
+            PlatformDto.ALL,
+            null, 1, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].taker).isEqualTo(order2V.taker)
+
+        // But for ACTIVE order1 should be returned (he saved before order2, so its _id should be second for DESC)
+        val result2 = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            listOf(OrderStatusDto.ACTIVE),
+            null,
+            null,
+            PlatformDto.ALL,
+            null, 1, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result2.orders.size).isEqualTo(1)
+        assertThat(result2.orders[0].taker).isEqualTo(order1V.taker)
     }
 
     @Test

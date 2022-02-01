@@ -2,12 +2,12 @@ package com.rarible.protocol.order.api.service.order
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.order.InternalPriceContinuation
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
@@ -32,7 +32,11 @@ class OrderBidsService(
 
         val foundOrders = hashSetOf<Word>()
         do {
-            val next = if (versions.isNotEmpty()) filter.withContinuation(toContinuation(versions.last(), filter)) else filter
+            val next = if (versions.isNotEmpty()) {
+                filter.withContinuation(toInternalContinuation(versions.last(), filter))
+            } else {
+                filter
+            }
             versions = orderVersionRepository.search(next).collectList().awaitFirst()
 
             val orderHashes = versions.map { it.hash }.toHashSet()
@@ -76,11 +80,12 @@ class OrderBidsService(
         }
     }
 
-    private fun toContinuation(orderVersion: OrderVersion, filter: PriceOrderVersionFilter): Continuation.Price {
+    // Workaround for internal paging - in subrequests we are using RIGHT id for sorting
+    fun toInternalContinuation(orderVersion: OrderVersion, filter: PriceOrderVersionFilter): InternalPriceContinuation {
         if (filter is PriceOrderVersionFilter.BidByItem && filter.currencyId != null) {
-            return Continuation.Price(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.hash)
+            return InternalPriceContinuation(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.id)
         } else {
-            return Continuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.hash)
+            return InternalPriceContinuation(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.id)
         }
     }
 }
