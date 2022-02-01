@@ -99,4 +99,17 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
             ownership1.id.decimalStringValue, ownership2.id.decimalStringValue
         )
     }
+
+    @Test
+    fun `should get ownership by owner`() = runBlocking<Unit> {
+        val ownership = createOwnership()
+        val deletedOwnership = createOwnership().copy(deleted = true)
+        ownershipRepository.save(ownership).awaitFirst()
+        ownershipRepository.save(deletedOwnership).awaitFirst()
+
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipsByOwner(ownership.id.decimalStringValue, null, null).awaitFirst()
+        assertThat(ownershipDto.ownerships).hasSize(1)
+        assertThat(ownershipDto.ownerships[0].id).isEqualTo(ownership.id)
+        assertThat(ownershipDto.continuation).isNull()
+    }
 }

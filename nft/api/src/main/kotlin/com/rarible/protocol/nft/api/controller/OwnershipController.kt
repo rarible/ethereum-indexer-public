@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
+import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import com.rarible.protocol.nft.core.page.PageSize
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
@@ -49,6 +50,16 @@ class OwnershipController(
             Address.apply(contract),
             BigInteger(tokenId)
         )
+        val result = getItems(filter, continuation, size)
+        return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getNftOwnershipsByOwner(
+        owner: String,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<NftOwnershipsDto> {
+        val filter = OwnershipFilterByOwner(defaultSorting, Address.apply(owner))
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
