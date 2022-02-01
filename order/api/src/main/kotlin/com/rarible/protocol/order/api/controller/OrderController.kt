@@ -262,14 +262,16 @@ class OrderController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByCollection(
-            collection = Address.apply(collection),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = listOf(OrderStatusDto.ACTIVE)
-        )
-        val result = searchOrders(filter, continuation, size)
+        // TODO: temporary disable
+//        val filter = OrderFilterSellByCollection(
+//            collection = Address.apply(collection),
+//            origin = safeAddress(origin),
+//            platforms = safePlatforms(platform),
+//            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+//            status = listOf(OrderStatusDto.ACTIVE)
+//        )
+//        val result = searchOrders(filter, continuation, size)
+        val result = OrdersPaginationDto(emptyList(), null)
         return ResponseEntity.ok(result)
     }
 
@@ -281,14 +283,16 @@ class OrderController(
         size: Int?,
         status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByCollection(
-            collection = Address.apply(collection),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status)
-        )
-        val result = searchOrders(filter, continuation, size)
+        // TODO: temporary disable
+//        val filter = OrderFilterSellByCollection(
+//            collection = Address.apply(collection),
+//            origin = safeAddress(origin),
+//            platforms = safePlatforms(platform),
+//            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+//            status = convertStatus(status)
+//        )
+//        val result = searchOrders(filter, continuation, size)
+        val result = OrdersPaginationDto(emptyList(), null)
         return ResponseEntity.ok(result)
     }
 
