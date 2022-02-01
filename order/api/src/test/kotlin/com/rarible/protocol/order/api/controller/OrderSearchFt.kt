@@ -362,7 +362,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             OrderStatusDto.values().toList(),
             null,
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
@@ -375,7 +375,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             listOf(OrderStatusDto.ACTIVE),
             null,
             null,
-            PlatformDto.ALL,
+            null,
             null, 1, currencyToken.hex(), null, null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
