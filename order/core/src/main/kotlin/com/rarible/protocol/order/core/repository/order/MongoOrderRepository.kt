@@ -50,7 +50,6 @@ class MongoOrderRepository(
 
     override suspend fun dropIndexes() {
         dropIndexes(
-            "make.type.nft_1_lastUpdateAt_1__id_1",
             "make.type.token_1_make.type.tokenId_1_lastUpdateAt_1__id_1",
             "end_1_start_1_makeStock_1__id_1",
             "make.type.nft_1_createdAt_1__id_1",  // Incorrect SELL_ORDERS_DEFINITION
