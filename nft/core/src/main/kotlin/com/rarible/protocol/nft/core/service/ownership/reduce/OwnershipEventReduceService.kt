@@ -21,6 +21,8 @@ class OwnershipEventReduceService(
     properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
+
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val id: String = EntityEventListeners.ownershipHistoryListenerId(environmentInfo.name, properties.blockchain)
@@ -35,6 +37,7 @@ class OwnershipEventReduceService(
         withTransaction("onOwnershipEvents", labels = listOf("size" to events.size)) {
             events
                 .flatMap { eventConverter.convert(it.record) }
+                .filter { event -> OwnershipId.parseId(event.entityId).let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         }
     }

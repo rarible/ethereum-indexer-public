@@ -22,6 +22,8 @@ class ItemEventReduceService(
     private val properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
+
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val id: String = EntityEventListeners.itemHistoryListenerId(environmentInfo.name, properties.blockchain)
@@ -38,6 +40,7 @@ class ItemEventReduceService(
                 events
                     .onEach { onNftItemLogEventListener.onLogEvent(it) }
                     .mapNotNull { ItemEventConverter.convert(it.record) }
+                    .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
                     .let { delegate.reduceAll(it) }
             }
         }

@@ -6,6 +6,8 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.TransferEventWithFullData
 import com.rarible.protocol.contracts.TransferEventWithNotFullData
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -21,9 +23,11 @@ import java.time.Instant
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class TransferLogDescriptor(
-    private val tokenRegistrationService: TokenRegistrationService
+    private val tokenRegistrationService: TokenRegistrationService,
+    properties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens
     private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
 
     override val topic: Word = TransferEvent.id()
@@ -38,6 +42,8 @@ class TransferLogDescriptor(
                         else -> TransferEventWithNotFullData.apply(log)
                     }
                     if (e.from() == Address.ZERO() && e.to() == Address.ZERO()) {
+                        Mono.empty()
+                    } else if (ItemId(log.address(), EthUInt256.of(e.tokenId())) in skipTransferContractTokens) {
                         Mono.empty()
                     } else {
                         ItemTransfer(
