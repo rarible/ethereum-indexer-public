@@ -32,7 +32,7 @@ data class NftIndexerProperties(
     val scannerProperties: ScannerProperties = ScannerProperties()
 ) {
     data class ScannerProperties(
-        val skipTransferContractTokens: List<ItemId> = emptyList()
+        val skipTransferContractTokens: List<String> = emptyList()
     )
 
     data class ReduceProperties(

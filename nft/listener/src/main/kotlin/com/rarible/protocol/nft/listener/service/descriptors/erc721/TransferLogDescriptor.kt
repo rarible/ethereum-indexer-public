@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.TransferEventWithFullData
 import com.rarible.protocol.contracts.TransferEventWithNotFullData
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -27,7 +28,7 @@ class TransferLogDescriptor(
     properties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
-    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
 
     override val topic: Word = TransferEvent.id()
