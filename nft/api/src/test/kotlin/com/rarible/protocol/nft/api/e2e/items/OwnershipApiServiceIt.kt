@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
+import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipFilter
@@ -16,6 +17,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.remove
 import scalether.domain.Address
@@ -29,6 +31,25 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
     private lateinit var ownershipApiService: OwnershipApiService
 
     private val defaultSort = OwnershipFilter.Sort.LAST_UPDATE
+
+    @Test
+    fun `should find ownership`() = runBlocking<Unit> {
+        val ownership = createOwnership().copy(deleted = false)
+        ownershipRepository.save(ownership).awaitFirst()
+
+        val savedOwnership = ownershipApiService.get(ownership.id)
+        Assertions.assertThat(savedOwnership.id).isEqualTo(ownership.id.decimalStringValue)
+    }
+
+    @Test
+    fun `should not find deleted ownership`() = runBlocking<Unit> {
+        val ownership = createOwnership().copy(deleted = true)
+        ownershipRepository.save(ownership).awaitFirst()
+
+        assertThrows<EntityNotFoundApiException> {
+            ownershipApiService.get(ownership.id)
+        }
+    }
 
     @Test
     fun `should find all ownerships`() = runBlocking<Unit> {

@@ -6,11 +6,9 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
-import com.rarible.protocol.nft.core.model.EntityEventListeners
-import com.rarible.protocol.nft.core.model.OwnershipEvent
-import com.rarible.protocol.nft.core.model.SubscriberGroup
-import com.rarible.protocol.nft.core.model.SubscriberGroups
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import org.springframework.stereotype.Component
 
@@ -24,6 +22,8 @@ class OwnershipEventReduceService(
     properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
+
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val id: String = EntityEventListeners.ownershipHistoryListenerId(environmentInfo.name, properties.blockchain)
@@ -38,6 +38,7 @@ class OwnershipEventReduceService(
         withTransaction("onOwnershipEvents", labels = listOf("size" to events.size)) {
             events
                 .flatMap { eventConverter.convert(it.record) }
+                .filter { event -> OwnershipId.parseId(event.entityId).let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         }
     }

@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.core.configuration
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.model.FeatureFlags
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemId
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -27,7 +29,11 @@ data class NftIndexerProperties(
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
     val reduceProperties: ReduceProperties = ReduceProperties(),
+    val scannerProperties: ScannerProperties = ScannerProperties()
 ) {
+    data class ScannerProperties(
+        val skipTransferContractTokens: List<String> = emptyList()
+    )
 
     data class ReduceProperties(
         val skipOwnerships: Boolean = false
