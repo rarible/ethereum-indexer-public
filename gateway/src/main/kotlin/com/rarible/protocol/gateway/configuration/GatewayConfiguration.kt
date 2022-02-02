@@ -2,6 +2,9 @@ package com.rarible.protocol.gateway.configuration
 
 import com.rarible.core.autoconfigure.filter.cors.EnableRaribleCorsWebFilter
 import com.rarible.core.autoconfigure.nginx.EnableRaribleNginxExpose
+import com.rarible.protocol.nft.api.client.*
+import com.rarible.protocol.order.api.client.OrderActivityControllerApi
+import com.rarible.protocol.order.api.client.OrderIndexerApiClientFactory
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,8 +18,9 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 @EnableRaribleCorsWebFilter
 @EnableRaribleNginxExpose
 @EnableConfigurationProperties(GatewayProperties::class)
-class GatewayConfiguration {
-
+class GatewayConfiguration(
+    private val properties: GatewayProperties
+) {
     @Bean
     fun corsFilter(corsConfigurationSource: CorsConfigurationSource): CorsWebFilter {
         return CorsWebFilter(corsConfigurationSource)
@@ -31,5 +35,15 @@ class GatewayConfiguration {
         config.maxAge = 3600
         source.registerCorsConfiguration("/**", config)
         return source
+    }
+
+    @Bean
+    fun nftActivityControllerApi(nftIndexerApiClientFactory: NftIndexerApiClientFactory): NftActivityControllerApi {
+        return nftIndexerApiClientFactory.createNftActivityApiClient(properties.blockchain.value)
+    }
+
+    @Bean
+    fun orderActivityControllerApi(orderIndexerApiClientFactory: OrderIndexerApiClientFactory): OrderActivityControllerApi {
+        return orderIndexerApiClientFactory.createOrderActivityApiClient(properties.blockchain.value)
     }
 }

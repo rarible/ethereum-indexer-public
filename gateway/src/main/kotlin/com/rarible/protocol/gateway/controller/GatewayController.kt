@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class GatewayController(
-    private val properties: GatewayProperties,
+    properties: GatewayProperties,
     private val transactionService: TransactionService
 ) : GatewayControllerApi {
     private val blockchain = properties.blockchain
