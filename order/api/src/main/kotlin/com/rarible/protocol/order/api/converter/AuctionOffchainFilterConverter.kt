@@ -30,7 +30,13 @@ class AuctionOffchainFilterConverter {
                     else -> listOf()
                 }
             }
-            is AuctionActivityFilterByUserDto -> emptyList()
+            is AuctionActivityFilterByUserDto -> source.types.flatMap {
+                when (it) {
+                    AuctionActivityFilterByUserDto.Types.STARTED -> listOf(AuctionOffchainByUser.Started(source.users ?: emptyList(), continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.ENDED -> listOf(AuctionOffchainByUser.Ended(source.users ?: emptyList(), continuation, sort))
+                    else -> listOf()
+                }
+            }
             is AuctionActivityFilterByItemDto -> source.types.flatMap {
                 when (it) {
                     AuctionActivityFilterByItemDto.Types.STARTED -> listOf(AuctionOffchainByItem.Started(source.contract, EthUInt256.of(source.tokenId), continuation, sort))

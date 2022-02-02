@@ -2,18 +2,18 @@ package com.rarible.protocol.gateway
 
 import com.rarible.protocol.erc20.api.client.Erc20IndexerApiServiceUriProvider
 import com.rarible.protocol.erc20.api.client.FixedErc20IndexerApiServiceUriProvider
-import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
-import com.rarible.protocol.nft.api.client.NftIndexerApiServiceUriProvider
-import com.rarible.protocol.nftorder.api.client.FixedNftOrderApiServiceUriProvider
-import com.rarible.protocol.nftorder.api.client.NftOrderApiServiceUriProvider
+import com.rarible.protocol.nft.api.client.*
 import com.rarible.protocol.order.api.client.FixedOrderIndexerApiServiceUriProvider
+import com.rarible.protocol.order.api.client.OrderActivityControllerApi
 import com.rarible.protocol.order.api.client.OrderIndexerApiServiceUriProvider
 import com.rarible.protocol.unlockable.api.client.SwarmUnlockableApiServiceUriProvider
 import com.rarible.protocol.unlockable.api.client.UnlockableApiServiceUriProvider
+import io.mockk.mockk
 import org.mockserver.client.MockServerClient
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 import org.springframework.web.client.RestTemplate
 import org.testcontainers.containers.MockServerContainer
 import org.testcontainers.utility.DockerImageName
@@ -49,14 +49,17 @@ class TestPropertiesConfiguration {
     }
 
     @Bean
-    fun nftOrderApiServiceUriProvider(): NftOrderApiServiceUriProvider {
-        return FixedNftOrderApiServiceUriProvider(URI.create(nftOrderMockServer.endpoint))
-    }
-
-    @Bean
     fun unlockableApiServiceUriProvider(): UnlockableApiServiceUriProvider {
         return SwarmUnlockableApiServiceUriProvider("e2e")
     }
+
+    @Bean
+    @Primary
+    fun testNftActivityControllerApi(): NftActivityControllerApi = mockk()
+
+    @Bean
+    @Primary
+    fun testOrderActivityControllerApi(): OrderActivityControllerApi = mockk()
 
     @Bean
     fun testRestTemplate(): RestTemplate {

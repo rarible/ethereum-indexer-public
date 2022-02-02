@@ -1,5 +1,0 @@
-spring:
-  data:
-    mongodb:
-      uri: mongodb://${mongodb.hosts}
-      database: ${mongodb.database}

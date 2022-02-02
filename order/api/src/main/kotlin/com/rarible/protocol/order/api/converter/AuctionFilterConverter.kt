@@ -40,6 +40,7 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterByUserDto.Types.CREATED -> listOf(AuctionByUser.Created(source.users ?: emptyList(), from, to, continuation, sort))
                     AuctionActivityFilterByUserDto.Types.BID -> listOf(AuctionByUser.Bid(source.users ?: emptyList(), from, to, continuation, sort))
                     AuctionActivityFilterByUserDto.Types.CANCEL -> listOf(AuctionByUser.Cancel(source.users ?: emptyList(), from, to, continuation, sort))
+                    AuctionActivityFilterByUserDto.Types.FINISHED -> listOf(AuctionByUser.Finished(source.users ?: emptyList(), from, to, continuation, sort))
                     else -> emptyList()
                 }
             }

@@ -24,52 +24,17 @@ class ProtocolRouteLocator(
         val blockchain = properties.blockchain
 
         nftIndexerApiV1(uriProvider.getNftIndexerApiUri(blockchain))
-        nftOrderApiV1(uriProvider.getNftIndexerApiUri(blockchain))
-        nftOrderOriginApiV1(uriProvider.getNftOrderApiUri(blockchain))
         orderIndexerApiV1(uriProvider.getOrderIndexerApiUri(blockchain))
         erc20IndexerApiV1(uriProvider.getErc20IndexerApiUri(blockchain))
         unlockableApiV1(uriProvider.getUnlockableApiUri(blockchain))
     }.routes
 
-    private fun RouteLocatorDsl.nftIndexerApiV1(nftIndexerApiUri: URI) {
+    private fun RouteLocatorDsl.nftIndexerApiV1(nftOrderApiUri: URI) {
         route("nft-indexer-api-v1-get-post") {
-            path(
-                "/v0.1/nft/items/*/meta",
-                "/v0.1/nft/items/*/resetMeta",
-                "/v0.1/nft/items/*/lazy",
-                "/v0.1/nft/mints",
-                "/v0.1/nft/collections/**"
-            ).and(method(HttpMethod.GET, HttpMethod.POST, HttpMethod.DELETE))
-
-            filters {
-                rewritePath(
-                    "/v0.1/nft/(?<segment>.*)",
-                    "/v0.1/\${segment}"
-                )
-            }
-            uri(nftIndexerApiUri)
-        }
-    }
-
-    private fun RouteLocatorDsl.nftOrderApiV1(nftOrderApiUri: URI) {
-        route("nft-order-api-v1-get-post") {
             path("/v0.1/nft/**").and(method(HttpMethod.GET, HttpMethod.POST))
             filters {
                 rewritePath(
                     "/v0.1/nft/(?<segment>.*)",
-                    "/v0.1/\${segment}"
-                )
-            }
-            uri(nftOrderApiUri)
-        }
-    }
-
-    private fun RouteLocatorDsl.nftOrderOriginApiV1(nftOrderApiUri: URI) {
-        route("nft-order-api-v1-get-post-origin") {
-            path("/v0.1/nft-order/**").and(method(HttpMethod.GET, HttpMethod.POST))
-            filters {
-                rewritePath(
-                    "/v0.1/nft-order/(?<segment>.*)",
                     "/v0.1/\${segment}"
                 )
             }
