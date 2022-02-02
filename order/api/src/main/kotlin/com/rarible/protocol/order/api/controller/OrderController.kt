@@ -28,6 +28,7 @@ import com.rarible.protocol.order.core.converters.model.AssetConverter
 import com.rarible.protocol.order.core.converters.model.OrderSortDtoConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
+import com.rarible.protocol.order.core.converters.model.StatusFeaturedFilter
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -75,6 +76,7 @@ class OrderController(
 ) : OrderControllerApi {
 
     private val platformFeaturedFilter = PlatformFeaturedFilter(orderIndexerProperties.featureFlags)
+    private val statusFeaturedFilter = StatusFeaturedFilter(orderIndexerProperties.featureFlags)
 
     @PostMapping(
         value = ["/v0.1/orders/{hash}/reduce"],
@@ -248,7 +250,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilter.Sort.MAKE_PRICE_ASC,
-            status = convertStatus(status),
+            status = convertStatus(statusFeaturedFilter.filter(status)),
             currency = currencyId?.let { Address.apply(currencyId) }
         )
         val result = searchOrders(filter, continuation, size)
@@ -286,7 +288,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status)
+            status = convertStatus(statusFeaturedFilter.filter(status))
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -323,7 +325,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(status)
+            status = convertStatus(statusFeaturedFilter.filter(status))
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -341,7 +343,7 @@ class OrderController(
             origin = safeAddress(origin),
             platforms = safePlatforms(platform),
             sort = convert(sort),
-            status = convertStatus(status)
+            status = convertStatus(statusFeaturedFilter.filter(status))
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
