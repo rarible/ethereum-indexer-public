@@ -39,6 +39,7 @@ class AuctionDtoConverter(
                 buyPriceUsd = source.buyPriceUsd,
                 pending = emptyList(),
                 status = AuctionStatusDtoConverter.convert(source.status),
+                ongoing = source.ongoing,
                 hash = source.hash,
                 auctionId = source.auctionId.value,
                 lastBid = source.lastBid?.let { lastBid ->
