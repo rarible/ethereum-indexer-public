@@ -58,6 +58,7 @@ listener:
   updateStatusByStartEndEnabled: false
   updateAuctionOngoingState: PT1M
   updateAuctionOngoingStateEnabled: false
+  updateAuctionOngoingStateEndLag: PT5M
   openSeaEndpoint: "https://api.opensea.io"
   metricJobStartEnd: "${common.metric-root-path}.job-start-end"
 
