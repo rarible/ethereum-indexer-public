@@ -6,7 +6,6 @@ import com.rarible.protocol.dto.AuctionUpdateEventDto
 import com.rarible.protocol.order.core.converters.dto.AuctionDtoConverter
 import com.rarible.protocol.order.core.model.Auction
 import com.rarible.protocol.order.core.producer.ProtocolAuctionPublisher
-import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -25,11 +24,12 @@ class AuctionListener(
         )
     }
 
-    suspend fun onAuctionDelete(hash: Word) {
+    suspend fun onAuctionDelete(auction: Auction) {
         publish(
             AuctionDeleteEventDto(
-                eventId = hash.prefixed(),
-                auctionId = hash.hex()
+                eventId = auction.hash.prefixed(),
+                auctionId = auction.hash.prefixed(),
+                auction = auctionDtoConverter.convert(auction)
             )
         )
     }
