@@ -1,3 +1,5 @@
+common:
+  chain-id: 137
 spring:
   data:
     mongodb:
