@@ -147,6 +147,16 @@ sealed class AuctionByUser(
         override val extraCriteria = (LogEvent::data / AuctionCancelled::seller).inValues(users)
     }
 
+    class Finished(
+        val users: List<Address>,
+        override val from: Instant?,
+        override val to: Instant?,
+        continuation: String?,
+        sort: AuctionActivitySort
+    ) : AuctionByUser(AuctionHistoryType.AUCTION_FINISHED, continuation, sort) {
+        override val extraCriteria = (LogEvent::data / AuctionFinished::seller).inValues(users)
+    }
+
     private fun Criteria.dateBoundary(
         activitySort: AuctionActivitySort,
         continuation: String?,

@@ -11,6 +11,8 @@ import com.rarible.protocol.nft.core.model.EntityEventListeners
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
+import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Component
@@ -25,6 +27,8 @@ class ItemEventReduceService(
     private val properties: NftIndexerProperties,
     environmentInfo: ApplicationEnvironmentInfo
 ) : EntityEventListener {
+
+    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     override val id: String = EntityEventListeners.itemHistoryListenerId(environmentInfo.name, properties.blockchain)
@@ -41,6 +45,7 @@ class ItemEventReduceService(
                 events
                     .onEach { onNftItemLogEventListener.onLogEvent(it) }
                     .mapNotNull { ItemEventConverter.convert(it.record) }
+                    .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
                     .let { delegate.reduceAll(it) }
             }
         }

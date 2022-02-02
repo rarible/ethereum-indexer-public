@@ -239,6 +239,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 seller = auction.seller,
                                 date = now.plus(2, ChronoUnit.MINUTES)
                             )
+                        ),
+                        createAuctionLogEvent(
+                            randomFinished(auction.contract, auction.auctionId).copy(
+                                seller = auction.seller,
+                                date = now.plus(1, ChronoUnit.MINUTES)
+                            )
                         )
                     ).asReversed(),
                     randomLogList(randomAuctions),
@@ -247,7 +253,8 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                         listOf(
                             AuctionActivityFilterByUserDto.Types.CREATED,
                             AuctionActivityFilterByUserDto.Types.BID,
-                            AuctionActivityFilterByUserDto.Types.CANCEL
+                            AuctionActivityFilterByUserDto.Types.CANCEL,
+                            AuctionActivityFilterByUserDto.Types.FINISHED
                         )
                     ),
                     ActivitySortDto.EARLIEST_FIRST

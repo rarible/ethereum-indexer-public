@@ -64,10 +64,6 @@
             <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-unlockable-starter</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.rarible.protocol.ethereum</groupId>
-            <artifactId>protocol-client-nft-order-starter</artifactId>
-        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>
@@ -126,6 +122,11 @@
         <dependency>
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-test-common</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.rarible.protocol.ethereum</groupId>
+            <artifactId>protocol-client-nft-order</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

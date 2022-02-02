@@ -1,4 +1,0 @@
-rarible:
-  core:
-    nginx-expose:
-      server: api-staging.rarible.com
