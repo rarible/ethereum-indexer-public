@@ -11,8 +11,10 @@ class StatusFeaturedFilter(
     fun filter(statuses: List<OrderStatusDto>?): List<OrderStatusDto>? {
         return when {
             statuses.isNullOrEmpty() && !featureFlags.hideInactiveOrders -> null
-            statuses.isNullOrEmpty() && featureFlags.hideInactiveOrders -> OrderStatusDto.values().toList().filter { it != OrderStatusDto.INACTIVE }
-            statuses?.isNotEmpty() == true && featureFlags.hideInactiveOrders -> statuses.filter { it != OrderStatusDto.INACTIVE }
+            statuses.isNullOrEmpty() && featureFlags.hideInactiveOrders -> OrderStatusDto.values().toList()
+                .filter { !listOf(OrderStatusDto.INACTIVE, OrderStatusDto.HISTORICAL).contains(it) }
+            statuses?.isNotEmpty() == true && featureFlags.hideInactiveOrders -> statuses
+                .filter { !listOf(OrderStatusDto.INACTIVE, OrderStatusDto.HISTORICAL).contains(it) }
             else -> statuses
         }
     }
