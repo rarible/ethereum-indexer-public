@@ -1,4 +1,0 @@
-rarible:
-  core:
-    nginx-expose:
-      server: api-dev.rarible.com
