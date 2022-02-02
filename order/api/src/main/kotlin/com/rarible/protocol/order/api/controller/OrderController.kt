@@ -243,18 +243,19 @@ class OrderController(
         status: List<OrderStatusDto>?,
         currencyId: String?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByItem(
-            contract = Address.apply(contract),
-            tokenId = BigInteger(tokenId),
-            maker = safeAddress(maker),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.MAKE_PRICE_ASC,
-            status = convertStatus(statusFeaturedFilter.filter(status)),
-            currency = currencyId?.let { Address.apply(currencyId) }
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
+        return filterInactive(status) { statuses ->
+            val filter = OrderFilterSellByItem(
+                contract = Address.apply(contract),
+                tokenId = BigInteger(tokenId),
+                maker = safeAddress(maker),
+                origin = safeAddress(origin),
+                platforms = safePlatforms(platform),
+                sort = OrderFilter.Sort.MAKE_PRICE_ASC,
+                status = convertStatus(statuses),
+                currency = currencyId?.let { Address.apply(currencyId) }
+            )
+            searchOrders(filter, continuation, size)
+        }
     }
 
     override suspend fun getSellOrdersByCollection(
@@ -283,15 +284,16 @@ class OrderController(
         size: Int?,
         status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByCollection(
-            collection = Address.apply(collection),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(statusFeaturedFilter.filter(status))
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
+        return filterInactive(status) { statuses ->
+            val filter = OrderFilterSellByCollection(
+                collection = Address.apply(collection),
+                origin = safeAddress(origin),
+                platforms = safePlatforms(platform),
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                status = convertStatus(statuses)
+            )
+            searchOrders(filter, continuation, size)
+        }
     }
 
     override suspend fun getSellOrdersByMaker(
@@ -320,15 +322,16 @@ class OrderController(
         size: Int?,
         status: List<OrderStatusDto>?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByMaker(
-            maker = Address.apply(maker),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilter.Sort.LAST_UPDATE_DESC,
-            status = convertStatus(statusFeaturedFilter.filter(status))
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
+        return filterInactive(status) { statuses ->
+            val filter = OrderFilterSellByMaker(
+                maker = Address.apply(maker),
+                origin = safeAddress(origin),
+                platforms = safePlatforms(platform),
+                sort = OrderFilter.Sort.LAST_UPDATE_DESC,
+                status = convertStatus(statuses)
+            )
+            searchOrders(filter, continuation, size)
+        }
     }
 
     override suspend fun getSellOrdersByStatus(
@@ -339,14 +342,15 @@ class OrderController(
         status: List<OrderStatusDto>?,
         sort: OrderSortDto?
     ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSell(
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = convert(sort),
-            status = convertStatus(statusFeaturedFilter.filter(status))
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
+        return filterInactive(status) { statuses ->
+            val filter = OrderFilterSell(
+                origin = safeAddress(origin),
+                platforms = safePlatforms(platform),
+                sort = convert(sort),
+                status = convertStatus(statuses)
+            )
+            searchOrders(filter, continuation, size)
+        }
     }
 
     override suspend fun getOrderBidsByItem(
@@ -522,6 +526,19 @@ class OrderController(
                 }
             }
         }).toString()
+    }
+
+    private suspend fun filterInactive(
+        statuses: List<OrderStatusDto>?,
+        call: suspend (statuses: List<OrderStatusDto>?) -> OrdersPaginationDto
+    ): ResponseEntity<OrdersPaginationDto> {
+        val result = if (statusFeaturedFilter.emptyResponse(statuses)) {
+            OrdersPaginationDto(listOf(), null)
+        } else {
+            val filtered = statusFeaturedFilter.filter(statuses)
+            call(filtered)
+        }
+        return ResponseEntity.ok(result)
     }
 
     private fun safeAddress(value: String?): Address? {

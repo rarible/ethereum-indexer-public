@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.core.converters.model
 
+import com.mongodb.assertions.Assertions.assertFalse
+import com.mongodb.assertions.Assertions.assertTrue
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import org.assertj.core.api.Assertions.assertThat
@@ -57,5 +59,40 @@ class StatusFeaturedFilterTest {
                 OrderStatusDto.HISTORICAL
             )
         )
+    }
+
+    @Test
+    fun `show nothing, hide is enabled`() {
+        val filter = StatusFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                hideInactiveOrders = true
+            )
+        )
+        val allStatuses = filter.filter(listOf(OrderStatusDto.INACTIVE))
+        assertThat(allStatuses).containsAll(listOf())
+    }
+
+    @Test
+    fun `empty response, hide is enabled`() {
+        val filter = StatusFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                hideInactiveOrders = true
+            )
+        )
+        assertTrue(filter.emptyResponse(listOf(OrderStatusDto.INACTIVE)))
+        assertFalse(filter.emptyResponse(listOf(OrderStatusDto.ACTIVE)))
+        assertFalse(filter.emptyResponse(listOf()))
+    }
+
+    @Test
+    fun `not empty response, hide is disabled`() {
+        val filter = StatusFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                hideInactiveOrders = false
+            )
+        )
+        assertFalse(filter.emptyResponse(listOf(OrderStatusDto.INACTIVE)))
+        assertFalse(filter.emptyResponse(listOf(OrderStatusDto.ACTIVE)))
+        assertFalse(filter.emptyResponse(listOf()))
     }
 }

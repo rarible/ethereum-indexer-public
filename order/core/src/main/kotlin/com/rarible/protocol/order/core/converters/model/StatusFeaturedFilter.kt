@@ -16,4 +16,8 @@ class StatusFeaturedFilter(
             else -> statuses
         }
     }
+
+    fun emptyResponse(statuses: List<OrderStatusDto>?): Boolean {
+        return statuses?.isNotEmpty() == true && statuses == listOf(OrderStatusDto.INACTIVE) && featureFlags.hideInactiveOrders
+    }
 }
