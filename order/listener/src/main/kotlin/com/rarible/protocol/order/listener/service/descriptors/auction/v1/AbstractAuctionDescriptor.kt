@@ -41,9 +41,10 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
     }
 
     protected companion object {
-        fun Tuple3<BigInteger, ByteArray, ByteArray>.toAuctionBid(): Bid {
-            return when (val bidData = BidData.decode(Binary.apply(_2()), Binary.apply(_3()))) {
-                is BidDataV1 -> BidV1(EthUInt256.of(_1()), bidData)
+
+        fun toBid(tuple: Tuple3<BigInteger, ByteArray, ByteArray>, date: Instant): Bid {
+            return when (val bidData = BidData.decode(Binary.apply(tuple._2()), Binary.apply(tuple._3()))) {
+                is BidDataV1 -> BidV1(EthUInt256.of(tuple._1()), bidData, date)
             }
         }
 
@@ -52,7 +53,6 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
         ): ContractAuction {
             val sell = Asset(auction._1()._1().toAssetType(), EthUInt256(auction._1()._2()))
             val buy = auction._2().toAssetType()
-            val lastBid = auction._3().takeUnless { bid -> bid._1() == BigInteger.ZERO }?.toAuctionBid()
             val seller = auction._4()
             val buyer = auction._5().takeUnless { buyer -> buyer == Address.ZERO() }
             val endTime = auction._6().takeUnless { endTime -> endTime == BigInteger.ZERO }
@@ -66,7 +66,7 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
                 buyer = buyer,
                 sell = sell,
                 buy = buy,
-                lastBid = lastBid,
+                lastBid = null,
                 endTime = endTime?.let { Instant.ofEpochSecond(endTime.toLong()) },
                 minimalStep = EthUInt256.of(minimalStep),
                 minimalPrice = EthUInt256.of(minimalPrice),

@@ -32,10 +32,19 @@ class AuctionService(
                     id = logs.id.toHexString(),
                     bid = bidPlaced.bid,
                     buyer = bidPlaced.buyer,
-                    buy = auction.buy
+                    buy = auction.buy,
+                    date = bidPlaced.date,
+                    status = status(auction, bidPlaced.bid)
                 )
             }
             .collectList().awaitFirst()
+    }
+
+    fun status(auction: Auction, bid: Bid): AuctionBidEntity.Status {
+        return when {
+            auction.lastBid == bid -> AuctionBidEntity.Status.ACTIVE
+            else -> AuctionBidEntity.Status.HISTORICAL
+        }
     }
 
     fun getAll(hashes: List<Word>): Flow<Auction> {

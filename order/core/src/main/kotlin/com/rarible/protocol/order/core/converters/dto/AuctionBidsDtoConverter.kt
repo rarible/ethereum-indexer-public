@@ -11,7 +11,7 @@ class AuctionBidsDtoConverter(
     suspend fun convert(source: AuctionBidEntity): AuctionBidEntityDto {
         return AuctionBidEntityDto(
             id = source.id,
-            dto = auctionBidDtoConverter.convert(source.buy, source.buyer, source.bid)
+            dto = auctionBidDtoConverter.convert(source.buy, source.buyer, source.bid, source.date, source.status)
         )
     }
 }

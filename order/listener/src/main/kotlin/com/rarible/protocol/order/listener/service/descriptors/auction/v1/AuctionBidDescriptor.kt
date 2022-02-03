@@ -26,7 +26,7 @@ class AuctionBidDescriptor(
         val buyer = event.buyer()
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
-        val bid = event.bid().toAuctionBid()
+        val bid = toBid(event.bid(), date)
         val endTime = EthUInt256.of(event.endTime())
         val hash = Auction.raribleV1HashKey(contract, auctionId)
         val auction = auctionRepository.findById(hash)
