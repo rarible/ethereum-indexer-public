@@ -40,6 +40,7 @@ import org.springframework.data.mongodb.core.query.lt
 import org.springframework.data.mongodb.core.remove
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.time.Duration
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -89,12 +90,12 @@ class AuctionRepository(
         return findIds(criteria, BY_STATUS_AND_ONGOING_AND_END_DATE_DEFINITION.indexKeys)
     }
 
-    fun findEndedNotUpdatedIds(): Flow<Word> {
+    fun findEndedNotUpdatedIds(endLag: Duration): Flow<Word> {
         val now = nowMillis()
         val criteria = Criteria().andOperator(
             Auction::status isEqualTo AuctionStatus.ACTIVE,
             Auction::ongoing isEqualTo true,
-            Auction::endTime gt now
+            Auction::endTime gt now.plusSeconds(endLag.seconds)
         )
         return findIds(criteria, BY_STATUS_AND_ONGOING_AND_END_DATE_DEFINITION.indexKeys)
     }

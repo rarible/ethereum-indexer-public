@@ -45,8 +45,7 @@ class StatusFeaturedFilterTest {
             listOf(
                 OrderStatusDto.ACTIVE,
                 OrderStatusDto.CANCELLED,
-                OrderStatusDto.FILLED,
-                OrderStatusDto.HISTORICAL
+                OrderStatusDto.FILLED
             )
         )
 
@@ -55,8 +54,7 @@ class StatusFeaturedFilterTest {
             listOf(
                 OrderStatusDto.ACTIVE,
                 OrderStatusDto.CANCELLED,
-                OrderStatusDto.FILLED,
-                OrderStatusDto.HISTORICAL
+                OrderStatusDto.FILLED
             )
         )
     }

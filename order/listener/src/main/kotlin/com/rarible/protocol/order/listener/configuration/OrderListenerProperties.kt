@@ -20,6 +20,7 @@ data class OrderListenerProperties(
     val openSeaOrderSide: OrderSide? = null,
     val updateStatusByStartEndEnabled: Boolean = false,
     val updateAuctionOngoingStateEnabled: Boolean = false,
+    val updateAuctionOngoingStateEndLag: Duration = Duration.ofMinutes(5),
     val openSeaClientUserAgents: String = "",
     val metricJobStartEnd: String = ""
 ) {

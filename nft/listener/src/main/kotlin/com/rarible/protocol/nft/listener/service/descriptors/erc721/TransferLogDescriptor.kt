@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Service
@@ -25,15 +26,20 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
-    properties: NftIndexerProperties
+    indexerProperties: NftIndexerProperties,
+    listenerProperties: NftListenerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
-    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+    private val skipContracts = listenerProperties.skipTransferContracts.map { Address.apply(it) }
+    private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val ignoredStandards = listOf(TokenStandard.NONE, TokenStandard.CRYPTO_PUNKS)
 
     override val topic: Word = TransferEvent.id()
 
     override fun convert(log: Log, date: Instant): Mono<ItemTransfer> {
+        if (log.address() in skipContracts) {
+            return Mono.empty()
+        }
         return tokenRegistrationService.getTokenStandard(log.address())
             .flatMap { standard ->
                 if (standard !in ignoredStandards) {

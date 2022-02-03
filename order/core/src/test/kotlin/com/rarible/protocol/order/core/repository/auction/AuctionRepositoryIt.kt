@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.test.context.ContextConfiguration
+import java.time.Duration
 
 @MongoTest
 @MongoCleanup
@@ -65,9 +66,15 @@ class AuctionRepositoryIt {
         val now = nowMillis()
         val before = now.minusSeconds(60)
         val after = now.plusSeconds(60)
+        val afterWithLag = now.plusSeconds(360)
 
         // candidates to set ongoing = false
-        val ended = auctionRepository.save(randomAuction().copy(startTime = before, endTime = after, ongoing = true))
+        val endedRecently = auctionRepository.save(
+            randomAuction().copy(startTime = before, endTime = after, ongoing = true)
+        )
+        val ended = auctionRepository.save(
+            randomAuction().copy(startTime = before, endTime = afterWithLag, ongoing = true)
+        )
 
         // already updated, should not be returned
         auctionRepository.save(randomAuction().copy(startTime = null, endTime = after, ongoing = false))
@@ -84,7 +91,8 @@ class AuctionRepositoryIt {
             )
         )
 
-        val ongoingNotUpdated = auctionRepository.findEndedNotUpdatedIds().toList()
+        val lag = Duration.ofMinutes(5)
+        val ongoingNotUpdated = auctionRepository.findEndedNotUpdatedIds(lag).toList()
 
         assertThat(ongoingNotUpdated).contains(ended.hash)
         assertThat(ongoingNotUpdated).hasSize(1)
