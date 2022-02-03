@@ -3,12 +3,10 @@ package com.rarible.protocol.order.core.data
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.AssetDto
-import com.rarible.protocol.dto.Erc20AssetTypeDto
-import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
-import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
@@ -133,6 +131,12 @@ fun createOrderSideMatch(): OrderSideMatch {
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
 fun randomErc1155(value: EthUInt256) = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), value)
+
+fun randomErc721() = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), EthUInt256.ONE)
+
+fun randomPart() = Part(randomAddress(), EthUInt256(randomBigInt()))
+
+fun randomPartDto() = PartDto(randomAddress(), randomInt())
 
 fun randomErc1155LazyAssetType() =
     Erc1155LazyAssetType(

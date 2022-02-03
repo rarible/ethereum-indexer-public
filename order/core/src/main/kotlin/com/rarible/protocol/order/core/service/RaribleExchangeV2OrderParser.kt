@@ -6,20 +6,8 @@ import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.OnChainOrder
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderData
-import com.rarible.protocol.order.core.model.OrderDataVersion
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
-import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.model.RaribleMatchedOrders
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
-import com.rarible.protocol.order.core.model.toAssetType
-import com.rarible.protocol.order.core.model.toPart
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -47,15 +35,15 @@ class RaribleExchangeV2OrderParser(
         return inputs.map { parseMatchedOrders(it) }.firstOrNull { orders ->
             val leftHash = Order.hashKey(
                 event.leftMaker(),
-                leftAssetType,
-                rightAssetType,
+                if (orders.left.makeAssetType.isCollection) leftAssetType.tryToConvertInCollection() else leftAssetType,
+                if (orders.left.takeAssetType.isCollection) rightAssetType.tryToConvertInCollection() else rightAssetType,
                 orders.left.salt.value,
                 orders.left.data
             )
             val rightHash = Order.hashKey(
                 event.rightMaker(),
-                rightAssetType,
-                leftAssetType,
+                if (orders.right.makeAssetType.isCollection) rightAssetType.tryToConvertInCollection() else rightAssetType,
+                if (orders.right.takeAssetType.isCollection) leftAssetType.tryToConvertInCollection() else leftAssetType,
                 orders.right.salt.value,
                 orders.right.data
             )
@@ -158,6 +146,19 @@ class RaribleExchangeV2OrderParser(
             else -> throw IllegalArgumentException("Unsupported order data version $version")
         }
     }
+
+    private fun AssetType.tryToConvertInCollection(): AssetType {
+        return when (this) {
+            is NftAssetType -> CollectionAssetType(token)
+            is CollectionAssetType,
+            is Erc20AssetType,
+            is EthAssetType,
+            is GenerativeArtAssetType -> this
+        }
+    }
+
+    private val AssetType.isCollection: Boolean
+        get() = this is CollectionAssetType
 
     private companion object {
         val WRONG_ENCODED_ORDER_RARIBLE_V2_DATA_V1_PREFIX: Binary =
