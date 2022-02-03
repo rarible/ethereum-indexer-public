@@ -41,7 +41,6 @@ class RaribleExchangeV2OrderParser(
             exchangeContractAddresses.v2,
             signature.id()
         )
-
         val leftAssetType = event.leftAsset().toAssetType()
         val rightAssetType = event.rightAsset().toAssetType()
 
@@ -69,6 +68,8 @@ class RaribleExchangeV2OrderParser(
         val decoded = signature.`in`().decode(input, 4)
         return RaribleMatchedOrders(
             left = SimpleOrder(
+                makeAssetType = decoded.value()._1()._2()._1().toAssetType(),
+                takeAssetType = decoded.value()._1()._4()._1().toAssetType(),
                 data = convertOrderData(
                     version = Binary.apply(decoded.value()._1()._8()),
                     data = Binary.apply(decoded.value()._1()._9())
@@ -76,6 +77,8 @@ class RaribleExchangeV2OrderParser(
                 salt = EthUInt256.of(decoded.value()._1()._5())
             ),
             right = SimpleOrder(
+                makeAssetType = decoded.value()._3()._2()._1().toAssetType(),
+                takeAssetType = decoded.value()._3()._4()._1().toAssetType(),
                 data = convertOrderData(
                     version = Binary.apply(decoded.value()._3()._8()),
                     data = Binary.apply(decoded.value()._3()._9())

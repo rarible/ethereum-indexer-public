@@ -7,6 +7,8 @@ data class RaribleMatchedOrders(
     val right: SimpleOrder
 ) {
     data class SimpleOrder(
+        val makeAssetType: AssetType,
+        val takeAssetType: AssetType,
         val data: OrderData,
         val salt: EthUInt256
     )
