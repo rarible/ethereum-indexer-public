@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service.auction
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.order.core.data.randomAuction
 import com.rarible.protocol.order.core.event.AuctionListener
+import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.model.AuctionStatus
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import io.mockk.coEvery
@@ -16,10 +17,12 @@ class AuctionUpdateServiceTest {
 
     private val auctionRepository: AuctionRepository = mockk()
     private val auctionListener: AuctionListener = mockk()
+    private val auctionStateService: AuctionStateService = mockk()
 
     private val auctionUpdateService = AuctionUpdateService(
         auctionRepository,
-        listOf(auctionListener)
+        listOf(auctionListener),
+        auctionStateService
     )
 
     @BeforeEach
@@ -81,6 +84,29 @@ class AuctionUpdateServiceTest {
     }
 
     @Test
+    fun `update existing auction - ongoing auction finished`() = runBlocking<Unit> {
+        val auction = randomAuction().copy(finished = true, ongoing = true, status = AuctionStatus.FINISHED)
+        val existing = auction.copy(ongoing = true, status = AuctionStatus.ACTIVE)
+        val expected = auction.copy(ongoing = false)
+
+        // Auction doesn't exist in DB
+        coEvery { auctionRepository.findById(auction.hash) } returns existing
+        coEvery { auctionStateService.onAuctionOngoingStateUpdated(any(), any()) } returns Unit
+
+        auctionUpdateService.update(auction)
+
+        coVerify(exactly = 1) {
+            auctionRepository.save(match {
+                !it.ongoing // Ongoing flag should be reset since auction is not active anymore
+            })
+        }
+        coVerify(exactly = 1) {
+            auctionStateService.onAuctionOngoingStateUpdated(expected, AuctionOffchainHistory.Type.ENDED)
+        }
+        coVerify(exactly = 1) { auctionListener.onAuctionUpdate(expected) }
+    }
+
+    @Test
     fun `delete existing auction`() = runBlocking<Unit> {
         val auction = randomAuction().copy(deleted = true)
 
@@ -89,7 +115,7 @@ class AuctionUpdateServiceTest {
         auctionUpdateService.update(auction)
 
         coVerify(exactly = 1) { auctionRepository.remove(auction.hash) }
-        coVerify(exactly = 1) { auctionListener.onAuctionDelete(auction.hash) }
+        coVerify(exactly = 1) { auctionListener.onAuctionDelete(auction) }
     }
 
 }
