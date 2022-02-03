@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.admin.descriptor
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.erc721.TransferLogDescriptor
 import reactor.core.publisher.Mono
 import scalether.domain.Address
@@ -25,7 +26,8 @@ class AdminErc721TransferLogDescriptor(
             erc1155Rarible = Address.ZERO().hex(),
             erc1155RaribleUser = Address.ZERO().hex()
         )
-    )
+    ),
+    NftListenerProperties()
 ) {
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(tokens)
