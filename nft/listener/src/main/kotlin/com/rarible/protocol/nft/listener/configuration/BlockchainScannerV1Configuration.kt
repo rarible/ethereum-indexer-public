@@ -54,12 +54,14 @@ class BlockchainScannerV1Configuration(
     fun reindexTokenTaskHandler(
         logListenService: LogListenService,
         tokenRegistrationService: TokenRegistrationService,
-        ethereum: MonoEthereum
+        ethereum: MonoEthereum,
+        nftListenerProperties: NftListenerProperties,
     ) : ReindexTokenTaskHandler {
         return ReindexTokenTaskHandler(
             logListenService = logListenService,
             tokenRegistrationService = tokenRegistrationService,
-            ethereum = ethereum
+            ethereum = ethereum,
+            nftListenerProperties = nftListenerProperties,
         )
     }
 }

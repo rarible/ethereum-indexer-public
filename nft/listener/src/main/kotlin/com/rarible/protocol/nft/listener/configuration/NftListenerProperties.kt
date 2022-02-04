@@ -12,6 +12,7 @@ data class NftListenerProperties(
     val skipReduceTokens: List<String> = emptyList(),
     val skipContracts: List<String> = emptyList(),
     val skipTransferContracts: List<String> = emptyList(),
+    val skipTokenOwnershipTransferred: Boolean = false,
     val logConsumeWorkerCount: Int = 10,
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties()
