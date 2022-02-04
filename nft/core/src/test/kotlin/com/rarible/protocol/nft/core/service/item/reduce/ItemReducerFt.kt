@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item.reduce
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
@@ -13,11 +14,16 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import scalether.domain.Address
+import java.math.BigInteger
 
 @IntegrationTest
 internal class ItemReducerFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var itemReducer: ItemReducer
+
+    @Autowired
+    private lateinit var properties: NftIndexerProperties
 
     @Autowired
     private lateinit var itemTemplateProvider: ItemTemplateProvider
@@ -609,6 +615,68 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             event1, event2, event3, event4
         ))
         assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should mint and transfer opensea lazy item`() = runBlocking<Unit> {
+        val minter = Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6")
+        val owner = randomAddress()
+        val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
+        val item = initial().copy(tokenId = tokenId)
+
+        val event = createRandomTransferItemEvent()
+            .withNewValues(
+                EthereumLogStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 1,
+                minorLogIndex = 1,
+                from = Address.apply(properties.openseaLazyMintAddress)
+            )
+            .copy(
+                value = EthUInt256.TEN,
+                from = minter,
+                to = owner,
+            )
+
+        val reducedItem = reduce(item, event)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.TEN)
+        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
+        assertThat(reducedItem.creators).hasSize(1)
+        assertThat(reducedItem.creators[0].account).isEqualTo(minter)
+        assertThat(reducedItem.deleted).isFalse()
+    }
+
+    @Test
+    fun `should mint and transfer and then revert opensea lazy item`() = runBlocking<Unit> {
+        val minter = Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6")
+        val owner = randomAddress()
+        val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
+        val item = initial().copy(tokenId = tokenId)
+
+        val event = createRandomTransferItemEvent()
+            .withNewValues(
+                EthereumLogStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 1,
+                minorLogIndex = 1,
+                from = Address.apply(properties.openseaLazyMintAddress)
+            ).copy(
+                value = EthUInt256.TEN,
+                from = minter,
+                to = owner
+            )
+        val revertedEvent = event
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(item, event, revertedEvent)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(0)
+        assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
+        assertThat(reducedItem.ownerships.keys).hasSize(0)
+        assertThat(reducedItem.deleted).isTrue()
     }
 
     private fun initial(): Item {
