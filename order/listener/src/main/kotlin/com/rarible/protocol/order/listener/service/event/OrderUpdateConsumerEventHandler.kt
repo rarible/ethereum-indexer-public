@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.event
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -14,8 +15,6 @@ import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.OrderEventDto
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.continuation.page.PageSize
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
-import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.OrderFilter
 import com.rarible.protocol.order.core.model.OrderFilterBidByItem
@@ -30,7 +29,6 @@ import java.time.Instant
 @Component
 class OrderUpdateConsumerEventHandler(
     private val orderRepositoryService: OrderRepositoryService,
-    private val nftOrdersPriceUpdateListener: NftOrdersPriceUpdateListener,
     private val orderPriceUpdateService: OrderPriceUpdateService
 ) : ConsumerEventHandler<OrderEventDto> {
 
@@ -75,7 +73,6 @@ class OrderUpdateConsumerEventHandler(
         }
         orderRepositoryService.search(orderFilter, PageSize.ORDER.max).collect { orders ->
             orders.forEach { orderPriceUpdateService.updateOrderPrice(it.hash, at) }
-            nftOrdersPriceUpdateListener.onNftOrders(itemId, kind, orders)
         }
     }
 
