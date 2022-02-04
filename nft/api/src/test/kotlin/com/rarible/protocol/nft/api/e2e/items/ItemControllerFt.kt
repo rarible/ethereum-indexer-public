@@ -3,6 +3,8 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
+import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
@@ -35,10 +37,12 @@ import com.rarible.protocol.nft.core.repository.PendingLogItemPropertiesReposito
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
+import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -47,9 +51,15 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
+import org.springframework.web.client.HttpClientErrorException
+import org.springframework.web.client.RestTemplate
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
@@ -82,6 +92,16 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
+
+    @LocalServerPort
+    var port: Int = 0
+
+    @Autowired
+    lateinit var testTemplate: RestTemplate
+
+    private fun baseUrl(): String {
+        return "http://localhost:${port}/v0.1"
+    }
 
     companion object {
         @JvmStatic
@@ -134,14 +154,60 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `get item image`() = runBlocking<Unit> {
+        val item = createItem()
+        itemRepository.save(item).awaitFirst()
+
+        val base64str = randomString()
+
+        val itemProperties = ItemProperties(
+            name = "name",
+            description = "description",
+            image = "http://test.com/abc_original",
+            imagePreview = null,
+            imageBig = "https://test.com//data:image/png;base64," + Base64.encodeBase64String(base64str.toByteArray()),
+            animationUrl = null,
+            attributes = emptyList(),
+            rawJsonContent = null
+        )
+
+        val cache = Cache(
+            item.id.decimalStringValue,
+            ItemPropertiesService.CachedItemProperties(itemProperties, nowMillis(), true),
+            Date()
+        )
+        mongo.save(cache, "item_metadata").awaitSingle()
+
+        val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
+
+        val original = testTemplate.getForEntity("${url}ORIGINAL", ByteArray::class.java)
+
+        // Regular URL specified, redirected
+        assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
+        assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
+
+        // Found Base64 value for url, returned as byteArray with specified content-type
+        val big = testTemplate.getForEntity("${url}BIG", ByteArray::class.java)
+        assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/png")
+        assertThat(String(big.body!!)).isEqualTo(base64str)
+
+        // Not found since this link is not specified in meta
+        assertThrows<HttpClientErrorException.NotFound> {
+            testTemplate.getForEntity("${url}PREVIEW", ByteArray::class.java)
+        }
+    }
+
+    @Test
     @Disabled // this test use real request ipfs
     fun `should get item meta image`() = runBlocking<Unit> {
         val item = createItem()
-        lazyNftItemHistoryRepository.save(ItemLazyMint(
-            token = item.token,
-            tokenId = item.tokenId,
-            creators = listOf(Part(AddressFactory.create(), 1000)),
-            value = EthUInt256.ONE,
+        lazyNftItemHistoryRepository.save(
+            ItemLazyMint(
+                token = item.token,
+                tokenId = item.tokenId,
+                creators = listOf(Part(AddressFactory.create(), 1000)),
+                value = EthUInt256.ONE,
             date = Instant.now(),
             uri = "/ipfs/QmXDQX1RcE7zkxFE3ah727DZnQBg5wztdBx2br4wsyRrZm",
             standard = TokenStandard.ERC721,

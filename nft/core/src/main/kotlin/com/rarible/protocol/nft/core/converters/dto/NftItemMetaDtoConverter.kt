@@ -1,30 +1,40 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.NftItemAttributeDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
+import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.MediaMeta
-import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
-    override fun convert(source: ItemMeta): NftItemMetaDto {
+class NftItemMetaDtoConverter(
+    nftIndexerProperties: NftIndexerProperties
+) {
+
+    val baseImageUrl = getBaseImageUrl(nftIndexerProperties.basePublicApiUrl)
+
+    fun convert(source: ItemMeta, itemIdDecimalValue: String): NftItemMetaDto {
         return NftItemMetaDto(
             name = source.properties.name,
             description = source.properties.description,
             attributes = source.properties.attributes.map { convert(it) },
-            image = createImageMedia(source),
+            image = createImageMedia(source, itemIdDecimalValue),
             animation = createAnimationMedia(source)
         )
     }
 
-    private fun createImageMedia(source: ItemMeta): NftMediaDto? {
+    private fun createImageMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
         return if (source.properties.imagePreview != null || source.properties.image != null) {
-            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL) { it.image } +
-                    source.properties.toUrlMap(NftMediaSizeDto.BIG) { it.imageBig } +
-                    source.properties.toUrlMap(NftMediaSizeDto.PREVIEW) { it.imagePreview }
+            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue) { it.image } +
+                    source.properties.toUrlMap(NftMediaSizeDto.BIG, itemIdDecimalValue) { it.imageBig } +
+                    source.properties.toUrlMap(NftMediaSizeDto.PREVIEW, itemIdDecimalValue) { it.imagePreview }
 
             val meta = source.meta.imageMeta
                 ?.let { convert(it) }
@@ -55,6 +65,24 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
             ?.let { mapOf(size.name to it) }
             ?: emptyMap()
 
+    private fun ItemProperties.toUrlMap(
+        size: NftMediaSizeDto,
+        itemIdDecimalValue: String,
+        extractor: (ItemProperties) -> String?
+    ): Map<String, String> {
+        val url = extractor(this)
+        return url?.let {
+            mapOf(size.name to sanitizeBase64Image(it, size.name, itemIdDecimalValue))
+        } ?: emptyMap()
+    }
+
+    private fun sanitizeBase64Image(url: String, size: String, itemIdDecimalValue: String): String {
+        if (!Base64Detector(url).isBase64Image) {
+            return url
+        }
+        return "$baseImageUrl/$itemIdDecimalValue/image?size=$size"
+    }
+
     private fun convert(source: MediaMeta): NftMediaMetaDto {
         return NftMediaMetaDto(
             type = source.type,
@@ -70,5 +98,10 @@ object NftItemMetaDtoConverter : Converter<ItemMeta, NftItemMetaDto> {
             type = source.type,
             format = source.format
         )
+    }
+
+    private fun getBaseImageUrl(basePublicApiUrl: String): String {
+        val withoutSlash = basePublicApiUrl.trimEnd('/')
+        return "$withoutSlash/items"
     }
 }

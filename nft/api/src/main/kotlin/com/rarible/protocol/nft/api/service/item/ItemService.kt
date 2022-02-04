@@ -14,9 +14,11 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
 import com.rarible.protocol.nft.core.page.PageSize
@@ -35,6 +37,7 @@ import scalether.domain.Address
 @Component
 class ItemService(
     private val conversionService: ConversionService,
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter,
     private val itemMetaService: ItemMetaService,
     private val royaltyCacheDescriptor: RoyaltyCacheDescriptor,
     private val cacheService: CacheService,
@@ -57,10 +60,14 @@ class ItemService(
             ?: throw EntityNotFoundApiException("Lazy Item", itemId)
     }
 
-    suspend fun getMeta(itemId: ItemId): NftItemMetaDto {
+    suspend fun getMetaDto(itemId: ItemId): NftItemMetaDto {
         return itemMetaService
             .getItemMetadata(itemId)
-            .let { conversionService.convert(it) }
+            .let { nftItemMetaDtoConverter.convert(it, itemId.decimalStringValue) }
+    }
+
+    suspend fun getMeta(itemId: ItemId): ItemMeta {
+        return itemMetaService.getItemMetadata(itemId)
     }
 
     suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {

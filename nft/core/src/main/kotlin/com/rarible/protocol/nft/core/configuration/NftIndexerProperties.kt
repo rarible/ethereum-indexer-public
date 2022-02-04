@@ -3,8 +3,6 @@ package com.rarible.protocol.nft.core.configuration
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemId
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 
@@ -13,6 +11,7 @@ const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 @ConstructorBinding
 @ConfigurationProperties(RARIBLE_PROTOCOL_NFT_INDEXER)
 data class NftIndexerProperties(
+    val basePublicApiUrl: String,
     val kafkaReplicaSet: String,
     val blockchain: Blockchain,
     val metricRootPath: String,
