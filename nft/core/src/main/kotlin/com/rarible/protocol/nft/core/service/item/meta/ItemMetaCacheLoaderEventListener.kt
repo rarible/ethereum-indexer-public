@@ -39,32 +39,42 @@ class ItemMetaCacheLoaderEventListener(
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return
         val meta = when (val cacheEntry = cacheLoaderEvent.cacheEntry) {
             is CacheEntry.Loaded -> {
-                logMetaLoading(itemId, "loaded meta")
+                logMetaLoading(itemId, "event: loaded meta")
                 cacheEntry.data
             }
             is CacheEntry.InitialFailed -> {
-                logMetaLoading(itemId, "initial loading failed: ${cacheEntry.failedStatus.errorMessage}")
+                logMetaLoading(itemId, "event: initial loading failed: ${cacheEntry.failedStatus.errorMessage}")
                 // Send 'null' because the initial loading has failed.
                 null
             }
             is CacheEntry.LoadedAndUpdateFailed -> {
-                logMetaLoading(itemId, "update failed: ${cacheEntry.failedUpdateStatus.errorMessage}")
+                logMetaLoading(itemId, "event: update failed: ${cacheEntry.failedUpdateStatus.errorMessage}")
                 // Update has failed => no need to send previous data.
                 return
             }
             is CacheEntry.LoadedAndUpdateScheduled -> {
-                logMetaLoading(itemId, "update was scheduled")
-                // Update has been scheduled => no need to send previous data.
-                return
+                when (cacheEntry.updateStatus) {
+                    is LoadTaskStatus.Scheduled -> {
+                        logMetaLoading(itemId, "event: update was scheduled")
+                        // Update has been scheduled => no need to send previous data.
+                        return
+                    }
+                    is LoadTaskStatus.WaitsForRetry -> {
+                        logMetaLoading(itemId, "event: update failed and started waiting for retry")
+                        // Update has failed and waits for retry => no need to send previous data.
+                        return
+                    }
+                }
             }
             is CacheEntry.InitialLoadScheduled -> {
-                logMetaLoading(itemId, "loading scheduled")
                 when (cacheEntry.loadStatus) {
                     is LoadTaskStatus.Scheduled -> {
+                        logMetaLoading(itemId, "event: initial loading scheduled")
                         // Initial loading has been scheduled => nothing to send yet.
                         return
                     }
                     is LoadTaskStatus.WaitsForRetry -> {
+                        logMetaLoading(itemId, "event: initial loading scheduled for retry")
                         // Initial loading has failed and waiting for retry => send at least 'null' meta for now.
                         null
                     }
