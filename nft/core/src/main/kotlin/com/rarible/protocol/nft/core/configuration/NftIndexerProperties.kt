@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import scalether.domain.Address
 
 const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 
