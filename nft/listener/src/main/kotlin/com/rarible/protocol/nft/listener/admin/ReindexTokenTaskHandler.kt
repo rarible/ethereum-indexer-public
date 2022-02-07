@@ -6,6 +6,7 @@ import com.rarible.ethereum.listener.log.LogListenService
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155LogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155RaribleLogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155RaribleUserLogDescriptor
@@ -24,7 +25,8 @@ import scalether.domain.Address
 class ReindexTokenTaskHandler(
     private val logListenService: LogListenService,
     private val tokenRegistrationService: TokenRegistrationService,
-    private val ethereum: MonoEthereum
+    private val ethereum: MonoEthereum,
+    private val nftListenerProperties: NftListenerProperties,
 ) : TaskHandler<Long> {
 
     override val type: String
@@ -42,7 +44,7 @@ class ReindexTokenTaskHandler(
 
     private fun reindexTokens(params: ReindexTokenTaskParams, from: Long?, end: Long): Flux<LongRange> {
         val collectionDescriptors = listOf(
-            CollectionOwnershipTransferLogDescriptor(tokenRegistrationService),
+            CollectionOwnershipTransferLogDescriptor(tokenRegistrationService, nftListenerProperties),
 
             // ERC-721
             CreateERC721LogDescriptor(),

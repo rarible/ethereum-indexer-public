@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
+import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import io.daonomic.rpc.domain.Word
 import org.reactivestreams.Publisher
 import org.springframework.stereotype.Service
@@ -20,19 +21,23 @@ import scalether.domain.response.Transaction
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class CollectionOwnershipTransferLogDescriptor(
-    private val tokenRegistrationService: TokenRegistrationService
+    private val tokenRegistrationService: TokenRegistrationService,
+    private val properties: NftListenerProperties,
 ) : LogEventDescriptor<CollectionOwnershipTransferred> {
 
     override val topic: Word = OwnershipTransferredEvent.id()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<CollectionOwnershipTransferred> {
+        if (properties.skipTokenOwnershipTransferred) {
+            return Mono.empty()
+        }
         if (log.topics().length() != 3) {
             // Ignore similar events without indexed fields.
             return Mono.empty()
         }
         return tokenRegistrationService.getTokenStandard(log.address()).flatMap { standard ->
             if (standard != TokenStandard.ERC721 && standard != TokenStandard.ERC1155) {
-                Mono.empty<CollectionOwnershipTransferred>()
+                Mono.empty()
             } else {
                 val event = OwnershipTransferredEvent.apply(log)
                 val previousOwner = event.previousOwner()

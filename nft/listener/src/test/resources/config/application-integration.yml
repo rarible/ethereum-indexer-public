@@ -36,6 +36,7 @@ api:
 
 common:
   kafka-replica-set: ${kafka.hosts}
+  basePublicApiUrl: "http://localhost:8080/"
   openseaLazyMintAddress: "0x0000000000000000000000000000000000000000"
   royaltyRegistryAddress: "0x0000000000000000000000000000000000000000"
   cryptoPunksContractAddress: "0x0000000000000000000000000000000000000000"

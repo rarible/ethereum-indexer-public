@@ -14,6 +14,7 @@ class AdminErc721TransferLogDescriptor(
 ) : TransferLogDescriptor(
     tokenRegistrationService,
     NftIndexerProperties(
+        basePublicApiUrl = "",
         kafkaReplicaSet = "",
         blockchain = Blockchain.ETHEREUM,
         metricRootPath = "",

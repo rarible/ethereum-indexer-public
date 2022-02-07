@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Primary
+import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.web.client.RestTemplate
+import java.net.HttpURLConnection
+
 
 @TestConfiguration
 class TestPropertiesConfiguration {
@@ -45,13 +49,27 @@ class TestPropertiesConfiguration {
         cacheService: CacheService,
         @Qualifier("mockStandardTokenPropertiesResolver") standardPropertiesResolver: StandardTokenPropertiesResolver,
         @Qualifier("mockOpenseaTokenPropertiesResolver") openseaPropertiesResolver: OpenseaTokenPropertiesResolver
-    ) : TokenPropertiesService {
-        return TokenPropertiesService(Long.MAX_VALUE, cacheService, listOf(standardPropertiesResolver, openseaPropertiesResolver))
+    ): TokenPropertiesService {
+        return TokenPropertiesService(
+            Long.MAX_VALUE,
+            cacheService,
+            listOf(standardPropertiesResolver, openseaPropertiesResolver)
+        )
     }
 
     @Bean
     @Primary
     @Qualifier("mockMediaMetaService")
     fun mockMediaMetaService(): MediaMetaService = mockk()
+
+    @Bean
+    fun testRestTemplate(): RestTemplate {
+        return RestTemplate(object : SimpleClientHttpRequestFactory() {
+            override fun prepareConnection(connection: HttpURLConnection, httpMethod: String?) {
+                super.prepareConnection(connection, httpMethod)
+                connection.instanceFollowRedirects = false
+            }
+        })
+    }
 
 }

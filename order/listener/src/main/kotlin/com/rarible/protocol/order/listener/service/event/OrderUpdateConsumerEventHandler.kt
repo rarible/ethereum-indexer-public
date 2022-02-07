@@ -30,7 +30,6 @@ import java.time.Instant
 @Component
 class OrderUpdateConsumerEventHandler(
     private val orderRepositoryService: OrderRepositoryService,
-    private val nftOrdersPriceUpdateListener: NftOrdersPriceUpdateListener,
     private val orderPriceUpdateService: OrderPriceUpdateService
 ) : ConsumerEventHandler<OrderEventDto> {
 
@@ -75,7 +74,6 @@ class OrderUpdateConsumerEventHandler(
         }
         orderRepositoryService.search(orderFilter, PageSize.ORDER.max).collect { orders ->
             orders.forEach { orderPriceUpdateService.updateOrderPrice(it.hash, at) }
-            nftOrdersPriceUpdateListener.onNftOrders(itemId, kind, orders)
         }
     }
 

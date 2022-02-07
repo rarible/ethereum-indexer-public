@@ -14,12 +14,14 @@ import scalether.domain.Address
 @Component
 class ExtendedItemDtoConverter(
     @Value("\${nft.api.item.owners.size.limit:5000}") private val ownersSizeLimit: Int,
-    private val featureFlags: FeatureFlags
+    private val featureFlags: FeatureFlags,
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
 ) : Converter<ExtendedItem, NftItemDto> {
     override fun convert(source: ExtendedItem): NftItemDto {
         val (item, meta) = source
+        val itemIdDecimalValue = item.id.decimalStringValue
         return NftItemDto(
-            id = item.id.decimalStringValue,
+            id = itemIdDecimalValue,
             contract = item.token,
             tokenId = item.tokenId.value,
             creators = item.creators.map { PartDtoConverter.convert(it) },
@@ -33,7 +35,7 @@ class ExtendedItemDtoConverter(
             mintedAt = item.mintedAt,
             pending = convertPending(item),
             deleted = item.deleted,
-            meta = meta?.let { NftItemMetaDtoConverter.convert(meta) }
+            meta = meta?.let { nftItemMetaDtoConverter.convert(meta, itemIdDecimalValue) }
         )
     }
 

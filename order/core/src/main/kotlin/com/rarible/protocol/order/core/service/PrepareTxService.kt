@@ -140,7 +140,7 @@ class PrepareTxService(
         )
     }
 
-    private suspend fun prepareTxForV2(
+    internal suspend fun prepareTxForV2(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {

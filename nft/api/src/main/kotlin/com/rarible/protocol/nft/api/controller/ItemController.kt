@@ -12,9 +12,11 @@ import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -30,11 +32,17 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import org.apache.commons.codec.binary.Base64
 import org.springframework.core.convert.ConversionService
+import org.springframework.http.HttpHeaders
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
 import java.time.Duration
@@ -69,6 +77,35 @@ class ItemController(
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)
         return ResponseEntity.ok(conversionService.convert(availableMeta))
+    }
+
+    @GetMapping(value = ["/v0.1/items/{itemId}/image"])
+    suspend fun getNftItemImageById(
+        @PathVariable("itemId") itemId: String,
+        @RequestParam(value = "size", required = true) size: NftMediaSizeDto
+    ): ResponseEntity<Any> {
+        val itemMeta = withContext(NonCancellable) {
+            // We need to use raw meta here, because converted contains converted base64 url
+            itemService.getMeta(conversionService.convert(itemId))
+        }
+        val url = when (size) {
+            NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
+            NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
+            NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
+        } ?: return ResponseEntity.notFound().build()
+
+        val base64Detector = Base64Detector(url)
+        if (base64Detector.isBase64Image) {
+            val bytes = Base64.decodeBase64(base64Detector.getBase64Data())
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, base64Detector.getBase64MimeType())
+                .body(bytes)
+
+        }
+        return ResponseEntity
+            .status(HttpStatus.FOUND)
+            .header(HttpHeaders.LOCATION, url)
+            .build()
     }
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
