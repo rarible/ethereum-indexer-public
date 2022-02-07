@@ -11,8 +11,6 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.NftMediaSizeDto
-import com.rarible.protocol.nft.api.domain.ItemContinuation
-import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
