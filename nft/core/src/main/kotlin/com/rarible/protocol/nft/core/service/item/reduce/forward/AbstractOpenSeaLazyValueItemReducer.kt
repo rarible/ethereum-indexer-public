@@ -12,7 +12,7 @@ abstract class AbstractOpenSeaLazyValueItemReducer(
     private val openSeaLazyMintAddress: Address
 ) : Reducer<ItemEvent, Item> {
 
-    protected abstract fun reduceItemTransferEvent(entity: Item, event: ItemEvent.ItemTransferEvent): Item
+    protected abstract suspend  fun reduceItemTransferEvent(entity: Item, event: ItemEvent.ItemTransferEvent): Item
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
         return if (event.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(entity.tokenId)) {
