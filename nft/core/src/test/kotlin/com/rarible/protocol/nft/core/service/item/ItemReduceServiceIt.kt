@@ -61,6 +61,9 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var ownershipRepository: OwnershipRepository
 
+    @Autowired
+    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
     @BeforeEach
     fun setUpMeta() {
         coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns itemMeta
@@ -102,7 +105,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -143,7 +146,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -178,7 +181,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 1,
             NftItemUpdateEventDto::class.java
         )
@@ -208,7 +211,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -273,7 +276,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemDeleteEventDto::class.java
         )
@@ -400,7 +403,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            NftItemMetaDtoConverter.convert(itemMeta),
+            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemDeleteEventDto::class.java
         )

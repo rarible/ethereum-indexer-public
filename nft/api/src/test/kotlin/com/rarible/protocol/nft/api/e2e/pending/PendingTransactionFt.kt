@@ -66,6 +66,9 @@ class PendingTransactionFt : SpringContainerBaseTest() {
     private lateinit var nftItemHistoryRepository: NftItemHistoryRepository
 
     @Autowired
+    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
+    @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
     @ParameterizedTest
@@ -136,7 +139,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         Wait.waitAssert {
             val pendingItemDto = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(pendingItemDto?.pending).hasSize(1)
-            assertThat(pendingItemDto?.meta).isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
+            assertThat(pendingItemDto?.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
 
             // Meta must have been resolved by [PendingLogItemPropertiesResolver] resolving by URL via [RariblePropertiesResolver].
             coVerify(exactly = 1) { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) }

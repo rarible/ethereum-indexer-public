@@ -10,9 +10,9 @@ import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
+import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -24,6 +24,7 @@ import com.rarible.protocol.nft.core.model.ItemFilterAll
 import com.rarible.protocol.nft.core.model.ItemFilterByCollection
 import com.rarible.protocol.nft.core.model.ItemFilterByCreator
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
@@ -32,7 +33,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import org.apache.commons.codec.binary.Base64
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
@@ -72,10 +72,7 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = itemMetaService.getAvailableMetaOrScheduleAndWait(
-            itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
+        val availableMeta = getItemMeta(itemId)
         return ResponseEntity.ok(conversionService.convert(availableMeta))
     }
 
@@ -84,10 +81,8 @@ class ItemController(
         @PathVariable("itemId") itemId: String,
         @RequestParam(value = "size", required = true) size: NftMediaSizeDto
     ): ResponseEntity<Any> {
-        val itemMeta = withContext(NonCancellable) {
-            // We need to use raw meta here, because converted contains converted base64 url
-            itemService.getMeta(conversionService.convert(itemId))
-        }
+        // We need to use raw meta here, because converted contains converted base64 url
+        val itemMeta = getItemMeta(itemId)
         val url = when (size) {
             NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
             NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
@@ -241,7 +236,15 @@ class ItemController(
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 
+    private suspend fun getItemMeta(itemId: String): ItemMeta {
+        return itemMetaService.getAvailableMetaOrScheduleAndWait(
+            itemId = conversionService.convert(itemId),
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
+    }
+
     companion object {
+
         const val BURN_MSG = "I would like to burn my %s item."
     }
 }

@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.core.converters.dto
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomItemId
-import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
+import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import io.mockk.every
@@ -46,7 +46,7 @@ class NftItemMetaDtoConverterTest {
                 ),
                 rawJsonContent = randomString()
             ),
-            meta = ContentMeta(null, null)
+            itemContentMeta = ItemContentMeta(null, null)
         )
 
         val result = converter.convert(meta, itemId)

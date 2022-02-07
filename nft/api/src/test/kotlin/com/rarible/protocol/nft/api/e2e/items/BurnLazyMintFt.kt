@@ -80,6 +80,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemReduceService: ItemReduceService
 
+    @Autowired
+    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
@@ -105,7 +108,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
-        assertThat(itemDto.meta).isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
+        assertThat(itemDto.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
 

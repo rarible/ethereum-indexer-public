@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
@@ -10,8 +11,6 @@ import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
-import org.springframework.core.convert.converter.Converter
-import com.rarible.protocol.nft.core.model.MediaMeta
 import org.springframework.stereotype.Component
 
 @Component

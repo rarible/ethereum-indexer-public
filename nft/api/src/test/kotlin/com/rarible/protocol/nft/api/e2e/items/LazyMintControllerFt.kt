@@ -20,10 +20,7 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
@@ -109,7 +106,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         checkItemDto(lazyItemDto, itemDto)
 
-        assertThat(itemDto.meta).isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
+        assertThat(itemDto.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
     }
 
     @ParameterizedTest
@@ -292,12 +289,6 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             assertThat(creatorDto.account).isEqualTo(lazyItemDto.creators[index].account)
             assertThat(creatorDto.value).isEqualTo(lazyItemDto.creators[index].value)
         }
-
-        val expectedItemMetaDto = nftItemMetaDtoConverter.convert(
-            ItemMeta(expectedItemProperties, ContentMeta.EMPTY),
-            itemId.decimalStringValue
-        )
-        assertThat(itemDto.meta).isEqualTo(expectedItemMetaDto)
 
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertThat(lazyMint.token).isEqualTo(lazyItemDto.contract)

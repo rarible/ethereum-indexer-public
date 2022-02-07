@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
-import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
@@ -28,6 +27,7 @@ import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -36,7 +36,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.mockk.coEvery
 import kotlinx.coroutines.delay
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -86,17 +85,28 @@ class ItemControllerFt : SpringContainerBaseTest() {
     @Autowired
     protected lateinit var featureFlags: FeatureFlags
 
+    @Autowired
+    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
+    private lateinit var extendedItemDtoConverter: ExtendedItemDtoConverter
+
     @LocalServerPort
     var port: Int = 0
 
     @Autowired
     lateinit var testTemplate: RestTemplate
 
+    @BeforeEach
+    fun beforeEach() {
+        extendedItemDtoConverter = ExtendedItemDtoConverter(1, FeatureFlags(), nftItemMetaDtoConverter)
+    }
+
     private fun baseUrl(): String {
         return "http://localhost:${port}/v0.1"
     }
 
     companion object {
+
         @JvmStatic
         fun lazyNft(): Stream<ItemLazyMint> {
             val erc721 = createItemLazyMint().copy(standard = TokenStandard.ERC721)
@@ -112,7 +122,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val itemMeta = randomItemMeta()
         coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
         val metaDto = nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
-        assertThat(metaDto).isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
+        assertThat(metaDto).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, item.id.decimalStringValue))
     }
 
     @Test
@@ -143,12 +153,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
             rawJsonContent = null
         )
 
-        val cache = Cache(
-            item.id.decimalStringValue,
-            ItemPropertiesService.CachedItemProperties(itemProperties, nowMillis(), true),
-            Date()
-        )
-        mongo.save(cache, "item_metadata").awaitSingle()
+        val itemMeta = randomItemMeta().copy(properties = itemProperties)
+
+        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
 
         val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
 
@@ -187,7 +194,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         // The meta is finally loaded.
         val metaDto = nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
         assertThat(metaDto)
-            .isEqualTo(NftItemMetaDtoConverter.convert(itemMeta))
+            .isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, item.id.decimalStringValue))
     }
 
     @Test
@@ -488,8 +495,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
             else -> throw IllegalArgumentException("Unexpected token standard ${itemLazyMint.standard}")
         }
     }
-
-    private val extendedItemDtoConverter = ExtendedItemDtoConverter(1, FeatureFlags())
 
     // restoring address after tests
     private lateinit var royaltyRegistryAddress: String
