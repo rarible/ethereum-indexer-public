@@ -11,11 +11,13 @@ class ReversedChainItemReducer(
     reversedValueItemReducer: ReversedValueItemReducer,
     reversedLazyValueItemReducer: ReversedLazyValueItemReducer,
     reversedLazyOwnershipValueItemReducer: ReversedLazyOwnershipValueItemReducer,
-    reversedOwnersItemReducer: ReversedOwnersItemReducer
+    reversedOwnersItemReducer: ReversedOwnersItemReducer,
+    reversedOpenSeaLazyValueItemReducer: ReversedOpenSeaLazyValueItemReducer
 ) : RevertedEntityChainReducer<ItemId, ItemEvent, Item>(
     itemRevertEventApplyPolicy,
     reversedValueItemReducer,
     reversedLazyOwnershipValueItemReducer,
     reversedLazyValueItemReducer,
-    reversedOwnersItemReducer
+    reversedOwnersItemReducer,
+    reversedOpenSeaLazyValueItemReducer
 )

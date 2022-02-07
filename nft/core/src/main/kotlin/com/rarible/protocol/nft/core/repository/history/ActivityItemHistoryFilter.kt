@@ -180,9 +180,10 @@ sealed class UserActivityItemHistoryFilter : ActivityItemHistoryFilter() {
 sealed class CollectionActivityItemHistoryFilter(protected val contract: Address) : ActivityItemHistoryFilter() {
     protected val collectionKey = LogEvent::data / ItemTransfer::token
 
-    override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_DEFINITION.indexKeys
-
     class ByCollectionBurn(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+
+        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_OWNER_DEFINITION.indexKeys
+
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
@@ -193,6 +194,9 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
     }
 
     class ByCollectionMint(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+
+        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_TRANSFERS_DEFINITION.indexKeys
+
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
@@ -203,6 +207,9 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
     }
 
     class ByCollectionTransfer(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
+
+        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_TRANSFERS_DEFINITION.indexKeys
+
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)

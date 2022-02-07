@@ -5,6 +5,9 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.erc1155.TransferSingleEventTopics1
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -24,9 +27,11 @@ import java.time.Instant
 class ERC1155TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
     properties: NftListenerProperties,
+    indexerProperties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
 
     private val skipContracts = properties.skipTransferContracts.map { Address.apply(it) }
+    private val skipTransferContractTokens = indexerProperties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val logger = LoggerFactory.getLogger(ERC1155TransferLogDescriptor::class.java)
 
     init {
@@ -46,6 +51,8 @@ class ERC1155TransferLogDescriptor(
                         else -> TransferSingleEvent.apply(log)
                     }
                     if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
+                        Mono.empty()
+                    } else if (ItemId(log.address(), EthUInt256.of(e._id())) in skipTransferContractTokens) {
                         Mono.empty()
                     } else {
                         ItemTransfer(

@@ -28,7 +28,7 @@ class ItemPropertiesService(
     @Autowired(required = false) private val cacheService: CacheService?
 ) {
 
-    private data class CachedItemProperties(
+    data class CachedItemProperties(
         val properties: ItemProperties,
         val fetchAt: Instant,
         val canBeCached: Boolean
