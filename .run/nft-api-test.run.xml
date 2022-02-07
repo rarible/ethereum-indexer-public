@@ -1,12 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="nft-api-test" type="JUnit" factoryName="JUnit">
     <module name="protocol-nft-indexer-api" />
-    <extension name="coverage">
-      <pattern>
-        <option name="PATTERN" value="com.rarible.protocol.nft.api.e2e.items.*" />
-        <option name="ENABLED" value="true" />
-      </pattern>
-    </extension>
     <option name="PACKAGE_NAME" value="com.rarible.protocol.nft.api.e2e.items" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
