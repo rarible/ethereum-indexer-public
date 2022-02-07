@@ -187,7 +187,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
 
         // Found Base64 value for url, returned as byteArray with specified content-type
-        val big = testTemplate.getForEntity("${url}BIG", ByteArray::class.java)
+        val big = testTemplate.getForEntity("${url}BIG&hash=2384723984", ByteArray::class.java)
         assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/png")
         assertThat(String(big.body!!)).isEqualTo(base64str)

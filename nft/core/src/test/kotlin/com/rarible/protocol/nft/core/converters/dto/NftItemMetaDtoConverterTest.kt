@@ -64,7 +64,7 @@ class NftItemMetaDtoConverterTest {
 
         assertThat(image.url["ORIGINAL"]).isEqualTo(meta.properties.image)
         assertThat(image.url["PREVIEW"]).isNull()
-        assertThat(image.url["BIG"]).isEqualTo("${basePublicApiUrl}items/$itemId/image?size=BIG")
+        assertThat(image.url["BIG"]).isEqualTo("${basePublicApiUrl}items/$itemId/image?size=BIG&hash=${meta.properties.imageBig!!.hashCode()}")
 
         assertThat(animation.url["ORIGINAL"]).isEqualTo(meta.properties.animationUrl)
     }

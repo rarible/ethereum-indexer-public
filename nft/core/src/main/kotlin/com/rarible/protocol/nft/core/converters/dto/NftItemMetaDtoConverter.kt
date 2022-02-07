@@ -80,7 +80,7 @@ class NftItemMetaDtoConverter(
         if (!Base64Detector(url).isBase64Image) {
             return url
         }
-        return "$baseImageUrl/$itemIdDecimalValue/image?size=$size"
+        return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&hash=${url.hashCode()}"
     }
 
     private fun convert(source: MediaMeta): NftMediaMetaDto {
