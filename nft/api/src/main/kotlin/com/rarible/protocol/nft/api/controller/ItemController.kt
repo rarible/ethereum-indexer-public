@@ -16,6 +16,7 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
@@ -56,7 +57,8 @@ class ItemController(
     private val mintService: MintService,
     private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator,
-    private val nftIndexerApiProperties: NftIndexerApiProperties
+    private val nftIndexerApiProperties: NftIndexerApiProperties,
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
 ) : NftItemControllerApi {
 
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
@@ -73,7 +75,7 @@ class ItemController(
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
         val availableMeta = getItemMeta(itemId)
-        return ResponseEntity.ok(conversionService.convert(availableMeta))
+        return ResponseEntity.ok(nftItemMetaDtoConverter.convert(availableMeta, itemId))
     }
 
     @GetMapping(value = ["/v0.1/items/{itemId}/image"])
