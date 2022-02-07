@@ -15,7 +15,7 @@ abstract class AbstractOpenSeaLazyValueItemReducer(
     protected abstract fun reduceItemTransferEvent(entity: Item, event: ItemEvent.ItemTransferEvent): Item
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return if (event.log.from == openSeaLazyMintAddress && isLazyMintTokenAddress(entity.tokenId)) {
+        return if (event.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(entity.tokenId)) {
             when (event) {
                 is ItemEvent.ItemTransferEvent -> reduceItemTransferEvent(entity, event)
                 is ItemEvent.ItemMintEvent,

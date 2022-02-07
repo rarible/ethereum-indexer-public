@@ -93,8 +93,9 @@ fun ItemEvent.ItemTransferEvent.withNewValues(
     blockNumber: Long? = null,
     logIndex: Int? = null,
     minorLogIndex: Int? = null,
-    from: Address? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, from = from))
+    from: Address? = null,
+    address: Address? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, address = address, from = from))
 
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
     status: EthereumLogStatus? = null,

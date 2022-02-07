@@ -622,15 +622,19 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val minter = Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6")
         val owner = randomAddress()
         val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
-        val item = initial().copy(tokenId = tokenId)
 
+        val item = initial().copy(
+            tokenId = tokenId,
+            supply = EthUInt256.ONE,
+            ownerships = mapOf(minter to EthUInt256.ONE)
+        )
         val event = createRandomTransferItemEvent()
             .withNewValues(
                 EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,
-                from = Address.apply(properties.openseaLazyMintAddress)
+                address = Address.apply(properties.openseaLazyMintAddress)
             )
             .copy(
                 value = EthUInt256.TEN,
@@ -639,11 +643,12 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
 
         val reducedItem = reduce(item, event)
-        assertThat(reducedItem.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(11))
+        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(11)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships.keys).hasSize(2)
         assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
+        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.creators).hasSize(1)
         assertThat(reducedItem.creators[0].account).isEqualTo(minter)
         assertThat(reducedItem.deleted).isFalse()
@@ -654,15 +659,18 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val minter = Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6")
         val owner = randomAddress()
         val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
-        val item = initial().copy(tokenId = tokenId)
-
+        val item = initial().copy(
+            tokenId = tokenId,
+            supply = EthUInt256.ONE,
+            ownerships = mapOf(minter to EthUInt256.ONE)
+        )
         val event = createRandomTransferItemEvent()
             .withNewValues(
                 EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
                 logIndex = 1,
                 minorLogIndex = 1,
-                from = Address.apply(properties.openseaLazyMintAddress)
+                address = Address.apply(properties.openseaLazyMintAddress)
             ).copy(
                 value = EthUInt256.TEN,
                 from = minter,
@@ -672,11 +680,11 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
 
         val reducedItem = reduce(item, event, revertedEvent)
-        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(0)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.ownerships.keys).hasSize(1)
+        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(0)
-        assertThat(reducedItem.deleted).isTrue()
+        assertThat(reducedItem.deleted).isFalse()
     }
 
     private fun initial(): Item {

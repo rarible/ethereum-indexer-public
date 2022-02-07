@@ -18,8 +18,8 @@ class ForwardChainItemReducer(
     itemConfirmEventApplyPolicy,
     forwardCreatorsItemReducer,
     forwardLazyValueItemReducer,
+    forwardOpenSeaLazyValueItemReducer,
     forwardLazyOwnershipValueItemReducer,
     forwardValueItemReducer,
-    forwardOwnersItemReducer,
-    forwardOpenSeaLazyValueItemReducer
+    forwardOwnersItemReducer
 )

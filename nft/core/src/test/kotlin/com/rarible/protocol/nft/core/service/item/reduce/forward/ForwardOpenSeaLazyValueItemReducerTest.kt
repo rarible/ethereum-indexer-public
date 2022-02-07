@@ -26,7 +26,7 @@ internal class ForwardOpenSeaLazyValueItemReducerTest {
             from = minter,
             to = randomAddress(),
             value = EthUInt256.TEN,
-            log = createRandomEthereumLog().copy(from = Address.apply(properties.openseaLazyMintAddress))
+            log = createRandomEthereumLog().copy(address = Address.apply(properties.openseaLazyMintAddress))
         )
         val item = createRandomItem().copy(
             tokenId = tokenId,
