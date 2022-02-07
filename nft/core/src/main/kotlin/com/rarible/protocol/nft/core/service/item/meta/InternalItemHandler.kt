@@ -3,21 +3,19 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.common.convert
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
 import org.slf4j.LoggerFactory
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -32,7 +30,7 @@ import java.util.*
 @CaptureSpan(SpanType.APP)
 class InternalItemHandler(
     private val itemMetaService: ItemMetaService,
-    private val conversionService: ConversionService,
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter,
     private val protocolNftEventPublisher: ProtocolNftEventPublisher,
     private val nftIndexerProperties: NftIndexerProperties
 ) : ConsumerEventHandler<NftItemEventDto> {
@@ -41,7 +39,7 @@ class InternalItemHandler(
         when (event) {
             is NftItemUpdateEventDto -> {
                 val meta = getItemMeta(event)
-                val metaDto = conversionService.convert<NftItemMetaDto>(meta)
+                val metaDto = nftItemMetaDtoConverter.convert(meta, event.item.id)
                 val extendedItem = event.item.copy(meta = metaDto)
                 protocolNftEventPublisher.publish(event.copy(item = extendedItem))
             }

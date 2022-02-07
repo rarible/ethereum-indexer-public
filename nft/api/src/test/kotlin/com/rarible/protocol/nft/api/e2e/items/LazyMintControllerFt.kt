@@ -8,20 +8,31 @@ import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.contracts.erc721.rarible.user.ERC721RaribleUserMinimal
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LazyErc1155Dto
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.LazyNftDto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createLazyItemProperties
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ContentMeta
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
+import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -54,6 +65,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
+
+    @Autowired
+    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
 
     private val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
@@ -277,8 +291,9 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
             assertThat(creatorDto.value).isEqualTo(lazyItemDto.creators[index].value)
         }
 
-        val expectedItemMetaDto = NftItemMetaDtoConverter.convert(
-            ItemMeta(expectedItemProperties, ContentMeta.EMPTY)
+        val expectedItemMetaDto = nftItemMetaDtoConverter.convert(
+            ItemMeta(expectedItemProperties, ContentMeta.EMPTY),
+            itemId.decimalStringValue
         )
         assertThat(itemDto.meta).isEqualTo(expectedItemMetaDto)
 
