@@ -14,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import scalether.domain.Address
 import java.util.*
 
 @ChangeLog(order = "00018")
@@ -27,6 +28,8 @@ class ChangeLog00019CryptopunkCollectionMeta {
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties,
         @NonLockGuarded mongo: ReactiveMongoOperations
     ) = runBlocking {
+        val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
+        if (address == Address.ZERO()) return@runBlocking
         logger.info("Started saving cryptopunk collection meta")
         val properties = TokenProperties(
             name = "CryptoPunks",

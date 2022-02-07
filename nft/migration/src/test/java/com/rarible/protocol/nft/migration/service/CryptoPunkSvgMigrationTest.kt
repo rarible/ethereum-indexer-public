@@ -69,8 +69,15 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
 
     @Test
     fun `should upload all svg images`() = runBlocking {
-        ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(cryptoPunksPropertiesResolver)
-        ChangeLog00014UploadSvgsForCryptoPunks().uploadCryptoPunksSvgs(cryptoPunksPropertiesResolver, ipfsService)
+        ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(
+            cryptoPunksPropertiesResolver,
+            nftIndexerProperties
+        )
+        ChangeLog00014UploadSvgsForCryptoPunks().uploadCryptoPunksSvgs(
+            cryptoPunksPropertiesResolver,
+            ipfsService,
+            nftIndexerProperties
+        )
         assertEquals(10000, mongo.count(Query(CryptoPunksMeta::image exists true), "cryptopunks_meta").awaitSingle())
     }
 }

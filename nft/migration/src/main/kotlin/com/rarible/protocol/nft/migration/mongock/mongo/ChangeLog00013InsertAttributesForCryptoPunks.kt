@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
@@ -9,6 +10,7 @@ import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import scalether.domain.Address
 import java.math.BigInteger
 import java.net.URL
 
@@ -16,7 +18,12 @@ import java.net.URL
 class ChangeLog00013InsertAttributesForCryptoPunks {
 
     @ChangeSet(id = "ChangeLog00013InsertAttributesForCryptoPunks.create", order = "1", author = "protocol")
-    fun insertCryptoPunksAttributes(@NonLockGuarded punksService: CryptoPunksPropertiesResolver) = runBlocking<Unit> {
+    fun insertCryptoPunksAttributes(
+        @NonLockGuarded punksService: CryptoPunksPropertiesResolver,
+        @NonLockGuarded nftIndexerProperties: NftIndexerProperties
+    ) = runBlocking<Unit> {
+        val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
+        if (address == Address.ZERO()) return@runBlocking
         listOf(
             "0-999.csv",
             "1000-1999.csv",
