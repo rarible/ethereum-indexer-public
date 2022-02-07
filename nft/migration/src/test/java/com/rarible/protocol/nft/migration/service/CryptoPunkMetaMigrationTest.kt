@@ -27,8 +27,10 @@ class CryptoPunkMetaMigrationTest : AbstractIntegrationTest() {
     @Test
     fun `should get attributes after migration`() = runBlocking<Unit> {
         val tokenId = BigInteger.valueOf(2L)
-        ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(cryptoPunksPropertiesResolver)
-
+        ChangeLog00013InsertAttributesForCryptoPunks().insertCryptoPunksAttributes(
+            cryptoPunksPropertiesResolver,
+            nftIndexerProperties
+        )
         val count = mongo.count(Query(), "cryptopunks_meta").awaitSingle()
         assertThat(count).isEqualTo(10000)
 
