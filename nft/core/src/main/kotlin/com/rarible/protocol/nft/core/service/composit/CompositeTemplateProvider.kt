@@ -7,6 +7,6 @@ import org.springframework.stereotype.Component
 @Component
 class CompositeTemplateProvider : EntityTemplateProvider<ItemId, CompositeEntity> {
     override fun getEntityTemplate(id: ItemId): CompositeEntity {
-        return CompositeEntity(id = id, item = null, ownerships = emptyList())
+        return CompositeEntity(id = id, item = null, ownerships = mutableMapOf())
     }
 }

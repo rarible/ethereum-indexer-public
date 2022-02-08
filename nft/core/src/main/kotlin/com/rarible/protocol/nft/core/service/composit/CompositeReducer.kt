@@ -24,17 +24,15 @@ class CompositeReducer(
             itemReducer.reduce(item, itemEvent)
         }
 
-        val reducedOwnerships = entity.ownerships.associateBy { it.id }.toMutableMap()
-
         event.ownershipEvents.forEach { ownershipEvent ->
             val eventOwnershipId = OwnershipId.parseId(ownershipEvent.entityId)
-            val ownership = reducedOwnerships[eventOwnershipId] ?: ownershipTemplateProvider.getEntityTemplate(eventOwnershipId)
-            reducedOwnerships[eventOwnershipId] = ownershipReducer.reduce(ownership, ownershipEvent)
+            val ownership = entity.ownerships[eventOwnershipId.owner] ?: ownershipTemplateProvider.getEntityTemplate(eventOwnershipId)
+            entity.ownerships[eventOwnershipId.owner] = ownershipReducer.reduce(ownership, ownershipEvent)
         }
         return CompositeEntity(
             id = entity.id,
             item = reducedItem ?: entity.item,
-            ownerships = reducedOwnerships.values.toList()
+            ownerships = entity.ownerships
         )
     }
 }

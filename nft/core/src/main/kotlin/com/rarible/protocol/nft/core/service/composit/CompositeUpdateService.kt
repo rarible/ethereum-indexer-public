@@ -29,7 +29,7 @@ class CompositeUpdateService(
                     itemUpdateService.update(it)
                 }
             }
-            val savedOwnerships = entity.ownerships.chunked(properties.ownershipSaveBatch)
+            val savedOwnerships = entity.ownerships.values.chunked(properties.ownershipSaveBatch)
                 .flatMap { ownerships ->
                     ownerships.map {
                         async {
@@ -37,7 +37,7 @@ class CompositeUpdateService(
                         }
                     }.awaitAll()
                 }
-            CompositeEntity(entity.id, savedItem?.await(), savedOwnerships)
+            CompositeEntity(entity.id, savedItem?.await(), savedOwnerships.associateBy { it.owner }.toMutableMap())
         }
     }
 }
