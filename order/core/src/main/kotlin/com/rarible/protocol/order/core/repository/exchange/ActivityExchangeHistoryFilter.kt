@@ -123,12 +123,8 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         private val continuation: Continuation?
    ) : UserActivityExchangeHistoryFilter(users) {
 
-        override val hint: Document =
-            if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
-            else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
-            return AllSell(sort,null).getCriteria().andOperator(makerCriteria)
+            return AllSell(sort, null).getCriteria().andOperator(makerCriteria)
                 .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
@@ -142,12 +138,8 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         private val continuation: Continuation?
    ) : UserActivityExchangeHistoryFilter(users) {
 
-        override val hint: Document =
-            if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
-            else ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
-            return AllCanceledBid(sort,null).getCriteria().andOperator(makerCriteria)
+            return AllCanceledBid(sort, null).getCriteria().andOperator(makerCriteria)
                 .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
@@ -161,12 +153,8 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         private val continuation: Continuation?
     ) : UserActivityExchangeHistoryFilter(users) {
 
-        override val hint: Document =
-            if (users.isSingleton) ExchangeHistoryRepositoryIndexes.MAKER_SELL_DEFINITION.indexKeys
-            else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
-            return AllCanceledSell(sort,null).getCriteria().andOperator(makerCriteria)
+            return AllCanceledSell(sort, null).getCriteria().andOperator(makerCriteria)
                 .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }
@@ -179,12 +167,9 @@ sealed class UserActivityExchangeHistoryFilter(users: List<Address>) : ActivityE
         override val to: Instant?,
         private val continuation: Continuation?
    ) : UserActivityExchangeHistoryFilter(users) {
-        override val hint: Document =
-            if (users.isSingleton) ExchangeHistoryRepositoryIndexes.TAKER_SELL_DEFINITION.indexKeys
-            else ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return AllSell(sort,null).getCriteria().andOperator(takerCriteria)
+            return AllSell(sort, null).getCriteria().andOperator(takerCriteria)
                 .dateBoundary(sort, continuation, from, to)
                 .scrollTo(sort, continuation)
         }

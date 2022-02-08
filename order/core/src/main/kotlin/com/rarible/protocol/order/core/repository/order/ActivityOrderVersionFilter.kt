@@ -99,10 +99,6 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         private val continuation: Continuation? = null
     ) : UserActivityOrderVersionFilter(users) {
 
-        override val hint: Document =
-            if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_BID_DEFINITION.indexKeys
-            else OrderVersionRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
             return AllBid(activitySort,null).getCriteria()
                 .andOperator(makerCriteria)
@@ -118,10 +114,6 @@ sealed class UserActivityOrderVersionFilter(users: List<Address>) : ActivityOrde
         override val to: Instant?,
         val continuation: Continuation?
     ) : UserActivityOrderVersionFilter(users) {
-
-        override val hint: Document =
-            if (users.isSingleton) OrderVersionRepositoryIndexes.MAKER_LIST_DEFINITION.indexKeys
-            else OrderVersionRepositoryIndexes.ALL_LIST_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
             return AllList(activitySort,null).getCriteria()

@@ -208,8 +208,6 @@ sealed class CollectionActivityItemHistoryFilter(protected val contract: Address
 
     class ByCollectionTransfer(override val sort: ActivitySort, contract: Address, private val continuation: Continuation?) : CollectionActivityItemHistoryFilter(contract) {
 
-        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_COLLECTION_TRANSFERS_DEFINITION.indexKeys
-
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
