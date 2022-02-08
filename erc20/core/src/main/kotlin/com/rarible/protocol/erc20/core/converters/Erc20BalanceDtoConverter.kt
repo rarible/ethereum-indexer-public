@@ -12,6 +12,7 @@ object Erc20BalanceDtoConverter : Converter<Erc20Balance, Erc20BalanceDto> {
             contract = source.token,
             owner = source.owner,
             balance = source.balance.value,
+            createdAt = source.createdAt,
             lastUpdatedAt = source.lastUpdatedAt
         )
     }
