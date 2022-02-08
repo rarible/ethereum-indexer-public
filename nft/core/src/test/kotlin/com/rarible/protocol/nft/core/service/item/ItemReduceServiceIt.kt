@@ -912,12 +912,13 @@ internal class ItemReduceServiceIt : AbstractIntegrationTest() {
         token: Address,
         tokenId: EthUInt256,
         expValue: EthUInt256,
-        expLazyValue: EthUInt256
+        expLazyValue: EthUInt256,
+        deleted: Boolean = false
     ) {
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
-        assertThat(ownership.deleted).isEqualTo(false)
+        assertThat(ownership.deleted).isEqualTo(deleted)
     }
 
     companion object {

@@ -254,7 +254,14 @@ class OrderReduceService(
     private suspend fun Order.withUpdatedMakeStock(): Order {
         val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
         logger.info("Make balance $makeBalance for order $hash")
-        return withMakeBalance(makeBalance, protocolCommissionProvider.get())
+        val lastUpdatedAt = makeBalance.lastUpdatedAt
+        val copy = if (lastUpdatedAt != null && this.lastUpdateAt.isBefore(lastUpdatedAt)) {
+            this.copy(lastUpdateAt = lastUpdatedAt)
+        } else {
+            this
+        }
+        return copy.withMakeBalance(makeBalance.value, protocolCommissionProvider.get())
+
     }
 
     private suspend fun Order.withNewPrice(): Order {

@@ -26,7 +26,7 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         val ownership = createOwnership()
         ownershipRepository.save(ownership).awaitFirst()
 
-        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownership.id.decimalStringValue).awaitFirst()
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownership.id.decimalStringValue, false).awaitFirst()
 
         assertThat(ownershipDto.id).isEqualTo(OwnershipId.parseId(ownership.id.decimalStringValue).decimalStringValue)
         assertThat(ownershipDto.contract).isEqualTo(ownership.token)

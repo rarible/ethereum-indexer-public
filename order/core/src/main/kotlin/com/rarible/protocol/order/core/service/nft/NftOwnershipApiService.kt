@@ -13,7 +13,7 @@ class NftOwnershipApiService(
 ) {
     suspend fun getOwnershipById(ownershipId: String): NftOwnershipDto? {
         return try {
-            nftOwnershipControllerApi.getNftOwnershipById(ownershipId).awaitFirstOrNull()
+            nftOwnershipControllerApi.getNftOwnershipById(ownershipId, true).awaitFirstOrNull()
         } catch (ex: WebClientResponseException) {
             if (ex.statusCode == HttpStatus.NOT_FOUND) {
                 null

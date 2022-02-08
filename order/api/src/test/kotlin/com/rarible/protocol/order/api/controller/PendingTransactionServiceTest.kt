@@ -22,6 +22,7 @@ import com.rarible.protocol.order.api.service.pending.PendingTransactionService
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.LegacyAssetTypeClass
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
@@ -453,7 +454,7 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
             )
 
             // Imitate the makeStock = 10
-            coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns make.value
+            coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(make.value)
             processTransaction(receipt)
 
             val orderHash = Order.hashKey(maker, make.type, take.type, salt)

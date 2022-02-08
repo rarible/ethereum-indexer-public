@@ -3,32 +3,50 @@ package com.rarible.protocol.erc20.listener.service.balance
 import com.rarible.core.reduce.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.erc20.core.model.*
+import com.rarible.protocol.erc20.core.model.BalanceId
+import com.rarible.protocol.erc20.core.model.BalanceReduceSnapshot
+import com.rarible.protocol.erc20.core.model.Erc20Balance
+import com.rarible.protocol.erc20.core.model.Erc20Deposit
+import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
+import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
+import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
+import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
+import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
+import com.rarible.protocol.erc20.core.model.Erc20Withdrawal
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Erc20Balance, BalanceId> {
 
-    override suspend fun reduce(initial: BalanceReduceSnapshot, event: Erc20ReduceEvent): BalanceReduceSnapshot {
+    override suspend fun reduce(current: BalanceReduceSnapshot, event: Erc20ReduceEvent): BalanceReduceSnapshot {
         val logEvent = event.logEvent
-        val initialBalance = initial.data.balance
+        val currentData = current.data
+        val currentBalance = currentData.balance
 
-        val balance = if (logEvent.status == LogEventStatus.CONFIRMED) {
-            when (val data = logEvent.data) {
-                is Erc20IncomeTransfer -> initialBalance + data.value
-                is Erc20OutcomeTransfer -> initialBalance - data.value
-                is Erc20Deposit -> initialBalance +  data.value
-                is Erc20Withdrawal -> initialBalance - data.value
-                is Erc20TokenApproval -> initialBalance
-                else -> throw IllegalArgumentException("Unexpected data type ${data.javaClass}")
-            }
-        } else {
-            initialBalance
+        if (logEvent.status != LogEventStatus.CONFIRMED) {
+            return current.copy(mark = event.mark)
         }
 
+        val (balance, eventDate) = when (val data = logEvent.data) {
+            is Erc20IncomeTransfer -> Pair(currentBalance + data.value, data.date.toInstant())
+            is Erc20OutcomeTransfer -> Pair(currentBalance - data.value, data.date.toInstant())
+            is Erc20Deposit -> Pair(currentBalance + data.value, data.date.toInstant())
+            is Erc20Withdrawal -> Pair(currentBalance - data.value, data.date.toInstant())
+            is Erc20TokenApproval -> Pair(currentBalance, data.date.toInstant())
+            else -> throw IllegalArgumentException("Unexpected data type ${data.javaClass}")
+        }
+
+        // For the first snapshot we should determine createdAt date
+        val updatedData = if (current.data.createdAt == Instant.EPOCH) {
+            current.data.copy(createdAt = eventDate)
+        } else {
+            current.data
+        }.withBalanceAndLastUpdatedAt(balance, eventDate)
+
         return BalanceReduceSnapshot(
-            id = initial.id,
-            data = initial.data.withBalance(balance),
+            id = current.id,
+            data = updatedData,
             mark = event.mark
         )
     }
@@ -46,7 +64,9 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
             data = Erc20Balance(
                 token = key.token,
                 owner = key.owner,
-                balance = EthUInt256.ZERO
+                balance = EthUInt256.ZERO,
+                createdAt = Instant.EPOCH,
+                lastUpdatedAt = Instant.EPOCH
             ),
             mark = Long.MIN_VALUE
         )

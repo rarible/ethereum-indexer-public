@@ -23,6 +23,7 @@ class CryptoPunkMarketOnChainOrderTriggerRaribleMakeStockProcessor(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService
 ) : LogEventsListener {
+
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
         return mono {
             logs.asSequence()
@@ -34,7 +35,7 @@ class CryptoPunkMarketOnChainOrderTriggerRaribleMakeStockProcessor(
                     val tokenId = type.tokenId
                     orderRepository
                         .findByTargetNftAndNotCanceled(onChainOrder.maker, token, tokenId)
-                        .collect { orderUpdateService.updateMakeStock(it.hash) }
+                        .collect { orderUpdateService.updateMakeStock(it.hash, null, it.lastUpdateAt) }
                 }
         }.then()
     }
