@@ -28,13 +28,20 @@ class BalanceReducer : Reducer<Erc20ReduceEvent, BalanceReduceSnapshot, Long, Er
             return current.copy(mark = event.mark)
         }
 
-        val (balance, eventDate) = when (val data = logEvent.data) {
-            is Erc20IncomeTransfer -> Pair(currentBalance + data.value, data.date.toInstant())
-            is Erc20OutcomeTransfer -> Pair(currentBalance - data.value, data.date.toInstant())
-            is Erc20Deposit -> Pair(currentBalance + data.value, data.date.toInstant())
-            is Erc20Withdrawal -> Pair(currentBalance - data.value, data.date.toInstant())
-            is Erc20TokenApproval -> Pair(currentBalance, data.date.toInstant())
-            else -> throw IllegalArgumentException("Unexpected data type ${data.javaClass}")
+        val data = logEvent.data
+
+        if (!(data is Erc20TokenHistory)) {
+            throw IllegalArgumentException("Unexpected data type ${data.javaClass}")
+        }
+
+        val eventDate = data.date.toInstant()
+
+        val balance = when (data) {
+            is Erc20IncomeTransfer -> currentBalance + data.value
+            is Erc20OutcomeTransfer -> currentBalance - data.value
+            is Erc20Deposit -> currentBalance + data.value
+            is Erc20Withdrawal -> currentBalance - data.value
+            is Erc20TokenApproval -> currentBalance
         }
 
         // For the first snapshot we should determine createdAt date
