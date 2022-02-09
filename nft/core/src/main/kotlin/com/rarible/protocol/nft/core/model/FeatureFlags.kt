@@ -4,6 +4,5 @@ data class FeatureFlags(
     var reduceVersion: ReduceVersion = ReduceVersion.V1,
     var scannerVersion: ScannerVersion = ScannerVersion.V1,
     var isRoyaltyServiceEnabled: Boolean = true,
-    var ownershipBatchHandle: Boolean = false,
     var validateCreatorByTransactionSender: Boolean = false
 )

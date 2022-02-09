@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
@@ -42,7 +43,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
     @BeforeEach
     fun mockMakeBalance() {
         // Make all orders have status ACTIVE
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.TEN)
     }
 
     @BeforeEach
@@ -95,7 +96,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
 
         val inactiveVersion = createOrderVersion(sellMake, inactiveCurrency)
         io.mockk.clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.ZERO)
         saveOrderVersions(inactiveVersion)
 
         checkSellCurrencies(currency, inactiveCurrency)
@@ -143,7 +144,7 @@ class OrderControllerCurrenciesTest : AbstractIntegrationTest() {
 
         val inactiveVersion = createOrderVersion(inactiveCurrency, bidTake)
         io.mockk.clearMocks(assetMakeBalanceProvider)
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.ZERO
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.ZERO)
         saveOrderVersions(inactiveVersion)
 
         checkBidCurrencies(currency, inactiveCurrency)

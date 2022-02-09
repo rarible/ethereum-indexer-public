@@ -14,6 +14,7 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.service.balance.BalanceControllerApiService
 import com.rarible.protocol.order.core.service.balance.EthBalanceService
 import com.rarible.protocol.order.core.service.nft.NftOwnershipApiService
@@ -21,7 +22,8 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 interface AssetBalanceProvider {
-    suspend fun getAssetStock(owner: Address, asset: Asset): EthUInt256?
+
+    suspend fun getAssetStock(owner: Address, asset: Asset): MakeBalanceState?
 }
 
 @Component
@@ -31,12 +33,13 @@ class AssetBalanceProviderImpl(
     private val nftOwnershipApi: NftOwnershipApiService,
     private val ethBalanceService: EthBalanceService
 ) : AssetBalanceProvider {
-    override suspend fun getAssetStock(owner: Address, asset: Asset): EthUInt256? {
+
+    override suspend fun getAssetStock(owner: Address, asset: Asset): MakeBalanceState? {
         return when (asset.type) {
             is Erc20AssetType -> {
-                erc20BalanceApi
-                    .getBalance(asset.type.token, owner)
-                    ?.let { balance -> EthUInt256.of(balance.balance) }
+                erc20BalanceApi.getBalance(asset.type.token, owner)?.let {
+                    MakeBalanceState(EthUInt256.of(it.balance), it.lastUpdatedAt)
+                }
             }
             is Erc721AssetType,
             is Erc1155AssetType,
@@ -44,18 +47,18 @@ class AssetBalanceProviderImpl(
             is Erc721LazyAssetType,
             is Erc1155LazyAssetType -> {
                 val ownershipId = asset.type.ownershipId(owner)
-                nftOwnershipApi
-                    .getOwnershipById(ownershipId)
-                    ?.let { ownership -> EthUInt256.of(ownership.value) }
+                nftOwnershipApi.getOwnershipById(ownershipId)?.let {
+                    MakeBalanceState(EthUInt256.of(it.value), it.date)
+                }
             }
             is GenerativeArtAssetType -> {
-                EthUInt256.of(Long.MAX_VALUE)
+                MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is CollectionAssetType -> {
-                EthUInt256.of(Long.MAX_VALUE)
+                MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is EthAssetType -> {
-                ethBalanceService.getBalance(owner)
+                MakeBalanceState(ethBalanceService.getBalance(owner), null)
             }
         }
     }

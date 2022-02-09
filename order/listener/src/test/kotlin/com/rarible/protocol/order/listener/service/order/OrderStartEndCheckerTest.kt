@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
@@ -57,9 +58,9 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@ {
             val asset = secondArg<Asset>()
             if (asset.type is EthAssetType) {
-                return@r asset.value
+                return@r MakeBalanceState(asset.value)
             }
-            return@r EthUInt256.ONE
+            return@r MakeBalanceState(EthUInt256.ONE)
         }
     }
 
@@ -193,7 +194,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
             start = nowMillis().plus(Duration.ofHours(1)).epochSecond,
             end = nowMillis().plus(Duration.ofHours(2)).epochSecond
         )
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ZERO
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.ZERO)
         val order = orderUpdateService.save(orderVersion)
         assertThat(order.status).isEqualTo(OrderStatus.NOT_STARTED)
 

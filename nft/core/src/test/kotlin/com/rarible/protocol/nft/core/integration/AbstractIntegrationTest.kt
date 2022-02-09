@@ -44,10 +44,17 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
 import io.mockk.every
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.apache.kafka.clients.consumer.OffsetResetStrategy
 import org.assertj.core.api.Assertions.assertThat
@@ -291,9 +298,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                                     event.ownership.owner == owner
                         }
                         is NftOwnershipDeleteEventDto -> {
-                            event.ownership.token == token &&
-                                    event.ownership.tokenId == tokenId.value &&
-                                    event.ownership.owner == owner
+                            event.ownership!!.token == token &&
+                                event.ownership!!.tokenId == tokenId.value &&
+                                event.ownership!!.owner == owner
                         }
                     }
                 }

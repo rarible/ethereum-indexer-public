@@ -28,7 +28,6 @@ import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.reactor.flux
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -53,6 +52,7 @@ class ItemReduceServiceV1(
     private val royaltyService: RoyaltyService,
     private val featureFlags: FeatureFlags
 ) : ItemReduceService {
+
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
@@ -135,39 +135,8 @@ class ItemReduceServiceV1(
         }
     }
 
-    private fun handleOwnerships(marker: Marker, item: Item, ownerships: List<Ownership>): Flux<Ownership>  {
-        return if (featureFlags.ownershipBatchHandle) {
-            handleOwnershipWithBatch(marker, item, ownerships)
-        } else {
-            ownerships.toFlux().flatMap { updateOwnershipAndSave(marker, item, it) }
-        }
-    }
-
-    private fun handleOwnershipWithBatch(marker: Marker, item: Item, ownerships: List<Ownership>) = flux {
-        logger.info("Start processing ownership ${item.id}")
-        val needRemove = ownerships.filter { ownership -> ownership.needRemove() }
-        val needRemoveIds = needRemove.map { ownership -> ownership.id }
-
-        val activeOwnerships = (ownerships - needRemove).map { ownership -> buildOwnership(marker, ownership, item) }
-        val activeOwnershipIds = activeOwnerships.map { ownership -> ownership.id }
-
-        val currentOwnerships = ownershipService.getAll(activeOwnershipIds)
-            .associateBy { ownership -> ownership.id }
-
-        val needUpdate = activeOwnerships.filter { ownership -> ownership != currentOwnerships[ownership.id] }
-        val needUpdateIds = needUpdate.map { ownership -> ownership.id }
-
-        if (needRemove.isNotEmpty()) {
-            val deleted = ownershipService.removeAll(needRemoveIds)
-            eventListenerListener.onOwnershipsDeleted(deleted.map { it.id })
-        }
-        if (needUpdate.isNotEmpty()) {
-            ownershipService.removeAll(needUpdateIds)
-            ownershipService.saveAll(needUpdate)
-            eventListenerListener.onOwnershipsChanged(needUpdate)
-        }
-        activeOwnerships.forEach { ownership -> send(ownership) }
-        logger.info("End processing ownership ${item.id}")
+    private fun handleOwnerships(marker: Marker, item: Item, ownerships: List<Ownership>): Flux<Ownership> {
+        return ownerships.toFlux().flatMap { updateOwnershipAndSave(marker, item, it) }
     }
 
     private fun fixOwnerships(ownerships: Collection<Ownership>): List<Ownership> {
@@ -214,27 +183,17 @@ class ItemReduceServiceV1(
             }
     }
 
-    private fun updateOwnershipAndSave(marker: Marker, item: Item, ownership: Ownership): Mono<Ownership> =
-        when {
-            ownership.needRemove() -> {
-                ownershipService
-                    .delete(marker, ownership)
-                    .flatMap { eventListenerListener.onOwnershipDeleted(it.id) }
-                    .then(Mono.empty())
-            }
-            else -> {
-                buildOwnership(marker, ownership, item).let {
-                    ownershipService.save(marker, it)
-                        .flatMap { saveResult ->
-                            if (saveResult.wasSaved) {
-                                eventListenerListener.onOwnershipChanged(saveResult.ownership)
-                            } else {
-                                Mono.empty()
-                            }.thenReturn(saveResult.ownership)
-                        }
-                }
-            }
+    private fun updateOwnershipAndSave(marker: Marker, item: Item, ownership: Ownership): Mono<Ownership> {
+        val builtOwnership = buildOwnership(marker, ownership, item)
+
+        return ownershipService.saveIfChanged(marker, builtOwnership).flatMap { saveResult ->
+            if (saveResult.wasSaved) {
+                eventListenerListener.onOwnershipChanged(saveResult.ownership)
+            } else {
+                Mono.empty()
+            }.thenReturn(saveResult.ownership)
         }
+    }
 
     private fun buildOwnership(marker: Marker, ownership: Ownership, item: Item): Ownership {
         logger.info(marker, "Build formed ownership: $ownership\nby item: $item")
@@ -402,6 +361,7 @@ class ItemReduceServiceV1(
     private fun Ownership.needRemove(): Boolean = value <= EthUInt256.of(0) && pending.isEmpty()
 
     companion object {
+
         const val MAX_OWNERSHIPS_TO_LOG = 1000
         val WORD_ZERO: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
 

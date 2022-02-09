@@ -28,6 +28,7 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderFilter
@@ -86,7 +87,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
     @BeforeEach
     fun mockBalances() {
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.TEN)
     }
 
     companion object {
@@ -432,7 +433,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         coEvery {
             assetMakeBalanceProvider.getMakeBalance(any())
-        } returns makerErc20Stock
+        } returns MakeBalanceState(makerErc20Stock)
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -456,7 +457,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
             )
 
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns makerErc721Supply
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(makerErc721Supply)
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -483,7 +484,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(10))
             )
 
-        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker))) } returns Mono.just(nft)
+        every { nftOwnershipApi.getNftOwnershipById(eq(erc721AssetType.ownershipId(maker)), any()) } returns Mono.just(nft)
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -507,7 +508,7 @@ class OrderServiceIt : AbstractOrderIt() {
                 take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5))
             )
 
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns makerErc1155Supply
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(makerErc1155Supply)
 
         val saved = orderService.put(order.toForm(privateKey))
 
@@ -530,7 +531,7 @@ class OrderServiceIt : AbstractOrderIt() {
             )
 
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returnsMany listOf(
-            EthUInt256.ONE, EthUInt256.TEN
+            MakeBalanceState(EthUInt256.ONE), MakeBalanceState(EthUInt256.TEN)
         )
 
         val saved = orderService.put(order.toForm(privateKey))
@@ -555,7 +556,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         coEvery {
             assetMakeBalanceProvider.getMakeBalance(any())
-        } returnsMany listOf(EthUInt256.ONE, EthUInt256.TEN)
+        } returnsMany listOf(MakeBalanceState(EthUInt256.ONE), MakeBalanceState(EthUInt256.TEN))
 
         val saved = orderService.put(order.toForm(privateKey))
         assertThat(saved.makeStock).isEqualTo(EthUInt256.ONE)

@@ -10,8 +10,10 @@ object Erc20BalanceDtoConverter : Converter<Erc20Balance, Erc20BalanceDto> {
     override fun convert(source: Erc20Balance): Erc20BalanceDto {
         return Erc20BalanceDto(
             contract = source.token,
-            owner =  source.owner,
-            balance = source.balance.value
+            owner = source.owner,
+            balance = source.balance.value,
+            createdAt = source.createdAt,
+            lastUpdatedAt = source.lastUpdatedAt
         )
     }
 }

@@ -9,7 +9,13 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.event.NftOrdersPriceUpdateListener
 import com.rarible.protocol.order.core.event.OrderListener
 import com.rarible.protocol.order.core.event.OrderVersionListener
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderUsdValue
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
@@ -95,7 +101,7 @@ internal class OrderPricesUpdateJobTest : MongodbReactiveBaseTest() {
         coEvery { orderVersionListener.onOrderVersion(any()) } returns Unit
         coEvery { orderListener.onOrder(any()) } returns Unit
         coEvery { nftOrdersPriceUpdateListener.onNftOrders(any(), any(), any()) } returns Unit
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.TEN)
         coEvery { protocolCommissionProvider.get() } returns EthUInt256.ZERO
 
         val newMakeUsd = BigDecimal.valueOf(2)

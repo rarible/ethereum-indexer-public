@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
@@ -33,7 +34,7 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
     @BeforeEach
     fun mockMakeBalance() {
         // Make all orders have status ACTIVE
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns EthUInt256.TEN
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } returns MakeBalanceState(EthUInt256.TEN)
     }
 
     @BeforeEach

@@ -21,6 +21,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -37,6 +38,7 @@ import io.micrometer.core.instrument.MeterRegistry
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -79,7 +81,9 @@ import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
 
+@FlowPreview
 abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
+
     private val logger = LoggerFactory.getLogger(javaClass)
     protected lateinit var sender: MonoTransactionSender
 
@@ -193,9 +197,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@ {
             val asset = secondArg<Asset>()
             if (asset.type is EthAssetType) {
-                return@r asset.value
+                return@r MakeBalanceState(asset.value)
             }
-            return@r EthUInt256.ONE
+            return@r MakeBalanceState(EthUInt256.ONE)
         }
 
         clearMocks(erc1271SignService)
@@ -325,7 +329,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {
-        orderUpdateService.updateMakeStock(orderHash, knownMakeBalance = makeBalance)
+        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance))
     }
 
     protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {

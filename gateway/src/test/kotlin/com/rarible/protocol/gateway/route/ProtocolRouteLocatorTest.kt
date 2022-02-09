@@ -1,7 +1,13 @@
 package com.rarible.protocol.gateway.route
 
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftOrderItemDto
+import com.rarible.protocol.dto.NftOrderOwnershipDto
+import com.rarible.protocol.dto.NftSignatureDto
+import com.rarible.protocol.dto.NftTokenIdDto
 import com.rarible.protocol.gateway.AbstractIntegrationTest
 import com.rarible.protocol.gateway.End2EndTest
 import io.daonomic.rpc.domain.Binary
@@ -228,7 +234,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
                     .withBody(mapper.writeValueAsBytes(ownershipDto))
             )
 
-        val result = nftOwnershipApi.getNftOwnershipById(ownershipDto.id).awaitFirst()
+        val result = nftOwnershipApi.getNftOwnershipById(ownershipDto.id, false).awaitFirst()
         assertThat(result).isEqualTo(ownershipDto)
     }
 }
