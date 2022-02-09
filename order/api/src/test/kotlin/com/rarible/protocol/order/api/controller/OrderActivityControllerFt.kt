@@ -1286,7 +1286,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     .map { it.take.type }
                     .filterIsInstance<Erc721AssetType>()
                     .map { nftAsset ->
-                        mockk<NftItemDto> {
+                        mockk<NftOwnershipDto> {
                             every { contract } returns nftAsset.token
                             every { tokenId } returns nftAsset.tokenId.value
                         }
@@ -1296,16 +1296,16 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     .map { it.take.type }
                     .filterIsInstance<Erc1155AssetType>()
                     .map { nftAsset ->
-                        mockk<NftItemDto> {
+                        mockk<NftOwnershipDto> {
                             every { contract } returns nftAsset.token
                             every { tokenId } returns nftAsset.tokenId.value
                         }
                     }
-                coEvery { nftItemApi.getNftItemsByOwner(eq(user.hex()), any(), any()) } returns Mono.just(
-                    NftItemsDto(
+                coEvery { nftOwnership.getNftOwnershipsByOwner(eq(user.prefixed()), any(), any()) } returns Mono.just(
+                    NftOwnershipsDto(
                         total = (erc721Tokens.size + erc1155Tokens.size).toLong(),
                         continuation = null,
-                        items = erc721Tokens + erc1155Tokens
+                        ownerships = erc721Tokens + erc1155Tokens
                     )
                 )
             }
