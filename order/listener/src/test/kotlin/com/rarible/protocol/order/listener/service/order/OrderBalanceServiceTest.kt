@@ -1,20 +1,23 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Erc20BalanceDto
 import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
-import com.rarible.protocol.dto.NftDeletedOwnershipDto
-import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
-import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.listener.data.createNftOwnershipDeleteEvent
+import com.rarible.protocol.order.listener.data.createNftOwnershipDeleteEventLegacy
 import com.rarible.protocol.order.listener.data.createNftOwnershipDto
+import com.rarible.protocol.order.listener.data.createNftOwnershipUpdateEvent
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -95,16 +98,16 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
 
     @Test
     fun `should update all not canceled nft orders`() = runBlocking<Unit> {
-        val ownershipDto = createNftOwnershipDto()
+        val ownership = createNftOwnershipDto()
             .copy(tokenId = BigInteger.valueOf(2))
             .copy(value = BigInteger.valueOf(5))
 
-        val targetToken = ownershipDto.contract
-        val targetTokenId = EthUInt256.of(ownershipDto.tokenId)
+        val targetToken = ownership.contract
+        val targetTokenId = EthUInt256.of(ownership.tokenId)
 
         val make = Asset(Erc1155AssetType(targetToken, targetTokenId), EthUInt256.TEN)
         val take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
-        val maker = ownershipDto.owner
+        val maker = ownership.owner
 
         val order1 = createOrderVersion().copy(
             maker = maker,
@@ -135,62 +138,132 @@ class OrderBalanceServiceTest : AbstractIntegrationTest() {
         listOf(order1, order2, order3, order4).forEach { orderUpdateService.save(it) }
         cancelOrder(order3.hash)
 
-        val event = NftOwnershipUpdateEventDto(
-            eventId = randomString(),
-            ownershipId = ownershipDto.id,
-            ownership = ownershipDto
-        )
+        val event = createNftOwnershipUpdateEvent(ownership)
 
         Wait.waitAssert {
             orderBalanceService.handle(event)
 
-            assertThat(orderRepository.findById(order1.hash)?.makeStock?.value).isEqualTo(ownershipDto.value)
-            assertThat(orderRepository.findById(order2.hash)?.makeStock?.value).isEqualTo(ownershipDto.value)
+            assertThat(orderRepository.findById(order1.hash)?.makeStock?.value).isEqualTo(ownership.value)
+            assertThat(orderRepository.findById(order2.hash)?.makeStock?.value).isEqualTo(ownership.value)
             assertThat(orderRepository.findById(order3.hash)?.makeStock).isEqualTo(EthUInt256.ZERO) // because order #3 is a cancelled order.
             assertThat(orderRepository.findById(order4.hash)?.makeStock).isEqualTo(oldStock)
         }
     }
 
     @Test
-    fun `sell order makeStock becomes 0 when make NFT is transferred`() = runBlocking<Unit> {
-        val ownershipDto = createNftOwnershipDto()
-            .copy(tokenId = BigInteger.valueOf(2))
-            .copy(value = BigInteger.ZERO)
-
-        val targetToken = ownershipDto.contract
-        val targetTokenId = EthUInt256.of(ownershipDto.tokenId)
-
-        val make = Asset(Erc721AssetType(targetToken, targetTokenId), EthUInt256.ONE)
-        val take = Asset(EthAssetType, EthUInt256.TEN)
-        val oldOwner = ownershipDto.owner
-
-        val initialStock = EthUInt256.ONE
-        clearMocks(assetBalanceProvider)
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(initialStock)
-        val order = orderUpdateService.save(
-            createOrderVersion().copy(
-                maker = oldOwner,
-                make = make,
-                take = take
-            )
-        )
-        assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(initialStock)
-
-        val deletedOwnership = NftDeletedOwnershipDto(
-            id = randomString(),
-            token = targetToken,
-            tokenId = targetTokenId.value,
-            owner = oldOwner
+    fun `on ownership updated - lastUpdate of order updated`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val ownership = createNftOwnershipDto().copy(
+            tokenId = BigInteger.valueOf(2),
+            value = BigInteger.valueOf(7),
+            date = now
         )
 
-        val event = NftOwnershipDeleteEventDto(
-            eventId = randomString(),
-            ownershipId = ownershipDto.id,
-            ownership = deletedOwnership,
-            deletedOwnership = null // Legacy event structure
-        )
+        val orderVersion = createOrderVersionForOwnership(ownership, 10, 10)
+            .copy(createdAt = now.minusSeconds(10))
+
+        val order = orderUpdateService.save(orderVersion)
+
+        val event = createNftOwnershipUpdateEvent(ownership)
 
         orderBalanceService.handle(event)
-        assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(EthUInt256.ZERO)
+
+        val updatedOrder = orderRepository.findById(order.hash)!!
+        assertThat(updatedOrder.makeStock.value).isEqualTo(ownership.value)
+        assertThat(updatedOrder.lastUpdateAt).isEqualTo(ownership.date)
+    }
+
+    @Test
+    fun `on ownership updated - lastUpdate of order not updated`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val ownership = createNftOwnershipDto().copy(
+            tokenId = BigInteger.valueOf(3),
+            value = BigInteger.valueOf(7),
+            date = now.minusSeconds(120)
+        )
+
+        val orderVersion = createOrderVersionForOwnership(ownership, 10, 10)
+        val order = orderUpdateService.save(orderVersion)
+
+        val event = createNftOwnershipUpdateEvent(ownership)
+
+        orderBalanceService.handle(event)
+
+        val updatedOrder = orderRepository.findById(order.hash)!!
+        assertThat(updatedOrder.makeStock.value).isEqualTo(ownership.value)
+        assertThat(updatedOrder.lastUpdateAt).isEqualTo(order.lastUpdateAt)
+    }
+
+    @Test
+    fun `on ownership delete event - legacy`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val ownership = createNftOwnershipDto().copy(
+            tokenId = BigInteger.valueOf(2),
+            value = BigInteger.ZERO,
+            date = now
+        )
+
+        val initialStock = EthUInt256.ONE
+        // lastUpdate of order should be replaced by latest date of asset update
+        val assetStock = MakeBalanceState(initialStock, now.minusSeconds(60))
+
+        clearMocks(assetBalanceProvider)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns assetStock
+
+        val orderVersion = createOrderVersionForOwnership(ownership, 1, 10)
+            .copy(createdAt = now.minusSeconds(120))
+        val order = orderUpdateService.save(orderVersion)
+
+        assertThat(orderRepository.findById(order.hash)?.makeStock).isEqualTo(initialStock)
+
+        val event = createNftOwnershipDeleteEventLegacy(ownership)
+
+        orderBalanceService.handle(event)
+
+        val updatedOrder = orderRepository.findById(order.hash)!!
+        assertThat(updatedOrder.makeStock).isEqualTo(EthUInt256.ZERO)
+        assertThat(updatedOrder.lastUpdateAt).isEqualTo(assetStock.lastUpdatedAt)
+    }
+
+    @Test
+    fun `on ownership deleted - full event`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val ownership = createNftOwnershipDto().copy(
+            tokenId = BigInteger.valueOf(2),
+            value = BigInteger.ZERO,
+            date = now
+        )
+
+        val orderVersion = createOrderVersionForOwnership(ownership, 1, 10)
+            .copy(createdAt = now.minusSeconds(1))
+
+        val order = orderUpdateService.save(orderVersion)
+
+        val event = createNftOwnershipDeleteEvent(ownership)
+
+        orderBalanceService.handle(event)
+
+        val updatedOrder = orderRepository.findById(order.hash)!!
+        assertThat(updatedOrder.makeStock.value).isEqualTo(ownership.value)
+        assertThat(updatedOrder.lastUpdateAt).isEqualTo(ownership.date)
+    }
+
+    private fun createOrderVersionForOwnership(
+        ownership: NftOwnershipDto,
+        makeValue: Int,
+        takeValue: Int
+    ): OrderVersion {
+        val targetToken = ownership.contract
+        val targetTokenId = EthUInt256.of(ownership.tokenId)
+
+        val make = Asset(Erc721AssetType(targetToken, targetTokenId), EthUInt256.of(makeValue))
+        val take = Asset(EthAssetType, EthUInt256.of(takeValue))
+
+        return createOrderVersion().copy(
+            maker = ownership.owner,
+            make = make,
+            take = take,
+            createdAt = nowMillis()
+        )
     }
 }
