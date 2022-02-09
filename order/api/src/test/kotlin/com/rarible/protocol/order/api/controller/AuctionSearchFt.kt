@@ -44,11 +44,21 @@ import com.rarible.protocol.order.api.client.AuctionControllerApi as AuctionClie
 class AuctionSearchFt : AbstractIntegrationTest() {
     companion object {
         interface FetchMethod {
-            suspend fun fetch(client: AuctionClient, fetchParams: FetchParams, size: Int, continuation: String?): AuctionsPaginationDto
+            suspend fun fetch(
+                client: AuctionClient,
+                fetchParams: FetchParams,
+                size: Int,
+                continuation: String?
+            ): AuctionsPaginationDto
         }
 
         private val fetchAllMethod = object : FetchMethod {
-            override suspend fun fetch(client: AuctionClient, fetchParams: FetchParams, size: Int, continuation: String?) =
+            override suspend fun fetch(
+                client: AuctionClient,
+                fetchParams: FetchParams,
+                size: Int,
+                continuation: String?
+            ) =
                 client.getAuctionsAll(
                     fetchParams.sort,
                     fetchParams.status,
@@ -59,7 +69,12 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                 ).awaitFirst()
         }
         private val fetchByItemMethod = object : FetchMethod {
-            override suspend fun fetch(client: AuctionClient, fetchParams: FetchParams, size: Int, continuation: String?) =
+            override suspend fun fetch(
+                client: AuctionClient,
+                fetchParams: FetchParams,
+                size: Int,
+                continuation: String?
+            ) =
                 client.getAuctionsByItem(
                     fetchParams.contract,
                     fetchParams.tokenId,
@@ -74,7 +89,12 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                 ).awaitFirst()
         }
         private val fetchByCollectionMethod = object : FetchMethod {
-            override suspend fun fetch(client: AuctionClient, fetchParams: FetchParams, size: Int, continuation: String?) =
+            override suspend fun fetch(
+                client: AuctionClient,
+                fetchParams: FetchParams,
+                size: Int,
+                continuation: String?
+            ) =
                 client.getAuctionsByCollection(
                     fetchParams.contract,
                     fetchParams.seller,
@@ -86,7 +106,12 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                 ).awaitFirst()
         }
         private val fetchBySellerMethod = object : FetchMethod {
-            override suspend fun fetch(client: AuctionClient, fetchParams: FetchParams, size: Int, continuation: String?) =
+            override suspend fun fetch(
+                client: AuctionClient,
+                fetchParams: FetchParams,
+                size: Int,
+                continuation: String?
+            ) =
                 client.getAuctionsBySeller(
                     fetchParams.seller,
                     fetchParams.status,
@@ -150,7 +175,11 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                     val tokenId = randomBigInt()
                     val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
                     Arguments.of(
-                        FetchParams(contract = contract.prefixed(), tokenId = tokenId.toString(), sort = AuctionSortDto.LAST_UPDATE_DESC),
+                        FetchParams(
+                            contract = contract.prefixed(),
+                            tokenId = tokenId.toString(),
+                            sort = AuctionSortDto.LAST_UPDATE_DESC
+                        ),
                         fetchByItemMethod,
                         listOf(
                             randomAuction().copy(sell = sell, lastUpdateAt = now + Duration.ofMinutes(4)),
@@ -170,7 +199,11 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                     val tokenId = randomBigInt()
                     val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
                     Arguments.of(
-                        FetchParams(contract = contract.prefixed(), tokenId = tokenId.toString(), sort = AuctionSortDto.BUY_PRICE_ASC),
+                        FetchParams(
+                            contract = contract.prefixed(),
+                            tokenId = tokenId.toString(),
+                            sort = AuctionSortDto.BUY_PRICE_ASC
+                        ),
                         fetchByItemMethod,
                         listOf(
                             randomAuction().copy(sell = sell, buyPriceUsd = BigDecimal.valueOf(1)),
@@ -191,7 +224,12 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                     val buyAsset = Erc20AssetType(randomAddress())
                     val sell = Asset(Erc721AssetType(contract, EthUInt256.of(tokenId)), EthUInt256.ONE)
                     Arguments.of(
-                        FetchParams(contract = contract.prefixed(), tokenId = tokenId.toString(), currencyId = buyAsset.token.prefixed(), sort = AuctionSortDto.BUY_PRICE_ASC),
+                        FetchParams(
+                            contract = contract.prefixed(),
+                            tokenId = tokenId.toString(),
+                            currencyId = buyAsset.token.prefixed(),
+                            sort = AuctionSortDto.BUY_PRICE_ASC
+                        ),
                         fetchByItemMethod,
                         listOf(
                             randomAuction().copy(sell = sell, buy = buyAsset, buyPrice = BigDecimal.valueOf(1)),
@@ -213,11 +251,36 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                         FetchParams(contract = contract.prefixed()),
                         fetchByCollectionMethod,
                         listOf(
-                            randomAuction().copy(sell = Asset(sell.copy(tokenId = EthUInt256.of(randomBigInt())), EthUInt256.ONE), lastUpdateAt = now + Duration.ofMinutes(4)),
-                            randomAuction().copy(sell = Asset(sell.copy(tokenId = EthUInt256.of(randomBigInt())), EthUInt256.ONE), lastUpdateAt = now + Duration.ofMinutes(3)),
-                            randomAuction().copy(sell = Asset(sell.copy(tokenId = EthUInt256.of(randomBigInt())), EthUInt256.ONE), lastUpdateAt = now + Duration.ofMinutes(2)),
-                            randomAuction().copy(sell = Asset(sell.copy(tokenId = EthUInt256.of(randomBigInt())), EthUInt256.ONE), lastUpdateAt = now + Duration.ofMinutes(1)),
-                            randomAuction().copy(sell = Asset(sell.copy(tokenId = EthUInt256.of(randomBigInt())), EthUInt256.ONE), lastUpdateAt = now + Duration.ofMinutes(0))
+                            randomAuction().copy(
+                                sell = Asset(
+                                    sell.copy(tokenId = EthUInt256.of(randomBigInt())),
+                                    EthUInt256.ONE
+                                ), lastUpdateAt = now + Duration.ofMinutes(4)
+                            ),
+                            randomAuction().copy(
+                                sell = Asset(
+                                    sell.copy(tokenId = EthUInt256.of(randomBigInt())),
+                                    EthUInt256.ONE
+                                ), lastUpdateAt = now + Duration.ofMinutes(3)
+                            ),
+                            randomAuction().copy(
+                                sell = Asset(
+                                    sell.copy(tokenId = EthUInt256.of(randomBigInt())),
+                                    EthUInt256.ONE
+                                ), lastUpdateAt = now + Duration.ofMinutes(2)
+                            ),
+                            randomAuction().copy(
+                                sell = Asset(
+                                    sell.copy(tokenId = EthUInt256.of(randomBigInt())),
+                                    EthUInt256.ONE
+                                ), lastUpdateAt = now + Duration.ofMinutes(1)
+                            ),
+                            randomAuction().copy(
+                                sell = Asset(
+                                    sell.copy(tokenId = EthUInt256.of(randomBigInt())),
+                                    EthUInt256.ONE
+                                ), lastUpdateAt = now + Duration.ofMinutes(0)
+                            )
                         ),
                         listOf(
                             randomAuction().copy(lastUpdateAt = now + Duration.ofMinutes(4)),
@@ -257,11 +320,41 @@ class AuctionSearchFt : AbstractIntegrationTest() {
                     contract,
                     auctionId,
                     listOf(
-                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(5), bid = randomBid().copy(amount = EthUInt256.of(5)))),
-                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(4), bid = randomBid().copy(amount = EthUInt256.of(4)))),
-                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(3), bid = randomBid().copy(amount = EthUInt256.of(3)))),
-                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(2), bid = randomBid().copy(amount = EthUInt256.of(2)))),
-                        createAuctionLogEvent(randomBidPlaced().copy(hash = hash, bidValue = BigDecimal.valueOf(1), bid = randomBid().copy(amount = EthUInt256.of(1))))
+                        createAuctionLogEvent(
+                            randomBidPlaced().copy(
+                                hash = hash,
+                                bidValue = BigDecimal.valueOf(5),
+                                bid = randomBid().copy(amount = EthUInt256.of(5))
+                            )
+                        ),
+                        createAuctionLogEvent(
+                            randomBidPlaced().copy(
+                                hash = hash,
+                                bidValue = BigDecimal.valueOf(4),
+                                bid = randomBid().copy(amount = EthUInt256.of(4))
+                            )
+                        ),
+                        createAuctionLogEvent(
+                            randomBidPlaced().copy(
+                                hash = hash,
+                                bidValue = BigDecimal.valueOf(3),
+                                bid = randomBid().copy(amount = EthUInt256.of(3))
+                            )
+                        ),
+                        createAuctionLogEvent(
+                            randomBidPlaced().copy(
+                                hash = hash,
+                                bidValue = BigDecimal.valueOf(2),
+                                bid = randomBid().copy(amount = EthUInt256.of(2))
+                            )
+                        ),
+                        createAuctionLogEvent(
+                            randomBidPlaced().copy(
+                                hash = hash,
+                                bidValue = BigDecimal.valueOf(1),
+                                bid = randomBid().copy(amount = EthUInt256.of(1))
+                            )
+                        )
                     )
                 )
             }
@@ -333,7 +426,8 @@ class AuctionSearchFt : AbstractIntegrationTest() {
         val auction2 = randomAuction()
         saveAuction(auction1, auction2)
 
-        val auctions = auctionClient.getAuctionsByIds(AuctionIdsDto(listOf(auction1.hash, auction2.hash))).collectList().awaitFirst()
+        val auctions = auctionClient.getAuctionsByIds(AuctionIdsDto(listOf(auction1.hash, auction2.hash))).collectList()
+            .awaitFirst()
 
         assertThat(auctions).hasSize(2)
         assertThat(auctions).anySatisfy { assertThat(it.hash).isEqualTo(auction1.hash) }
@@ -360,12 +454,53 @@ class AuctionSearchFt : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `should find active and historical bids`() = runBlocking<Unit> {
+        val contract = randomAddress()
+        val auctionId = EthUInt256.ONE
+        val bid1 = randomBid().copy(amount = EthUInt256.of(5))
+        val bid2 = randomBid().copy(amount = EthUInt256.of(10))
+        val hash = Auction.raribleV1HashKey(contract, auctionId)
+
+        val auction = randomAuction().copy(contract = contract, auctionId = auctionId, lastBid = bid2)
+        saveAuction(auction)
+        saveHistory(
+            listOf(
+                createAuctionLogEvent(
+                    randomBidPlaced().copy(
+                        hash = hash,
+                        bidValue = BigDecimal.valueOf(5),
+                        bid = bid1
+                    )
+                ),
+                createAuctionLogEvent(
+                    randomBidPlaced().copy(
+                        hash = hash,
+                        bidValue = BigDecimal.valueOf(10),
+                        bid = bid2
+                    )
+                )
+            )
+        )
+
+        Wait.waitAssert {
+            val result = auctionClient.getAuctionBidsByHash(hash.prefixed(), null, 2).awaitFirst()
+
+            assertThat(result.bids[0].status).isEqualTo(AuctionBidDto.Status.ACTIVE)
+            assertThat(result.bids[0].date).isNotNull()
+
+            assertThat(result.bids[1].status).isEqualTo(AuctionBidDto.Status.HISTORICAL)
+            assertThat(result.bids[1].date).isNotNull()
+        }
+    }
+
     private fun checkAuctionDto(auctionDto: AuctionDto, auction: Auction) {
         assertThat(auctionDto.hash).isEqualTo(auction.hash)
     }
 
     private fun checkAuctionBidDto(auctionBidDto: AuctionBidDto, bidPlaced: BidPlaced) {
         assertThat(auctionBidDto.buyer).isEqualTo(bidPlaced.buyer)
+        assertThat(auctionBidDto.date).isNotNull
     }
 
     private suspend fun saveAuction(vararg auction: Auction) {

@@ -18,10 +18,10 @@ class OwnershipApiService(
     private val conversionService: ConversionService,
     private val ownershipRepository: OwnershipRepository
 ) {
-    suspend fun get(ownershipId: OwnershipId): NftOwnershipDto {
+    suspend fun get(ownershipId: OwnershipId, showDeleted: Boolean): NftOwnershipDto {
         return ownershipRepository
             .findById(ownershipId).awaitFirstOrNull()
-            ?.takeUnless { ownership -> ownership.deleted }
+            ?.takeIf { ownership -> showDeleted || !ownership.deleted }
             ?.let { conversionService.convert<NftOwnershipDto>(it) }
             ?: throw EntityNotFoundApiException("Ownership", ownershipId)
     }

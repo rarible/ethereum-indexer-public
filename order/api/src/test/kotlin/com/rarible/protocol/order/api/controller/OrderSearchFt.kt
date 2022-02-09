@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
@@ -498,7 +499,9 @@ class OrderSearchFt : AbstractIntegrationTest() {
             )
         }
         // Mock the available balance of these orders.
-        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers { firstArg<Order>().make.value }
+        coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
+            MakeBalanceState(firstArg<Order>().make.value)
+        }
         saveOrderVersions(*orderVersions.toTypedArray())
         val bids = orderClient.getOrderBidsByItemAndByStatus(
             contract.prefixed(),

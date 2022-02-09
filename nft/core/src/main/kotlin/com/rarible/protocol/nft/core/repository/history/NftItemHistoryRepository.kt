@@ -19,6 +19,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.lt
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -72,15 +73,22 @@ class NftItemHistoryRepository(
     fun findItemsHistory(
         token: Address? = null,
         tokenId: EthUInt256? = null,
-        from: ItemId? = null
+        from: ItemId? = null,
+        to: ItemId? = null,
+        statuses: List<LogEventStatus>? = null
     ): Flux<HistoryLog> {
-        val criteria = tokenCriteria(token, tokenId, from)
+        val criteria = tokenCriteria(token, tokenId, from, to)
         return mongo
             .find(Query(criteria).with(LOG_SORT_ASC), LogEvent::class.java, COLLECTION)
             .map { HistoryLog(it.data as ItemHistory, it) }
     }
 
-    private fun tokenCriteria(token: Address?, tokenId: EthUInt256?, from: ItemId? = null): Criteria {
+    private fun tokenCriteria(
+        token: Address?,
+        tokenId: EthUInt256?,
+        from: ItemId? = null,
+        to: ItemId? = null
+    ): Criteria {
         return when {
             token != null && tokenId != null ->
                 Criteria().andOperator(
@@ -94,13 +102,24 @@ class NftItemHistoryRepository(
                 )
             token != null ->
                 LogEvent::data / ItemHistory::token isEqualTo token
-            from != null ->
+            from != null && to == null ->
                 Criteria().orOperator(
                     Criteria().andOperator(
                         LogEvent::data / ItemHistory::token isEqualTo from.token,
                         LogEvent::data / ItemHistory::tokenId gt from.tokenId
                     ),
                     LogEvent::data / ItemHistory::token gt from.token
+                )
+            from != null && to != null ->
+                Criteria().andOperator(
+                    Criteria().orOperator(
+                        Criteria().andOperator(
+                            LogEvent::data / ItemHistory::token isEqualTo from.token,
+                            LogEvent::data / ItemHistory::tokenId gt from.tokenId
+                        ),
+                        LogEvent::data / ItemHistory::token gt from.token
+                    ),
+                    LogEvent::data / ItemHistory::token lt to.token
                 )
             else ->
                 Criteria()

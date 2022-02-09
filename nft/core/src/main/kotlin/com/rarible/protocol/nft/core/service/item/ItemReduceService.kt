@@ -10,6 +10,11 @@ import scalether.domain.Address
 interface ItemReduceService {
     fun onItemHistories(logs: List<LogEvent>): Mono<Void>
 
-    fun update(token: Address? = null, tokenId: EthUInt256? = null, from: ItemId? = null): Flux<ItemId>
+    fun update(
+        token: Address? = null,
+        tokenId: EthUInt256? = null,
+        from: ItemId? = null,
+        to: ItemId? = null
+    ): Flux<ItemId>
 }
 

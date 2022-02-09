@@ -302,9 +302,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                                     event.ownership.owner == owner
                         }
                         is NftOwnershipDeleteEventDto -> {
-                            event.ownership.token == token &&
-                                    event.ownership.tokenId == tokenId.value &&
-                                    event.ownership.owner == owner
+                            event.ownership!!.token == token &&
+                                event.ownership!!.tokenId == tokenId.value &&
+                                event.ownership!!.owner == owner
                         }
                     }
                 }

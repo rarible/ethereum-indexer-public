@@ -47,7 +47,7 @@ class ItemReduceServiceV2(
             .then()
     }
 
-    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<ItemId> = flux {
+    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?): Flux<ItemId> = flux {
         logger.info("Update token=$token, tokenId=$tokenId")
         val events = Flux.mergeComparing(
             compareBy<HistoryLog>(
@@ -57,7 +57,7 @@ class ItemReduceServiceV2(
                 { it.log.logIndex }
             ),
             findLazyItemsHistory(token, tokenId, from),
-            historyRepository.findItemsHistory(token, tokenId, from)
+            historyRepository.findItemsHistory(token, tokenId, from = from, to = to)
         ).concatMap {
             mono {
                 CompositeEvent(

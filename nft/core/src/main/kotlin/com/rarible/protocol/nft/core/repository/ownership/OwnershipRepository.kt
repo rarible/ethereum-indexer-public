@@ -4,7 +4,10 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.*
+import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.find
+import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.inValues
@@ -19,15 +22,6 @@ class OwnershipRepository(
 
     fun save(ownership: Ownership): Mono<Ownership> {
         return mongo.save(ownership)
-    }
-
-    suspend fun saveAll(ownerships: Collection<Ownership>): List<Ownership> {
-        return mongo.insertAll(ownerships).collectList().awaitFirst()
-    }
-
-    suspend fun removeAll(ids: Collection<OwnershipId>): List<Ownership> {
-        val criteria = Criteria.where("_id").inValues(ids)
-        return mongo.findAllAndRemove<Ownership>(Query.query(criteria)).collectList().awaitFirst()
     }
 
     fun findById(id: OwnershipId): Mono<Ownership> {

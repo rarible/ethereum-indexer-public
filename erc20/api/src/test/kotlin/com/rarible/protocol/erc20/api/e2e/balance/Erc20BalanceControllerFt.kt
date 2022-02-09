@@ -1,5 +1,6 @@
 package com.rarible.protocol.erc20.api.e2e.balance
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.contract.model.Erc721Token
 import com.rarible.ethereum.contract.repository.ContractRepository
@@ -42,7 +43,9 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
         val erc20Balance = Erc20Balance(
             token = AddressFactory.create(),
             owner = AddressFactory.create(),
-            balance = EthUInt256.TEN
+            balance = EthUInt256.TEN,
+            createdAt = nowMillis(),
+            lastUpdatedAt = nowMillis(),
         )
         erc20BalanceRepository.save(erc20Balance)
 
@@ -86,7 +89,9 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
         val erc20Balance = Erc20Balance(
             token = contract.id,
             owner = AddressFactory.create(),
-            balance = EthUInt256.of(1054)
+            balance = EthUInt256.of(1054),
+            createdAt = nowMillis(),
+            lastUpdatedAt = nowMillis()
         )
         erc20BalanceRepository.save(erc20Balance)
 
@@ -113,7 +118,9 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
         val erc20Balance = Erc20Balance(
             token = contract.id,
             owner = AddressFactory.create(),
-            balance = EthUInt256.of(1054)
+            balance = EthUInt256.of(1054),
+            createdAt = nowMillis(),
+            lastUpdatedAt = nowMillis()
         )
         erc20BalanceRepository.save(erc20Balance)
 

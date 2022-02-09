@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -33,12 +34,21 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
     private val defaultSort = OwnershipFilter.Sort.LAST_UPDATE
 
     @Test
-    fun `should find ownership`() = runBlocking<Unit> {
+    fun `should find ownership - not deleted`() = runBlocking<Unit> {
         val ownership = createOwnership().copy(deleted = false)
         ownershipRepository.save(ownership).awaitFirst()
 
-        val savedOwnership = ownershipApiService.get(ownership.id)
-        Assertions.assertThat(savedOwnership.id).isEqualTo(ownership.id.decimalStringValue)
+        val savedOwnership = ownershipApiService.get(ownership.id, false)
+        assertThat(savedOwnership.id).isEqualTo(ownership.id.decimalStringValue)
+    }
+
+    @Test
+    fun `should find ownership - deleted`() = runBlocking<Unit> {
+        val ownership = createOwnership().copy(deleted = true)
+        ownershipRepository.save(ownership).awaitFirst()
+
+        val savedOwnership = ownershipApiService.get(ownership.id, true)
+        assertThat(savedOwnership.id).isEqualTo(ownership.id.decimalStringValue)
     }
 
     @Test
@@ -47,7 +57,7 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
         ownershipRepository.save(ownership).awaitFirst()
 
         assertThrows<EntityNotFoundApiException> {
-            ownershipApiService.get(ownership.id)
+            ownershipApiService.get(ownership.id, false)
         }
     }
 
@@ -57,10 +67,10 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
         saveOwnership(Address.TWO(), Address.TWO(), Address.FOUR())
 
         var ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort, false), null, 10)
-        Assertions.assertThat(ownerships).hasSize(2)
+        assertThat(ownerships).hasSize(2)
 
         ownerships = ownershipApiService.search(OwnershipFilterAll(defaultSort, false), null, 1)
-        Assertions.assertThat(ownerships).hasSize(1)
+        assertThat(ownerships).hasSize(1)
     }
 
     @Test

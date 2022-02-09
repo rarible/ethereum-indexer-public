@@ -18,6 +18,8 @@ import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.math.BigInteger
 import java.time.Instant
+import java.time.Instant.now
+import java.time.temporal.ChronoUnit
 
 @IntegrationTest
 internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
@@ -35,7 +37,8 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
                         Part(randomAddress(), EthUInt256.of(5000)),
                         Part(randomAddress(), EthUInt256.of(5000))
                     )
-                )
+                ),
+                date = now().truncatedTo(ChronoUnit.SECONDS)
             )
             depositInitialBalance(userSender2.from(), BigInteger.TEN.pow(18))
             auctionHouse.putBid(chainAuction.auctionId.value, bid.forTx()).withSender(userSender2).execute().verifySuccess()

@@ -66,7 +66,7 @@ class AuctionActivityConverter(
                     date = auctionHistory.date,
                     source = source,
                     auction = auctionDto,
-                    bid = auctionBidDtoConverter.convert(existingAuction.buy, auctionHistory.buyer, auctionHistory.bid),
+                    bid = auctionBidDtoConverter.convert(existingAuction.buy, auctionHistory.buyer, auctionHistory.bid, auctionHistory.date, null),
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,

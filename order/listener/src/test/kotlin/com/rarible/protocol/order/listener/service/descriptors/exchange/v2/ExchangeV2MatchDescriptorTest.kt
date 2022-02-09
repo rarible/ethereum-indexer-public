@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
@@ -69,7 +70,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // to make the makeStock = 10
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns sellOrder.make.value
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
         orderUpdateService.save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
@@ -92,7 +93,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // Imitate the balance of the seller: 6 ERC1155
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.of(6)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.of(6))
 
         userSender2.sendTransaction(
             Transaction(
@@ -177,7 +178,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // to make the makeStock = 10
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns sellOrder.make.value
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(sellOrder.make.value)
         orderUpdateService.save(sellOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.TEN)
         }
@@ -200,7 +201,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // Imitate the balance of the seller: 0 ERC1155
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.ZERO
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.ZERO)
 
         userSender2.sendTransaction(
             Transaction(
@@ -291,7 +292,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         val rightOrderHash = Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data)
 
         // to make the makeStock = 100
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns bidOrder.make.value
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(bidOrder.make.value)
         orderUpdateService.save(bidOrder).let {
             assertThat(it.makeStock).isEqualTo(EthUInt256.of(100))
         }
@@ -314,7 +315,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
         )
 
         // Imitate the balance of the bidder: 60 ERC20
-        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns EthUInt256.of(60)
+        coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.of(60))
 
         userSender2.sendTransaction(
             Transaction(

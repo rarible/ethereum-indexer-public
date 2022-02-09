@@ -15,7 +15,9 @@ object Erc20EventDtoConverter : Converter<Erc20BalanceEvent, Erc20BalanceEventDt
             is Erc20UpdateEvent -> Erc20BalanceUpdateEventDto(
                 eventId = event.id,
                 balanceId = event.balance.id.stringValue,
-                balance = Erc20BalanceDtoConverter.convert(event.balance)
+                balance = Erc20BalanceDtoConverter.convert(event.balance),
+                createdAt = event.balance.createdAt,
+                lastUpdatedAt = event.balance.lastUpdatedAt
             )
         }
     }

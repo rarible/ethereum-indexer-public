@@ -129,7 +129,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val token = createToken().copy(id = lazyItemDto.contract, features = setOf(TokenFeature.MINT_AND_TRANSFER))
         tokenRepository.save(token).awaitFirst()
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownershipId.decimalStringValue).awaitFirst()
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipById(ownershipId.decimalStringValue, false).awaitFirst()
         checkItemDto(lazyItemDto, itemDto)
         checkOwnershipDto(lazyItemDto, ownershipDto)
     }

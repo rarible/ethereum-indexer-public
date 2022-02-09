@@ -56,6 +56,14 @@ data class Ownership(
         return copy(revertableEvents = events)
     }
 
+    fun withCalculatedFields(): Ownership {
+        val deleted = this.lazyValue == EthUInt256.ZERO
+            && this.value == EthUInt256.ZERO
+            && this.getPendingEvents().isEmpty()
+            && this.pending.isEmpty() // TODO this check not needed for reducerV2
+        return this.copy(deleted = deleted)
+    }
+
     companion object {
 
         fun parseId(id: String): OwnershipId {

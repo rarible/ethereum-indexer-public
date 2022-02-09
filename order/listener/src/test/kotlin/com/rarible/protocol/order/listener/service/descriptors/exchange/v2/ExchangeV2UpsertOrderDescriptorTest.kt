@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.model.Erc721LazyAssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.GenerativeArtAssetType
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderPriceHistoryRecord
@@ -63,9 +64,9 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } coAnswers r@{
             val asset = secondArg<Asset>()
             if (asset.type is EthAssetType) {
-                return@r asset.value
+                return@r MakeBalanceState(asset.value)
             }
-            EthUInt256.TEN
+            MakeBalanceState(EthUInt256.TEN)
         }
     }
 

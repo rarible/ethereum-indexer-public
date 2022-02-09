@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderSideMatch
@@ -48,14 +49,14 @@ class CryptoPunksPendingTransactionsFt : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } coAnswers r@ {
             val order = arg<Order>(0)
             if (order.make.type is EthAssetType) {
-                return@r order.make.value
+                return@r MakeBalanceState(order.make.value)
             }
-            val assetType = order.make.type as? CryptoPunksAssetType ?: return@r EthUInt256.ONE
+            val assetType = order.make.type as? CryptoPunksAssetType ?: return@r MakeBalanceState(EthUInt256.ONE)
             if (assetType.token != cryptoPunksMarket.address()) {
-                return@r EthUInt256.ONE
+                return@r MakeBalanceState(EthUInt256.ONE)
             }
             val realOwner = cryptoPunksMarket.punkIndexToAddress(assetType.tokenId.value).awaitSingle()
-            if (order.maker == realOwner) EthUInt256.ONE else EthUInt256.ZERO
+            if (order.maker == realOwner) MakeBalanceState(EthUInt256.ONE) else MakeBalanceState(EthUInt256.ZERO)
         }
     }
 
