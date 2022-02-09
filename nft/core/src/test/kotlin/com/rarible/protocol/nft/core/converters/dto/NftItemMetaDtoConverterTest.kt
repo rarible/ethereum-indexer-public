@@ -78,11 +78,19 @@ class NftItemMetaDtoConverterTest {
     @Test
     fun `convert - large name and description`() {
         val itemId = createRandomItemId().decimalStringValue
-        val meta = ItemMeta.EMPTY.copy(
-            properties = ItemProperties.EMPTY.copy(
+
+        val meta = ItemMeta(
+            properties = ItemProperties(
                 name = "1234567890",
-                description = "123456789_123456789"
-            )
+                description = "123456789_123456789",
+                image = null,
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(),
+                rawJsonContent = null,
+            ),
+            itemContentMeta = ItemContentMeta(null, null)
         )
 
         val result = converter.convert(meta, itemId)
