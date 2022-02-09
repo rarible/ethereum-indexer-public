@@ -65,7 +65,7 @@ class ActivityVersionFilterConverter(
                             logger.info("Get bids for ${source.users.size}} users")
 
                             source.users
-                                .map { user -> async { nftAssetService.getOwnerNftAssets(user) } }
+                                .map { user -> async { nftAssetService.getOwnerNftAssets(user)} }
                                 .awaitAll()
                                 .flatten()
                                 .distinct()
