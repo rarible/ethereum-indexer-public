@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.meta
 
 import com.rarible.core.common.convert
-import com.rarible.core.loader.internal.RetryTasksService
+import com.rarible.core.loader.internal.runner.RetryTasksService
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto

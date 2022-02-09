@@ -75,7 +75,7 @@ class ItemUpdateEventAssertQueue(
         val wasAlreadySent = synchronized(sentItems) { sentItems.get(itemId) != null }
         logger.info(
             "Sending item update event for ${itemId.decimalStringValue} " +
-                    "with " + (if (availableMeta != null) "not" else "") + " available meta" +
+                    "with " + (if (availableMeta != null) "not" else "") + "available meta" +
                     ", was already sent = $wasAlreadySent"
         )
         protocolNftEventPublisher.publish(

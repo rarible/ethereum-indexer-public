@@ -4,6 +4,7 @@ rarible:
       agent:
         enabled: false
   loader:
+    enableWorkers: true
     retry:
       job:
         runner:
