@@ -41,18 +41,20 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
     }
 
     protected companion object {
-        fun Tuple3<BigInteger, ByteArray, ByteArray>.toAuctionBid(): Bid {
-            return when (val bidData = BidData.decode(Binary.apply(_2()), Binary.apply(_3()))) {
-                is BidDataV1 -> BidV1(EthUInt256.of(_1()), bidData)
+
+        fun toBid(tuple: Tuple3<BigInteger, ByteArray, ByteArray>, date: Instant): Bid {
+            return when (val bidData = BidData.decode(Binary.apply(tuple._2()), Binary.apply(tuple._3()))) {
+                is BidDataV1 -> BidV1(EthUInt256.of(tuple._1()), bidData, date)
             }
         }
 
         fun parseContractAuction(
-            auction: Tuple11<Tuple2<Tuple2<ByteArray, ByteArray>, BigInteger>, Tuple2<ByteArray, ByteArray>, Tuple3<BigInteger, ByteArray, ByteArray>, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray>
+            auction: Tuple11<Tuple2<Tuple2<ByteArray, ByteArray>, BigInteger>, Tuple2<ByteArray, ByteArray>, Tuple3<BigInteger, ByteArray, ByteArray>, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray>,
+            date: Instant
         ): ContractAuction {
             val sell = Asset(auction._1()._1().toAssetType(), EthUInt256(auction._1()._2()))
             val buy = auction._2().toAssetType()
-            val lastBid = auction._3().takeUnless { bid -> bid._1() == BigInteger.ZERO }?.toAuctionBid()
+            val lastBid = auction._3().takeUnless { bid -> bid._1() == BigInteger.ZERO }?.let { toBid(it, date) }
             val seller = auction._4()
             val buyer = auction._5().takeUnless { buyer -> buyer == Address.ZERO() }
             val endTime = auction._6().takeUnless { endTime -> endTime == BigInteger.ZERO }

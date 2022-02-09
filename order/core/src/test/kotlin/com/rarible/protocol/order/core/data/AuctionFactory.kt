@@ -28,6 +28,7 @@ import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.Instant.now
 
 fun randomAuction(): Auction {
     return Auction(
@@ -63,7 +64,8 @@ fun randomAuction(): Auction {
 fun randomBid(): BidV1 {
     return BidV1(
         amount = EthUInt256.of(randomBigInt()),
-        data = BidDataV1(emptyList(), emptyList())
+        data = BidDataV1(emptyList(), emptyList()),
+        date = now()
     )
 }
 

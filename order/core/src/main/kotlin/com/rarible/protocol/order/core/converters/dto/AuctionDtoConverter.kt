@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.RaribleAuctionV1DataV1Dto
 import com.rarible.protocol.dto.RaribleAuctionV1Dto
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Auction
+import com.rarible.protocol.order.core.model.AuctionBidEntity
 import com.rarible.protocol.order.core.model.AuctionData
 import com.rarible.protocol.order.core.model.AuctionType
 import com.rarible.protocol.order.core.model.Part
@@ -44,7 +45,7 @@ class AuctionDtoConverter(
                 auctionId = source.auctionId.value,
                 lastBid = source.lastBid?.let { lastBid ->
                     source.buyer?.let { buyer ->
-                        auctionBidDtoConverter.convert(source.buy, buyer, lastBid) as RaribleAuctionV1BidV1Dto
+                        auctionBidDtoConverter.convert(source.buy, buyer, lastBid, lastBid.date, AuctionBidEntity.Status.ACTIVE) as RaribleAuctionV1BidV1Dto
                     }
                 },
                 data = convert(source.buy, source.data) as RaribleAuctionV1DataV1Dto

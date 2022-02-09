@@ -21,7 +21,7 @@ class AuctionFinishedDescriptor(
         val event = AuctionFinishedEvent.apply(log)
         val contract = log.address()
         val auctionId = EthUInt256.of(event.auctionId())
-        val auction = parseContractAuction(event.auction())
+        val auction = parseContractAuction(event.auction(), date)
 
         return listOf(
             AuctionFinished(
