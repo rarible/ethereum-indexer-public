@@ -12,3 +12,16 @@ fun <Event, Entity> combineIntoChain(
 ): Reducer<Event, Entity> {
     return ReducersChain(reducers.asList())
 }
+
+fun trimToLength(str: String, maxLength: Int, suffix: String? = null): String {
+    if (str.length < maxLength) {
+        return str
+    }
+    val safeSuffix = suffix ?: ""
+    val trimmed = StringBuilder(maxLength + safeSuffix.length)
+        .append(str.substring(0, maxLength))
+        .append(suffix)
+
+    return trimmed.toString()
+
+}

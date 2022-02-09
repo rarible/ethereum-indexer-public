@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
-import scalether.domain.Address
 
 const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 
@@ -29,7 +28,8 @@ data class NftIndexerProperties(
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
     val reduceProperties: ReduceProperties = ReduceProperties(),
-    val scannerProperties: ScannerProperties = ScannerProperties()
+    val scannerProperties: ScannerProperties = ScannerProperties(),
+    val itemMeta: ItemMetaProperties = ItemMetaProperties()
 ) {
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList()
@@ -44,6 +44,11 @@ data class NftIndexerProperties(
         val erc721RaribleUser: String,
         val erc1155Rarible: String,
         val erc1155RaribleUser: String
+    )
+
+    data class ItemMetaProperties(
+        val maxNameLength: Int = 1000,
+        val maxDescriptionLength: Int = 10000
     )
 
 }
