@@ -30,7 +30,9 @@ class ItemReduceTaskHandler(
         verifyAllCompleted(ItemType.TRANSFER.topic + ItemType.ROYALTY.topic)
 
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
-        return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) })
+        val to = if (param.isNotBlank()) ItemId(Address.apply(param), EthUInt256.ZERO) else null
+
+        return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) }, to = to)
             .map { (token, tokenId) -> ItemReduceState(token, tokenId) }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
