@@ -46,7 +46,7 @@ internal class AssetBalanceProviderImplTest {
         )
 
         val balance = assetBalanceProviderImpl.getAssetStock(owner, Asset(assert, EthUInt256.ONE))
-        assertThat(balance).isEqualTo(EthUInt256.TEN)
+        assertThat(balance!!.value).isEqualTo(EthUInt256.TEN)
     }
 
     @Test
@@ -67,6 +67,6 @@ internal class AssetBalanceProviderImplTest {
         )
 
         val balance = assetBalanceProviderImpl.getAssetStock(owner, Asset(assert, EthUInt256.ONE))
-        assertThat(balance).isEqualTo(EthUInt256.TEN)
+        assertThat(balance!!.value).isEqualTo(EthUInt256.TEN)
     }
 }

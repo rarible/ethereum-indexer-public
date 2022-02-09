@@ -1,12 +1,20 @@
 package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
+import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
+import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipEventDto
+import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
+import java.time.Instant
 
 @Component
 class OrderBalanceService(
@@ -23,32 +31,61 @@ class OrderBalanceService(
 
                 orderRepository
                     .findByTargetBalanceAndNotCanceled(maker, token)
-                    .collect { orderUpdateService.updateMakeStock(it.hash, knownMakeBalance = stock) }
+                    .collect {
+                        orderUpdateService.updateMakeStock(
+                            hash = it.hash,
+                            makeBalanceState = MakeBalanceState(stock, event.lastUpdatedAt)
+                        )
+                    }
             }
         }
     }
 
     suspend fun handle(event: NftOwnershipEventDto) {
         when (event) {
-            is NftOwnershipUpdateEventDto -> {
-                val maker = event.ownership.owner
-                val token = Address.apply(event.ownership.contract)
-                val tokenId = event.ownership.tokenId
-                val stock = EthUInt256.of(event.ownership.value)
-
-                orderRepository
-                    .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
-                    .collect { orderUpdateService.updateMakeStock(it.hash, knownMakeBalance = stock) }
-            }
+            is NftOwnershipUpdateEventDto -> onOwnershipUpdated(event.ownership)
             is NftOwnershipDeleteEventDto -> {
-                val maker = event.ownership.owner
-                val token = event.ownership.token
-                val tokenId = event.ownership.tokenId
-                orderRepository
-                    .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
-                    .collect { orderUpdateService.updateMakeStock(it.hash, knownMakeBalance = EthUInt256.ZERO) }
+                if (event.deletedOwnership != null) {
+                    onOwnershipUpdated(event.deletedOwnership!!)
+                } else {
+                    // TODO this branch should be removed later
+                    val legacyOwnership = event.ownership!!
+                    onOwnershipUpdated(
+                        legacyOwnership.token,
+                        legacyOwnership.tokenId,
+                        legacyOwnership.owner,
+                        BigInteger.ZERO,
+                        null // Should not be updated for legacy events
+                    )
+                }
             }
         }
+    }
+
+    private suspend fun onOwnershipUpdated(ownership: NftOwnershipDto) {
+        val token = Address.apply(ownership.contract)
+        val tokenId = ownership.tokenId
+        val maker = ownership.owner
+        val stock = ownership.value
+
+        onOwnershipUpdated(token, tokenId, maker, stock, ownership.date)
+    }
+
+    private suspend fun onOwnershipUpdated(
+        token: Address,
+        tokenId: BigInteger,
+        maker: Address,
+        stock: BigInteger,
+        updateDate: Instant?
+    ) {
+        orderRepository
+            .findByTargetNftAndNotCanceled(maker, token, EthUInt256(tokenId))
+            .collect {
+                orderUpdateService.updateMakeStock(
+                    hash = it.hash,
+                    makeBalanceState = MakeBalanceState(EthUInt256.of(stock), updateDate)
+                )
+            }
     }
 
 }

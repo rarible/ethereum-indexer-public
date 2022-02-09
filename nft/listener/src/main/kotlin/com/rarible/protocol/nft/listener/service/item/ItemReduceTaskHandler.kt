@@ -37,8 +37,9 @@ class ItemReduceTaskHandler(
     }
 
     override fun runLongTask(from: ItemReduceState?, param: String): Flow<ItemReduceState> {
-        val token = if (param.isNotBlank()) AddressParser.parse(param) else null
-        return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) }, token = token)
+        val to = if (param.isNotBlank()) ItemId(Address.apply(param), EthUInt256.ZERO) else null
+
+        return itemReduceService.update(from = from?.let { ItemId(it.token, it.tokenId) }, to = to)
             .map { (token, tokenId) -> ItemReduceState(token, tokenId) }
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {

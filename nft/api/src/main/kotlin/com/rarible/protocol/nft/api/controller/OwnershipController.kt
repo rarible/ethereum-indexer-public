@@ -34,8 +34,12 @@ class OwnershipController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun getNftOwnershipById(ownershipId: String): ResponseEntity<NftOwnershipDto> {
-        val result = ownershipApiService.get(conversionService.convert(ownershipId))
+    override suspend fun getNftOwnershipById(
+        ownershipId: String,
+        showDeleted: Boolean?
+    ): ResponseEntity<NftOwnershipDto> {
+        val safeShowDeleted = showDeleted ?: false
+        val result = ownershipApiService.get(conversionService.convert(ownershipId), safeShowDeleted)
         return ResponseEntity.ok(result)
     }
 

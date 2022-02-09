@@ -19,9 +19,15 @@ class NftItemMetaDtoConverterTest {
     private val properties: NftIndexerProperties = mockk()
     private lateinit var converter: NftItemMetaDtoConverter
 
+    private val itemMetaProperties = NftIndexerProperties.ItemMetaProperties(
+        maxNameLength = 8,
+        maxDescriptionLength = 16
+    )
+
     @BeforeEach
     fun beforeEach() {
         every { properties.basePublicApiUrl } returns basePublicApiUrl
+        every { properties.itemMeta } returns itemMetaProperties
         converter = NftItemMetaDtoConverter(properties)
     }
 
@@ -67,5 +73,23 @@ class NftItemMetaDtoConverterTest {
         assertThat(image.url["BIG"]).isEqualTo("${basePublicApiUrl}items/$itemId/image?size=BIG&hash=${meta.properties.imageBig!!.hashCode()}")
 
         assertThat(animation.url["ORIGINAL"]).isEqualTo(meta.properties.animationUrl)
+    }
+
+    @Test
+    fun `convert - large name and description`() {
+        val itemId = createRandomItemId().decimalStringValue
+        val meta = ItemMeta.EMPTY.copy(
+            properties = ItemProperties.EMPTY.copy(
+                name = "1234567890",
+                description = "123456789_123456789"
+            )
+        )
+
+        val result = converter.convert(meta, itemId)
+
+        // 8 first chars in name plus '...'
+        assertThat(result.name).isEqualTo("12345678...")
+        // 16  first chars in description plus '...'
+        assertThat(result.description).isEqualTo("123456789_123456...")
     }
 }

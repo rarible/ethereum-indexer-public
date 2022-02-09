@@ -1,3 +1,6 @@
+logging:
+  level:
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
 common:
   kafka-replica-set: ${kafka.hosts}
   basePublicApiUrl: "http://localhost:8080/"

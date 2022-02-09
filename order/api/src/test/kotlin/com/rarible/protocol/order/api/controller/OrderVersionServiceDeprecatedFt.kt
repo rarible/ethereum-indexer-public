@@ -18,6 +18,7 @@ import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusDtoConverter
 import com.rarible.protocol.order.core.model.BidStatus
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
@@ -302,8 +303,8 @@ class OrderVersionControllerDepricatedFt : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
             val order = arg<Order>(0)
             when (version.firstOrNull { it.orderVersion.maker == order.maker }?.status) {
-                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> EthUInt256.of(1000)
-                else -> EthUInt256.ZERO
+                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> MakeBalanceState(EthUInt256.of(1000))
+                else -> MakeBalanceState(EthUInt256.ZERO)
             }
         }
         for ((orderVersion, status) in version) {

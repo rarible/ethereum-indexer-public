@@ -76,7 +76,7 @@ class TestPropertiesConfiguration {
     @Primary
     fun mockedNftOwnershipApi(): NftOwnershipControllerApi {
         return mockk {
-            every { getNftOwnershipById(any()) } returns Mono.just(createNftOwnershipDto())
+            every { getNftOwnershipById(any(), any()) } returns Mono.just(createNftOwnershipDto())
         }
     }
 

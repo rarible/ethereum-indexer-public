@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.OwnershipSaveResult
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
@@ -18,6 +19,9 @@ import scalether.domain.Address
 class OwnershipService(
     private val ownershipRepository: OwnershipRepository
 ) {
+
+    val logger: Logger = LoggerFactory.getLogger(OwnershipService::class.java)
+
     fun get(id: OwnershipId): Mono<Ownership> {
         return ownershipRepository.findById(id)
     }
@@ -30,15 +34,12 @@ class OwnershipService(
         return ownershipRepository.findAll(ids)
     }
 
-    suspend fun saveAll(ownerships: Collection<Ownership>): List<Ownership> {
-        return ownershipRepository.saveAll(ownerships)
+    suspend fun save(ownership: Ownership): Ownership {
+        logger.info("Saving Ownership ${ownership.id}")
+        return saveInternal(ownership).awaitFirst()
     }
 
-    suspend fun removeAll(ids: Collection<OwnershipId>): List<Ownership> {
-        return ownershipRepository.removeAll(ids)
-    }
-
-    fun save(marker: Marker, ownership: Ownership): Mono<OwnershipSaveResult> {
+    fun saveIfChanged(marker: Marker, ownership: Ownership): Mono<OwnershipSaveResult> {
         return ownershipRepository.findById(ownership.id).toOptional()
             .flatMap { opt ->
                 val found = opt.orNull()
@@ -49,16 +50,13 @@ class OwnershipService(
             }
     }
 
-    fun delete(marker: Marker, ownership: Ownership): Mono<Ownership> {
-        return ownershipRepository.deleteById(ownership.id)
-    }
-
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {
         logger.info(marker, "Saving Ownership ${ownership.id}")
-        return ownershipRepository.save(ownership)
+        return saveInternal(ownership)
     }
 
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(OwnershipService::class.java)
+    private fun saveInternal(ownership: Ownership): Mono<Ownership> {
+        return ownershipRepository.save(ownership.withCalculatedFields())
     }
+
 }

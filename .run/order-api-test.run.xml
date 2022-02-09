@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+    <configuration default="false" name="order-api-test" type="JUnit" factoryName="JUnit">
+        <module name="protocol-order-indexer-api"/>
+        <option name="PACKAGE_NAME" value="com.rarible.protocol.nft.api.e2e.items"/>
+        <option name="MAIN_CLASS_NAME" value=""/>
+        <option name="METHOD_NAME" value=""/>
+        <option name="TEST_OBJECT" value="directory"/>
+        <option name="WORKING_DIRECTORY" value="$MODULE_DIR$"/>
+        <dir value="$PROJECT_DIR$/order/api/src/test"/>
+        <method v="2">
+            <option name="Make" enabled="true"/>
+        </method>
+    </configuration>
+</component>

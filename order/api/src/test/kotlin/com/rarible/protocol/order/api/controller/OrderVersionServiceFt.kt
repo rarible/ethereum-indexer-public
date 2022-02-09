@@ -22,6 +22,7 @@ import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.converters.dto.BidStatusConverter
 import com.rarible.protocol.order.core.model.BidStatus
 import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -347,8 +348,8 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
                 .orEmpty().sumBy { it.value.value.toInt() }
             val balance = EthUInt256.of(1000 * (1 + totalOrigin.toDouble() / 10000).toInt())
             when (version.firstOrNull { it.orderVersion.maker == order.maker }?.status) {
-                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> balance
-                else -> EthUInt256.ZERO
+                BidStatus.ACTIVE, BidStatus.HISTORICAL, BidStatus.FILLED -> MakeBalanceState(balance)
+                else -> MakeBalanceState(EthUInt256.ZERO)
             }
         }
         for ((orderVersion, status) in version) {

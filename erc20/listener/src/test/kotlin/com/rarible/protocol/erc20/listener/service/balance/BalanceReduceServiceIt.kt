@@ -1,6 +1,7 @@
 package com.rarible.protocol.erc20.listener.service.balance
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
@@ -26,6 +27,7 @@ import com.rarible.protocol.erc20.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
@@ -39,6 +41,7 @@ import scalether.domain.Address
 import java.util.*
 import java.util.concurrent.CopyOnWriteArrayList
 
+@FlowPreview
 @IntegrationTest
 internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
 
@@ -75,26 +78,33 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             every { token } returns walletToken
             every { owner } returns walletOwner
         }
+
+        val createdDate = Date(nowMillis().minusSeconds(30).toEpochMilli())
+        val otherActionsDate = Date(nowMillis().minusSeconds(20).toEpochMilli())
+        val finalUpdateDate = Date(nowMillis().minusSeconds(10).toEpochMilli())
+
         prepareStorage(
             walletToken,
-            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(3)),
-            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(7)),
-            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(4)),
-            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(5))
+            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = createdDate, value = EthUInt256.of(3)),
+            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(7)),
+            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = otherActionsDate, value = EthUInt256.of(4)),
+            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = finalUpdateDate, value = EthUInt256.of(5))
         )
 
         balanceReduceService.onEvents(listOf(createReduceEventFactory(transfer)))
 
-        val balance = erc20BalanceRepository.get(balanceId)
-        assertThat(balance).isNotNull
-        assertThat(balance?.balance).isEqualTo(EthUInt256.ONE)
+        val balance = erc20BalanceRepository.get(balanceId)!!
+        assertThat(balance.balance).isEqualTo(EthUInt256.ONE)
+        assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(finalUpdateDate.time)
+        assertThat(balance.createdAt!!.toEpochMilli()).isEqualTo(createdDate.time)
 
         Wait.waitAssert {
             assertThat(events)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies {
-                    val event = it.firstOrNull { it.value.balanceId == balance?.id?.stringValue }
-                    assertThat(event).isNotNull
+                .satisfies { events ->
+                    val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
+                    assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
+                    assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
                 }
         }
         job.cancel()
@@ -117,31 +127,39 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
         val currentBalance = Erc20Balance(
             token = walletToken,
             owner = walletOwner,
-            balance = EthUInt256.of(1)
+            balance = EthUInt256.of(1),
+            createdAt = nowMillis().minusSeconds(300),
+            lastUpdatedAt = nowMillis().minusSeconds(600)
         )
         erc20BalanceRepository.save(currentBalance)
 
         val transfer = mockk<Erc20TokenHistory> {
-            every { token } returns  walletToken
-            every { owner } returns  walletOwner
+            every { token } returns walletToken
+            every { owner } returns walletOwner
         }
+
+        val incomeDate = Date(nowMillis().minusSeconds(30).toEpochMilli())
+        val outcomeDate = Date(nowMillis().minusSeconds(10).toEpochMilli())
+
         prepareStorage(
             walletToken,
-            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(10)),
-            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = Date(), value = EthUInt256.of(5))
+            Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = incomeDate, value = EthUInt256.of(10)),
+            Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = outcomeDate, value = EthUInt256.of(5))
         )
         balanceReduceService.onEvents(listOf(createReduceEventFactory(transfer)))
 
-        val balance = erc20BalanceRepository.get(balanceId)
-        assertThat(balance).isNotNull
-        assertThat(balance?.balance).isEqualTo(EthUInt256.of(5))
+        val balance = erc20BalanceRepository.get(balanceId)!!
+        assertThat(balance.balance).isEqualTo(EthUInt256.of(5))
+        assertThat(balance.createdAt).isEqualTo(currentBalance.createdAt)
+        assertThat(balance.lastUpdatedAt!!.toEpochMilli()).isEqualTo(outcomeDate.time)
 
         Wait.waitAssert {
             assertThat(events)
                 .hasSizeGreaterThanOrEqualTo(1)
-                .satisfies {
-                    val event = it.firstOrNull { it.value.balanceId == balance?.id?.stringValue }
-                    assertThat(event).isNotNull
+                .satisfies { events ->
+                    val event = events.firstOrNull { it.value.balanceId == balance.id.stringValue }!!
+                    assertThat(event.value.createdAt).isEqualTo(balance.createdAt)
+                    assertThat(event.value.lastUpdatedAt).isEqualTo(balance.lastUpdatedAt)
                 }
         }
         job.cancel()
