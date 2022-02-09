@@ -169,7 +169,7 @@ class HistoryRepositoryIt : AbstractIntegrationTest() {
 
         Wait.waitAssert {
             val logs = nftItemHistoryRepository
-                .findItemsHistory(from = ItemId(token0Max, maxTokenId), to = token2Min)
+                .findItemsHistory(from = ItemId(token0Max, maxTokenId), to = ItemId(token2Min, minTokenId))
                 .collectList().awaitFirst()
             assertThat(logs.map { it.item.token }).containsExactly(token1Min, token11, token12, token1Max)
         }
@@ -207,7 +207,7 @@ class HistoryRepositoryIt : AbstractIntegrationTest() {
 
         Wait.waitAssert {
             val logs = nftItemHistoryRepository
-                .findItemsHistory(from = ItemId(token0Max, maxTokenId), to = token2Min)
+                .findItemsHistory(from = ItemId(token0Max, maxTokenId), to = ItemId(token2Min, minTokenId))
                 .collectList().awaitFirst()
             assertThat(logs.map { ItemId(it.item.token, it.item.tokenId) }).containsExactly(item10, item11, item12, item13)
         }

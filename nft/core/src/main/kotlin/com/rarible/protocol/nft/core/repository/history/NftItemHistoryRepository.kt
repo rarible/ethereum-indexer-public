@@ -71,7 +71,7 @@ class NftItemHistoryRepository(
         token: Address? = null,
         tokenId: EthUInt256? = null,
         from: ItemId? = null,
-        to: Address? = null,
+        to: ItemId? = null,
         statuses: List<LogEventStatus>? = null
     ): Flux<HistoryLog> {
         val criteria = tokenCriteria(token, tokenId, from, to)
@@ -84,7 +84,7 @@ class NftItemHistoryRepository(
         token: Address?,
         tokenId: EthUInt256?,
         from: ItemId? = null,
-        to: Address? = null
+        to: ItemId? = null
     ): Criteria {
         return when {
             token != null && tokenId != null ->
@@ -116,7 +116,7 @@ class NftItemHistoryRepository(
                         ),
                         LogEvent::data / ItemHistory::token gt from.token
                     ),
-                    LogEvent::data / ItemHistory::token lt to
+                    LogEvent::data / ItemHistory::token lt to.token
                 )
             else ->
                 Criteria()
