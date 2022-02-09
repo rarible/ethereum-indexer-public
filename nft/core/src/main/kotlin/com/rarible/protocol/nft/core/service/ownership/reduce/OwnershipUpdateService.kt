@@ -28,6 +28,10 @@ class OwnershipUpdateService(
         return savedOwnership
     }
 
+    suspend fun updateAll(entities: List<Ownership>): List<Ownership> {
+        return ownershipRepository.saveAll(entities)
+    }
+
     private fun logUpdatedOwnership(ownership: Ownership) {
         logger.info(buildString {
             append("Updated ownership: ")

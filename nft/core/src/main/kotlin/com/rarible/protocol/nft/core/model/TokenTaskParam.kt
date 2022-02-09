@@ -16,6 +16,7 @@ sealed class TokenTaskParam {
             ReindexTokenItemRoyaltiesTaskParam::class -> ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
             ReindexTokenTaskParams::class -> ReindexTokenTaskParams.fromParamString(param)
             ReduceTokenTaskParams::class -> ReduceTokenTaskParams.fromParamString(param)
+            ReduceTokenRangeItemsTaskParams::class -> ReduceTokenRangeItemsTaskParams.fromParamString(param)
             else -> error("Unknown param type $paramType")
         } as P
     }
@@ -80,6 +81,24 @@ data class ReduceTokenItemsTaskParams(val oneToken: Address) : TokenTaskParam() 
 
         fun fromParamString(param: String): ReduceTokenItemsTaskParams =
             ReduceTokenItemsTaskParams(Address.apply(param))
+    }
+}
+
+data class ReduceTokenRangeItemsTaskParams(val from: Address, val to: Address) : TokenTaskParam() {
+    override val tokens: List<Address> get() = listOf(from, to)
+    override fun toParamString(): String = tokens.joinToString(":")
+
+    companion object {
+        const val ADMIN_REDUCE_TOKEN_RANGE_ITEMS = "ADMIN_REDUCE_TOKEN_RANGE_ITEMS"
+
+        fun fromParamString(param: String): ReduceTokenRangeItemsTaskParams {
+            val parts = param.split(":")
+            require(parts.size == 2) { "Wrong param string" }
+            return ReduceTokenRangeItemsTaskParams(
+                from = Address.apply(parts[0]),
+                to = Address.apply(parts[1]),
+            )
+        }
     }
 }
 

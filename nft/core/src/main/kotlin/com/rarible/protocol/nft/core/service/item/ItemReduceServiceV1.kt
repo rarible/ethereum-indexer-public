@@ -70,7 +70,7 @@ class ItemReduceServiceV1(
         }
     }
 
-    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?): Flux<ItemId> {
+    override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?, to: Address?): Flux<ItemId> {
         logger.info("Update token=$token, tokenId=$tokenId")
         val mergedHistories = Flux.mergeOrdered(
             compareBy<HistoryLog>(
@@ -79,7 +79,7 @@ class ItemReduceServiceV1(
                 { it.log.blockNumber },
                 { it.log.logIndex }
             ),
-            historyRepository.findItemsHistory(token, tokenId, from),
+            historyRepository.findItemsHistory(token, tokenId, from = from, to = to),
             findLazyItemsHistory(token, tokenId, from)
         )
         return LoggingUtils.withMarkerFlux { marker ->
