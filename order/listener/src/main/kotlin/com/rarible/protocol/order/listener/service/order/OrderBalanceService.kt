@@ -7,6 +7,7 @@ import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
+import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import kotlinx.coroutines.flow.collect
@@ -33,8 +34,7 @@ class OrderBalanceService(
                     .collect {
                         orderUpdateService.updateMakeStock(
                             hash = it.hash,
-                            knownMakeBalance = stock,
-                            updateDate = event.lastUpdatedAt
+                            makeBalanceState = MakeBalanceState(stock, event.lastUpdatedAt)
                         )
                     }
             }
@@ -83,8 +83,7 @@ class OrderBalanceService(
             .collect {
                 orderUpdateService.updateMakeStock(
                     hash = it.hash,
-                    knownMakeBalance = EthUInt256.of(stock),
-                    updateDate = updateDate
+                    makeBalanceState = MakeBalanceState(EthUInt256.of(stock), updateDate)
                 )
             }
     }

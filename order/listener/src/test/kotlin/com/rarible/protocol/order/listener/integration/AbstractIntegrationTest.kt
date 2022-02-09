@@ -329,7 +329,7 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     }
 
     protected suspend fun updateOrderMakeStock(orderHash: Word, makeBalance: EthUInt256) {
-        orderUpdateService.updateMakeStock(orderHash, knownMakeBalance = makeBalance)
+        orderUpdateService.updateMakeStock(orderHash, MakeBalanceState(makeBalance))
     }
 
     protected suspend fun checkActivityWasPublished(asserter: ActivityDto.() -> Unit) = coroutineScope {

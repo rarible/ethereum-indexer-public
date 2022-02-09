@@ -68,36 +68,31 @@ class OrderUpdateService(
 
     suspend fun updateMakeStock(
         hash: Word,
-        knownMakeBalance: EthUInt256? = null,
-        updateDate: Instant? = null
+        makeBalanceState: MakeBalanceState? = null
     ): Order? =
-        updateMakeStockFull(hash, knownMakeBalance, updateDate).first
+        updateMakeStockFull(hash, makeBalanceState).first
 
     /**
      * Updates the order's make stock and prices without calling the OrderReduceService.
      */
     suspend fun updateMakeStockFull(
         hash: Word,
-        knownMakeBalance: EthUInt256? = null,
-        updateDate: Instant? = null
+        makeBalanceState: MakeBalanceState? = null
     ): Pair<Order?, Boolean> {
         val order = orderRepository.findById(hash) ?: return null to false
 
-        val makeBalance = knownMakeBalance?.let { MakeBalanceState(it) }
-            ?: assetMakeBalanceProvider.getMakeBalance(order)
-
-        // Selecting the most recent update date for related balance
-        val latestUpdateDate = getLatestDate(updateDate, makeBalance.lastUpdatedAt)
+        val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
+        val knownMakeBalance = makeBalance.value
 
         // We don't want to change lastUpdateAt for CANCELLED or FINISHED orders
         val lastUpdatedAt = if (isFinished(order)) {
             order.lastUpdateAt
         } else {
-            getLatestDate(order.lastUpdateAt, latestUpdateDate)!!
+            getLatestDate(order.lastUpdateAt, makeBalance.lastUpdatedAt)!!
         }
 
         val protocolCommission = protocolCommissionProvider.get()
-        val withNewMakeStock = order.withMakeBalance(makeBalance.value, protocolCommission)
+        val withNewMakeStock = order.withMakeBalance(knownMakeBalance, protocolCommission)
 
         val updated = if (order.makeStock == EthUInt256.ZERO && withNewMakeStock.makeStock != EthUInt256.ZERO) {
             priceUpdateService.withUpdatedAllPrices(withNewMakeStock)
