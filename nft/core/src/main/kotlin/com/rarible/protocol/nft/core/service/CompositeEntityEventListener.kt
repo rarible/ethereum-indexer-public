@@ -22,7 +22,7 @@ class CompositeEntityEventListener(
 
     override val id: String = EntityEventListeners.itemHistoryListenerId(environmentInfo.name, properties.blockchain)
 
-    override val groupId: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
+    override val subscriberGroup: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         withTransaction("onEntityEvents", labels = listOf("size" to events.size)) {
