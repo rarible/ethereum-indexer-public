@@ -47,7 +47,7 @@ common:
     erc1155Rarible: "0x0000000000000000000000000000000000000000"
     erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
   feature-flags:
-    scanner-version: V1
+    scanner-version: V2
     validate-creator-by-transaction-sender: true
   reduceProperties:
     skipOwnerships: true

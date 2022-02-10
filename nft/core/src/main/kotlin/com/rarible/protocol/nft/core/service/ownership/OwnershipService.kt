@@ -44,7 +44,7 @@ class OwnershipService(
             .flatMap { opt ->
                 val found = opt.orNull()
                 when {
-                    found == null || found != ownership -> saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
+                    found == null || found != ownership.withCalculatedFields() -> saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
                     else -> Mono.just(OwnershipSaveResult(ownership, false))
                 }
             }
