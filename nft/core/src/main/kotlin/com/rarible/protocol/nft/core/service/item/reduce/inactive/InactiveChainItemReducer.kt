@@ -5,14 +5,11 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.RevertedEntityChainReducer
 import com.rarible.protocol.nft.core.service.item.ItemInactiveEventApplyPolicy
-import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedOwnersItemReducer
 import org.springframework.stereotype.Component
 
 @Component
 class InactiveChainItemReducer(
-    itemInactiveEventApplyPolicy: ItemInactiveEventApplyPolicy,
-    reversedOwnersItemReducer: ReversedOwnersItemReducer
+    itemInactiveEventApplyPolicy: ItemInactiveEventApplyPolicy
 ) : RevertedEntityChainReducer<ItemId, ItemEvent, Item>(
-    itemInactiveEventApplyPolicy,
-    reversedOwnersItemReducer
+    itemInactiveEventApplyPolicy
 )

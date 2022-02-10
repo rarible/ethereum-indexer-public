@@ -4,9 +4,7 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
-import com.rarible.protocol.nft.core.model.Part
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 
 @Component
 class LazyItemReducer : Reducer<ItemEvent, Item> {
@@ -20,7 +18,6 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                         lazySupply = event.supply,
                         supply = event.supply,
                         creators = event.creators,
-                        ownerships = convert(event.creators, event.supply),
                         creatorsFinal = true,
                         lastLazyEventTimestamp = event.timestamp
                     )
@@ -40,9 +37,5 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 }
             }
         }
-    }
-
-    private fun convert(creators: List<Part>, value: EthUInt256): Map<Address, EthUInt256> {
-        return creators.firstOrNull()?.let { mapOf(it.account to value) } ?: emptyMap()
     }
 }

@@ -40,11 +40,7 @@ class ExtendedItemDtoConverter(
     }
 
     private fun convertOwnership(item: Item): Collection<Address> {
-        return if (featureFlags.reduceVersion == ReduceVersion.V1) {
-            item.owners
-        } else {
-            item.ownerships.keys
-        }
+        return if (featureFlags.reduceVersion == ReduceVersion.V1) item.owners else emptyList()
     }
 
     private fun convertPending(item: Item): List<ItemTransferDto> {

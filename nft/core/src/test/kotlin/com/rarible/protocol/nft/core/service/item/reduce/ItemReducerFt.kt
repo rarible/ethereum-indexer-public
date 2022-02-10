@@ -39,8 +39,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, mint)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
         assertThat(reducedItem.deleted).isFalse()
     }
 
@@ -74,7 +72,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, mint, revertedMint)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(0)
         assertThat(reducedItem.deleted).isTrue()
     }
 
@@ -93,7 +90,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, mint, burn)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(0)
         assertThat(reducedItem.deleted).isTrue()
     }
 
@@ -117,8 +113,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val revertedItem = reduce(burnItem, revertedBurn)
         assertThat(revertedItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(revertedItem.ownerships.keys).hasSize(1)
-        assertThat(revertedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.deleted).isFalse()
     }
 
@@ -137,8 +131,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, mint, burn)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(9))
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.of(9))
         assertThat(reducedItem.deleted).isFalse()
     }
 
@@ -158,8 +150,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, mint, transfer)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
         assertThat(reducedItem.deleted).isFalse()
     }
 
@@ -183,8 +173,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val revertedItem = reduce(reducedItem, revertedTransfer)
         assertThat(revertedItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(revertedItem.ownerships.keys).hasSize(1)
-        assertThat(revertedItem.ownerships[minter]).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.deleted).isFalse()
     }
 
@@ -210,8 +198,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, lazyMint, mint, transfer, creator)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.creators).isEqualTo(creators)
         assertThat(reducedItem.deleted).isFalse()
     }
@@ -245,8 +231,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(item, lazyMint, mint, transfer, creator, revertedTransfer, revertedMint)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ONE)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.creators).isEqualTo(creators)
         assertThat(reducedItem.deleted).isFalse()
     }
@@ -298,14 +282,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val reducedItem = reduce(item, events)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(9))
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(9)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(5)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(reducedItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(reducedItem.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
-        assertThat(reducedItem.ownerships[owner5]).isEqualTo(EthUInt256.of(1))
-        assertThat(reducedItem.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
         assertThat(reducedItem.revertableEvents).containsExactlyElementsOf(events)
         assertThat(reducedItem.deleted).isFalse()
     }
@@ -401,13 +378,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(9))
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(9)
-        assertThat(reducedItem.ownerships.keys).hasSize(5)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(reducedItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(reducedItem.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
-        assertThat(reducedItem.ownerships[owner5]).isEqualTo(EthUInt256.of(1))
-        assertThat(reducedItem.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
         assertThat(reducedItem.deleted).isFalse()
 
         //Revert burn event
@@ -418,14 +388,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedBurnItem.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedBurnItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedBurnItem.ownerships.keys).hasSize(6)
-        assertThat(revertedBurnItem.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(revertedBurnItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedBurnItem.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
-        assertThat(revertedBurnItem.ownerships[owner5]).isEqualTo(EthUInt256.of(1))
-        assertThat(revertedBurnItem.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedBurnItem.ownerships[owner7]).isEqualTo(EthUInt256.of(1))
         assertThat(revertedBurnItem.deleted).isFalse()
 
         //Revert transfer8 event
@@ -436,13 +398,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer8Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer8Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer8Item.ownerships.keys).hasSize(5)
-        assertThat(revertedTransfer8Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(revertedTransfer8Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer8Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
-        assertThat(revertedTransfer8Item.ownerships[owner5]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer8Item.ownerships[owner6]).isEqualTo(EthUInt256.of(2))
         assertThat(revertedTransfer8Item.deleted).isFalse()
 
         //Revert transfer7 event
@@ -453,13 +408,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer7Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer7Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer7Item.ownerships.keys).hasSize(5)
-        assertThat(revertedTransfer7Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(revertedTransfer7Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer7Item.ownerships[owner3]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer7Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
-        assertThat(revertedTransfer7Item.ownerships[owner5]).isEqualTo(EthUInt256.of(2))
         assertThat(revertedTransfer7Item.deleted).isFalse()
 
         //Revert transfer6 event
@@ -470,12 +418,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer6Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer6Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer6Item.ownerships.keys).hasSize(4)
-        assertThat(revertedTransfer6Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(revertedTransfer6Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer6Item.ownerships[owner3]).isEqualTo(EthUInt256.of(4))
-        assertThat(revertedTransfer6Item.ownerships[owner4]).isEqualTo(EthUInt256.of(1))
         assertThat(revertedTransfer6Item.deleted).isFalse()
 
         //Revert transfer5 event
@@ -486,11 +428,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer5Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer5Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer5Item.ownerships.keys).hasSize(3)
-        assertThat(revertedTransfer5Item.ownerships[minter]).isEqualTo(EthUInt256.of(3))
-        assertThat(revertedTransfer5Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
-        assertThat(revertedTransfer5Item.ownerships[owner3]).isEqualTo(EthUInt256.of(5))
         assertThat(revertedTransfer5Item.deleted).isFalse()
 
         //Revert transfer4 event
@@ -501,10 +438,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer4Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer4Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer4Item.ownerships.keys).hasSize(2)
-        assertThat(revertedTransfer4Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
-        assertThat(revertedTransfer4Item.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
         assertThat(revertedTransfer4Item.deleted).isFalse()
 
         //Revert transfer3 event
@@ -515,11 +448,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer3Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer3Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer3Item.ownerships.keys).hasSize(3)
-        assertThat(revertedTransfer3Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
-        assertThat(revertedTransfer3Item.ownerships[owner1]).isEqualTo(EthUInt256.of(1))
-        assertThat(revertedTransfer3Item.ownerships[owner2]).isEqualTo(EthUInt256.of(1))
         assertThat(revertedTransfer3Item.deleted).isFalse()
 
         //Revert transfer2 event
@@ -530,10 +458,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer2Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer2Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer2Item.ownerships.keys).hasSize(2)
-        assertThat(revertedTransfer2Item.ownerships[minter]).isEqualTo(EthUInt256.of(8))
-        assertThat(revertedTransfer2Item.ownerships[owner1]).isEqualTo(EthUInt256.of(2))
         assertThat(revertedTransfer2Item.deleted).isFalse()
 
         //Revert transfer1 event
@@ -544,16 +468,12 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             )
         )
         assertThat(revertedTransfer1Item.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(revertedTransfer1Item.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
-        assertThat(revertedTransfer1Item.ownerships.keys).hasSize(1)
-        assertThat(revertedTransfer1Item.ownerships[minter]).isEqualTo(EthUInt256.of(10))
         assertThat(revertedTransfer1Item.deleted).isFalse()
 
         //Revert mint event
         val revertedMintItem = reduce(revertedTransfer1Item, revertedMint)
         assertThat(revertedMintItem.revertableEvents).hasSize(0)
         assertThat(revertedMintItem.supply).isEqualTo(EthUInt256.ZERO)
-        assertThat(revertedMintItem.ownerships.keys).hasSize(0)
         assertThat(revertedMintItem.deleted).isTrue()
     }
 
@@ -606,11 +526,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val reducedItem = reduce(
             item, event1, duplicate1, event2, event3, duplicate2, duplicate1, event4)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.TEN)
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(10)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(2)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.of(8))
-        assertThat(reducedItem.ownerships[owner2]).isEqualTo(EthUInt256.of(2))
         assertThat(reducedItem.revertableEvents).containsExactlyElementsOf(listOf(
             event1, event2, event3, event4
         ))
@@ -625,8 +541,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val item = initial().copy(
             tokenId = tokenId,
-            supply = EthUInt256.ONE,
-            ownerships = mapOf(minter to EthUInt256.ONE)
+            supply = EthUInt256.ONE
         )
         val event = createRandomTransferItemEvent()
             .withNewValues(
@@ -644,11 +559,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val reducedItem = reduce(item, event)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.of(11))
-        assertThat(reducedItem.ownerships.values.sumOf { it.value.toInt() }).isEqualTo(11)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
-        assertThat(reducedItem.ownerships.keys).hasSize(2)
-        assertThat(reducedItem.ownerships[owner]).isEqualTo(EthUInt256.TEN)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.creators).hasSize(1)
         assertThat(reducedItem.creators[0].account).isEqualTo(minter)
         assertThat(reducedItem.deleted).isFalse()
@@ -661,8 +572,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
         val item = initial().copy(
             tokenId = tokenId,
-            supply = EthUInt256.ONE,
-            ownerships = mapOf(minter to EthUInt256.ONE)
+            supply = EthUInt256.ONE
         )
         val event = createRandomTransferItemEvent()
             .withNewValues(
@@ -681,8 +591,6 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val reducedItem = reduce(item, event, revertedEvent)
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[minter]).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.deleted).isFalse()
     }

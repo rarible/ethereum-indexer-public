@@ -260,7 +260,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
                 assertThat(itemDto.owners).isEqualTo(item.owners)
             }
             ReduceVersion.V2 -> {
-                assertThat(itemDto.owners).containsExactlyElementsOf(item.ownerships.keys)
             }
         }
 
