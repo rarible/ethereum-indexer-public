@@ -79,11 +79,13 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
 
             }
         }
-        val token = randomAddress()
+        val token = Address.THREE()
         val log1 = createMintLog(token, blockNumber = 1)
         val mint1 = log1.data as ItemTransfer
 
-        val log2 = createMintLog(blockNumber = 2)
+        // This address following after first token, so it should NOT be handled in our test
+        val nextToken = Address.FOUR()
+        val log2 = createMintLog(nextToken, blockNumber = 2)
         val mint2 = log2.data as ItemTransfer
 
         val log3 = createMintLog(token, blockNumber = 3)
@@ -92,7 +94,7 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
         listOf(log1, log2, log3).forEach { nftItemHistoryRepository.save(it).awaitFirst() }
 
         Wait.waitAssert {
-            itemReduceTaskHandler.runLongTask(null, token.hex()).toList()
+            itemReduceTaskHandler.runLongTask(null, nextToken.hex()).toList()
 
             val item1 = itemRepository.findById(ItemId(mint1.token, mint1.tokenId)).awaitFirstOrNull()
             assertThat(item1).isNotNull
