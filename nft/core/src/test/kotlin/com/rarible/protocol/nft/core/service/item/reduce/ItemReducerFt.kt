@@ -225,10 +225,13 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
             .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 2, minorLogIndex = 2)
 
         val creator = createRandomCreatorsItemEvent()
-            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3)
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
             .copy(creators = creators)
+        val revertedCreator = creator
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 3, minorLogIndex = 1)
 
-        val reducedItem = reduce(item, lazyMint, mint, transfer, creator, revertedTransfer, revertedMint)
+        val reducedItem = reduce(item, lazyMint, mint, transfer, creator, revertedCreator, revertedTransfer, revertedMint)
+
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ONE)
         assertThat(reducedItem.creators).isEqualTo(creators)
