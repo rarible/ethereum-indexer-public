@@ -32,6 +32,7 @@ import scalether.domain.Address
 class NftItemHistoryRepository(
     private val mongo: ReactiveMongoOperations
 ) {
+
     suspend fun dropIndexes() {
         dropIndexes(
             "data.from_1_data.date_-1_id_-1",
@@ -104,27 +105,28 @@ class NftItemHistoryRepository(
             token != null ->
                 LogEvent::data / ItemHistory::token isEqualTo token
             from != null && to == null ->
-                Criteria().orOperator(
-                    Criteria().andOperator(
-                        LogEvent::data / ItemHistory::token isEqualTo from.token,
-                        LogEvent::data / ItemHistory::tokenId gt from.tokenId
-                    ),
-                    LogEvent::data / ItemHistory::token gt from.token
-                )
+                fromCriteria(from)
+            from == null && to != null ->
+                toCriteria(to)
             from != null && to != null ->
-                Criteria().andOperator(
-                    Criteria().orOperator(
-                        Criteria().andOperator(
-                            LogEvent::data / ItemHistory::token isEqualTo from.token,
-                            LogEvent::data / ItemHistory::tokenId gt from.tokenId
-                        ),
-                        LogEvent::data / ItemHistory::token gt from.token
-                    ),
-                    LogEvent::data / ItemHistory::token lt to.token
-                )
+                Criteria().andOperator(fromCriteria(from), toCriteria(to))
             else ->
                 Criteria()
         }
+    }
+
+    private fun fromCriteria(from: ItemId): Criteria {
+        return Criteria().orOperator(
+            Criteria().andOperator(
+                LogEvent::data / ItemHistory::token isEqualTo from.token,
+                LogEvent::data / ItemHistory::tokenId gt from.tokenId
+            ),
+            LogEvent::data / ItemHistory::token gt from.token
+        )
+    }
+
+    private fun toCriteria(to: ItemId): Criteria {
+        return LogEvent::data / ItemHistory::token lt to.token
     }
 
     suspend fun search(query: Query): List<LogEvent> {
@@ -148,6 +150,7 @@ class NftItemHistoryRepository(
     }
 
     companion object {
+
         const val COLLECTION = "nft_item_history"
 
         val logger: Logger = LoggerFactory.getLogger(NftItemHistoryRepository::class.java)
