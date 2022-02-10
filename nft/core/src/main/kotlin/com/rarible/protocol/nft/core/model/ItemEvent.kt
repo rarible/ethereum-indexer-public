@@ -25,7 +25,6 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         override fun invert(): ItemMintEvent = ItemEventInverter.invert(this)
     }
 
-    @Deprecated("Should not be used any more, need to remove")
     data class ItemTransferEvent(
         val from: Address,
         val to: Address,

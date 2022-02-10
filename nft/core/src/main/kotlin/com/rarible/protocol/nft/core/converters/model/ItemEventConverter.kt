@@ -31,7 +31,13 @@ object ItemEventConverter {
                         log = source.log,
                         entityId = ItemId(data.token, data.tokenId).stringValue
                     )
-                    else -> null
+                    else -> ItemEvent.ItemTransferEvent(
+                        value = data.value,
+                        from = data.from,
+                        to = data.owner,
+                        log = source.log,
+                        entityId = ItemId(data.token, data.tokenId).stringValue
+                    )
                 }
             }
             is ItemLazyMint -> {
