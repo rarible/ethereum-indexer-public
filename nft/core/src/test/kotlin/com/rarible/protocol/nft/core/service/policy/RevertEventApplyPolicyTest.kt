@@ -68,6 +68,38 @@ internal class RevertEventApplyPolicyTest {
     }
 
     @Test
+    fun `should throw exception if event list is empty`() {
+        val mint = createRandomMintItemEvent().withNewValues(
+            status = EthereumLogStatus.CONFIRMED,
+            blockNumber = 4,
+            logIndex = 1,
+            minorLogIndex = 1,
+        )
+        assertThrows<Exception> {
+            revertEventApplyPolicy.reduce(emptyList(), mint)
+        }
+    }
+
+    @Test
+    fun `should throw exception if try to revert too old event`() {
+        val burn = createRandomBurnItemEvent().withNewValues(
+            status = EthereumLogStatus.CONFIRMED,
+            blockNumber = 5,
+            logIndex = 1,
+            minorLogIndex = 1,
+        )
+        val revertMint = createRandomMintItemEvent().withNewValues(
+            status = EthereumLogStatus.REVERTED,
+            blockNumber = 4,
+            logIndex = 1,
+            minorLogIndex = 1,
+        )
+        assertThrows<Exception> {
+            revertEventApplyPolicy.reduce(listOf(burn), revertMint)
+        }
+    }
+
+    @Test
     fun `should say no if event was not applied`() {
         val mint = createRandomMintItemEvent().withNewValues(
             status = EthereumLogStatus.CONFIRMED,

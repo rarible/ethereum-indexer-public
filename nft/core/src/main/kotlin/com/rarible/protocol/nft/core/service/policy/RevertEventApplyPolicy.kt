@@ -6,6 +6,12 @@ import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
 open class RevertEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy<T> {
     override fun reduce(events: List<T>, event: T): List<T> {
+        require(events.isNotEmpty()) {
+            "Can't revert from empty list (event=$event)"
+        }
+        require(event >= events.first()) {
+            "Can't revert to old event (events=$events, event=$event)"
+        }
         val confirmedEvent = findConfirmedEvent(events, event)
         return if (confirmedEvent != null) {
             require(events.last() == confirmedEvent) {
