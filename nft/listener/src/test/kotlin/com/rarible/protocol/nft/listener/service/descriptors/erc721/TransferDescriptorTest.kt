@@ -5,11 +5,7 @@ import com.rarible.contracts.test.erc721.TestERC721
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.MintDto
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemType
-import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -56,7 +52,11 @@ class TransferDescriptorTest : AbstractIntegrationTest() {
             assertThat(savedNftItem).isNotNull
 
             assertThat(savedNftItem!!.token).isEqualTo(token.address())
-            assertThat(savedNftItem.supply).isEqualTo(EthUInt256.of(1))
+            assertThat(savedNftItem.supply).isEqualTo(EthUInt256.ONE)
+
+            val savedOwnership = ownershipRepository.findById(OwnershipId(itemId.token, itemId.tokenId, userSender.from())).awaitFirstOrNull()
+            assertThat(savedOwnership).isNotNull
+            assertThat(savedOwnership?.value).isEqualTo(EthUInt256.ONE)
 
             val savedNft = tokenRepository.findById(itemId.token).awaitFirstOrNull()
             assertThat(savedNft).isNotNull
