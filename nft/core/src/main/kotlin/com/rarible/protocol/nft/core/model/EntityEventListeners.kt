@@ -7,10 +7,6 @@ object EntityEventListeners {
         return "${prefix(env, blockchain)}.item.history.listener"
     }
 
-    fun ownershipHistoryListenerId(env: String, blockchain: Blockchain): String {
-        return "${prefix(env, blockchain)}.ownership.history.listener"
-    }
-
     fun tokenHistoryListenerId(env: String, blockchain: Blockchain): String {
         return "${prefix(env, blockchain)}.token.history.listener"
     }
