@@ -197,14 +197,14 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         // checking after minting
         val item = itemRepository.findById(itemId).awaitSingle()
 
-        assertThat(item.owners.isNotEmpty() || item.ownerships.isNotEmpty())
-        if (item.owners.isNotEmpty()) {
-            assertEquals(creator, item.owners[0])
-        }
-        if (item.ownerships.isNotEmpty()) {
-            assertThat(item.ownerships.keys.single()).isEqualTo(creator)
-        }
+        when (version) {
+            ReduceVersion.V1 -> {
+                assertEquals(creator, item.owners[0])
+            }
+            ReduceVersion.V2 -> {
 
+            }
+        }
         assertEquals(EthUInt256.ONE, item.supply)
         assertEquals(EthUInt256.ZERO, item.lazySupply)
 

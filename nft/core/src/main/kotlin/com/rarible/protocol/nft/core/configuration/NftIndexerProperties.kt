@@ -26,16 +26,11 @@ data class NftIndexerProperties(
     val confirmationBlocks: Int = 12,
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
-    val reduceProperties: ReduceProperties = ReduceProperties(),
     val scannerProperties: ScannerProperties = ScannerProperties(),
     val itemMeta: ItemMetaProperties = ItemMetaProperties()
 ) {
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList()
-    )
-
-    data class ReduceProperties(
-        val skipOwnerships: Boolean = false
     )
 
     data class FactoryAddresses(

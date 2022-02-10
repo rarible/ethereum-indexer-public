@@ -33,8 +33,7 @@ data class Item(
     val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
-    override val revertableEvents: List<ItemEvent> = emptyList(),
-    val ownerships: Map<Address, EthUInt256> = emptyMap()
+    override val revertableEvents: List<ItemEvent> = emptyList()
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
