@@ -30,8 +30,6 @@ internal class LazyItemReducerTest {
         assertThat(reducedItem.lastLazyEventTimestamp).isEqualTo(event.timestamp)
         assertThat(reducedItem.creators).isEqualTo(event.creators)
         assertThat(reducedItem.creatorsFinal).isTrue()
-        assertThat(reducedItem.ownerships.keys).hasSize(1)
-        assertThat(reducedItem.ownerships[event.creators.first().account]).isEqualTo(EthUInt256.TEN)
     }
 
     @Test
