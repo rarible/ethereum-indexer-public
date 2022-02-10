@@ -78,6 +78,9 @@ abstract class AbstractIntegrationTest : BaseApiApplicationTest() {
     protected lateinit var nftItemApi: NftItemControllerApi
 
     @Autowired
+    protected lateinit var nftOwnership: NftOwnershipControllerApi
+
+    @Autowired
     protected lateinit var objectMapper: ObjectMapper
 
     @Autowired

@@ -7,13 +7,12 @@ import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.api.data.*
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
+import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -1286,26 +1285,28 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     .map { it.take.type }
                     .filterIsInstance<Erc721AssetType>()
                     .map { nftAsset ->
-                        mockk<NftItemDto> {
-                            every { contract } returns nftAsset.token
-                            every { tokenId } returns nftAsset.tokenId.value
-                        }
+                           createNftOwnershipDto().copy(
+                                contract = nftAsset.token,
+                                tokenId = nftAsset.tokenId.value
+                           )
                     }
+
                 val erc1155Tokens = orderVersions
                     .filter { it.taker == user }
                     .map { it.take.type }
                     .filterIsInstance<Erc1155AssetType>()
                     .map { nftAsset ->
-                        mockk<NftItemDto> {
-                            every { contract } returns nftAsset.token
-                            every { tokenId } returns nftAsset.tokenId.value
-                        }
+                           createNftOwnershipDto().copy(
+                               contract = nftAsset.token,
+                               tokenId = nftAsset.tokenId.value
+                        )
                     }
-                coEvery { nftItemApi.getNftItemsByOwner(eq(user.hex()), any(), any()) } returns Mono.just(
-                    NftItemsDto(
+
+                coEvery { nftOwnership.getNftOwnershipsByOwner(eq(user.prefixed()), any(), any()) } returns Mono.just(
+                    NftOwnershipsDto(
                         total = (erc721Tokens.size + erc1155Tokens.size).toLong(),
                         continuation = null,
-                        items = erc721Tokens + erc1155Tokens
+                        ownerships = erc721Tokens + erc1155Tokens
                     )
                 )
             }
