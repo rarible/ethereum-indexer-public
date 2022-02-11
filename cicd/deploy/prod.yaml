@@ -26,6 +26,9 @@ polygon-erc20-listener:
       xmx_megabytes: 2048
 
 ethereum-gateway:
+  service:
+    enabled: true
+    nodePort: 30116
   resources:
     jvm:
       xmx_megabytes: 1024
@@ -34,6 +37,9 @@ ethereum-gateway:
     - 'proxy'
 
 polygon-gateway:
+  service:
+    enabled: true
+    nodePort: 30117
   resources:
     jvm:
       xmx_megabytes: 1024
