@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.configuration
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.cache.EnableRaribleCache
+import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.lockredis.EnableRaribleRedisLock
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
@@ -13,6 +14,7 @@ import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.BatchedConsumerWorker
+import com.rarible.protocol.nft.core.service.item.meta.BatchInternalItemHandler
 import com.rarible.protocol.nft.core.service.item.meta.InternalItemHandler
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import io.micrometer.core.instrument.MeterRegistry
@@ -42,20 +44,39 @@ class NftListenerConfiguration(
     }
 
     @Bean
-    fun itemMetaExtenderWorker(internalItemHandler: InternalItemHandler): BatchedConsumerWorker<NftItemEventDto> {
+    fun itemMetaExtenderWorker(
+        internalItemHandler: InternalItemHandler,
+        batchInternalItemHandler: BatchInternalItemHandler
+    ): BatchedConsumerWorker<NftItemEventDto> {
         logger.info("Creating batch of ${nftIndexerProperties.nftItemMetaExtenderWorkersCount} item meta extender workers")
+
         val workers = (1..nftIndexerProperties.nftItemMetaExtenderWorkersCount).map {
-            ConsumerWorker(
-                consumer = InternalItemHandler.createInternalItemConsumer(
-                    applicationEnvironmentInfo,
-                    nftIndexerProperties.blockchain,
-                    nftIndexerProperties.kafkaReplicaSet
-                ),
-                properties = nftIndexerProperties.daemonWorkerProperties,
-                eventHandler = internalItemHandler,
-                meterRegistry = meterRegistry,
-                workerName = "nftItemMetaExtender.$it"
+            val consumer = InternalItemHandler.createInternalItemConsumer(
+                applicationEnvironmentInfo,
+                nftIndexerProperties.blockchain,
+                nftIndexerProperties.kafkaReplicaSet
             )
+            val properties = nftIndexerProperties.daemonWorkerProperties
+            val workerName = "nftItemMetaExtender.$it"
+
+            if (nftIndexerProperties.featureFlags.internalMetaTopicBatchHandle) {
+                logger.info("Activated internal batch handle, batch size handle ${nftIndexerProperties.featureFlags.internalMetaTopicBatchSize}")
+                ConsumerBatchWorker(
+                    consumer = consumer,
+                    properties = properties,
+                    eventHandler = batchInternalItemHandler,
+                    meterRegistry = meterRegistry,
+                    workerName = workerName
+                )
+            } else {
+                ConsumerWorker(
+                    consumer = consumer,
+                    properties = properties,
+                    eventHandler = internalItemHandler,
+                    meterRegistry = meterRegistry,
+                    workerName = workerName
+                )
+            }
         }
         return BatchedConsumerWorker(workers)
     }
