@@ -1,6 +1,8 @@
 package com.rarible.protocol.nft.api.e2e.collection
 
+import com.rarible.protocol.dto.EthereumApiErrorEntityNotFoundDto
 import com.rarible.protocol.dto.NftCollectionDto
+import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createToken
@@ -11,8 +13,11 @@ import com.rarible.protocol.nft.core.repository.TokenRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpStatus
 import scalether.domain.AddressFactory
 
 @End2EndTest
@@ -25,8 +30,7 @@ class GetCollectionFt : SpringContainerBaseTest() {
     fun `should get item by id`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
-            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN),
-            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
+            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN)
         )
         tokenRepository.save(token).awaitFirst()
 
@@ -45,11 +49,28 @@ class GetCollectionFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `shouldn't get error collection by id`() = runBlocking<Unit> {
+        val token = createToken().copy(
+            standard = TokenStandard.ERC721,
+            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN),
+            status = ContractStatus.ERROR
+        )
+        tokenRepository.save(token).awaitFirst()
+
+        val ex = assertThrows<NftCollectionControllerApi.ErrorGetNftCollectionById> {
+            nftCollectionApiClient.getNftCollectionById(token.id.hex()).awaitFirst()
+        }
+        val error = ex.on404 as EthereumApiErrorEntityNotFoundDto
+
+        Assertions.assertEquals(HttpStatus.NOT_FOUND.value(), error.status)
+        Assertions.assertEquals(EthereumApiErrorEntityNotFoundDto.Code.NOT_FOUND, error.code)
+    }
+
+    @Test
     fun `should get item by id with set supportsLazyMint flag`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
-            features = setOf(TokenFeature.MINT_AND_TRANSFER),
-            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
+            features = setOf(TokenFeature.MINT_AND_TRANSFER)
         )
         tokenRepository.save(token).awaitFirst()
 

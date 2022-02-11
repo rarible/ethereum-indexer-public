@@ -7,7 +7,6 @@ import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createToken
-import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -42,8 +41,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
     fun before() = runBlocking<Unit> {
         token = createToken().copy(
             id = AddressFactory.create(),
-            standard = TokenStandard.ERC721,
-            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
+            standard = TokenStandard.ERC721
         )
         tokenRepository.save(token).awaitSingle()
     }

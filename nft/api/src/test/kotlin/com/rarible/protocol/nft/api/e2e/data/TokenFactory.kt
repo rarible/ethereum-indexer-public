@@ -13,7 +13,7 @@ fun createToken(): Token {
         owner = AddressFactory.create(),
         name = UUID.randomUUID().toString(),
         symbol = UUID.randomUUID().toString(),
-        status = ContractStatus.values().random(),
+        status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random(),
         features = (1..10).map {  TokenFeature.values().random() }.toSet(),
         standard = TokenStandard.values().random(),
         version = null

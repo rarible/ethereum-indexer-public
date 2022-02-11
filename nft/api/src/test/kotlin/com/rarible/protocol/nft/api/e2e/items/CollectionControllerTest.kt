@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -38,7 +39,11 @@ class CollectionControllerTest : SpringContainerBaseTest() {
         val token3 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155)
         val token4 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155)
 
-        listOf(token1, token2, token3, token4, createToken(), createToken(), createToken()).forEach {
+        // Shouldn't get collections with an "ERROR" status
+        val token5 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+        val token6 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+
+        listOf(token1, token2, token3, token4, token5, token6, createToken(), createToken(), createToken()).forEach {
             tokenRepository.save(it).awaitFirst()
         }
 
@@ -51,19 +56,54 @@ class CollectionControllerTest : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `shouldn't get collections by owner with an error status`() = runBlocking {
+        val owner = AddressFactory.create()
+        val token1 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+        val token2 = createToken().copy(owner = owner, standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+
+        listOf(token1, token2).forEach {
+            tokenRepository.save(it).awaitFirst()
+        }
+
+        val result1 = nftCollectionApiClient.searchNftCollectionsByOwner(owner.hex(), null, 10).awaitFirst()
+        assertThat(result1.collections).hasSize(0)
+
+        assertThat(result1.continuation).isNull()
+    }
+
+    @Test
     fun `should get all collections`() = runBlocking {
         val token1 = createToken().copy(standard = TokenStandard.ERC1155)
         val token2 = createToken().copy(standard = TokenStandard.ERC1155)
         val token3 = createToken().copy(standard = TokenStandard.ERC1155)
         val token4 = createToken().copy(standard = TokenStandard.ERC1155)
 
-        listOf(token1, token2, token3, token4).forEach {
+        // Shouldn't get collections with an "ERROR" status
+        val token5 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+        val token6 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+
+        listOf(token1, token2, token3, token4, token5, token6).forEach {
             tokenRepository.save(it).awaitFirst()
         }
 
         val result1 = nftCollectionApiClient.searchNftAllCollections(null, 10).awaitFirst()
         assertThat(result1.collections).hasSizeGreaterThanOrEqualTo(4)
         assertThat(result1.collections.map { it.id }).contains(token1.id, token2.id, token3.id, token4.id)
+
+        assertThat(result1.continuation).isNull()
+    }
+
+    @Test
+    fun `shouldn't get collections with an error status`() = runBlocking {
+        val token1 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+        val token2 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+
+        listOf(token1, token2).forEach {
+            tokenRepository.save(it).awaitFirst()
+        }
+
+        val result1 = nftCollectionApiClient.searchNftAllCollections(null, 10).awaitFirst()
+        assertThat(result1.collections).hasSizeGreaterThanOrEqualTo(0)
 
         assertThat(result1.continuation).isNull()
     }
