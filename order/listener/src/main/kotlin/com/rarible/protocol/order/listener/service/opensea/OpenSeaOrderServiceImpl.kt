@@ -48,12 +48,12 @@ class OpenSeaOrderServiceImpl(
                 sortBy = SortBy.CREATED_DATE,
                 sortDirection = SortDirection.ASC,
                 side = loadOpenSeaOrderSide,
-                limit = null
+                limit = MAX_SIZE
             )
             val result = getOrdersWithLogIfException(request)
 
             orders.addAll(result)
-        } while (result.isNotEmpty() && orders.size <= MAX_OFFSET)
+        } while (result.isNotEmpty() && result.size >= MAX_SIZE && orders.size <= MAX_OFFSET)
 
         return orders
     }
@@ -90,6 +90,7 @@ class OpenSeaOrderServiceImpl(
     }
 
     companion object {
+        const val MAX_SIZE = 50
         const val MAX_OFFSET = 10000
         const val MAX_RETRIES = 5
     }

@@ -10,7 +10,6 @@ import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.time.Instant
 import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
 import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
 import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
@@ -30,7 +29,6 @@ class OpenSeaOrderConverter(
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
-        val usdPrice = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = Instant.now())
 
         return OrderVersion(
             maker = maker,
@@ -44,12 +42,12 @@ class OpenSeaOrderConverter(
             data = createData(clientOpenSeaOrder),
             createdAt = clientOpenSeaOrder.createdAt,
             signature = joinSignaturePart(r = r, s = s, v = v),
-            makePriceUsd = usdPrice?.makePriceUsd,
-            takePriceUsd = usdPrice?.takePriceUsd,
+            makePriceUsd = null,
+            takePriceUsd = null,
             makePrice = null,
             takePrice = null,
-            makeUsd = usdPrice?.makeUsd,
-            takeUsd = usdPrice?.takeUsd,
+            makeUsd = null,
+            takeUsd = null,
             platform = Platform.OPEN_SEA
         ).let {
             priceUpdateService.withUpdatedAllPrices(it).copy(

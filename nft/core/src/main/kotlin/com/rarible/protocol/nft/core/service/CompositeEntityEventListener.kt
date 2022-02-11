@@ -10,6 +10,9 @@ import com.rarible.protocol.nft.core.model.SubscriberGroup
 import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.item.reduce.ItemEventReduceService
 import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipEventReduceService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
 
 @Component
@@ -26,8 +29,12 @@ class CompositeEntityEventListener(
 
     override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         withTransaction("onEntityEvents", labels = listOf("size" to events.size)) {
-            itemEventReduceService.onEntityEvents(events)
-            ownershipEventReduceService.onEntityEvents(events)
+            coroutineScope {
+                listOf(
+                    async { itemEventReduceService.onEntityEvents(events) },
+                    async { ownershipEventReduceService.onEntityEvents(events) }
+                ).awaitAll()
+            }
         }
     }
 }

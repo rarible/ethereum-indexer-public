@@ -1,11 +1,9 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.data.createRandomOwnershipId
-import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
-import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
-import com.rarible.protocol.nft.core.data.withNewValues
+import com.rarible.protocol.nft.core.data.*
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Ownership
@@ -134,6 +132,20 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         assertThat(reducedOwnership.revertableEvents).containsExactlyElementsOf(listOf(
             notRevertable3, revertable1, revertable2, revertable3
         ))
+    }
+
+    @Test
+    fun `should reduce simple transfer event with pending and revert it`() = runBlocking<Unit> {
+        val ownership = initial()
+        val transfer = createRandomOwnershipTransferFromEvent()
+            .withNewValues(EthereumLogStatus.PENDING, blockNumber = null, minorLogIndex = 0)
+
+        val reducedOwnership1 = reduce(ownership, transfer)
+        assertThat(reducedOwnership1.revertableEvents).hasSize(1)
+
+        val inactiveTransfer = transfer.withNewValues(EthereumLogStatus.INACTIVE)
+        val reducedOwnership2 = reduce(reducedOwnership1, inactiveTransfer)
+        assertThat(reducedOwnership2.revertableEvents).hasSize(0)
     }
 
     private fun initial(): Ownership {
