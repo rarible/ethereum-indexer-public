@@ -12,3 +12,13 @@ polygon-nft-listener:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 256
+
+ethereum-gateway:
+  service:
+    enabled: true
+    nodePort: 30316
+
+polygon-gateway:
+  service:
+    enabled: true
+    nodePort: 30317
