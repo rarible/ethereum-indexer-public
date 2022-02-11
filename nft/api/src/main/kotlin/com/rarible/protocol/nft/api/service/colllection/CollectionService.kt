@@ -5,12 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.model.ExtendedToken
-import com.rarible.protocol.nft.core.model.SignedTokenId
-import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.model.TokenFilter
-import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
@@ -43,7 +38,7 @@ class CollectionService(
 
     suspend fun get(collectionId: Address): NftCollectionDto {
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
-            ?.takeIf { it.standard != TokenStandard.NONE }
+            ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return conversionService.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }

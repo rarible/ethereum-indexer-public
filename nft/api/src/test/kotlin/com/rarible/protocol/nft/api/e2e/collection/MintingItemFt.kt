@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -37,7 +38,8 @@ class MintingItemFt : SpringContainerBaseTest() {
 
         val contract = createToken().copy(
             standard = TokenStandard.ERC721,
-            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN)
+            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN),
+            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
         )
         tokenRepository.save(contract).awaitFirst()
 

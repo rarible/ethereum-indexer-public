@@ -4,15 +4,13 @@ import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createToken
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
@@ -27,7 +25,8 @@ class GetCollectionFt : SpringContainerBaseTest() {
     fun `should get item by id`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
-            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN)
+            features = setOf(TokenFeature.APPROVE_FOR_ALL, TokenFeature.BURN),
+            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
         )
         tokenRepository.save(token).awaitFirst()
 
@@ -49,7 +48,8 @@ class GetCollectionFt : SpringContainerBaseTest() {
     fun `should get item by id with set supportsLazyMint flag`() = runBlocking<Unit> {
         val token = createToken().copy(
             standard = TokenStandard.ERC721,
-            features = setOf(TokenFeature.MINT_AND_TRANSFER)
+            features = setOf(TokenFeature.MINT_AND_TRANSFER),
+            status = arrayOf(ContractStatus.PENDING, ContractStatus.CONFIRMED).random()
         )
         tokenRepository.save(token).awaitFirst()
 
