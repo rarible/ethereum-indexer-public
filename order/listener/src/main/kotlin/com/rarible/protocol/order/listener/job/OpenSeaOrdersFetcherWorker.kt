@@ -70,12 +70,18 @@ open class OpenSeaOrdersFetcherWorker(
                 openSeaOrders
                     .chunked(properties.saveOpenSeaOrdersBatchSize)
                     .map { chunk ->
-                        async {
-                            chunk
-                                .mapNotNull { openSeaOrderConverter.convert(it) }
-                                .forEach { saveOrder(it) }
-                        }
-                    }.awaitAll()
+                        chunk.map { openSeaOrder ->
+                            async {
+                                val version = openSeaOrderConverter.convert(openSeaOrder)
+                                if (version != null) {
+                                    saveOrder(version)
+                                }
+                                openSeaOrder.id
+                            }
+                        }.awaitAll()
+                    }
+                    .flatten()
+                    .lastOrNull()
             }
             logger.info("[OpenSea] All new OpenSea orders saved")
         } else {
