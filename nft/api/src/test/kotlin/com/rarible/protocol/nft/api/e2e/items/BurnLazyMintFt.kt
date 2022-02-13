@@ -1,11 +1,9 @@
 package com.rarible.protocol.nft.api.e2e.items
 
-import com.ninjasquad.springmockk.MockkBean
 import com.rarible.ethereum.common.toBinary
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.dto.BurnLazyNftFormDto
 import com.rarible.protocol.dto.LazyErc721Dto
@@ -67,9 +65,6 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var nftItemHistoryRepository: NftItemHistoryRepository
-
-    @MockkBean
-    private lateinit var lazyNftValidator: LazyNftValidator
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository

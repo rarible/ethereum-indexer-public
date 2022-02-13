@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.nft.validation.ValidationResult
 import com.rarible.protocol.contracts.erc1155.rarible.ERC1155Rarible
 import com.rarible.protocol.contracts.erc1155.rarible.user.ERC1155RaribleUser
@@ -56,9 +55,6 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
-
-    @Autowired
-    private lateinit var lazyNftValidator: LazyNftValidator
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
@@ -117,8 +113,6 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val creator = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         val tokenId = EthUInt256.of("0x${scalether.util.Hex.to(creator.bytes())}00000000000000000000006B")
 
-        val itemMeta = randomItemMeta()
-        val itemId = ItemId(contract.address(), tokenId)
         val ownershipId = OwnershipId(contract.address(), tokenId, creator)
         val lazyItemDto = createLazyErc721Dto().copy(
             contract = contract.address(),

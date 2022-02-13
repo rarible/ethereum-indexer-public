@@ -22,6 +22,7 @@ import java.net.HttpURLConnection
 class TestPropertiesConfiguration {
     @Bean
     @Primary
+    @Qualifier("mockLazyNftValidator")
     fun mockLazyNftValidator(): LazyNftValidator = mockk()
 
     @Bean

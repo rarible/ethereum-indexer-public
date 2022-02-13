@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.e2e
 import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
 import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.client.NoopWebClientCustomizer
 import com.rarible.protocol.nft.api.client.FixedNftIndexerApiServiceUriProvider
 import com.rarible.protocol.nft.api.client.NftActivityControllerApi
@@ -84,6 +85,10 @@ abstract class SpringContainerBaseTest {
 
     @Autowired
     protected lateinit var ethereum: MonoEthereum
+
+    @Autowired
+    @Qualifier("mockLazyNftValidator")
+    protected lateinit var lazyNftValidator: LazyNftValidator
 
     @Autowired
     @Qualifier("mockItemMetaResolver")
