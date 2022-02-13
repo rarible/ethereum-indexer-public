@@ -182,8 +182,13 @@ abstract class SpringContainerBaseTest {
     }
 
     fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
+        val previousReduceVersion = featureFlags.reduceVersion
         featureFlags.reduceVersion = version
-        runBlocking(EmptyCoroutineContext, block)
+        try {
+            runBlocking(EmptyCoroutineContext, block)
+        } finally {
+            featureFlags.reduceVersion = previousReduceVersion
+        }
     }
 
     private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
