@@ -27,7 +27,6 @@ polygon-erc20-listener:
 
 ethereum-gateway:
   service:
-    enabled: true
     nodePort: 30116
   resources:
     jvm:
@@ -38,7 +37,6 @@ ethereum-gateway:
 
 polygon-gateway:
   service:
-    enabled: true
     nodePort: 30117
   resources:
     jvm:

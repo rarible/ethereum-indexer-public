@@ -19,10 +19,8 @@ polygon-nft-listener:
 
 ethereum-gateway:
   service:
-    enabled: true
     nodePort: 30216
 
 polygon-gateway:
   service:
-    enabled: true
     nodePort: 30217
