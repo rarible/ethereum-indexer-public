@@ -61,7 +61,13 @@ data class Ownership(
             && this.value == EthUInt256.ZERO
             && this.getPendingEvents().isEmpty()
             && this.pending.isEmpty() // TODO this check not needed for reducerV2
-        return this.copy(deleted = deleted)
+        val updatedAt =
+            // We try to get timestamp of the latest blockchain event
+            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
+            // If no blockchain event, we get latest pending createdAt event timestamp
+            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?:
+            this.date
+        return this.copy(deleted = deleted, date = updatedAt)
     }
 
     companion object {
