@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.domain.ItemContinuation
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.item.ItemService
@@ -162,16 +163,17 @@ class ItemController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftItemsDto> {
+        val ownerAddress = AddressParser.parse(owner)
         val ownershipContinuation = continuation?.let { c ->
             ItemContinuation.parse(c)?.let {
                 OwnershipContinuation(
                     it.afterDate,
-                    OwnershipId(it.afterId.token, it.afterId.tokenId, Address.apply(owner))
+                    OwnershipId(it.afterId.token, it.afterId.tokenId, ownerAddress)
                 )
             }
         }
         val requestSize = PageSize.ITEM.limit(size)
-        val result = itemService.searchByOwner(Address.apply(owner), ownershipContinuation, requestSize)
+        val result = itemService.searchByOwner(ownerAddress, ownershipContinuation, requestSize)
         return ResponseEntity.ok(result2Dto(result, requestSize))
     }
 
@@ -182,9 +184,8 @@ class ItemController(
     ): ResponseEntity<NftItemsDto> {
         val filter = ItemFilterByCreator(
             defaultSorting,
-            Address.apply(creator)
+            AddressParser.parse(creator)
         )
-
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
@@ -197,10 +198,9 @@ class ItemController(
     ): ResponseEntity<NftItemsDto> {
         val filter = ItemFilterByCollection(
             defaultSorting,
-            Address.apply(collection),
-            owner?.let { Address.apply(it) }
+            AddressParser.parse(collection),
+            owner?.let { AddressParser.parse(it) }
         )
-
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
