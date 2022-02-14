@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository
 
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -46,7 +47,8 @@ class TokenRepository(
         val criteria = when (this) {
             is TokenFilter.All -> all()
             is TokenFilter.ByOwner -> byOwner(owner)
-        }.and(Token::standard).ne(TokenStandard.NONE) scrollTo continuation
+        }.and(Token::standard).ne(TokenStandard.NONE)
+         .and(Token::status).ne(ContractStatus.ERROR) scrollTo continuation
 
         return Query.query(criteria).limit(size)
     }
