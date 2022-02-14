@@ -52,6 +52,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
 
         val reducedItem1 = reduce(item, mint)
         assertThat(reducedItem1.revertableEvents).hasSize(1)
+        assertThat(reducedItem1.date).isEqualTo(mint.log.createdAt)
 
         val inactiveMint = mint.withNewValues(EthereumLogStatus.INACTIVE)
         val reducedItem2 = reduce(reducedItem1, inactiveMint)
@@ -91,6 +92,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.supply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.deleted).isTrue()
+        assertThat(reducedItem.date).isEqualTo(burn.log.createdAt)
     }
 
     @Test
@@ -114,6 +116,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(revertedItem.supply).isEqualTo(EthUInt256.TEN)
         assertThat(revertedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(revertedItem.deleted).isFalse()
+        assertThat(revertedItem.date).isEqualTo(mint.log.createdAt)
     }
 
     @Test
@@ -200,6 +203,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.lazySupply).isEqualTo(EthUInt256.ZERO)
         assertThat(reducedItem.creators).isEqualTo(creators)
         assertThat(reducedItem.deleted).isFalse()
+        assertThat(reducedItem.date).isEqualTo(creator.log.createdAt)
     }
 
     @Test

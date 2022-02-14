@@ -4,6 +4,7 @@ import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionsDto
 import com.rarible.protocol.dto.NftTokenIdDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.page.PageSize
@@ -21,12 +22,12 @@ class CollectionController(
     override suspend fun getNftCollectionById(
         collection: String
     ): ResponseEntity<NftCollectionDto> {
-        val result = collectionService.get(Address.apply(collection))
+        val result = collectionService.get(AddressParser.parse(collection))
         return ResponseEntity.ok(result)
     }
 
     override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
-        collectionService.resetMeta(conversionService.convert(collection))
+        collectionService.resetMeta(AddressParser.parse(collection))
         return ResponseEntity.noContent().build()
     }
 
@@ -45,7 +46,7 @@ class CollectionController(
         size: Int?
     ): ResponseEntity<NftCollectionsDto> {
         val filter = TokenFilter.ByOwner(
-            Address.apply(owner),
+            AddressParser.parse(owner),
             continuation,
             limit(size)
         )
@@ -57,7 +58,7 @@ class CollectionController(
         collection: String,
         minter: String
     ): ResponseEntity<NftTokenIdDto> {
-        val collectionAddress = Address.apply(collection)
+        val collectionAddress = AddressParser.parse(collection)
         val minterAddress = Address.apply(minter)
         val nextTokenId = collectionService.generateId(collectionAddress, minterAddress)
         val result = conversionService.convert<NftTokenIdDto>(nextTokenId)

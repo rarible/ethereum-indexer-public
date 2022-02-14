@@ -49,6 +49,7 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         assertThat(reducedOwnership.value).isEqualTo(EthUInt256.of(9))
         assertThat(reducedOwnership.revertableEvents).containsExactlyElementsOf(listOf(transferFrom))
         assertThat(reducedOwnership.deleted).isFalse()
+        assertThat(reducedOwnership.date).isEqualTo(transferFrom.log.createdAt)
     }
 
     @Test
@@ -73,6 +74,7 @@ internal class OwnershipReducerFt : AbstractIntegrationTest() {
         assertThat(reducedOwnership.value).isEqualTo(EthUInt256.of(5))
         assertThat(reducedOwnership.revertableEvents).containsExactlyElementsOf(events)
         assertThat(reducedOwnership.deleted).isFalse()
+        assertThat(reducedOwnership.date).isEqualTo(events.last().log.createdAt)
     }
 
     @Test
