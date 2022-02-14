@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.api.controller.advice
 
+import com.rarible.protocol.dto.ArgumentFormatException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
 import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
@@ -23,15 +24,22 @@ class ErrorsController {
         ResponseEntity.status(ex.status).body(ex.data)
     }
 
-    @ExceptionHandler(ServerWebInputException::class)
-    fun handleServerWebInputException(ex: ServerWebInputException) = mono {
+    @ExceptionHandler(
+        value = [
+            ServerWebInputException::class,
+            ArgumentFormatException::class
+        ]
+    )
+    fun handleServerWebInputException(ex: Exception) = mono {
         // For ServerWebInputException status is always 400
+        val status = HttpStatus.BAD_REQUEST
+
         val error = EthereumApiErrorBadRequestDto(
             code = EthereumApiErrorBadRequestDto.Code.BAD_REQUEST,
             message = ex.cause?.cause?.message ?: ex.cause?.message ?: ex.message ?: MISSING_MESSAGE
         )
         logger.warn("Web input error: {}", error.message)
-        ResponseEntity.status(ex.status).body(error)
+        ResponseEntity.status(status).body(error)
     }
 
     @ExceptionHandler(ConversionFailedException::class)

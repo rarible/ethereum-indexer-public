@@ -154,6 +154,14 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
+    fun `should get 400 on wrong address param`() = runBlocking<Unit> {
+        val error = assertThrows<NftItemControllerApi.ErrorGetNftItemsByOwner> {
+            nftItemApiClient.getNftItemsByOwner("invalid", null, null).awaitFirst()
+        }
+        assertThat(error.on400).isNotNull
+    }
+
+    @Test
     fun `get item image`() = runBlocking<Unit> {
         val item = createItem()
         itemRepository.save(item).awaitFirst()

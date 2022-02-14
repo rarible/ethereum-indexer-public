@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.controller
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipsDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.domain.OwnershipContinuation
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.OwnershipFilter
@@ -50,7 +51,7 @@ class OwnershipController(
     ): ResponseEntity<NftOwnershipsDto> {
         val filter = OwnershipFilterByItem(
             defaultSorting,
-            Address.apply(contract),
+            AddressParser.parse(contract),
             BigInteger(tokenId)
         )
         val result = getItems(filter, continuation, size)
