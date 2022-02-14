@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.item.reduce.lazy.LazyItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.status.EventStatusItemReducer
-import com.rarible.protocol.nft.core.service.item.reduce.status.ItemDeleteReducer
+import com.rarible.protocol.nft.core.service.item.reduce.status.ItemCalculatedFieldsReducer
 import org.springframework.stereotype.Component
 
 @Component
@@ -21,13 +21,13 @@ class ItemReducer(
         LoggingReducer(),
         itemMetricReducer,
         eventStatusItemReducer,
-        ItemDeleteReducer()
+        ItemCalculatedFieldsReducer()
     )
     private val lazyItemReducer = combineIntoChain(
         LoggingReducer(),
         itemMetricReducer,
         lazyItemReducer,
-        ItemDeleteReducer()
+        ItemCalculatedFieldsReducer()
     )
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
