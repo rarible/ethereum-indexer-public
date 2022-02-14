@@ -4,7 +4,7 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 
-class OwnershipDeleteReducer : Reducer<OwnershipEvent, Ownership> {
+class OwnershipCalculatedFieldReducer : Reducer<OwnershipEvent, Ownership> {
     override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
         return entity.withCalculatedFields()
     }

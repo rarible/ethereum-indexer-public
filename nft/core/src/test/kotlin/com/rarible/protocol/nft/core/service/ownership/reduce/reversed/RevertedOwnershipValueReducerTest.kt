@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.reversed
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferFromEvent
 import com.rarible.protocol.nft.core.data.createRandomOwnershipTransferToEvent
 import com.rarible.protocol.nft.core.repository.data.createOwnership
-import com.rarible.protocol.nft.core.service.ownership.reduce.reversed.RevertedOwnershipValueReducer
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ internal class RevertedOwnershipValueReducerTest {
 
     @Test
     fun `should calculate value for revert transfer to event`() = runBlocking<Unit> {
-        val ownership = createOwnership().copy(value = EthUInt256.of(11))
+        val ownership = createRandomOwnership().copy(value = EthUInt256.of(11))
         val transferTo = createRandomOwnershipTransferToEvent().copy(value = EthUInt256.ONE)
 
         val reducedOwnership = revertedOwnershipValueReducer.reduce(ownership, transferTo)

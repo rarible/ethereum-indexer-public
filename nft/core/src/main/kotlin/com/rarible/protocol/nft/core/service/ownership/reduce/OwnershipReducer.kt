@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.service.LoggingReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.lazy.LazyOwnershipReducer
 import com.rarible.protocol.nft.core.service.ownership.reduce.status.EventStatusOwnershipReducer
-import com.rarible.protocol.nft.core.service.ownership.reduce.status.OwnershipDeleteReducer
+import com.rarible.protocol.nft.core.service.ownership.reduce.status.OwnershipCalculatedFieldReducer
 import org.springframework.stereotype.Component
 
 @Component
@@ -21,13 +21,13 @@ class OwnershipReducer(
         LoggingReducer(),
         ownershipMetricReducer,
         eventStatusOwnershipReducer,
-        OwnershipDeleteReducer()
+        OwnershipCalculatedFieldReducer()
     )
     private val lazyOwnershipReducer = combineIntoChain(
         LoggingReducer(),
         ownershipMetricReducer,
         lazyOwnershipReducer,
-        OwnershipDeleteReducer()
+        OwnershipCalculatedFieldReducer()
     )
 
     override suspend fun reduce(entity: Ownership, event: OwnershipEvent): Ownership {
