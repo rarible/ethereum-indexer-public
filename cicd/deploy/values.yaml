@@ -5,6 +5,8 @@ ethereum-erc20-api: &protocol-erc20-api
   image:
     repository: ethereum-indexer-erc20-api
   replicas: 2
+  service:
+    enabled: true
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -54,6 +56,8 @@ ethereum-gateway: &protocol-gateway
   image:
     repository: ethereum-indexer-gateway
   replicas: 2
+  service:
+    enabled: true
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -81,6 +85,8 @@ ethereum-order-api: &protocol-order-api
   image:
     repository: ethereum-indexer-order-api
   replicas: 2
+  service:
+    enabled: true
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -166,6 +172,8 @@ ethereum-unlockable-api: &protocol-unlockable-api
   image:
     repository: ethereum-indexer-unlockable-api
   replicas: 2
+  service:
+    enabled: true
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
@@ -191,6 +199,8 @@ ethereum-nft-api: &protocol-nft-api
   image:
     repository: ethereum-indexer-nft-api
   replicas: 2
+  service:
+    enabled: true
   blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
