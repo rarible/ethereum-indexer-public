@@ -3,17 +3,19 @@ package com.rarible.protocol.erc20.api.e2e.balance
 import com.rarible.core.common.nowMillis
 import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.contract.model.Erc721Token
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.contract.repository.ContractRepository
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.erc20.api.AbstractFt
 import com.rarible.protocol.erc20.api.End2EndTest
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.erc20.api.client.BalanceControllerApi
 import com.rarible.protocol.erc20.core.model.Erc20Balance
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomStringUtils
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -23,19 +25,19 @@ import java.math.BigDecimal
 import java.math.BigInteger
 
 @End2EndTest
-internal class Erc20BalanceControllerFt : AbstractFt() {
+internal class BalanceControllerFt : AbstractFt() {
 
     @Autowired
-    protected lateinit var erc20BalanceRepository: Erc20BalanceRepository
+    lateinit var erc20BalanceRepository: Erc20BalanceRepository
 
     @Autowired
-    protected lateinit var contractRepository: ContractRepository
+    lateinit var contractRepository: ContractRepository
 
-    protected lateinit var client: Erc20BalanceControllerApi
+    lateinit var client: BalanceControllerApi
 
     @BeforeEach
     fun beforeEach() {
-        client = clientFactory.createErc20BalanceApiClient(Blockchain.ETHEREUM.value)
+        client = clientFactory.createBalanceApiClient(Blockchain.ETHEREUM.value)
     }
 
     @Test
@@ -54,9 +56,9 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
             erc20Balance.owner.toString()
         ).awaitFirst()
 
-        assertEquals(balanceDto.contract, erc20Balance.token)
-        assertEquals(balanceDto.owner, erc20Balance.owner)
-        assertEquals(balanceDto.balance, erc20Balance.balance.value)
+        assertThat(balanceDto.contract).isEqualTo(erc20Balance.token)
+        assertThat(balanceDto.owner).isEqualTo(erc20Balance.owner)
+        assertThat(balanceDto.balance).isEqualTo(erc20Balance.balance.value)
     }
 
     // TODO maybe use here 404 and Erc20BalanceNotFoundException?
@@ -70,10 +72,10 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
             owner.toString()
         ).awaitFirst()
 
-        assertEquals(balanceDto.contract, token)
-        assertEquals(balanceDto.owner, owner)
-        assertEquals(balanceDto.balance, BigInteger.ZERO)
-        assertEquals(balanceDto.decimalBalance, BigDecimal.ZERO)
+        assertThat(balanceDto.contract).isEqualTo(token)
+        assertThat(balanceDto.owner).isEqualTo(owner)
+        assertThat(balanceDto.balance).isEqualTo(BigInteger.ZERO)
+        assertThat(balanceDto.decimalBalance).isEqualTo(BigDecimal.ZERO)
     }
 
     @Test
@@ -100,10 +102,10 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
             erc20Balance.owner.toString()
         ).awaitFirst()
 
-        assertEquals(balanceDto.contract, erc20Balance.token)
-        assertEquals(balanceDto.owner, erc20Balance.owner)
-        assertEquals(balanceDto.balance, erc20Balance.balance.value)
-        assertEquals(balanceDto.decimalBalance, BigDecimal("10.54"))
+        assertThat(balanceDto.contract).isEqualTo(erc20Balance.token)
+        assertThat(balanceDto.owner).isEqualTo(erc20Balance.owner)
+        assertThat(balanceDto.balance).isEqualTo(erc20Balance.balance.value)
+        assertThat(balanceDto.decimalBalance).isEqualTo(BigDecimal("10.54"))
     }
 
     @Test
@@ -129,9 +131,20 @@ internal class Erc20BalanceControllerFt : AbstractFt() {
             erc20Balance.owner.toString()
         ).awaitFirst()
 
-        assertEquals(balanceDto.contract, erc20Balance.token)
-        assertEquals(balanceDto.owner, erc20Balance.owner)
-        assertEquals(balanceDto.balance, erc20Balance.balance.value)
-        assertEquals(balanceDto.decimalBalance, erc20Balance.balance.value.toBigDecimal())
+        assertThat(balanceDto.contract).isEqualTo(erc20Balance.token)
+        assertThat(balanceDto.owner).isEqualTo(erc20Balance.owner)
+        assertThat(balanceDto.balance).isEqualTo(erc20Balance.balance.value)
+        assertThat(balanceDto.decimalBalance).isEqualTo(erc20Balance.balance.value.toBigDecimal())
+    }
+
+    @Test
+    fun `get eth balance - not found`() = runBlocking<Unit> {
+        val address = randomAddress()
+
+        val balance = client.getEthBalance(address.prefixed()).awaitFirst()
+
+        assertEquals(address, balance.owner)
+        assertEquals(BigInteger.ZERO, balance.balance)
+        assertEquals(BigDecimal.ZERO, balance.decimalBalance.stripTrailingZeros())
     }
 }
