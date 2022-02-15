@@ -9,14 +9,15 @@ open class RevertEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy
         require(events.isNotEmpty()) {
             "Can't revert from empty list (event=$event)"
         }
-        require(event >= events.first()) {
+        require(event > events.first()) {
             "Can't revert to old event (events=$events, event=$event)"
         }
         val confirmedEvent = findConfirmedEvent(events, event)
         return if (confirmedEvent != null) {
-            require(events.last() == confirmedEvent) {
-                "Event must revert from tail of list. Revert event: $event, event list=$events"
-            }
+            //TODO: back after bug in blockchain scanner wiil be fixed
+//            require(events.last() == confirmedEvent) {
+//                "Event must revert from tail of list. Revert event: $event, event list=$events"
+//            }
             events - confirmedEvent
         } else events
     }
