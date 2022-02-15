@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
@@ -60,14 +59,13 @@ class ExchangeOrderMatchDescriptor(
         val leftAssetType = event.leftAsset().toAssetType()
         val rightAssetType = event.rightAsset().toAssetType()
 
-        val at = nowMillis()
         val leftMake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
         val leftTake = Asset(rightAssetType, EthUInt256(event.newLeftFill()))
-        val leftUsdValue = priceUpdateService.getAssetsUsdValue(leftMake, leftTake, at)
+        val leftUsdValue = priceUpdateService.getAssetsUsdValue(leftMake, leftTake, date)
 
         val rightMake = Asset(rightAssetType, EthUInt256(event.newLeftFill()))
         val rightTake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
-        val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, at)
+        val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, date)
 
         val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), event)
         val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
