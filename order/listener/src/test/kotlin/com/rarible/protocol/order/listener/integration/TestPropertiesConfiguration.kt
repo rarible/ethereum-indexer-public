@@ -4,7 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.erc20.api.client.BalanceControllerApi
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
 import com.rarible.protocol.order.listener.data.createErc20BalanceDto
 import io.daonomic.rpc.mono.WebClientTransport
@@ -33,7 +33,7 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
+    fun mockedErc20BalanceApiClient(): BalanceControllerApi {
         return mockk {
             every { getErc20Balance(any(), any()) } returns Mono.just(createErc20BalanceDto())
         }
