@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
@@ -58,9 +57,8 @@ class OpenSeaOrderEventConverter(
         val nftAsset = createNftAsset(sellOrder.target, transfer.tokenId, transfer.value, transfer.type)
         val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
 
-        val at = nowMillis()
-        val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = at)
-        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = at)
+        val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = date)
+        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = date)
 
         var buyAdhoc = buyOrder.maker == from
         var sellAdhoc = sellOrder.maker == from
