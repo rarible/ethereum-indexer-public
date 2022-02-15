@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.data.withNewValues
 import com.rarible.protocol.nft.core.model.ItemEvent
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.math.min
@@ -43,6 +44,8 @@ internal class RevertEventApplyPolicyTest {
     }
 
     @Test
+    //TODO: back after bug in blockchain scanner wiil be fixed
+    @Disabled
     fun `should throw exception if event not from tail`() {
         val mint = createRandomMintItemEvent().withNewValues(
             status = EthereumLogStatus.CONFIRMED,

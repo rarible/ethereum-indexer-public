@@ -9,7 +9,7 @@ open class RevertEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy
         require(events.isNotEmpty()) {
             "Can't revert from empty list (event=$event)"
         }
-        require(event > events.first()) {
+        require(event >= events.first()) {
             "Can't revert to old event (events=$events, event=$event)"
         }
         val confirmedEvent = findConfirmedEvent(events, event)
