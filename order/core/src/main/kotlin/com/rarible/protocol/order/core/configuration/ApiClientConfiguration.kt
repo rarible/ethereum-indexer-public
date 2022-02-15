@@ -2,7 +2,7 @@ package com.rarible.protocol.order.core.configuration
 
 import com.rarible.protocol.currency.api.client.CurrencyApiClientFactory
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.erc20.api.client.BalanceControllerApi
 import com.rarible.protocol.erc20.api.client.Erc20IndexerApiClientFactory
 import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.nft.api.client.NftIndexerApiClientFactory
@@ -35,8 +35,8 @@ class ApiClientConfiguration(
     }
 
     @Bean
-    fun erc20BalanceApi(): Erc20BalanceControllerApi {
-        return erc20IndexerApiClientFactory.createErc20BalanceApiClient(indexerProperties.blockchain.name)
+    fun erc20BalanceApi(): BalanceControllerApi {
+        return erc20IndexerApiClientFactory.createBalanceApiClient(indexerProperties.blockchain.name)
     }
 
     @Bean

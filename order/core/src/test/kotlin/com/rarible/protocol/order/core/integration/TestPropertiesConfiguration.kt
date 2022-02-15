@@ -9,7 +9,7 @@ import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.currency.dto.CurrencyRateDto
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderEventDto
-import com.rarible.protocol.erc20.api.client.Erc20BalanceControllerApi
+import com.rarible.protocol.erc20.api.client.BalanceControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createErc20BalanceDto
@@ -66,7 +66,7 @@ class TestPropertiesConfiguration {
 
     @Bean
     @Primary
-    fun mockedErc20BalanceApiClient(): Erc20BalanceControllerApi {
+    fun mockedErc20BalanceApiClient(): BalanceControllerApi {
         return mockk {
             every { getErc20Balance(any(), any()) } returns Mono.just(createErc20BalanceDto())
         }
