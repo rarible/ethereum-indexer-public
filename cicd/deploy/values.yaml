@@ -22,7 +22,8 @@ ethereum-erc20-api: &protocol-erc20-api
     order: start-first
   networks:
     common:
-     - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ include "service.appEnv" $ }}-backend'
+     - '{{ .Values.global.network }}-ethereum'
 
 polygon-erc20-api:
   <<: *protocol-erc20-api
