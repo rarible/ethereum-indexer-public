@@ -13,7 +13,7 @@ import com.rarible.protocol.order.core.converters.model.OrderBidStatusConverter
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.converters.model.PlatformFeaturedFilter
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
+import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
@@ -44,7 +44,7 @@ class OrderBidController(
         val requestSize = PageSize.ORDER_BID.limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val originAddress = if (origin == null) null else Address.apply(origin)
-        val filter = PriceOrderVersionFilter.BidByItem(
+        val filter = BidsOrderVersionFilter.ByItem(
             Address.apply(contract),
             EthUInt256.of(tokenId),
             maker,

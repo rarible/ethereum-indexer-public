@@ -41,6 +41,7 @@ import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Duration
+import java.time.Instant
 import java.util.*
 import java.util.stream.Stream
 import com.rarible.protocol.order.api.data.createOrder as createOrderFully
@@ -290,7 +291,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should find bid-orders by currency and maker and sorted desc`() = runBlocking<Unit> {
+    fun `should find bid-orders by currency and item and sorted desc`() = runBlocking<Unit> {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val order1V = createErc721BidOrderVersion().copy(
@@ -381,6 +382,55 @@ class OrderSearchFt : AbstractIntegrationTest() {
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].taker).isEqualTo(order1V.taker)
+    }
+
+    @Test
+    fun `should find bid-orders by maker and sorted desc`() = runBlocking<Unit> {
+        val maker = AddressFactory.create()
+        val makeAddress = AddressFactory.create()
+        val currencyToken = AddressFactory.create()
+        val order1V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(1)),
+            maker = maker,
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(1L),
+            createdAt = Instant.now().minusSeconds(5)
+        )
+        val order2V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            maker = maker,
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(2L),
+            createdAt = Instant.now()
+        )
+        saveOrderVersions(order1V, order2V)
+
+        val result = orderClient.getOrderBidsByMakerAndByStatus(
+            maker.prefixed(),
+            OrderStatusDto.values().toList(),
+            null,
+            null,
+            null,
+            1,
+            null,
+            null
+        ).awaitFirst()
+        assertThat(result.orders.size).isEqualTo(1)
+        assertThat(result.orders[0].make.value).isEqualTo(2)
+        assertThat(result.continuation).isNotNull
+
+        val result2 = orderClient.getOrderBidsByItemAndByStatus(
+            order1V.take.type.token.toString(),
+            order1V.take.type.tokenId?.value.toString(),
+            OrderStatusDto.values().toList(),
+            listOf(order1V.maker, order2V.maker),
+            null,
+            null,
+            result.continuation, 2, currencyToken.hex(), null, null
+        ).awaitFirst()
+        assertThat(result2.orders.size).isEqualTo(1)
+        assertThat(result2.orders[0].make.value).isEqualTo(1)
+        assertThat(result2.continuation).isNull()
     }
 
     @Test

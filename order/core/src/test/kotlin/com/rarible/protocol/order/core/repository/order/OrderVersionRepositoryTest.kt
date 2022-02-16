@@ -67,7 +67,7 @@ internal class OrderVersionRepositoryTest {
 
         save(version1, version2, version3, version4)
 
-        val filter = PriceOrderVersionFilter.BidByItem(
+        val filter = BidsOrderVersionFilter.ByItem(
             Address.apply(contract),
             tokenId,
             null,

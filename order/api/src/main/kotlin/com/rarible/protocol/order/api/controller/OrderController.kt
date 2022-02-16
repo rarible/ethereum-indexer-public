@@ -44,7 +44,7 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
+import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
@@ -392,7 +392,7 @@ class OrderController(
         val requestSize = limit(size)
         val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
         val originAddress = if (origin == null) null else Address.apply(origin)
-        val filter = PriceOrderVersionFilter.BidByItem(
+        val filter = BidsOrderVersionFilter.ByItem(
             Address.apply(contract),
             EthUInt256.of(tokenId),
             maker,
@@ -436,24 +436,24 @@ class OrderController(
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
-        val priceContinuation = Continuation.parse<Continuation.Price>(continuation)
+        val dateContinuation = Continuation.parse<Continuation.LastDate>(continuation)
         val makerAddress = Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
-        val filter = PriceOrderVersionFilter.BidByMaker(
+        val filter = BidsOrderVersionFilter.ByMaker(
             makerAddress,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             startDate?.let { Instant.ofEpochSecond(it) },
             endDate?.let { Instant.ofEpochSecond(it) },
             requestSize,
-            priceContinuation
+            dateContinuation
         )
         return searchBids(status, filter, requestSize)
     }
 
     suspend fun searchBids(
         status: List<OrderStatusDto>,
-        filter: PriceOrderVersionFilter,
+        filter: BidsOrderVersionFilter,
         requestSize: Int
     ): ResponseEntity<OrdersPaginationDto> {
         val statuses = status.map { BidStatusReverseConverter.convert(it) }
