@@ -7,10 +7,10 @@ import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderVersion
-import com.rarible.protocol.order.core.repository.order.InternalPriceContinuation
+import com.rarible.protocol.order.core.repository.order.InternalContinuation
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.repository.order.PriceOrderVersionFilter
+import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -24,7 +24,7 @@ class OrderBidsService(
     private val orderVersionRepository: OrderVersionRepository
 ) {
     suspend fun findOrderBids(
-        filter: PriceOrderVersionFilter,
+        filter: BidsOrderVersionFilter,
         statuses: List<BidStatus>
     ): List<CompositeBid> {
         val totalResult = mutableListOf<CompositeBid>()
@@ -81,11 +81,17 @@ class OrderBidsService(
     }
 
     // Workaround for internal paging - in subrequests we are using RIGHT id for sorting
-    fun toInternalContinuation(orderVersion: OrderVersion, filter: PriceOrderVersionFilter): InternalPriceContinuation {
-        if (filter is PriceOrderVersionFilter.BidByItem && filter.currencyId != null) {
-            return InternalPriceContinuation(orderVersion.takePrice ?: BigDecimal.ZERO, orderVersion.id)
-        } else {
-            return InternalPriceContinuation(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.id)
+    fun toInternalContinuation(orderVersion: OrderVersion, filter: BidsOrderVersionFilter): InternalContinuation {
+        return when {
+            filter is BidsOrderVersionFilter.ByItem && filter.currencyId != null -> InternalContinuation.Price(
+                orderVersion.takePrice ?: BigDecimal.ZERO,
+                orderVersion.id
+            )
+            filter is BidsOrderVersionFilter.ByMaker -> InternalContinuation.LastDate(
+                orderVersion.createdAt,
+                orderVersion.id
+            )
+            else -> InternalContinuation.Price(orderVersion.takePriceUsd ?: BigDecimal.ZERO, orderVersion.id)
         }
     }
 }
