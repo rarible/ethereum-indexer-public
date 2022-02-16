@@ -24,6 +24,7 @@ data class Item(
     val creatorsFinal: Boolean = false,
     val supply: EthUInt256,
     val lazySupply: EthUInt256 = EthUInt256.ZERO,
+    @Deprecated("Use a special endpoint '/v0.1/items/{itemId}/royalty'")
     val royalties: List<Part>,
     @Deprecated("Should use ownerships field")
     val owners: List<Address> = emptyList(),
