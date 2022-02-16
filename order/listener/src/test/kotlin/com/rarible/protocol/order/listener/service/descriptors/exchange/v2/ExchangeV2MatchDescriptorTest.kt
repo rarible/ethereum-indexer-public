@@ -26,6 +26,7 @@ import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.sign
 import io.mockk.coEvery
+import io.mockk.verify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -126,12 +127,20 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(left.adhoc).isFalse()
             assertThat(left.counterAdhoc).isTrue()
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
 
             assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.fill).isEqualTo(EthUInt256.of(40))
             assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(right.adhoc).isTrue()
             assertThat(right.counterAdhoc).isFalse()
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
         }
 
         Wait.waitAssert {
@@ -234,12 +243,20 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(left.adhoc).isFalse
             assertThat(left.counterAdhoc).isTrue
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
 
             assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.fill).isEqualTo(EthUInt256.of(100))
             assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(right.adhoc).isTrue
             assertThat(right.counterAdhoc).isFalse()
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
         }
 
         Wait.waitAssert {
@@ -347,12 +364,20 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false))
             assertThat(left.adhoc).isFalse()
             assertThat(left.counterAdhoc).isTrue()
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
 
             assertThat(right.hash).isEqualTo(Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data))
             assertThat(right.fill).isEqualTo(EthUInt256.of(40))
             assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false))
             assertThat(right.adhoc).isTrue()
             assertThat(right.counterAdhoc).isFalse()
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
         }
 
         Wait.waitAssert {
@@ -441,11 +466,19 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left.take).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
             assertThat(left.makeValue).isEqualTo(BigDecimal("0.000000000000000010"))
             assertThat(left.takeValue).isEqualTo(BigDecimal(1))
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
 
             assertThat(right.fill).isEqualTo(EthUInt256.TEN)
             assertThat(right.data).isEqualTo(OrderRaribleV2DataV1(emptyList(), emptyList()))
             assertThat(right.make).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
             assertThat(right.take).isEqualTo(bidOrder.make.copy(value = EthUInt256.TEN))
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
 
             assertThat(right.takeValue).isEqualTo(left.makeValue)
             assertThat(right.makeValue).isEqualTo(left.takeValue)
@@ -559,9 +592,17 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(left.maker).isEqualTo(leftPayout)
             assertThat(left.taker).isEqualTo(rightPayout)
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
 
             assertThat(right.maker).isEqualTo(rightPayout)
             assertThat(right.taker).isEqualTo(leftPayout)
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
         }
 
         checkActivityWasPublished {
