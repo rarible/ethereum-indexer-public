@@ -3,16 +3,20 @@ package com.rarible.protocol.order.core.service
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.protocol.contracts.Tuples
+import com.rarible.protocol.contracts.external.opensea.MerkleValidator
 import com.rarible.protocol.order.core.misc.clearAfter
 import com.rarible.protocol.order.core.misc.plus
 import com.rarible.protocol.order.core.model.ApplyReplacementPatternResult
 import com.rarible.protocol.order.core.model.Transfer
 import com.rarible.protocol.order.core.model.TransferCallData
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.bouncycastle.util.Arrays
 import org.springframework.stereotype.Component
 import scala.Tuple3
 import scala.Tuple5
+import scala.Tuple6
+import scala.Tuple7
 import scala.runtime.BoxedUnit
 import scalether.abi.Signature
 import scalether.domain.Address
@@ -24,14 +28,8 @@ import kotlin.experimental.xor
 @Component
 class CallDataEncoder {
     fun encodeTransferCallData(transfer: Transfer): TransferCallData {
-        val fromReplacementValue = transfer.from.replacementValue
-        val toReplacementValue = transfer.to.replacementValue
-        val tokenIdReplacementValue = transfer.tokenId.replacementValue
-        val valueReplacementValue = transfer.value.replacementValue
-        val dataReplacementValue = transfer.data.replacementValue
-
-        return when (transfer.type) {
-            Transfer.Type.ERC721 -> TransferCallData(
+        return when (transfer) {
+             is Transfer.Erc721Transfer -> TransferCallData(
                 callData = ERC721_TRANSFER_SIGNATURE.encode(
                     Tuple3(
                         transfer.from,
@@ -41,13 +39,13 @@ class CallDataEncoder {
                 ),
                 replacementPattern = METHOD_SIGNATURE + Tuples.erc721ReplacementPattern().encode(
                     Tuple3(
-                        fromReplacementValue.bytes(),
-                        toReplacementValue.bytes(),
-                        tokenIdReplacementValue
+                        transfer.from.replacementValue.bytes(),
+                        transfer.to.replacementValue.bytes(),
+                        transfer.tokenId.replacementValue
                     )
                 )
             )
-            Transfer.Type.ERC1155 -> TransferCallData(
+            is Transfer.Erc1155Transfer -> TransferCallData(
                 callData = ERC1155_TRANSFER_SIGNATURE.encode(
                     Tuple5(
                         transfer.from,
@@ -59,11 +57,33 @@ class CallDataEncoder {
                 ),
                 replacementPattern = METHOD_SIGNATURE + Tuples.erc1155ReplacementPattern().encode(
                     Tuple5(
-                        fromReplacementValue.bytes(),
-                        toReplacementValue.bytes(),
-                        tokenIdReplacementValue,
-                        valueReplacementValue,
-                        dataReplacementValue.bytes()
+                        transfer.from.replacementValue.bytes(),
+                        transfer.to.replacementValue.bytes(),
+                        transfer.tokenId.replacementValue,
+                        transfer.value.replacementValue,
+                        transfer.data.replacementValue.bytes()
+                    )
+                ).clearAfter(127)
+            )
+            is Transfer.MerkleValidatorErc1155Trandfer -> TransferCallData(
+                callData = ERC1155_MT_TRANSFER_SIGNATURE.encode(
+                    Tuple7(
+                        transfer.from,
+                        transfer.to,
+                        transfer.token,
+                        transfer.tokenId,
+                        transfer.amount,
+                        transfer.root.bytes(),
+                        transfer.proof.map { it.bytes() }.toTypedArray()
+                    )
+                ),
+                replacementPattern = METHOD_SIGNATURE + Tuples.erc1155ReplacementPattern().encode(
+                    Tuple5(
+                        transfer.from.replacementValue.bytes(),
+                        transfer.to.replacementValue.bytes(),
+                        transfer.tokenId.replacementValue,
+                        transfer.value.replacementValue,
+                        transfer.data.replacementValue.bytes()
                     )
                 ).clearAfter(127)
             )
@@ -71,22 +91,44 @@ class CallDataEncoder {
     }
 
     fun decodeTransfer(callData: Binary): Transfer {
-        return when (callData.slice(0, 4)) {
+        val id = callData.slice(0, 4)
+        return when (id) {
+            ERC721_MT_TRANSFER_SIGNATURE.id(), ERC721_MT_SAFE_TRANSFER_SIGNATURE.id() -> {
+                val encoded = ERC721_MT_TRANSFER_SIGNATURE.`in`().decode(callData, 4)
+                Transfer.MerkleValidatorErc721Trandfer(
+                    from = encoded.value()._1(),
+                    to = encoded.value()._2(),
+                    token = encoded.value()._3(),
+                    tokenId = encoded.value()._4(),
+                    root = Word(encoded.value()._5()),
+                    proof = encoded.value()._6().map { Word(it) },
+                    safe = id == ERC721_MT_SAFE_TRANSFER_SIGNATURE.id()
+                )
+            }
+            ERC1155_MT_TRANSFER_SIGNATURE.id() -> {
+                val encoded = ERC1155_MT_TRANSFER_SIGNATURE.`in`().decode(callData, 4)
+                Transfer.MerkleValidatorErc1155Trandfer(
+                    from = encoded.value()._1(),
+                    to = encoded.value()._2(),
+                    token = encoded.value()._3(),
+                    tokenId = encoded.value()._4(),
+                    amount = encoded.value()._5(),
+                    root = Word(encoded.value()._6()),
+                    proof = encoded.value()._7().map { Word(it) },
+                )
+            }
             ERC721_TRANSFER_SIGNATURE.id(), IERC721.safeTransferFromSignature() -> {
                 val encoded = IERC721.safeTransferFromSignature().`in`().decode(callData, 4)
-                Transfer(
-                    type = Transfer.Type.ERC721,
+                Transfer.Erc721Transfer(
                     from = encoded.value()._1(),
                     to = encoded.value()._2(),
                     tokenId = encoded.value()._3(),
-                    value = BigInteger.ONE,
-                    data = Binary.apply()
+                    safe = id == IERC721.safeTransferFromSignature()
                 )
             }
             ERC1155_TRANSFER_SIGNATURE.id() -> {
                 val encoded = IERC1155.safeTransferFromSignature().`in`().decode(callData, 4)
-                Transfer(
-                    type = Transfer.Type.ERC1155,
+                Transfer.Erc1155Transfer(
                     from = encoded.value()._1(),
                     to = encoded.value()._2(),
                     tokenId = encoded.value()._3(),
@@ -136,6 +178,10 @@ class CallDataEncoder {
         val METHOD_SIGNATURE: Binary = Binary.apply(ByteArray(4))
         val MASK: Binary = Binary.apply("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
         val DEFAULT_VALUE: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
+
+        val ERC721_MT_TRANSFER_SIGNATURE: Signature<Tuple6<Address, Address, Address, BigInteger, ByteArray, Array<ByteArray>>, Boolean> = MerkleValidator.matchERC721UsingCriteriaSignature()
+        val ERC721_MT_SAFE_TRANSFER_SIGNATURE: Signature<Tuple6<Address, Address, Address, BigInteger, ByteArray, Array<ByteArray>>, Boolean> = MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature()
+        val ERC1155_MT_TRANSFER_SIGNATURE: Signature<Tuple7<Address, Address, Address, BigInteger, BigInteger, ByteArray, Array<ByteArray>>, Boolean> = MerkleValidator.matchERC1155UsingCriteriaSignature()
 
         val ERC721_TRANSFER_SIGNATURE: Signature<Tuple3<Address, Address, BigInteger>, BoxedUnit> = IERC721.transferFromSignature()
         val ERC1155_TRANSFER_SIGNATURE: Signature<Tuple5<Address, Address, BigInteger, BigInteger, ByteArray>, BoxedUnit> = IERC1155.safeTransferFromSignature()
