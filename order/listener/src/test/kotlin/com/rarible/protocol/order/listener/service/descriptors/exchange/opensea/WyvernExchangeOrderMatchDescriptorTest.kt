@@ -27,6 +27,7 @@ import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.sign
 import io.daonomic.rpc.domain.Binary
+import io.mockk.verify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -168,6 +169,16 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             assertTrue(right?.adhoc!!)
             assertFalse(right.counterAdhoc!!)
 
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
+            }
+
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
+            }
+
             checkActivityWasPublished {
                 assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
                     assertThat(left.hash).isEqualTo(sellOrder.hash)
@@ -290,6 +301,15 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
 
             val filledOrder = orderRepository.findById(buyOrder.hash)
             assertThat(filledOrder?.fill).isEqualTo(EthUInt256.ONE)
+
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                left?.let{currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())}
+            }
+            verify {
+                @Suppress("ReactiveStreamsUnusedPublisher")
+                right?.let{currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())}
+            }
 
             checkActivityWasPublished {
                 assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {

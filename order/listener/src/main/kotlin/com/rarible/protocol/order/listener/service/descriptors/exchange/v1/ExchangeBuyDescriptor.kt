@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v1
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.v1.BuyEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -38,13 +37,13 @@ class ExchangeBuyDescriptor(
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = BuyEvent.apply(log)
 
-        val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()));
+        val makeAssetType = assetTypeService.toAssetType(event.sellToken(), EthUInt256(event.sellTokenId()))
         val make = Asset(makeAssetType, EthUInt256(event.amount()))
 
         val takeAssetType = assetTypeService.toAssetType(event.buyToken(), EthUInt256(event.buyTokenId()))
         val take = Asset(takeAssetType, EthUInt256(event.fill))
 
-        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, nowMillis())
+        val usdValue = priceUpdateService.getAssetsUsdValue(make, take, date)
         val hash = Order.hashKey(event.owner(), makeAssetType, takeAssetType, event.salt())
         val counterHash = Order.hashKey(event.buyer(), takeAssetType, makeAssetType, BigInteger.ZERO)
 
