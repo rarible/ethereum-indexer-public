@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
@@ -37,6 +38,8 @@ internal class OpenSeaOrderParserTest {
         mockk()
     )
 
+    private val callDataEncoder = CallDataEncoder()
+
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { getAssetsUsdValue(any(), any(), any()) } returns null
     }
@@ -45,7 +48,7 @@ internal class OpenSeaOrderParserTest {
         coEvery { normalize(any()) } returns BigDecimal(0)
     }
 
-    private val openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(priceUpdateService, prizeNormalizer)
+    private val openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(priceUpdateService, prizeNormalizer, callDataEncoder)
 
     @Test
     fun `should parse sell order simple test`() = runBlocking<Unit> {
