@@ -118,7 +118,7 @@ class OrderInvertService(
                 to = to,
                 token = transfer.token,
                 tokenId = transfer.tokenId,
-                amount = amount,
+                value = amount,
                 root = transfer.root,
                 proof = transfer.proof
             )

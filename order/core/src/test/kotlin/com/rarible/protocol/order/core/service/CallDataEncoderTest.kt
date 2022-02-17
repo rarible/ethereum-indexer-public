@@ -153,7 +153,7 @@ internal class CallDataEncoderTest {
             to = Address.ZERO(),
             token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e"),
             tokenId = BigInteger("57920695457072532059112617018159441295166854042840448471990455457112129536001"),
-            amount = BigInteger.valueOf(1),
+            value = BigInteger.valueOf(1),
             root = Word.apply(ByteArray(32)),
             proof = emptyList(),
         )
@@ -168,7 +168,7 @@ internal class CallDataEncoderTest {
             to = Address.ZERO(),
             token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e"),
             tokenId = BigInteger("57920695457072532059112617018159441295166854042840448471990455457112129536001"),
-            amount = BigInteger.valueOf(1),
+            value = BigInteger.valueOf(1),
             root = Word.apply(ByteArray(32)),
             proof = emptyList(),
         )

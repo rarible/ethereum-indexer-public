@@ -78,7 +78,7 @@ class OpenSeaOrderConverter(
             staticTarget = clientOpenSeaOrder.staticTarget,
             staticExtraData = clientOpenSeaOrder.staticExtraData,
             extra = clientOpenSeaOrder.extra,
-            target = null
+            target = clientOpenSeaOrder.target
         )
     }
 

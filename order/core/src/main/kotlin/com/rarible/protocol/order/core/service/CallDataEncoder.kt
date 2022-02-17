@@ -21,6 +21,7 @@ import java.math.BigInteger
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
+import kotlin.reflect.jvm.internal.impl.serialization.deserialization.FlexibleTypeDeserializer
 
 @Component
 class CallDataEncoder {
@@ -69,7 +70,7 @@ class CallDataEncoder {
                         transfer.to,
                         transfer.token,
                         transfer.tokenId,
-                        transfer.amount,
+                        transfer.value,
                         transfer.root.bytes(),
                         transfer.proof.map { it.bytes() }.toTypedArray()
                     )
@@ -80,7 +81,7 @@ class CallDataEncoder {
                         transfer.to.replacementValue.bytes(),
                         transfer.token.replacementValue.bytes(),
                         transfer.tokenId.replacementValue,
-                        transfer.amount.replacementValue,
+                        transfer.value.replacementValue,
                         transfer.root.replacementValue.bytes(),
                         transfer.proof.map { it.replacementValue.bytes() }.toTypedArray()
                     )
@@ -111,9 +112,8 @@ class CallDataEncoder {
         }
     }
 
-    fun decodeTransfer(callData: Binary): Transfer {
-        val id = callData.slice(0, 4)
-        return when (id) {
+    fun decodeTransfer(callData: Binary,): Transfer {
+        return when (val id = callData.slice(0, 4)) {
             ERC721_MT_TRANSFER_SIGNATURE.id(), ERC721_MT_SAFE_TRANSFER_SIGNATURE.id() -> {
                 val encoded = ERC721_MT_TRANSFER_SIGNATURE.`in`().decode(callData, 4)
                 Transfer.MerkleValidatorErc721Transfer(
@@ -133,7 +133,7 @@ class CallDataEncoder {
                     to = encoded.value()._2(),
                     token = encoded.value()._3(),
                     tokenId = encoded.value()._4(),
-                    amount = encoded.value()._5(),
+                    value = encoded.value()._5(),
                     root = Word(encoded.value()._6()),
                     proof = encoded.value()._7().map { Word(it) },
                 )

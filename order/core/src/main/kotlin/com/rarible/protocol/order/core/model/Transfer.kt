@@ -6,38 +6,46 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 sealed class Transfer {
+    abstract val from: Address
+    abstract val to: Address
+    abstract val tokenId: BigInteger
+    abstract val value: BigInteger
+
     data class Erc721Transfer(
-        val from: Address,
-        val to: Address,
-        val tokenId: BigInteger,
+        override val from: Address,
+        override val to: Address,
+        override val tokenId: BigInteger,
         val safe: Boolean,
-    ) : Transfer()
+    ) : Transfer() {
+        override val value: BigInteger = BigInteger.ONE
+    }
 
     data class Erc1155Transfer(
-        val from: Address,
-        val to: Address,
-        val tokenId: BigInteger,
-        val value: BigInteger,
+        override val from: Address,
+        override val to: Address,
+        override val tokenId: BigInteger,
+        override val value: BigInteger,
         val data: Binary = Binary.empty()
     ) : Transfer()
 
     data class MerkleValidatorErc721Transfer(
-        val from: Address,
-        val to: Address,
+        override val from: Address,
+        override val to: Address,
+        override val tokenId: BigInteger,
         val token: Address,
-        val tokenId: BigInteger,
         val root: Word,
         val proof: List<Word>,
         val safe: Boolean
-    ) : Transfer()
-
+    ) : Transfer() {
+        override val value: BigInteger = BigInteger.ONE
+    }
 
     data class MerkleValidatorErc1155Transfer(
-        val from: Address,
-        val to: Address,
+        override val from: Address,
+        override val to: Address,
+        override val tokenId: BigInteger,
+        override val value: BigInteger,
         val token: Address,
-        val tokenId: BigInteger,
-        val amount: BigInteger,
         val root: Word,
         val proof: List<Word>,
     ) : Transfer()
