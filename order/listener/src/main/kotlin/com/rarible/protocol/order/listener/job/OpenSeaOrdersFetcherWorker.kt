@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
+import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -27,6 +28,7 @@ open class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderService: OpenSeaOrderService,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val openSeaOrderConverter: OpenSeaOrderConverter,
+    private val openSeaOrderValidator: OpenSeaOrderValidator,
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties,
@@ -72,7 +74,10 @@ open class OpenSeaOrdersFetcherWorker(
                     .map { chunk ->
                         chunk.map { openSeaOrder ->
                             async {
-                                val version = openSeaOrderConverter.convert(openSeaOrder)
+                                val version = openSeaOrderConverter
+                                    .convert(openSeaOrder)
+                                    ?.takeIf { openSeaOrderValidator.validate(it) }
+
                                 if (version != null) {
                                     saveOrder(version)
                                 }

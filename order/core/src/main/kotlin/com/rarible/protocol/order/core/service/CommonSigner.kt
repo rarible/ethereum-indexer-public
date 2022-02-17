@@ -27,6 +27,16 @@ class CommonSigner {
         return Address.apply(Keys.getAddress(publicKey))
     }
 
+    fun recover(hash: Word, signature: Binary): Address {
+        val v = fixV(signature.bytes()[64])
+        val r = ByteArray(32)
+        val s = ByteArray(32)
+        System.arraycopy(signature.bytes(), 0, r, 0, 32)
+        System.arraycopy(signature.bytes(), 32, s, 0, 32)
+        val publicKey = Sign.signedMessageHashToKey(hash.bytes(), Sign.SignatureData(v, r, s))
+        return Address.apply(Keys.getAddress(publicKey))
+    }
+
     fun hashToSign(message: String): Word {
         val withStart = addStart(message).bytes()
         return Word(Hash.sha3(withStart))
