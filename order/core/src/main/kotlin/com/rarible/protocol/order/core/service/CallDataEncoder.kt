@@ -13,10 +13,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.bouncycastle.util.Arrays
 import org.springframework.stereotype.Component
-import scala.Tuple3
-import scala.Tuple5
-import scala.Tuple6
-import scala.Tuple7
+import scala.*
 import scala.runtime.BoxedUnit
 import scalether.abi.Signature
 import scalether.domain.Address
@@ -77,15 +74,17 @@ class CallDataEncoder {
                         transfer.proof.map { it.bytes() }.toTypedArray()
                     )
                 ),
-                replacementPattern = METHOD_SIGNATURE + Tuples.erc1155ReplacementPattern().encode(
-                    Tuple5(
+                replacementPattern = METHOD_SIGNATURE + Tuples.merkleValidatorErc1155ReplacementPattern().encode(
+                    Tuple7(
                         transfer.from.replacementValue.bytes(),
                         transfer.to.replacementValue.bytes(),
+                        transfer.token.replacementValue.bytes(),
                         transfer.tokenId.replacementValue,
                         transfer.amount.replacementValue,
-                        Binary.empty().replacementValue.bytes()
+                        transfer.root.replacementValue.bytes(),
+                        transfer.proof.map { it.replacementValue.bytes() }.toTypedArray()
                     )
-                ).clearAfter(127)
+                ).clearAfter(223)
             )
             is Transfer.MerkleValidatorErc721Transfer -> TransferCallData(
                 callData = (if (transfer.safe) ERC721_MT_SAFE_TRANSFER_SIGNATURE else ERC721_MT_TRANSFER_SIGNATURE).encode(
@@ -98,13 +97,16 @@ class CallDataEncoder {
                         transfer.proof.map { it.bytes() }.toTypedArray()
                     )
                 ),
-                replacementPattern = METHOD_SIGNATURE + Tuples.erc721ReplacementPattern().encode(
-                    Tuple3(
+                replacementPattern = METHOD_SIGNATURE + Tuples.merkleValidatorErc721ReplacementPattern().encode(
+                    Tuple6(
                         transfer.from.replacementValue.bytes(),
                         transfer.to.replacementValue.bytes(),
+                        transfer.token.replacementValue.bytes(),
                         transfer.tokenId.replacementValue,
+                        transfer.root.replacementValue.bytes(),
+                        transfer.proof.map { it.replacementValue.bytes() }.toTypedArray()
                     )
-                ).clearAfter(127)
+                ).clearAfter(191)
             )
         }
     }
@@ -193,10 +195,14 @@ class CallDataEncoder {
     private val Binary.replacementValue: Binary
         get() = if (length() > 0) Binary.apply(ByteArray(this.length())) else this
 
+    private val Word.replacementValue: Word
+        get() = WORD_DEFAULT_VALUE
+
     private companion object {
         val METHOD_SIGNATURE: Binary = Binary.apply(ByteArray(4))
         val MASK: Binary = Binary.apply("0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")
         val DEFAULT_VALUE: Binary = Binary.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
+        val WORD_DEFAULT_VALUE: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
 
         val ERC721_MT_TRANSFER_SIGNATURE: Signature<Tuple6<Address, Address, Address, BigInteger, ByteArray, Array<ByteArray>>, Boolean> = MerkleValidator.matchERC721UsingCriteriaSignature()
         val ERC721_MT_SAFE_TRANSFER_SIGNATURE: Signature<Tuple6<Address, Address, Address, BigInteger, ByteArray, Array<ByteArray>>, Boolean> = MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature()

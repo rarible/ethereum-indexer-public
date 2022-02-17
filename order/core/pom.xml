@@ -50,6 +50,7 @@
         <dependency>
             <groupId>com.rarible.protocol.contracts</groupId>
             <artifactId>protocol-ethereum-contracts-nft</artifactId>
+            <version>${rarible.ethereum.contracts.version}</version>
         </dependency>
 
         <dependency>
