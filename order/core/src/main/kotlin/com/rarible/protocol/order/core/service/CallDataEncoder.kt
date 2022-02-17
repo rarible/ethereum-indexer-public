@@ -65,7 +65,7 @@ class CallDataEncoder {
                     )
                 ).clearAfter(127)
             )
-            is Transfer.MerkleValidatorErc1155Trandfer -> TransferCallData(
+            is Transfer.MerkleValidatorErc1155Transfer -> TransferCallData(
                 callData = ERC1155_MT_TRANSFER_SIGNATURE.encode(
                     Tuple7(
                         transfer.from,
@@ -82,8 +82,27 @@ class CallDataEncoder {
                         transfer.from.replacementValue.bytes(),
                         transfer.to.replacementValue.bytes(),
                         transfer.tokenId.replacementValue,
-                        transfer.value.replacementValue,
-                        transfer.data.replacementValue.bytes()
+                        transfer.amount.replacementValue,
+                        Binary.empty().replacementValue.bytes()
+                    )
+                ).clearAfter(127)
+            )
+            is Transfer.MerkleValidatorErc721Transfer -> TransferCallData(
+                callData = (if (transfer.safe) ERC721_MT_SAFE_TRANSFER_SIGNATURE else ERC721_MT_TRANSFER_SIGNATURE).encode(
+                    Tuple6(
+                        transfer.from,
+                        transfer.to,
+                        transfer.token,
+                        transfer.tokenId,
+                        transfer.root.bytes(),
+                        transfer.proof.map { it.bytes() }.toTypedArray()
+                    )
+                ),
+                replacementPattern = METHOD_SIGNATURE + Tuples.erc721ReplacementPattern().encode(
+                    Tuple3(
+                        transfer.from.replacementValue.bytes(),
+                        transfer.to.replacementValue.bytes(),
+                        transfer.tokenId.replacementValue,
                     )
                 ).clearAfter(127)
             )
@@ -95,7 +114,7 @@ class CallDataEncoder {
         return when (id) {
             ERC721_MT_TRANSFER_SIGNATURE.id(), ERC721_MT_SAFE_TRANSFER_SIGNATURE.id() -> {
                 val encoded = ERC721_MT_TRANSFER_SIGNATURE.`in`().decode(callData, 4)
-                Transfer.MerkleValidatorErc721Trandfer(
+                Transfer.MerkleValidatorErc721Transfer(
                     from = encoded.value()._1(),
                     to = encoded.value()._2(),
                     token = encoded.value()._3(),
@@ -107,7 +126,7 @@ class CallDataEncoder {
             }
             ERC1155_MT_TRANSFER_SIGNATURE.id() -> {
                 val encoded = ERC1155_MT_TRANSFER_SIGNATURE.`in`().decode(callData, 4)
-                Transfer.MerkleValidatorErc1155Trandfer(
+                Transfer.MerkleValidatorErc1155Transfer(
                     from = encoded.value()._1(),
                     to = encoded.value()._2(),
                     token = encoded.value()._3(),

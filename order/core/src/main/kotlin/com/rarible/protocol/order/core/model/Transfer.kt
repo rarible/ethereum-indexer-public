@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.model
 
 import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigInteger
@@ -22,7 +21,7 @@ sealed class Transfer {
         val data: Binary = Binary.empty()
     ) : Transfer()
 
-    data class MerkleValidatorErc721Trandfer(
+    data class MerkleValidatorErc721Transfer(
         val from: Address,
         val to: Address,
         val token: Address,
@@ -32,7 +31,8 @@ sealed class Transfer {
         val safe: Boolean
     ) : Transfer()
 
-    data class MerkleValidatorErc1155Trandfer(
+
+    data class MerkleValidatorErc1155Transfer(
         val from: Address,
         val to: Address,
         val token: Address,

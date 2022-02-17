@@ -58,13 +58,11 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         token721.mint(sellMaker, BigInteger.ONE, "test").execute().verifySuccess()
         token1.mint(buyMaker, BigInteger.TEN.pow(10)).execute().verifySuccess()
 
-        val sellTransfer = Transfer(
-            type = Transfer.Type.ERC721,
+        val sellTransfer = Transfer.Erc721Transfer(
             from = sellMaker,
             to = Address.ZERO(),
             tokenId = tokenId.value,
-            value = BigInteger.ONE,
-            data = Binary.apply()
+            safe = false
         )
         val sellCallData = callDataEncoder.encodeTransferCallData(sellTransfer)
 
@@ -188,13 +186,11 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
         token1.mint(buyMaker, BigInteger.TEN.pow(10)).execute().verifySuccess()
         token1.mint(sellMaker, BigInteger.TEN.pow(10)).execute().verifySuccess()
 
-        val buyTransfer = Transfer(
-            type = Transfer.Type.ERC721,
+        val buyTransfer = Transfer.Erc721Transfer(
             from = Address.ZERO(),
             to = buyMaker,
             tokenId = tokenId.value,
-            value = BigInteger.ONE,
-            data = Binary.apply()
+            safe = false
         )
         val buyCallData = callDataEncoder.encodeTransferCallData(buyTransfer)
 

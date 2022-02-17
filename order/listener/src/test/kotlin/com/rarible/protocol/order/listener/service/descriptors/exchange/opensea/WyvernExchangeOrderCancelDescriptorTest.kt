@@ -49,13 +49,11 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
         val tokenId = EthUInt256.ONE
         val paymentToken = token1.address()
 
-        val sellTransfer = Transfer(
-            type = Transfer.Type.ERC721,
+        val sellTransfer = Transfer.Erc721Transfer(
             from = sellMaker,
             to = Address.ZERO(),
             tokenId = tokenId.value,
-            value = BigInteger.ONE,
-            data = Binary.apply()
+            safe = false
         )
         val sellCallData = callDataEncoder.encodeTransferCallData(sellTransfer)
 

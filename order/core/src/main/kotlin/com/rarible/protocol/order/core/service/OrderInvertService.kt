@@ -95,20 +95,43 @@ class OrderInvertService(
         side: OpenSeaOrderSide,
         callData: Binary
     ): TransferCallData {
-        val transferCallData = callDataEncoder.decodeTransfer(callData)
-
         val (from, to) = when (side) {
             OpenSeaOrderSide.SELL -> Address.ZERO() to maker
             OpenSeaOrderSide.BUY -> maker to Address.ZERO()
         }
-        val invertedTransfer = Transfer(
-            type = transferCallData.type,
-            from = from,
-            to = to,
-            tokenId = transferCallData.tokenId,
-            value = amount,
-            data = transferCallData.data
-        )
+        val invertedTransfer = when (val transfer = callDataEncoder.decodeTransfer(callData)) {
+            is Transfer.Erc1155Transfer -> Transfer.Erc1155Transfer(
+                from = from,
+                to = to,
+                tokenId = transfer.tokenId,
+                value = amount,
+                data = transfer.data
+            )
+            is Transfer.Erc721Transfer -> Transfer.Erc721Transfer(
+                from = from,
+                to = to,
+                tokenId = transfer.tokenId,
+                safe = transfer.safe
+            )
+            is Transfer.MerkleValidatorErc1155Transfer -> Transfer.MerkleValidatorErc1155Transfer(
+                from = from,
+                to = to,
+                token = transfer.token,
+                tokenId = transfer.tokenId,
+                amount = amount,
+                root = transfer.root,
+                proof = transfer.proof
+            )
+            is Transfer.MerkleValidatorErc721Transfer -> Transfer.MerkleValidatorErc721Transfer(
+                from = from,
+                to = to,
+                token = transfer.token,
+                tokenId = transfer.tokenId,
+                root = transfer.root,
+                proof = transfer.proof,
+                safe = transfer.safe
+            )
+        }
         return callDataEncoder.encodeTransferCallData(invertedTransfer)
     }
 
