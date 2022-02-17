@@ -50,7 +50,6 @@ common:
 
 api:
   opensea:
-    url: https://api.opensea.io/api/v1
     api-key: test
     read-timeout: 10000
     connect-timeout: 3000
