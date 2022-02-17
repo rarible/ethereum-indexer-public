@@ -29,6 +29,7 @@ import com.rarible.protocol.order.listener.service.event.OrderUpdateConsumerEven
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
+import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -123,6 +124,7 @@ class OrderListenerConfiguration(
         openSeaOrderService: OpenSeaOrderService,
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
+        openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
         orderUpdateService: OrderUpdateService,
         orderVersionListener: OrderVersionListener,
@@ -134,6 +136,7 @@ class OrderListenerConfiguration(
             openSeaOrderService = openSeaOrderService,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
+            openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
