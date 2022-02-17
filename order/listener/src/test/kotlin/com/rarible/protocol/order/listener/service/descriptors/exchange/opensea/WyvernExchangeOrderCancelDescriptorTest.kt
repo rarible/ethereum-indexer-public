@@ -82,7 +82,8 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
                 replacementPattern = sellCallData.replacementPattern,
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             createdAt = nowMillis(),
             makePriceUsd = null,

@@ -438,7 +438,7 @@ data class Order(
                     .add(Uint8Type.encode(data.feeMethod.value).bytes().sliceArray(31..31))
                     .add(Uint8Type.encode(data.side.value).bytes().sliceArray(31..31))
                     .add(Uint8Type.encode(data.saleKind.value).bytes().sliceArray(31..31))
-                    .add(nftToken)
+                    .add(data.target ?: nftToken)
                     .add(Uint8Type.encode(data.howToCall.value).bytes().sliceArray(31..31))
                     .add(data.callData)
                     .add(data.replacementPattern)

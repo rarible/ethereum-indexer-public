@@ -93,7 +93,8 @@ internal class OpenSeaOrderTest {
                 replacementPattern = Binary.apply("0x00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             signature = Binary
                 .apply("0x795def388ba0e82cf711448a6a36f64868d340b53a2f5277e9fc37651a156007")

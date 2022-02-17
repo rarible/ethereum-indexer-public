@@ -77,7 +77,8 @@ class OpenSeaOrderConverter(
             replacementPattern = clientOpenSeaOrder.replacementPattern,
             staticTarget = clientOpenSeaOrder.staticTarget,
             staticExtraData = clientOpenSeaOrder.staticExtraData,
-            extra = clientOpenSeaOrder.extra
+            extra = clientOpenSeaOrder.extra,
+            target = null
         )
     }
 

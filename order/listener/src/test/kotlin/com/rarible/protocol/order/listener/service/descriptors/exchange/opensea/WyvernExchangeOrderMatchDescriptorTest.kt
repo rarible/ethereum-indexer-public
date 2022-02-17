@@ -91,7 +91,8 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 replacementPattern = sellCallData.replacementPattern,
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             platform = Platform.OPEN_SEA,
             createdAt = nowMillis(),
@@ -219,7 +220,8 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 replacementPattern = buyCallData.replacementPattern,
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             createdAt = nowMillis(),
             makePriceUsd = null,

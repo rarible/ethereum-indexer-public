@@ -56,7 +56,8 @@ data class OpenSeaTransactionOrder(
                     replacementPattern,
                     staticTarget,
                     staticExtraData,
-                    extra
+                    extra,
+                    target
                 )
             )
         }

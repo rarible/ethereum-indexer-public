@@ -74,7 +74,8 @@ internal class PrepareTxServiceTest {
                 replacementPattern = Binary.apply("0x000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"),
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             signature = Binary
                 .apply("0x4a1e22da1568466b87c23ea9d72872ed59a03618ed545b949ce04ed2f1e1923e")
@@ -138,7 +139,8 @@ internal class PrepareTxServiceTest {
                 replacementPattern = Binary.apply("0x000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000000000000000000000000000000000000000000000000000"),
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             signature = Binary
                 .apply("0x4232ed041f058749aaa45551c1c2a3efd4754065deaf194795159e5fd1335d47")
@@ -194,7 +196,8 @@ internal class PrepareTxServiceTest {
                 replacementPattern = Binary.apply("0x00000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
-                extra = BigInteger.ZERO
+                extra = BigInteger.ZERO,
+                target = null
             ),
             signature = Binary
                 .apply("0x795def388ba0e82cf711448a6a36f64868d340b53a2f5277e9fc37651a156007")
