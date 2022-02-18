@@ -31,23 +31,27 @@ class OpenSeaOrderConverter(
         val s = clientOpenSeaOrder.s ?: return null
         val v = clientOpenSeaOrder.v ?: return null
         val eip712 = clientOpenSeaOrder.exchange == exchangeContracts.openSeaV2
-        val prefixedHaha = clientOpenSeaOrder.prefixedHash
+        val prefixedHash = clientOpenSeaOrder.prefixedHash
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
         val orderData = createData(clientOpenSeaOrder)
-        val nonce = calculateNonce(
-            expectedHash = clientOpenSeaOrder.orderHash,
-            maker = maker,
-            taker = taker,
-            paymentToken = clientOpenSeaOrder.paymentToken,
-            basePrice = clientOpenSeaOrder.basePrice,
-            salt = clientOpenSeaOrder.salt,
-            start = clientOpenSeaOrder.listingTime,
-            end = clientOpenSeaOrder.expirationTime,
-            data = orderData
-        ) ?: return run {
-            logger.error("Can't calculate order none for ${calculateNonce()}")
+        val nonce = if (eip712) {
+            calculateNonce(
+                expectedHash = clientOpenSeaOrder.orderHash,
+                maker = maker,
+                taker = taker,
+                paymentToken = clientOpenSeaOrder.paymentToken,
+                basePrice = clientOpenSeaOrder.basePrice,
+                salt = clientOpenSeaOrder.salt,
+                start = clientOpenSeaOrder.listingTime,
+                end = clientOpenSeaOrder.expirationTime,
+                data = orderData
+            ) ?: return run {
+                logger.error("Can't calculate order none for ${clientOpenSeaOrder.orderHash}")
+                null
+            }
+        } else {
             null
         }
         return OrderVersion(
@@ -72,7 +76,7 @@ class OpenSeaOrderConverter(
         ).let {
             priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
-                hash = if (eip712) prefixedHaha else Order.hash(it)
+                hash = if (eip712) prefixedHash else Order.hash(it)
             )
         }
     }
@@ -179,6 +183,7 @@ class OpenSeaOrderConverter(
         data: OrderOpenSeaV1DataV1
     ): Long? {
         (0L..featureFlags.maxOpenSeaNonceCalculation).forEach { nonce ->
+            logger.info("checking $nonce for $expectedHash")
             val calculatedHash = Order.openSeaV1EIP712Hash(
                 maker = maker,
                 taker = taker,
