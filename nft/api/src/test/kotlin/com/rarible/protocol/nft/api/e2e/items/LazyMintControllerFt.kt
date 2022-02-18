@@ -272,7 +272,7 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         //TODO: Fix
         //assertThat(itemDto.royalties.size).isEqualTo(lazyItemDto.royalties.size)
 
-        itemDto.royalties.forEachIndexed { index, royaltyDto ->
+        itemDto.royalties!!.forEachIndexed { index, royaltyDto ->
             assertThat(royaltyDto.account).isEqualTo(lazyItemDto.royalties[index].account)
             assertThat(royaltyDto.value).isEqualTo(lazyItemDto.royalties[index].value)
         }
