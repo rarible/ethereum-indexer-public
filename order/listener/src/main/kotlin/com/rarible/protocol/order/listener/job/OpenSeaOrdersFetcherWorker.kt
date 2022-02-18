@@ -1,6 +1,8 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
+import com.rarible.core.apm.withSpan
+import com.rarible.core.apm.withTransaction
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
@@ -38,7 +40,9 @@ open class OpenSeaOrdersFetcherWorker(
 
     override suspend fun handle() {
         try {
-            handleSafely()
+            withTransaction(name = "loadOpenSeaOrders") {
+                handleSafely()
+            }
         } catch (ex: AssertionError) {
             throw IllegalStateException(ex)
         }
@@ -54,9 +58,12 @@ open class OpenSeaOrdersFetcherWorker(
         val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
 
         logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
-        val openSeaOrders =
+        val openSeaOrders = withSpan(
+            name = "fetchOpenSeaOrders",
+            labels = listOf("listedAfter" to listedAfter, "listedBefore" to listedBefore)
+        ) {
             openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
-
+        }
         if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }
             val minId = ids.minOrNull() ?: error("Can't be empty value")
@@ -69,24 +76,26 @@ open class OpenSeaOrdersFetcherWorker(
             logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
             coroutineScope {
-                openSeaOrders
-                    .chunked(properties.saveOpenSeaOrdersBatchSize)
-                    .map { chunk ->
-                        chunk.map { openSeaOrder ->
-                            async {
-                                val version = openSeaOrderConverter
-                                    .convert(openSeaOrder)
-                                    ?.takeIf { openSeaOrderValidator.validate(it) }
+                withSpan(name = "saveOpenSeaOrders", labels = listOf("size" to openSeaOrders.size)) {
+                    openSeaOrders
+                        .chunked(properties.saveOpenSeaOrdersBatchSize)
+                        .map { chunk ->
+                            chunk.map { openSeaOrder ->
+                                async {
+                                    val version = openSeaOrderConverter
+                                        .convert(openSeaOrder)
+                                        ?.takeIf { openSeaOrderValidator.validate(it) }
 
-                                if (version != null) {
-                                    saveOrder(version)
+                                    if (version != null) {
+                                        saveOrder(version)
+                                    }
+                                    openSeaOrder.id
                                 }
-                                openSeaOrder.id
-                            }
-                        }.awaitAll()
-                    }
-                    .flatten()
-                    .lastOrNull()
+                            }.awaitAll()
+                        }
+                        .flatten()
+                        .lastOrNull()
+                }
             }
             logger.info("[OpenSea] All new OpenSea orders saved")
         } else {
