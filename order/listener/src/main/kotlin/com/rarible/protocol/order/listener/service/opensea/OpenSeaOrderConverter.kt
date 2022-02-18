@@ -31,7 +31,7 @@ class OpenSeaOrderConverter(
         val s = clientOpenSeaOrder.s ?: return null
         val v = clientOpenSeaOrder.v ?: return null
         val eip712 = clientOpenSeaOrder.exchange == exchangeContracts.openSeaV2
-        val prefixedHaha = clientOpenSeaOrder.prefixedHash
+        val prefixedHash = clientOpenSeaOrder.prefixedHash
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
@@ -76,7 +76,7 @@ class OpenSeaOrderConverter(
         ).let {
             priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
-                hash = if (eip712) prefixedHaha else Order.hash(it)
+                hash = if (eip712) prefixedHash else Order.hash(it)
             )
         }
     }
