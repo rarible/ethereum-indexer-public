@@ -57,7 +57,8 @@ data class OpenSeaTransactionOrder(
                     staticTarget,
                     staticExtraData,
                     extra,
-                    target
+                    target,
+                    null, //TODO find out nonce
                 )
             )
         }
