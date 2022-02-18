@@ -46,8 +46,10 @@ class OpenSeaOrderConverter(
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
             data = orderData
-        ) ?: return null
-
+        ) ?: return run {
+            logger.error("Can't calculate order none for ${calculateNonce()}")
+            null
+        }
         return OrderVersion(
             maker = maker,
             taker = if (taker != Address.ZERO()) taker else null,
@@ -70,7 +72,7 @@ class OpenSeaOrderConverter(
         ).let {
             priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
-                hash = if (eip712) prefixedHaha else Order.hash(it),
+                hash = if (eip712) prefixedHaha else Order.hash(it)
             )
         }
     }
