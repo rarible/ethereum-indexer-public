@@ -5,7 +5,6 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -18,7 +17,7 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
 
     @Test
     fun `should convert change nonce event`() = runBlocking {
-        wyvernExchangeWithBulkCancellations.incrementNonce()
+        exchange.incrementNonce()
             .withSender(userSender1)
             .execute()
             .verifySuccess()
@@ -28,7 +27,7 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
             assertThat(events).hasSize(1)
 
             val data = events.single().data as ChangeNonceHistory
-            assertThat(data.maker).isEqualTo(userSender2.from())
+            assertThat(data.maker).isEqualTo(userSender1.from())
         }
     }
 }

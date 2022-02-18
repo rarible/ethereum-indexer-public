@@ -7,7 +7,7 @@ import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
-import com.rarible.protocol.contracts.exchange.wyvern.v2.NonceIncrementedEvent
+import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
