@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
@@ -106,8 +107,9 @@ class PriceUpdateService(
         return if (address == null) {
             null
         } else {
-            val rate =
+            val rate = withSpan(name = "getCurrencyRate") {
                 currencyApi.getCurrencyRate(convert(blockchain), address.hex(), at.toEpochMilli()).awaitFirstOrNull()?.rate
+            }
             if (rate == null) {
                 logger.warn("Currency api didn't respond any value for $blockchain: $address")
             }
