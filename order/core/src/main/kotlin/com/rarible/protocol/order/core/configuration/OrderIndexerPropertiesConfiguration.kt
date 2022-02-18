@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.configuration
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -23,13 +24,27 @@ class OrderIndexerPropertiesConfiguration(
     fun transferProxyAddresses() = indexerProperties.transferProxyAddresses
 
     @Bean
-    fun eip712Domain(): EIP712Domain {
+    @Qualifier("raribleExchangeV2")
+    fun raribleEip712Domain(): EIP712Domain {
         return with(indexerProperties) {
             EIP712Domain(
                 eip712DomainName,
                 eip712DomainVersion,
                 BigInteger.valueOf(chainId.toLong()),
                 exchangeContractAddresses.v2
+            )
+        }
+    }
+
+    @Bean
+    @Qualifier("openseaExchange")
+    fun openseaEip712Domain(): EIP712Domain {
+        return with(indexerProperties) {
+            EIP712Domain(
+                indexerProperties.openseaEip712DomainName,
+                indexerProperties.openseaEip712DomainVersion,
+                BigInteger.valueOf(chainId.toLong()),
+                exchangeContractAddresses.openSeaV2
             )
         }
     }

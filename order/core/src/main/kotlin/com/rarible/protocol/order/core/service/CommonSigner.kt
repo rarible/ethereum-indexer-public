@@ -47,8 +47,6 @@ class CommonSigner {
         return Word(Hash.sha3(withStart))
     }
 
-    fun openSeaHashToSign(hash: Word): Word = ethSignHashToSign(hash)
-
     fun ethSignHashToSign(hash: Word): Word {
         return keccak256(Binary.apply("${START}32".toByteArray()).add(hash))
     }

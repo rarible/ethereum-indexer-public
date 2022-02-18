@@ -102,7 +102,8 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             staticTarget = AddressFactory.create(),
             staticExtraData = Binary.apply(),
             extra = BigInteger.ZERO,
-            target = null
+            target = null,
+            nonce = null,
         ),
         signature = null,
         createdAt = nowMillis(),

@@ -105,7 +105,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         assertThat(hash).isEqualTo(Word.apply("0x2fccca13e00c99fec6f6191054746ce11170c560acdf12dde088edd87a02eee5"))
         assertThat(hashToSign).isEqualTo(Word.apply("0x184cdfac6781cb507c4626f05378110da85e758299f3c12e4e0b24b8d684d58d"))
@@ -161,7 +161,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         assertThat(hash).isEqualTo(Word.apply("0x59daa4bababbba49ad1656a3fb98c2073852c892b842af440f9dec3f86ebd59a"))
         assertThat(hashToSign).isEqualTo(Word.apply("0x43a10a8de80ca9a12c4948d5b2f28650c6a9dc8ed97abc91fbbf63e22808e3f0"))
@@ -217,7 +217,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(sellOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         // order_hash
         assertThat(hash).isEqualTo(Word.apply("0xbb58afecbed0e3cc8dfde21363354ce1072eefbf381003866a32a1a4541afc6d"))
@@ -277,7 +277,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         // order_hash
         assertThat(hash).isEqualTo(Word.apply("0x538991d5f5f415a5f72b080e535aeaacfd5e5037e02724ca5bff3d46140e19da"))

@@ -83,7 +83,7 @@ class OpenSeaOrderConverter(
             staticExtraData = clientOpenSeaOrder.staticExtraData,
             extra = clientOpenSeaOrder.extra,
             target = clientOpenSeaOrder.target,
-            nonce = 0 //TODO: get from client when OpenSea add it to API
+            nonce = null,
         )
     }
 

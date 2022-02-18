@@ -11,7 +11,7 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OpenSeaSigner
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -21,16 +21,27 @@ import org.springframework.stereotype.Component
 class OpenSeaOrderParser(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceCallService: TraceCallService,
-    private val commonSigner: CommonSigner
+    private val openSeaSigner: OpenSeaSigner,
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, eip712: Boolean): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
         val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
         return inputs.map(::parseMatchedOrders).firstOrNull { orders ->
             when {
-                event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash())
-                event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash())
+                event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash(), eip712)
+                event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash(), eip712)
                 else -> false
+            }
+        }?.let {
+            if (eip712) {
+                //we can't calculate nonce for the order here because we need to know nonce for exact same time as tx was executed
+                //that's why we use hashToSign as hash. The same hash should be used as order id when loading OpenSea orders
+                it.copy(
+                    buyOrder = it.buyOrder.copy(hash = Word.apply(event.buyHash())),
+                    sellOrder = it.sellOrder.copy(hash = Word.apply(event.sellHash()))
+                )
+            } else {
+                it
             }
         }
     }
@@ -150,6 +161,6 @@ class OpenSeaOrderParser(
 
     private fun ByteArray.notEmpty(): Boolean = this.any { it != 0.toByte() }
 
-    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray): Boolean =
-        commonSigner.openSeaHashToSign(order.hash) == Word.apply(signedHash)
+    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray, eip712: Boolean): Boolean =
+        openSeaSigner.openSeaHashToSign(order.hash, eip712) == Word.apply(signedHash)
 }
