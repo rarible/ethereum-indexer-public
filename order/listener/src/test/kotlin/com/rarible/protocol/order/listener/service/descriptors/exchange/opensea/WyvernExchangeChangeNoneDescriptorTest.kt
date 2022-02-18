@@ -17,7 +17,7 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
 
     @Test
     fun `should convert change nonce event`() = runBlocking {
-        exchange.incrementNonce()
+        exchangeV2.incrementNonce()
             .withSender(userSender1)
             .execute()
             .verifySuccess()
