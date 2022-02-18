@@ -11,23 +11,8 @@ import scalether.domain.Address
 class TraceCallService(
     private val traceProvider: TransactionTraceProvider
 ) {
-    suspend fun findFirstRequiredCallInput(txHash: Word, txInput: Binary, to: Address, id: Binary): Binary {
-        if (id == txInput.methodSignatureId()) {
-            return txInput
-        } else {
-            var attempts = 0
-            do {
-                val traceFound = traceProvider.traceAndFindFirstCallTo(txHash, to, id)
 
-                if (traceFound?.input != null) {
-                    return traceFound.input
-                }
-                delay(200)
-            } while (attempts++ < 5)
-        }
-        error("tx trace not found for hash: $txHash")
-    }
-
+    //todo get only successfull traces
     suspend fun findAllRequiredCallInputs(txHash: Word, txInput: Binary, to: Address, id: Binary): List<Binary> {
         if (id == txInput.methodSignatureId()) {
             return listOf(txInput)
@@ -35,9 +20,8 @@ class TraceCallService(
             var attempts = 0
             do {
                 val tracesFound = traceProvider.traceAndFindAllCallsTo(txHash, to, id)
-
-                if (tracesFound.size > 0) {
-                    return tracesFound.mapNotNull { it.input }
+                if (tracesFound.isNotEmpty()) {
+                    return tracesFound.map { it.input }
                 }
                 delay(200)
             } while (attempts++ < 5)
