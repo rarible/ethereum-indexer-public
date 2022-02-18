@@ -78,7 +78,7 @@ class PriceUpdateService(
         return orderVersion.withOrderUsdValue(usdValue)
     }
 
-    private suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
+    suspend fun withUpdatedPrices(orderVersion: OrderVersion): OrderVersion {
         val normalizedMake = priceNormalizer.normalize(orderVersion.make)
         val normalizedTake = priceNormalizer.normalize(orderVersion.take)
         return when {

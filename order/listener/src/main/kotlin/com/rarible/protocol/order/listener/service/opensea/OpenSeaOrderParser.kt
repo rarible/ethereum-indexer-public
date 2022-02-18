@@ -11,26 +11,42 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
 import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OpenSeaSigner
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceCallService: TraceCallService,
-    private val commonSigner: CommonSigner
+    private val openSeaSigner: OpenSeaSigner,
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, eip712: Boolean): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
         val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
-        return inputs.map(::parseMatchedOrders).firstOrNull { orders ->
-            when {
-                event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash())
-                event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash())
-                else -> false
+            .map(::parseMatchedOrders)
+        return if (eip712) {
+            if (inputs.size > 1) {
+                logger.error("Unable to parse OpenSea orders, more than one trace found in $txHash")
+                return null
+            }
+            inputs.firstOrNull()?.let {
+                it.copy(
+                    buyOrder = it.buyOrder.copy(hash = Word.apply(event.buyHash())),
+                    sellOrder = it.sellOrder.copy(hash = Word.apply(event.sellHash()))
+                )
+            }
+        } else {
+            inputs.firstOrNull { orders ->
+                when {
+                    event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash(), false)
+                    event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash(), false)
+                    else -> false
+                }
             }
         }
     }
@@ -150,6 +166,10 @@ class OpenSeaOrderParser(
 
     private fun ByteArray.notEmpty(): Boolean = this.any { it != 0.toByte() }
 
-    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray): Boolean =
-        commonSigner.openSeaHashToSign(order.hash) == Word.apply(signedHash)
+    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray, eip712: Boolean): Boolean =
+        openSeaSigner.openSeaHashToSign(order.hash, eip712) == Word.apply(signedHash)
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(OpenSeaOrderParser::class.java)
+    }
 }

@@ -87,6 +87,7 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
         ).awaitFirst()
 
         exchangeContractAddresses.openSeaV1 = exchange.address()
+        exchangeContractAddresses.openSeaV2 = exchange.address()
 
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 

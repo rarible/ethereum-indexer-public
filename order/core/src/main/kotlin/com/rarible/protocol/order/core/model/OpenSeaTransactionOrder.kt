@@ -28,39 +28,37 @@ data class OpenSeaTransactionOrder(
     val extra: BigInteger,
     val listingTime: BigInteger,
     val expirationTime: BigInteger,
-    val salt: BigInteger
+    val salt: BigInteger,
+    val hash: Word = Order.openSeaV1Hash(
+        maker = maker,
+        taker = taker,
+        nftToken = target,
+        paymentToken = paymentToken,
+        basePrice = basePrice,
+        salt = salt,
+        start = listingTime.longValueExact(),
+        end = expirationTime.longValueExact(),
+        data = OrderOpenSeaV1DataV1(
+            exchange,
+            makerRelayerFee,
+            takerRelayerFee,
+            makerProtocolFee,
+            takerProtocolFee,
+            feeRecipient,
+            feeMethod,
+            side,
+            saleKind,
+            howToCall,
+            callData,
+            replacementPattern,
+            staticTarget,
+            staticExtraData,
+            extra,
+            target,
+            null,
+        )
+    )
 ) {
-    val hash: Word
-        get() {
-            return Order.openSeaV1Hash(
-                maker = maker,
-                taker = taker,
-                nftToken = target,
-                paymentToken = paymentToken,
-                basePrice = basePrice,
-                salt = salt,
-                start = listingTime.longValueExact(),
-                end = expirationTime.longValueExact(),
-                data = OrderOpenSeaV1DataV1(
-                    exchange,
-                    makerRelayerFee,
-                    takerRelayerFee,
-                    makerProtocolFee,
-                    takerProtocolFee,
-                    feeRecipient,
-                    feeMethod,
-                    side,
-                    saleKind,
-                    howToCall,
-                    callData,
-                    replacementPattern,
-                    staticTarget,
-                    staticExtraData,
-                    extra,
-                    target
-                )
-            )
-        }
 }
 
 enum class OpenSeaOrderFeeMethod(val value: BigInteger) {

@@ -94,7 +94,8 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = null
+                target = null,
+                nonce = null,
             ),
             platform = Platform.OPEN_SEA,
             createdAt = nowMillis(),
@@ -106,7 +107,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             takeUsd = null
         ).let {
             val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
-            val hashToSign = commonSigner.openSeaHashToSign(hash)
+            val hashToSign = commonSigner.ethSignHashToSign(hash)
             logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
             val signature = hashToSign.sign(privateKey1)
             it.copy(signature = signature, hash = hash)
@@ -226,7 +227,8 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = merkleValidator.address()
+                target = merkleValidator.address(),
+                nonce = null,
             ),
             platform = Platform.OPEN_SEA,
             createdAt = nowMillis(),
@@ -238,7 +240,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             takeUsd = null
         ).let {
             val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
-            val hashToSign = commonSigner.openSeaHashToSign(hash)
+            val hashToSign = commonSigner.ethSignHashToSign(hash)
             logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
             val signature = hashToSign.sign(privateKey1)
             it.copy(signature = signature, hash = hash)
@@ -355,7 +357,8 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = null
+                target = null,
+                nonce = null,
             ),
             createdAt = nowMillis(),
             makePriceUsd = null,
@@ -366,7 +369,7 @@ internal class WyvernExchangeOrderMatchDescriptorTest : AbstractOpenSeaV1Test() 
             takeUsd = null
         ).let {
             val hash = Order.hash(it) // Recalculate OpenSea's specific order hash
-            val hashToSign = commonSigner.openSeaHashToSign(hash)
+            val hashToSign = commonSigner.ethSignHashToSign(hash)
             logger.info("Buy order hash: $hash, hash to sing: $hashToSign")
             val signature = hashToSign.sign(privateKey2)
             it.copy(signature = signature, hash = hash)
