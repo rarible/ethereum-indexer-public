@@ -29,7 +29,7 @@ class OpenSeaOrderValidator(
             logger.info("Invalid OpenSea order (empty signature): $order")
             return false
         }
-        val hashToSign: Word = openSeaSigner.openSeaHashToSign(order.hash, data.nonce != null)
+        val hashToSign: Word = if (data.nonce != null) order.hash else openSeaSigner.openSeaHashToSign(order.hash, false)
         if (commonSigner.recover(hashToSign, signature) != order.maker) {
             logger.info("Invalid OpenSea order (signature): $order")
             return false

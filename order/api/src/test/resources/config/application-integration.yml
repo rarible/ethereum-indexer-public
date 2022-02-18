@@ -9,6 +9,8 @@ common:
   blockchain: ethereum
   eip712-domain-name: test
   eip712domain-version: 1
+  open-sea-eip712-domain-name: test
+  open-sea-eip712-domain-version: 1
   chain-Id: 1
   operator-private-key: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocol-commission: 0
