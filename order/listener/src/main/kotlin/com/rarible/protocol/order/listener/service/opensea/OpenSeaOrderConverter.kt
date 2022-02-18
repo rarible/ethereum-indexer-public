@@ -50,7 +50,7 @@ class OpenSeaOrderConverter(
             takeUsd = null,
             platform = Platform.OPEN_SEA
         ).let {
-            priceUpdateService.withUpdatedAllPrices(it).copy(
+            priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
                 hash = Order.hash(it)
             )
