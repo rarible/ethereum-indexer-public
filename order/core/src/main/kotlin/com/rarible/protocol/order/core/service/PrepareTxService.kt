@@ -39,6 +39,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
@@ -56,7 +57,7 @@ import java.util.concurrent.ThreadLocalRandom
 class PrepareTxService(
     private val transferProxyService: TransferProxyService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    var eip712Domain: EIP712Domain,
+    @Qualifier("raribleExchangeV2") var eip712Domain: EIP712Domain,
     private val erc1271SignService: ERC1271SignService,
     private val orderInvertService: OrderInvertService,
     private val orderIndexerProperties: OrderIndexerProperties

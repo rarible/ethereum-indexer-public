@@ -17,6 +17,8 @@ data class OrderIndexerProperties(
     val kafkaReplicaSet: String,
     val eip712DomainName: String,
     val eip712DomainVersion: String,
+    val openseaEip712DomainName: String,
+    val openseaEip712DomainVersion: String,
     val chainId: Int,
     var operatorPrivateKey: Binary,
     val protocolCommission: Int,

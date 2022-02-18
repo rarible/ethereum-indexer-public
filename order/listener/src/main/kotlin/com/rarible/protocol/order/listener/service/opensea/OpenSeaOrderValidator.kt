@@ -3,11 +3,14 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OpenSeaSigner
+import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderValidator(
+    private val openSeaSigner: OpenSeaSigner,
     private val commonSigner: CommonSigner,
     private val callDataEncoder: CallDataEncoder
 ) {
@@ -26,7 +29,7 @@ class OpenSeaOrderValidator(
             logger.info("Invalid OpenSea order (empty signature): $order")
             return false
         }
-        val hashToSign = commonSigner.openSeaHashToSign(order.hash)
+        val hashToSign: Word = openSeaSigner.openSeaHashToSign(order.hash, data.nonce != null)
         if (commonSigner.recover(hashToSign, signature) != order.maker) {
             logger.info("Invalid OpenSea order (signature): $order")
             return false
