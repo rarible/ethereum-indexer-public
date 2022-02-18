@@ -53,6 +53,7 @@ data class OrderFilterBidByItem(
             if (currency != null) {
                 Continuation.Price(order.takePrice ?: BigDecimal.ZERO, order.hash)
             } else {
+                logger.warn("Using deprecated field ${Order::takePriceUsd.name} for sorting")
                 Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
             }
         }
@@ -60,6 +61,7 @@ data class OrderFilterBidByItem(
             if (currency != null) {
                 Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)
             } else {
+                logger.warn("Using deprecated field ${Order::makePriceUsd.name} for sorting")
                 Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
             }
         }

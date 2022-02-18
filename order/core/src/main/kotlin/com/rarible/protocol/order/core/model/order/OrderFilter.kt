@@ -14,6 +14,8 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -24,6 +26,8 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.math.BigDecimal
+
+val logger: Logger = LoggerFactory.getLogger(OrderFilter::class.java)
 
 sealed class OrderFilter {
 
@@ -45,9 +49,11 @@ sealed class OrderFilter {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }
         OrderFilterSort.TAKE_PRICE_DESC -> {
+            logger.warn("Using deprecated field ${Order::takePriceUsd.name} for sorting")
             Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
         }
         OrderFilterSort.MAKE_PRICE_ASC -> {
+            logger.warn("Using deprecated field ${Order::makePriceUsd.name} for sorting")
             Continuation.Price(order.makePriceUsd ?: BigDecimal.ZERO, order.hash)
         }
     }.toString()
@@ -70,6 +76,7 @@ sealed class OrderFilter {
     protected fun sort(sort: OrderFilterSort, currency: Address?): Sort {
         return when (sort) {
             OrderFilterSort.MAKE_PRICE_ASC -> {
+                currency ?: logger.warn("Using deprecated field ${Order::makePriceUsd.name} for sorting")
                 Sort.by(
                     Sort.Direction.ASC,
                     (currency?.let { Order::makePrice } ?: Order::makePriceUsd).name,
@@ -77,6 +84,7 @@ sealed class OrderFilter {
                 )
             }
             OrderFilterSort.TAKE_PRICE_DESC -> {
+                currency ?: logger.warn("Using deprecated field ${Order::takePriceUsd} for sorting")
                 Sort.by(
                     Sort.Direction.DESC,
                     (currency?.let { Order::takePrice } ?: Order::takePriceUsd).name,
@@ -145,6 +153,7 @@ fun Criteria.bid() = and(Order::take / Asset::type / AssetType::nft).isEqualTo(t
 fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort) {
     OrderFilterSort.TAKE_PRICE_DESC -> {
         val price = Continuation.parse<Continuation.Price>(continuation)
+        price?.let { logger.warn("Using deprecated field ${Order::takePriceUsd} for scrolling") }
         price?.let { c ->
             this.orOperator(
                 Order::takePriceUsd lt c.afterPrice,
@@ -157,6 +166,7 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
     }
     OrderFilterSort.MAKE_PRICE_ASC -> {
         val price = Continuation.parse<Continuation.Price>(continuation)
+        price?.let { logger.warn("Using deprecated field ${Order::makePriceUsd} for scrolling") }
         price?.let { c ->
             this.orOperator(
                 Order::makePriceUsd gt c.afterPrice,
