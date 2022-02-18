@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.repository.history
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.mongo.query.medium
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
@@ -81,7 +82,7 @@ class NftItemHistoryRepository(
     ): Flux<HistoryLog> {
         val criteria = tokenCriteria(token, tokenId, from, to)
         return mongo
-            .find(Query(criteria).with(LOG_SORT_ASC), LogEvent::class.java, COLLECTION)
+            .find(Query(criteria).with(LOG_SORT_ASC).medium(), LogEvent::class.java, COLLECTION)
             .map { HistoryLog(it.data as ItemHistory, it) }
     }
 
@@ -130,7 +131,7 @@ class NftItemHistoryRepository(
     }
 
     suspend fun search(query: Query): List<LogEvent> {
-        return mongo.find(query, LogEvent::class.java, COLLECTION)
+        return mongo.find(query.medium(), LogEvent::class.java, COLLECTION)
             .collectList()
             .awaitFirst()
     }
@@ -146,7 +147,7 @@ class NftItemHistoryRepository(
             query.withHint(hint)
         }
         query.with(sort.sort)
-        return mongo.find(query, LogEvent::class.java, COLLECTION)
+        return mongo.find(query.medium(), LogEvent::class.java, COLLECTION)
     }
 
     companion object {

@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.repository.item
 
+import com.rarible.core.mongo.query.fast
+import com.rarible.core.mongo.query.medium
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.item.ItemRepository.Indexes.ALL_INDEXES
@@ -39,7 +41,7 @@ class ItemRepository(
     }
 
     suspend fun search(query: Query): List<Item> {
-        return mongo.query<Item>().matching(query)
+        return mongo.query<Item>().matching(query.medium())
             .all()
             .collectList()
             .awaitFirst()
@@ -47,17 +49,22 @@ class ItemRepository(
 
     suspend fun searchByIds(ids: Set<ItemId>): List<Item> {
         val query = Query(Item::id inValues ids)
-        return mongo.query<Item>().matching(query)
+        return mongo.query<Item>().matching(query.fast())
             .all()
             .collectList()
             .awaitFirst()
     }
 
     fun findFromByToken(from: Address?): Flow<Item> {
-        val criteria = Criteria().run { Item::token gt from }
+        val criteria = when {
+            from != null ->
+                Criteria().run { Item::token gt from }
+            else -> Criteria()
+        }
 
         val queue = Query().addCriteria(criteria)
-        queue.with(Sort.by(Sort.Direction.ASC, Item::token.name))
+            .with(Sort.by(Sort.Direction.ASC, Item::token.name))
+            .medium()
         return mongo.query<Item>().matching(queue).all().asFlow()
     }
 
@@ -72,9 +79,9 @@ class ItemRepository(
                 Item::token isEqualTo token
         }
         val queue = Query().addCriteria(criteria)
-        queue.with(
-            Sort.by(Sort.Direction.ASC, Item::token.name, Item::tokenId.name)
-        )
+            .with(
+                Sort.by(Sort.Direction.ASC, Item::token.name, Item::tokenId.name)
+            ).medium()
         return mongo.query<Item>().matching(queue).all().asFlow()
     }
 

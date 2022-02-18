@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.repository
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.mongo.query.fast
 import com.rarible.protocol.nft.core.model.TokenId
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.mongodb.core.FindAndModifyOptions
@@ -22,7 +23,7 @@ class TokenIdRepository(
 
     suspend fun generateTokenId(id: String): Long {
         return mongo.findAndModify(
-            Query(Criteria.where("id").`is`(id)),
+            Query(Criteria.where("id").`is`(id)).fast(),
             Update().inc("value", 1),
             FindAndModifyOptions.options().returnNew(true).upsert(true),
             TokenId::class.java

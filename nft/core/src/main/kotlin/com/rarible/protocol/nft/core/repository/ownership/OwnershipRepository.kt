@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
+import com.rarible.core.mongo.query.fast
+import com.rarible.core.mongo.query.medium
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.reactive.awaitFirst
@@ -30,7 +32,7 @@ class OwnershipRepository(
 
     suspend fun findAll(ids: Collection<OwnershipId>): List<Ownership> {
         val criteria = Criteria.where("_id").inValues(ids)
-        return mongo.find<Ownership>(Query.query(criteria)).collectList().awaitFirst()
+        return mongo.find<Ownership>(Query.query(criteria).fast()).collectList().awaitFirst()
     }
 
     suspend fun search(criteria: Criteria?, size: Int, sort: Sort?): List<Ownership> {
@@ -39,7 +41,7 @@ class OwnershipRepository(
 
     suspend fun search(query: Query?): List<Ownership> {
         return mongo.query<Ownership>()
-            .matching(query ?: Query())
+            .matching(query?.medium() ?: Query().medium())
             .all()
             .collectList()
             .awaitFirst()

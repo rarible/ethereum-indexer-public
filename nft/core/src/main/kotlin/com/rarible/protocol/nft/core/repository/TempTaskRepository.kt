@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.repository
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.mongo.query.medium
 import com.rarible.core.task.Task
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -29,6 +30,6 @@ class TempTaskRepository(
                 it
             }
         }
-        return template.find<Task>(Query.query(criteria)).asFlow()
+        return template.find<Task>(Query.query(criteria).medium()).asFlow()
     }
 }

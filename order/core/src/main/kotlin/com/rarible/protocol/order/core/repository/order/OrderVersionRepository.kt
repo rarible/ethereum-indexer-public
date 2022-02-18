@@ -2,6 +2,8 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.mongo.query.fast
+import com.rarible.core.mongo.query.medium
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -83,7 +85,7 @@ class OrderVersionRepository(
         if (limit != null) {
             query.limit(limit)
         }
-        return template.find(query, COLLECTION)
+        return template.find(query.medium(), COLLECTION)
     }
 
     fun deleteAll(): Flux<OrderVersion> {
@@ -91,7 +93,7 @@ class OrderVersionRepository(
     }
 
     fun count(): Mono<Long> {
-        return template.count(Query(), COLLECTION)
+        return template.count(Query().fast(), COLLECTION)
     }
 
     fun findAll(): Flux<OrderVersion> {
@@ -110,7 +112,7 @@ class OrderVersionRepository(
             criteria = criteria.and(OrderVersion::platform).inValues(platforms)
         }
         val query = Query(criteria).with(HASH_SORT_ASC)
-        return template.find(query, COLLECTION)
+        return template.find(query.fast(), COLLECTION)
     }
 
     fun findById(id: ObjectId): Mono<OrderVersion> {
@@ -120,12 +122,12 @@ class OrderVersionRepository(
     fun existsByOnChainOrderKey(key: LogEventKey): Mono<Boolean> {
         val criteria = OrderVersion::onChainOrderKey / LogEventKey::databaseKey isEqualTo key.databaseKey
         val query = Query(criteria)
-        return template.exists(query, COLLECTION)
+        return template.exists(query.fast(), COLLECTION)
     }
 
     fun deleteByOnChainOrderKey(key: LogEventKey): Mono<Void> {
         val criteria = OrderVersion::onChainOrderKey isEqualTo key
-        return template.remove(Query(criteria), COLLECTION).then()
+        return template.remove(Query(criteria).fast(), COLLECTION).then()
     }
 
     companion object {

@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.repository.history
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.filterIsInstance
+import com.rarible.core.mongo.query.medium
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
@@ -42,7 +43,7 @@ class LazyNftItemHistoryRepository(
         from: ItemId? = null
     ): Flux<LazyItemHistory> {
         val c = tokenCriteria(token, tokenId, from)
-        return mongo.find(Query(c).with(LOG_SORT_ASC), LazyItemHistory::class.java, COLLECTION)
+        return mongo.find(Query(c).with(LOG_SORT_ASC).medium(), LazyItemHistory::class.java, COLLECTION)
     }
 
     private fun tokenCriteria(token: Address?, tokenId: EthUInt256?, from: ItemId? = null): Criteria {

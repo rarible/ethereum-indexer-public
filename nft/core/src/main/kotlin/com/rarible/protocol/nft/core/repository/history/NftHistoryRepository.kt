@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.repository.history
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.mongo.query.medium
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
@@ -41,7 +42,7 @@ class NftHistoryRepository(
         } else {
             Criteria()
         }
-        return mongo.find(Query(criteria).with(LOG_SORT_ASC), COLLECTION)
+        return mongo.find(Query(criteria).with(LOG_SORT_ASC).medium(), COLLECTION)
     }
 
     fun save(logEvent: LogEvent): Mono<LogEvent> = mongo.save(logEvent, COLLECTION)

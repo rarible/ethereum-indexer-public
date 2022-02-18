@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.configuration
 
+import com.rarible.core.mongo.query.QueryExtension
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
@@ -25,7 +26,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 @EnableRaribleCacheLoader
 @EnableConfigurationProperties(NftIndexerProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
-@ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
+@ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class, QueryExtension::class])
 class CoreConfiguration(
     private val properties: NftIndexerProperties
 ) {

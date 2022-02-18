@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.repository
 
+import com.rarible.core.mongo.query.fast
+import com.rarible.core.mongo.query.medium
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
@@ -24,7 +26,7 @@ class TokenRepository(
 
     fun remove(token: Address): Mono<Void> {
         val criteria = Criteria.where("_id").isEqualTo(token)
-        return mongo.remove<Token>(Query(criteria)).then()
+        return mongo.remove<Token>(Query(criteria).fast()).then()
     }
 
     fun findAll(): Flux<Token> {
@@ -40,7 +42,7 @@ class TokenRepository(
     }
 
     fun search(filter: TokenFilter): Flux<Token> {
-        return mongo.find(filter.toQuery())
+        return mongo.find(filter.toQuery().medium())
     }
 
     private fun TokenFilter.toQuery(): Query {
