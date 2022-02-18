@@ -63,11 +63,13 @@ ethereum-order-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
+      max_direct_memory_megabytes: 512
 
 polygon-order-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
+      max_direct_memory_megabytes: 256
 
 ethereum-nft-api:
   replicas: 3

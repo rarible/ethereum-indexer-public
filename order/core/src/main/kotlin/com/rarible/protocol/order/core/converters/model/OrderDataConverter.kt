@@ -53,7 +53,8 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 replacementPattern = source.replacementPattern,
                 staticTarget = source.staticTarget,
                 staticExtraData = source.staticExtraData,
-                extra = source.extra
+                extra = source.extra,
+                target = null //TODO: fix after added to dto
             )
             is OrderCryptoPunksDataDto -> OrderCryptoPunksData
         }

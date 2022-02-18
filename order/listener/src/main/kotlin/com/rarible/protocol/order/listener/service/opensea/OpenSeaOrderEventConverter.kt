@@ -3,8 +3,10 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
@@ -21,7 +23,8 @@ import kotlin.experimental.xor
 @Component
 class OpenSeaOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
-    private val prizeNormalizer: PriceNormalizer
+    private val prizeNormalizer: PriceNormalizer,
+    private val callDataEncoder: CallDataEncoder
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -54,7 +57,7 @@ class OpenSeaOrderEventConverter(
         require(buyOrder.paymentToken == sellOrder.paymentToken) { "buy and sell payment token must equals" }
 
         val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return emptyList()
-        val nftAsset = createNftAsset(sellOrder.target, transfer.tokenId, transfer.value, transfer.type)
+        val nftAsset = createNftAsset(sellOrder.target, transfer)
         val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
 
         val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = date)
@@ -116,7 +119,7 @@ class OpenSeaOrderEventConverter(
 
     suspend fun convert(order: OpenSeaTransactionOrder, date: Instant): List<OrderCancel> {
         val transfer = encodeTransfer(order.callData) ?: return emptyList()
-        val nftAsset = createNftAsset(order.target, transfer.tokenId, transfer.value, transfer.type)
+        val nftAsset = createNftAsset(order.target, transfer)
         val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
         val (make, take) = when (order.side) {
             OpenSeaOrderSide.SELL -> nftAsset to paymentAsset
@@ -149,27 +152,44 @@ class OpenSeaOrderEventConverter(
         }
     }
 
-    private fun createNftAsset(
-        token: Address,
-        tokenId: BigInteger,
-        value: BigInteger,
-        type: NftType
-    ): Asset {
-        return when (type) {
-            NftType.ERC1155 -> Asset(
-                type = Erc1155AssetType(
-                    token = token,
-                    tokenId = EthUInt256.of(tokenId)
-                ),
-                value = EthUInt256.of(value)
-            )
-            NftType.ERC721 -> Asset(
-                type = Erc721AssetType(
-                    token = token,
-                    tokenId = EthUInt256.of(tokenId)
-                ),
-                value = EthUInt256.ONE
-            )
+    private fun createNftAsset(target: Address, transfer: Transfer): Asset {
+        return when (transfer) {
+            is Transfer.Erc721Transfer -> {
+                Asset(
+                    type = Erc721AssetType(
+                        token = target,
+                        tokenId = EthUInt256.of(transfer.tokenId)
+                    ),
+                    value = EthUInt256.ONE
+                )
+            }
+            is Transfer.Erc1155Transfer -> {
+                Asset(
+                    Erc1155AssetType(
+                        token = target,
+                        tokenId = EthUInt256.of(transfer.tokenId)
+                    ),
+                    value = EthUInt256.of(transfer.value)
+                )
+            }
+            is Transfer.MerkleValidatorErc721Transfer-> {
+                Asset(
+                    type = Erc721AssetType(
+                        token = transfer.token,
+                        tokenId = EthUInt256.of(transfer.tokenId)
+                    ),
+                    value = EthUInt256.ONE
+                )
+            }
+            is Transfer.MerkleValidatorErc1155Transfer -> {
+                Asset(
+                    Erc1155AssetType(
+                        token = transfer.token,
+                        tokenId = EthUInt256.of(transfer.tokenId)
+                    ),
+                    value = EthUInt256.of(transfer.value)
+                )
+            }
         }
     }
 
@@ -192,28 +212,13 @@ class OpenSeaOrderEventConverter(
 
     private fun encodeTransfer(callData: Binary): Transfer? {
         return when (callData.methodSignatureId()) {
-            IERC1155.safeTransferFromSignature().id() -> {
-                val encoded = IERC1155.safeTransferFromSignature().`in`().decode(callData, 4)
-                Transfer(
-                    type = NftType.ERC1155,
-                    from = encoded.value()._1(),
-                    to = encoded.value()._2(),
-                    tokenId = encoded.value()._3(),
-                    value = encoded.value()._4()
-                )
-            }
-            IERC721.transferFromSignature().id(), IERC721.safeTransferFromSignature() -> {
-                val encoded = IERC721.safeTransferFromSignature().`in`().decode(callData, 4)
-                Transfer(
-                    type = NftType.ERC721,
-                    from = encoded.value()._1(),
-                    to = encoded.value()._2(),
-                    tokenId = encoded.value()._3(),
-                    value = BigInteger.ONE
-                )
-            }
-            Binary.apply("68f0bcaa") -> {
-                null // TODO: Need support
+            IERC1155.safeTransferFromSignature().id(),
+            IERC721.transferFromSignature().id(),
+            IERC721.safeTransferFromSignature(),
+            MerkleValidator.matchERC721UsingCriteriaSignature().id(),
+            MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature().id(),
+            MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature() -> {
+                callDataEncoder.decodeTransfer(callData)
             }
             else -> {
                 logger.warn("Unsupported OpenSea order call data: $callData")
@@ -236,18 +241,5 @@ class OpenSeaOrderEventConverter(
             OrderSide.LEFT -> OrderSide.RIGHT
             OrderSide.RIGHT -> OrderSide.LEFT
         }
-    }
-
-    private data class Transfer(
-        val type: NftType,
-        val from: Address,
-        val to: Address,
-        val tokenId: BigInteger,
-        val value: BigInteger
-    )
-
-    private enum class NftType {
-        ERC721,
-        ERC1155
     }
 }

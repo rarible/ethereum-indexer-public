@@ -90,7 +90,8 @@ data class OrderOpenSeaV1DataV1(
     val replacementPattern: Binary,
     val staticTarget: Address,
     val staticExtraData: Binary,
-    val extra: BigInteger
+    val extra: BigInteger,
+    val target: Address?
 ) : OrderData() {
     @get:Transient
     override val version = OrderDataVersion.OPEN_SEA_V1_DATA_V1

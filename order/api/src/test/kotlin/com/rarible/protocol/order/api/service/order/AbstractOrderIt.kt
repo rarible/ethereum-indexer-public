@@ -101,7 +101,8 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
             replacementPattern = Binary.apply(),
             staticTarget = AddressFactory.create(),
             staticExtraData = Binary.apply(),
-            extra = BigInteger.ZERO
+            extra = BigInteger.ZERO,
+            target = null
         ),
         signature = null,
         createdAt = nowMillis(),
