@@ -6,6 +6,8 @@ common:
   kafkaReplicaSet: ""
   eip712DomainName: ""
   eip712DomainVersion: ""
+  open-sea-eip712-domain-name: test
+  open-sea-eip712-domain-version: 1
   chainId: 1
   operator-private-key: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocol-commission: 100
