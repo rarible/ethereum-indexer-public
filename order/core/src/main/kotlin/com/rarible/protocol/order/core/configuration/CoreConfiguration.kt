@@ -7,6 +7,7 @@ import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.contracts.exchange.wyvern.v2.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
@@ -15,6 +16,7 @@ import com.rarible.protocol.order.core.producer.ProducerPackage
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
@@ -61,7 +63,8 @@ class CoreConfiguration {
     @Bean
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService = LogEventService(
         ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION } +
-        AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION },
+        AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
+        mapOf(NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION),
         mongo
     )
 

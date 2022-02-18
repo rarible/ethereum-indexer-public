@@ -33,7 +33,7 @@ import java.math.BigInteger
 
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
-        OrderIndexerProperties.ExchangeContractAddresses(Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO()),
+        OrderIndexerProperties.ExchangeContractAddresses(Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO()),
         TraceCallService(NoopTransactionTraceProvider()),
         mockk()
     )

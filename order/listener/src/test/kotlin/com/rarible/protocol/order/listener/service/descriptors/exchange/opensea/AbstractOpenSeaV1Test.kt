@@ -9,6 +9,7 @@ import com.rarible.protocol.contracts.common.wyvern.registry.WyvernProxyRegistry
 import com.rarible.protocol.contracts.common.wyvern.token.TestToken
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.contracts.exchange.wyvern.v2.WyvernExchangeWithBulkCancellations
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
@@ -33,6 +34,7 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
     protected lateinit var wyvernProxyRegistry: WyvernProxyRegistry
     protected lateinit var wyvernTokenTransferProxy: WyvernTokenTransferProxy
     protected lateinit var exchange: WyvernExchange
+    protected lateinit var wyvernExchangeWithBulkCancellations: WyvernExchangeWithBulkCancellations
     protected lateinit var merkleValidator: MerkleValidator
 
     protected lateinit var token1: TestERC20
@@ -81,12 +83,22 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
             userSender1.from()
         ).awaitFirst()
 
+        wyvernExchangeWithBulkCancellations = WyvernExchangeWithBulkCancellations.deployAndWait(
+            sender,
+            poller,
+            wyvernProxyRegistry.address(),
+            wyvernTokenTransferProxy.address(),
+            testToken.address(),
+            userSender1.from()
+        ).awaitFirst()
+
         merkleValidator = MerkleValidator.deployAndWait(
             sender,
             poller
         ).awaitFirst()
 
         exchangeContractAddresses.openSeaV1 = exchange.address()
+        exchangeContractAddresses.openSeaV2 = wyvernExchangeWithBulkCancellations.address()
 
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 

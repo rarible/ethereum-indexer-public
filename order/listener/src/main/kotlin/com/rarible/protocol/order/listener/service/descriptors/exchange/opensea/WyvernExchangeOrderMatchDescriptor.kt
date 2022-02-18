@@ -51,5 +51,7 @@ class WyvernExchangeOrderMatchDescriptor(
         }
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.openSeaV1))
+    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
+        listOf(exchangeContractAddresses.openSeaV1, exchangeContractAddresses.openSeaV2)
+    )
 }
