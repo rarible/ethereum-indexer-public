@@ -11,6 +11,7 @@ import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
 import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
 import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
@@ -19,7 +20,8 @@ import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
 @Component
 class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
-    private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses
+    private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -33,6 +35,18 @@ class OpenSeaOrderConverter(
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
+        val orderData = createData(clientOpenSeaOrder)
+        val nonce = calculateNonce(
+            expectedHash = clientOpenSeaOrder.orderHash,
+            maker = maker,
+            taker = taker,
+            paymentToken = clientOpenSeaOrder.paymentToken,
+            basePrice = clientOpenSeaOrder.basePrice,
+            salt = clientOpenSeaOrder.salt,
+            start = clientOpenSeaOrder.listingTime,
+            end = clientOpenSeaOrder.expirationTime,
+            data = orderData
+        ) ?: return null
 
         return OrderVersion(
             maker = maker,
@@ -43,7 +57,7 @@ class OpenSeaOrderConverter(
             salt = EthUInt256.of(clientOpenSeaOrder.salt),
             start = clientOpenSeaOrder.listingTime,
             end = clientOpenSeaOrder.expirationTime,
-            data = createData(clientOpenSeaOrder),
+            data = orderData.copy(nonce = nonce),
             createdAt = clientOpenSeaOrder.createdAt,
             signature = joinSignaturePart(r = r, s = s, v = v),
             makePriceUsd = null,
@@ -56,7 +70,7 @@ class OpenSeaOrderConverter(
         ).let {
             priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
-                hash = if (eip712) prefixedHaha else Order.hash(it)
+                hash = if (eip712) prefixedHaha else Order.hash(it),
             )
         }
     }
@@ -149,6 +163,33 @@ class OpenSeaOrderConverter(
             ClientOpenSeaOrderSide.SELL -> Assets(nftAsset, paymentAsset)
             ClientOpenSeaOrderSide.BUY -> Assets(paymentAsset, nftAsset)
         }
+    }
+
+    private fun calculateNonce(
+        expectedHash: Word,
+        maker: Address,
+        taker: Address?,
+        paymentToken: Address,
+        basePrice: BigInteger,
+        salt: BigInteger,
+        start: Long?,
+        end: Long?,
+        data: OrderOpenSeaV1DataV1
+    ): Long? {
+        (0L..featureFlags.maxOpenSeaNonceCalculation).forEach { nonce ->
+            val calculatedHash = Order.openSeaV1EIP712Hash(
+                maker = maker,
+                taker = taker,
+                paymentToken = paymentToken,
+                basePrice = basePrice,
+                salt = salt,
+                start = start,
+                end = end,
+                data = data.copy(nonce = nonce)
+            )
+            if (calculatedHash == expectedHash) return nonce
+        }
+        return null
     }
 
     private data class Assets(
