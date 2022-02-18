@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.opensea.client.model.AssetSchema
 import com.rarible.opensea.client.model.OpenSeaOrder
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
@@ -17,7 +18,8 @@ import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
 
 @Component
 class OpenSeaOrderConverter(
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -26,6 +28,8 @@ class OpenSeaOrderConverter(
         val r = clientOpenSeaOrder.r ?: return null
         val s = clientOpenSeaOrder.s ?: return null
         val v = clientOpenSeaOrder.v ?: return null
+        val isOpenSeaV1EIP712 = clientOpenSeaOrder.exchange == exchangeContracts.openSeaV2
+        val prefixedHaha = clientOpenSeaOrder.prefixedHash
 
         val maker = clientOpenSeaOrder.maker.address
         val taker = clientOpenSeaOrder.taker.address
@@ -52,7 +56,7 @@ class OpenSeaOrderConverter(
         ).let {
             priceUpdateService.withUpdatedPrices(it).copy(
                 // Recalculate OpenSea's specific hash.
-                hash = Order.hash(it)
+                hash = if (isOpenSeaV1EIP712) prefixedHaha else Order.hash(it)
             )
         }
     }
@@ -78,7 +82,8 @@ class OpenSeaOrderConverter(
             staticTarget = clientOpenSeaOrder.staticTarget,
             staticExtraData = clientOpenSeaOrder.staticExtraData,
             extra = clientOpenSeaOrder.extra,
-            target = clientOpenSeaOrder.target
+            target = clientOpenSeaOrder.target,
+            nonce = 0 //TODO: get from client when OpenSea add it to API
         )
     }
 
