@@ -42,11 +42,12 @@ class WyvernExchangeOrderCancelDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val transactionHash =  log.transactionHash()
+        val event = OrderCancelledEvent.apply(log)
         logger.info("Got OrderCancel event, tx=$transactionHash")
 
         val order = openSeaOrderParser.parseCancelOrder(transaction.input())
         return if (order != null) {
-            openSeaOrderEventConverter.convert(order, date)
+            openSeaOrderEventConverter.convert(order, date, event, log.address() == exchangeContractAddresses.openSeaV2)
         } else {
             logger.warn("Can't parser OpenSea cancel transaction ${transaction.value()}")
             emptyList()

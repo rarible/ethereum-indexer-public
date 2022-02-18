@@ -5,12 +5,14 @@ import com.rarible.contracts.erc721.IERC721
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
+import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -119,7 +121,7 @@ class OpenSeaOrderEventConverter(
         )
     }
 
-    suspend fun convert(order: OpenSeaTransactionOrder, date: Instant): List<OrderCancel> {
+    suspend fun convert(order: OpenSeaTransactionOrder, date: Instant, event: OrderCancelledEvent, eip712: Boolean): List<OrderCancel> {
         val transfer = encodeTransfer(order.callData) ?: return emptyList()
         val nftAsset = createNftAsset(order.target, transfer)
         val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
@@ -129,7 +131,7 @@ class OpenSeaOrderEventConverter(
         }
         return listOf(
             OrderCancel(
-                hash = order.hash,
+                hash = if (eip712) Word.apply(event.hash()) else order.hash,
                 make = make.copy(value = EthUInt256.ZERO),
                 take = take.copy(value = EthUInt256.ZERO),
                 maker = order.maker,
