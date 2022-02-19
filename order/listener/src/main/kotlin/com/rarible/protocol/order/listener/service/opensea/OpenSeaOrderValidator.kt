@@ -36,7 +36,7 @@ class OpenSeaOrderValidator(
                 return false
             }
         } catch (ex: Throwable) {
-            logger.error("Invalid OpenSea order (signature): $order", ex)
+            logger.error("Invalid OpenSea order (exception signature): $order", ex)
             return false
         }
         return true
