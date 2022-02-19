@@ -29,7 +29,7 @@ class WyvernExchangeChangeNoneDescriptor(
 
     override val topic: Word = NonceIncrementedEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<ChangeNonceHistory> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<ChangeNonceHistory> {
         return mono { convert(log, Instant.ofEpochSecond(timestamp)) }
     }
 

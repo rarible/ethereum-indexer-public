@@ -14,7 +14,7 @@ interface Erc20LogEventDescriptor<T : Erc20TokenHistory> : LogEventDescriptor<T>
     override val collection: String
         get() = Erc20TransferHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<T> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<T> {
         return mono { convert(log, Date(timestamp * 1000)) }.flatMapMany { Flux.fromIterable(it) }
     }
 

@@ -31,7 +31,7 @@ class ExchangeV2CancelDeprecatedDescriptor(
 
     override val topic: Word = CancelEventDeprecated.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderCancel> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderCancel> {
         return mono { listOfNotNull(convert(log, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
     }
 

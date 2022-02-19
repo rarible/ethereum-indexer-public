@@ -12,7 +12,7 @@ interface ItemHistoryLogEventDescriptor<T : ItemHistory> : LogEventDescriptor<T>
     override val collection: String
         get() = NftItemHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<T> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<T> {
         return convert(log, Instant.ofEpochSecond(timestamp))
     }
 

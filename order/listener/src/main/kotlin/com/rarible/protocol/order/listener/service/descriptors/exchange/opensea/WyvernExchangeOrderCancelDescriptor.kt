@@ -36,7 +36,7 @@ class WyvernExchangeOrderCancelDescriptor(
 
     override val topic: Word = OrderCancelledEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderCancel> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderCancel> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 

@@ -25,29 +25,19 @@ class OpenSeaOrderParser(
     private val traceCallService: TraceCallService,
     private val openSeaSigner: OpenSeaSigner,
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, eip712: Boolean): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, index: Int, totalLogs: Int, eip712: Boolean): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
         val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
             .map(::parseMatchedOrders)
+        assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
+        val parsed = inputs[index]
         return if (eip712) {
-            if (inputs.size > 1) {
-                logger.error("Unable to parse OpenSea orders, more than one trace found in $txHash")
-                return null
-            }
-            inputs.firstOrNull()?.let {
-                it.copy(
-                    buyOrder = it.buyOrder.copy(hash = Word.apply(event.buyHash())),
-                    sellOrder = it.sellOrder.copy(hash = Word.apply(event.sellHash()))
-                )
-            }
+            parsed.copy(
+                buyOrder = parsed.buyOrder.copy(hash = Word.apply(event.buyHash())),
+                sellOrder = parsed.sellOrder.copy(hash = Word.apply(event.sellHash()))
+            )
         } else {
-            inputs.firstOrNull { orders ->
-                when {
-                    event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash(), false)
-                    event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash(), false)
-                    else -> false
-                }
-            }
+            parsed
         }
     }
 

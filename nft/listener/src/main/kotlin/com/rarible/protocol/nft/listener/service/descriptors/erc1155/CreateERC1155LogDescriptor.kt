@@ -21,7 +21,7 @@ class CreateERC1155LogDescriptor : LogEventDescriptor<CreateCollection> {
 
     override val topic: Word = CreateERC1155_v1Event.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Mono<CreateCollection> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Mono<CreateCollection> {
         val event = CreateERC1155_v1Event.apply(log)
         return CreateCollection(
             id = event.log().address(),
