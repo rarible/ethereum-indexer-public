@@ -30,9 +30,14 @@ class OpenSeaOrderValidator(
             return false
         }
         val hashToSign: Word = if (data.nonce != null) order.hash else openSeaSigner.openSeaHashToSign(order.hash, false)
-        if (commonSigner.recover(hashToSign, signature) != order.maker) {
-            logger.info("Invalid OpenSea order (signature): $order")
-            return false
+        try {
+            if (commonSigner.recover(hashToSign, signature) != order.maker) {
+                logger.info("Invalid OpenSea order (signature): $order")
+                return false
+            }
+        } catch (ex: Throwable) {
+            logger.error("Invalid OpenSea order (signature): $order")
+            throw ex
         }
         return true
     }
