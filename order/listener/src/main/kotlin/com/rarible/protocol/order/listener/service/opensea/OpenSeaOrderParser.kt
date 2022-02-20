@@ -10,7 +10,6 @@ import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 
 @Component
 class OpenSeaOrderParser(
@@ -23,11 +22,15 @@ class OpenSeaOrderParser(
         assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
         val parsed = inputs[index]
         return if (eip712) {
-            val buyHash = Word.apply(event.buyHash()).takeUnless { it == Address.ZERO() }
-            val sellHash = Word.apply(event.sellHash()).takeUnless { it == Address.ZERO() }
+            val buyOrder = Word.apply(event.buyHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.buyOrder else parsed.buyOrder.copy(hash = eventHash)
+            }
+            val sellOrder = Word.apply(event.sellHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.sellOrder else parsed.sellOrder.copy(hash = eventHash)
+            }
             parsed.copy(
-                buyOrder = buyHash?.let { parsed.buyOrder.copy(hash = it) } ?: parsed.buyOrder,
-                sellOrder = sellHash?.let { parsed.sellOrder.copy(hash = it) } ?: parsed.sellOrder
+                buyOrder = buyOrder,
+                sellOrder = sellOrder
             )
         } else {
             parsed
@@ -149,5 +152,6 @@ class OpenSeaOrderParser(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(OpenSeaOrderParser::class.java)
+        val ZERO_WORD: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
     }
 }
