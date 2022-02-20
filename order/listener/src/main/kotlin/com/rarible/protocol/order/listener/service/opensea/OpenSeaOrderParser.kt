@@ -24,7 +24,7 @@ class OpenSeaOrderParser(
         val parsed = inputs[index]
         return if (eip712) {
             val buyHash = Word.apply(event.buyHash()).takeUnless { it == Address.ZERO() }
-            val sellHash = Word.apply(event.sellHash()).takeIf { it == Address.ZERO() }
+            val sellHash = Word.apply(event.sellHash()).takeUnless { it == Address.ZERO() }
             parsed.copy(
                 buyOrder = buyHash?.let { parsed.buyOrder.copy(hash = it) } ?: parsed.buyOrder,
                 sellOrder = sellHash?.let { parsed.sellOrder.copy(hash = it) } ?: parsed.sellOrder
