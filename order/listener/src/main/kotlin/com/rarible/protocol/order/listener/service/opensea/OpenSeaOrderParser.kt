@@ -22,9 +22,15 @@ class OpenSeaOrderParser(
         assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
         val parsed = inputs[index]
         return if (eip712) {
+            val buyOrder = Word.apply(event.buyHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.buyOrder else parsed.buyOrder.copy(hash = eventHash)
+            }
+            val sellOrder = Word.apply(event.sellHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.sellOrder else parsed.sellOrder.copy(hash = eventHash)
+            }
             parsed.copy(
-                buyOrder = parsed.buyOrder.copy(hash = Word.apply(event.buyHash())),
-                sellOrder = parsed.sellOrder.copy(hash = Word.apply(event.sellHash()))
+                buyOrder = buyOrder,
+                sellOrder = sellOrder
             )
         } else {
             parsed
@@ -146,5 +152,6 @@ class OpenSeaOrderParser(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(OpenSeaOrderParser::class.java)
+        val ZERO_WORD: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
     }
 }
