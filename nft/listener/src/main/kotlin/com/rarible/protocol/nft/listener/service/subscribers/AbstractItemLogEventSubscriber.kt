@@ -30,7 +30,8 @@ abstract class AbstractItemLogEventSubscriber<T : EventData>(
         block: EthereumBlockchainBlock,
         log: EthereumBlockchainLog
     ): List<EthereumLogRecord> {
-        return legacyLogEventDescriptor.convert(log.ethLog, log.ethTransaction, block.timestamp)
+        //TODO here we should send index and totalLogs
+        return legacyLogEventDescriptor.convert(log.ethLog, log.ethTransaction, block.timestamp, 0, 0)
             .toFlux()
             .collectList()
             .map { dataCollection ->

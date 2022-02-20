@@ -2,16 +2,8 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
-import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
-import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
-import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
-import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
-import com.rarible.protocol.order.core.model.OpenSeaOrderSide
-import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
-import com.rarible.protocol.order.core.model.Platform
-import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -21,33 +13,27 @@ import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser(
-    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceCallService: TraceCallService,
-    private val openSeaSigner: OpenSeaSigner,
+    private val traceCallService: TraceCallService
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, eip712: Boolean): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, index: Int, totalLogs: Int, eip712: Boolean): OpenSeaMatchedOrders? {
         val signature = WyvernExchange.atomicMatch_Signature()
-        val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, exchangeContractAddresses.openSeaV1, signature.id())
+        val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, event.log().address(), signature.id())
             .map(::parseMatchedOrders)
+        assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
+        val parsed = inputs[index]
         return if (eip712) {
-            if (inputs.size > 1) {
-                logger.error("Unable to parse OpenSea orders, more than one trace found in $txHash")
-                return null
+            val buyOrder = Word.apply(event.buyHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.buyOrder else parsed.buyOrder.copy(hash = eventHash)
             }
-            inputs.firstOrNull()?.let {
-                it.copy(
-                    buyOrder = it.buyOrder.copy(hash = Word.apply(event.buyHash())),
-                    sellOrder = it.sellOrder.copy(hash = Word.apply(event.sellHash()))
-                )
+            val sellOrder = Word.apply(event.sellHash()).let { eventHash ->
+                if (eventHash == ZERO_WORD) parsed.sellOrder else parsed.sellOrder.copy(hash = eventHash)
             }
+            parsed.copy(
+                buyOrder = buyOrder,
+                sellOrder = sellOrder
+            )
         } else {
-            inputs.firstOrNull { orders ->
-                when {
-                    event.sellHash().notEmpty() -> compareSignedHash(orders.sellOrder, event.sellHash(), false)
-                    event.buyHash().notEmpty() -> compareSignedHash(orders.buyOrder, event.buyHash(), false)
-                    else -> false
-                }
-            }
+            parsed
         }
     }
 
@@ -164,12 +150,8 @@ class OpenSeaOrderParser(
         )
     }
 
-    private fun ByteArray.notEmpty(): Boolean = this.any { it != 0.toByte() }
-
-    private fun compareSignedHash(order: OpenSeaTransactionOrder, signedHash: ByteArray, eip712: Boolean): Boolean =
-        openSeaSigner.openSeaHashToSign(order.hash, eip712) == Word.apply(signedHash)
-
     companion object {
         val logger: Logger = LoggerFactory.getLogger(OpenSeaOrderParser::class.java)
+        val ZERO_WORD: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
     }
 }

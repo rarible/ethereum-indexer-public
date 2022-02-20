@@ -30,7 +30,7 @@ abstract class AbstractAuctionDescriptor<T : EventData>(
     override val collection: String
         get() = AuctionHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<T> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<T> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 

@@ -43,7 +43,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
 
     override val topic: Word = MatchEventDeprecated.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderSideMatch> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderSideMatch> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 

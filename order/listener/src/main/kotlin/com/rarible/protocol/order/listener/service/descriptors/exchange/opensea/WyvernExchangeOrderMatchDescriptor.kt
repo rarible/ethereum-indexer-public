@@ -36,14 +36,14 @@ class WyvernExchangeOrderMatchDescriptor(
 
     override val topic: Word = OrdersMatchedEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderSideMatch> {
-        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderSideMatch> {
+        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp), index, totalLogs) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == exchangeContractAddresses.openSeaV2
-        val orders = openSeaOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), event, eip712)
+        val orders = openSeaOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), event, index, totalLogs, eip712)
         return if (orders != null) {
             openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
         } else {
