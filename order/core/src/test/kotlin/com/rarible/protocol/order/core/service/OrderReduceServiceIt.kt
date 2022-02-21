@@ -6,9 +6,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.order.core.data.createOrderCancel
-import com.rarible.protocol.order.core.data.createOrderSideMatch
-import com.rarible.protocol.order.core.data.createOrderVersion
+import com.rarible.protocol.order.core.data.*
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
@@ -190,6 +188,78 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         )
         assertThat(updated.take.value).isEqualTo(newTakeValue)
         assertThat(orderRepository.findById(hash)?.take?.value).isEqualTo(newTakeValue)
+    }
+
+    @Test
+    internal fun `should cancel OpenSea order if nonces are not matched`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val orderVersion = createOrderVersion().copy(
+            type = OrderType.OPEN_SEA_V1,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            createdAt = now
+        )
+        val hash = orderVersion.hash
+        orderUpdateService.save(orderVersion)
+
+        val nonce = ChangeNonceHistory(
+            maker = orderVersion.maker,
+            newNonce = EthUInt256.ONE,
+            date = now + Duration.ofMinutes(10)
+        )
+        nonceHistoryRepository.save(
+            LogEvent(
+                data = nonce,
+                address = AddressFactory.create(),
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        val updated = orderReduceService.updateOrder(hash)!!
+        assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.lastUpdateAt).isEqualTo(nonce.date)
+    }
+
+    @Test
+    internal fun `should not cancel OpenSea order if nonces are matched`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val orderVersion = createOrderVersion().copy(
+            type = OrderType.OPEN_SEA_V1,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 1),
+            createdAt = now
+        )
+        val hash = orderVersion.hash
+        orderUpdateService.save(orderVersion)
+
+        val nonce = ChangeNonceHistory(
+            maker = orderVersion.maker,
+            newNonce = EthUInt256.ONE,
+            date = now + Duration.ofMinutes(10)
+        )
+        nonceHistoryRepository.save(
+            LogEvent(
+                data = nonce,
+                address = AddressFactory.create(),
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        val updated = orderReduceService.updateOrder(hash)!!
+        assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {

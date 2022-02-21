@@ -43,7 +43,7 @@ class OrderReduceService(
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
-    private val nonceHistoryRepository: NonceHistoryRepository
+    private val openSeaNonceService: OpenSeaNonceService
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -274,19 +274,17 @@ class OrderReduceService(
     private suspend fun Order.withUpdatedNonce(): Order {
         if (this.type != OrderType.OPEN_SEA_V1) return this
         val nonce = (this.data as? OrderOpenSeaV1DataV1)?.nonce ?: return this
-        val latestMakerNonceChange = nonceHistoryRepository.findLatestNonceHistoryByMaker(this.maker)?.data as? ChangeNonceHistory
-        val latestMakerNonce = latestMakerNonceChange?.newNonce ?: EthUInt256.ZERO
-
-        val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
-        logger.info("Make balance $makeBalance for order $hash")
-        val lastUpdatedAt = makeBalance.lastUpdatedAt
-        val copy = if (lastUpdatedAt != null && this.lastUpdateAt.isBefore(lastUpdatedAt)) {
-            this.copy(lastUpdateAt = lastUpdatedAt)
+        val makerNonce = openSeaNonceService.getLatestMakerNonce(this.maker)
+        return if (nonce != makerNonce.nonce.value.toLong()) {
+            logger.info("Cancel order $hash as order nonce $nonce is not match current maker nonce $makerNonce")
+            this.copy(
+                cancelled = true,
+                lastUpdateAt = maxOf(this.lastUpdateAt, makerNonce.timestamp),
+                lastEventId = accumulateEventId(this.lastEventId, makerNonce.historyId)
+            )
         } else {
             this
         }
-        return copy.withMakeBalance(makeBalance.value, protocolCommissionProvider.get())
-
     }
 
     private suspend fun updateOrderWithState(orderStub: Order): Order {
@@ -294,6 +292,7 @@ class OrderReduceService(
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedNonce()
+
         val saved = orderRepository.save(order)
         logger.info(buildString {
             append("Updated order: ")
