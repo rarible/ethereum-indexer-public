@@ -20,14 +20,18 @@ abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
                 confirmBlockComparator.compare(o1, other)
             }
             EthereumLogStatus.PENDING, EthereumLogStatus.INACTIVE, EthereumLogStatus.DROPPED -> {
-                require(
-                    other.log.status == EthereumLogStatus.PENDING
-                            || other.log.status == EthereumLogStatus.INACTIVE
-                            || other.log.status == EthereumLogStatus.DROPPED
-                ) {
-                    "Can't compare $o1 and $other"
+                if (other.log.status == EthereumLogStatus.CONFIRMED) {
+                    eventKeyComparator.compare(o1, other)
+                } else {
+                    require(
+                        other.log.status == EthereumLogStatus.PENDING
+                                || other.log.status == EthereumLogStatus.INACTIVE
+                                || other.log.status == EthereumLogStatus.DROPPED
+                    ) {
+                        "Can't compare $o1 and $other"
+                    }
+                    pendingBlockComparator.compare(o1, other)
                 }
-                pendingBlockComparator.compare(o1, other)
             }
         }
     }
@@ -43,5 +47,10 @@ abstract class EthereumEntityEvent<T> : Comparable<EthereumEntityEvent<T>> {
             .thenComparing({ it.log.address.toString() }, { a1, a2 -> a1.compareTo(a2) })
             .thenComparing({ it.log.topic.toString() }, { a1, a2 -> a1.compareTo(a2) })
             .thenComparingInt { it.log.minorLogIndex }
+
+        val eventKeyComparator: Comparator<EthereumEntityEvent<*>> = Comparator
+            .comparing<EthereumEntityEvent<*>, String>({ it.log.transactionHash }, { t1, t2 -> t1.compareTo(t2) })
+            .thenComparing({ it.log.address.toString() }, { a1, a2 -> a1.compareTo(a2) })
+            .thenComparing({ it.log.topic.toString() }, { a1, a2 -> a1.compareTo(a2) })
     }
 }
