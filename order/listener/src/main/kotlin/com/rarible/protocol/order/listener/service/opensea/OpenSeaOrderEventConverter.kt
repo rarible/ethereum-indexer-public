@@ -221,7 +221,7 @@ class OpenSeaOrderEventConverter(
             IERC721.safeTransferFromSignature(),
             MerkleValidator.matchERC721UsingCriteriaSignature().id(),
             MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature().id(),
-            MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature() -> {
+            MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
             else -> {
