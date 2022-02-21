@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.meta
 
 import com.rarible.core.content.meta.loader.ContentMeta
-import com.rarible.core.content.meta.loader.ContentMetaLoader
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
@@ -17,7 +16,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 
 @IntegrationTest
@@ -28,10 +26,6 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var mongoTemplate: ReactiveMongoTemplate
-
-    @Autowired
-    @Qualifier("test.content.meta.loader")
-    lateinit var testContentMetaLoader: ContentMetaLoader
 
     @Test
     fun `load content meta`() = runBlocking<Unit> {
