@@ -47,11 +47,15 @@ data class Order(
 
     val pending: List<OrderExchangeHistory> = emptyList(),
 
+    @Deprecated("Please don't use. Will be removed in future releases.")
     val makePriceUsd: BigDecimal? = null,
+    @Deprecated("Please don't use. Will be removed in future releases.")
     val takePriceUsd: BigDecimal? = null,
     val makePrice: BigDecimal? = null,
     val takePrice: BigDecimal? = null,
+    @Deprecated("Please don't use. Will be removed in future releases.")
     val makeUsd: BigDecimal? = null,
+    @Deprecated("Please don't use. Will be removed in future releases.")
     val takeUsd: BigDecimal? = null,
     val priceHistory: List<OrderPriceHistoryRecord> = emptyList(),
 
