@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -41,7 +42,8 @@ class OrderReduceService(
     private val assetMakeBalanceProvider: AssetMakeBalanceProvider,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val nonceHistoryRepository: NonceHistoryRepository
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -269,10 +271,29 @@ class OrderReduceService(
         return if (orderUsdValue != null) withOrderUsdValue(orderUsdValue) else this
     }
 
+    private suspend fun Order.withUpdatedNonce(): Order {
+        if (this.type != OrderType.OPEN_SEA_V1) return this
+        val nonce = (this.data as? OrderOpenSeaV1DataV1)?.nonce ?: return this
+        val latestMakerNonceChange = nonceHistoryRepository.findLatestNonceHistoryByMaker(this.maker)?.data as? ChangeNonceHistory
+        val latestMakerNonce = latestMakerNonceChange?.newNonce ?: EthUInt256.ZERO
+
+        val makeBalance = assetMakeBalanceProvider.getMakeBalance(this)
+        logger.info("Make balance $makeBalance for order $hash")
+        val lastUpdatedAt = makeBalance.lastUpdatedAt
+        val copy = if (lastUpdatedAt != null && this.lastUpdateAt.isBefore(lastUpdatedAt)) {
+            this.copy(lastUpdateAt = lastUpdatedAt)
+        } else {
+            this
+        }
+        return copy.withMakeBalance(makeBalance.value, protocolCommissionProvider.get())
+
+    }
+
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
+            .withUpdatedNonce()
         val saved = orderRepository.save(order)
         logger.info(buildString {
             append("Updated order: ")
