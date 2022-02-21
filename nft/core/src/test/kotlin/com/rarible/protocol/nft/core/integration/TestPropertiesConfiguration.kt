@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
+import com.rarible.core.content.meta.loader.ContentMetaLoader
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -71,6 +72,11 @@ class TestPropertiesConfiguration {
     @Primary
     @Qualifier("mockItemMetaResolver")
     fun mockItemMetaResolver(): ItemMetaResolver = mockk()
+
+    @Bean
+    @Primary
+    @Qualifier("test.content.meta.loader")
+    fun testContentMetaLoader(): ContentMetaLoader = mockk()
 
     @Bean
     @Primary
