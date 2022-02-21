@@ -275,7 +275,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             assertThat(partDto.value).isEqualTo(item.creators.toList()[index].value)
         }
 
-        itemDto.royalties.forEachIndexed { index, royaltyDto ->
+        itemDto?.royalties?.forEachIndexed { index, royaltyDto ->
             assertThat(royaltyDto.account).isEqualTo(item.royalties[index].account)
             assertThat(royaltyDto.value).isEqualTo(item.royalties[index].value)
         }

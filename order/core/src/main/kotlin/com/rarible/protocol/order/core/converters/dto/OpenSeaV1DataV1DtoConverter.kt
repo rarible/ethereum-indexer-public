@@ -23,7 +23,8 @@ object OpenSeaV1DataV1DtoConverter: Converter<OrderOpenSeaV1DataV1, OrderOpenSea
             replacementPattern = source.replacementPattern,
             staticTarget = source.staticTarget,
             staticExtraData = source.staticExtraData,
-            extra = source.extra
+            extra = source.extra,
+            target = source.target
         )
     }
 

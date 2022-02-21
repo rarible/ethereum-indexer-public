@@ -34,7 +34,7 @@
         <rarible.core.version>2.2.4</rarible.core.version>
         <rarible.blockchain.scanner.version>2.2.3</rarible.blockchain.scanner.version>
 
-        <rarible.protocol.ethereum.version>1.22.23</rarible.protocol.ethereum.version>
+        <rarible.protocol.ethereum.version>1.22.26</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.19.2</rarible.protocol.currency.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>
