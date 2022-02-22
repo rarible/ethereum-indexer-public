@@ -15,6 +15,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.time.Instant
 import java.util.*
 
@@ -65,13 +66,17 @@ class OrderAggregationController(
         } else {
             OrderCollectionStatsDto(
                 token = stat.id,
-                floorPrice = stat.floorPrice,
-                highestSale = stat.highestSale,
-                totalVolume = stat.totalVolume,
+                floorPrice = nullIfZero(stat.floorPrice),
+                highestSale = nullIfZero(stat.highestSale),
+                totalVolume = nullIfZero(stat.totalVolume),
                 lastUpdatedAt = stat.lastUpdatedAt
             )
         }
         return ResponseEntity.ok(result)
+    }
+
+    private fun nullIfZero(value: BigDecimal?): BigDecimal? {
+        return if (value != null && value.signum() > 0) value else null
     }
 
     override fun aggregateNftPurchaseByCollection(

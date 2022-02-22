@@ -2,19 +2,23 @@ package com.rarible.protocol.order.core.service
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
-import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionOrderStat
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollectionAndCurrency
 import com.rarible.protocol.order.core.repository.CollectionOrderStatRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
@@ -29,7 +33,9 @@ import java.math.BigDecimal
 @Component
 class CollectionOrderStatService(
     private val collectionStatRepository: CollectionOrderStatRepository,
-    private val exchangeHistoryRepository: ExchangeHistoryRepository
+    private val exchangeHistoryRepository: ExchangeHistoryRepository,
+    private val orderRepository: OrderRepository,
+    private val priceUpdateService: PriceUpdateService
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -42,17 +48,17 @@ class CollectionOrderStatService(
         stat ?: collectionStatRepository.save(CollectionOrderStat.empty(token))
     }
 
-    suspend fun updateStat(token: Address): CollectionOrderStat {
+    suspend fun updateStat(token: Address, currencies: List<Address>): CollectionOrderStat {
         val result = coroutineScope {
             val sellStatsDeferred = async { evalSaleStats(token) }
-            val floorPriceDeferred = async { evalFloorPrice() }
+            val floorPriceDeferred = async { evalFloorPrice(token, currencies) }
             val sellStats = sellStatsDeferred.await()
             CollectionOrderStat(
                 id = token,
                 lastUpdatedAt = nowMillis(),
                 totalVolume = sellStats.totalVolume,
                 highestSale = sellStats.highestSale,
-                floorPrice = floorPriceDeferred.await()
+                floorPrice = floorPriceDeferred.await() ?: BigDecimal.ZERO
             )
         }
         return optimisticLock {
@@ -87,9 +93,24 @@ class CollectionOrderStatService(
         ).collectList().awaitFirst().first()
     }
 
-    private suspend fun evalFloorPrice(): BigDecimal {
-        // TODO implement
-        return BigDecimal.ZERO
+    private suspend fun evalFloorPrice(token: Address, currencies: List<Address>): BigDecimal? {
+        val bestOrders = coroutineScope {
+            currencies.map {
+                async { evalFloorPrice(token, it) }
+            }.awaitAll().filterNotNull()
+        }
+
+        return bestOrders.mapNotNull {
+            priceUpdateService.getAssetsUsdValue(it.make, it.take, nowMillis())?.makePriceUsd
+        }.minOrNull()
+    }
+
+    private suspend fun evalFloorPrice(token: Address, currency: Address): Order? {
+        val filter = OrderFilterSellByCollectionAndCurrency(
+            contract = token,
+            currency = currency
+        )
+        return orderRepository.search(filter.toQuery(null, 1)).firstOrNull()
     }
 
     data class SalesStats(
