@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -43,21 +44,15 @@ data class OrderFilterSellByCollectionAndCurrency(
     }.toString()
 
     private fun Criteria.forToken(token: Address): Criteria {
-        return this.andOperator(
-            Order::make / Asset::type / NftAssetType::token isEqualTo token
-        )
+        return and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
     }
 
     private fun Criteria.forNft(): Criteria {
-        return this.andOperator(
-            Order::make / Asset::type / NftAssetType::nft isEqualTo true
-        )
+        return and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
     }
 
     fun Criteria.forStatus(): Criteria {
-        return this.andOperator(
-            Order::status isEqualTo OrderStatus.ACTIVE
-        )
+        return and(Order::status).isEqualTo(OrderStatus.ACTIVE)
     }
 
     private fun hint(): Document = OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION.indexKeys
