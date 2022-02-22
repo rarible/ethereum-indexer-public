@@ -4,8 +4,10 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.service.OpenSeaNonceService
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -32,6 +34,9 @@ import javax.annotation.PostConstruct
 
 abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var sender: MonoTransactionSender
+
+    @Autowired
+    protected lateinit var nonceHistoryRepository: NonceHistoryRepository
 
     @Autowired
     protected lateinit var mongo: ReactiveMongoOperations

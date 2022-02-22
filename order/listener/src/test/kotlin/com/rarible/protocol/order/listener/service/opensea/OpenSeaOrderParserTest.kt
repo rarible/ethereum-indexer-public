@@ -3,18 +3,8 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.mongodb.internal.connection.tlschannel.util.Util.assertTrue
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toBinary
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.Erc721AssetType
-import com.rarible.protocol.order.core.model.EthAssetType
-import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.NftAssetType
-import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
-import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
-import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
-import com.rarible.protocol.order.core.model.OpenSeaOrderSide
-import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -33,9 +23,7 @@ import java.math.BigInteger
 
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
-        OrderIndexerProperties.ExchangeContractAddresses(Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO(), Address.ZERO()),
         TraceCallService(NoopTransactionTraceProvider()),
-        mockk()
     )
 
     private val callDataEncoder = CallDataEncoder()

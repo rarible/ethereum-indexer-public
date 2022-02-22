@@ -4,12 +4,14 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
+import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -56,7 +58,10 @@ class OpenSeaOrderEventConverter(
         require(buyOrder.target == sellOrder.target) { "buy and sell target token must equals" }
         require(buyOrder.paymentToken == sellOrder.paymentToken) { "buy and sell payment token must equals" }
 
-        val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return emptyList()
+        val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return run {
+            logger.warn("Can't parse transefr for orders $openSeaOrders")
+            emptyList()
+        }
         val nftAsset = createNftAsset(sellOrder.target, transfer)
         val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
 
@@ -117,7 +122,7 @@ class OpenSeaOrderEventConverter(
         )
     }
 
-    suspend fun convert(order: OpenSeaTransactionOrder, date: Instant): List<OrderCancel> {
+    suspend fun convert(order: OpenSeaTransactionOrder, date: Instant, event: OrderCancelledEvent, eip712: Boolean): List<OrderCancel> {
         val transfer = encodeTransfer(order.callData) ?: return emptyList()
         val nftAsset = createNftAsset(order.target, transfer)
         val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
@@ -127,7 +132,7 @@ class OpenSeaOrderEventConverter(
         }
         return listOf(
             OrderCancel(
-                hash = order.hash,
+                hash = if (eip712) Word.apply(event.hash()) else order.hash,
                 make = make.copy(value = EthUInt256.ZERO),
                 take = take.copy(value = EthUInt256.ZERO),
                 maker = order.maker,
@@ -217,7 +222,7 @@ class OpenSeaOrderEventConverter(
             IERC721.safeTransferFromSignature(),
             MerkleValidator.matchERC721UsingCriteriaSignature().id(),
             MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature().id(),
-            MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature() -> {
+            MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
             else -> {

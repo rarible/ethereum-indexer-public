@@ -21,7 +21,7 @@ class CreateERC721RaribleUserLogDescriptor : LogEventDescriptor<CreateCollection
 
     override val topic: Word = CreateERC721RaribleUserEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Mono<CreateCollection> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Mono<CreateCollection> {
         val e = CreateERC721RaribleUserEvent.apply(log)
 
         return CreateCollection(

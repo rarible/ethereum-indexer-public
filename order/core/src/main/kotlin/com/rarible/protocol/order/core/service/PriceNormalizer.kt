@@ -12,7 +12,6 @@ import java.math.BigInteger
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-@CaptureSpan(type = SpanType.APP)
 class PriceNormalizer(
     private val contractService: ContractService
 ) {

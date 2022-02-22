@@ -32,13 +32,15 @@ class OpenEthereumTransactionTraceTest {
     @Tag("manual")
     @Disabled
     fun `find all traces for openethereum`() = runBlocking<Unit> {
-        val ethereum = MonoEthereum(WebClientTransport("https://node-mainnet.rarible.com", MonoEthereum.mapper(), 60000, 60000))
+        val ethereum = MonoEthereum(object : WebClientTransport("https://node-mainnet.rarible.com", MonoEthereum.mapper(), 60000, 60000) {
+            override fun maxInMemorySize(): Int = 100000000
+        })
         val testing = OpenEthereumTransactionTraceProvider(ethereum)
         val traceResult = testing.traceAndFindAllCallsTo(
-            Word.apply("0x69069701fc5b2a42519615134cc86fa43589a4e41895149c40f793b62f76255b"),
-            Address.apply("0x7be8076f4ea4a4ad08075c2508e481d6c946d12b"),
+            Word.apply("0x3163b526e47333c9e66affb3124544e963ef0126bf9c6a3abfdaf30dd47efd7f"),
+            Address.apply("0x7f268357a8c2552623316e2562d90e642bb538e5"),
             Binary.apply("0xab834bab")
         )
-        assertThat(traceResult.count()).isEqualTo(3)
+        assertThat(traceResult.count()).isEqualTo(18)
     }
 }

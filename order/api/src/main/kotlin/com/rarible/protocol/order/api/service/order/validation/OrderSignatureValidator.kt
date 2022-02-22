@@ -13,12 +13,13 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.CommonSigner
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 @Service
 @CaptureSpan(type = SpanType.APP)
 class OrderSignatureValidator(
-    var eip712Domain: EIP712Domain,
+    @Qualifier("raribleExchangeV2") var eip712Domain: EIP712Domain,
     private val legacySigner: CommonSigner,
     private val erc1271SignService: ERC1271SignService
 ) {

@@ -36,22 +36,25 @@ class WyvernExchangeOrderCancelDescriptor(
 
     override val topic: Word = OrderCancelledEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OrderCancel> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderCancel> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val transactionHash =  log.transactionHash()
+        val event = OrderCancelledEvent.apply(log)
         logger.info("Got OrderCancel event, tx=$transactionHash")
 
         val order = openSeaOrderParser.parseCancelOrder(transaction.input())
         return if (order != null) {
-            openSeaOrderEventConverter.convert(order, date)
+            openSeaOrderEventConverter.convert(order, date, event, log.address() == exchangeContractAddresses.openSeaV2)
         } else {
             logger.warn("Can't parser OpenSea cancel transaction ${transaction.value()}")
             emptyList()
         }
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.openSeaV1))
+    override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
+        listOf(exchangeContractAddresses.openSeaV1, exchangeContractAddresses.openSeaV2)
+    )
 }

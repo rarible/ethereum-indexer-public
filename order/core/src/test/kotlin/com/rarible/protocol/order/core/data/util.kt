@@ -1,15 +1,14 @@
 package com.rarible.protocol.order.core.data
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomAddress
-import com.rarible.core.test.data.randomBigInt
-import com.rarible.core.test.data.randomInt
-import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.*
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.*
 import com.rarible.protocol.order.core.model.*
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -53,6 +52,28 @@ fun createOrderVersion(): OrderVersion {
         end = null,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null
+    )
+}
+
+fun createOrderOpenSeaV1DataV1(): OrderOpenSeaV1DataV1 {
+    return OrderOpenSeaV1DataV1(
+        exchange = randomAddress(),
+        makerRelayerFee = BigInteger.ZERO,
+        takerRelayerFee = BigInteger.ZERO,
+        makerProtocolFee = BigInteger.ZERO,
+        takerProtocolFee = BigInteger.ZERO,
+        feeRecipient = randomAddress(),
+        feeMethod = OpenSeaOrderFeeMethod.values().random(),
+        side = OpenSeaOrderSide.values().random(),
+        saleKind = OpenSeaOrderSaleKind.values().random(),
+        howToCall = OpenSeaOrderHowToCall.values().random(),
+        callData = Binary.empty(),
+        replacementPattern = Binary.empty(),
+        staticTarget = randomAddress(),
+        staticExtraData = Binary.empty(),
+        extra = BigInteger.ZERO,
+        target = randomAddress(),
+        nonce = randomLong()
     )
 }
 

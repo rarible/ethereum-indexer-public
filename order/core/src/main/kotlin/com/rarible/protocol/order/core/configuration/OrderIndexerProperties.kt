@@ -17,6 +17,8 @@ data class OrderIndexerProperties(
     val kafkaReplicaSet: String,
     val eip712DomainName: String,
     val eip712DomainVersion: String,
+    val openseaEip712DomainName: String,
+    val openseaEip712DomainVersion: String,
     val chainId: Int,
     var operatorPrivateKey: Binary,
     val protocolCommission: Int,
@@ -38,6 +40,7 @@ data class OrderIndexerProperties(
         var v1Old: Address? = null,
         var v2: Address,
         var openSeaV1: Address,
+        var openSeaV2: Address,
         var cryptoPunks: Address
     )
 
@@ -62,6 +65,7 @@ data class OrderIndexerProperties(
         val showAllOrdersByDefault: Boolean = false,
         val showOpenSeaOrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
-        val hideInactiveOrders: Boolean = false
+        val hideInactiveOrders: Boolean = false,
+        val maxOpenSeaNonceCalculation: Int = 10
     )
 }

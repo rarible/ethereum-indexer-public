@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
@@ -41,7 +42,8 @@ class OrderReduceService(
     private val assetMakeBalanceProvider: AssetMakeBalanceProvider,
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val openSeaNonceService: OpenSeaNonceService
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -269,10 +271,28 @@ class OrderReduceService(
         return if (orderUsdValue != null) withOrderUsdValue(orderUsdValue) else this
     }
 
+    private suspend fun Order.withUpdatedNonce(): Order {
+        if (this.type != OrderType.OPEN_SEA_V1) return this
+        val nonce = (this.data as? OrderOpenSeaV1DataV1)?.nonce ?: return this
+        val makerNonce = openSeaNonceService.getLatestMakerNonce(this.maker)
+        return if (nonce != makerNonce.nonce.value.toLong()) {
+            logger.info("Cancel order $hash as order nonce $nonce is not match current maker nonce $makerNonce")
+            this.copy(
+                cancelled = true,
+                lastUpdateAt = maxOf(this.lastUpdateAt, makerNonce.timestamp),
+                lastEventId = accumulateEventId(this.lastEventId, makerNonce.historyId)
+            )
+        } else {
+            this
+        }
+    }
+
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
+            .withUpdatedNonce()
+
         val saved = orderRepository.save(order)
         logger.info(buildString {
             append("Updated order: ")

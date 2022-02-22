@@ -1,12 +1,10 @@
 package com.rarible.protocol.nft.api.service.pending
 
-import com.rarible.blockchain.scanner.ethereum.model.EthereumDescriptor
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
-import com.rarible.blockchain.scanner.ethereum.service.EthereumLogService
+import com.rarible.blockchain.scanner.ethereum.repository.EthereumLogRepository
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.ethereum.log.domain.TransactionDto
 import com.rarible.protocol.nft.core.model.HistoryTopics
-import com.rarible.protocol.nft.core.model.SubscriberGroups
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -18,7 +16,7 @@ import scalether.domain.Address
 
 abstract class AbstractPendingTransactionService(
     private val entityEventListeners: List<EntityEventListener>,
-    private val ethereumLogService: EthereumLogService,
+    private val ethereumLogRepository: EthereumLogRepository,
     private val historyTopics: HistoryTopics
 ) : PendingTransactionService {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -37,16 +35,8 @@ abstract class AbstractPendingTransactionService(
 
     private suspend fun saveOrReturn(logRecord: ReversedEthereumLogRecord): ReversedEthereumLogRecord {
         return try {
-            ethereumLogService.save(
-                EthereumDescriptor(
-                    ethTopic = logRecord.topic,
-                    groupId = SubscriberGroups.ITEM_HISTORY,
-                    collection = requireNotNull(historyTopics[logRecord.topic]) { "Can't find collection for topic ${logRecord.topic}" },
-                    contracts = emptyList(),
-                    entityType = ReversedEthereumLogRecord::class.java
-                ),
-                listOf(logRecord)
-            ).single() as ReversedEthereumLogRecord
+            val collection = requireNotNull(historyTopics[logRecord.topic]) { "Can't find collection for topic ${logRecord.topic}" }
+            ethereumLogRepository.save(collection, logRecord) as ReversedEthereumLogRecord
         } catch (e: DuplicateKeyException) {
             logger.warn("history already created")
             logRecord

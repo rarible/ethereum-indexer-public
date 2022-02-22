@@ -4,17 +4,14 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.Tuples.keccak256
+import com.rarible.protocol.order.core.misc.plus
 import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import scala.Tuple10
-import scala.Tuple3
-import scala.Tuple4
-import scala.Tuple5
-import scala.Tuple9
+import scala.*
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -457,6 +454,52 @@ data class Order(
             )
         }
 
+        fun openSeaV1EIP712Hash(
+            maker: Address,
+            taker: Address?,
+            paymentToken: Address,
+            basePrice: BigInteger,
+            salt: BigInteger,
+            start: Long?,
+            end: Long?,
+            data: OrderOpenSeaV1DataV1
+        ): Word {
+            val p1 = Tuples.openseaV1HashTypeP1().encode(
+                Tuple22(
+                    OPENSEA_ORDER_TYPE_HASH.bytes(),
+                    data.exchange,
+                    maker,
+                    taker ?: Address.ZERO(),
+                    data.makerRelayerFee,
+                    data.takerRelayerFee,
+                    data.makerProtocolFee,
+                    data.takerProtocolFee,
+                    data.feeRecipient,
+                    data.feeMethod.value,
+                    data.side.value,
+                    data.saleKind.value,
+                    data.target!!,
+                    data.howToCall.value,
+                    keccak256(data.callData).bytes(),
+                    keccak256(data.replacementPattern).bytes(),
+                    data.staticTarget,
+                    keccak256(data.staticExtraData).bytes(),
+                    paymentToken,
+                    basePrice,
+                    data.extra,
+                    (start ?: 0).toBigInteger()
+                )
+            )
+            val p2 = Tuples.openseaV1HashTypeP2().encode(
+                Tuple3(
+                    (end ?: 0).toBigInteger(),
+                    salt,
+                    BigInteger.valueOf(data.nonce!!)
+                )
+            )
+            return keccak256(p1 + p2)
+        }
+
         fun hashKey(
             maker: Address,
             makeAssetType: AssetType,
@@ -494,6 +537,8 @@ data class Order(
 
         private val TYPE_HASH =
             keccak256("Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)")
+
+        val OPENSEA_ORDER_TYPE_HASH = Word.apply("0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8")
 
         fun getFeeSide(make: AssetType, take: AssetType): FeeSide {
             return when {

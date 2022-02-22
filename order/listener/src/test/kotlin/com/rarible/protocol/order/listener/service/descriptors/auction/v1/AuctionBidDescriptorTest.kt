@@ -44,12 +44,14 @@ internal class AuctionBidDescriptorTest : AbstractAuctionDescriptorTest() {
             auctionHouse.putBid(chainAuction.auctionId.value, bid.forTx()).withSender(userSender2).execute().verifySuccess()
 
             Wait.waitAssert {
-                val events = auctionHistoryRepository.findByType(AuctionHistoryType.BID_PLACED).collectList().awaitFirst()
+                val events = auctionHistoryRepository.findByType(AuctionHistoryType.BID_PLACED).collectList()
+                    .awaitFirst()
                 Assertions.assertThat(events).hasSize(1)
 
                 val bidEvent = events.map { event -> event.data as BidPlaced }.single()
                 Assertions.assertThat(bidEvent.auctionId).isEqualTo(chainAuction.auctionId)
-                Assertions.assertThat(bidEvent.bid).isEqualTo(bid)
+                // Date could be a bit different - depends on time of block
+                Assertions.assertThat(bidEvent.bid).isEqualTo(bid.copy(date = bidEvent.date))
                 Assertions.assertThat(bidEvent.buyer).isEqualTo(userSender2.from())
 
                 val auction = auctionRepository.findById(chainAuction.hash)

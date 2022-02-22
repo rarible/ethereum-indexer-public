@@ -83,7 +83,8 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = null
+                target = null,
+                nonce = null,
             ),
             createdAt = nowMillis(),
             makePriceUsd = null,
@@ -94,7 +95,7 @@ internal class WyvernExchangeOrderCancelDescriptorTest : AbstractOpenSeaV1Test()
             takeUsd = null
         )
         val hash = Order.hash(sellOrderVersion)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
         logger.info("Sell order hash: $hash, hash to sing: $hashToSign")
 
         val signature = hashToSign.sign(privateKey1)

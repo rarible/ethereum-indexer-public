@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.api.service.pending
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
+import com.rarible.blockchain.scanner.ethereum.repository.EthereumLogRepository
 import com.rarible.blockchain.scanner.ethereum.service.EthereumLogService
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc1155.TransferSingleEvent
@@ -49,9 +50,9 @@ class PendingTransactionServiceImp(
     private val tokenRepository: TokenRepository,
     private val properties: NftIndexerProperties,
     entityEventListeners: List<EntityEventListener>,
-    ethereumLogService: EthereumLogService,
+    ethereumLogRepository: EthereumLogRepository,
     historyTopics: HistoryTopics
-) : AbstractPendingTransactionService(entityEventListeners, ethereumLogService, historyTopics) {
+) : AbstractPendingTransactionService(entityEventListeners, ethereumLogRepository, historyTopics) {
 
     private fun erc721Factory() = setOf(
         Address.apply(properties.factory.erc721Rarible),

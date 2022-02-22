@@ -38,7 +38,7 @@ class ExchangeV2UpsertOrderDescriptor(
 
     override fun getAddresses(): Mono<Collection<Address>> = listOf(exchangeContractAddresses.v2).toMono()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<OnChainOrder> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OnChainOrder> {
         val event = UpsertOrderEvent.apply(log)
         val order = event.order()
         val date = Instant.ofEpochSecond(timestamp)

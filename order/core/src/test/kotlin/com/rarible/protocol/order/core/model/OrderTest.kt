@@ -6,12 +6,48 @@ import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.withMakeFill
+import io.daonomic.rpc.domain.Binary
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigInteger
 
 class OrderTest {
+
+    @Test
+    fun `opensea eip712 hash is calculated correctly`() {
+        val hash = Order.openSeaV1EIP712Hash(
+            maker = Address.apply("0xe4b5439c6f3f3f38c4bea769dffb5fc53966410b"),
+            taker = Address.ZERO(),
+            paymentToken = Address.ZERO(),
+            basePrice = BigInteger("1000000000000000000"),
+            salt = BigInteger("12300750963342693992786613621038998771658003841568634014036697390942768250585"),
+            start = 1645176865L,
+            end = 1645781758L,
+            OrderOpenSeaV1DataV1(
+                exchange = Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744"),
+                makerRelayerFee = BigInteger("250"),
+                takerRelayerFee = BigInteger.ZERO,
+                makerProtocolFee = BigInteger.ZERO,
+                takerProtocolFee = BigInteger.ZERO,
+                feeRecipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
+                feeMethod = OpenSeaOrderFeeMethod.SPLIT_FEE,
+                side = OpenSeaOrderSide.SELL,
+                saleKind = OpenSeaOrderSaleKind.FIXED_PRICE,
+                howToCall = OpenSeaOrderHowToCall.DELEGATE_CALL,
+                callData = Binary.apply("0xfb16a595000000000000000000000000e4b5439c6f3f3f38c4bea769dffb5fc53966410b00000000000000000000000000000000000000000000000000000000000000000000000000000000000000009336916ad1b2a564de188020fbfb920abb0804420000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000000"),
+                replacementPattern = Binary.apply("0x000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+                staticTarget = Address.ZERO(),
+                staticExtraData = Binary.empty(),
+                extra = BigInteger.ZERO,
+                target = Address.apply("0x45b594792a5cdc008d0de1c1d69faa3d16b3ddc1"),
+                nonce = 0L
+            )
+        )
+        assertThat(hash).isEqualTo(Binary.apply("0x1879973b20431b35d0bc0ba145b95fd2f2f3b5676a232fd2c78aa2f87b3703d8"))
+    }
 
     @Test
     fun `should calculate make stock for bid`() {
