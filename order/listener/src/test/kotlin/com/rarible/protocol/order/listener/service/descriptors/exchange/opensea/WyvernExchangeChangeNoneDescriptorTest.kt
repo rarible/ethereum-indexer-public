@@ -1,10 +1,15 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.opensea
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.ChangeNonceHistory
+import com.rarible.protocol.order.core.model.MakeBalanceState
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -83,17 +88,22 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
         coEvery {
             assetBalanceProvider.getAssetStock(eq(userSender1.from()), any())
         } returns MakeBalanceState(EthUInt256.of(Long.MAX_VALUE))
+
+        val before = nowMillis().minusSeconds(5)
+
         val orderVersion1 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.OPEN_SEA_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0)
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            createdAt = before
         )
         val orderVersion2 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.OPEN_SEA_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0)
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            createdAt = before
         )
         listOf(orderVersion1, orderVersion2).forEach {
             val order = orderUpdateService.save(it)
