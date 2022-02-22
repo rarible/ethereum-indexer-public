@@ -1,10 +1,14 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.Platform
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
@@ -34,8 +38,9 @@ internal class OrderRepositoryIt {
     private lateinit var delegate: OrderRepository
 
     @BeforeEach
-    fun beforeEach() {
+    fun beforeEach() = runBlocking<Unit> {
         delegate = MongoOrderRepository(mongo)
+        delegate.createIndexes()
     }
 
     @Test
@@ -75,6 +80,48 @@ internal class OrderRepositoryIt {
 
         val removedOrder = delegate.findById(hash)
         assertThat(removedOrder).isNull()
+    }
+
+    @Test
+    fun `find all maker OpenSea hashes`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val currentNonce = 0L
+        val newNonce = 1L
+        val order1 = createOrder().copy(
+            maker = maker,
+            platform = Platform.OPEN_SEA,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
+        )
+        val order2 = createOrder().copy(
+            maker = maker,
+            platform = Platform.OPEN_SEA,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
+        )
+        val order3 = createOrder().copy(
+            maker = maker,
+            platform = Platform.OPEN_SEA,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = newNonce)
+        )
+        val order4 = createOrder().copy(
+            maker = maker,
+            platform = Platform.RARIBLE,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
+        )
+        val order5 = createOrder().copy(
+            maker = randomAddress(),
+            platform = Platform.OPEN_SEA,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = currentNonce)
+        )
+        val order6 = createOrder().copy(
+            maker = randomAddress(),
+            platform = Platform.OPEN_SEA,
+            data = createOrderOpenSeaV1DataV1().copy(nonce = newNonce)
+        )
+        listOf(order1, order2, order3, order4, order5, order6).forEach {
+            delegate.save(it)
+        }
+        val hashes = delegate.findOpenSeaHashesByMakerAndByNonce(maker, currentNonce, newNonce).toList()
+        assertThat(hashes).containsExactlyInAnyOrder(order1.hash, order2.hash)
     }
 }
 

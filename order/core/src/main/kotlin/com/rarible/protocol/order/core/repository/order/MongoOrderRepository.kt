@@ -10,13 +10,16 @@ import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.Document
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -37,6 +40,7 @@ import org.springframework.data.mongodb.core.query.lte
 import org.springframework.data.mongodb.core.query.ne
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 import java.util.*
 
@@ -173,6 +177,28 @@ class MongoOrderRepository(
             .and(Order::make / Asset::type / NftAssetType::token).isEqualTo(token)
             .and(Order::make / Asset::type / NftAssetType::tokenId).isEqualTo(tokenId)
         return template.find(Query(criteria), Order::class.java).awaitFirstOrNull()
+    }
+
+    override suspend fun findOpenSeaHashesByMakerAndByNonce(
+        maker: Address,
+        fromIncluding: Long,
+        toExcluding: Long
+    ): Flow<Word> {
+        val idFiled = "_id"
+        val query = Query(
+            Criteria().andOperator(
+                Order::platform isEqualTo Platform.OPEN_SEA,
+                Order::maker isEqualTo maker,
+                Order::data /  OrderOpenSeaV1DataV1::nonce gte fromIncluding,
+                Order::data /  OrderOpenSeaV1DataV1::nonce lt toExcluding,
+            )
+        )
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_AND_NONCE.indexKeys)
+        query.fields().include(idFiled)
+        return template
+            .find(query, Document::class.java, COLLECTION)
+            .map { Word.apply(it.getString(idFiled)) }
+            .asFlow()
     }
 
     override suspend fun findByTake(token: Address, tokenId: EthUInt256): Order? {
