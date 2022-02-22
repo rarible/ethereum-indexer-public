@@ -22,7 +22,7 @@
     </repositories>
 
     <properties>
-        <revision>1.23</revision>
+        <revision>1.24</revision>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-gateway.version>3.0.4</spring-cloud-gateway.version>
