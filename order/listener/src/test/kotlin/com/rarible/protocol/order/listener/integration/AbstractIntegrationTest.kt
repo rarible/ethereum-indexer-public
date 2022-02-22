@@ -9,8 +9,11 @@ import com.rarible.core.test.ext.KafkaTestExtension.Companion.kafkaContainer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.common.NewKeys
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.BlockHead
+import com.rarible.ethereum.listener.log.domain.BlockStatus
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.ethereum.listener.log.persist.BlockRepository
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.CurrencyRateDto
@@ -135,6 +138,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
     @Autowired
     lateinit var meterRegistry: MeterRegistry
 
+    @Autowired
+    lateinit var blockRepository: BlockRepository
+
     protected lateinit var parity: MonoParity
 
     protected lateinit var consumer: RaribleKafkaConsumer<ActivityDto>
@@ -181,6 +187,26 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
         orderVersionRepository.dropIndexes()
         exchangeHistoryRepository.createIndexes()
         exchangeHistoryRepository.dropIndexes()
+
+        ignorePreviousNodeBlocks()
+    }
+
+    /**
+     * Insert the current node's block as the latest known to ignore all blocks from previous tests.
+     */
+    private fun ignorePreviousNodeBlocks() = runBlocking<Unit> {
+        val currentBlockNumber = ethereum.ethBlockNumber().awaitFirst()
+        val currentBlock = ethereum.ethGetBlockByNumber(currentBlockNumber).awaitFirst()
+        try {
+            val blockHead = BlockHead(
+                id = currentBlock.blockNumber.toLong(),
+                hash = currentBlock.hash(),
+                timestamp = currentBlock.timestamp().toLong(),
+                status = BlockStatus.SUCCESS
+            )
+            blockRepository.save(blockHead)
+        } catch (ex: Throwable) {
+        }
     }
 
     @BeforeEach
