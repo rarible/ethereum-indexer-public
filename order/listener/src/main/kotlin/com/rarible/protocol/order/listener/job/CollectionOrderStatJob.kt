@@ -31,7 +31,6 @@ class CollectionOrderStatJob(
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    // PROD addresses
     private val currencies = listOf(Address.ZERO()) + // ETH
         currencyList.split(",")
             .map { Address.apply(it.trim()) }
