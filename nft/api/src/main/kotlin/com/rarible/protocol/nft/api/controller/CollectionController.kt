@@ -2,27 +2,52 @@ package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftCollectionDto
+import com.rarible.protocol.dto.NftCollectionStatsDto
 import com.rarible.protocol.dto.NftCollectionsDto
 import com.rarible.protocol.dto.NftTokenIdDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.colllection.CollectionService
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.page.PageSize
+import com.rarible.protocol.nft.core.service.CollectionStatService
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 import scalether.domain.Address
+import java.time.Instant
 
 @RestController
 class CollectionController(
     private val collectionService: CollectionService,
-    private val conversionService: ConversionService
+    private val conversionService: ConversionService,
+    private val collectionStatService: CollectionStatService
 ) : NftCollectionControllerApi {
 
     override suspend fun getNftCollectionById(
         collection: String
     ): ResponseEntity<NftCollectionDto> {
         val result = collectionService.get(AddressParser.parse(collection))
+        return ResponseEntity.ok(result)
+    }
+
+    // TODO remove later
+    override suspend fun getNftCollectionStats(collection: String): ResponseEntity<NftCollectionStatsDto> {
+        val address = AddressParser.parse(collection)
+        collectionService.get(address) // To throw 404 if not found
+
+        val stat = collectionStatService.getOrSchedule(address)
+
+        // Initial stat record, not filled with real data yet
+        val result = if (stat.lastUpdatedAt == Instant.EPOCH) {
+            NftCollectionStatsDto(token = stat.id)
+        } else {
+            NftCollectionStatsDto(
+                token = stat.id,
+                totalItemSupply = stat.totalItemSupply,
+                totalOwnerCount = stat.totalOwnerCount,
+                lastUpdatedAt = stat.lastUpdatedAt
+            )
+        }
         return ResponseEntity.ok(result)
     }
 

@@ -2,6 +2,8 @@ package com.rarible.protocol.nft.core.repository.ownership
 
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -45,6 +47,13 @@ class OwnershipRepository(
             .awaitFirst()
     }
 
+    suspend fun searchAsFlow(query: Query?): Flow<Ownership> {
+        return mongo.query<Ownership>()
+            .matching(query ?: Query())
+            .all()
+            .asFlow()
+    }
+
     fun deleteById(id: OwnershipId): Mono<Ownership> {
         return mongo.findAndRemove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java)
     }
@@ -64,6 +73,7 @@ class OwnershipRepository(
     }
 
     companion object {
+
         const val COLLECTION = "ownership"
     }
 }
