@@ -44,7 +44,6 @@ internal class RevertEventApplyPolicyTest {
     }
 
     @Test
-    @Disabled
     fun `should throw exception if event not from tail`() {
         val mint = createRandomMintItemEvent().withNewValues(
             status = EthereumLogStatus.CONFIRMED,
