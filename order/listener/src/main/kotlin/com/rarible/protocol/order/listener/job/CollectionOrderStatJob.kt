@@ -1,9 +1,9 @@
-package com.rarible.protocol.nft.listener.job
+package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.withTransaction
-import com.rarible.protocol.nft.core.model.CollectionStat
-import com.rarible.protocol.nft.core.repository.CollectionStatRepository
-import com.rarible.protocol.nft.core.service.CollectionStatService
+import com.rarible.protocol.order.core.model.CollectionOrderStat
+import com.rarible.protocol.order.core.repository.CollectionOrderStatRepository
+import com.rarible.protocol.order.core.service.CollectionOrderStatService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Component
-class CollectionStatJob(
-    private val collectionStatRepository: CollectionStatRepository,
-    private val collectionStatService: CollectionStatService,
+class CollectionOrderStatJob(
+    private val collectionOrderStatRepository: CollectionOrderStatRepository,
+    private val collectionOrderStatService: CollectionOrderStatService,
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
     @Value("\${listener.collectionStatRefresh.timeOffset:PT1H}")
@@ -33,22 +33,25 @@ class CollectionStatJob(
         initialDelayString = "PT1M"
     )
     fun execute() = runBlocking<Unit> {
-        logger.info("Starting CollectionStatJob")
+        logger.info("Starting CollectionOrderStatJob")
         if (enabled) {
             do {
                 val updated = updateOld(batchSize, timeOffset)
-                logger.info("Updated collection stats: {}", updated.size)
+                logger.info("Updated collection order stats: {}", updated.size)
             } while (updated.isNotEmpty())
         }
     }
 
-    private suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionStat> {
-        val oldStats = collectionStatRepository.findOld(batchSize, timeOffset)
+    private suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionOrderStat> {
+        val oldStats = collectionOrderStatRepository.findOld(batchSize, timeOffset)
         return coroutineScope {
             oldStats.map {
                 async {
-                    withTransaction(name = "updateCollectionStats", labels = listOf("collection" to it.id.prefixed())) {
-                        collectionStatService.updateStat(it.id)
+                    withTransaction(
+                        name = "updateCollectionOrderStats",
+                        labels = listOf("collection" to it.id.prefixed())
+                    ) {
+                        collectionOrderStatService.updateStat(it.id)
                     }
                 }
             }.awaitAll()
