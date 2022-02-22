@@ -65,8 +65,8 @@ listener:
   metricJobStartEnd: "${common.metric-root-path}.job-start-end"
   # TODO remove later
   collectionStatRefresh:
-    rate: P1M
-    timeOffset: P1H
+    rate: PT1M
+    timeOffset: PT1H
     batchSize: 20
 
 ethereumMaxFrameSize: 209715200
