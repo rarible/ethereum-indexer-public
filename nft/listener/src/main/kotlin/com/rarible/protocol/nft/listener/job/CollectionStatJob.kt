@@ -31,7 +31,7 @@ class CollectionStatJob(
     suspend fun execute() {
         logger.info("Starting CollectionStatJob")
         do {
-            val updated = collectionStatService.updateOld(batchSize, timeOffset)
+            val updated = updateOld(batchSize, timeOffset)
             logger.info("Updated collection stats: {}", updated.size)
         } while (updated.isNotEmpty())
     }

@@ -9,15 +9,11 @@ import com.rarible.protocol.nft.core.model.OwnershipFilterByCollection
 import com.rarible.protocol.nft.core.repository.CollectionStatRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.reduce
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.time.Duration
 
 @Component
 class CollectionStatService(
@@ -30,17 +26,6 @@ class CollectionStatService(
     suspend fun getOrSchedule(token: Address): CollectionStat = optimisticLock {
         val stat = collectionStatRepository.get(token)
         stat ?: collectionStatRepository.save(CollectionStat.empty(token))
-    }
-
-    suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionStat> {
-        val oldStats = collectionStatRepository.findOld(batchSize, timeOffset)
-        return coroutineScope {
-            oldStats.map {
-                async {
-                    updateStat(it.id)
-                }
-            }.awaitAll()
-        }
     }
 
     @CaptureTransaction("updateCollectionStats")
