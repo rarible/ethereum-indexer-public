@@ -81,6 +81,7 @@ listener:
   itemAndOwnershipsCheckRate: PT8H
   # TODO remove later
   collectionStatRefresh:
+    enabled: true
     rate: PT1M
     timeOffset: PT1H
     batchSize: 20
