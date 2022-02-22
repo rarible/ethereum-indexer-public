@@ -69,6 +69,11 @@ api:
 
 listener:
   itemAndOwnershipsCheckRate: PT8H
+  # TODO remove later
+  collectionStatRefresh:
+    rate: P1M
+    timeOffset: P1H
+    batchSize: 20
 
 blockchain:
   scanner:
