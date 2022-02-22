@@ -320,8 +320,10 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         meta: NftCollectionMetaDto
     ) = coroutineScope {
         Wait.waitAssert {
-            assertThat(collectionEvents).anyMatch {
-                it is NftCollectionUpdateEventDto && it.collection.meta == meta
+            assertThat(collectionEvents).anySatisfy { event ->
+                assertThat(event).isInstanceOfSatisfying(NftCollectionUpdateEventDto::class.java) {
+                    assertThat(it.collection.meta).isEqualTo(meta)
+                }
             }
         }
     }
