@@ -48,7 +48,7 @@ class CollectionStatService(
         val result = ownerRepository.searchAsFlow(filter.toCriteria(null, null))
             .map { Pair(it.value.value, setOf(it.owner)) }
             .reduce { p1, p2 ->
-                Pair(p1.first + p2.first, p2.second + p2.second)
+                Pair(p1.first + p2.first, p1.second + p2.second)
             }
 
         return optimisticLock {
