@@ -8,10 +8,11 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.index.IndexFilter
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.exists
+import com.rarible.protocol.order.core.model.OrderStatus
+import org.springframework.data.mongodb.core.query.isEqualTo
 
 object OrderRepositoryIndexes {
 
@@ -76,6 +77,23 @@ object OrderRepositoryIndexes {
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::makePrice.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
+        .background()
+
+    // Best sell order of collection
+    // TODO remove later
+    val SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION = Index()
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on(Order::makePrice.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .partial(
+            PartialIndexFilter.of(
+                Criteria().andOperator(
+                    Order::status isEqualTo OrderStatus.ACTIVE,
+                    Order::make / Asset::type / AssetType::nft isEqualTo true
+                )
+            )
+        )
         .background()
 
     // Best sell order by ownership (used by Union to find best sell order for ownership)
@@ -231,6 +249,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_ITEM_PLATFORM_SORT_BY_USD_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_CURRENCY_STATUS_SORT_BY_PRICE_DEFINITION,
         SELL_ORDERS_BY_ITEM_MAKER_SORT_BY_PRICE_DEFINITION,
+        SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION,
 
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_STATUS_DEFINITION,

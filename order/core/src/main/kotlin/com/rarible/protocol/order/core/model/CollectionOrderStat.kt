@@ -8,7 +8,7 @@ import java.math.BigDecimal
 import java.time.Instant
 
 @Document("collection_stat")
-data class CollectionStat(
+data class CollectionOrderStat(
     @Id
     val id: Address,
     val lastUpdatedAt: Instant,
@@ -22,8 +22,8 @@ data class CollectionStat(
 
     companion object {
 
-        fun empty(token: Address): CollectionStat {
-            return CollectionStat(
+        fun empty(token: Address): CollectionOrderStat {
+            return CollectionOrderStat(
                 id = token,
                 lastUpdatedAt = Instant.EPOCH,
                 floorPrice = BigDecimal.ZERO,

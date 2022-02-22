@@ -21,7 +21,9 @@ class CollectionStatJob(
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
     @Value("\${listener.collectionStatRefresh.timeOffset:PT1H}")
-    private val timeOffset: Duration
+    private val timeOffset: Duration,
+    @Value("\${listener.collectionStatRefresh.enabled:true}")
+    private val enabled: Boolean
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -32,10 +34,12 @@ class CollectionStatJob(
     )
     fun execute() = runBlocking<Unit> {
         logger.info("Starting CollectionStatJob")
-        do {
-            val updated = updateOld(batchSize, timeOffset)
-            logger.info("Updated collection stats: {}", updated.size)
-        } while (updated.isNotEmpty())
+        if (enabled) {
+            do {
+                val updated = updateOld(batchSize, timeOffset)
+                logger.info("Updated collection stats: {}", updated.size)
+            } while (updated.isNotEmpty())
+        }
     }
 
     private suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionStat> {

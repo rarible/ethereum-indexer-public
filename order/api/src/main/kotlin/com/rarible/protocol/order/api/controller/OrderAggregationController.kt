@@ -1,20 +1,29 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.protocol.dto.AggregationDataDto
+import com.rarible.protocol.dto.OrderCollectionStatsDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.dto.parser.AddressParser
+import com.rarible.protocol.nft.api.client.NftCollectionControllerApi
 import com.rarible.protocol.order.api.service.aggregation.OrderAggregationService
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AggregationDataDtoConverter
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.service.CollectionOrderStatService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
+import java.time.Instant
 import java.util.*
 
 @RestController
 class OrderAggregationController(
-    private val orderAggregationService: OrderAggregationService
+    private val orderAggregationService: OrderAggregationService,
+    private val collectionOrderStatService: CollectionOrderStatService,
+    private val nftCollectionClient: NftCollectionControllerApi
 ) : OrderAggregationControllerApi {
 
     override fun aggregateNftSellByMaker(
@@ -43,6 +52,31 @@ class OrderAggregationController(
             .map { AggregationDataDtoConverter.convert(it) }
             .asFlow()
         return ResponseEntity.ok(result)
+    }
+
+    // TODO remove later
+    override suspend fun aggregateNftCollectionStats(collection: String): ResponseEntity<OrderCollectionStatsDto> {
+
+        nftCollectionClient.getNftCollectionById(collection).awaitFirst() // To throw 404 if not found
+        val stat = collectionOrderStatService.getOrSchedule(AddressParser.parse(collection))
+
+        // Initial stat record, not filled with real data yet
+        val result = if (stat.lastUpdatedAt == Instant.EPOCH) {
+            OrderCollectionStatsDto(token = stat.id)
+        } else {
+            OrderCollectionStatsDto(
+                token = stat.id,
+                floorPrice = nullIfZero(stat.floorPrice),
+                highestSale = nullIfZero(stat.highestSale),
+                totalVolume = nullIfZero(stat.totalVolume),
+                lastUpdatedAt = stat.lastUpdatedAt
+            )
+        }
+        return ResponseEntity.ok(result)
+    }
+
+    private fun nullIfZero(value: BigDecimal?): BigDecimal? {
+        return if (value != null && value.signum() > 0) value else null
     }
 
     override fun aggregateNftPurchaseByCollection(
