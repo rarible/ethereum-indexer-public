@@ -65,6 +65,7 @@ listener:
   metricJobStartEnd: "${common.metric-root-path}.job-start-end"
   # TODO remove later
   collectionStatRefresh:
+    enabled: true
     rate: PT1M
     timeOffset: PT1H
     batchSize: 20

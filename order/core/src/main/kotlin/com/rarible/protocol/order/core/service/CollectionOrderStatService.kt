@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -13,6 +14,8 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.CollectionOrderStatRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.LoggerFactory
 import org.springframework.data.annotation.Id
@@ -39,11 +42,31 @@ class CollectionOrderStatService(
         stat ?: collectionStatRepository.save(CollectionOrderStat.empty(token))
     }
 
-    suspend fun updateStat(token: Address): CollectionOrderStat {        // TODO add
-
+    suspend fun updateStat(token: Address): CollectionOrderStat {
+        val result = coroutineScope {
+            val sellStatsDeferred = async { evalSaleStats(token) }
+            val floorPriceDeferred = async { evalFloorPrice() }
+            val sellStats = sellStatsDeferred.await()
+            CollectionOrderStat(
+                id = token,
+                lastUpdatedAt = nowMillis(),
+                totalVolume = sellStats.totalVolume,
+                highestSale = sellStats.highestSale,
+                floorPrice = floorPriceDeferred.await()
+            )
+        }
+        return optimisticLock {
+            val exist = collectionStatRepository.get(token)
+            val updated = collectionStatRepository.save(result.copy(version = exist?.version))
+            logger.info(
+                "Updated collection stat for {}: totalVolume = {}, highestSale = {}, floorPrice = {}",
+                updated.id, updated.totalVolume, updated.highestSale, updated.floorPrice
+            )
+            updated
+        }
     }
 
-    private fun evalSales(token: Address): SalesStats? {
+    private suspend fun evalSaleStats(token: Address): SalesStats {
         val match = Aggregation.match(
             makeNftKey.isEqualTo(true)
                 .and(makeNftContractKey).isEqualTo(token)
@@ -61,14 +84,19 @@ class CollectionOrderStatService(
             aggregation,
             ExchangeHistoryRepository.COLLECTION,
             SalesStats::class.java
-        ).collectList().awaitFirst().firstOrNull()
+        ).collectList().awaitFirst().first()
+    }
+
+    private suspend fun evalFloorPrice(): BigDecimal {
+        // TODO implement
+        return BigDecimal.ZERO
     }
 
     data class SalesStats(
         @Id
         val collection: Address,
         val totalVolume: BigDecimal,
-        val highestSale: Long
+        val highestSale: BigDecimal
     )
 
 }

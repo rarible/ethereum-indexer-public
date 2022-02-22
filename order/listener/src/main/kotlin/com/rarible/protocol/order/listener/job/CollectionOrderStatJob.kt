@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.service.CollectionOrderStatService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -20,7 +21,9 @@ class CollectionOrderStatJob(
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
     @Value("\${listener.collectionStatRefresh.timeOffset:PT1H}")
-    private val timeOffset: Duration
+    private val timeOffset: Duration,
+    @Value("\${listener.collectionStatRefresh.enabled:true}")
+    private val enabled: Boolean
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -29,12 +32,14 @@ class CollectionOrderStatJob(
         fixedRateString = "\${listener.collectionStatRefresh.rate:PT1M}",
         initialDelayString = "PT1M"
     )
-    suspend fun execute() {
+    fun execute() = runBlocking<Unit> {
         logger.info("Starting CollectionOrderStatJob")
-        do {
-            val updated = updateOld(batchSize, timeOffset)
-            logger.info("Updated collection order stats: {}", updated.size)
-        } while (updated.isNotEmpty())
+        if (enabled) {
+            do {
+                val updated = updateOld(batchSize, timeOffset)
+                logger.info("Updated collection order stats: {}", updated.size)
+            } while (updated.isNotEmpty())
+        }
     }
 
     private suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionOrderStat> {
