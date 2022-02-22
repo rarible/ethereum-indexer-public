@@ -12,12 +12,15 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 import java.time.Duration
 
 @Component
 class CollectionOrderStatJob(
     private val collectionOrderStatRepository: CollectionOrderStatRepository,
     private val collectionOrderStatService: CollectionOrderStatService,
+    @Value("\${listener.collectionStatRefresh.currencies}")
+    private val currencyList: String,
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
     @Value("\${listener.collectionStatRefresh.timeOffset:PT1H}")
@@ -27,6 +30,12 @@ class CollectionOrderStatJob(
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    private val currencies = listOf(Address.ZERO()) + // ETH
+        currencyList.split(",")
+            .map { Address.apply(it.trim()) }
+            .toSet()
+            .toList()
 
     @Scheduled(
         fixedRateString = "\${listener.collectionStatRefresh.rate:PT1M}",
@@ -51,7 +60,7 @@ class CollectionOrderStatJob(
                         name = "updateCollectionOrderStats",
                         labels = listOf("collection" to it.id.prefixed())
                     ) {
-                        collectionOrderStatService.updateStat(it.id)
+                        collectionOrderStatService.updateStat(it.id, currencies)
                     }
                 }
             }.awaitAll()
