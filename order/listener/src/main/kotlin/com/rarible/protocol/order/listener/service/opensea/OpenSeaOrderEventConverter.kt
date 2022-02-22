@@ -59,7 +59,10 @@ class OpenSeaOrderEventConverter(
         require(buyOrder.target == sellOrder.target) { "buy and sell target token must equals" }
         require(buyOrder.paymentToken == sellOrder.paymentToken) { "buy and sell payment token must equals" }
 
-        val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return emptyList()
+        val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return run {
+            logger.warn("Can't parse transefr for orders $openSeaOrders")
+            emptyList()
+        }
         val nftAsset = createNftAsset(sellOrder.target, transfer)
         val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
 
