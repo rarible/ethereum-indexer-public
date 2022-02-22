@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.apm.CaptureTransaction
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
 import com.rarible.protocol.nft.core.model.CollectionStat
@@ -28,7 +27,6 @@ class CollectionStatService(
         stat ?: collectionStatRepository.save(CollectionStat.empty(token))
     }
 
-    @CaptureTransaction("updateCollectionStats")
     suspend fun updateStat(token: Address): CollectionStat {
         val filter = OwnershipFilterByCollection(OwnershipFilter.Sort.LAST_UPDATE, token)
 
