@@ -1,6 +1,11 @@
 package com.rarible.protocol.nft.listener.job
 
+import com.rarible.protocol.nft.core.model.CollectionStat
+import com.rarible.protocol.nft.core.repository.CollectionStatRepository
 import com.rarible.protocol.nft.core.service.CollectionStatService
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -9,6 +14,7 @@ import java.time.Duration
 
 @Component
 class CollectionStatJob(
+    private val collectionStatRepository: CollectionStatRepository,
     private val collectionStatService: CollectionStatService,
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
@@ -28,6 +34,17 @@ class CollectionStatJob(
             val updated = collectionStatService.updateOld(batchSize, timeOffset)
             logger.info("Updated collection stats: {}", updated.size)
         } while (updated.isNotEmpty())
+    }
+
+    private suspend fun updateOld(batchSize: Int, timeOffset: Duration): List<CollectionStat> {
+        val oldStats = collectionStatRepository.findOld(batchSize, timeOffset)
+        return coroutineScope {
+            oldStats.map {
+                async {
+                    collectionStatService.updateStat(it.id)
+                }
+            }.awaitAll()
+        }
     }
 
 }

@@ -5,7 +5,6 @@ import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.math.BigInteger
-import java.time.Duration
 import java.time.Instant
 
 @Document("collection_stat")
@@ -21,8 +20,6 @@ data class CollectionStat(
 ) {
 
     companion object {
-
-        val UPDATE_INTERVAL = Duration.ofHours(1)
 
         fun empty(token: Address): CollectionStat {
             return CollectionStat(
