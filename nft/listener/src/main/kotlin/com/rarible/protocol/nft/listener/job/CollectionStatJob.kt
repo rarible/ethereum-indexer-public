@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.service.CollectionStatService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
@@ -29,7 +30,7 @@ class CollectionStatJob(
         fixedRateString = "\${listener.collectionStatRefresh.rate:PT1M}",
         initialDelayString = "PT1M"
     )
-    suspend fun execute() {
+    fun execute() = runBlocking<Unit> {
         logger.info("Starting CollectionStatJob")
         do {
             val updated = updateOld(batchSize, timeOffset)
