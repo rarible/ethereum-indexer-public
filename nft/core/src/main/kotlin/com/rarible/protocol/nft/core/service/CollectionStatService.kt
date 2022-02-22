@@ -45,7 +45,8 @@ class CollectionStatService(
     private suspend fun updateStat(token: Address): CollectionStat {
         val filter = OwnershipFilterByCollection(OwnershipFilter.Sort.LAST_UPDATE, token)
 
-        val result = ownerRepository.searchAsFlow(filter.toCriteria(null, null))
+        val limit = Integer.MAX_VALUE // otherwise, filter will replace null by default limit 1000
+        val result = ownerRepository.searchAsFlow(filter.toCriteria(null, limit))
             .map { Pair(it.value.value, setOf(it.owner)) }
             .reduce { p1, p2 ->
                 Pair(p1.first + p2.first, p1.second + p2.second)
