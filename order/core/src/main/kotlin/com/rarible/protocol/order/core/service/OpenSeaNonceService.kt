@@ -23,7 +23,6 @@ class OpenSeaNonceService(
             }
             ?: DEFAULT_MAKER_NONCE
     }
-
     companion object {
         private val DEFAULT_MAKER_NONCE: MakerNonce = MakerNonce(
             historyId = "",
@@ -32,3 +31,4 @@ class OpenSeaNonceService(
         )
     }
 }
+

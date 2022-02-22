@@ -5,11 +5,13 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.exists
+import com.rarible.protocol.order.core.model.OrderStatus
 import org.springframework.data.mongodb.core.query.isEqualTo
 
 object OrderRepositoryIndexes {
@@ -226,6 +228,14 @@ object OrderRepositoryIndexes {
         .on(Order::start.name, Sort.Direction.ASC)
         .background()
 
+    // --------------------- for updating status by start/end ---------------------//
+    val BY_PLATFORM_MAKER_AND_NONCE = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on("${Order::data.name}.${OrderOpenSeaV1DataV1::nonce}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::data / OrderOpenSeaV1DataV1::nonce exists true))
+        .background()
+
     // --------------------- Other ---------------------//
 
     val ALL_INDEXES = listOf(
@@ -261,6 +271,7 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
-        BY_STATUS_AND_END_START
+        BY_STATUS_AND_END_START,
+        BY_PLATFORM_MAKER_AND_NONCE
     )
 }
