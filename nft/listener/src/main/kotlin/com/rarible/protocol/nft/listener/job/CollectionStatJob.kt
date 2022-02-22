@@ -19,15 +19,15 @@ class CollectionStatJob(
     private val collectionStatService: CollectionStatService,
     @Value("\${listener.collectionStatRefresh.batchSize:20}")
     private val batchSize: Int,
-    @Value("\${listener.collectionStatRefresh.timeOffset:P1H}")
+    @Value("\${listener.collectionStatRefresh.timeOffset:PT1H}")
     private val timeOffset: Duration
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(
-        fixedRateString = "\${listener.collectionStatRefresh.rate:P1M}",
-        initialDelayString = "P1M"
+        fixedRateString = "\${listener.collectionStatRefresh.rate:PT1M}",
+        initialDelayString = "PT1M"
     )
     suspend fun execute() {
         logger.info("Starting CollectionStatJob")
