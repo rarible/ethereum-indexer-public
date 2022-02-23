@@ -6,12 +6,13 @@ import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderStatus
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
-import com.rarible.protocol.order.core.model.OrderStatus
 import org.springframework.data.mongodb.core.query.isEqualTo
 
 object OrderRepositoryIndexes {
@@ -88,12 +89,11 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .partial(
             PartialIndexFilter.of(
-                Criteria().andOperator(
-                    Order::status isEqualTo OrderStatus.ACTIVE,
-                    Order::make / Asset::type / AssetType::nft isEqualTo true
-                )
+                Criteria
+                    .where(Order::status.name).isEqualTo(OrderStatus.ACTIVE)
+                    .and(Order::make / Asset::type / AssetType::nft).isEqualTo(true)
             )
-        )
+            )
         .background()
 
     // Best sell order by ownership (used by Union to find best sell order for ownership)
