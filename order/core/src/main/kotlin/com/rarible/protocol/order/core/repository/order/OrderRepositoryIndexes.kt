@@ -275,7 +275,3 @@ object OrderRepositoryIndexes {
         BY_PLATFORM_MAKER_AND_NONCE
     )
 }
-
-fun main() {
-    println(OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_CURRENCY_SORT_BY_PRICE_DEFINITION)
-}
