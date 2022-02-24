@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.token
 
+import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -37,6 +38,13 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
         )
+
+        coEvery { testContentMetaLoader.fetchContentMeta("https://rarible.mypinata.cloud/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+            type = "image/png",
+            width = 256,
+            height = 256
+        )
+
         val id = randomAddress()
         coEvery { mockStandardTokenPropertiesResolver.resolve(any()) } returns props
         tokenHistoryRepository.save(

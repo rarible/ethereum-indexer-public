@@ -109,8 +109,8 @@ open class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
+            logger.info("Saved new OpenSea order ${orderVersion.hash}")
         }
-        logger.info("Saved new OpenSea order ${orderVersion.hash}")
     }
 
     private companion object {

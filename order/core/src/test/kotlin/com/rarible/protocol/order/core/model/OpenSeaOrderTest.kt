@@ -94,7 +94,8 @@ internal class OpenSeaOrderTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = null
+                target = null,
+                nonce = null
             ),
             signature = Binary
                 .apply("0x795def388ba0e82cf711448a6a36f64868d340b53a2f5277e9fc37651a156007")
@@ -104,7 +105,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         assertThat(hash).isEqualTo(Word.apply("0x2fccca13e00c99fec6f6191054746ce11170c560acdf12dde088edd87a02eee5"))
         assertThat(hashToSign).isEqualTo(Word.apply("0x184cdfac6781cb507c4626f05378110da85e758299f3c12e4e0b24b8d684d58d"))
@@ -149,7 +150,8 @@ internal class OpenSeaOrderTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xf43aaa80a8f9de69bc71aea989afceb8db7b690f")
+                target = Address.apply("0xf43aaa80a8f9de69bc71aea989afceb8db7b690f"),
+                nonce = null
             ),
             signature = Binary
                 .apply("0x169742cbc3546a6f1847e5594424bf188916df731eb2da6439cc851b3474f9cf")
@@ -159,7 +161,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         assertThat(hash).isEqualTo(Word.apply("0x59daa4bababbba49ad1656a3fb98c2073852c892b842af440f9dec3f86ebd59a"))
         assertThat(hashToSign).isEqualTo(Word.apply("0x43a10a8de80ca9a12c4948d5b2f28650c6a9dc8ed97abc91fbbf63e22808e3f0"))
@@ -204,7 +206,8 @@ internal class OpenSeaOrderTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null
             ),
             signature = Binary
                 .apply("0xe0225be35caf54b3f8b0ec01a801fc0a5e4e93b8fc9e210f92e8d53635eef5cf")
@@ -214,7 +217,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(sellOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         // order_hash
         assertThat(hash).isEqualTo(Word.apply("0xbb58afecbed0e3cc8dfde21363354ce1072eefbf381003866a32a1a4541afc6d"))
@@ -263,7 +266,8 @@ internal class OpenSeaOrderTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null
             ),
             signature = Binary
                 .apply("0x9ed89b7b7135f528b9af24bfcec47e8bccc4c31e78e0def0783f3be37e9b65d3")
@@ -273,7 +277,7 @@ internal class OpenSeaOrderTest {
             lastUpdateAt = nowMillis()
         )
         val hash = Order.hash(buyOrder)
-        val hashToSign = commonSigner.openSeaHashToSign(hash)
+        val hashToSign = commonSigner.ethSignHashToSign(hash)
 
         // order_hash
         assertThat(hash).isEqualTo(Word.apply("0x538991d5f5f415a5f72b080e535aeaacfd5e5037e02724ca5bff3d46140e19da"))

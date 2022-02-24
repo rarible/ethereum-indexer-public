@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.core.service.TransferProxyService
 import io.daonomic.rpc.domain.Binary
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -26,7 +27,7 @@ import scalether.domain.Address
 class EncodeController(
     private val orderService: OrderService,
     private val transferProxyService: TransferProxyService,
-    eip712Domain: EIP712Domain,
+    @Qualifier("raribleExchangeV2") eip712Domain: EIP712Domain,
     mapper: ObjectMapper
 ) : OrderEncodeControllerApi {
 

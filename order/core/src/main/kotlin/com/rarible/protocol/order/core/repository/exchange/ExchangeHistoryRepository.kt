@@ -6,7 +6,16 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.ActivitySort
+import com.rarible.protocol.order.core.model.AggregatedData
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ALL_INDEXES
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_BID_DEFINITION
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION
@@ -147,8 +156,13 @@ class ExchangeHistoryRepository(
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
     }
 
+    // TODO remove later
+    fun <T> aggregate(aggregation: Aggregation, collectionName: String, outputType: Class<T>): Flux<T> {
+        return template.aggregateWithHint(aggregation, collectionName, outputType, null)
+    }
+
     private fun ActivitySort.toMongo() =
-        when(this) {
+        when (this) {
             ActivitySort.LATEST_FIRST -> Sort.by(
                 Sort.Order.desc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
                 Sort.Order.desc(OrderVersion::id.name)

@@ -33,6 +33,7 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
     protected lateinit var wyvernProxyRegistry: WyvernProxyRegistry
     protected lateinit var wyvernTokenTransferProxy: WyvernTokenTransferProxy
     protected lateinit var exchange: WyvernExchange
+    protected lateinit var exchangeV2: WyvernExchange
     protected lateinit var merkleValidator: MerkleValidator
 
     protected lateinit var token1: TestERC20
@@ -81,12 +82,22 @@ abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
             userSender1.from()
         ).awaitFirst()
 
+        exchangeV2 = WyvernExchange.deployAndWait(
+            sender,
+            poller,
+            wyvernProxyRegistry.address(),
+            wyvernTokenTransferProxy.address(),
+            testToken.address(),
+            userSender1.from()
+        ).awaitFirst()
+
         merkleValidator = MerkleValidator.deployAndWait(
             sender,
             poller
         ).awaitFirst()
 
         exchangeContractAddresses.openSeaV1 = exchange.address()
+        exchangeContractAddresses.openSeaV2 = exchangeV2.address()
 
         wyvernProxyRegistry.grantInitialAuthentication(exchange.address()).execute().verifySuccess()
 

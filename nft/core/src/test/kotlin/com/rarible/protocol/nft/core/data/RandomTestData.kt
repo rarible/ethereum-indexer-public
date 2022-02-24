@@ -59,12 +59,14 @@ fun EthereumLog.withNewValues(
     logIndex: Int? = null,
     minorLogIndex: Int? = null,
     address: Address? = null,
-    from: Address? = null
+    from: Address? = null,
+    index: Int? = null
 ) = copy(
     status = status ?: this.status,
     createdAt = createdAt ?: this.createdAt,
     blockNumber = blockNumber ?: if (this.blockNumber != null) null else this.blockNumber,
     logIndex = logIndex ?: if (this.logIndex != null) null else this.logIndex,
+    index = index ?: this.index,
     minorLogIndex = minorLogIndex ?: this.minorLogIndex,
     address = address ?: this.address,
     from =  from ?: this.from
@@ -76,8 +78,9 @@ fun ItemEvent.ItemMintEvent.withNewValues(
     blockNumber: Long? = null,
     logIndex: Int? = null,
     minorLogIndex: Int? = null,
-    address: Address? = null
-) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
+    address: Address? = null,
+    index: Int? = null,
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, index = index))
 
 fun ItemEvent.ItemBurnEvent.withNewValues(
     status: EthereumLogStatus? = null,

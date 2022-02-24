@@ -14,7 +14,7 @@ interface ItemExchangeHistoryLogEventDescriptor<T : OrderExchangeHistory> : LogE
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<T> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<T> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 

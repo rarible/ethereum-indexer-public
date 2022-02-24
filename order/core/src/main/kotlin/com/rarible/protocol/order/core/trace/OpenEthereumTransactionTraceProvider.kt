@@ -39,7 +39,7 @@ class OpenEthereumTransactionTraceProvider(
         id: Binary
     ): List<SimpleTraceResult> {
         return traces(transactionHash)
-            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
+            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id && it.error != "Reverted" }
             .mapNotNull { convert(it) }
     }
 
@@ -74,6 +74,7 @@ class OpenEthereumTransactionTraceProvider(
 
     data class Trace(
         val action: Action?,
+        val error: String?,
         val result: Result?
     ) {
         data class Action(

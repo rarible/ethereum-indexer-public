@@ -48,4 +48,30 @@ internal class PendingEventApplyPolicyTest {
         val wasApplied = pendingEventApplyPolicy.wasApplied(events + pendingEvent + events, pendingEvent)
         assertThat(wasApplied).isTrue
     }
+
+    @Test
+    fun `should not apply if find confirmed log`() {
+        val pendingEvent = createRandomMintItemEvent().withNewValues(
+            status = EthereumLogStatus.PENDING,
+            blockNumber = null,
+            index = 1,
+            minorLogIndex = 1
+        )
+        val confirmedEvent = pendingEvent.withNewValues(
+            status = EthereumLogStatus.CONFIRMED,
+            blockNumber = 1,
+            logIndex = 100,
+            index = 1,
+            minorLogIndex = 1
+        )
+        val events = (1L..3).map {
+            createRandomMintItemEvent().withNewValues(
+                status = EthereumLogStatus.CONFIRMED,
+                blockNumber = it,
+                minorLogIndex = 1
+            )
+        }
+        val wasApplied = pendingEventApplyPolicy.wasApplied(events + confirmedEvent, pendingEvent)
+        assertThat(wasApplied).isTrue
+    }
 }

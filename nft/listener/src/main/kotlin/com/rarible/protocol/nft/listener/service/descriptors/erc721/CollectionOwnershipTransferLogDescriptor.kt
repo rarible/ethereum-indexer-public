@@ -27,7 +27,7 @@ class CollectionOwnershipTransferLogDescriptor(
 
     override val topic: Word = OwnershipTransferredEvent.id()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long): Publisher<CollectionOwnershipTransferred> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<CollectionOwnershipTransferred> {
         if (properties.skipTokenOwnershipTransferred) {
             return Mono.empty()
         }

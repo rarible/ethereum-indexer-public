@@ -2,9 +2,11 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
+import com.rarible.protocol.order.core.service.OpenSeaSigner
 import io.daonomic.rpc.domain.Binary
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -14,7 +16,8 @@ import java.math.BigInteger
 internal class OpenSeaOrderValidatorTest {
     private val openSeaOrderValidator = OpenSeaOrderValidator(
         commonSigner = CommonSigner(),
-        callDataEncoder = CallDataEncoder()
+        callDataEncoder = CallDataEncoder(),
+        openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744")))
     )
 
     @Test
@@ -54,7 +57,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = null
+                target = null,
+                nonce = null,
             ),
             signature = Binary
                 .apply("0x795def388ba0e82cf711448a6a36f64868d340b53a2f5277e9fc37651a156007")
@@ -109,7 +113,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xf43aaa80a8f9de69bc71aea989afceb8db7b690f")
+                target = Address.apply("0xf43aaa80a8f9de69bc71aea989afceb8db7b690f"),
+                nonce = null,
             ),
             signature = Binary
                 .apply("0x169742cbc3546a6f1847e5594424bf188916df731eb2da6439cc851b3474f9cf")
@@ -164,7 +169,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null,
             ),
             signature = Binary
                 .apply("0xe0225be35caf54b3f8b0ec01a801fc0a5e4e93b8fc9e210f92e8d53635eef5cf")
@@ -221,7 +227,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null,
             ),
             signature = Binary
                 .apply("0x9ed89b7b7135f528b9af24bfcec47e8bccc4c31e78e0def0783f3be37e9b65d3")
@@ -278,7 +285,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null,
             ),
             signature = Binary
                 .apply("0x0ed89b7b7135f528b9af24bfcec47e8bccc4c31e78e0def0783f3be37e9b65d3")
@@ -335,7 +343,8 @@ internal class OpenSeaOrderValidatorTest {
                 staticTarget = Address.ZERO(),
                 staticExtraData = Binary.apply(),
                 extra = BigInteger.ZERO,
-                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7")
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = null,
             ),
             signature = Binary
                 .apply("0x9ed89b7b7135f528b9af24bfcec47e8bccc4c31e78e0def0783f3be37e9b65d3")
