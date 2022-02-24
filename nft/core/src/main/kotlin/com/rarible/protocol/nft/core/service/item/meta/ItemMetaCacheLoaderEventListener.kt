@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component
 class ItemMetaCacheLoaderEventListener(
     private val itemRepository: ItemRepository,
     private val protocolNftEventPublisher: ProtocolNftEventPublisher,
-    private val itemMetaLoadingAwaitService: ItemMetaLoadingAwaitService,
     private val conversionService: ConversionService
 ) : CacheLoaderEventListener<ItemMeta> {
 
@@ -36,7 +35,6 @@ class ItemMetaCacheLoaderEventListener(
 
     override suspend fun onEvent(cacheLoaderEvent: CacheLoaderEvent<ItemMeta>) {
         val itemId = ItemId.parseId(cacheLoaderEvent.key)
-        itemMetaLoadingAwaitService.onMetaEvent(itemId, cacheLoaderEvent.cacheEntry)
         sendItemUpdateEvent(itemId, cacheLoaderEvent.cacheEntry)
     }
 

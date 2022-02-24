@@ -238,7 +238,7 @@ class ItemController(
     }
 
     private suspend fun getItemMeta(itemId: String): ItemMeta {
-        return itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
+        return itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = conversionService.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)

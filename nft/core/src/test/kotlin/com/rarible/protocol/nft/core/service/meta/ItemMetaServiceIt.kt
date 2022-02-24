@@ -10,10 +10,9 @@ import io.mockk.coVerify
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.time.withTimeout
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.Duration
+import org.junit.jupiter.api.assertThrows
 
 @FlowPreview
 @IntegrationTest
@@ -65,16 +64,19 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             itemMeta
         }
         assertThat(
-            itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
+            itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
-                timeout = Duration.ofSeconds(5)
+                synchronous = true
             )
         ).isEqualTo(itemMeta)
-        coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
+        Wait.waitAssert {
+            // There are 2 calls: from synchronous and asynchronous loading.
+            coVerify(exactly = 2) { mockItemMetaResolver.resolveItemMeta(itemId) }
+        }
     }
 
     @Test
-    fun `load and wait - return null if timeout`() = runBlocking<Unit> {
+    fun `load synchronously`() = runBlocking<Unit> {
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
@@ -82,30 +84,25 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             itemMeta
         }
         assertThat(
-            itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
+            itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
-                timeout = Duration.ofMillis(500)
+                synchronous = true
             )
-        ).isNull()
+        ).isEqualTo(itemMeta)
     }
 
     @Test
-    fun `load synchronously - return earlier than timeout if initial loading failed`() = runBlocking<Unit> {
+    fun `load synchronously - return null if loading has failed`() = runBlocking<Unit> {
         val itemId = createRandomItemId()
         val error = RuntimeException("loading-error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
 
-        // Throws TimeoutCancellationException if waiting for too long.
-        withTimeout(Duration.ofMillis(5000)) {
-            assertThat(
-                itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
-                    itemId = itemId,
-                    timeout = Duration.ofMillis(10000)
-                )
-            ).isNull()
+        assertThrows<RuntimeException> {
+            itemMetaService.getAvailableMetaOrLoadSynchronously(
+                itemId = itemId,
+                synchronous = true
+            )
         }
-
-        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
     }
 
     @Test

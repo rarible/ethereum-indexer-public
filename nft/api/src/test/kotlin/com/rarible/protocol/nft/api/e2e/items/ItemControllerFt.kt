@@ -35,7 +35,6 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.mockk.coEvery
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -186,23 +185,14 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should get item meta - return 404 if sync loading was long - but then success`() = runBlocking<Unit> {
+    fun `should get item meta - return 404 if meta cannot be loaded`() = runBlocking<Unit> {
         val item = createItem()
         itemRepository.save(item).awaitFirst()
         val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } coAnswers {
-            delay(3000) // Max waiting timeout [NftIndexerApiProperties.metaSyncLoadingTimeout] is set to 3000
-            itemMeta
-        }
-        // Timeout => 404 not found
+        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns null
         assertThrows<NftItemControllerApi.ErrorGetNftItemMetaById> {
             nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
         }
-        delay(4000)
-        // The meta is finally loaded.
-        val metaDto = nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
-        assertThat(metaDto)
-            .isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, item.id.decimalStringValue))
     }
 
     @Test
@@ -288,7 +278,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             createItem()
         ).forEach { itemRepository.save(it).awaitFirst() }
 
-        listOf(item1,  item2, item3, item4, item5)
+        listOf(item1, item2, item3, item4, item5)
             .map { createOwnership(it.token, it.tokenId, null, owner) }
             .forEach { ownershipRepository.save(it).awaitFirst() }
 
@@ -354,7 +344,8 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val allItems = mutableListOf<NftItemDto>()
         var continuation: String? = null
         do {
-            val itemsDto = nftItemApiClient.getNftItemsByCollection(token.hex(), owner.hex(), continuation, 2).awaitFirst()
+            val itemsDto =
+                nftItemApiClient.getNftItemsByCollection(token.hex(), owner.hex(), continuation, 2).awaitFirst()
             assertThat(itemsDto.items).hasSizeLessThanOrEqualTo(2)
 
             allItems.addAll(itemsDto.items)
@@ -478,7 +469,9 @@ class ItemControllerFt : SpringContainerBaseTest() {
         // TODO[meta]: add a test for meta of a lazy item.
         lazyNftItemHistoryRepository.save(itemLazyMint).awaitFirst()
 
-        val lazyItemDto = nftItemApiClient.getNftLazyItemById(ItemId(itemLazyMint.token, itemLazyMint.tokenId).stringValue).awaitFirst()
+        val lazyItemDto =
+            nftItemApiClient.getNftLazyItemById(ItemId(itemLazyMint.token, itemLazyMint.tokenId).stringValue)
+                .awaitFirst()
 
         assertThat(lazyItemDto.contract).isEqualTo(itemLazyMint.token)
         assertThat(lazyItemDto.tokenId).isEqualTo(itemLazyMint.tokenId.value)
@@ -510,6 +503,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     fun remember() {
         royaltyRegistryAddress = nftIndexerProperties.royaltyRegistryAddress
     }
+
     @AfterEach
     fun cleanup() {
         nftIndexerProperties.royaltyRegistryAddress = royaltyRegistryAddress
