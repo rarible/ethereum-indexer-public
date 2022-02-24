@@ -35,6 +35,7 @@ data class OrderFilterSellByCollectionAndCurrency(
                 .forStatus()
                 .forToken(contract)
                 .forCurrency(currency)
+                .withoutTaker()
                 .scrollTo(continuation, sort, currency)
         ).limit(limit).with(sort(sort, currency)).withHint(hint())
     }
@@ -49,6 +50,10 @@ data class OrderFilterSellByCollectionAndCurrency(
 
     private fun Criteria.forNft(): Criteria {
         return and(Order::make / Asset::type / NftAssetType::nft).isEqualTo(true)
+    }
+
+    private fun Criteria.withoutTaker(): Criteria {
+        return and(Order::taker).isEqualTo(null)
     }
 
     fun Criteria.forStatus(): Criteria {
