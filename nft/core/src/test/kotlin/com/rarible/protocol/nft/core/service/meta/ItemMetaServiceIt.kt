@@ -20,30 +20,13 @@ import java.time.Duration
 class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
-    fun `get available`() = runBlocking<Unit> {
-        val itemMeta = randomItemMeta()
-        val itemId = createRandomItemId()
-        coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
-        assertThat(itemMetaService.getAvailable(itemId)).isNull()
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isFalse
-        assertThat(itemMetaService.isMetaLoadingInitiallyScheduled(itemId)).isFalse
-        itemMetaService.scheduleMetaUpdate(itemId)
-        assertThat(itemMetaService.isMetaLoadingInitiallyScheduled(itemId)).isTrue
-        Wait.waitAssert {
-            assertThat(itemMetaService.getAvailable(itemId)).isEqualTo(itemMeta)
-            assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isTrue
-            coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
-        }
-    }
-
-    @Test
-    fun `get available - schedule loading if not available`() = runBlocking<Unit> {
+    fun `get available or schedule loading`() = runBlocking<Unit> {
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
         assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
         Wait.waitAssert {
-            assertThat(itemMetaService.getAvailable(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
     }
@@ -53,14 +36,10 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val itemId = createRandomItemId()
         val error = RuntimeException("loading error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isFalse
         itemMetaService.scheduleMetaUpdate(itemId)
         Wait.waitAssert {
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
-
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isTrue
-        assertThat(itemMetaService.isMetaLoadingInitiallyScheduled(itemId)).isTrue
 
         // Must not be re-scheduled, because the meta loading has already failed.
         assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
@@ -86,7 +65,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             itemMeta
         }
         assertThat(
-            itemMetaService.getAvailableMetaOrScheduleAndWait(
+            itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
                 itemId = itemId,
                 timeout = Duration.ofSeconds(5)
             )
@@ -103,7 +82,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             itemMeta
         }
         assertThat(
-            itemMetaService.getAvailableMetaOrScheduleAndWait(
+            itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
                 itemId = itemId,
                 timeout = Duration.ofMillis(500)
             )
@@ -119,15 +98,14 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         // Throws TimeoutCancellationException if waiting for too long.
         withTimeout(Duration.ofMillis(5000)) {
             assertThat(
-                itemMetaService.getAvailableMetaOrScheduleAndWait(
+                itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
                     itemId = itemId,
                     timeout = Duration.ofMillis(10000)
                 )
             ).isNull()
         }
 
-        assertThat(itemMetaService.getAvailable(itemId)).isNull()
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isTrue
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
     }
 
     @Test
@@ -137,12 +115,10 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
         itemMetaService.scheduleMetaUpdate(itemId)
         Wait.waitAssert {
-            assertThat(itemMetaService.getAvailable(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
-            assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isTrue
         }
         itemMetaService.removeMeta(itemId)
-        assertThat(itemMetaService.getAvailable(itemId)).isNull()
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isFalse
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
     }
 }

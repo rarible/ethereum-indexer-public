@@ -11,9 +11,9 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -238,7 +238,7 @@ class ItemController(
     }
 
     private suspend fun getItemMeta(itemId: String): ItemMeta {
-        return itemMetaService.getAvailableMetaOrScheduleAndWait(
+        return itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
             itemId = conversionService.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)

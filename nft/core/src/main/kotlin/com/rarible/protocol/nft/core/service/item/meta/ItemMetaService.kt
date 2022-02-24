@@ -1,109 +1,67 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.loader.LoadTaskStatus
-import com.rarible.loader.cache.CacheEntry
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.time.withTimeoutOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.time.Duration
 
 /**
- * base api to fetch metadata of items — [ItemMeta].
+ * Base API to fetch metadata of items — [ItemMeta].
  *
  * Loading of metadata is performed in background by 'cache-loader' library ([scheduleMetaUpdate]).
  * [ItemMetaCacheLoader] delegates to [ItemMetaResolver] to resolve actual metadata.
- * Loaded metadata are cached in the database and can be requested with [getAvailable] or [getAvailableMetaOrScheduleLoading].
  */
 @Component
 class ItemMetaService(
     @Qualifier("meta.cache.loader.service")
-    private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
+    private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>,
+    private val itemMetaLoadingAwaitService: ItemMetaLoadingAwaitService
 ) {
 
-    /**
-     * Get available item metadata. Return `null` if the meta hasn't been requested yet,
-     * has failed to be loaded or is being loaded now.
-     */
-    suspend fun getAvailable(itemId: ItemId): ItemMeta? =
-        itemMetaCacheLoaderService.getAvailable(itemId.toCacheKey())
+    private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
 
     /**
-     * Return available meta (same as [getAvailable]) but additionally schedule an update
-     * if the meta hasn't been requested yet.
+     * Return available meta or `null` if it hasn't been loaded, has failed, or hasn't been requested yet.
+     * Schedule an update in the last case.
      */
-    suspend fun getAvailableMetaOrScheduleLoading(itemId: ItemId): ItemMeta? {
-        val availableMeta = getAvailable(itemId)
-        if (availableMeta == null) {
-            if (!isMetaLoadingInitiallyScheduled(itemId)) {
-                scheduleMetaUpdate(itemId)
-            }
-        }
-        return availableMeta
-    }
+    suspend fun getAvailableMetaOrScheduleLoading(itemId: ItemId): ItemMeta? =
+        getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(itemId, null)
 
     /**
-     * Return available meta (same as [getAvailable]) if the meta has been loaded
-     * or its loading has failed (`null` in this case), or schedule a meta update
-     * and wait up to [timeout] until the meta is loaded or failed.
+     * Same as [getAvailableMetaOrScheduleLoading] and synchronously (in a coroutine) wait up to
+     * [timeout] until the meta is loaded or failed.
      */
-    suspend fun getAvailableMetaOrScheduleAndWait(
+    suspend fun getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
         itemId: ItemId,
-        timeout: Duration
+        timeout: Duration?
     ): ItemMeta? {
-        val availableMeta = getAvailableMetaOrScheduleLoading(itemId)
+        val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
+        val availableMeta = metaCacheEntry.getAvailable()
         if (availableMeta != null) {
             return availableMeta
         }
-        logMetaLoading(itemId, "Starting to wait for initial loading for ${timeout.toMillis()} millis")
-        return withTimeoutOrNull(timeout) {
-            while (isActive) {
-                if (isMetaInitiallyLoadedOrFailed(itemId)) {
-                    return@withTimeoutOrNull getAvailable(itemId)
-                }
-                delay(100)
-            }
-            return@withTimeoutOrNull null
+        if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
+            return null
         }
+        if (!metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
+            scheduleLoading(itemId)
+        }
+        if (timeout == null) {
+            return null
+        }
+        return itemMetaLoadingAwaitService.waitForMetaLoadingWithTimeout(itemId, timeout)
     }
 
     /**
-     * Returns true if loading of the meta for an item has been scheduled in the past,
-     * no matter what the loading result is (in progress, failed or success).
+     * Schedule an update (or initial loading) of metadata.
      */
-    suspend fun isMetaLoadingInitiallyScheduled(itemId: ItemId): Boolean =
-        when (val cacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())) {
-            is CacheEntry.Loaded -> true
-            is CacheEntry.LoadedAndUpdateScheduled -> true
-            is CacheEntry.LoadedAndUpdateFailed -> true
-            is CacheEntry.InitialLoadScheduled -> when (cacheEntry.loadStatus) {
-                is LoadTaskStatus.Scheduled -> true
-                is LoadTaskStatus.WaitsForRetry -> true
-            }
-            is CacheEntry.InitialFailed -> true
-            is CacheEntry.NotAvailable -> false
-        }
-
-    /**
-     * Returns `true` if the meta for item has been loaded or loading has failed,
-     * and `false` if we haven't requested the meta loading or haven't received any result yet.
-     */
-    suspend fun isMetaInitiallyLoadedOrFailed(itemId: ItemId): Boolean =
-        when (val cacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())) {
-            is CacheEntry.Loaded -> true
-            is CacheEntry.LoadedAndUpdateScheduled -> true
-            is CacheEntry.LoadedAndUpdateFailed -> true
-            is CacheEntry.InitialLoadScheduled -> when (cacheEntry.loadStatus) {
-                is LoadTaskStatus.Scheduled -> false
-                is LoadTaskStatus.WaitsForRetry -> true
-            }
-            is CacheEntry.InitialFailed -> true
-            is CacheEntry.NotAvailable -> false
-        }
+    suspend fun scheduleLoading(itemId: ItemId) {
+        logger.info("Scheduling meta update for {}", itemId.toCacheKey())
+        itemMetaCacheLoaderService.update(itemId.toCacheKey())
+    }
 
     /**
      * Schedule an update (or initial loading) of metadata.

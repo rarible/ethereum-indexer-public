@@ -28,16 +28,21 @@ import org.springframework.stereotype.Component
 class ItemMetaCacheLoaderEventListener(
     private val itemRepository: ItemRepository,
     private val protocolNftEventPublisher: ProtocolNftEventPublisher,
-    private val conversionService: ConversionService,
-    private val itemUpdateEventAssertQueue: ItemUpdateEventAssertQueue
+    private val itemMetaLoadingAwaitService: ItemMetaLoadingAwaitService,
+    private val conversionService: ConversionService
 ) : CacheLoaderEventListener<ItemMeta> {
 
     override val type get() = ItemMetaCacheLoader.TYPE
 
     override suspend fun onEvent(cacheLoaderEvent: CacheLoaderEvent<ItemMeta>) {
         val itemId = ItemId.parseId(cacheLoaderEvent.key)
+        itemMetaLoadingAwaitService.onMetaEvent(itemId, cacheLoaderEvent.cacheEntry)
+        sendItemUpdateEvent(itemId, cacheLoaderEvent.cacheEntry)
+    }
+
+    private suspend fun sendItemUpdateEvent(itemId: ItemId, cacheEntry: CacheEntry<ItemMeta>) {
         val item = itemRepository.findById(itemId).awaitFirstOrNull() ?: return
-        val meta = when (val cacheEntry = cacheLoaderEvent.cacheEntry) {
+        val meta = when (cacheEntry) {
             is CacheEntry.Loaded -> {
                 logMetaLoading(itemId, "event: loaded meta")
                 cacheEntry.data
@@ -88,6 +93,5 @@ class ItemMetaCacheLoaderEventListener(
         }
         val itemEventDto = conversionService.convert<NftItemEventDto>(ExtendedItem(item, meta))
         protocolNftEventPublisher.publish(itemEventDto)
-        itemUpdateEventAssertQueue.onItemEventSent(itemId)
     }
 }

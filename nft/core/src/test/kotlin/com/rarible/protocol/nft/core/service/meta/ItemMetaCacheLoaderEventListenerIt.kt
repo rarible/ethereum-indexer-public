@@ -70,8 +70,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
 
         itemMetaService.scheduleMetaUpdate(itemId)
         delay(1000)
-        assertThat(itemMetaService.getAvailable(itemId)).isNull()
-        assertThat(itemMetaService.isMetaInitiallyLoadedOrFailed(itemId)).isTrue
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
         val emptyMetaItemDto = conversionService.convert<NftItemDto>(ExtendedItem(item, null))
         Wait.waitAssert {
             assertThat(itemEvents).anySatisfy { event ->

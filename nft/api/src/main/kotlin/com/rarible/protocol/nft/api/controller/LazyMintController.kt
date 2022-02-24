@@ -29,7 +29,7 @@ class LazyMintController(
             .let { conversionService.convert<ItemLazyMint>(it) }
             .let { mintService.createLazyNft(it) }
             .let { item ->
-                val itemMeta = itemMetaService.getAvailableMetaOrScheduleAndWait(
+                val itemMeta = itemMetaService.getAvailableMetaOrScheduleLoadingAndWaitWithTimeout(
                     itemId = item.id,
                     timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
                 )
