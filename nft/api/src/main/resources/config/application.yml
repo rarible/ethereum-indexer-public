@@ -40,6 +40,7 @@ rarible:
     broker-replica-set: ${kafka.hosts}
     topicsPrefix: protocol-${application.environment}-${common.blockchain}-nft-indexer
     enableWorkers: false
+    enableNotifications: false
 
 api:
   opensea:
