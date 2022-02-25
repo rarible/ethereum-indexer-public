@@ -7,7 +7,8 @@ import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderReduceService
+import com.rarible.protocol.order.core.service.OrderUpdateService
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component
 @Component
 class RemoveOpenSeaOutdatedOrdersTaskHandler(
     private val orderRepository: OrderRepository,
-    private val orderReduceService: OrderReduceService,
+    private val orderUpdateService: OrderUpdateService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
 ) : TaskHandler<String> {
 
@@ -31,11 +32,10 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
             OrderStatus.ACTIVE,
             OrderStatus.INACTIVE
         )
-
-        val orders =  orderRepository.findAll(Platform.OPEN_SEA, queryStatuses).filter { isExchangeOpenSea(it) }
+        return orderRepository
+            .findAll(Platform.OPEN_SEA, queryStatuses, from?.let { Word.apply(it) })
+            .filter { isExchangeOpenSea(it) }
             .map { updateOrder(it) }
-
-        return orders
     }
 
     private fun isExchangeOpenSea(order: Order): Boolean {
@@ -43,10 +43,7 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
     }
 
     private suspend fun updateOrder(order: Order): String  {
-        if (orderReduceService.updateOrder(order.hash) != null) {
-            logger.info("OpenSea order ${order.hash} has been updated.")
-        }
-
+        orderUpdateService.update(order.hash)
         return order.hash.toString()
     }
 
