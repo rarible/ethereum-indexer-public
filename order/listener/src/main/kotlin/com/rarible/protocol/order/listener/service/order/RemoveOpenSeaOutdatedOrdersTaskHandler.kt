@@ -33,7 +33,7 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
             OrderStatus.INACTIVE
         )
         return orderRepository
-            .findAll(Platform.OPEN_SEA, queryStatuses, from?.let { Word.apply(it) })
+            .findAll(Platform.OPEN_SEA, queryStatuses)
             .filter { isExchangeOpenSea(it) }
             .map { updateOrder(it) }
     }

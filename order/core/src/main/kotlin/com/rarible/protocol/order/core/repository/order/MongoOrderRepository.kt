@@ -123,15 +123,12 @@ class MongoOrderRepository(
         ).all().asFlow()
     }
 
-    override fun findAll(platform: Platform, status: Set<OrderStatus>, fromHash: Word?): Flow<Order> {
+    override fun findAll(platform: Platform, status: Set<OrderStatus>): Flow<Order> {
         return template.query<Order>().matching(
             Query(
                 Criteria().andOperator(
-                    listOfNotNull(
-                        Order::platform isEqualTo platform,
-                        Order::status inValues status,
-                        if (fromHash != null) Order::hash gt fromHash else null
-                    )
+                    Order::platform isEqualTo platform,
+                    Order::status inValues status,
                 )
             )
                 .withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
