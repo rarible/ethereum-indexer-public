@@ -50,6 +50,8 @@ interface OrderRepository {
 
     fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order>
 
+    fun findAll(platform: Platform, status: Set<OrderStatus>, fromHash: Word?): Flow<Order>
+
     fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
 
     suspend fun createIndexes()

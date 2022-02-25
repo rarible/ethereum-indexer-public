@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
@@ -42,7 +43,8 @@ class OrderReduceService(
     private val protocolCommissionProvider: ProtocolCommissionProvider,
     private val priceNormalizer: PriceNormalizer,
     private val priceUpdateService: PriceUpdateService,
-    private val openSeaNonceService: OpenSeaNonceService
+    private val openSeaNonceService: OpenSeaNonceService,
+    private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -286,11 +288,29 @@ class OrderReduceService(
         }
     }
 
+    private suspend fun Order.withCancelOpenSea(): Order {
+        if (this.type != OrderType.OPEN_SEA_V1) return this
+        if ((this.data as? OrderOpenSeaV1DataV1)?.exchange != exchangeContractAddresses.openSeaV1) return this
+
+        val affectedStatuses = arrayOf(OrderStatus.NOT_STARTED, OrderStatus.INACTIVE, OrderStatus.ACTIVE)
+        return if (this.status in affectedStatuses) {
+            logger.info("Cancel order $hash as OpenSea exchangeV1 contract was expired")
+            this.copy(
+                cancelled = true,
+                lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(1645812000)),
+                lastEventId = accumulateEventId(this.lastEventId, exchangeContractAddresses.openSeaV1.toString())
+            )
+        } else {
+            this
+        }
+    }
+
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedNonce()
+            .withCancelOpenSea()
 
         val saved = orderRepository.save(order)
         logger.info(buildString {
