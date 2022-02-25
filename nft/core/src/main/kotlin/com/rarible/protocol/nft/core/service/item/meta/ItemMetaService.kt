@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.time.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
@@ -65,6 +66,9 @@ class ItemMetaService(
                     synchronous = true
                 )
             }
+        } catch (e: CancellationException) {
+            logger.warn("Timeout synchronously load meta for $itemId with timeout ${timeout.toMillis()} ms", e)
+            null
         } catch (e: Exception) {
             logger.error("Cannot synchronously load meta for $itemId with timeout ${timeout.toMillis()} ms", e)
             null
