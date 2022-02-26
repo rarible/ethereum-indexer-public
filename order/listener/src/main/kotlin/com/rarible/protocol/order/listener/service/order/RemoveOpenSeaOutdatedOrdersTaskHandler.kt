@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -27,13 +26,10 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
         get() = REMOVE_OPEN_SEA_OUTDATED_ORDERS
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        val queryStatuses = setOf(
-            OrderStatus.NOT_STARTED,
-            OrderStatus.ACTIVE,
-            OrderStatus.INACTIVE
-        )
+        val status = OrderStatus.valueOf(param)
+        logger.info("Start $REMOVE_OPEN_SEA_OUTDATED_ORDERS task with $status param")
         return orderRepository
-            .findAll(Platform.OPEN_SEA, queryStatuses)
+            .findAll(Platform.OPEN_SEA, status, fromHash = null)
             .filter { isExchangeOpenSea(it) }
             .map { updateOrder(it) }
     }
@@ -48,6 +44,7 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
     }
 
     companion object {
+        val logger: Logger = LoggerFactory.getLogger(RemoveOpenSeaOutdatedOrdersTaskHandler::class.java)
         const val REMOVE_OPEN_SEA_OUTDATED_ORDERS = "REMOVE_OPEN_SEA_OUTDATED_ORDERS"
     }
 }
