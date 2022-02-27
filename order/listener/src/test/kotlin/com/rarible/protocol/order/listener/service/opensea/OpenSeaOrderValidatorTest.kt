@@ -14,7 +14,7 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 internal class OpenSeaOrderValidatorTest {
-    private val openSeaOrderValidator = OpenSeaOrderValidator(
+    private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
         callDataEncoder = CallDataEncoder(),
         openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744")))

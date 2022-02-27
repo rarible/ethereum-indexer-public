@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.opensea.client.model.AssetSchema
 import com.rarible.opensea.client.model.OpenSeaOrder
@@ -21,9 +22,14 @@ import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
 class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val openSeaConverterErrorRegisteredCounter: RegisteredCounter
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    fun testIncrement() {
+        openSeaConverterErrorRegisteredCounter.increment()
+    }
 
     suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): OrderVersion? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
@@ -196,6 +202,7 @@ class OpenSeaOrderConverter(
             )
             if (calculatedHash == expectedHash) return nonce
         }
+        openSeaConverterErrorRegisteredCounter.increment()
         return null
     }
 
