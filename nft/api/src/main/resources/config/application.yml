@@ -41,6 +41,7 @@ rarible:
     topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
     enableWorkers: false
     enableNotifications: false
+    enableRetrySchedulerJob: false
 
 api:
   opensea:
