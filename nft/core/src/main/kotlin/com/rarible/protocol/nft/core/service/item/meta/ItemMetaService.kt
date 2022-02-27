@@ -7,6 +7,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.time.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.dao.DuplicateKeyException
+import org.springframework.dao.OptimisticLockingFailureException
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -57,7 +59,13 @@ class ItemMetaService(
                 null
             }
             if (itemMeta != null) {
-                itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
+                try {
+                    itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
+                } catch (e: Exception) {
+                    if (e !is OptimisticLockingFailureException && e !is DuplicateKeyException) {
+                        throw e
+                    }
+                }
             }
             return itemMeta
         }
