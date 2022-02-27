@@ -19,7 +19,7 @@ common:
 rarible:
   loader:
     broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol-${application.environment}-${common.blockchain}-nft-indexer
+    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
     enableWorkers: true
     workers: 1
     retry:

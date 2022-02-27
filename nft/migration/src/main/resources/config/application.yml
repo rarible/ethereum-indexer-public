@@ -29,7 +29,7 @@ rarible:
     use-locks: false
   loader:
     broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol-${application.environment}-${common.blockchain}-nft-indexer
+    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
     enableWorkers: false
 
 mongock:
