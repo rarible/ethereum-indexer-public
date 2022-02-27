@@ -64,7 +64,10 @@ class ItemController(
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
-        val result = itemService.getWithAvailableMeta(conversionService.convert(itemId))
+        val result = itemService.getWithAvailableMetaOrLoadSynchronouslyWithTimeout(
+            itemId = conversionService.convert(itemId),
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+        )
         return ResponseEntity.ok(result)
     }
 
