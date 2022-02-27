@@ -12,7 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 
 @FlowPreview
 @IntegrationTest
@@ -97,12 +96,12 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val error = RuntimeException("loading-error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
 
-        assertThrows<RuntimeException> {
+        assertThat(
             itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
                 synchronous = true
             )
-        }
+        ).isNull()
     }
 
     @Test
