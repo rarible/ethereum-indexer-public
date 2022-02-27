@@ -50,7 +50,16 @@ class ItemMetaService(
             scheduleLoading(itemId)
         }
         if (synchronous) {
-            return itemMetaCacheLoader.load(itemId.toCacheKey())
+            val itemMeta = try {
+                itemMetaCacheLoader.load(itemId.toCacheKey())
+            } catch (e: ItemMetaCacheLoader.ItemMetaResolutionException) {
+                logMetaLoading(itemId, "Synchronous meta loading failed for $itemId", warn = true)
+                null
+            }
+            if (itemMeta != null) {
+                itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
+            }
+            return itemMeta
         }
         return null
     }
