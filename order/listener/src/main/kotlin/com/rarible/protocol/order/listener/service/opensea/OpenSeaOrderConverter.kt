@@ -27,10 +27,6 @@ class OpenSeaOrderConverter(
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun testIncrement() {
-        openSeaConverterErrorRegisteredCounter.increment()
-    }
-
     suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): OrderVersion? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
         val r = clientOpenSeaOrder.r ?: return null
