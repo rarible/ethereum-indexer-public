@@ -8,19 +8,7 @@ ethereum-erc20-api:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 256
 
-polygon-erc20-api:
-  replicas: 3
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-      max_direct_memory_megabytes: 256
-
 ethereum-erc20-listener:
-  resources:
-    jvm:
-      xmx_megabytes: 2048
-
-polygon-erc20-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
@@ -35,24 +23,7 @@ ethereum-gateway:
     additional:
     - 'proxy'
 
-polygon-gateway:
-  service:
-    nodePort: 30117
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-  networks:
-    additional:
-    - 'proxy'
-
 ethereum-order-api:
-  replicas: 3
-  resources:
-    jvm:
-      xmx_megabytes: 2048
-      max_direct_memory_megabytes: 256
-
-polygon-order-api:
   replicas: 3
   resources:
     jvm:
@@ -65,20 +36,7 @@ ethereum-order-listener:
       xmx_megabytes: 2048
       max_direct_memory_megabytes: 512
 
-polygon-order-listener:
-  resources:
-    jvm:
-      xmx_megabytes: 2048
-      max_direct_memory_megabytes: 256
-
 ethereum-nft-api:
-  replicas: 3
-  resources:
-    jvm:
-      xmx_megabytes: 1536
-      max_direct_memory_megabytes: 256
-
-polygon-nft-api:
   replicas: 3
   resources:
     jvm:
@@ -89,9 +47,3 @@ ethereum-nft-listener:
   resources:
     jvm:
       xmx_megabytes: 2048
-
-polygon-nft-listener:
-  resources:
-    jvm:
-      xmx_megabytes: 2048
-      max_direct_memory_megabytes: 1024

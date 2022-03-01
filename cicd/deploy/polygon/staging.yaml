@@ -1,14 +1,6 @@
 global:
   network: rinkeby
 
-ethereum-nft-listener:
-  livenessProbe:
-    initialDelaySeconds: 360s
-  resources:
-    jvm:
-      xmx_megabytes: 1024
-      max_direct_memory_megabytes: 256
-
 polygon-nft-listener:
   livenessProbe:
     initialDelaySeconds: 360s
@@ -16,10 +8,6 @@ polygon-nft-listener:
     jvm:
       xmx_megabytes: 1024
       max_direct_memory_megabytes: 128
-
-ethereum-gateway:
-  service:
-    nodePort: 30216
 
 polygon-gateway:
   service:

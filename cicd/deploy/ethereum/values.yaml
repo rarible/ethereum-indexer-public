@@ -1,7 +1,7 @@
 global:
   blockchain: ethereum
   network: mainnet
-ethereum-erc20-api: &protocol-erc20-api
+ethereum-erc20-api:
   image:
     repository: ethereum-indexer-erc20-api
   replicas: 2
@@ -25,11 +25,7 @@ ethereum-erc20-api: &protocol-erc20-api
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-erc20-api:
-  <<: *protocol-erc20-api
-  blockchain: polygon
-
-ethereum-erc20-listener: &protocol-erc20-listener
+ethereum-erc20-listener:
   image:
     repository: ethereum-indexer-erc20-listener
   blockchain: ethereum
@@ -49,11 +45,7 @@ ethereum-erc20-listener: &protocol-erc20-listener
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
 
-polygon-erc20-listener:
-  <<: *protocol-erc20-listener
-  blockchain: polygon
-
-ethereum-gateway: &protocol-gateway
+ethereum-gateway:
   image:
     repository: ethereum-indexer-gateway
   replicas: 2
@@ -78,11 +70,7 @@ ethereum-gateway: &protocol-gateway
     additional:
     - 'proxy-staging'
 
-polygon-gateway:
-  <<: *protocol-gateway
-  blockchain: polygon
-
-ethereum-order-api: &protocol-order-api
+ethereum-order-api: 
   image:
     repository: ethereum-indexer-order-api
   replicas: 2
@@ -109,11 +97,7 @@ ethereum-order-api: &protocol-order-api
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-order-api:
-  <<: *protocol-order-api
-  blockchain: polygon
-
-ethereum-order-listener: &protocol-order-listener
+ethereum-order-listener: 
   image:
     repository: ethereum-indexer-order-listener
   blockchain: ethereum
@@ -135,11 +119,7 @@ ethereum-order-listener: &protocol-order-listener
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-order-listener:
-  <<: *protocol-order-listener
-  blockchain: polygon
-
-ethereum-order-migration: &protocol-order-migration
+ethereum-order-migration:
   image:
     repository: ethereum-indexer-order-migration
   blockchain: ethereum
@@ -165,11 +145,7 @@ ethereum-order-migration: &protocol-order-migration
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-order-migration:
-  <<: *protocol-order-migration
-  blockchain: polygon
-
-ethereum-unlockable-api: &protocol-unlockable-api
+ethereum-unlockable-api:
   image:
     repository: ethereum-indexer-unlockable-api
   replicas: 2
@@ -192,11 +168,7 @@ ethereum-unlockable-api: &protocol-unlockable-api
     common:
     - '{{ include "service.appEnv" $ }}-backend'
 
-polygon-unlockable-api:
-  <<: *protocol-unlockable-api
-  blockchain: polygon
-
-ethereum-nft-api: &protocol-nft-api
+ethereum-nft-api: 
   image:
     repository: ethereum-indexer-nft-api
   replicas: 2
@@ -222,11 +194,7 @@ ethereum-nft-api: &protocol-nft-api
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-nft-api:
-  <<: *protocol-nft-api
-  blockchain: polygon
-
-ethereum-nft-listener: &protocol-nft-listener
+ethereum-nft-listener:
   image:
     repository: ethereum-indexer-nft-listener
   blockchain: ethereum
@@ -248,11 +216,7 @@ ethereum-nft-listener: &protocol-nft-listener
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
 
-polygon-nft-listener:
-  <<: *protocol-nft-listener
-  blockchain: polygon
-
-ethereum-nft-migration: &protocol-nft-migration
+ethereum-nft-migration:
   image:
     repository: ethereum-indexer-nft-migration
   blockchain: ethereum
@@ -277,7 +241,3 @@ ethereum-nft-migration: &protocol-nft-migration
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
-
-polygon-nft-migration:
-  <<: *protocol-nft-migration
-  blockchain: polygon
