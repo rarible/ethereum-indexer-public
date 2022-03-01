@@ -62,7 +62,8 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
             itemTransfer.owner == Address.ZERO() -> {
@@ -76,7 +77,8 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
             else -> {
@@ -91,7 +93,8 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
         }

@@ -11,7 +11,6 @@ import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderActivityListDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
-import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainOrder
@@ -79,7 +78,8 @@ class OrderActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     source = convert(data.source),
-                    type = typeDto(data)
+                    type = typeDto(data),
+                    reverted = false
                 )
             }
             is OrderCancel -> if (data.isBid()) {
@@ -94,7 +94,8 @@ class OrderActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    source = convert(data.source)
+                    source = convert(data.source),
+                    reverted = false
                 )
             } else {
                 OrderActivityCancelListDto(
@@ -108,7 +109,8 @@ class OrderActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    source = convert(data.source)
+                    source = convert(data.source),
+                    reverted = false
                 )
             }
             is OnChainOrder -> if (data.isBid()) {
@@ -121,7 +123,8 @@ class OrderActivityConverter(
                     take = assetDtoConverter.convert(data.take),
                     price = price(data.make, data.take),
                     source = convert(data.source),
-                    priceUsd = data.priceUsd
+                    priceUsd = data.priceUsd,
+                    reverted = false
                 )
             } else if (data.taker != null) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
@@ -137,7 +140,8 @@ class OrderActivityConverter(
                     take = assetDtoConverter.convert(data.take),
                     price = price(data.take, data.make),
                     source = convert(data.source),
-                    priceUsd = data.priceUsd
+                    priceUsd = data.priceUsd,
+                    reverted = false
                 )
             }
         }
@@ -178,7 +182,8 @@ class OrderActivityConverter(
                 take = assetDtoConverter.convert(version.take),
                 price = price(version.make, version.take),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = convert(version.platform)
+                source = convert(version.platform),
+                reverted = false
             )
             else -> OrderActivityListDto(
                 date = version.createdAt,
@@ -189,7 +194,8 @@ class OrderActivityConverter(
                 take = assetDtoConverter.convert(version.take),
                 price = price(version.take, version.make),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
-                source = convert(version.platform)
+                source = convert(version.platform),
+                reverted = false
             )
         }
     }

@@ -1,9 +1,18 @@
 package com.rarible.protocol.gateway.test
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.*
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.AssetDto
+import com.rarible.protocol.dto.Erc721AssetTypeDto
+import com.rarible.protocol.dto.OrderActivityBidDto
+import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.TransferDto
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
@@ -36,7 +45,8 @@ fun randomTransferDto(): TransferDto {
         from = randomAddress(),
         blockHash = Word.apply(RandomUtils.nextBytes(32)),
         blockNumber = randomLong(),
-        logIndex = randomInt()
+        logIndex = randomInt(),
+        reverted = false
     )
 }
 
@@ -50,6 +60,7 @@ fun randomOrderBidActivityDto(): OrderActivityBidDto {
         price = randomBigInt().toBigDecimal(),
         priceUsd = randomBigInt().toBigDecimal(),
         hash = Word.apply(RandomUtils.nextBytes(32)),
-        source = OrderActivityDto.Source.RARIBLE
+        source = OrderActivityDto.Source.RARIBLE,
+        reverted = false
     )
 }

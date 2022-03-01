@@ -57,7 +57,8 @@ class AuctionActivityConverter(
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
             is BidPlaced -> {
@@ -71,6 +72,7 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
+                    reverted = false
                 )
             }
             is AuctionFinished -> {
@@ -82,7 +84,8 @@ class AuctionActivityConverter(
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
             is AuctionCancelled -> {
@@ -94,7 +97,8 @@ class AuctionActivityConverter(
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
-                    logIndex = logIndex
+                    logIndex = logIndex,
+                    reverted = false
                 )
             }
         }
@@ -113,13 +117,15 @@ class AuctionActivityConverter(
                 id = history.id,
                 date = history.date,
                 source = source,
-                auction = auctionDto
+                auction = auctionDto,
+                reverted = false
             )
             AuctionOffchainHistory.Type.ENDED -> AuctionActivityEndDto(
                 id = history.id,
                 date = history.date,
                 source = source,
-                auction = auctionDto
+                auction = auctionDto,
+                reverted = false
             )
         }
     }
