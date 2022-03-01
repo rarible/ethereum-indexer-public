@@ -45,15 +45,43 @@ class RemoveOpenSeaOutdatedOrdersTaskHandlerTest : AbstractIntegrationTest() {
             )
             orderVersionRepository.save(orderVersion).awaitFirst()
             val order = orderVersion.toOrderExactFields().copy(
-                status = arrayOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE, OrderStatus.NOT_STARTED).random()
+                status = OrderStatus.ACTIVE
             )
             orderRepository.save(order)
         }
-
-        val updatedOrdersHashes = removeOpenSeaOutdatedOrdersTaskHandler.runLongTask(null, "").toList()
+        repeat(5) {
+            val orderVersion = createOrderVersion().copy(
+                platform = Platform.OPEN_SEA,
+                data = createOrderOpenSeaV1DataV1().copy(exchange = exchangeContractAddresses.openSeaV1, nonce = null),
+                type = OrderType.OPEN_SEA_V1,
+                createdAt = Instant.EPOCH,
+            )
+            orderVersionRepository.save(orderVersion).awaitFirst()
+            val order = orderVersion.toOrderExactFields().copy(
+                status = OrderStatus.INACTIVE
+            )
+            orderRepository.save(order)
+        }
+        repeat(5) {
+            val orderVersion = createOrderVersion().copy(
+                platform = Platform.OPEN_SEA,
+                data = createOrderOpenSeaV1DataV1().copy(exchange = exchangeContractAddresses.openSeaV1, nonce = null),
+                type = OrderType.OPEN_SEA_V1,
+                createdAt = Instant.EPOCH,
+            )
+            orderVersionRepository.save(orderVersion).awaitFirst()
+            val order = orderVersion.toOrderExactFields().copy(
+                status = OrderStatus.NOT_STARTED
+            )
+            orderRepository.save(order)
+        }
+        val updatedOrdersHashesActive = removeOpenSeaOutdatedOrdersTaskHandler.runLongTask(null, OrderStatus.ACTIVE.name).toList()
+        val updatedOrdersHashesInactive = removeOpenSeaOutdatedOrdersTaskHandler.runLongTask(null, OrderStatus.INACTIVE.name).toList()
+        val updatedOrdersHashesNotStarted = removeOpenSeaOutdatedOrdersTaskHandler.runLongTask(null, OrderStatus.NOT_STARTED.name).toList()
+        val updatedOrdersHashes = updatedOrdersHashesActive + updatedOrdersHashesInactive + updatedOrdersHashesNotStarted
         val updatedOrdersFromRep = orderRepository.findAll(updatedOrdersHashes.map{Word.apply(it)}).toList()
 
-        assertEquals(5, updatedOrdersFromRep.count())
+        assertEquals(15, updatedOrdersFromRep.count())
         updatedOrdersFromRep.forEach { assertEquals(true, it.cancelled) }
         updatedOrdersFromRep.forEach { assertEquals(OrderStatus.CANCELLED, it.status) }
         updatedOrdersFromRep.forEach { assertEquals(OrderType.OPEN_SEA_V1, it.type) }
