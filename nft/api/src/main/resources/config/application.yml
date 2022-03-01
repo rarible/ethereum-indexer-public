@@ -38,8 +38,10 @@ rarible:
     use-locks: true
   loader:
     broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol-${application.environment}-${common.blockchain}-nft-indexer
+    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
     enableWorkers: false
+    enableNotifications: false
+    enableRetrySchedulerJob: false
 
 api:
   opensea:
@@ -70,6 +72,7 @@ blockchain:
       optimisticLockRetries: 3
       scan:
         enabled: false
+        run-reindex-task: false
       retryPolicy:
         scan:
           reconnectDelay: 2s

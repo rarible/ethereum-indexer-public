@@ -29,6 +29,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.time.Duration
 
 @Component
 class ItemService(
@@ -40,11 +41,11 @@ class ItemService(
     private val ownershipApiService: OwnershipApiService,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
-    suspend fun getWithAvailableMeta(itemId: ItemId): NftItemDto {
+    suspend fun getWithAvailableMetaOrLoadSynchronouslyWithTimeout(itemId: ItemId, timeout: Duration): NftItemDto {
         val item = itemRepository
             .findById(itemId).awaitFirstOrNull()
             ?: throw EntityNotFoundApiException("Item", itemId)
-        val itemMeta = itemMetaService.getAvailableMetaOrScheduleLoading(itemId)
+        val itemMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, timeout)
         val extendedItem = ExtendedItem(item, itemMeta)
         return conversionService.convert(extendedItem)
     }
