@@ -90,7 +90,7 @@ class CollectionOrderStatService(
             aggregation,
             ExchangeHistoryRepository.COLLECTION,
             SalesStats::class.java
-        ).collectList().awaitFirst().first()
+        ).collectList().awaitFirst().firstOrNull() ?: SalesStats(token, BigDecimal.ZERO, BigDecimal.ZERO)
     }
 
     private suspend fun evalFloorPrice(token: Address, currencies: List<Address>): BigDecimal? {
