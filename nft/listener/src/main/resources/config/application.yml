@@ -100,6 +100,12 @@ blockchain:
         batch-load:
           enabled: true
           batch-size: 50
+      task:
+        reindex:
+          enabled: true
+        check-blocks:
+          enabled: true
+          reindex-blocks: true
       retry-policy:
         scan:
           reconnect-delay: 2s

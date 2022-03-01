@@ -142,6 +142,20 @@ data class Order(
 
     fun isEnded() = Companion.isEnded(end)
 
+    fun isLegacyOpenSea(exchange: Address): Boolean {
+        return if (this.type == OrderType.OPEN_SEA_V1) {
+            when (data) {
+                is OrderOpenSeaV1DataV1 -> data.exchange == exchange
+                is OrderCryptoPunksData,
+                is OrderDataLegacy,
+                is OrderRaribleV2DataV1,
+                is OrderRaribleV2DataV2 -> false
+            }
+        } else {
+            false
+        }
+    }
+
     companion object {
         /**
          * Maximum size of [priceHistory]
