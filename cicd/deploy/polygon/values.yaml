@@ -1,0 +1,283 @@
+global:
+  blockchain: ethereum
+  network: mainnet
+ethereum-erc20-api: &protocol-erc20-api
+  image:
+    repository: ethereum-indexer-erc20-api
+  replicas: 2
+  service:
+    enabled: true
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-erc20-api:
+  <<: *protocol-erc20-api
+  blockchain: polygon
+
+ethereum-erc20-listener: &protocol-erc20-listener
+  image:
+    repository: ethereum-indexer-erc20-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    - '{{ .Values.global.network }}-ethereum'
+
+polygon-erc20-listener:
+  <<: *protocol-erc20-listener
+  blockchain: polygon
+
+ethereum-gateway: &protocol-gateway
+  image:
+    repository: ethereum-indexer-gateway
+  replicas: 2
+  service:
+    enabled: true
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+    additional:
+    - 'proxy-staging'
+
+polygon-gateway:
+  <<: *protocol-gateway
+  blockchain: polygon
+
+ethereum-order-api: &protocol-order-api
+  image:
+    repository: ethereum-indexer-order-api
+  replicas: 2
+  service:
+    enabled: true
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-order-api:
+  <<: *protocol-order-api
+  blockchain: polygon
+
+ethereum-order-listener: &protocol-order-listener
+  image:
+    repository: ethereum-indexer-order-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-order-listener:
+  <<: *protocol-order-listener
+  blockchain: polygon
+
+ethereum-order-migration: &protocol-order-migration
+  image:
+    repository: ethereum-indexer-order-migration
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  restartPolicy:
+    condition: on-failure
+  updateConfig:
+    failure_action: continue
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-order-migration:
+  <<: *protocol-order-migration
+  blockchain: polygon
+
+ethereum-unlockable-api: &protocol-unlockable-api
+  image:
+    repository: ethereum-indexer-unlockable-api
+  replicas: 2
+  service:
+    enabled: true
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/unlockable'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+    - '{{ include "service.appEnv" $ }}-backend'
+
+polygon-unlockable-api:
+  <<: *protocol-unlockable-api
+  blockchain: polygon
+
+ethereum-nft-api: &protocol-nft-api
+  image:
+    repository: ethereum-indexer-nft-api
+  replicas: 2
+  service:
+    enabled: true
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.service: true
+  resources:
+    jvm:
+      xmx_megabytes: 456
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  updateConfig:
+    order: start-first
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-nft-api:
+  <<: *protocol-nft-api
+  blockchain: polygon
+
+ethereum-nft-listener: &protocol-nft-listener
+  image:
+    repository: ethereum-indexer-nft-listener
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-nft-listener:
+  <<: *protocol-nft-listener
+  blockchain: polygon
+
+ethereum-nft-migration: &protocol-nft-migration
+  image:
+    repository: ethereum-indexer-nft-migration
+  blockchain: ethereum
+  environments:
+    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+  nodeSelector:
+    node.labels.rarible.job: true
+  endpointMode: dnsrr
+  resources:
+    jvm:
+      xmx_megabytes: 356
+      max_direct_memory_megabytes: 32
+  livenessProbe:
+    initialDelaySeconds: 180s
+  restartPolicy:
+    condition: on-failure
+  updateConfig:
+    failure_action: continue
+  networks:
+    common:
+      - '{{ include "service.appEnv" $ }}-backend'
+      - '{{ .Values.global.network }}-ethereum'
+
+polygon-nft-migration:
+  <<: *protocol-nft-migration
+  blockchain: polygon
