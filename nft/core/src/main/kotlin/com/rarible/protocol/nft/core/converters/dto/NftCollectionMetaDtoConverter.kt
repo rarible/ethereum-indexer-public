@@ -23,13 +23,17 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
     }
 
     private fun createImage(source: TokenMeta): NftMediaDto? {
-        if (source.properties.image != null && source.contentMeta != null) {
-            return NftMediaDto(
+        return if (source.properties.image != null) {
+            NftMediaDto(
                 url = mapOf(NftMediaSizeDto.ORIGINAL.toString() to source.properties.image),
-                meta = mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta))
+                meta = if (source.contentMeta != null) {
+                    mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta))
+                } else {
+                    emptyMap()
+                }
             )
         } else {
-            return null
+            null
         }
     }
 

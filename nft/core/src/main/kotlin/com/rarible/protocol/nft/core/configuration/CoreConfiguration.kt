@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.configuration
 
-import com.rarible.core.content.meta.loader.ContentMetaReceiver
-import com.rarible.core.content.meta.loader.KtorApacheClientContentReceiver
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
@@ -16,7 +14,6 @@ import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.Package
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
@@ -36,18 +33,6 @@ class CoreConfiguration(
     fun featureFlags(): FeatureFlags {
         return properties.featureFlags
     }
-
-    @Bean
-    fun contentMetaReceiver(
-        @Value("\${api.proxy-url:}") openSeaProxyUrl: String,
-        @Value("\${api.properties.media-meta-timeout}") timeout: Int,
-        @Value("\${api.properties.media-meta-max-loaded-content-size:131072}") maxLoadedContentSize: Int
-    ): ContentMetaReceiver = ContentMetaReceiver(
-        contentReceiver = KtorApacheClientContentReceiver(
-            timeout = timeout
-        ),
-        maxBytes = maxLoadedContentSize
-    )
 
     @Bean
     @Qualifier("meta.cache.loader.service")

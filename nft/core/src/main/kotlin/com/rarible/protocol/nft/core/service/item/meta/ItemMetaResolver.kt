@@ -17,24 +17,26 @@ class ItemMetaResolver(
 
     suspend fun resolveItemMeta(itemId: ItemId): ItemMeta? {
         val itemProperties = itemPropertiesService.resolve(itemId) ?: return null
-        val contentMeta = loadContentMeta(itemProperties)
+        val contentMeta = getCachedContentMeta(itemProperties)
         return ItemMeta(itemProperties.fixAnimationUrl(), contentMeta)
     }
 
-    private suspend fun loadContentMeta(itemProperties: ItemProperties): ItemContentMeta {
+    // TODO[meta]: Ethereum API will be not responsible for loading metadata for items.
+    //  Metadata will be loaded and cached on the Multichain API (union-service)
+    //  We only return from cache what we have already collected in the Ethereum NFT database.
+    private suspend fun getCachedContentMeta(itemProperties: ItemProperties): ItemContentMeta {
         val imageMediaMeta = when {
-            itemProperties.imagePreview != null -> mediaMetaService.getMediaMeta(itemProperties.imagePreview)
-            itemProperties.image != null -> mediaMetaService.getMediaMeta(itemProperties.image)
+            itemProperties.imagePreview != null -> mediaMetaService.getMediaMetaFromCache(itemProperties.imagePreview)
+            itemProperties.image != null -> mediaMetaService.getMediaMetaFromCache(itemProperties.image)
             else -> null
         }
         val animationMediaMeta = when {
-            itemProperties.animationUrl != null -> mediaMetaService.getMediaMeta(itemProperties.animationUrl)
+            itemProperties.animationUrl != null -> mediaMetaService.getMediaMetaFromCache(itemProperties.animationUrl)
             else -> null
         }
         return ItemContentMeta(imageMediaMeta, animationMediaMeta)
     }
 
-    // TODO[meta]: this fix may be re-implemented using content meta requested with mediaMetaService.getMediaMeta(...)
     private fun ItemProperties.fixAnimationUrl(): ItemProperties {
         fun String?.hasAnimationExtension() =
             ANIMATION_EXTENSIONS.any { this?.endsWith(it) == true }

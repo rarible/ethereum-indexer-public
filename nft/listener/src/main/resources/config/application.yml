@@ -116,8 +116,3 @@ blockchain:
         rootPath: ${common.metric-root-path}
         worker:
           pollingPeriod: 1m
-
-# Disable verbose logs of Apache HTTP client used to load content media metadata.
-logging:
-  level:
-    org.apache.http: ERROR

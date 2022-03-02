@@ -56,7 +56,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMeta("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
 
         val metaDto = nftCollectionApiClient.getNftCollectionById(token.id.toString()).awaitSingle().meta!!
 
@@ -86,7 +86,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMeta("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
 
         nftCollectionApiClient.getNftCollectionById(token.id.toString()).awaitSingle().meta!!
 
@@ -111,7 +111,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             ),
             updateDate = Date.from(Instant.now())
         ), TOKEN_METADATA_COLLECTION).awaitSingle()
-        coEvery { mockMediaMetaService.getMediaMeta("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
 
         val metaDto = nftCollectionApiClient.getNftCollectionById(token.id.toString()).awaitSingle().meta!!
 
@@ -148,7 +148,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             ),
             updateDate = Date.from(Instant.now())
         ), TOKEN_METADATA_COLLECTION).awaitSingle()
-        coEvery { mockMediaMetaService.getMediaMeta("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(type = "image/png", width = 256, height = 256)
 
         nftCollectionApiClient.resetNftCollectionMetaById(token.id.toString()).awaitSingleOrNull()
         val cached = mongo.findById(token.id.prefixed(), Cache::class.java, TOKEN_METADATA_COLLECTION).awaitFirstOrNull()
@@ -166,7 +166,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             feeRecipient = Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMeta("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120") } returns ContentMeta(type = "image/png", width = 256, height = 256)
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120") } returns ContentMeta(type = "image/png", width = 256, height = 256)
 
         val metaDto = nftCollectionApiClient.getNftCollectionById(token.id.toString()).awaitSingle().meta!!
 

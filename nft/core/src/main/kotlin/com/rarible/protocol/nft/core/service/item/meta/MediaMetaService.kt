@@ -1,39 +1,25 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.content.meta.loader.ContentMeta
-import com.rarible.core.content.meta.loader.ContentMetaReceiver
 import com.rarible.protocol.nft.core.service.IpfsService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
 import org.springframework.stereotype.Component
 
+@Deprecated(
+    "Remove this class when Mulitchain API will take over Ethereum API. " +
+            "Loading of metadata is performed on the Multichain API."
+)
 @Component
 class MediaMetaService(
     private val ipfsService: IpfsService,
-    private val template: ReactiveMongoTemplate,
-    private val contentMetaReceiver: ContentMetaReceiver
+    private val template: ReactiveMongoTemplate
 ) {
 
-    private val logger = LoggerFactory.getLogger(MediaMetaService::class.java)
-
-    suspend fun getMediaMeta(url: String): ContentMeta? {
+    suspend fun getMediaMetaFromCache(url: String): ContentMeta? {
         val realUrl = ipfsService.resolveHttpUrl(url)
-        val fromCache = fetchFromCache(realUrl)
-        if (fromCache != null) {
-            return fromCache
-        }
-        val contentMeta = try {
-            contentMetaReceiver.receive(realUrl)
-        } catch (e: Exception) {
-            logger.warn("Content meta resolution: error for URL {}", realUrl, e)
-            return null
-        }
-        if (contentMeta == null) {
-            logger.warn("Content meta resolution: nothing was resolved by URL {}", realUrl)
-        }
-        return contentMeta
+        return fetchFromCache(realUrl)
     }
 
     private suspend fun fetchFromCache(url: String): ContentMeta? {

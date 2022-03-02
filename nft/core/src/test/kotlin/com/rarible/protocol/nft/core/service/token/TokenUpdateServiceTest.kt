@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.token
 
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -8,7 +7,6 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftMediaDto
-import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CreateCollection
@@ -37,12 +35,6 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
-        )
-
-        coEvery { testContentMetaReceiver.receive("https://rarible.mypinata.cloud/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
-            type = "image/png",
-            width = 256,
-            height = 256
         )
 
         val id = randomAddress()
@@ -75,13 +67,7 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
                 external_link = "https://feudalz.io",
                 image = NftMediaDto(
                     url = mapOf("ORIGINAL" to "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d"),
-                    meta = mapOf(
-                        "ORIGINAL" to NftMediaMetaDto(
-                            type = "image/png",
-                            width = 256,
-                            height = 256
-                        )
-                    )
+                    meta = emptyMap()
                 ),
                 fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                 seller_fee_basis_points = 250

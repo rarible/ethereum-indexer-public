@@ -41,10 +41,10 @@ class ItemMetaResolverTest {
             ContentMeta("imagePreviewMeta", width = 3, height = 4)
         val imageBigMedia = ContentMeta("imageBigMeta", width = 5, height = 6)
         val animationMedia = ContentMeta("animationMeta", width = 7, height = 8)
-        coEvery { mediaMetaService.getMediaMeta("imageUrl") } returns imageMedia
-        coEvery { mediaMetaService.getMediaMeta("imagePreviewUrl") } returns imagePreviewMedia
-        coEvery { mediaMetaService.getMediaMeta("imageBigUrl") } returns imageBigMedia
-        coEvery { mediaMetaService.getMediaMeta("animationUrl") } returns animationMedia
+        coEvery { mediaMetaService.getMediaMetaFromCache("imageUrl") } returns imageMedia
+        coEvery { mediaMetaService.getMediaMetaFromCache("imagePreviewUrl") } returns imagePreviewMedia
+        coEvery { mediaMetaService.getMediaMetaFromCache("imageBigUrl") } returns imageBigMedia
+        coEvery { mediaMetaService.getMediaMetaFromCache("animationUrl") } returns animationMedia
         val itemMeta = itemMetaResolver.resolveItemMeta(itemId)
         assertThat(itemMeta).isEqualTo(ItemMeta(itemProperties, ItemContentMeta(imagePreviewMedia, animationMedia)))
     }
