@@ -1,9 +1,9 @@
-@Library('shared-library@v21.12.27-1') _
+@Library('shared-library@v22.03.02-1') _
 
 def pipelineConfig = [
     "stackName": "protocol-ethereum",
     "slackChannel": "#protocol-duty",
-    "deployJenkinsJobName": "test-jenkins-deploy"
+    "jenkinsDeployJobName": "test-jenkins-deploy"
 ]
 
 serviceCI(pipelineConfig)
