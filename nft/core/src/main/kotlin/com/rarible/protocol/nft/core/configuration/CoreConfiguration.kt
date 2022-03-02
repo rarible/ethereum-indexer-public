@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.configuration
 
-import com.rarible.core.content.meta.loader.ContentMetaLoader
+import com.rarible.core.content.meta.loader.ContentMetaReceiver
+import com.rarible.core.content.meta.loader.KtorApacheClientContentReceiver
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
@@ -37,14 +38,15 @@ class CoreConfiguration(
     }
 
     @Bean
-    fun contentMetaLoader(
+    fun contentMetaReceiver(
         @Value("\${api.proxy-url:}") openSeaProxyUrl: String,
         @Value("\${api.properties.media-meta-timeout}") timeout: Int,
-        @Value("\${api.properties.media-meta-max-loaded-content-size:10000000}") maxLoadedContentSize: Long
-    ): ContentMetaLoader = ContentMetaLoader(
-        mediaFetchTimeout = timeout,
-        mediaFetchMaxSize = maxLoadedContentSize,
-        openSeaProxyUrl = openSeaProxyUrl
+        @Value("\${api.properties.media-meta-max-loaded-content-size:131072}") maxLoadedContentSize: Int
+    ): ContentMetaReceiver = ContentMetaReceiver(
+        contentReceiver = KtorApacheClientContentReceiver(
+            timeout = timeout
+        ),
+        maxBytes = maxLoadedContentSize
     )
 
     @Bean

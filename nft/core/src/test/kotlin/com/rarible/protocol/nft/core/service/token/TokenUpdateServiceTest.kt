@@ -39,7 +39,7 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             sellerFeeBasisPoints = 250
         )
 
-        coEvery { testContentMetaLoader.fetchContentMeta("https://rarible.mypinata.cloud/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+        coEvery { testContentMetaReceiver.receive("https://rarible.mypinata.cloud/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256

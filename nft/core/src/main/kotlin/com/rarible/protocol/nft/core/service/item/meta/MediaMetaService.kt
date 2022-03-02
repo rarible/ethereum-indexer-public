@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.content.meta.loader.ContentMeta
-import com.rarible.core.content.meta.loader.ContentMetaLoader
+import com.rarible.core.content.meta.loader.ContentMetaReceiver
 import com.rarible.protocol.nft.core.service.IpfsService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 class MediaMetaService(
     private val ipfsService: IpfsService,
     private val template: ReactiveMongoTemplate,
-    private val contentMetaLoader: ContentMetaLoader
+    private val contentMetaReceiver: ContentMetaReceiver
 ) {
 
     private val logger = LoggerFactory.getLogger(MediaMetaService::class.java)
@@ -25,7 +25,7 @@ class MediaMetaService(
             return fromCache
         }
         val contentMeta = try {
-            contentMetaLoader.fetchContentMeta(realUrl)
+            contentMetaReceiver.receive(realUrl)
         } catch (e: Exception) {
             logger.warn("Content meta resolution: error for URL {}", realUrl, e)
             return null

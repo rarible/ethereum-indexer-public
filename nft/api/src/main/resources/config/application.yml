@@ -88,3 +88,8 @@ blockchain:
 mongock:
   change-logs-scan-package:
     - com.rarible.blockchain.scanner.ethereum.migration
+
+# Disable verbose logs of Apache HTTP client used to load content media metadata.
+logging:
+  level:
+    org.apache.http: ERROR
