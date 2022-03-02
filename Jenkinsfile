@@ -3,7 +3,7 @@
 def pipelineConfig = [
     "stackName": "protocol-ethereum",
     "slackChannel": "#protocol-duty",
-    "jenkinsDeployJobName": "test-jenkins-deploy"
+    "jenkinsDeployJobName": "protocol-ethereum-deploy"
 ]
 
 serviceCI(pipelineConfig)
