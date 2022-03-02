@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.content.meta.loader.ContentMeta
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.service.IpfsService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate

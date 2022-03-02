@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.api.e2e.data
 
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomString
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemMeta

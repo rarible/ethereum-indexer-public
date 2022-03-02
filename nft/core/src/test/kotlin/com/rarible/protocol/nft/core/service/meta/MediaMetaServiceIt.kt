@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.service.meta
 
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.service.item.meta.CachedContentMetaEntry
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import kotlinx.coroutines.reactive.awaitFirst
