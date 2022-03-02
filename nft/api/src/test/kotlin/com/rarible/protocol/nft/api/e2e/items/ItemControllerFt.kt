@@ -217,7 +217,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         ownershipRepository.save(ownership).awaitFirst()
 
         // On the first request, item meta is null (because it was not loaded before). Loading gets scheduled.
-        assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst())
+        assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst().copy(meta = null))
             .isEqualTo(extendedItemDtoConverter.convert(ExtendedItem(item, itemMeta = null)))
 
         // Then the meta gets loaded. Wait for it.
