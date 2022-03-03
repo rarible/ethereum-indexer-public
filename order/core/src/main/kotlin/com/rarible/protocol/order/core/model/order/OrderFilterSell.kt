@@ -23,13 +23,13 @@ data class OrderFilterSell(
                 .fromOrigin(origin)
                 .forStatus(status)
                 .scrollTo(continuation, sort)
-        ).limit(limit).with(sort(sort)).withHint(hint())
+        ).limit(limit).with(sort(sort)).withHint(hint(continuation))
     }
 
-    private fun hint(): Document = when {
-        hasPlatforms && hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
-        hasPlatforms && !hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
-        hasStatuses -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
+    private fun hint(continuation: String?): Document = when {
+        continuation == null || (singlePlatform && singleStatus) -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_STATUS_DEFINITION.indexKeys
+        singlePlatform && singleStatus.not() -> OrderRepositoryIndexes.SELL_ORDERS_PLATFORM_DEFINITION.indexKeys
+        singleStatus && singlePlatform.not() -> OrderRepositoryIndexes.SELL_ORDERS_STATUS_DEFINITION.indexKeys
         else -> OrderRepositoryIndexes.SELL_ORDERS_DEFINITION.indexKeys
     }
 }
