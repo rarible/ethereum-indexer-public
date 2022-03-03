@@ -41,13 +41,14 @@ rarible:
     use-locks: true
   loader:
     broker-replica-set: ${kafka.hosts}
-    topicsPrefix: protocol-${application.environment}-${common.blockchain}-nft-indexer
+    topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
+    enableRetrySchedulerJob: true
     enableWorkers: true
     workers: 4
     loadTasksBatchSize: 10
     retry:
-      # Retry after 30s, 5m, 1h, 6h, 24h
-      backoffDelaysMillis: [ 30000, 300000, 3600000, 21600000, 86400000 ]
+      # Retry after 24h
+      backoffDelaysMillis: [ 86400000 ]
       job:
         runner:
           period: 30000 # Schedule retry tasks every 30s
@@ -99,6 +100,12 @@ blockchain:
         batch-load:
           enabled: true
           batch-size: 50
+      task:
+        reindex:
+          enabled: true
+        check-blocks:
+          enabled: true
+          reindex-blocks: true
       retry-policy:
         scan:
           reconnect-delay: 2s

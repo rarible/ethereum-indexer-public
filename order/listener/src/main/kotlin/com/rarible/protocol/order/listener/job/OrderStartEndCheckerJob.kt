@@ -2,12 +2,15 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
 import com.rarible.protocol.dto.OrderUpdateEventDto
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
@@ -26,6 +29,7 @@ class OrderStartEndCheckerJob(
     private val properties: OrderListenerProperties,
     private val orderDtoConverter: OrderDtoConverter,
     private val publisher: ProtocolOrderPublisher,
+    private val orderIndexerProperties: OrderIndexerProperties,
     meterRegistry: MeterRegistry
 ) {
     private val logger: Logger = LoggerFactory.getLogger(OrderStartEndCheckerJob::class.java)
@@ -48,7 +52,9 @@ class OrderStartEndCheckerJob(
         merge(
             orderRepository.findExpiredOrders(now),
             orderRepository.findNotStartedOrders(now)
-        ).collect { order ->
+        )
+            .filter { order -> order.isNoLegacyOpenSea() }
+            .collect { order ->
             if (order.isEnded()) {
                 expired++
             } else {
@@ -69,5 +75,10 @@ class OrderStartEndCheckerJob(
         }
 
         logger.info("Successfully finished updating order status: $expired expired, $alive alive")
+    }
+
+
+    private fun Order.isNoLegacyOpenSea(): Boolean {
+        return this.isLegacyOpenSea(orderIndexerProperties.exchangeContractAddresses.openSeaV1).not()
     }
 }

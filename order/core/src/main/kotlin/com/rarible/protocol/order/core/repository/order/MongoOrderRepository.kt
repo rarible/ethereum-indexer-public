@@ -6,7 +6,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
@@ -17,7 +16,6 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrElse
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.Document
 import org.slf4j.LoggerFactory
@@ -40,7 +38,6 @@ import org.springframework.data.mongodb.core.query.lte
 import org.springframework.data.mongodb.core.query.ne
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.math.BigInteger
 import java.time.Instant
 import java.util.*
 
@@ -122,6 +119,19 @@ class MongoOrderRepository(
                     )
                 )
             ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
+                .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
+        ).all().asFlow()
+    }
+
+    override fun findAll(platform: Platform, status: Set<OrderStatus>): Flow<Order> {
+        return template.query<Order>().matching(
+            Query(
+                Criteria().andOperator(
+                    Order::platform isEqualTo platform,
+                    Order::status inValues status,
+                )
+            )
+                .withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
                 .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
         ).all().asFlow()
     }

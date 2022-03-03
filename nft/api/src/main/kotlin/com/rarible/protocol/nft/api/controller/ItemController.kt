@@ -11,9 +11,9 @@ import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
 import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -64,7 +64,10 @@ class ItemController(
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
 
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
-        val result = itemService.getWithAvailableMeta(conversionService.convert(itemId))
+        val result = itemService.getWithAvailableMetaOrLoadSynchronouslyWithTimeout(
+            itemId = conversionService.convert(itemId),
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+        )
         return ResponseEntity.ok(result)
     }
 
@@ -238,7 +241,7 @@ class ItemController(
     }
 
     private suspend fun getItemMeta(itemId: String): ItemMeta {
-        return itemMetaService.getAvailableMetaOrScheduleAndWait(
+        return itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = conversionService.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)

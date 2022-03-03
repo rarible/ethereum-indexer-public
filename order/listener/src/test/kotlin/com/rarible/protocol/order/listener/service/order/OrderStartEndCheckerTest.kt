@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -49,6 +50,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
             OrderListenerProperties(updateStatusByStartEndEnabled = true),
             orderDtoConverter,
             protocolOrderPublisher,
+            orderIndexerProperties,
             meterRegistry
         )
 
