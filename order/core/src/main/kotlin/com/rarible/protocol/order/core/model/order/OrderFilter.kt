@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.core.converters.model.PlatformConverter
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
@@ -36,8 +37,8 @@ sealed class OrderFilter {
     abstract val sort: OrderFilterSort
     abstract val status: List<OrderStatusDto>?
 
-    val hasPlatforms get() = platforms.isNotEmpty()
-    val hasStatuses get() = !status.isNullOrEmpty()
+    val singlePlatform get() = platforms.isSingleton
+    val singleStatus get() = status?.isSingleton == true
 
     abstract fun toQuery(continuation: String?, limit: Int): Query
 
