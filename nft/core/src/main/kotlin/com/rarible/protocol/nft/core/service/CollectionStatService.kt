@@ -32,10 +32,12 @@ class CollectionStatService(
         val filter = OwnershipFilterByCollection(OwnershipFilter.Sort.LAST_UPDATE, token)
 
         val limit = Integer.MAX_VALUE // otherwise, filter will replace null by default limit 1000
+        val owners = HashSet<Address>()
         val result = ownerRepository.searchAsFlow(filter.toCriteria(null, limit))
-            .map { Pair(it.value.value, setOf(it.owner)) }
-            .fold(Pair(BigInteger.ZERO, emptySet<Address>())) { p1, p2 ->
-                Pair(p1.first + p2.first, p1.second + p2.second)
+            .map { Pair(it.value.value, it.owner) }
+            .fold(Pair(BigInteger.ZERO, owners)) { p1, p2 ->
+                p1.second.add(p2.second)
+                Pair(p1.first + p2.first, p1.second)
             }
 
         return optimisticLock {
