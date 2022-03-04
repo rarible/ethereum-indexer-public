@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.api.e2e
 
 import com.rarible.blockchain.scanner.ethereum.migration.ChangeLog00001
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.protocol.client.NoopWebClientCustomizer
@@ -13,6 +12,7 @@ import com.rarible.protocol.nft.api.client.NftItemControllerApi
 import com.rarible.protocol.nft.api.client.NftLazyMintControllerApi
 import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.nft.api.client.NftTransactionControllerApi
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
 import com.rarible.protocol.nft.core.model.ReduceVersion
@@ -142,7 +142,7 @@ abstract class SpringContainerBaseTest {
         clearMocks(mockItemMetaResolver)
         coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
         coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
-        coEvery { mockMediaMetaService.getMediaMeta(any()) } returns ContentMeta("image/png")
+        coEvery { mockMediaMetaService.getMediaMetaFromCache(any()) } returns ContentMeta("image/png")
     }
 
     @PostConstruct

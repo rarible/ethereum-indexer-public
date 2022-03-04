@@ -38,7 +38,7 @@ class CollectionOrderStatJob(
             .toList()
 
     @Scheduled(
-        fixedRateString = "\${listener.collectionStatRefresh.rate:PT1M}",
+        fixedDelayString = "\${listener.collectionStatRefresh.rate:PT1M}",
         initialDelayString = "PT1M"
     )
     fun execute() = runBlocking<Unit> {

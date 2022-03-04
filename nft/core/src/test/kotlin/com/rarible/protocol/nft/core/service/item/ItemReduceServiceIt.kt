@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -13,6 +12,7 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemContentMeta
@@ -113,7 +113,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun `should get creator from tokenId for OpenSea tokenId`(version: ReduceVersion) = withReducer(version)  {
+    fun `should get creator from tokenId for OpenSea tokenId`(version: ReduceVersion) = withReducer(version) {
         val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
 
         val owner = AddressFactory.create()
@@ -154,7 +154,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
-    fun mintItemViaPending(version: ReduceVersion) = withReducer(version)  {
+    fun mintItemViaPending(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -176,7 +176,13 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)
-        checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
+        checkOwnership(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            expValue = EthUInt256.ZERO,
+            expLazyValue = EthUInt256.ZERO
+        )
 
         checkItemEventWasPublished(
             token,
@@ -188,7 +194,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
 
         val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
-        mongo.remove(Query(Criteria("_id").isEqualTo(pendingMint.log.id)), LogEvent::class.java, COLLECTION).awaitFirst()
+        mongo.remove(Query(Criteria("_id").isEqualTo(pendingMint.log.id)), LogEvent::class.java, COLLECTION)
+            .awaitFirst()
         assertThat(nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst()).isEmpty()
 
         saveItemHistory(
@@ -206,7 +213,13 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         historyService.update(token, tokenId).then().awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
-        checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
+        checkOwnership(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            expValue = EthUInt256.ONE,
+            expLazyValue = EthUInt256.ZERO
+        )
 
         checkItemEventWasPublished(
             token,
@@ -391,9 +404,16 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             value = EthUInt256.of(3)
         )
         saveItemHistory(transfer2, logIndex = 2)
-        ownershipRepository.save(Ownership(
-            token = token, tokenId = tokenId, owner = owner, value = EthUInt256.ONE, date = Instant.now(), pending = emptyList()
-        )).awaitFirst()
+        ownershipRepository.save(
+            Ownership(
+                token = token,
+                tokenId = tokenId,
+                owner = owner,
+                value = EthUInt256.ONE,
+                date = Instant.now(),
+                pending = emptyList()
+            )
+        ).awaitFirst()
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
@@ -445,7 +465,13 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(from)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
-        checkOwnership(owner = owner, token = token, tokenId = tokenId, expValue = EthUInt256.ZERO, expLazyValue = EthUInt256.ZERO)
+        checkOwnership(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            expValue = EthUInt256.ZERO,
+            expLazyValue = EthUInt256.ZERO
+        )
     }
 
     @ParameterizedTest
@@ -829,9 +855,27 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         historyService.update(token, tokenId).awaitFirstOrNull()
 
-        checkOwnership(creator, token, tokenId, expValue = EthUInt256.Companion.of(1), expLazyValue = EthUInt256.Companion.of(0))
-        checkOwnership(owner1, token, tokenId, expValue = EthUInt256.Companion.of(4), expLazyValue = EthUInt256.Companion.of(0))
-        checkOwnership(owner2, token, tokenId, expValue = EthUInt256.Companion.of(5), expLazyValue = EthUInt256.Companion.of(0))
+        checkOwnership(
+            creator,
+            token,
+            tokenId,
+            expValue = EthUInt256.Companion.of(1),
+            expLazyValue = EthUInt256.Companion.of(0)
+        )
+        checkOwnership(
+            owner1,
+            token,
+            tokenId,
+            expValue = EthUInt256.Companion.of(4),
+            expLazyValue = EthUInt256.Companion.of(0)
+        )
+        checkOwnership(
+            owner2,
+            token,
+            tokenId,
+            expValue = EthUInt256.Companion.of(5),
+            expLazyValue = EthUInt256.Companion.of(0)
+        )
         checkItem(token, tokenId, expSupply = value, expLazySupply = EthUInt256.Companion.of(0))
     }
 

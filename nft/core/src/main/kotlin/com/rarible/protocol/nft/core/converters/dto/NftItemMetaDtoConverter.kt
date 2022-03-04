@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
@@ -9,6 +8,7 @@ import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.misc.trimToLength
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -40,8 +40,8 @@ class NftItemMetaDtoConverter(
     private fun createImageMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
         return if (source.properties.imagePreview != null || source.properties.image != null) {
             val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue) { it.image } +
-                source.properties.toUrlMap(NftMediaSizeDto.BIG, itemIdDecimalValue) { it.imageBig } +
-                source.properties.toUrlMap(NftMediaSizeDto.PREVIEW, itemIdDecimalValue) { it.imagePreview }
+                    source.properties.toUrlMap(NftMediaSizeDto.BIG, itemIdDecimalValue) { it.imageBig } +
+                    source.properties.toUrlMap(NftMediaSizeDto.PREVIEW, itemIdDecimalValue) { it.imagePreview }
 
             val meta = source.itemContentMeta.imageMeta
                 ?.let { convert(it) }

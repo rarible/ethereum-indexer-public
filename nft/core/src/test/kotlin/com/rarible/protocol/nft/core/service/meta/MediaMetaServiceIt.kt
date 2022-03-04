@@ -1,15 +1,10 @@
 package com.rarible.protocol.nft.core.service.meta
 
-import com.rarible.core.content.meta.loader.ContentMeta
-import com.rarible.core.test.data.randomInt
-import com.rarible.core.test.data.randomLong
-import com.rarible.core.test.data.randomString
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.service.item.meta.CachedContentMetaEntry
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
-import io.mockk.coEvery
-import io.mockk.coVerify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -26,14 +21,6 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var mongoTemplate: ReactiveMongoTemplate
-
-    @Test
-    fun `load content meta`() = runBlocking<Unit> {
-        val url = createRandomUrl()
-        val contentMeta = createRandomContent()
-        coEvery { testContentMetaLoader.fetchContentMeta(url) } returns contentMeta
-        assertThat(mediaMetaService.getMediaMeta(url)).isEqualTo(contentMeta)
-    }
 
     @Test
     fun `return content meta from cache`() = runBlocking<Unit> {
@@ -78,7 +65,7 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         ).awaitFirst()
 
         assertThat(
-            mediaMetaService.getMediaMeta("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg")
+            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg")
         ).isEqualTo(
             ContentMeta(
                 type = "image/jpeg",
@@ -89,7 +76,7 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         )
 
         assertThat(
-            mediaMetaService.getMediaMeta("https://ipfs.rarible.com//ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg")
+            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com//ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg")
         ).isEqualTo(
             ContentMeta(
                 type = "image/jpeg",
@@ -97,16 +84,5 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
                 height = 1080
             )
         )
-        coVerify(exactly = 0) { testContentMetaLoader.fetchContentMeta(any()) }
     }
-
-    private fun createRandomUrl(): String =
-        "https://image.com/${randomString()}"
-
-    private fun createRandomContent(): ContentMeta = ContentMeta(
-        type = randomString(),
-        width = randomInt(),
-        height = randomInt(),
-        size = randomLong()
-    )
 }
