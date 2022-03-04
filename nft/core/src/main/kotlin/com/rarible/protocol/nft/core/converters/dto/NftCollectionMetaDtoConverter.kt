@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.core.content.meta.loader.ContentMeta
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
+import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.TokenMeta
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
@@ -23,13 +23,17 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
     }
 
     private fun createImage(source: TokenMeta): NftMediaDto? {
-        if (source.properties.image != null && source.contentMeta != null) {
-            return NftMediaDto(
+        return if (source.properties.image != null) {
+            NftMediaDto(
                 url = mapOf(NftMediaSizeDto.ORIGINAL.toString() to source.properties.image),
-                meta = mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta))
+                meta = if (source.contentMeta != null) {
+                    mapOf(NftMediaSizeDto.ORIGINAL.toString() to convert(source.contentMeta))
+                } else {
+                    emptyMap()
+                }
             )
         } else {
-            return null
+            null
         }
     }
 

@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.common.nowMillis
-import com.rarible.core.content.meta.loader.ContentMetaLoader
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
 import com.rarible.core.test.data.randomAddress
@@ -96,10 +95,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected lateinit var mockItemMetaResolver: ItemMetaResolver
 
     @Autowired
-    @Qualifier("test.content.meta.loader")
-    lateinit var testContentMetaLoader: ContentMetaLoader
-
-    @Autowired
     @Qualifier("mockStandardTokenPropertiesResolver")
     protected lateinit var mockStandardTokenPropertiesResolver: StandardTokenPropertiesResolver
 
@@ -156,7 +151,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @BeforeEach
     fun clearMock() {
-        clearMocks(mockItemMetaResolver, testContentMetaLoader)
+        clearMocks(mockItemMetaResolver)
     }
 
     @BeforeEach

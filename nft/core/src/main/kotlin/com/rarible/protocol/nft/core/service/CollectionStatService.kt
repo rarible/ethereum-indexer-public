@@ -8,11 +8,12 @@ import com.rarible.protocol.nft.core.model.OwnershipFilterByCollection
 import com.rarible.protocol.nft.core.repository.CollectionStatRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.reduce
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 
 @Component
 class CollectionStatService(
@@ -31,10 +32,12 @@ class CollectionStatService(
         val filter = OwnershipFilterByCollection(OwnershipFilter.Sort.LAST_UPDATE, token)
 
         val limit = Integer.MAX_VALUE // otherwise, filter will replace null by default limit 1000
+        val owners = HashSet<Address>()
         val result = ownerRepository.searchAsFlow(filter.toCriteria(null, limit))
-            .map { Pair(it.value.value, setOf(it.owner)) }
-            .reduce { p1, p2 ->
-                Pair(p1.first + p2.first, p1.second + p2.second)
+            .map { Pair(it.value.value, it.owner) }
+            .fold(Pair(BigInteger.ZERO, owners)) { p1, p2 ->
+                p1.second.add(p2.second)
+                Pair(p1.first + p2.first, p1.second)
             }
 
         return optimisticLock {
