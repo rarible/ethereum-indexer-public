@@ -56,8 +56,8 @@ class CollectionOrderStatService(
             CollectionOrderStat(
                 id = token,
                 lastUpdatedAt = nowMillis(),
-                totalVolume = sellStats.totalVolume,
-                highestSale = sellStats.highestSale,
+                totalVolume = sellStats.totalVolume ?: BigDecimal.ZERO,
+                highestSale = sellStats.highestSale ?: BigDecimal.ZERO,
                 floorPrice = floorPriceDeferred.await() ?: BigDecimal.ZERO
             )
         }
@@ -116,8 +116,8 @@ class CollectionOrderStatService(
     data class SalesStats(
         @Id
         val collection: Address,
-        val totalVolume: BigDecimal,
-        val highestSale: BigDecimal
+        val totalVolume: BigDecimal?,
+        val highestSale: BigDecimal?
     )
 
 }
