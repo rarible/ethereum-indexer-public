@@ -5,7 +5,9 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
+import com.rarible.protocol.contracts.exchange.metatx.EIP712MetaTransaction
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -22,17 +24,13 @@ class RaribleExchangeV2OrderParser(
 ) {
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEvent): RaribleMatchedOrders? {
-        val signature = ExchangeV2.matchOrdersSignature()
-        val inputs = traceCallService.findAllRequiredCallInputs(
-            txHash,
-            txInput,
-            exchangeContractAddresses.v2,
-            signature.id()
-        )
+
+        val inputs = getInputs(txHash, txInput)
+
         val leftAssetType = event.leftAsset().toAssetType()
         val rightAssetType = event.rightAsset().toAssetType()
 
-        return inputs.map { parseMatchedOrders(it) }.firstOrNull { orders ->
+        return inputs.map { parseOrders(it) }.firstOrNull { orders ->
             val leftHash = Order.hashKey(
                 event.leftMaker(),
                 if (orders.left.makeAssetType.isCollection) leftAssetType.tryToConvertInCollection() else leftAssetType,
@@ -51,7 +49,31 @@ class RaribleExchangeV2OrderParser(
         }
     }
 
-    suspend fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
+    suspend fun getInputs(txHash: Word, txInput: Binary): List<Binary> {
+        val matchOrderSignature = ExchangeV2.matchOrdersSignature().id()
+        val metaTransactionSignature = EIP712MetaTransaction.executeMetaTransactionSignature().id()
+
+        return if (txInput.methodSignatureId() in setOf(matchOrderSignature, metaTransactionSignature)) {
+            listOf(txInput)
+        } else {
+            traceCallService.findAllRequiredCallInputs(
+                txHash,
+                txInput,
+                exchangeContractAddresses.v2,
+                Binary.empty()
+            )
+        }
+    }
+
+    fun parseOrders(input: Binary): RaribleMatchedOrders {
+        return if (input.methodSignatureId() == EIP712MetaTransaction.executeMetaTransactionSignature().id()) {
+            parseMetaTransaction(input)
+        } else {
+            parseMatchedOrders(input)
+        }
+    }
+
+    fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
         val signature = ExchangeV2.matchOrdersSignature()
         val decoded = signature.`in`().decode(input, 4)
         return RaribleMatchedOrders(
@@ -74,6 +96,12 @@ class RaribleExchangeV2OrderParser(
                 salt = EthUInt256.of(decoded.value()._3()._5())
             )
         )
+    }
+
+    private fun parseMetaTransaction(input: Binary): RaribleMatchedOrders {
+        val signature = EIP712MetaTransaction.executeMetaTransactionSignature()
+        val decoded = signature.`in`().decode(input, 4)
+        return parseMatchedOrders(Binary.apply(decoded.value()._2()))
     }
 
     fun parseOnChainOrder(data: Binary): OnChainOrder {
