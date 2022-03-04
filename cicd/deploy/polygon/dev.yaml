@@ -1,0 +1,12 @@
+global:
+  network: ropsten
+
+polygon-nft-listener:
+  resources:
+    jvm:
+      xmx_megabytes: 512
+      max_direct_memory_megabytes: 256
+
+polygon-gateway:
+  service:
+    nodePort: 30317
