@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.api.service.collection
+package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties

@@ -11,13 +11,13 @@ import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
-import com.rarible.protocol.nft.api.misc.SignUtils
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.SignedLong
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.toEth
@@ -45,7 +45,9 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
+import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import scalether.domain.response.TransactionReceipt
@@ -89,7 +91,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             "",
             tokenUri
         ).block()!!
-        val nonce = SignUtils.sign(privateKey, 0, token.address())
+        val nonce = sign(privateKey, 0, token.address())
         tokenRepository.save(Token(token.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
         val tokenId = EthUInt256(BigInteger.valueOf(nonce.value))
@@ -330,4 +332,17 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         nonce = nonce().toLong(),
         to = to()
     )
+
+    @Suppress("SameParameterValue")
+    private fun sign(privateKey: BigInteger, value: Long, address: Address? = null): SignedLong {
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val toSign = if (address != null) {
+            address.add(Uint256Type.encode(BigInteger.valueOf(value)))
+        } else {
+            Uint256Type.encode(BigInteger.valueOf(value))
+        }
+        val signed = Sign.signMessage(toSign.bytes(), publicKey, privateKey)
+        return SignedLong(value, signed.v, Binary(signed.r), Binary(signed.s))
+    }
+
 }
