@@ -232,7 +232,7 @@ object OrderRepositoryIndexes {
     val BY_PLATFORM_MAKER_AND_NONCE = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${OrderOpenSeaV1DataV1::nonce}", Sort.Direction.ASC)
+        .on("${Order::data.name}.${OrderOpenSeaV1DataV1::nonce.name}", Sort.Direction.ASC)
         .partial(PartialIndexFilter.of(Order::data / OrderOpenSeaV1DataV1::nonce exists true))
         .background()
 
