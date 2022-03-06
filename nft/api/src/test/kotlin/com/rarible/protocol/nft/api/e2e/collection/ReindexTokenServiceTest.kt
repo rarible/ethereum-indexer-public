@@ -1,13 +1,13 @@
-package com.rarible.protocol.nft.api.service.admin
+package com.rarible.protocol.nft.api.e2e.collection
 
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
+import com.rarible.protocol.nft.api.service.admin.ReindexTokenService
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
-import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -22,7 +22,6 @@ import scalether.domain.AddressFactory
 
 class ReindexTokenServiceTest {
     private val tokenRegistrationService = mockk<TokenRegistrationService>()
-    private val tokenRepository = mockk<TokenRepository>()
     private val taskRepository = mockk<TempTaskRepository>()
 
     private val service = ReindexTokenService(tokenRegistrationService, taskRepository)
@@ -162,7 +161,7 @@ class ReindexTokenServiceTest {
     }
 
     private fun mockTaskRepositoryFindNothingByType(type: String) {
-        coEvery { taskRepository.findByType(eq(type)) } returns flow {  }
+        coEvery { taskRepository.findByType(eq(type)) } returns flow { }
     }
 
     private fun mockTaskRepositoryFindTask(
