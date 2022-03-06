@@ -11,7 +11,6 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.coEvery
 import kotlinx.coroutines.flow.toList
@@ -31,12 +30,9 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
     @Autowired
     private lateinit var nonceHistoryRepository: NonceHistoryRepository
 
-    @Autowired
-    private lateinit var properties: OrderListenerProperties
-
     @Test
     fun `should convert change nonce event`() = runBlocking {
-        properties.openSeaNonceIncrement = 0L
+        orderIndexerProperties.openSeaNonceIncrement = 0L
 
         exchangeV2.incrementNonce()
             .withSender(userSender1)
@@ -55,7 +51,7 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
 
     @Test
     fun `should convert change nonce event with custom increment`() = runBlocking {
-        properties.openSeaNonceIncrement = 10L
+        orderIndexerProperties.openSeaNonceIncrement = 10L
 
         exchangeV2.incrementNonce()
             .withSender(userSender1)
@@ -83,7 +79,7 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
             BigInteger.valueOf(8000000)
         ) { Mono.just(BigInteger.ZERO) }
 
-        properties.openSeaNonceIncrement = 0L
+        orderIndexerProperties.openSeaNonceIncrement = 0L
 
         coEvery {
             assetBalanceProvider.getAssetStock(eq(userSender1.from()), any())
