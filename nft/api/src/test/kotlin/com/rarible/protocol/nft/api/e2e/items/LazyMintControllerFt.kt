@@ -11,10 +11,11 @@ import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
 import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
+import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
+import com.rarible.protocol.nft.api.e2e.EventAwareBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
@@ -51,7 +52,7 @@ import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
 
 @End2EndTest
-class LazyMintControllerFt : SpringContainerBaseTest() {
+class LazyMintControllerFt : EventAwareBaseTest() {
 
     @Autowired
     private lateinit var lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
@@ -102,7 +103,13 @@ class LazyMintControllerFt : SpringContainerBaseTest() {
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         checkItemDto(lazyItemDto, itemDto)
 
-        assertThat(itemDto.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
+        val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
+        assertThat(itemDto.meta).isEqualTo(expectedMeta)
+        assertThat(itemEvents).anySatisfy { event ->
+            assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
+                assertThat(it.item.meta).isEqualTo(expectedMeta)
+            }
+        }
     }
 
     @ParameterizedTest
