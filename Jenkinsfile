@@ -1,4 +1,4 @@
-@Library('shared-library@v20211117-1') _
+@Library('shared-library@v2022.03.05-1') _
 
 def pipelineConfig = [
     "stackName": "protocol-ethereum",
