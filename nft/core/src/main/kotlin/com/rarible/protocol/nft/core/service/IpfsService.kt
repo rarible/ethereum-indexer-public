@@ -21,7 +21,7 @@ class IpfsService {
     private val webClient = WebClient.create()
 
     fun resolveHttpUrl(uri: String): String {
-        val ipfsUri = if (uri.contains("/ipfs/")) {
+        val ipfsUri = if (uri.contains("/ipfs/") && !uri.contains("//api.nikeape.xyz/")) {
             "ipfs:/${uri.substring(uri.lastIndexOf("/ipfs/"))}"
         } else {
             uri
