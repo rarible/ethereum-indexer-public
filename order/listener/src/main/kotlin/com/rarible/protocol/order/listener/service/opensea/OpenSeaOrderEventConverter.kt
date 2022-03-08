@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
+import com.rarible.protocol.contracts.common.wyvern.atomicizer.WyvernAtomicizer
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
@@ -28,7 +29,12 @@ class OpenSeaOrderEventConverter(
     private val prizeNormalizer: PriceNormalizer,
     private val callDataEncoder: CallDataEncoder
 ) {
-    private val logger = LoggerFactory.getLogger(this::class.java)
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(OpenSeaOrderEventConverter::class.java)
+        private val wyvernAtomicizerSig = WyvernAtomicizer.atomicizeSignature()
+    }
+
 
     suspend fun convert(
         openSeaOrders: OpenSeaMatchedOrders,
@@ -58,79 +64,91 @@ class OpenSeaOrderEventConverter(
         require(buyOrder.target == sellOrder.target) { "buy and sell target token must equals" }
         require(buyOrder.paymentToken == sellOrder.paymentToken) { "buy and sell payment token must equals" }
 
-        val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return run {
-            logger.warn("Can't parse transefr for orders $openSeaOrders")
-            emptyList()
-        }
-        val nftAsset = createNftAsset(sellOrder.target, transfer)
-        val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
+        val transfer = encodeTransfer(Binary.apply(sellCallData))
+        return transfer.flatMap {
+            val nftAsset = createNftAsset(sellOrder.target, it)
+            val paymentAsset = createPaymentAsset(price, buyOrder.paymentToken)
 
-        val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = date)
-        val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = date)
+            val buyUsdValue = priceUpdateService.getAssetsUsdValue(make = paymentAsset, take = nftAsset, at = date)
+            val sellUsdValue = priceUpdateService.getAssetsUsdValue(make = nftAsset, take = paymentAsset, at = date)
 
-        var buyAdhoc = buyOrder.maker == from
-        var sellAdhoc = sellOrder.maker == from
+            var buyAdhoc = buyOrder.maker == from
+            var sellAdhoc = sellOrder.maker == from
 
-        if (buyAdhoc && sellAdhoc) {
-            buyAdhoc = EthUInt256.of(buyOrder.salt) == EthUInt256.ZERO
-            sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
-        }
+            if (buyAdhoc && sellAdhoc) {
+                buyAdhoc = EthUInt256.of(buyOrder.salt) == EthUInt256.ZERO
+                sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
+            }
 
-        return listOf(
-            OrderSideMatch(
-                hash = buyOrder.hash,
-                counterHash = sellOrder.hash,
-                side = buyOrderSide,
-                make = paymentAsset,
-                take = nftAsset,
-                fill = nftAsset.value,
-                maker = buyOrder.maker,
-                taker = sellOrder.maker,
-                makeUsd = buyUsdValue?.makeUsd,
-                takeUsd = buyUsdValue?.takeUsd,
-                makeValue = prizeNormalizer.normalize(paymentAsset),
-                takeValue = prizeNormalizer.normalize(nftAsset),
-                makePriceUsd = buyUsdValue?.makePriceUsd,
-                takePriceUsd = buyUsdValue?.takePriceUsd,
-                source = HistorySource.OPEN_SEA,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
-                date = date,
-                adhoc = buyAdhoc,
-                counterAdhoc = sellAdhoc
-            ),
-            OrderSideMatch(
-                hash = sellOrder.hash,
-                counterHash = buyOrder.hash,
-                side = sellOrderSide,
-                make = nftAsset,
-                take = paymentAsset,
-                fill = EthUInt256.of(price),
-                maker = sellOrder.maker,
-                taker = buyOrder.maker,
-                makeUsd = sellUsdValue?.makeUsd,
-                takeUsd = sellUsdValue?.takeUsd,
-                makeValue = prizeNormalizer.normalize(nftAsset),
-                takeValue = prizeNormalizer.normalize(paymentAsset),
-                makePriceUsd = sellUsdValue?.makePriceUsd,
-                takePriceUsd = sellUsdValue?.takePriceUsd,
-                externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
-                date = date,
-                source = HistorySource.OPEN_SEA,
-                adhoc = sellAdhoc,
-                counterAdhoc = buyAdhoc
+            listOf(
+                OrderSideMatch(
+                    hash = buyOrder.hash,
+                    counterHash = sellOrder.hash,
+                    side = buyOrderSide,
+                    make = paymentAsset,
+                    take = nftAsset,
+                    fill = nftAsset.value,
+                    maker = buyOrder.maker,
+                    taker = sellOrder.maker,
+                    makeUsd = buyUsdValue?.makeUsd,
+                    takeUsd = buyUsdValue?.takeUsd,
+                    makeValue = prizeNormalizer.normalize(paymentAsset),
+                    takeValue = prizeNormalizer.normalize(nftAsset),
+                    makePriceUsd = buyUsdValue?.makePriceUsd,
+                    takePriceUsd = buyUsdValue?.takePriceUsd,
+                    source = HistorySource.OPEN_SEA,
+                    externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                    date = date,
+                    adhoc = buyAdhoc,
+                    counterAdhoc = sellAdhoc
+                ),
+                OrderSideMatch(
+                    hash = sellOrder.hash,
+                    counterHash = buyOrder.hash,
+                    side = sellOrderSide,
+                    make = nftAsset,
+                    take = paymentAsset,
+                    fill = EthUInt256.of(price),
+                    maker = sellOrder.maker,
+                    taker = buyOrder.maker,
+                    makeUsd = sellUsdValue?.makeUsd,
+                    takeUsd = sellUsdValue?.takeUsd,
+                    makeValue = prizeNormalizer.normalize(nftAsset),
+                    takeValue = prizeNormalizer.normalize(paymentAsset),
+                    makePriceUsd = sellUsdValue?.makePriceUsd,
+                    takePriceUsd = sellUsdValue?.takePriceUsd,
+                    externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
+                    date = date,
+                    source = HistorySource.OPEN_SEA,
+                    adhoc = sellAdhoc,
+                    counterAdhoc = buyAdhoc
+                )
             )
-        )
+        }
+    }
+
+    private fun parseWyvernAtomicizer(inputCallData: Binary): List<Transfer> {
+        val decoded = wyvernAtomicizerSig.`in`().decode(inputCallData, 4)
+        var callDatas = decoded.value()._4().toList()
+
+        return decoded.value()._3().flatMap {
+            val callDataLength = it.toInt()
+            val callData = Binary.apply(callDatas.take(callDataLength).toByteArray())
+            callDatas = callDatas.drop(callDataLength)
+            encodeTransfer(callData)
+        }
     }
 
     suspend fun convert(order: OpenSeaTransactionOrder, date: Instant, event: OrderCancelledEvent, eip712: Boolean): List<OrderCancel> {
-        val transfer = encodeTransfer(order.callData) ?: return emptyList()
-        val nftAsset = createNftAsset(order.target, transfer)
-        val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
-        val (make, take) = when (order.side) {
-            OpenSeaOrderSide.SELL -> nftAsset to paymentAsset
-            OpenSeaOrderSide.BUY -> paymentAsset to nftAsset
-        }
-        return listOf(
+        return encodeTransfer(order.callData).map {
+            val nftAsset = createNftAsset(order.target, it)
+            val paymentAsset = createPaymentAsset(order.basePrice, order.paymentToken)
+
+            val (make, take) = when (order.side) {
+                OpenSeaOrderSide.SELL -> nftAsset to paymentAsset
+                OpenSeaOrderSide.BUY -> paymentAsset to nftAsset
+            }
+
             OrderCancel(
                 hash = if (eip712) Word.apply(event.hash()) else order.hash,
                 make = make.copy(value = EthUInt256.ZERO),
@@ -139,7 +157,7 @@ class OpenSeaOrderEventConverter(
                 date = date,
                 source = HistorySource.OPEN_SEA
             )
-        )
+        }
     }
 
     private fun getBuyOrderSide(orders: OpenSeaMatchedOrders): OrderSide {
@@ -215,7 +233,7 @@ class OpenSeaOrderEventConverter(
         }
     }
 
-    private fun encodeTransfer(callData: Binary): Transfer? {
+    fun encodeTransfer(callData: Binary): List<Transfer> {
         return when (callData.methodSignatureId()) {
             IERC1155.safeTransferFromSignature().id(),
             IERC721.transferFromSignature().id(),
@@ -223,11 +241,14 @@ class OpenSeaOrderEventConverter(
             MerkleValidator.matchERC721UsingCriteriaSignature().id(),
             MerkleValidator.matchERC721WithSafeTransferUsingCriteriaSignature().id(),
             MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
-                callDataEncoder.decodeTransfer(callData)
+                listOf(callDataEncoder.decodeTransfer(callData))
+            }
+            wyvernAtomicizerSig.id() -> {
+                parseWyvernAtomicizer(callData)
             }
             else -> {
                 logger.warn("Unsupported OpenSea order call data: $callData")
-                null
+                emptyList()
             }
         }
     }
