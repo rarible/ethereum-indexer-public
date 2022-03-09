@@ -6,8 +6,8 @@ import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.blockchain.scanner.util.getLogTopicPrefix
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.RetryProperties
-import com.rarible.core.daemon.sequential.ConsumerEventHandler
-import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.core.daemon.sequential.ConsumerBatchEventHandler
+import com.rarible.core.daemon.sequential.ConsumerBatchWorker
 import com.rarible.core.daemon.sequential.ConsumerWorkerHolder
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
@@ -57,8 +57,7 @@ class KafkaEntityEventConsumer(
                 offsetResetStrategy = OffsetResetStrategy.EARLIEST,
                 autoCreateTopic = false
             )
-
-            ConsumerWorker(
+            ConsumerBatchWorker(
                 consumer = kafkaConsumer,
                 properties = daemonProperties,
                 // Block consumer should NOT skip events, so there is we're using endless retry
@@ -74,16 +73,17 @@ class KafkaEntityEventConsumer(
     private class BlockEventHandler(
         private val entityEventListener: EntityEventListener,
         private val ignoreContracts: Set<Address>,
-    ) : ConsumerEventHandler<EthereumLogRecordEvent> {
-        override suspend fun handle(event: EthereumLogRecordEvent) {
-            if (!ignoreContracts.contains(event.record.address)) {
-                entityEventListener.onEntityEvents(listOf(
-                    LogRecordEvent(
-                        record = event.record,
-                        reverted = event.reverted
-                    )
-                ))
+    ) : ConsumerBatchEventHandler<EthereumLogRecordEvent> {
+        override suspend fun handle(event: List<EthereumLogRecordEvent>) {
+            val filteredEvents = event.filter {
+                ignoreContracts.contains(it.record.address).not()
             }
+            entityEventListener.onEntityEvents(filteredEvents.map {
+                LogRecordEvent(
+                    record = it.record,
+                    reverted = it.reverted
+                )
+            })
         }
     }
 
