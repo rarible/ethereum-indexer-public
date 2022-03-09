@@ -32,14 +32,14 @@ class OrderActivityConverter(
     private val assetDtoConverter: AssetDtoConverter
 ) {
 
-    suspend fun convert(ar: OrderActivityResult): OrderActivityDto? {
+    suspend fun convert(ar: OrderActivityResult, reverted: Boolean = false): OrderActivityDto? {
         return when (ar) {
-            is OrderActivityResult.History -> convertHistory(ar.value)
-            is OrderActivityResult.Version -> convertVersion(ar.value)
+            is OrderActivityResult.History -> convertHistory(ar.value, reverted)
+            is OrderActivityResult.Version -> convertVersion(ar.value, reverted)
         }
     }
 
-    private suspend fun convertHistory(history: LogEvent): OrderActivityDto? {
+    private suspend fun convertHistory(history: LogEvent, reverted: Boolean): OrderActivityDto? {
         val transactionHash = history.transactionHash
         val blockHash = history.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = history.blockNumber ?: DEFAULT_BLOCK_NUMBER
@@ -79,7 +79,7 @@ class OrderActivityConverter(
                     logIndex = logIndex,
                     source = convert(data.source),
                     type = typeDto(data),
-                    reverted = false
+                    reverted = reverted
                 )
             }
             is OrderCancel -> if (data.isBid()) {
@@ -95,7 +95,7 @@ class OrderActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     source = convert(data.source),
-                    reverted = false
+                    reverted = reverted
                 )
             } else {
                 OrderActivityCancelListDto(
@@ -110,7 +110,7 @@ class OrderActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     source = convert(data.source),
-                    reverted = false
+                    reverted = reverted
                 )
             }
             is OnChainOrder -> if (data.isBid()) {
@@ -124,7 +124,7 @@ class OrderActivityConverter(
                     price = price(data.make, data.take),
                     source = convert(data.source),
                     priceUsd = data.priceUsd,
-                    reverted = false
+                    reverted = reverted
                 )
             } else if (data.taker != null) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
@@ -141,7 +141,7 @@ class OrderActivityConverter(
                     price = price(data.take, data.make),
                     source = convert(data.source),
                     priceUsd = data.priceUsd,
-                    reverted = false
+                    reverted = reverted
                 )
             }
         }
@@ -171,7 +171,7 @@ class OrderActivityConverter(
         }
     }
 
-    private suspend fun convertVersion(version: OrderVersion): OrderActivityDto {
+    private suspend fun convertVersion(version: OrderVersion, reverted: Boolean): OrderActivityDto {
         return when {
             version.isBid() -> OrderActivityBidDto(
                 date = version.createdAt,
@@ -183,7 +183,7 @@ class OrderActivityConverter(
                 price = price(version.make, version.take),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform),
-                reverted = false
+                reverted = reverted
             )
             else -> OrderActivityListDto(
                 date = version.createdAt,
@@ -195,7 +195,7 @@ class OrderActivityConverter(
                 price = price(version.take, version.make),
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform),
-                reverted = false
+                reverted = reverted
             )
         }
     }
