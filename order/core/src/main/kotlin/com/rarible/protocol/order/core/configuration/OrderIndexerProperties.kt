@@ -23,6 +23,7 @@ data class OrderIndexerProperties(
     val chainId: Int,
     var operatorPrivateKey: Binary,
     val protocolCommission: Int,
+    val metricRootPath: String,
     @NestedConfigurationProperty
     val exchangeContractAddresses: ExchangeContractAddresses,
     @NestedConfigurationProperty
