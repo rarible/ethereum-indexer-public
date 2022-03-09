@@ -1,13 +1,16 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.common.nowMillis
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.listener.misc.OpenSeaOrderValidatorErrorMetric
 import io.daonomic.rpc.domain.Binary
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
@@ -17,7 +20,10 @@ internal class OpenSeaOrderValidatorTest {
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
         callDataEncoder = CallDataEncoder(),
-        openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744")))
+        openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744"))),
+        openSeaValidatorErrorRegisteredCounter = OpenSeaOrderValidatorErrorMetric("", Blockchain.ETHEREUM).bind(
+            SimpleMeterRegistry()
+        )
     )
 
     @Test
