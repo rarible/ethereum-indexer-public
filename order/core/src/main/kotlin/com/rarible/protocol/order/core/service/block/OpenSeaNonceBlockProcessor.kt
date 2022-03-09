@@ -4,6 +4,7 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.service.ChangeOpenSeaNonceListener
 import kotlinx.coroutines.reactor.mono
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono
 @Service
 class OpenSeaNonceBlockProcessor(
     private val changeOpenSeaNonceListener: ChangeOpenSeaNonceListener,
+    private val properties: OrderIndexerProperties
 ) : LogEventsListener {
 
     val logger: Logger = LoggerFactory.getLogger(javaClass)
@@ -30,7 +32,10 @@ class OpenSeaNonceBlockProcessor(
         return LoggingUtils.withMarker { marker ->
             mono {
                 events.forEach { event ->
-                    changeOpenSeaNonceListener.onNewMakerNonce(event.maker, event.newNonce.value.toLong())
+                    changeOpenSeaNonceListener.onNewMakerNonce(
+                        maker = event.maker,
+                        newNonce = event.newNonce.value.toLong() + properties.openSeaNonceIncrement
+                    )
                 }
             }.toOptional()
                 .elapsed()
