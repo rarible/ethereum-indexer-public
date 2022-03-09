@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
+import com.rarible.protocol.contracts.common.wyvern.atomicizer.WyvernAtomicizer
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
@@ -29,6 +30,10 @@ class OpenSeaOrderEventConverter(
     private val callDataEncoder: CallDataEncoder
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
+
+    companion object {
+        val ignoreList = listOf(WyvernAtomicizer.atomicizeSignature().id())
+    }
 
     suspend fun convert(
         openSeaOrders: OpenSeaMatchedOrders,
@@ -225,9 +230,12 @@ class OpenSeaOrderEventConverter(
             MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
-            else -> {
-                logger.warn("Unsupported OpenSea order call data: $callData")
+            in ignoreList -> {
+                logger.info("OpenSea order call data was ignored: $callData")
                 null
+            }
+            else -> {
+                throw UnsupportedOperationException("Unsupported OpenSea order call data: $callData")
             }
         }
     }
