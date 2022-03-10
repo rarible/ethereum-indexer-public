@@ -99,6 +99,38 @@ internal class PriceUpdateServiceTest {
     }
 
     @Test
+    fun `should calculate make price for small values`() = runBlocking<Unit> {
+        val makeAsset = Asset(
+            Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN),
+            EthUInt256.of(10_000_000)
+        )
+        val takeAsset = Asset(
+            EthAssetType,
+            EthUInt256.ONE
+        )
+        val orderV = createOrderVersion(makeAsset, takeAsset)
+        val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
+
+        assertThat(BigDecimal("1E-25")).isEqualTo(calculatedPrice.makePrice)
+    }
+
+    @Test
+    fun `should calculate take price for small values`() = runBlocking<Unit> {
+        val makeAsset = Asset(
+            EthAssetType,
+            EthUInt256.of(123)
+        )
+        val takeAsset = Asset(
+            Erc1155AssetType(AddressFactory.create(), EthUInt256.TEN),
+            EthUInt256.of(BigInteger.valueOf(100_000))
+        )
+        val orderV = createOrderVersion(makeAsset, takeAsset)
+        val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
+
+        assertThat(BigDecimal("1.23E-21")).isEqualTo(calculatedPrice.takePrice)
+    }
+
+    @Test
     fun `should calculate take price`() = runBlocking<Unit> {
         val makeAsset = Asset(
             EthAssetType,
