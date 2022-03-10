@@ -110,9 +110,8 @@ internal class PriceUpdateServiceTest {
         )
         val orderV = createOrderVersion(makeAsset, takeAsset)
         val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
-        println()
 
-        assertEquals(BigDecimal("1E-25"), calculatedPrice.makePrice)
+        assertThat(BigDecimal("1E-25")).isEqualTo(calculatedPrice.makePrice)
     }
 
     @Test
@@ -128,7 +127,7 @@ internal class PriceUpdateServiceTest {
         val orderV = createOrderVersion(makeAsset, takeAsset)
         val calculatedPrice = priceUpdateService.withUpdatedAllPrices(orderV)
 
-        assertEquals(BigDecimal("1.23E-21"), calculatedPrice.takePrice)
+        assertThat(BigDecimal("1.23E-21")).isEqualTo(calculatedPrice.takePrice)
     }
 
     @Test
