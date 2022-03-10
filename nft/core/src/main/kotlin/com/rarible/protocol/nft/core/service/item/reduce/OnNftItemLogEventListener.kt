@@ -11,16 +11,17 @@ import org.springframework.stereotype.Component
 
 @Component
 class OnNftItemLogEventListener(
-    private val eventPublisher: ProtocolNftEventPublisher
+    private val eventPublisher: ProtocolNftEventPublisher,
+    private val nftActivityConverter: NftActivityConverter
 ) {
-    private val topics: List<Word> = ItemType.TRANSFER.topic.toList()
+
+    private val topics: Set<Word> = ItemType.TRANSFER.topic.toSet()
 
     suspend fun onLogEvent(logEvent: LogRecordEvent<ReversedEthereumLogRecord>) {
-        if (logEvent.reverted.not() &&
-            logEvent.record.status == EthereumLogStatus.CONFIRMED &&
+        if (logEvent.record.status == EthereumLogStatus.CONFIRMED &&
             logEvent.record.log.topic in topics
         ) {
-            val activity = NftActivityConverter.convert(logEvent.record)
+            val activity = nftActivityConverter.convert(logEvent.record)
             if (activity != null) eventPublisher.publish(activity)
         }
     }

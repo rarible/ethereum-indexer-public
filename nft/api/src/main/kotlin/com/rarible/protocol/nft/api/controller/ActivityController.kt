@@ -5,8 +5,8 @@ import com.rarible.protocol.dto.NftActivitiesDto
 import com.rarible.protocol.dto.NftActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.nft.api.converter.ActivityHistoryFilterConverter
-import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.api.service.activity.NftActivityService
+import com.rarible.protocol.nft.core.converters.dto.NftActivityConverter
 import com.rarible.protocol.nft.core.converters.model.ActivitySortConverter
 import com.rarible.protocol.nft.core.page.PageSize
 import com.rarible.protocol.nft.core.repository.history.ActivitySort
@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class ActivityController(
     private val nftActivityService: NftActivityService,
-    private val historyFilterConverter: ActivityHistoryFilterConverter
+    private val historyFilterConverter: ActivityHistoryFilterConverter,
+    private val nftActivityConverter: NftActivityConverter
 ) : NftActivityControllerApi {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -35,7 +36,7 @@ class ActivityController(
 
         val result = nftActivityService
             .search(historyFilters, activitySort, requestSize)
-            .mapNotNull { NftActivityConverter.convert(it.value) }
+            .mapNotNull { nftActivityConverter.convert(it.value) }
 
         val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
             null
