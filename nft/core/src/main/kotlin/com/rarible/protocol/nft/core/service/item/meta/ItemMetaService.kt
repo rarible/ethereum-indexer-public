@@ -52,6 +52,7 @@ class ItemMetaService(
             scheduleLoading(itemId)
         }
         if (synchronous) {
+            logMetaLoading(itemId, "Loading meta synchronously for $itemId")
             val itemMeta = try {
                 itemMetaCacheLoader.load(itemId.toCacheKey())
             } catch (e: ItemMetaCacheLoader.ItemMetaResolutionException) {
@@ -59,10 +60,12 @@ class ItemMetaService(
                 null
             }
             if (itemMeta != null) {
+                logMetaLoading(itemId, "Saving synchronously loaded meta to cache")
                 try {
                     itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
                 } catch (e: Exception) {
                     if (e !is OptimisticLockingFailureException && e !is DuplicateKeyException) {
+                        logMetaLoading(itemId, "Failed to save synchronously loaded meta to cache", warn = true)
                         throw e
                     }
                 }

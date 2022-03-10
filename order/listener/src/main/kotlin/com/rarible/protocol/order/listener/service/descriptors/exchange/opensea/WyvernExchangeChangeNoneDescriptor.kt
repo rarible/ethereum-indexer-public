@@ -8,7 +8,6 @@ import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -24,7 +23,7 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class WyvernExchangeChangeNoneDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val properties: OrderListenerProperties
+    private val properties: OrderIndexerProperties
 ) : LogEventDescriptor<ChangeNonceHistory> {
 
     override val collection: String

@@ -24,7 +24,6 @@ class RaribleExchangeV2OrderParser(
 ) {
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEvent): RaribleMatchedOrders? {
-
         val inputs = getInputs(txHash, txInput)
 
         val leftAssetType = event.leftAsset().toAssetType()
@@ -52,7 +51,6 @@ class RaribleExchangeV2OrderParser(
     suspend fun getInputs(txHash: Word, txInput: Binary): List<Binary> {
         val matchOrderSignature = ExchangeV2.matchOrdersSignature().id()
         val metaTransactionSignature = EIP712MetaTransaction.executeMetaTransactionSignature().id()
-
         return if (txInput.methodSignatureId() in setOf(matchOrderSignature, metaTransactionSignature)) {
             listOf(txInput)
         } else {
@@ -60,7 +58,7 @@ class RaribleExchangeV2OrderParser(
                 txHash,
                 txInput,
                 exchangeContractAddresses.v2,
-                Binary.empty()
+                ExchangeV2.matchOrdersSignature().id()
             )
         }
     }
