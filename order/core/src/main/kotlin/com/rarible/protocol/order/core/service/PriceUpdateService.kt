@@ -82,8 +82,8 @@ class PriceUpdateService(
         val normalizedMake = priceNormalizer.normalize(orderVersion.make)
         val normalizedTake = priceNormalizer.normalize(orderVersion.take)
         return when {
-            orderVersion.make.type.nft -> orderVersion.copy(makePrice = normalizedTake / normalizedMake)
-            orderVersion.take.type.nft -> orderVersion.copy(takePrice = normalizedMake / normalizedTake)
+            orderVersion.make.type.nft -> orderVersion.copy(makePrice = updatePrice(normalizedTake, normalizedMake, orderVersion))
+            orderVersion.take.type.nft -> orderVersion.copy(takePrice = updatePrice(normalizedMake, normalizedTake, orderVersion))
             else -> orderVersion
         }
     }
@@ -92,9 +92,18 @@ class PriceUpdateService(
         val normalizedMake = priceNormalizer.normalize(order.make)
         val normalizedTake = priceNormalizer.normalize(order.take)
         return when {
-            order.make.type.nft -> order.copy(makePrice = normalizedTake / normalizedMake)
-            order.take.type.nft -> order.copy(takePrice = normalizedMake / normalizedTake)
+            order.make.type.nft -> order.copy(makePrice = updatePrice(normalizedTake, normalizedMake, order))
+            order.take.type.nft -> order.copy(takePrice = updatePrice(normalizedMake, normalizedTake, order))
             else -> order
+        }
+    }
+
+    private fun updatePrice(divisible: BigDecimal, divider: BigDecimal, order: Any): BigDecimal {
+        return try {
+            divisible.divide(divider)
+        } catch (e: ArithmeticException) {
+            logger.warn("makePrice or takePrice field may have the wrong value, order: $order")
+            divisible / divider
         }
     }
 
