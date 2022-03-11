@@ -1,12 +1,13 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.misc.Base64Detector
+import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemMeta
@@ -79,14 +80,12 @@ class NftItemMetaDtoConverter(
     ): Map<String, String> {
         val url = extractor(this)
         return url?.let {
-            mapOf(size.name to sanitizeBase64Image(it, size.name, itemIdDecimalValue))
+            mapOf(size.name to sanitizeNestedImage(it, size.name, itemIdDecimalValue))
         } ?: emptyMap()
     }
 
-    private fun sanitizeBase64Image(url: String, size: String, itemIdDecimalValue: String): String {
-        if (!Base64Detector(url).isBase64Image) {
-            return url
-        }
+    private fun sanitizeNestedImage(url: String, size: String, itemIdDecimalValue: String): String {
+        EmbeddedImageDetector.getDetector(url) ?: return url
         return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&hash=${url.hashCode()}"
     }
 

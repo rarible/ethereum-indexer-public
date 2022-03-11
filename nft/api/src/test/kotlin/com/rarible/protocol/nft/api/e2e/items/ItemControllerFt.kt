@@ -77,6 +77,9 @@ import java.util.stream.Stream
 @End2EndTest
 class ItemControllerFt : SpringContainerBaseTest() {
 
+    private val svgUrl = "https://rarible.mypinata.cloud/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
+    private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
+
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
@@ -201,6 +204,49 @@ class ItemControllerFt : SpringContainerBaseTest() {
         assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
         assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/png")
         assertThat(String(big.body!!)).isEqualTo(base64str)
+
+        // Not found since this link is not specified in meta
+        assertThrows<HttpClientErrorException.NotFound> {
+            testTemplate.getForEntity("${url}PREVIEW", ByteArray::class.java)
+        }
+    }
+
+    @Test
+    fun `get cvs item image`() = runBlocking<Unit> {
+        val item = createItem()
+        itemRepository.save(item).awaitFirst()
+
+        val itemProperties = ItemProperties(
+            name = "name",
+            description = "description",
+            image = "http://test.com/abc_original",
+            imagePreview = null,
+            imageBig = svgUrl,
+            animationUrl = null,
+            attributes = emptyList(),
+            rawJsonContent = null
+        )
+
+        val cache = Cache(
+            item.id.decimalStringValue,
+            ItemPropertiesService.CachedItemProperties(itemProperties, nowMillis(), true),
+            Date()
+        )
+        mongo.save(cache, "item_metadata").awaitSingle()
+
+        val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
+
+        val original = testTemplate.getForEntity("${url}ORIGINAL", ByteArray::class.java)
+
+        // Regular URL specified, redirected
+        assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
+        assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
+
+        // Found csv value for url, returned as byteArray with specified content-type
+        val big = testTemplate.getForEntity("${url}BIG&hash=2384723984", ByteArray::class.java)
+        assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/svg+xml")
+        assertThat(String(big.body!!)).isEqualTo(decodedSvg)
 
         // Not found since this link is not specified in meta
         assertThrows<HttpClientErrorException.NotFound> {
