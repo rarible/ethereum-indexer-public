@@ -16,7 +16,7 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return URLDecoder.decode(url.substring(url.indexOf(svgTag), url.length), "UTF-8")
+        return url.substring(url.indexOf(svgTag), url.length)
     }
 
     override fun getMimeType(): String {
