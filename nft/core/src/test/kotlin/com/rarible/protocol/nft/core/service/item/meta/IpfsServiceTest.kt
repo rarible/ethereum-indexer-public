@@ -1,15 +1,8 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.test.data.randomBigInt
-import com.rarible.protocol.client.DefaultProtocolWebClientCustomizer
 import com.rarible.protocol.nft.core.service.IpfsService
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.springframework.web.reactive.function.client.WebClient
-import org.springframework.web.reactive.function.client.bodyToMono
 
 @ItemMetaTest
 class IpfsServiceTest {
@@ -41,20 +34,5 @@ class IpfsServiceTest {
         for ((input, output) in pairs) {
             assertThat(service.resolveHttpUrl(input)).isEqualTo(output)
         }
-    }
-
-    @Disabled
-    @Test
-    fun upload() = runBlocking<Unit> {
-        val byteArray = randomBigInt().toByteArray()
-        val url = service.upload("testFile", byteArray, "application/octet-stream")
-        val client = WebClient.builder().apply {
-            DefaultProtocolWebClientCustomizer().customize(it)
-        }.build()
-        val receivedBytes = client.get().uri(url)
-            .retrieve()
-            .bodyToMono<ByteArray>()
-            .awaitFirst()
-        assertThat(receivedBytes).isEqualTo(byteArray)
     }
 }

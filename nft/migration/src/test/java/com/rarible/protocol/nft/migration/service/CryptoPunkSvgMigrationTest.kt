@@ -42,7 +42,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         ChangeLog00013InsertAttributesForCryptoPunks().savePunk(punk, cryptoPunksPropertiesResolver)
 
         val testPunkSvg = javaClass.getResourceAsStream("/data/cryptopunks/2.svg")!!.readBytes()
-        ChangeLog00014UploadSvgsForCryptoPunks().upload("2.svg", testPunkSvg, cryptoPunksPropertiesResolver, ipfsService)
+        ChangeLog00014UploadSvgsForCryptoPunks().save("2.svg", testPunkSvg, cryptoPunksPropertiesResolver)
 
         assertEquals(1, mongo.count(Query(), "cryptopunks_meta").awaitSingle())
 
