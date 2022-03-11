@@ -6,7 +6,7 @@ import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.misc.Base64Detector
+import com.rarible.protocol.nft.core.misc.detector.Base64Detector
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -84,7 +84,7 @@ class NftItemMetaDtoConverter(
     }
 
     private fun sanitizeBase64Image(url: String, size: String, itemIdDecimalValue: String): String {
-        if (!Base64Detector(url).isBase64Image) {
+        if (!Base64Detector(url).canDecode()) {
             return url
         }
         return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&hash=${url.hashCode()}"

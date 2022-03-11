@@ -14,11 +14,11 @@ import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.api.service.detector.DetectorService
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.misc.Base64Detector
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -35,7 +35,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.apache.commons.codec.binary.Base64
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -58,7 +57,8 @@ class ItemController(
     private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator,
     private val nftIndexerApiProperties: NftIndexerApiProperties,
-    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter,
+    private val detectorService: DetectorService
 ) : NftItemControllerApi {
 
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
@@ -94,14 +94,14 @@ class ItemController(
             NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
         } ?: return ResponseEntity.notFound().build()
 
-        val base64Detector = Base64Detector(url)
-        if (base64Detector.isBase64Image) {
-            val bytes = Base64.decodeBase64(base64Detector.getBase64Data())
+        val detector = detectorService.getDetector(url)
+        if (detector != null) {
+            val bytes = url.toByteArray()
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, base64Detector.getBase64MimeType())
+                .header(HttpHeaders.CONTENT_TYPE, detector?.getMimeType())
                 .body(bytes)
-
         }
+
         return ResponseEntity
             .status(HttpStatus.FOUND)
             .header(HttpHeaders.LOCATION, url)
