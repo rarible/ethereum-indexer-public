@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityFilterDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
+import com.rarible.protocol.gateway.page.PageSize
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.slf4j.LoggerFactory
@@ -19,7 +20,6 @@ class ActivityApiService(
     private val logger = LoggerFactory.getLogger(ActivityApiService::class.java)
 
     private companion object {
-        const val DEFAULT_SIZE = 50
         private val ACTIVITY_COMPARATOR = compareByDescending(ActivityDto::date)
             .then(compareByDescending(ActivityDto::id))
 
@@ -41,7 +41,7 @@ class ActivityApiService(
             "Searching for Activities with params: filter=[{}], continuation={}, size={}",
             filter, continuation, size
         )
-        val requestSize = min(size ?: DEFAULT_SIZE, DEFAULT_SIZE)
+        val requestSize = PageSize.ACTIVITY.limit(size)
 
         val nftResults = async { activityService.getNftActivities(filter, continuation, requestSize, sort) }
         val orderResults = async { activityService.getOrderActivities(filter, continuation, requestSize, sort) }
