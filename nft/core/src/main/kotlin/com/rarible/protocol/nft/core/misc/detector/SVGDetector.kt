@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.misc.detector
 
 import org.springframework.stereotype.Component
+import java.net.URLDecoder
 
 @Component
 class SVGDetector(url: String) : ContentDetector(url) {
@@ -17,14 +18,10 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return url
+        return URLDecoder.decode(url.substring(url.indexOf(svgTag), url.length), "UTF-8")
     }
 
     override fun getMimeType(): String {
         return mimeTypePrefix
-    }
-
-    override fun getInstance(url: String): ContentDetector {
-        return SVGDetector(url)
     }
 }

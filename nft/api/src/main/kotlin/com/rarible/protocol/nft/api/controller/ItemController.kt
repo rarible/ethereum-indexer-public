@@ -14,7 +14,7 @@ import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.api.service.detector.DetectorService
+import com.rarible.protocol.nft.core.misc.detector.DetectorUtil
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -57,8 +57,7 @@ class ItemController(
     private val conversionService: ConversionService,
     private val burnLazyNftValidator: BurnLazyNftValidator,
     private val nftIndexerApiProperties: NftIndexerApiProperties,
-    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter,
-    private val detectorService: DetectorService
+    private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
 ) : NftItemControllerApi {
 
     private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
@@ -94,7 +93,7 @@ class ItemController(
             NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
         } ?: return ResponseEntity.notFound().build()
 
-        val detector = detectorService.getDetector(url)
+        val detector = DetectorUtil.getDetector(url)
         if (detector != null) {
             val bytes = url.toByteArray()
             return ResponseEntity.ok()

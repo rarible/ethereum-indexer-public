@@ -30,8 +30,4 @@ class Base64Detector(url: String) : ContentDetector(url) {
     override fun getMimeType(): String {
         return url.substring(url.indexOf(mimeTypePrefix) + mimeTypePrefix.length, markerIndex).trim()
     }
-
-    override fun getInstance(url: String): ContentDetector {
-        return Base64Detector(url)
-    }
 }

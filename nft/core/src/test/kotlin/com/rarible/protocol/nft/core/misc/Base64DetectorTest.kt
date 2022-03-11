@@ -24,5 +24,4 @@ class Base64DetectorTest {
         assertThat(base64.getData()).isEqualTo("abc")
         assertThat(base64.getMimeType()).isEqualTo("image/png")
     }
-
 }
