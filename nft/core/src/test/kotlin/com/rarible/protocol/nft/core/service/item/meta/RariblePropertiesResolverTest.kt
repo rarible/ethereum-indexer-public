@@ -177,6 +177,30 @@ Token ID: 51561
     }
 
     @Test
+    fun `collection with built-in svg`() = runBlocking<Unit> {
+        val address = Address.apply("0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7")
+        mockTokenStandard(address, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(
+            ItemId(
+                address,
+                EthUInt256.of(44)
+            )
+        )
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Bag #44",
+                description = "Loot is randomized adventurer gear generated and stored on chain. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.",
+                image = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\">Short Sword</text><text x=\"10\" y=\"40\" class=\"base\">Chain Mail</text><text x=\"10\" y=\"60\" class=\"base\">Hood</text><text x=\"10\" y=\"80\" class=\"base\">Wool Sash</text><text x=\"10\" y=\"100\" class=\"base\">Silk Slippers</text><text x=\"10\" y=\"120\" class=\"base\">Leather Gloves</text><text x=\"10\" y=\"140\" class=\"base\">Amulet</text><text x=\"10\" y=\"160\" class=\"base\">Silver Ring</text></svg>",
+                animationUrl = null,
+                imageBig = null,
+                imagePreview = null,
+                attributes = emptyList(),
+                rawJsonContent = "{\"name\":\"Bag #44\",\"description\":\"Loot is randomized adventurer gear generated and stored on chain. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.\",\"image\":\"data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHByZXNlcnZlQXNwZWN0UmF0aW89InhNaW5ZTWluIG1lZXQiIHZpZXdCb3g9IjAgMCAzNTAgMzUwIj48c3R5bGU+LmJhc2UgeyBmaWxsOiB3aGl0ZTsgZm9udC1mYW1pbHk6IHNlcmlmOyBmb250LXNpemU6IDE0cHg7IH08L3N0eWxlPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9ImJsYWNrIiAvPjx0ZXh0IHg9IjEwIiB5PSIyMCIgY2xhc3M9ImJhc2UiPlNob3J0IFN3b3JkPC90ZXh0Pjx0ZXh0IHg9IjEwIiB5PSI0MCIgY2xhc3M9ImJhc2UiPkNoYWluIE1haWw8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjYwIiBjbGFzcz0iYmFzZSI+SG9vZDwvdGV4dD48dGV4dCB4PSIxMCIgeT0iODAiIGNsYXNzPSJiYXNlIj5Xb29sIFNhc2g8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEwMCIgY2xhc3M9ImJhc2UiPlNpbGsgU2xpcHBlcnM8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjEyMCIgY2xhc3M9ImJhc2UiPkxlYXRoZXIgR2xvdmVzPC90ZXh0Pjx0ZXh0IHg9IjEwIiB5PSIxNDAiIGNsYXNzPSJiYXNlIj5BbXVsZXQ8L3RleHQ+PHRleHQgeD0iMTAiIHk9IjE2MCIgY2xhc3M9ImJhc2UiPlNpbHZlciBSaW5nPC90ZXh0Pjwvc3ZnPg==\"}"
+            )
+        )
+    }
+
+    @Test
     fun `tokenURI is redirected`() = runBlocking<Unit> {
         val address = Address.apply("0xbd13e53255ef917da7557db1b7d2d5c38a2efe24")
         mockTokenStandard(address, TokenStandard.ERC721)

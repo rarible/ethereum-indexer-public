@@ -159,18 +159,7 @@ class RariblePropertiesResolver(
 
     private suspend fun parseImageUrl(imageUrl: String): String {
         if (imageUrl.startsWith(BASE_64_SVG_PREFIX)) {
-            return ipfsService.upload(
-                fileName = "image.svg",
-                someByteArray = base64MimeToBytes(imageUrl.removePrefix(BASE_64_SVG_PREFIX)),
-                contentType = "image/svg+xml"
-            )
-        }
-        if (imageUrl.startsWith("<svg") && imageUrl.endsWith("</svg>")) {
-            return ipfsService.upload(
-                fileName = "image.svg",
-                someByteArray = imageUrl.toByteArray(),
-                contentType = "image/svg+xml"
-            )
+            return String(base64MimeToBytes(imageUrl.removePrefix(BASE_64_SVG_PREFIX)))
         }
         return imageUrl
     }
