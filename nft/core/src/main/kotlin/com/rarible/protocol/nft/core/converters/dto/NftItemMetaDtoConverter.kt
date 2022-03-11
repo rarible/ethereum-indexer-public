@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
@@ -34,15 +33,15 @@ class NftItemMetaDtoConverter(
             description = trimmedDescription,
             attributes = source.properties.attributes.map { convert(it) },
             image = createImageMedia(source, itemIdDecimalValue),
-            animation = createAnimationMedia(source)
+            animation = createAnimationMedia(source, itemIdDecimalValue)
         )
     }
 
     private fun createImageMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
         return if (source.properties.imagePreview != null || source.properties.image != null) {
-            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue) { it.image } +
-                source.properties.toUrlMap(NftMediaSizeDto.BIG, itemIdDecimalValue) { it.imageBig } +
-                source.properties.toUrlMap(NftMediaSizeDto.PREVIEW, itemIdDecimalValue) { it.imagePreview }
+            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue, false) { it.image } +
+                source.properties.toUrlMap(NftMediaSizeDto.BIG, itemIdDecimalValue, false) { it.imageBig } +
+                source.properties.toUrlMap(NftMediaSizeDto.PREVIEW, itemIdDecimalValue, false) { it.imagePreview }
 
             val meta = source.meta.imageMeta
                 ?.let { convert(it) }
@@ -54,9 +53,9 @@ class NftItemMetaDtoConverter(
         }
     }
 
-    private fun createAnimationMedia(source: ItemMeta): NftMediaDto? {
+    private fun createAnimationMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
         return if (source.properties.animationUrl != null) {
-            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL) { it.animationUrl }
+            val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue, true) { it.animationUrl }
 
             val meta = source.meta.animationMeta
                 ?.let { convert(it) }
@@ -68,25 +67,21 @@ class NftItemMetaDtoConverter(
         }
     }
 
-    private fun ItemProperties.toUrlMap(size: NftMediaSizeDto, extractor: (ItemProperties) -> String?) =
-        extractor(this)
-            ?.let { mapOf(size.name to it) }
-            ?: emptyMap()
-
     private fun ItemProperties.toUrlMap(
         size: NftMediaSizeDto,
         itemIdDecimalValue: String,
+        isAnimation: Boolean,
         extractor: (ItemProperties) -> String?
     ): Map<String, String> {
         val url = extractor(this)
         return url?.let {
-            mapOf(size.name to sanitizeNestedImage(it, size.name, itemIdDecimalValue))
+            mapOf(size.name to sanitizeNestedImage(it, size.name, itemIdDecimalValue, isAnimation))
         } ?: emptyMap()
     }
 
-    private fun sanitizeNestedImage(url: String, size: String, itemIdDecimalValue: String): String {
+    private fun sanitizeNestedImage(url: String, size: String, itemIdDecimalValue: String, isAnimation: Boolean): String {
         EmbeddedImageDetector.getDetector(url) ?: return url
-        return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&hash=${url.hashCode()}"
+        return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&animation=${isAnimation}&hash=${url.hashCode()}"
     }
 
     private fun convert(source: MediaMeta): NftMediaMetaDto {

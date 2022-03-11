@@ -212,7 +212,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `get cvs item image`() = runBlocking<Unit> {
+    fun `get svg item video`() = runBlocking<Unit> {
         val item = createItem()
         itemRepository.save(item).awaitFirst()
 
@@ -221,8 +221,8 @@ class ItemControllerFt : SpringContainerBaseTest() {
             description = "description",
             image = "http://test.com/abc_original",
             imagePreview = null,
-            imageBig = svgUrl,
-            animationUrl = null,
+            imageBig = null,
+            animationUrl = svgUrl,
             attributes = emptyList(),
             rawJsonContent = null
         )
@@ -236,17 +236,17 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
         val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
 
-        val original = testTemplate.getForEntity("${url}ORIGINAL", ByteArray::class.java)
+        val original = testTemplate.getForEntity("${url}ORIGINAL&animation=false", ByteArray::class.java)
 
         // Regular URL specified, redirected
         assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
         assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
 
-        // Found csv value for url, returned as byteArray with specified content-type
-        val big = testTemplate.getForEntity("${url}BIG&hash=2384723984", ByteArray::class.java)
-        assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/svg+xml")
-        assertThat(String(big.body!!)).isEqualTo(decodedSvg)
+        // Found svg value for url, returned as byteArray with specified content-type
+        val animation = testTemplate.getForEntity("${url}ORIGINAL&hash=23847&animation=true", ByteArray::class.java)
+        assertThat(animation.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(animation.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/svg+xml")
+        assertThat(String(animation.body!!)).isEqualTo(decodedSvg)
 
         // Not found since this link is not specified in meta
         assertThrows<HttpClientErrorException.NotFound> {
