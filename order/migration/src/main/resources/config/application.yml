@@ -37,3 +37,4 @@ common:
   eip712-domain-version: 2
   opensea-eip712-domain-name: Wyvern Exchange Contract
   opensea-eip712-domain-version: 2.3
+  metric-root-path: "protocol.order.indexer"
