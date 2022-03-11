@@ -41,7 +41,7 @@ class NftItemMetaDtoConverterTest {
                 image = "http://test.com/abc_original",
                 imagePreview = null,
                 imageBig = "https://test.com//data:image/png;base64,aaa_base64",
-                animationUrl = "http://test.com/abc_anim",
+                animationUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>",
                 attributes = listOf(
                     ItemAttribute(
                         key = randomString(),
@@ -70,9 +70,13 @@ class NftItemMetaDtoConverterTest {
 
         assertThat(image.url["ORIGINAL"]).isEqualTo(meta.properties.image)
         assertThat(image.url["PREVIEW"]).isNull()
-        assertThat(image.url["BIG"]).isEqualTo("${basePublicApiUrl}items/$itemId/image?size=BIG&hash=${meta.properties.imageBig!!.hashCode()}")
+        assertThat(image.url["BIG"]).isEqualTo(
+            "${basePublicApiUrl}items/$itemId/image?size=BIG&animation=false&hash=${meta.properties.imageBig!!.hashCode()}"
+        )
 
-        assertThat(animation.url["ORIGINAL"]).isEqualTo(meta.properties.animationUrl)
+        assertThat(animation.url["ORIGINAL"]).isEqualTo(
+            "${basePublicApiUrl}items/$itemId/image?size=ORIGINAL&animation=true&hash=${meta.properties.animationUrl!!.hashCode()}"
+        )
     }
 
     @Test

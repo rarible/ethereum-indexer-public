@@ -75,22 +75,27 @@ class ItemController(
     @GetMapping(value = ["/v0.1/items/{itemId}/image"])
     suspend fun getNftItemImageById(
         @PathVariable("itemId") itemId: String,
-        @RequestParam(value = "size", required = true) size: NftMediaSizeDto
+        @RequestParam(value = "size", required = true) size: NftMediaSizeDto,
+        @RequestParam(value = "animation", required = false) animation: Boolean?
     ): ResponseEntity<Any> {
         val itemMeta = withContext(NonCancellable) {
             // We need to use raw meta here, because converted contains converted base64 url
             itemService.getMeta(conversionService.convert(itemId))
         }
-        val url = when (size) {
-            NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
-            NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
-            NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
+        val url = if (animation == true) {
+            itemMeta.properties.animationUrl
+        } else {
+            when (size) {
+                NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
+                NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
+                NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
+            }
         } ?: return ResponseEntity.notFound().build()
 
         val detector = EmbeddedImageDetector.getDetector(url)
         if (detector != null) {
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, detector?.getMimeType())
+                .header(HttpHeaders.CONTENT_TYPE, detector.getMimeType())
                 .body(detector.getDecodedData())
         }
 
@@ -233,6 +238,7 @@ class ItemController(
     }
 
     companion object {
+
         const val BURN_MSG = "I would like to burn my %s item."
     }
 }
