@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.api.service.colllection
 
-import com.rarible.core.common.convert
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
+import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -15,7 +15,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
-import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
@@ -27,7 +26,7 @@ import java.math.BigInteger
 @Component
 class CollectionService(
     operator: OperatorProperties,
-    private val conversionService: ConversionService,
+    private val collectionDtoConverter: ExtendedCollectionDtoConverter,
     private val tokenRegistrationService: TokenRegistrationService,
     private val tokenRepository: TokenRepository,
     private val tokenIdRepository: TokenIdRepository,
@@ -40,7 +39,7 @@ class CollectionService(
         val token = tokenRepository.findById(collectionId).awaitFirstOrNull()
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
-        return conversionService.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
+        return collectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
     }
 
     suspend fun resetMeta(collectionId: Address) {
