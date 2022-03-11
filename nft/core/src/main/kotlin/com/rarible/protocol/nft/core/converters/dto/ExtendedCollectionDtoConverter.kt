@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.protocol.dto.NftCollectionDto
+import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.ExtendedToken
 import com.rarible.protocol.nft.core.model.TokenFeature
 import org.springframework.core.convert.converter.Converter
@@ -13,6 +14,7 @@ class ExtendedCollectionDtoConverter : Converter<ExtendedToken, NftCollectionDto
         return NftCollectionDto(
             id = token.id,
             type = CollectionTypeDtoConverter.convert(token.standard),
+            status = convertStatus(token.status),
             owner = token.owner,
             name = token.name,
             symbol = token.symbol,
@@ -22,4 +24,11 @@ class ExtendedCollectionDtoConverter : Converter<ExtendedToken, NftCollectionDto
             meta = NftCollectionMetaDtoConverter.convert(meta)
         )
     }
+
+    private fun convertStatus(tokenStatus: ContractStatus): NftCollectionDto.Status =
+        when (tokenStatus) {
+            ContractStatus.PENDING -> NftCollectionDto.Status.PENDING
+            ContractStatus.ERROR -> NftCollectionDto.Status.ERROR
+            ContractStatus.CONFIRMED -> NftCollectionDto.Status.CONFIRMED
+        }
 }
