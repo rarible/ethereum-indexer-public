@@ -21,15 +21,18 @@ class IpfsService {
         } else {
             uri
         }
-        return when {
-            ipfsUri.startsWith(SVG_START) -> ipfsUri
-            ipfsUri.startsWith("http") -> ipfsUri
-            ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
-            ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
-            ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
-            ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
-            else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
-        }.encodeHtmlUrl()
+        return if (ipfsUri.startsWith(SVG_START)) {
+            ipfsUri
+        } else {
+            when {
+                ipfsUri.startsWith("http") -> ipfsUri
+                ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
+                ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
+                ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
+                ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
+                else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
+            }.encodeHtmlUrl()
+        }
     }
 
     private fun String.encodeHtmlUrl(): String {
