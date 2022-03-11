@@ -1,8 +1,13 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.dto.*
+
+import com.rarible.protocol.dto.NftItemAttributeDto
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.NftMediaDto
+import com.rarible.protocol.dto.NftMediaMetaDto
+import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.misc.detector.DetectorUtil
+import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -80,7 +85,7 @@ class NftItemMetaDtoConverter(
     }
 
     private fun sanitizeNestedImage(url: String, size: String, itemIdDecimalValue: String): String {
-        DetectorUtil.getDetector(url) ?: return url
+        EmbeddedImageDetector.getDetector(url) ?: return url
         return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&hash=${url.hashCode()}"
     }
 

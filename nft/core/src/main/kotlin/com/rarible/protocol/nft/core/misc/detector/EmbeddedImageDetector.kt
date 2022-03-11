@@ -1,6 +1,6 @@
 package com.rarible.protocol.nft.core.misc.detector
 
-class DetectorUtil {
+class EmbeddedImageDetector {
     companion object{
         fun getDetector(url: String): ContentDetector? {
             val base64Detector = Base64Detector(url)

@@ -14,7 +14,7 @@ import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.misc.detector.DetectorUtil
+import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
@@ -93,7 +93,7 @@ class ItemController(
             NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
         } ?: return ResponseEntity.notFound().build()
 
-        val detector = DetectorUtil.getDetector(url)
+        val detector = EmbeddedImageDetector.getDetector(url)
         if (detector != null) {
             val bytes = url.toByteArray()
             return ResponseEntity.ok()
