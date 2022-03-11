@@ -55,8 +55,7 @@ class LootPropertiesResolver(
             val node = mapper.readTree(base64MimeToBytes(tokenUri.removePrefix(BASE_64_JSON_PREFIX))) as ObjectNode
             val imageUrl = node.getText("image")?.let {
                 check(it.startsWith(BASE_64_SVG_PREFIX))
-                val svgBytes = base64MimeToBytes(it.removePrefix(BASE_64_SVG_PREFIX))
-                ipfsService.upload("image-${tokenId}.svg", svgBytes, "image/svg+xml")
+                String(base64MimeToBytes(it.removePrefix(BASE_64_SVG_PREFIX)))
             }
             ItemProperties(
                 name = node.getText("name") ?: DEFAULT_TITLE,
@@ -75,5 +74,4 @@ class LootPropertiesResolver(
         private const val DEFAULT_TITLE = "Untitled"
         val LOOT_ADDRESS: Address = Address.apply("0xff9c1b15b16263c61d017ee9f65c50e4ae0113d7")
     }
-
 }

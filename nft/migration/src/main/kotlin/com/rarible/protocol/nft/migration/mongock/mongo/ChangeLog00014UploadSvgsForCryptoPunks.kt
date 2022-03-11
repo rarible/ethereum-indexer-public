@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
-
 @ChangeLog(order = "00014")
 class ChangeLog00014UploadSvgsForCryptoPunks {
 
@@ -48,11 +47,10 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
                     val fileName = entry!!.name.substringAfterLast("/")
                     val content = unzipStream.readBytes()
                     futures.add(async(Dispatchers.IO) {
-                        val imageUrl = upload(
+                        val imageUrl = save(
                             fileName,
                             content,
-                            cryptoPunksPropertiesResolver,
-                            ipfsService
+                            cryptoPunksPropertiesResolver
                         )
                         logger.info("Uploaded #${finished.incrementAndGet()}/10000 image: $imageUrl")
                     })
@@ -78,14 +76,13 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
             .asInputStream()
     }
 
-    suspend fun upload(
+    suspend fun save(
         file: String,
-        someByteArray: ByteArray,
-        cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver,
-        ipfsService: IpfsService
+        svgByteArray: ByteArray,
+        cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver
     ): String {
         val id = file.filter { it.isDigit() }.toBigInteger()
-        val imageUrl = ipfsService.upload(file, someByteArray, "image/svg+xml")
+        val imageUrl = String(svgByteArray)
         val punk = cryptoPunksPropertiesResolver.get(id).awaitSingle()
         cryptoPunksPropertiesResolver.save(punk.copy(image = imageUrl))
         return imageUrl
