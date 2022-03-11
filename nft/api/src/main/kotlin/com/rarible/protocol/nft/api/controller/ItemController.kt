@@ -89,10 +89,9 @@ class ItemController(
 
         val detector = EmbeddedImageDetector.getDetector(url)
         if (detector != null) {
-            val bytes = url.toByteArray()
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, detector?.getMimeType())
-                .body(bytes)
+                .body(detector.getDecodedData())
         }
 
         return ResponseEntity

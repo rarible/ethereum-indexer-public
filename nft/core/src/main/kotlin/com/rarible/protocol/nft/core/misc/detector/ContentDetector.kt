@@ -6,4 +6,5 @@ abstract class ContentDetector(
     abstract fun canDecode(): Boolean
     abstract fun getData(): String
     abstract fun getMimeType(): String
+    abstract fun getDecodedData(): ByteArray?
 }
