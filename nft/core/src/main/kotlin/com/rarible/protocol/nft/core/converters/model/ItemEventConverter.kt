@@ -13,6 +13,10 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import scalether.domain.Address
 
 object ItemEventConverter {
+    fun convertToItemId(source: ReversedEthereumLogRecord): ItemId? {
+        return (source.data as? ItemHistory)?.let { ItemId(it.token, it.tokenId) }
+    }
+
     fun convert(source: ReversedEthereumLogRecord): ItemEvent? {
         return when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
