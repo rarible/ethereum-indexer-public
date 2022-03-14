@@ -55,10 +55,13 @@ class OrderAggregationController(
     }
 
     // TODO remove later
-    override suspend fun aggregateNftCollectionStats(collection: String): ResponseEntity<OrderCollectionStatsDto> {
+    override suspend fun aggregateNftCollectionStats(
+        collection: String,
+        currency: String?
+    ): ResponseEntity<OrderCollectionStatsDto> {
 
         nftCollectionClient.getNftCollectionById(collection).awaitFirst() // To throw 404 if not found
-        val stat = collectionOrderStatService.getOrSchedule(AddressParser.parse(collection))
+        val stat = collectionOrderStatService.getOrSchedule(AddressParser.parse(collection), currency)
 
         // Initial stat record, not filled with real data yet
         val result = if (stat.lastUpdatedAt == Instant.EPOCH) {

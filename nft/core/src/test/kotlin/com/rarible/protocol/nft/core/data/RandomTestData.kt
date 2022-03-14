@@ -37,6 +37,9 @@ fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
 }
 
+fun createRandomUrl(): String =
+    "https://image.com/${randomString()}"
+
 fun createRandomEthereumLog(
     transactionSender: Address = randomAddress()
 ): EthereumLog =

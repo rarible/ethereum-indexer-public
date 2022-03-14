@@ -69,6 +69,9 @@ import java.util.stream.Stream
 @End2EndTest
 class ItemControllerFt : SpringContainerBaseTest() {
 
+    private val svgUrl = "https://rarible.mypinata.cloud/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
+    private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
+
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
@@ -192,6 +195,44 @@ class ItemControllerFt : SpringContainerBaseTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns null
         assertThrows<NftItemControllerApi.ErrorGetNftItemMetaById> {
             nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
+        }
+    }
+
+    @Test
+    fun `get svg item video`() = runBlocking<Unit> {
+        val item = createItem()
+        itemRepository.save(item).awaitFirst()
+
+        val itemProperties = ItemProperties(
+            name = "name",
+            description = "description",
+            image = "http://test.com/abc_original",
+            imagePreview = null,
+            imageBig = null,
+            animationUrl = svgUrl,
+            attributes = emptyList(),
+            rawJsonContent = null
+        )
+        val itemMeta = randomItemMeta().copy(properties = itemProperties)
+        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
+
+        val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
+
+        val original = testTemplate.getForEntity("${url}ORIGINAL&animation=false", ByteArray::class.java)
+
+        // Regular URL specified, redirected
+        assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
+        assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
+
+        // Found svg value for url, returned as byteArray with specified content-type
+        val animation = testTemplate.getForEntity("${url}ORIGINAL&hash=23847&animation=true", ByteArray::class.java)
+        assertThat(animation.statusCode).isEqualTo(HttpStatus.OK)
+        assertThat(animation.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/svg+xml")
+        assertThat(String(animation.body!!)).isEqualTo(decodedSvg)
+
+        // Not found since this link is not specified in meta
+        assertThrows<HttpClientErrorException.NotFound> {
+            testTemplate.getForEntity("${url}PREVIEW", ByteArray::class.java)
         }
     }
 

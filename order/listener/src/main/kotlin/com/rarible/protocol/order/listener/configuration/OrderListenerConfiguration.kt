@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
@@ -91,16 +92,20 @@ class OrderListenerConfiguration(
     }
 
     @Bean
-    fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<NftOwnershipEventDto> {
+    fun ownershipChangeWorker(orderBalanceService: OrderBalanceService): BatchedConsumerWorker<NftOwnershipEventDto> {
         val consumer = nftIndexerEventsConsumerFactory.createOwnershipEventsConsumer(
             ownershipBalanceConsumerGroup,
             blockchain = blockchain()
         )
-        return ConsumerWorker(
-            consumer = consumer,
-            eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
-            meterRegistry = meterRegistry,
-            workerName = "ownership-handler"
+        return BatchedConsumerWorker(
+            (1..listenerProperties.ownershipConsumerWorkersCount).map { index ->
+                ConsumerWorker(
+                    consumer = consumer,
+                    eventHandler = NftOwnershipConsumerEventHandler(orderBalanceService),
+                    meterRegistry = meterRegistry,
+                    workerName = "ownership-handler-$index"
+                )
+            }
         ).apply { start() }
     }
 

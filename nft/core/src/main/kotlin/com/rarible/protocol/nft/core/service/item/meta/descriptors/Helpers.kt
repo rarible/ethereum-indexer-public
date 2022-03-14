@@ -13,6 +13,8 @@ const val IPFS_CAPTURE_SPAN_TYPE = "ipfs"
 
 const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
 const val BASE_64_SVG_PREFIX = "data:image/svg+xml;base64,"
+const val UTF8_SVG_PREFIX = "data:image/svg+xml;utf8,"
+const val SVG_START = "<svg"
 
 fun String?.ifNotBlank() = this?.takeIf { it.isNotBlank() }
 

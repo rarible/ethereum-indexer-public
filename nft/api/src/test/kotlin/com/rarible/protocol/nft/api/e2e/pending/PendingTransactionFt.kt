@@ -29,6 +29,7 @@ import com.rarible.protocol.nft.core.service.BlockProcessor
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
+import io.mockk.coVerify
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -94,7 +95,7 @@ class PendingTransactionFt : EventAwareBaseTest() {
         val itemId = ItemId(token.address(), tokenId)
 
         val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
 
         val receipt = token.mint(
             tokenId.value,
@@ -102,7 +103,7 @@ class PendingTransactionFt : EventAwareBaseTest() {
             nonce.r.bytes(),
             nonce.s.bytes(),
             emptyArray(),
-            "tokenUri"
+            tokenUri
         ).execute().verifySuccess()
 
         processTransaction(receipt)
@@ -154,6 +155,9 @@ class PendingTransactionFt : EventAwareBaseTest() {
             .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
 
+        coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
+        coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
+
         assertThat(history).hasSize(1)
         val pendingLogEvent = history.single().log
         assertThat(pendingLogEvent.status).isEqualTo(LogEventStatus.PENDING)
@@ -164,11 +168,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
         val confirmedItem = itemRepository.findById(ItemId(token.address(), tokenId)).awaitFirstOrNull()
         assertThat(confirmedItem?.pending).isEmpty()
         assertThat(confirmedItem?.getPendingEvents()).isEmpty()
-
-        // Now refresh meta and check that it is resolved
-        // by delegating to the [RariblePropertiesResolver],
-        // not by [PendingLogItemPropertiesResolver].
-        nftItemApiClient.resetNftItemMetaById(itemId.decimalStringValue).awaitFirstOrNull()
     }
 
     @ParameterizedTest
@@ -181,7 +180,12 @@ class PendingTransactionFt : EventAwareBaseTest() {
         val contract = TestERC721.deployAndWait(sender, poller, "TEST", "TEST").awaitFirst()
         tokenRepository.save(Token(contract.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
-        val receipt = contract.mint(address, BigInteger.ONE, "").execute().verifySuccess()
+        val itemId = ItemId(contract.address(), EthUInt256.ONE)
+        val tokenUri = "tokenUri"
+        val itemMeta = randomItemMeta()
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
+
+        val receipt = contract.mint(itemId.token, itemId.tokenId.value, tokenUri).execute().verifySuccess()
         processTransaction(receipt)
 
         Wait.waitAssert {
@@ -211,9 +215,17 @@ class PendingTransactionFt : EventAwareBaseTest() {
                 "0x22a775b6000000000000000000000000000000000000000000000000000000000000004000000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb19d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
             )
         )
+        val tokenUri = "ipfs://ipfs/QmQWtQEgrjfPbudnawZdwxwFXYdA4aoSK4r1V7G12vbsf6"
+        val itemMeta = randomItemMeta()
+        val itemId = ItemId(
+            Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            EthUInt256.Companion.of("11680000452142661694294218856164804779707361762839699892441169823494299451438")
+        )
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
+
         tokenRepository.save(
             Token(
-                Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+                itemId.token,
                 name = "TEST",
                 standard = TokenStandard.ERC721
             )
@@ -234,9 +246,16 @@ class PendingTransactionFt : EventAwareBaseTest() {
                 "0x22a775b60000000000000000000000000000000000000000000000000000000000000040000000000000000000000000eb19d2a55f2bd362a9e09f674b722782329f63f3eb19d2a55f2bd362a9e09f674b722782329f63f300000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
             )
         )
+        val itemMeta = randomItemMeta()
+        val itemId = ItemId(
+            Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            EthUInt256.Companion.of("106339144418833783539974514437100871680852163117845648360835519777137110286382")
+        )
+        val tokenUri = "ipfs://ipfs/QmQWtQEgrjfPbudnawZdwxwFXYdA4aoSK4r1V7G12vbsf6"
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
         tokenRepository.save(
             Token(
-                Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+                itemId.token,
                 name = "TEST",
                 standard = TokenStandard.ERC721
             )
