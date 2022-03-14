@@ -38,11 +38,10 @@ class ItemRepository(
         return mongo.findById(id)
     }
 
-    suspend fun search(query: Query): List<Item> {
+    fun search(query: Query): Flow<Item> {
         return mongo.query<Item>().matching(query)
             .all()
-            .collectList()
-            .awaitFirst()
+            .asFlow()
     }
 
     suspend fun searchByIds(ids: Set<ItemId>): List<Item> {

@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -46,13 +47,13 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
             sort = ItemFilter.Sort.LAST_UPDATE_ASC,
             showDeleted = false
         )
-        val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2))
+        val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2)).toList()
         assertThat(items1).hasSize(2)
         Wait.waitAssert {
             assertThat(items1[0]).isEqualTo(item1)
             assertThat(items1[1]).isEqualTo(item2)
         }
-        val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2))
+        val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2)).toList()
         assertThat(items2).hasSize(2)
         Wait.waitAssert {
             assertThat(items2[0]).isEqualTo(item3)
@@ -72,13 +73,13 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
             sort = ItemFilter.Sort.LAST_UPDATE_DESC,
             showDeleted = false
         )
-        val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2))
+        val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2)).toList()
         assertThat(items1).hasSize(2)
         Wait.waitAssert {
             assertThat(items1[0]).isEqualTo(item1)
             assertThat(items1[1]).isEqualTo(item2)
         }
-        val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2))
+        val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2)).toList()
         assertThat(items2).hasSize(2)
         Wait.waitAssert {
             assertThat(items2[0]).isEqualTo(item3)
