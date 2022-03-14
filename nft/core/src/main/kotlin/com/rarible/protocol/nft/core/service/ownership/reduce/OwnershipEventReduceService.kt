@@ -5,6 +5,7 @@ import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.core.apm.withSpan
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.model.*
@@ -28,7 +29,10 @@ class OwnershipEventReduceService(
     }
 
     suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
-        withSpan("onOwnershipEvents") {
+        withSpan(
+            name = "onOwnershipEvents",
+            labels = listOf("ownershipId" to (events.firstOrNull()?.let { ItemEventConverter.convertToOwnershipId(it.record) }?.stringValue ?: ""))
+        ) {
             events
                 .flatMap { eventConverter.convert(it.record) }
                 .filter { event -> OwnershipId.parseId(event.entityId).let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens }

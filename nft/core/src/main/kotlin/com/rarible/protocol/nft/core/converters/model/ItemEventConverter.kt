@@ -10,11 +10,16 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.OwnershipId
 import scalether.domain.Address
 
 object ItemEventConverter {
     fun convertToItemId(source: ReversedEthereumLogRecord): ItemId? {
         return (source.data as? ItemHistory)?.let { ItemId(it.token, it.tokenId) }
+    }
+
+    fun convertToOwnershipId(source: ReversedEthereumLogRecord): OwnershipId? {
+        return (source.data as? ItemHistory)?.let { it.owner?.let { owner -> OwnershipId(it.token, it.tokenId, owner) } }
     }
 
     fun convert(source: ReversedEthereumLogRecord): ItemEvent? {
