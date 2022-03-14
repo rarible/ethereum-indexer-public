@@ -15,10 +15,11 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return url.replace(spaceCode, " ").replace(
+        var decodedData = url.replace(spaceCode, " ").replace(
             "fill:%",
             "fill:#"
-        ) //TODO Workaround BRAVO-1872. Consider ability to fix data and decode with URLDecoder.decode(urlNoSpace.substring(urlNoSpace.indexOf(svgTag), urlNoSpace.length), "UTF-8")
+        ) //TODO Workaround for BRAVO-1872. Use URLDecoder.decode after fix.
+        return decodedData.substring(decodedData.indexOf(svgTag), decodedData.length)
     }
 
     override fun getMimeType(): String {

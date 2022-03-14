@@ -10,7 +10,7 @@ import java.nio.file.Paths
 class SVGDetectorTest {
 
     private val svgUrl = "https://rarible.mypinata.cloud/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
-    private val decodedSvg = "<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
+    private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
 
     @Test
     fun `svg detector do not react to strings without svg tag`() {
@@ -28,10 +28,10 @@ class SVGDetectorTest {
 
     @Test
     fun `get svg image parts`() {
-        val base64 = SVGDetector(svgUrl)
+        val svgDetector = SVGDetector(svgUrl)
 
-        assertThat(base64.getData()).isEqualTo(decodedSvg)
-        assertThat(base64.getMimeType()).isEqualTo("image/svg+xml")
+        assertThat(svgDetector.getData()).isEqualTo(decodedSvg)
+        assertThat(svgDetector.getMimeType()).isEqualTo("image/svg+xml")
     }
 
     @Test

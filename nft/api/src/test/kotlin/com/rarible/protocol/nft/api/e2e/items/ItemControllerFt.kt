@@ -78,7 +78,7 @@ import java.util.stream.Stream
 class ItemControllerFt : SpringContainerBaseTest() {
 
     private val svgUrl = "https://rarible.mypinata.cloud/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
-    private val decodedSvg = "<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
+    private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
 
     @Autowired
     private lateinit var itemRepository: ItemRepository
