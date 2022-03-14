@@ -26,11 +26,9 @@ import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleU
 import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
-import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.HistoryTopics
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.EntityEventListener
@@ -45,19 +43,17 @@ import org.web3j.rlp.Utils
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
-import java.time.Duration
 
 @Service
 class PendingTransactionServiceImp(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val properties: NftIndexerProperties,
-    private val metaService: ItemMetaService,
-    private val nftIndexerApiProperties: NftIndexerApiProperties,
+    itemMetaService: ItemMetaService,
     entityEventListeners: List<EntityEventListener>,
     ethereumLogRepository: EthereumLogRepository,
     historyTopics: HistoryTopics
-) : AbstractPendingTransactionService(entityEventListeners, ethereumLogRepository, historyTopics) {
+) : AbstractPendingTransactionService(entityEventListeners, ethereumLogRepository, historyTopics, itemMetaService) {
 
     private fun erc721Factory() = setOf(
         Address.apply(properties.factory.erc721Rarible),
@@ -110,26 +106,10 @@ class PendingTransactionServiceImp(
         to: Address,
         id: Binary,
         data: Binary
-    ): List<PendingLog> {
-        val pendingLogs = tokenRepository
-            .findById(to).awaitFirstOrNull()
-            ?.let { processTxToToken(from, to, id, data) }
-            ?: emptyList()
-
-        pendingLogs
-            .mapNotNull { it.eventData as? ItemTransfer }
-            .forEach { loadItemMeta(ItemId(it.token, it.tokenId)) }
-
-        return pendingLogs
-    }
-
-    private suspend fun loadItemMeta(itemId: ItemId) {
-        // It is important to load meta right now and save to the cache to make sure that item update events are sent with full meta.
-        metaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
-            itemId = itemId,
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
-        )
-    }
+    ): List<PendingLog> = tokenRepository
+        .findById(to).awaitFirstOrNull()
+        ?.let { processTxToToken(from, to, id, data) }
+        ?: emptyList()
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
         val input = id.add(data)

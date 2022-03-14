@@ -161,6 +161,9 @@ class RariblePropertiesResolver(
         if (imageUrl.startsWith(BASE_64_SVG_PREFIX)) {
             return String(base64MimeToBytes(imageUrl.removePrefix(BASE_64_SVG_PREFIX)))
         }
+        if (imageUrl.startsWith(UTF8_SVG_PREFIX)) {
+            return imageUrl.removePrefix(UTF8_SVG_PREFIX)
+        }
         return imageUrl
     }
 

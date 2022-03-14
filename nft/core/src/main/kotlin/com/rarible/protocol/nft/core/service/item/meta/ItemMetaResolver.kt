@@ -4,6 +4,7 @@ import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import org.springframework.stereotype.Component
 
 /**
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component
 @Component
 class ItemMetaResolver(
     private val itemPropertiesService: ItemPropertiesService,
+    private val rariblePropertiesResolver: RariblePropertiesResolver,
     private val mediaMetaService: MediaMetaService
 ) {
 
@@ -19,6 +21,12 @@ class ItemMetaResolver(
         val itemProperties = itemPropertiesService.resolve(itemId) ?: return null
         val contentMeta = getCachedContentMeta(itemProperties)
         return ItemMeta(itemProperties.fixAnimationUrl(), contentMeta)
+    }
+
+    suspend fun resolvePendingItemMeta(itemId: ItemId, tokenUri: String): ItemMeta? {
+        val itemProperties = rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) ?: return null
+        // Meta content will be resolved on the union-service.
+        return ItemMeta(itemProperties, ItemContentMeta(null, null))
     }
 
     // TODO[meta]: Ethereum API will be not responsible for loading metadata for items.

@@ -25,7 +25,6 @@ import com.rarible.protocol.contracts.erc721.rarible.factory.ERC721RaribleFactor
 import com.rarible.protocol.contracts.erc721.rarible.factory.user.ERC721RaribleUserFactoryC2
 import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
-import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.ItemId
@@ -42,7 +41,6 @@ import org.web3j.rlp.Utils
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
-import java.time.Duration
 import com.rarible.ethereum.log.service.AbstractPendingTransactionService as LegacyAbstractPendingTransactionService
 import com.rarible.protocol.contracts.erc721.v2.MintableOwnableToken as MintableOwnableTokenV2
 import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken as MintableOwnableTokenV3
@@ -53,8 +51,7 @@ class LegacyPendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val properties: NftIndexerProperties,
-    private val metaService: ItemMetaService,
-    private val nftIndexerApiProperties: NftIndexerApiProperties,
+    private val itemMetaService: ItemMetaService,
     blockProcessor: BlockProcessor,
     logEventService: LogEventService
 ) : LegacyAbstractPendingTransactionService(logEventService, blockProcessor) {
@@ -112,17 +109,13 @@ class LegacyPendingTransactionService(
 
         pendingLogs
             .mapNotNull { it.eventData as? ItemTransfer }
-            .forEach { loadItemMeta(ItemId(it.token, it.tokenId)) }
+            .forEach {
+                val itemId = ItemId(it.token, it.tokenId)
+                val tokenUri = it.tokenUri ?: return@forEach
+                itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+            }
 
         return pendingLogs
-    }
-
-    private suspend fun loadItemMeta(itemId: ItemId) {
-        // It is important to load meta right now and save to the cache to make sure that item update events are sent with full meta.
-        metaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
-            itemId = itemId,
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
-        )
     }
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
@@ -200,7 +193,7 @@ class LegacyPendingTransactionService(
         return null
     }
 
-    private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
+    private fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {

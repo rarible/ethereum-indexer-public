@@ -19,7 +19,8 @@ import java.time.Duration
 class ItemMetaService(
     @Qualifier("meta.cache.loader.service")
     private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>,
-    private val itemMetaCacheLoader: ItemMetaCacheLoader
+    private val itemMetaCacheLoader: ItemMetaCacheLoader,
+    private val itemMetaResolver: ItemMetaResolver
 ) {
 
     private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
@@ -118,6 +119,17 @@ class ItemMetaService(
     suspend fun removeMeta(itemId: ItemId) {
         logMetaLoading(itemId, "removing meta")
         itemMetaCacheLoaderService.remove(itemId.toCacheKey())
+    }
+
+    /**
+     * Resolves meta for a pending item and saves it to the cache.
+     * It is needed to guarantee that the first sent ItemUpdateEvent goes with an existing meta.
+     */
+    suspend fun loadAndSavePendingItemMeta(itemId: ItemId, tokenUri: String) {
+        logMetaLoading(itemId, "resolving meta for a pending item by $tokenUri")
+        val itemMeta = itemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) ?: return
+        itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
+        logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
     }
 
     private fun ItemId.toCacheKey(): String = decimalStringValue

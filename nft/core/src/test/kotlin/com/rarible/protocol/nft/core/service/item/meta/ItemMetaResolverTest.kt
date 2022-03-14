@@ -19,7 +19,11 @@ import org.junit.jupiter.api.Test
 class ItemMetaResolverTest {
     private val itemPropertiesService = mockk<ItemPropertiesService>()
     private val mediaMetaService = mockk<MediaMetaService>()
-    private val itemMetaResolver = ItemMetaResolver(itemPropertiesService, mediaMetaService)
+    private val itemMetaResolver = ItemMetaResolver(
+        itemPropertiesService = itemPropertiesService,
+        rariblePropertiesResolver = mockk(),
+        mediaMetaService = mediaMetaService
+    )
 
     @Test
     fun `attach media meta to image preview and animation`() = runBlocking<Unit> {
