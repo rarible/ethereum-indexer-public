@@ -34,6 +34,7 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Component
 class CollectionOrderStatService(
@@ -149,7 +150,8 @@ class CollectionOrderStatService(
         if (rate.signum() == 0 || usd.signum() == 0) {
             return BigDecimal.ZERO
         }
-        return usd.divide(rate)
+        // 8 is additional scale for case if currency has very high rate
+        return usd.divide(rate, usd.scale() + 8, RoundingMode.HALF_EVEN)
     }
 
     data class SalesStats(

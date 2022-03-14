@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.IPFS_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.SVG_START
 import org.springframework.stereotype.Service
 import java.util.regex.Pattern
 
@@ -20,14 +21,18 @@ class IpfsService {
         } else {
             uri
         }
-        return when {
-            ipfsUri.startsWith("http") -> ipfsUri
-            ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
-            ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
-            ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
-            ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
-            else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
-        }.encodeHtmlUrl()
+        return if (ipfsUri.startsWith(SVG_START)) {
+            ipfsUri
+        } else {
+            when {
+                ipfsUri.startsWith("http") -> ipfsUri
+                ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
+                ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
+                ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
+                ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
+                else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
+            }.encodeHtmlUrl()
+        }
     }
 
     private fun String.encodeHtmlUrl(): String {
