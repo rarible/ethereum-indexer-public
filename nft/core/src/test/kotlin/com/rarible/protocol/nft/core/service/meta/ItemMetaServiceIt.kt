@@ -70,8 +70,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             )
         ).isEqualTo(itemMeta)
         Wait.waitAssert {
-            // There are 2 calls: from synchronous and asynchronous loading.
-            coVerify(exactly = 2) { mockItemMetaResolver.resolveItemMeta(itemId) }
+            coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
     }
 
