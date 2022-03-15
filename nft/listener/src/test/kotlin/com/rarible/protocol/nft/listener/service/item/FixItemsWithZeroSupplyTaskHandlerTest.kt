@@ -45,12 +45,12 @@ class FixItemsWithZeroSupplyTaskHandlerTest  : AbstractIntegrationTest(){
 
         assertThat(updateItemsAmount).isEqualTo(zeroSupplyItemsList.size)
 
-        zeroSupplyItemsList.forEach{
+        zeroSupplyItemsList.forEach {
             val updatedItem = itemRepository.findById(ItemId(it.token, it.tokenId)).awaitFirstOrNull()
             assertThat(updatedItem?.deleted).isTrue()
         }
 
-        nonZeroSupplyItemsList.forEach{
+        nonZeroSupplyItemsList.forEach {
             val updatedItem = itemRepository.findById(ItemId(it.token, it.tokenId)).awaitFirstOrNull()
             assertThat(updatedItem?.deleted).isFalse()
         }
