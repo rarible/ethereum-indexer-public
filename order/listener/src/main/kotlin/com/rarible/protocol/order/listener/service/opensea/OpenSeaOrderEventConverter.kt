@@ -23,6 +23,8 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
 
+val IGNORE_LIST = listOf(WyvernAtomicizer.atomicizeSignature().id())
+
 @Component
 class OpenSeaOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
@@ -30,10 +32,6 @@ class OpenSeaOrderEventConverter(
     private val callDataEncoder: CallDataEncoder
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
-
-    companion object {
-        val ignoreList = listOf(WyvernAtomicizer.atomicizeSignature().id())
-    }
 
     suspend fun convert(
         openSeaOrders: OpenSeaMatchedOrders,
@@ -220,7 +218,7 @@ class OpenSeaOrderEventConverter(
         }
     }
 
-    private fun encodeTransfer(callData: Binary): Transfer? {
+    fun encodeTransfer(callData: Binary): Transfer? {
         return when (callData.methodSignatureId()) {
             IERC1155.safeTransferFromSignature().id(),
             IERC721.transferFromSignature().id(),
@@ -230,7 +228,7 @@ class OpenSeaOrderEventConverter(
             MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
-            in ignoreList -> {
+            in IGNORE_LIST -> {
                 logger.info("OpenSea order call data was ignored: $callData")
                 null
             }
