@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.toList
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -33,7 +34,7 @@ class ItemDataQualityService(
                         ItemContinuation.parse(continuation),
                         nftListenerProperties.elementsFetchJobSize
                     )
-                )
+                ).toList()
                 items.forEach { item ->
                     val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
                     if (ownershipsValue != item.supply) {
