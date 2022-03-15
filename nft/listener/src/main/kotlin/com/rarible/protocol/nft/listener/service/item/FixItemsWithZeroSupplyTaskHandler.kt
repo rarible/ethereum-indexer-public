@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -27,7 +27,6 @@ class FixItemsWithZeroSupplyTaskHandler(
                 Item::supply isEqualTo EthUInt256.ZERO,
                 Item::deleted isEqualTo false
         )
-
         val query  = Query().addCriteria(criteria)
 
         return itemRepository.search(query).map {
@@ -36,12 +35,19 @@ class FixItemsWithZeroSupplyTaskHandler(
     }
 
     private suspend fun updateOrder(item: Item): String  {
-        val updatedItem = itemReduceService.update(item.token, item.tokenId).awaitFirst()
 
-        if (updatedItem != null) {
-            logger.info("Item $updatedItem was updated!")
+        itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
+        val updatedItem = itemRepository.findById(item.id).awaitFirstOrNull()
+
+        if (updatedItem == null) {
+            logger.error("Can't find updated item: $item!")
+            return item.toString()
+        }
+
+        if (updatedItem.deleted) {
+            logger.info("Item was updated. $updatedItem")
         } else {
-            logger.warn("Item ${item.token} wasn't updated!")
+            logger.warn("Item wasn't updated! $updatedItem")
         }
 
         return item.toString()
