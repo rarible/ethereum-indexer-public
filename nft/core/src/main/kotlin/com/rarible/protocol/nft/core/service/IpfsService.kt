@@ -29,6 +29,7 @@ class IpfsService {
                 ipfsUri.startsWith("ipfs:///ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
                 ipfsUri.startsWith("ipfs://ipfs/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
                 ipfsUri.startsWith("ipfs://") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs://")}"
+                ipfsUri.startsWith("ipfs:/") -> "$RARIBLE_IPFS/ipfs/${ipfsUri.removePrefix("ipfs:/")}"
                 ipfsUri.startsWith("Qm") -> "$RARIBLE_IPFS/ipfs/$ipfsUri"
                 else -> "$RARIBLE_IPFS/${ipfsUri.trimStart('/')}"
             }.encodeHtmlUrl()
