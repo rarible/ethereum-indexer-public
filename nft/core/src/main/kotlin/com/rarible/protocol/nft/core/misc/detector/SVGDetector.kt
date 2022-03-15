@@ -16,7 +16,7 @@ class SVGDetector(url: String) : ContentDetector(url) {
 
     override fun getData(): String {
         var decodedData = url.replace(spaceCode, " ").replace(
-            "fill:%",
+            "fill:%23",
             "fill:#"
         ) //TODO Workaround for BRAVO-1872. Use URLDecoder.decode after fix.
         return decodedData.substring(decodedData.indexOf(svgTag), decodedData.length)
