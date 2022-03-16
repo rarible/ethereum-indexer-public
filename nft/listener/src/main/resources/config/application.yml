@@ -44,8 +44,8 @@ rarible:
     topicsPrefix: protocol.${application.environment}.${common.blockchain}.indexer.nft.loader.internal
     enableRetrySchedulerJob: true
     enableWorkers: true
-    workers: 4
-    loadTasksBatchSize: 10
+    workers: 8
+    loadTasksBatchSize: 50
     retry:
       # Retry after 24h
       backoffDelaysMillis: [ 86400000 ]

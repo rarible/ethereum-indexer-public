@@ -49,7 +49,7 @@ class ItemMetaService(
         if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
             return null
         }
-        if (!metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
+        if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
             scheduleLoading(itemId)
         }
         if (synchronous) {
