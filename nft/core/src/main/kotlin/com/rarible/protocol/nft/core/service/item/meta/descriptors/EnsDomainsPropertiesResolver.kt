@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -21,14 +23,15 @@ import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
-class EnsDomainsPropertiesResolver : ItemPropertiesResolver {
+class EnsDomainsPropertiesResolver(
+    private val externalHttpClient: ExternalHttpClient,
+    nftIndexerProperties: NftIndexerProperties,
+) : ItemPropertiesResolver {
 
     companion object {
         private val logger = LoggerFactory.getLogger(EnsDomainsPropertiesResolver::class.java)
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
-        val ENS_DOMAINS_ADDRESS: Address = Address.apply("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85")
-
         val PROPERTIES_NOT_FOUND = ItemProperties(
             name = "Not found",
             description = null,
@@ -41,22 +44,19 @@ class EnsDomainsPropertiesResolver : ItemPropertiesResolver {
         )
     }
 
-    private val client = WebClient.builder()
-        .clientConnector(WebClientHelper.createConnector(10000, 10000, true))
-        .build()
+    private val contractAddress: Address = Address.apply(nftIndexerProperties.ensDomainsContractAddress)
     private val mapper = ObjectMapper()
 
     override val name get() = "EnsDomains"
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
-        if (itemId.token != ENS_DOMAINS_ADDRESS) {
+        if (itemId.token != contractAddress) {
             return null
         }
         return LoggingUtils.withMarker { marker ->
             logger.info(marker, "get EnsDomains properties ${itemId.tokenId.value}")
 
-            client.get().uri("${URL}/${NETWORK}/${ENS_DOMAINS_ADDRESS}/${itemId.tokenId.value}")
-                .retrieve()
+            externalHttpClient.get("${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}")
                 .bodyToMono<String>()
                 .map {
                     val node = mapper.readTree(it) as ObjectNode

@@ -18,6 +18,7 @@ data class NftIndexerProperties(
     val metricRootPath: String,
     val maxPollRecords: Int = 100,
     var cryptoPunksContractAddress: String,
+    var ensDomainsContractAddress: String,
     var openseaLazyMintAddress: String,
     var royaltyRegistryAddress: String,
     val factory: FactoryAddresses,

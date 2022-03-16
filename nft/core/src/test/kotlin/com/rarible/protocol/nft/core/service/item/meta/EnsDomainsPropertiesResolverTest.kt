@@ -5,22 +5,36 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver.Companion.ENS_DOMAINS_ADDRESS
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver.Companion.PROPERTIES_NOT_FOUND
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import scalether.domain.Address
 
 @ItemMetaTest
 class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val resolver = EnsDomainsPropertiesResolver()
+    private val ensDomainsAddress: Address = Address.apply("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85")
+    private val resolver = EnsDomainsPropertiesResolver(
+        externalHttpClient = ExternalHttpClient(
+            openseaUrl = "",
+            openseaApiKey = "",
+            readTimeout = 10000,
+            connectTimeout = 10000,
+            proxyUrl = ""
+        ),
+        nftIndexerProperties = mockk {
+            every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
+        },
+    )
 
     @Test
     fun `ensDomains resolver - happy path`() = runBlocking<Unit> {
         val properties = resolver.resolve(
             ItemId(
-                ENS_DOMAINS_ADDRESS,
+                ensDomainsAddress,
                 EthUInt256.of("70978452926855298230627852209706669601671060584535678453189230628746785569329")
             )
         )
@@ -46,7 +60,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
     fun `ensDomains resolver - 404`() = runBlocking<Unit> {
         val properties = resolver.resolve(
             ItemId(
-                ENS_DOMAINS_ADDRESS,
+                ensDomainsAddress,
                 EthUInt256.of("42")
             )
         )
