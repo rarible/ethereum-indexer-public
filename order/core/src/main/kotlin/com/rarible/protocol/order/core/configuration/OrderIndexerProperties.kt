@@ -19,9 +19,11 @@ data class OrderIndexerProperties(
     val eip712DomainVersion: String,
     val openseaEip712DomainName: String,
     val openseaEip712DomainVersion: String,
+    var openSeaNonceIncrement: Long = 0,
     val chainId: Int,
     var operatorPrivateKey: Binary,
     val protocolCommission: Int,
+    val metricRootPath: String,
     @NestedConfigurationProperty
     val exchangeContractAddresses: ExchangeContractAddresses,
     @NestedConfigurationProperty

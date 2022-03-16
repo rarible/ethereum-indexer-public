@@ -6,37 +6,60 @@ import com.rarible.protocol.dto.BurnDto
 import com.rarible.protocol.dto.MintDto
 import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.daonomic.rpc.domain.Word
-import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
-    fun convert(logEvent: ReversedEthereumLogRecord): NftActivityDto? {
+class NftActivityConverter(
+    addresses: NftIndexerProperties.ContractAddresses
+) {
+
+    private val marketAddresses = addresses.marketAddresses
+
+    fun convert(logEvent: ReversedEthereumLogRecord, reverted: Boolean = false): NftActivityDto? {
         val transactionHash = logEvent.transactionHash
         val blockHash = logEvent.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = logEvent.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = logEvent.logIndex ?: DEFAULT_LOG_INDEX
 
-        return when(val eventData = logEvent.data) {
+        return when (val eventData = logEvent.data) {
             is ItemTransfer -> {
-                toDto(eventData, logEvent.id, Word.apply(transactionHash), blockHash, blockNumber, logIndex)
+                toDto(
+                    eventData,
+                    logEvent.id,
+                    Word.apply(transactionHash),
+                    blockHash,
+                    blockNumber,
+                    logIndex,
+                    reverted,
+                    logEvent.to
+                )
             }
             else -> null
         }
     }
 
-    override fun convert(logEvent: LogEvent): NftActivityDto? {
+    fun convert(logEvent: LogEvent, reverted: Boolean = false): NftActivityDto? {
         val transactionHash = logEvent.transactionHash
         val blockHash = logEvent.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = logEvent.blockNumber ?: DEFAULT_BLOCK_NUMBER
         val logIndex = logEvent.logIndex ?: DEFAULT_LOG_INDEX
 
-            return when(val eventData = logEvent.data) {
+        return when (val eventData = logEvent.data) {
             is ItemTransfer -> {
-                toDto(eventData, logEvent.id.toString(), transactionHash, blockHash, blockNumber, logIndex)
+                toDto(
+                    eventData,
+                    logEvent.id.toString(),
+                    transactionHash,
+                    blockHash,
+                    blockNumber,
+                    logIndex,
+                    reverted,
+                    logEvent.to
+                )
             }
             else -> null
         }
@@ -48,7 +71,9 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
         transactionHash: Word,
         blockHash: Word,
         blockNumber: Long,
-        logIndex: Int
+        logIndex: Int,
+        reverted: Boolean,
+        to: Address? = null
     ): NftActivityDto {
         return when {
             itemTransfer.from == Address.ZERO() -> {
@@ -63,12 +88,12 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = reverted
                 )
             }
             itemTransfer.owner == Address.ZERO() -> {
                 BurnDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.from,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
@@ -78,29 +103,30 @@ object NftActivityConverter: Converter<LogEvent, NftActivityDto> {
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = reverted
                 )
             }
             else -> {
                 TransferDto(
-                    id = id.toString(),
+                    id = id,
                     owner = itemTransfer.owner,
                     contract = itemTransfer.token,
                     tokenId = itemTransfer.tokenId.value,
                     value = itemTransfer.value.value,
                     date = itemTransfer.date,
+                    purchase = to?.let { marketAddresses.contains(to) },
                     from = itemTransfer.from,
                     transactionHash = transactionHash,
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = reverted
                 )
             }
         }
     }
 
     private val DEFAULT_BLOCK_HASH: Word = Word.apply(ByteArray(32))
-    private const val DEFAULT_BLOCK_NUMBER: Long = 0
-    private const val DEFAULT_LOG_INDEX: Int = 0
+    private val DEFAULT_BLOCK_NUMBER: Long = 0
+    private val DEFAULT_LOG_INDEX: Int = 0
 }

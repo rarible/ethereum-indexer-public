@@ -24,6 +24,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriter
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.core.convert.ConversionService
@@ -71,7 +72,7 @@ class ItemService(
     ): List<ExtendedItem> = coroutineScope {
         val requestSize = PageSize.ITEM.limit(size)
         val items = itemRepository.search(filter.toCriteria(continuation, requestSize))
-        items.mapAsync { item ->
+        items.toList().mapAsync { item ->
             val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id)
             ExtendedItem(item, meta)
         }

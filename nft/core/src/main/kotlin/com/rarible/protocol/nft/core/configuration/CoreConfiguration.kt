@@ -56,4 +56,9 @@ class CoreConfiguration(
     fun logEventService(mongo: ReactiveMongoOperations, historyTopics: HistoryTopics): LogEventService {
         return LogEventService(historyTopics, mongo)
     }
+
+    @Bean
+    fun contractAddresses(): NftIndexerProperties.ContractAddresses {
+        return properties.contractAddresses
+    }
 }

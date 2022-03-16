@@ -12,13 +12,19 @@ import reactor.core.publisher.Mono
 
 @Component("LegacyOnNftItemLogEventListener")
 class OnNftItemLogEventListener(
-    private val eventPublisher: ProtocolNftEventPublisher
+    private val eventPublisher: ProtocolNftEventPublisher,
+    private val nftActivityConverter: NftActivityConverter
 ) : OnLogEventListener {
 
     override val topics: List<Word> = ItemType.TRANSFER.topic.toList()
 
-    override fun onLogEvent(logEvent: LogEvent): Mono<Void> = mono {
-        val activity = NftActivityConverter.convert(logEvent)
+    override fun onLogEvent(logEvent: LogEvent): Mono<Void> = onEvent(logEvent, false)
+
+    override fun onRevertedLogEvent(logEvent: LogEvent) = onEvent(logEvent, true)
+
+    private fun onEvent(logEvent: LogEvent, reverted: Boolean): Mono<Void> = mono {
+        val activity = nftActivityConverter.convert(logEvent, reverted)
         if (activity != null) eventPublisher.publish(activity)
     }.then()
+
 }

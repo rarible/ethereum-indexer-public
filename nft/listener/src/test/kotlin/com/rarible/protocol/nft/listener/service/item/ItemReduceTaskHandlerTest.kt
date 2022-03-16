@@ -8,10 +8,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.ScannerVersion
+import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -107,30 +104,34 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
         }
     }
 
-    private fun createMintLog(
-        token: Address = randomAddress(),
-        blockNumber: Long = 1
-    ): LogEvent {
-        val transfer = ItemTransfer(
-            owner = randomAddress(),
-            token = token,
-            tokenId = EthUInt256.of(randomBigInt()),
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.ONE
-        )
-        return LogEvent(
-            data = transfer,
-            address = token,
-            topic = WordFactory.create(),
-            transactionHash = Word.apply(randomWord()) ,
-            status = LogEventStatus.CONFIRMED,
-            from = randomAddress(),
-            index = 0,
-            logIndex = 1,
-            blockNumber = blockNumber,
-            minorLogIndex = 0,
-            blockTimestamp = nowMillis().epochSecond
-        )
+    companion object {
+        fun createMintLog(
+            token: Address = randomAddress(),
+            blockNumber: Long = 1,
+            tokenId: EthUInt256 = EthUInt256.of(randomBigInt()),
+            value: EthUInt256 = EthUInt256.ONE
+        ): LogEvent {
+            val transfer = ItemTransfer(
+                owner = randomAddress(),
+                token = token,
+                tokenId = tokenId,
+                date = nowMillis(),
+                from = Address.ZERO(),
+                value = value
+            )
+            return LogEvent(
+                data = transfer,
+                address = token,
+                topic = WordFactory.create(),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                from = randomAddress(),
+                index = 0,
+                logIndex = 1,
+                blockNumber = blockNumber,
+                minorLogIndex = 0,
+                blockTimestamp = nowMillis().epochSecond
+            )
+        }
     }
 }

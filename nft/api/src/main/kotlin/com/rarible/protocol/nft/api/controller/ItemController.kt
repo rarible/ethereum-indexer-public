@@ -18,7 +18,7 @@ import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.misc.Base64Detector
+import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -35,7 +35,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.apache.commons.codec.binary.Base64
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -84,24 +83,28 @@ class ItemController(
     @GetMapping(value = ["/v0.1/items/{itemId}/image"])
     suspend fun getNftItemImageById(
         @PathVariable("itemId") itemId: String,
-        @RequestParam(value = "size", required = true) size: NftMediaSizeDto
+        @RequestParam(value = "size", required = true) size: NftMediaSizeDto,
+        @RequestParam(value = "animation", required = false) animation: Boolean?
     ): ResponseEntity<Any> {
         // We need to use raw meta here, because converted contains converted base64 url
         val itemMeta = getItemMeta(itemId)
-        val url = when (size) {
-            NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
-            NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
-            NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
+        val url = if (animation == true) {
+            itemMeta.properties.animationUrl
+        } else {
+            when (size) {
+                NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
+                NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
+                NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
+            }
         } ?: return ResponseEntity.notFound().build()
 
-        val base64Detector = Base64Detector(url)
-        if (base64Detector.isBase64Image) {
-            val bytes = Base64.decodeBase64(base64Detector.getBase64Data())
+        val detector = EmbeddedImageDetector.getDetector(url)
+        if (detector != null) {
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, base64Detector.getBase64MimeType())
-                .body(bytes)
-
+                .header(HttpHeaders.CONTENT_TYPE, detector.getMimeType())
+                .body(detector.getDecodedData())
         }
+
         return ResponseEntity
             .status(HttpStatus.FOUND)
             .header(HttpHeaders.LOCATION, url)

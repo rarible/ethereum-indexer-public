@@ -27,9 +27,11 @@ import com.rarible.protocol.contracts.erc721.v3.CreateEvent
 import com.rarible.protocol.contracts.erc721.v4.CreateERC721_v4Event
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -49,6 +51,7 @@ class LegacyPendingTransactionService(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val properties: NftIndexerProperties,
+    private val itemMetaService: ItemMetaService,
     blockProcessor: BlockProcessor,
     logEventService: LogEventService
 ) : LegacyAbstractPendingTransactionService(logEventService, blockProcessor) {
@@ -99,11 +102,20 @@ class LegacyPendingTransactionService(
         id: Binary,
         data: Binary
     ): List<PendingLog> {
-        val pendingLog = tokenRepository
+        val pendingLogs = tokenRepository
             .findById(to).awaitFirstOrNull()
             ?.let { processTxToToken(from, to, id, data) }
+            ?: emptyList()
 
-        return pendingLog ?: listOf()
+        pendingLogs
+            .mapNotNull { it.eventData as? ItemTransfer }
+            .forEach {
+                val itemId = ItemId(it.token, it.tokenId)
+                val tokenUri = it.tokenUri ?: return@forEach
+                itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+            }
+
+        return pendingLogs
     }
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
@@ -181,7 +193,7 @@ class LegacyPendingTransactionService(
         return null
     }
 
-    private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
+    private fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {

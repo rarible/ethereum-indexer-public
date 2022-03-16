@@ -1,9 +1,13 @@
 package com.rarible.protocol.order.core.service
 
+import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.optimisticLock
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.currency.api.client.CurrencyControllerApi
+import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -21,6 +25,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.aggregation.Aggregation
@@ -29,23 +34,44 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigDecimal
+import java.math.RoundingMode
 
 @Component
 class CollectionOrderStatService(
     private val collectionStatRepository: CollectionOrderStatRepository,
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
     private val orderRepository: OrderRepository,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val currencyApi: CurrencyControllerApi,
+    blockchain: Blockchain
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
+    private val blockchainDto = when (blockchain) {
+        Blockchain.ETHEREUM -> BlockchainDto.ETHEREUM
+        Blockchain.POLYGON -> BlockchainDto.POLYGON
+    }
+
     val makeNftKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
     val makeNftContractKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / NftAssetType::token
 
-    suspend fun getOrSchedule(token: Address): CollectionOrderStat = optimisticLock {
-        val stat = collectionStatRepository.get(token)
-        stat ?: collectionStatRepository.save(CollectionOrderStat.empty(token))
+    suspend fun getOrSchedule(token: Address, currency: String?): CollectionOrderStat {
+        val stat = optimisticLock {
+            val stat = collectionStatRepository.get(token)
+            stat ?: collectionStatRepository.save(CollectionOrderStat.empty(token))
+        }
+        // No currency specified - return it as USD
+        if (currency == null) {
+            return stat
+        }
+
+        val rate = getRate(currency)
+        return stat.copy(
+            highestSale = applyRate(stat.highestSale, rate),
+            totalVolume = applyRate(stat.totalVolume, rate),
+            floorPrice = applyRate(stat.floorPrice, rate)
+        )
     }
 
     suspend fun updateStat(token: Address, currencies: List<Address>): CollectionOrderStat {
@@ -111,6 +137,21 @@ class CollectionOrderStatService(
             currency = currency
         )
         return orderRepository.search(filter.toQuery(null, 1)).firstOrNull()
+    }
+
+    private suspend fun getRate(currency: String): BigDecimal {
+        return withSpan(name = "getCurrencyRate") {
+            currencyApi.getCurrencyRate(blockchainDto, currency, nowMillis().toEpochMilli())
+                .awaitFirstOrNull()?.rate
+        } ?: BigDecimal.ZERO
+    }
+
+    private suspend fun applyRate(usd: BigDecimal, rate: BigDecimal): BigDecimal {
+        if (rate.signum() == 0 || usd.signum() == 0) {
+            return BigDecimal.ZERO
+        }
+        // 8 is additional scale for case if currency has very high rate
+        return usd.divide(rate, usd.scale() + 8, RoundingMode.HALF_EVEN)
     }
 
     data class SalesStats(

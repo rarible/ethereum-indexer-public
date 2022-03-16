@@ -8,16 +8,16 @@ import com.rarible.protocol.contracts.erc721.v3.MintableOwnableToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
+import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
-import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
+import com.rarible.protocol.nft.api.e2e.EventAwareBaseTest
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
-import com.rarible.protocol.nft.api.misc.SignUtils
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ReduceVersion
+import com.rarible.protocol.nft.core.model.SignedLong
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.model.toEth
@@ -26,13 +26,11 @@ import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.BlockProcessor
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingLogItemPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.mockk
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -45,14 +43,16 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.query.Query
 import org.web3j.crypto.Keys
+import org.web3j.crypto.Sign
 import org.web3j.utils.Numeric
+import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.domain.response.Transaction
 import scalether.domain.response.TransactionReceipt
 import java.math.BigInteger
 
 @End2EndTest
-class PendingTransactionFt : SpringContainerBaseTest() {
+class PendingTransactionFt : EventAwareBaseTest() {
     @Autowired
     private lateinit var itemRepository: ItemRepository
 
@@ -89,14 +89,14 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             "",
             tokenUri
         ).block()!!
-        val nonce = SignUtils.sign(privateKey, 0, token.address())
+        val nonce = sign(privateKey, 0, token.address())
         tokenRepository.save(Token(token.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
         val tokenId = EthUInt256(BigInteger.valueOf(nonce.value))
         val itemId = ItemId(token.address(), tokenId)
 
         val itemMeta = randomItemMeta()
-        setupItemMeta(itemId, tokenUri, itemMeta)
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
 
         val receipt = token.mint(
             tokenId.value,
@@ -104,7 +104,7 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             nonce.r.bytes(),
             nonce.s.bytes(),
             emptyArray(),
-            "tokenUri"
+            tokenUri
         ).execute().verifySuccess()
 
         processTransaction(receipt)
@@ -136,20 +136,28 @@ class PendingTransactionFt : SpringContainerBaseTest() {
             }
         }
 
+        val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
         Wait.waitAssert {
             val pendingItemDto = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(pendingItemDto?.pending).hasSize(1)
-            assertThat(pendingItemDto?.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
+            assertThat(pendingItemDto?.meta).isEqualTo(expectedMeta)
+        }
 
-            // Meta must have been resolved by [PendingLogItemPropertiesResolver] resolving by URL via [RariblePropertiesResolver].
-            coVerify(exactly = 1) { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) }
-            coVerify(exactly = 0) { rariblePropertiesResolver.resolve(itemId) }
+        Wait.waitAssert {
+            assertThat(itemEvents).anySatisfy { event ->
+                assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
+                    assertThat(it.item.meta).isEqualTo(expectedMeta)
+                }
+            }
         }
 
         // Confirm the logs, run the item reducer.
         val history = nftItemHistoryRepository
             .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
+
+        coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
+        coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
 
         assertThat(history).hasSize(1)
         val pendingLogEvent = history.single().log
@@ -161,44 +169,6 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         val confirmedItem = itemRepository.findById(ItemId(token.address(), tokenId)).awaitFirstOrNull()
         assertThat(confirmedItem?.pending).isEmpty()
         assertThat(confirmedItem?.getPendingEvents()).isEmpty()
-
-        // Now refresh meta and check that it is resolved
-        // by delegating to the [RariblePropertiesResolver],
-        // not by [PendingLogItemPropertiesResolver].
-        nftItemApiClient.resetNftItemMetaById(itemId.decimalStringValue).awaitFirstOrNull()
-        Wait.waitAssert {
-            coVerify(exactly = 1) { rariblePropertiesResolver.resolve(itemId) }
-            coVerify(exactly = 1) { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) }
-        }
-    }
-
-    private val rariblePropertiesResolver = mockk<RariblePropertiesResolver>()
-
-    /**
-     * Here we want to test that properties of a pending minting item are resolved properly.
-     * We imitate the way the [PendingLogItemPropertiesResolver] works: it finds "tokenURI"
-     * from the ItemLazyMint event and uses [RariblePropertiesResolver] to resolve by this URL.
-     *
-     * Then, after the pending log is confirmed, the [PendingLogItemPropertiesResolver] returns `null`
-     * because it is not applicable anymore. And solely the [RariblePropertiesResolver] returns the result.
-     */
-    private fun setupItemMeta(
-        itemId: ItemId,
-        @Suppress("SameParameterValue") tokenUri: String,
-        itemMeta: ItemMeta
-    ) {
-        coEvery { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) } returns itemMeta.properties
-        coEvery { rariblePropertiesResolver.resolve(itemId) } returns itemMeta.properties
-        val pendingLogItemPropertiesResolver = PendingLogItemPropertiesResolver(
-            itemRepository,
-            rariblePropertiesResolver
-        )
-        coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
-            val properties = pendingLogItemPropertiesResolver.resolve(itemId)
-                ?: rariblePropertiesResolver.resolve(itemId)
-                ?: error("Neither the pending log resolver nor Rarible resolver returned meta")
-            ItemMeta(properties, itemMeta.itemContentMeta)
-        }
     }
 
     @ParameterizedTest
@@ -211,7 +181,12 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         val contract = TestERC721.deployAndWait(sender, poller, "TEST", "TEST").awaitFirst()
         tokenRepository.save(Token(contract.address(), name = "TEST", standard = TokenStandard.ERC721)).awaitFirst()
 
-        val receipt = contract.mint(address, BigInteger.ONE, "").execute().verifySuccess()
+        val itemId = ItemId(contract.address(), EthUInt256.ONE)
+        val tokenUri = "tokenUri"
+        val itemMeta = randomItemMeta()
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
+
+        val receipt = contract.mint(itemId.token, itemId.tokenId.value, tokenUri).execute().verifySuccess()
         processTransaction(receipt)
 
         Wait.waitAssert {
@@ -241,9 +216,17 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 "0x22a775b6000000000000000000000000000000000000000000000000000000000000004000000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb19d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
             )
         )
+        val tokenUri = "ipfs://ipfs/QmQWtQEgrjfPbudnawZdwxwFXYdA4aoSK4r1V7G12vbsf6"
+        val itemMeta = randomItemMeta()
+        val itemId = ItemId(
+            Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            EthUInt256.Companion.of("11680000452142661694294218856164804779707361762839699892441169823494299451438")
+        )
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
+
         tokenRepository.save(
             Token(
-                Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+                itemId.token,
                 name = "TEST",
                 standard = TokenStandard.ERC721
             )
@@ -264,9 +247,16 @@ class PendingTransactionFt : SpringContainerBaseTest() {
                 "0x22a775b60000000000000000000000000000000000000000000000000000000000000040000000000000000000000000eb19d2a55f2bd362a9e09f674b722782329f63f3eb19d2a55f2bd362a9e09f674b722782329f63f300000000000000000000002e00000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000016000000000000000000000000000000000000000000000000000000000000001c0000000000000000000000000000000000000000000000000000000000000003a697066733a2f2f697066732f516d515774514567726a66506275646e61775a64777877465859644134616f534b34723156374731327662736636000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb0000000000000000000000000000000000000000000000000000000000002710000000000000000000000000000000000000000000000000000000000000000100000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb00000000000000000000000000000000000000000000000000000000000003e8000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000"
             )
         )
+        val itemMeta = randomItemMeta()
+        val itemId = ItemId(
+            Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+            EthUInt256.Companion.of("106339144418833783539974514437100871680852163117845648360835519777137110286382")
+        )
+        val tokenUri = "ipfs://ipfs/QmQWtQEgrjfPbudnawZdwxwFXYdA4aoSK4r1V7G12vbsf6"
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
         tokenRepository.save(
             Token(
-                Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"),
+                itemId.token,
                 name = "TEST",
                 standard = TokenStandard.ERC721
             )
@@ -330,4 +320,17 @@ class PendingTransactionFt : SpringContainerBaseTest() {
         nonce = nonce().toLong(),
         to = to()
     )
+
+    @Suppress("SameParameterValue")
+    private fun sign(privateKey: BigInteger, value: Long, address: Address? = null): SignedLong {
+        val publicKey = Sign.publicKeyFromPrivate(privateKey)
+        val toSign = if (address != null) {
+            address.add(Uint256Type.encode(BigInteger.valueOf(value)))
+        } else {
+            Uint256Type.encode(BigInteger.valueOf(value))
+        }
+        val signed = Sign.signMessage(toSign.bytes(), publicKey, privateKey)
+        return SignedLong(value, signed.v, Binary(signed.r), Binary(signed.s))
+    }
+
 }

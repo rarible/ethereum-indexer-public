@@ -28,7 +28,10 @@ class ItemEventReduceService(
     }
 
     suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
-        withSpan(name = "onItemEvents") {
+        withSpan(
+            name = "onItemEvents",
+            labels = listOf("itemId" to (events.firstOrNull()?.let { ItemEventConverter.convertToItemId(it.record) }?.stringValue ?: ""))
+        ) {
             events
                 .onEach { onNftItemLogEventListener.onLogEvent(it) }
                 .mapNotNull { ItemEventConverter.convert(it.record) }

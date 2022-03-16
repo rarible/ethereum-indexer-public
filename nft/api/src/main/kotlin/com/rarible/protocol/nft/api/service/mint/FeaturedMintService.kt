@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.api.service.mint
 
+import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ReduceVersion
@@ -16,7 +16,7 @@ class FeaturedMintService(
     private var featureFlags: FeatureFlags
 ) : MintService {
 
-    override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): Item {
+    override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): ExtendedItem {
         return getService().createLazyNft(lazyItemHistory)
     }
 

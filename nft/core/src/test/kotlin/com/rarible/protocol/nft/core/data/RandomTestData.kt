@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.data
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -10,6 +11,7 @@ import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.EventData
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
@@ -20,6 +22,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import io.daonomic.rpc.domain.Word
+import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
@@ -33,6 +36,9 @@ fun createRandomItemId(): ItemId {
 fun createRandomItem(): Item {
     return Item.empty(randomAddress(), EthUInt256.of(randomLong()))
 }
+
+fun createRandomUrl(): String =
+    "https://image.com/${randomString()}"
 
 fun createRandomEthereumLog(
     transactionSender: Address = randomAddress()
@@ -242,3 +248,35 @@ fun OwnershipEvent.TransferToEvent.withNewValues(
     logIndex: Int? = null,
     minorLogIndex: Int? = null
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex))
+
+fun randomEthereumLogEvent(): EthereumLog {
+    val now = nowMillis()
+    return EthereumLog(
+        address = createAddress(),
+        topic = Word.apply(randomWord()),
+        transactionHash = randomWord(),
+        index = RandomUtils.nextInt(),
+        minorLogIndex = 0,
+        status = EthereumLogStatus.CONFIRMED,
+        blockHash = Word.apply(randomWord()),
+        blockNumber = randomLong(),
+        logIndex = randomInt(),
+        visible = true,
+        blockTimestamp = now.epochSecond,
+        from = randomAddress(),
+        to = randomAddress(),
+        createdAt = now,
+        updatedAt = now
+    )
+}
+
+fun randomReversedLogRecord(data: EventData) = randomReversedLogRecord(data, randomEthereumLogEvent())
+
+fun randomReversedLogRecord(data: EventData, log: EthereumLog): ReversedEthereumLogRecord {
+    return ReversedEthereumLogRecord(
+        id = randomString(),
+        log = log,
+        version = null,
+        data = data
+    )
+}

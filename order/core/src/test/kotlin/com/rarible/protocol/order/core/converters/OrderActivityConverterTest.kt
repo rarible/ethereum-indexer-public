@@ -8,7 +8,12 @@ import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto.Type
 import com.rarible.protocol.order.core.converters.dto.AssetDtoConverter
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.OrderActivityResult
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
@@ -16,7 +21,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
@@ -63,20 +68,24 @@ internal class OrderActivityConverterTest {
             Stream.of(
                 Arguments.of(
                     event.copy(data = sideMatch.copy(make = nft, take = eth, adhoc = false)),
-                    OrderActivityMatchDto.Type.SELL, Type.SELL, Type.BID
+                    OrderActivityMatchDto.Type.SELL, Type.SELL, Type.BID,
+                    false
                 ),
                 Arguments.of(
                     event.copy(data = sideMatch.copy(make = eth, take = nft, adhoc = false)),
-                    OrderActivityMatchDto.Type.ACCEPT_BID, Type.BID, Type.SELL
+                    OrderActivityMatchDto.Type.ACCEPT_BID, Type.BID, Type.SELL,
+                    true
                 ),
 
                 Arguments.of(
                     event.copy(data = sideMatch.copy(make = nft, take = eth, adhoc = true)),
-                    OrderActivityMatchDto.Type.ACCEPT_BID, Type.BID, Type.SELL
+                    OrderActivityMatchDto.Type.ACCEPT_BID, Type.BID, Type.SELL,
+                    false
                 ),
                 Arguments.of(
                     event.copy(data = sideMatch.copy(make = eth, take = nft, adhoc = true)),
-                    OrderActivityMatchDto.Type.SELL, Type.SELL, Type.BID
+                    OrderActivityMatchDto.Type.SELL, Type.SELL, Type.BID,
+                    true
                 )
             )
         }
@@ -92,12 +101,18 @@ internal class OrderActivityConverterTest {
     fun `should decode order match transaction input`(
         logEvent: LogEvent,
         type: OrderActivityMatchDto.Type,
-        leftType: Type, rightType: Type
-    ) = runBlocking {
+        leftType: Type,
+        rightType: Type,
+        reverted: Boolean
+    ) = runBlocking<Unit> {
+
         val ac = OrderActivityResult.History(logEvent)
-        val orderDto = orderActivityConverter.convert(ac) as OrderActivityMatchDto
-        assertEquals(type, orderDto.type)
-        assertEquals(leftType, orderDto.left.type)
-        assertEquals(rightType, orderDto.right.type)
+
+        val orderDto = orderActivityConverter.convert(ac, reverted) as OrderActivityMatchDto
+
+        assertThat(orderDto.type).isEqualTo(type)
+        assertThat(orderDto.left.type).isEqualTo(leftType)
+        assertThat(orderDto.right.type).isEqualTo(rightType)
+        assertThat(orderDto.reverted).isEqualTo(reverted)
     }
 }

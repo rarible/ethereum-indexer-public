@@ -4,7 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.blockchain.scanner.ethereum.model.EventData
 import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.blockchain.scanner.ethereum.repository.EthereumLogRepository
-import com.rarible.blockchain.scanner.ethereum.service.EthereumLogService
 import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc1155.TransferSingleEvent
 import com.rarible.contracts.erc721.IERC721
@@ -33,6 +32,7 @@ import com.rarible.protocol.nft.core.model.HistoryTopics
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.EntityEventListener
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -49,10 +49,11 @@ class PendingTransactionServiceImp(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
     private val properties: NftIndexerProperties,
+    itemMetaService: ItemMetaService,
     entityEventListeners: List<EntityEventListener>,
     ethereumLogRepository: EthereumLogRepository,
     historyTopics: HistoryTopics
-) : AbstractPendingTransactionService(entityEventListeners, ethereumLogRepository, historyTopics) {
+) : AbstractPendingTransactionService(entityEventListeners, ethereumLogRepository, historyTopics, itemMetaService) {
 
     private fun erc721Factory() = setOf(
         Address.apply(properties.factory.erc721Rarible),
@@ -99,18 +100,16 @@ class PendingTransactionServiceImp(
         }
     }
 
+    @Suppress("DuplicatedCode")
     private suspend fun tryToProcessTokenTransfer(
         from: Address,
         to: Address,
         id: Binary,
         data: Binary
-    ): List<PendingLog> {
-        val pendingLog = tokenRepository
-            .findById(to).awaitFirstOrNull()
-            ?.let { processTxToToken(from, to, id, data) }
-
-        return pendingLog ?: listOf()
-    }
+    ): List<PendingLog> = tokenRepository
+        .findById(to).awaitFirstOrNull()
+        ?.let { processTxToToken(from, to, id, data) }
+        ?: emptyList()
 
     private fun tryToProcessCollectionCreate(from: Address, nonce: Long, id: Binary, data: Binary): List<PendingLog> {
         val input = id.add(data)
@@ -187,7 +186,7 @@ class PendingTransactionServiceImp(
         return null
     }
 
-    private suspend fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
+    private fun processTxToToken(from: Address, to: Address, id: Binary, data: Binary): List<PendingLog>? {
         logger.info("Process tx to token to:$to id:$id data:$data")
 
         checkTx(id, data, Signatures.mintSignature())?.let {

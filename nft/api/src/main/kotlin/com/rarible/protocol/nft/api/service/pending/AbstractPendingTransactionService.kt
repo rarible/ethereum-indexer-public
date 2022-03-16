@@ -5,7 +5,10 @@ import com.rarible.blockchain.scanner.ethereum.repository.EthereumLogRepository
 import com.rarible.blockchain.scanner.framework.data.LogRecordEvent
 import com.rarible.ethereum.log.domain.TransactionDto
 import com.rarible.protocol.nft.core.model.HistoryTopics
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.service.EntityEventListener
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
@@ -17,7 +20,8 @@ import scalether.domain.Address
 abstract class AbstractPendingTransactionService(
     private val entityEventListeners: List<EntityEventListener>,
     private val ethereumLogRepository: EthereumLogRepository,
-    private val historyTopics: HistoryTopics
+    private val historyTopics: HistoryTopics,
+    private val itemMetaService: ItemMetaService
 ) : PendingTransactionService {
     protected val logger: Logger = LoggerFactory.getLogger(javaClass)
 
@@ -27,6 +31,13 @@ abstract class AbstractPendingTransactionService(
         val records = process(tx.hash, tx.from, tx.nonce, tx.to, id, data)
             .map { saveOrReturn(it) }
             .toList()
+
+        for (record in records) {
+            val itemTransfer = record.data as? ItemTransfer ?: continue
+            val tokenUri = itemTransfer.tokenUri ?: continue
+            val itemId = ItemId(itemTransfer.token, itemTransfer.tokenId)
+            itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+        }
 
         val events = records.map { LogRecordEvent(it, reverted = false) }
         entityEventListeners.forEach { listener -> listener.onEntityEvents(events) }

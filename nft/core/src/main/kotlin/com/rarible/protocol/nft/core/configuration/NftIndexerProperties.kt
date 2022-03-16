@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.protocol.nft.core.misc.toAddressSet
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -27,7 +28,8 @@ data class NftIndexerProperties(
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
     val scannerProperties: ScannerProperties = ScannerProperties(),
-    val itemMeta: ItemMetaProperties = ItemMetaProperties()
+    val itemMeta: ItemMetaProperties = ItemMetaProperties(),
+    val contractAddresses: ContractAddresses = ContractAddresses()
 ) {
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList()
@@ -44,5 +46,12 @@ data class NftIndexerProperties(
         val maxNameLength: Int = 1000,
         val maxDescriptionLength: Int = 10000
     )
+
+    data class ContractAddresses(
+        private val market: String = ""
+    ) {
+
+        val marketAddresses = toAddressSet(market)
+    }
 
 }

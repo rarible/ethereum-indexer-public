@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.service.meta
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.nft.core.data.createRandomItemId
+import com.rarible.protocol.nft.core.data.createRandomUrl
 import com.rarible.protocol.nft.core.data.randomItemMeta
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
@@ -69,8 +70,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
             )
         ).isEqualTo(itemMeta)
         Wait.waitAssert {
-            // There are 2 calls: from synchronous and asynchronous loading.
-            coVerify(exactly = 2) { mockItemMetaResolver.resolveItemMeta(itemId) }
+            coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
     }
 
@@ -117,4 +117,17 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         itemMetaService.removeMeta(itemId)
         assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
     }
+
+    @Test
+    fun `resolve meta for a pending item`() = runBlocking<Unit> {
+        val itemMeta = randomItemMeta()
+        val itemId = createRandomItemId()
+        val tokenUri = createRandomUrl()
+        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
+        itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+        assertThat(itemMetaService.getAvailableMetaOrLoadSynchronously(itemId, true)).isEqualTo(itemMeta)
+        coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
+        coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
+    }
+
 }
