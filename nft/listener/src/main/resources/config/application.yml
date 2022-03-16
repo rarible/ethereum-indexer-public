@@ -46,6 +46,7 @@ rarible:
     enableWorkers: true
     workers: 8
     loadTasksBatchSize: 50
+    loadTasksTopicPartitions: 32
     retry:
       # Retry after 24h
       backoffDelaysMillis: [ 86400000 ]
