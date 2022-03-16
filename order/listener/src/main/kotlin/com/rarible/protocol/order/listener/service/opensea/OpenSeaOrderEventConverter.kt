@@ -4,6 +4,7 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
+import com.rarible.protocol.contracts.common.wyvern.atomicizer.WyvernAtomicizer
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.*
@@ -21,6 +22,8 @@ import java.util.*
 import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
+
+val IGNORE_LIST = listOf(WyvernAtomicizer.atomicizeSignature().id())
 
 @Component
 class OpenSeaOrderEventConverter(
@@ -214,7 +217,7 @@ class OpenSeaOrderEventConverter(
         }
     }
 
-    private fun encodeTransfer(callData: Binary): Transfer? {
+    fun encodeTransfer(callData: Binary): Transfer? {
         return when (callData.methodSignatureId()) {
             IERC1155.safeTransferFromSignature().id(),
             IERC721.transferFromSignature().id(),
@@ -224,9 +227,12 @@ class OpenSeaOrderEventConverter(
             MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
-            else -> {
-                logger.warn("Unsupported OpenSea order call data: $callData")
+            in IGNORE_LIST -> {
+                logger.info("OpenSea order call data was ignored: $callData")
                 null
+            }
+            else -> {
+                throw UnsupportedOperationException("Unsupported OpenSea order call data: $callData")
             }
         }
     }
