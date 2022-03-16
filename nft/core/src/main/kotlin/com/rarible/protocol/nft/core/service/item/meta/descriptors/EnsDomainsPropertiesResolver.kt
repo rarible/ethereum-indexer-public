@@ -8,24 +8,37 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 import scalether.domain.Address
 
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
-class EnsDomainsPropertiesResolver: ItemPropertiesResolver {
+class EnsDomainsPropertiesResolver : ItemPropertiesResolver {
 
     companion object {
         private val logger = LoggerFactory.getLogger(EnsDomainsPropertiesResolver::class.java)
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
         val ENS_DOMAINS_ADDRESS: Address = Address.apply("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85")
+
+        val PROPERTIES_NOT_FOUND = ItemProperties(
+            name = "Not found",
+            description = null,
+            image = null,
+            imagePreview = null,
+            imageBig = null,
+            animationUrl = null,
+            attributes = emptyList(),
+            rawJsonContent = null,
+        )
     }
 
     private val client = WebClient.builder()
@@ -57,6 +70,22 @@ class EnsDomainsPropertiesResolver: ItemPropertiesResolver {
                         attributes = node.parseAttributes(milliTimestamps = true),
                         rawJsonContent = node.toString()
                     )
+                }
+                .onErrorResume {
+                    logMetaLoading(
+                        itemId,
+                        "EnsDomains: failed to get properties" + if (it is WebClientResponseException) {
+                            " ${it.rawStatusCode}: ${it.statusText}"
+                        } else {
+                            ""
+                        },
+                        warn = true
+                    )
+                    return@onErrorResume if (it is WebClientResponseException && it.rawStatusCode == 404) {
+                        Mono.just(PROPERTIES_NOT_FOUND)
+                    } else {
+                        Mono.empty()
+                    }
                 }
         }.awaitFirstOrNull()
     }
