@@ -38,22 +38,26 @@ fun JsonNode.getInt(vararg paths: String): Int? {
     return null
 }
 
-fun ObjectNode.parseAttributes(): List<ItemAttribute> {
+fun ObjectNode.parseAttributes(milliTimestamps: Boolean = false): List<ItemAttribute> {
     for (attrName in listOf("attributes", "traits")) {
         val attrPath = path(attrName)
         if (!attrPath.isEmpty && attrPath.isArray) {
-            return attrPath.mapNotNull { it.toAttribute() }
+            return attrPath.mapNotNull { it.toAttribute(milliTimestamps) }
         }
     }
     return emptyList()
 }
 
-private fun JsonNode.toAttribute(): ItemAttribute? {
+private fun JsonNode.toAttribute(milliTimestamps: Boolean): ItemAttribute? {
     val key = getText("key", "trait_type") ?: return null
     val valueField = getText("value") ?: return ItemAttribute(key, null, null, null)
     return when {
         getText("display_type") == "date" && valueField.toDoubleOrNull() != null -> {
-            val value = Instant.ofEpochSecond(valueField.toDouble().toLong()).toString()
+            val value = if (milliTimestamps) {
+                Instant.ofEpochMilli(valueField.toDouble().toLong()).toString()
+            } else {
+                Instant.ofEpochSecond(valueField.toDouble().toLong()).toString()
+            }
             ItemAttribute(key, value, type = "string", format = "date-time")
         }
         else -> {
