@@ -39,7 +39,6 @@ class OpenSeaOrderEventConverter(
         val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
         val buyOrder = openSeaOrders.buyOrder
         val buyOrderSide = getBuyOrderSide(openSeaOrders)
-        println("----- $from")
 
         val sellOrder = openSeaOrders.sellOrder
         val sellOrderSide = buyOrderSide.revert()
