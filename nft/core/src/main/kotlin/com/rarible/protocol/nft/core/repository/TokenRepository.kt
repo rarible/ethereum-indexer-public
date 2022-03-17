@@ -1,9 +1,11 @@
 package com.rarible.protocol.nft.core.repository
 
 import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenStandard
+import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
@@ -40,7 +42,7 @@ class TokenRepository(
     }
 
     fun search(filter: TokenFilter): Flux<Token> {
-        return mongo.find(filter.toQuery())
+        return mongo.find(filter.toQuery().with(Sort.by(Sort.Direction.ASC, "_id")))
     }
 
     private fun TokenFilter.toQuery(): Query {
@@ -62,6 +64,6 @@ class TokenRepository(
         if (continuation == null) {
             this
         } else {
-            and(Token::id).lt(continuation)
+            and("_id").gt(continuation)
         }
 }
