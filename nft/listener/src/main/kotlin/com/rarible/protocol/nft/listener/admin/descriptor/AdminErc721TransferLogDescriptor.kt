@@ -19,6 +19,7 @@ class AdminErc721TransferLogDescriptor(
         blockchain = Blockchain.ETHEREUM,
         metricRootPath = "",
         cryptoPunksContractAddress = Address.ZERO().hex(),
+        ensDomainsContractAddress = Address.ZERO().hex(),
         openseaLazyMintAddress = Address.ZERO().hex(),
         royaltyRegistryAddress = Address.ZERO().hex(),
         factory = NftIndexerProperties.FactoryAddresses(
