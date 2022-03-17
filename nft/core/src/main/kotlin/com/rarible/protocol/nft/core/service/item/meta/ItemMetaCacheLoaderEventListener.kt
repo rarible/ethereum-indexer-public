@@ -48,7 +48,7 @@ class ItemMetaCacheLoaderEventListener(
             is CacheEntry.InitialFailed -> {
                 logMetaLoading(itemId, "event: initial loading failed: ${cacheEntry.failedStatus.errorMessage}")
                 // Send 'null' because the initial loading has failed.
-                null
+                return
             }
             is CacheEntry.LoadedAndUpdateFailed -> {
                 logMetaLoading(itemId, "event: update failed: ${cacheEntry.failedUpdateStatus.errorMessage}")
@@ -79,7 +79,7 @@ class ItemMetaCacheLoaderEventListener(
                     is LoadTaskStatus.WaitsForRetry -> {
                         logMetaLoading(itemId, "event: initial loading scheduled for retry")
                         // Initial loading has failed and waiting for retry => send at least 'null' meta for now.
-                        null
+                        return
                     }
                 }
             }
