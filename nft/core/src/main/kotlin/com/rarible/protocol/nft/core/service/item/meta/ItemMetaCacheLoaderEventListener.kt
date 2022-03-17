@@ -18,11 +18,6 @@ import org.springframework.stereotype.Component
 /**
  * Event listener of the underlying items' metadata [ItemMeta] loading infrastructure
  * that listens to [CacheLoaderEvent]s and sends item update events [NftItemEventDto].
- *
- * - when initial loading of item's metadata succeeds, we send item update event with this meta
- * - if the initial loading fails, we send item update event with empty meta
- * - if an item's metadata is updated, we send item update event with the new meta
- * - if an item's metadata update fails, we ignore that event
  */
 @Component
 class ItemMetaCacheLoaderEventListener(
