@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.misc.detector
 
-import java.net.URLDecoder
-
 class SVGDetector(url: String) : ContentDetector(url) {
 
     private val prefixIndex = url.indexOf(svgTag)
@@ -16,10 +14,18 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return if (url.startsWith(svgTag)) {
-            url
+        return if (spaceCode in url) {
+            logger.warn("Broken svg: %s", url)
+            var decodedData = url
+                .replace(spaceCode, " ")
+                .replace(
+                    "fill:%23",
+                    "fill:#"
+                ) //TODO Workaround for BRAVO-1872.
+            decodedData.substring(decodedData.indexOf(svgTag), decodedData.length)
+
         } else {
-            URLDecoder.decode(url.substring(url.indexOf(svgTag), url.length), "UTF-8")
+            url
         }
     }
 
