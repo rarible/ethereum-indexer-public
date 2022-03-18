@@ -145,8 +145,13 @@ class RariblePropertiesResolver(
         val imagePreview = node.getText("imagePreview", "image_preview", "image_preview_url")?.let { parseImageUrl(it) }
         val imageBig = node.getText("imageBig", "image_big", "image_big_url")?.let { parseImageUrl(it) }
         val animationUrl = node.getText("animation", "animation_url", "animationUrl")?.let { parseImageUrl(it) }
+        val name = node.getText("name", "label", "title")
+        if (name == null) {
+            logMetaLoading(itemId, "no 'name' available in the JSON properties", warn = true)
+            return null
+        }
         return ItemProperties(
-            name = node.getText("name", "label", "title") ?: "",
+            name = name,
             description = node.getText("description"),
             image = imageUrl,
             imagePreview = imagePreview,

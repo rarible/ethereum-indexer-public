@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createOpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
@@ -35,19 +36,26 @@ import kotlin.io.path.toPath
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     private val sender = createSender()
+    private val externalHttpClient = createExternalHttpClient()
     private val rariblePropertiesResolver = RariblePropertiesResolver(
         sender = sender,
         tokenRepository = tokenRepository,
         ipfsService = IpfsService(),
         requestTimeout = 20000,
-        externalHttpClient = createExternalHttpClient()
+        externalHttpClient = externalHttpClient
     )
     private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, IpfsService())
+    private val mutantsBoredApeYachtClubPropertiesResolver =
+        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
     private val openSeaPropertiesResolver = createOpenSeaPropertiesResolver()
 
     private val service = ItemPropertiesService(
         itemPropertiesResolverProvider = mockk {
-            every { orderedResolvers } returns listOf(hashmasksPropertiesResolver, rariblePropertiesResolver)
+            every { orderedResolvers } returns listOf(
+                hashmasksPropertiesResolver,
+                mutantsBoredApeYachtClubPropertiesResolver,
+                rariblePropertiesResolver
+            )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
         ipfsService = IpfsService()

@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksProp
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacyCachePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RaribleLegacyCachePropertiesResolver
@@ -22,6 +23,7 @@ class ItemPropertiesResolverProvider(
 
     raribleResolver: RariblePropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
+    mutantsBoredApeYachtClubPropertiesResolver: MutantsBoredApeYachtClubPropertiesResolver,
     lootResolver: LootPropertiesResolver,
     yInsureResolver: YInsurePropertiesResolver,
     hegicResolver: HegicPropertiesResolver,
@@ -46,6 +48,7 @@ class ItemPropertiesResolverProvider(
         hashmasksPropertiesResolver,
         cryptoPunksResolver,
         cryptoKittiesResolver,
+        mutantsBoredApeYachtClubPropertiesResolver,
         lootResolver,
         lazyItemPropertiesResolver,
         raribleResolver
