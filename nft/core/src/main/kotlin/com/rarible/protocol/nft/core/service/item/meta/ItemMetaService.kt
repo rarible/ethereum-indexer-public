@@ -53,7 +53,7 @@ class ItemMetaService(
             scheduleLoading(itemId)
         }
         if (synchronous) {
-            logMetaLoading(itemId, "Loading meta synchronously for $itemId")
+            logMetaLoading(itemId, "Loading meta synchronously")
             val itemMeta = try {
                 itemMetaCacheLoader.load(itemId.toCacheKey())
             } catch (e: ItemMetaCacheLoader.ItemMetaResolutionException) {

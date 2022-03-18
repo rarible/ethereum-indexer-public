@@ -117,7 +117,7 @@ class ItemController(
     }
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
-        itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId))
+        itemMetaService.removeMeta(conversionService.convert(itemId))
         return ResponseEntity.noContent().build()
     }
 

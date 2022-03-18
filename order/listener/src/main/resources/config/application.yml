@@ -56,7 +56,7 @@ common:
   metric-root-path: "protocol.order.indexer"
 
 listener:
-  updateStatusByStartEndRate: PT1H # 1 hour period
+  updateStatusByStartEndRate: PT10M # 10 minutes period
   updateStatusByStartEndEnabled: false
   updateAuctionOngoingState: PT1M
   updateAuctionOngoingStateEnabled: false

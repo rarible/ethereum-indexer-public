@@ -110,7 +110,6 @@ class ItemReduceServiceV1(
                     val supply = fixed.map { it.value }.fold(EthUInt256.of(0), EthUInt256::plus)
                     val lazySupply = fixed.map { it.lazyValue }.fold(EthUInt256.ZERO, EthUInt256::plus)
                     val deleted = supply == EthUInt256.ZERO && item.pending.isEmpty()
-                    logger.info("----------Update : ${item.id}")
 
                     updateItem(item.copy(supply = supply, lazySupply = lazySupply, deleted = deleted))
                         .flatMap { updatedItem ->
@@ -188,11 +187,11 @@ class ItemReduceServiceV1(
         val builtOwnership = buildOwnership(marker, ownership, item)
 
         return ownershipService.saveIfChanged(marker, builtOwnership).flatMap { saveResult ->
-            if (saveResult.wasSaved) {
+            (if (saveResult.wasSaved) {
                 eventListenerListener.onOwnershipChanged(saveResult.ownership)
             } else {
                 Mono.empty()
-            }.thenReturn(saveResult.ownership)
+            }).thenReturn(saveResult.ownership)
         }
     }
 

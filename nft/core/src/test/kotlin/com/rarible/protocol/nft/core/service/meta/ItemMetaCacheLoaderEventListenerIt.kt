@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.meta
 
 import com.rarible.core.common.convert
-import com.rarible.core.loader.internal.runner.RetryTasksService
+import com.rarible.core.loader.internal.common.RetryTasksService
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
@@ -60,7 +60,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
     private lateinit var retryTasksService: RetryTasksService
 
     @Test
-    fun `send notification with empty meta on failed - then with loaded meta after retry`() = runBlocking<Unit> {
+    fun `send notification with loaded meta after retry`() = runBlocking<Unit> {
         val item = createRandomItem()
         val itemId = item.id
         val itemMeta = randomItemMeta()
@@ -71,15 +71,6 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         itemMetaService.scheduleMetaUpdate(itemId)
         delay(1000)
         assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
-        val emptyMetaItemDto = conversionService.convert<NftItemDto>(ExtendedItem(item, null))
-        Wait.waitAssert {
-            assertThat(itemEvents).anySatisfy { event ->
-                assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
-                    assertThat(it.item).isEqualTo(emptyMetaItemDto)
-                }
-            }
-        }
-        itemEvents.clear()
 
         // Initiate retrying of tasks.
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns(itemMeta)
@@ -106,10 +97,6 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         itemRepository.save(item).awaitFirst()
 
         itemMetaService.scheduleMetaUpdate(itemId)
-        Wait.waitAssert {
-            assertThat(itemEvents).anySatisfy { assertThat(it.itemId).isEqualTo(itemId.decimalStringValue) }
-        }
-        itemEvents.clear()
 
         val error = RuntimeException("update error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error

@@ -45,7 +45,10 @@ class OwnershipService(
                 val found = opt.orNull()
                 when {
                     found == null || found != ownership.withCalculatedFields() -> saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
-                    else -> Mono.just(OwnershipSaveResult(ownership, false))
+                    else -> {
+                        logger.info(marker, "Ownership ${ownership.id} don't need to be saved")
+                        Mono.just(OwnershipSaveResult(ownership, false))
+                    }
                 }
             }
     }
