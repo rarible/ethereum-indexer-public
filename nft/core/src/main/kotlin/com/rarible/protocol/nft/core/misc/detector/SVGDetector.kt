@@ -1,12 +1,17 @@
 package com.rarible.protocol.nft.core.misc.detector
 
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
 class SVGDetector(url: String) : ContentDetector(url) {
 
     private val prefixIndex = url.indexOf(svgTag)
 
     companion object {
-        private const val svgTag = "<svg"
-        private const val mimeTypePrefix = "image/svg+xml"
+        private val logger: Logger = LoggerFactory.getLogger(SVGDetector::class.java)
+        const val svgTag = "<svg"
+        const val mimeTypePrefix = "image/svg+xml"
+        const val spaceCode = "%20"
     }
 
     override fun canDecode(): Boolean {
