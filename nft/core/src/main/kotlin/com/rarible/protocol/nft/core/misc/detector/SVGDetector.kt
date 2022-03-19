@@ -8,6 +8,7 @@ class SVGDetector(url: String) : ContentDetector(url) {
     private val prefixIndex = url.indexOf(svgTag)
 
     companion object {
+
         private val logger: Logger = LoggerFactory.getLogger(SVGDetector::class.java)
         const val svgTag = "<svg"
         const val mimeTypePrefix = "image/svg+xml"
