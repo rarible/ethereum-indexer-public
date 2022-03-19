@@ -15,6 +15,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -89,6 +90,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
     }
 
     @Test
+    @Disabled // TODO ALPHA-294
     fun `do not send notification when meta update failed`() = runBlocking<Unit> {
         val item = createRandomItem()
         val itemMeta = randomItemMeta()
