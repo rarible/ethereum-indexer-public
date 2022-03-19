@@ -20,19 +20,20 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return if (spaceCode in url) {
+        val content = if (spaceCode in url) {
             logger.warn("Broken svg: %s", url)
-            var decodedData = url
-                .replace(spaceCode, " ")
-                .replace(
-                    "fill:%23",
-                    "fill:#"
-                ) //TODO Workaround for BRAVO-1872.
+            val decodedData = url.replace(spaceCode, " ")
+            //TODO Workaround for BRAVO-1872.
             decodedData.substring(decodedData.indexOf(svgTag), decodedData.length)
-
         } else {
             url
         }
+        // Fix for corrupted SVG
+        return content.replace(
+            // TODO what if 'fill: %23'?
+            "fill:%23",
+            "fill:#"
+        )
     }
 
     override fun getMimeType(): String {
