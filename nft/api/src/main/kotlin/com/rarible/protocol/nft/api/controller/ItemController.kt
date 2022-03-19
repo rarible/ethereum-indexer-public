@@ -19,6 +19,7 @@ import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
+import com.rarible.protocol.nft.core.misc.detector.SVGDetector
 import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
@@ -100,6 +101,10 @@ class ItemController(
 
         val detector = EmbeddedImageDetector.getDetector(url)
         if (detector != null) {
+            //TODO Workaround for BRAVO-1872.
+            if(detector is SVGDetector && SVGDetector.spaceCode in url) {
+                itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId))
+            }
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, detector.getMimeType())
                 .body(detector.getDecodedData())

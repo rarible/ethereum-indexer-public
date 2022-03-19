@@ -1,14 +1,17 @@
 package com.rarible.protocol.nft.core.misc.detector
 
-import java.net.URLDecoder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class SVGDetector(url: String) : ContentDetector(url) {
 
     private val prefixIndex = url.indexOf(svgTag)
 
     companion object {
-        private const val svgTag = "<svg"
-        private const val mimeTypePrefix = "image/svg+xml"
+        private val logger: Logger = LoggerFactory.getLogger(SVGDetector::class.java)
+        const val svgTag = "<svg"
+        const val mimeTypePrefix = "image/svg+xml"
+        const val spaceCode = "%20"
     }
 
     override fun canDecode(): Boolean {
@@ -16,10 +19,18 @@ class SVGDetector(url: String) : ContentDetector(url) {
     }
 
     override fun getData(): String {
-        return if (url.startsWith(svgTag)) {
-            url
+        return if (spaceCode in url) {
+            logger.warn("Broken svg: %s", url)
+            var decodedData = url
+                .replace(spaceCode, " ")
+                .replace(
+                    "fill:%23",
+                    "fill:#"
+                ) //TODO Workaround for BRAVO-1872.
+            decodedData.substring(decodedData.indexOf(svgTag), decodedData.length)
+
         } else {
-            URLDecoder.decode(url.substring(url.indexOf(svgTag), url.length), "UTF-8")
+            url
         }
     }
 
