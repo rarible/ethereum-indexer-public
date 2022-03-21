@@ -50,7 +50,7 @@ class ItemMetaService(
             return null
         }
         if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
-            scheduleLoading(itemId)
+            scheduleMetaUpdate(itemId)
         }
         if (synchronous) {
             logMetaLoading(itemId, "Loading meta synchronously")
@@ -94,14 +94,6 @@ class ItemMetaService(
             logger.error("Cannot synchronously load meta for $itemId with timeout ${timeout.toMillis()} ms", e)
             null
         }
-    }
-
-    /**
-     * Schedule an update (or initial loading) of metadata.
-     */
-    suspend fun scheduleLoading(itemId: ItemId) {
-        logger.info("Scheduling meta update for {}", itemId.toCacheKey())
-        itemMetaCacheLoaderService.update(itemId.toCacheKey())
     }
 
     /**
