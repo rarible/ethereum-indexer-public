@@ -7,9 +7,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicProperti
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaLegacyCachePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RaribleLegacyCachePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
@@ -18,9 +16,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class ItemPropertiesResolverProvider(
-    openSeaLegacyCachePropertiesResolver: OpenSeaLegacyCachePropertiesResolver,
-    raribleLegacyCachePropertiesResolver: RaribleLegacyCachePropertiesResolver,
-
     raribleResolver: RariblePropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
     mutantsBoredApeYachtClubPropertiesResolver: MutantsBoredApeYachtClubPropertiesResolver,
@@ -39,9 +34,6 @@ class ItemPropertiesResolverProvider(
     lateinit var openSeaResolver: OpenSeaPropertiesResolver
 
     val orderedResolvers: List<ItemPropertiesResolver> = listOf(
-        openSeaLegacyCachePropertiesResolver,
-        raribleLegacyCachePropertiesResolver,
-
         yInsureResolver,
         hegicResolver,
         waifusionResolver,
