@@ -20,7 +20,8 @@ class FixItemsWithZeroSupplyTaskHandler(
     private val itemRepository: ItemRepository
 ) : TaskHandler<String> {
 
-    override val type = "FIX_SUPPLY"
+    override val type
+        get() = FIX_SUPPLY
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val criteria = Criteria().andOperator(
@@ -55,5 +56,6 @@ class FixItemsWithZeroSupplyTaskHandler(
 
     companion object {
         private val logger = LoggerFactory.getLogger(FixItemsWithZeroSupplyTaskHandler::class.java)
+        const val FIX_SUPPLY = "FIX_SUPPLY"
     }
 }
