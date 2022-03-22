@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.loader.cache.CacheLoaderService
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import kotlinx.coroutines.CancellationException
@@ -20,7 +21,8 @@ class ItemMetaService(
     @Qualifier("meta.cache.loader.service")
     private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>,
     private val itemMetaCacheLoader: ItemMetaCacheLoader,
-    private val itemMetaResolver: ItemMetaResolver
+    private val itemMetaResolver: ItemMetaResolver,
+    private val properties: NftIndexerProperties
 ) {
 
     private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
@@ -41,16 +43,18 @@ class ItemMetaService(
         itemId: ItemId,
         synchronous: Boolean
     ): ItemMeta? {
-        val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
-        val availableMeta = metaCacheEntry.getAvailable()
-        if (availableMeta != null) {
-            return availableMeta
-        }
-        if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
-            return null
-        }
-        if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
-            scheduleMetaUpdate(itemId)
+        if (properties.enableMetaCache) {
+            val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
+            val availableMeta = metaCacheEntry.getAvailable()
+            if (availableMeta != null) {
+                return availableMeta
+            }
+            if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
+                return null
+            }
+            if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
+                scheduleMetaUpdate(itemId)
+            }
         }
         if (synchronous) {
             logMetaLoading(itemId, "Loading meta synchronously")
@@ -123,6 +127,6 @@ class ItemMetaService(
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
         logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
     }
-
-    private fun ItemId.toCacheKey(): String = decimalStringValue
 }
+
+fun ItemId.toCacheKey(): String = decimalStringValue
