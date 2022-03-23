@@ -29,7 +29,7 @@ class MutantsBoredApeYachtClubPropertiesResolver(
             return null
         }
         logMetaLoading(itemId, "Resolving MutantApeYachtClub properties")
-        return externalHttpClient.get("$MUTANTS_URL/${itemId.tokenId}")
+        return externalHttpClient.get("$MUTANTS_URL/${itemId.tokenId}", useProxy = true)
             .bodyToMono<String>()
             .map { jsonContent ->
                 val node = mapper.readTree(jsonContent) as ObjectNode

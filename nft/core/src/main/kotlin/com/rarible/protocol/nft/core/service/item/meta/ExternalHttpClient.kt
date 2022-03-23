@@ -30,27 +30,29 @@ class ExternalHttpClient(
     @Value("\${api.proxy-url:}") private val proxyUrl: String
 ) {
 
-    protected val defaultClient = WebClient.builder().apply {
+    protected val defaultClient: WebClient = WebClient.builder().apply {
         DefaultProtocolWebClientCustomizer().customize(it)
     }.build()
 
-    protected val openSeaClient = WebClient.builder()
+    protected val proxyClient: WebClient = WebClient.builder()
         .clientConnector(createConnector(connectTimeout, readTimeout, proxyUrl, true))
         .exchangeStrategies(ExchangeStrategies.builder()
             .codecs { it.defaultCodecs().maxInMemorySize(262144 * 5) }
             .build())
         .build()
 
-    fun get(url: String): WebClient.ResponseSpec {
+    fun get(url: String, useProxy: Boolean = false): WebClient.ResponseSpec {
         val get = if (url.startsWith(openseaUrl)) {
-            val openSeaGet = openSeaClient.get()
+            val proxyGet = proxyClient.get()
             if (openseaApiKey.isNotBlank()) {
-                openSeaGet.header(X_API_KEY, openseaApiKey)
+                proxyGet.header(X_API_KEY, openseaApiKey)
             }
             if (proxyUrl.isNotBlank()) {
-                openSeaGet.header(HttpHeaders.USER_AGENT, UserAgentGenerator.generateUserAgent())
+                proxyGet.header(HttpHeaders.USER_AGENT, UserAgentGenerator.generateUserAgent())
             }
-            openSeaGet
+            proxyGet
+        } else if (useProxy) {
+            proxyClient.get()
         } else {
             defaultClient.get()
         }
