@@ -103,7 +103,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
-        assertThat(itemDto.meta).isEqualTo(nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue))
+        assertThat(itemDto.meta).isEqualTo(null)
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
 
