@@ -43,7 +43,7 @@ class OpenseaTokenPropertiesResolverTest : AbstractIntegrationTest() {
     @Test
     fun `should parse from json`() = runBlocking<Unit> {
         val openSeaClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
-            override val openSeaClient get() = mockOpenSeaResponse()
+            override val proxyClient get() = mockOpenSeaResponse()
         }
         resolver = OpenseaTokenPropertiesResolver(mapper, openSeaClient, 60000)
         val props = resolver.resolve(token.id)
