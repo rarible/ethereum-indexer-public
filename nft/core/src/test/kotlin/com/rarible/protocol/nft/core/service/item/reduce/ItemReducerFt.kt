@@ -543,14 +543,13 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     @Test
     fun `should mint and transfer opensea lazy item`() = runBlocking<Unit> {
         val minter = Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6")
-        val owner = randomAddress()
         val tokenId = EthUInt256.of(BigInteger("32372326957878872325869669322028881416287194712918919938492792330334129619037"))
 
         val item = initial().copy(
             tokenId = tokenId,
             supply = EthUInt256.ONE
         )
-        val event = createRandomTransferItemEvent()
+        val event = createRandomOpenSeaLazyItemMintEvent()
             .withNewValues(
                 EthereumLogStatus.CONFIRMED,
                 blockNumber = 1,
@@ -559,9 +558,8 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
                 address = Address.apply(properties.openseaLazyMintAddress)
             )
             .copy(
-                value = EthUInt256.TEN,
+                supply = EthUInt256.TEN,
                 from = minter,
-                to = owner,
             )
 
         val reducedItem = reduce(item, event)

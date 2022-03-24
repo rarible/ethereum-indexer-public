@@ -18,6 +18,7 @@ class OwnershipEventReduceService(
     templateProvider: OwnershipTemplateProvider,
     reducer: OwnershipReducer,
     private val eventConverter: OwnershipEventConverter,
+    private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties
 ) {
 
@@ -31,7 +32,7 @@ class OwnershipEventReduceService(
     suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         withSpan(
             name = "onOwnershipEvents",
-            labels = listOf("ownershipId" to (events.firstOrNull()?.let { ItemEventConverter.convertToOwnershipId(it.record) }?.stringValue ?: ""))
+            labels = listOf("ownershipId" to (events.firstOrNull()?.let { itemEventConverter.convertToOwnershipId(it.record) }?.stringValue ?: ""))
         ) {
             events
                 .flatMap { eventConverter.convert(it.record) }

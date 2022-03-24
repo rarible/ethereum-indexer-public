@@ -40,6 +40,7 @@ class ForwardCreatorsItemReducer(
                     creators = getCreator(entity.id, creators)
                 )
             }
+            is ItemEvent.OpenSeaLazyItemMintEvent,
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent -> {
                 entity

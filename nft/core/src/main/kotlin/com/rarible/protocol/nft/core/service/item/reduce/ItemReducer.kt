@@ -34,6 +34,7 @@ class ItemReducer(
         return when (event) {
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemMintEvent,
+            is ItemEvent.OpenSeaLazyItemMintEvent,
             is ItemEvent.ItemCreatorsEvent,
             is ItemEvent.ItemTransferEvent -> {
                 eventStatusItemReducer.reduce(entity, event)

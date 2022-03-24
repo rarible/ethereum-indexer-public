@@ -6,31 +6,21 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import scalether.abi.Uint256Type
 import scalether.domain.Address
-import java.math.BigInteger
 
-abstract class AbstractOpenSeaLazyValueItemReducer(
-    private val openSeaLazyMintAddress: Address
-) : Reducer<ItemEvent, Item> {
+abstract class AbstractOpenSeaLazyValueItemReducer : Reducer<ItemEvent, Item> {
 
-    protected abstract suspend  fun reduceItemTransferEvent(entity: Item, event: ItemEvent.ItemTransferEvent): Item
+    protected abstract suspend  fun reduceItemTransferEvent(entity: Item, event: ItemEvent.OpenSeaLazyItemMintEvent): Item
 
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        return if (event.log.address == openSeaLazyMintAddress && isLazyMintTokenAddress(entity.tokenId)) {
-            when (event) {
-                is ItemEvent.ItemTransferEvent -> reduceItemTransferEvent(entity, event)
-                is ItemEvent.ItemMintEvent,
-                is ItemEvent.ItemBurnEvent,
-                is ItemEvent.ItemCreatorsEvent -> entity
-                is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
-                    throw IllegalArgumentException("This events can't be in this reducer")
-            }
-        } else {
-            entity
+        return when (event) {
+            is ItemEvent.OpenSeaLazyItemMintEvent -> reduceItemTransferEvent(entity, event)
+            is ItemEvent.ItemMintEvent,
+            is ItemEvent.ItemBurnEvent,
+            is ItemEvent.ItemCreatorsEvent,
+            is ItemEvent.ItemTransferEvent -> entity
+            is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
+                throw IllegalArgumentException("This events can't be in this reducer")
         }
-    }
-
-    private fun isLazyMintTokenAddress(tokenId: EthUInt256): Boolean {
-        return (tokenId.value < BigInteger.valueOf(2).pow(96)).not()
     }
 
     protected fun getTokenCreator(tokenId: EthUInt256): Address {
