@@ -31,7 +31,8 @@ class ItemReduceServiceV2(
     private val compositeFullReduceService: CompositeFullReduceService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository,
-    private val ownershipEventConverter: OwnershipEventConverter
+    private val ownershipEventConverter: OwnershipEventConverter,
+    private val itemEventConverter: ItemEventConverter
 ) : ItemReduceService {
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
@@ -61,7 +62,7 @@ class ItemReduceServiceV2(
         ).concatMap {
             mono {
                 CompositeEvent(
-                    itemEvent = ItemEventConverter.convert(it.log),
+                    itemEvent = itemEventConverter.convert(it.log),
                     ownershipEvents = ownershipEventConverter.convert(it.log)
                 )
             }

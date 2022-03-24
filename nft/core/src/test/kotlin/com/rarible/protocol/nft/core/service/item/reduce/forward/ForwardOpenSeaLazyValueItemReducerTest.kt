@@ -2,12 +2,10 @@ package com.rarible.protocol.nft.core.service.item.reduce.forward
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItem
+import com.rarible.protocol.nft.core.data.createRandomOpenSeaLazyItemMintEvent
 import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -15,18 +13,13 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 internal class ForwardOpenSeaLazyValueItemReducerTest {
-    private val properties = mockk<NftIndexerProperties> {
-        every { openseaLazyMintAddress } returns randomAddress().hex()
-    }
-    private val forwardOpenSeaLazyValueItemReducer = ForwardOpenSeaLazyValueItemReducer(properties)
+    private val forwardOpenSeaLazyValueItemReducer = ForwardOpenSeaLazyValueItemReducer()
 
     @Test
     fun `should increase value for lazy transfer`() = runBlocking<Unit> {
-        val event = createRandomTransferItemEvent().copy(
+        val event = createRandomOpenSeaLazyItemMintEvent().copy(
             from = minter,
-            to = randomAddress(),
-            value = EthUInt256.TEN,
-            log = createRandomEthereumLog().copy(address = Address.apply(properties.openseaLazyMintAddress))
+            supply = EthUInt256.TEN
         )
         val item = createRandomItem().copy(
             tokenId = tokenId,
@@ -60,11 +53,9 @@ internal class ForwardOpenSeaLazyValueItemReducerTest {
 
     @Test
     fun `should not increase value for simple tokenId`() = runBlocking<Unit> {
-        val event = createRandomTransferItemEvent().copy(
+        val event = createRandomOpenSeaLazyItemMintEvent().copy(
             from = minter,
-            to = randomAddress(),
-            value = EthUInt256.TEN,
-            log = createRandomEthereumLog().copy(from = Address.apply(properties.openseaLazyMintAddress))
+            supply = EthUInt256.TEN
         )
         val item = createRandomItem().copy(
             tokenId = EthUInt256.TEN,
@@ -78,11 +69,9 @@ internal class ForwardOpenSeaLazyValueItemReducerTest {
 
     @Test
     fun `should not increase value if tokenId not from minter name space`() = runBlocking<Unit> {
-        val event = createRandomTransferItemEvent().copy(
+        val event = createRandomOpenSeaLazyItemMintEvent().copy(
             from = randomAddress(),
-            to = randomAddress(),
-            value = EthUInt256.TEN,
-            log = createRandomEthereumLog().copy(from = Address.apply(properties.openseaLazyMintAddress))
+            supply = EthUInt256.TEN,
         )
         val item = createRandomItem().copy(
             tokenId = tokenId,

@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.model.EventData
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -57,6 +58,24 @@ fun createRandomEthereumLog(
         blockTimestamp = nowMillis().epochSecond,
         createdAt = nowMillis()
     )
+
+fun createRandomReversedEthereumLogRecord(data: EventData): ReversedEthereumLogRecord =
+    ReversedEthereumLogRecord(
+        id = randomString(),
+        version = randomLong(),
+        data = data,
+        log = createRandomEthereumLog()
+    )
+
+fun createRandomItemTransfer(): ItemTransfer =
+    ItemTransfer(
+        owner = randomAddress(),
+        token = randomAddress(),
+        tokenId = EthUInt256(randomBigInt()),
+        date = nowMillis(),
+        from = randomAddress(),
+        value = EthUInt256(randomBigInt())
+)
 
 fun EthereumLog.withNewValues(
     status: EthereumLogStatus? = null,
@@ -106,6 +125,16 @@ fun ItemEvent.ItemTransferEvent.withNewValues(
     address: Address? = null
 ) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, address = address, from = from))
 
+fun ItemEvent.OpenSeaLazyItemMintEvent.withNewValues(
+    status: EthereumLogStatus? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null,
+    logIndex: Int? = null,
+    minorLogIndex: Int? = null,
+    from: Address? = null,
+    address: Address? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber, logIndex, minorLogIndex, address = address, from = from))
+
 fun ItemEvent.ItemCreatorsEvent.withNewValues(
     status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
@@ -133,6 +162,15 @@ fun createRandomTransferItemEvent(): ItemEvent.ItemTransferEvent {
         from = randomAddress(),
         to = randomAddress(),
         value = EthUInt256.of(randomInt()),
+        entityId = randomString(),
+        log = createRandomEthereumLog()
+    )
+}
+
+fun createRandomOpenSeaLazyItemMintEvent(): ItemEvent.OpenSeaLazyItemMintEvent {
+    return ItemEvent.OpenSeaLazyItemMintEvent(
+        from = randomAddress(),
+        supply = EthUInt256.of(randomInt()),
         entityId = randomString(),
         log = createRandomEthereumLog()
     )

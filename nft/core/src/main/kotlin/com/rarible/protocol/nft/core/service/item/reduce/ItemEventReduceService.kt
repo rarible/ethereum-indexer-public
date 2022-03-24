@@ -18,6 +18,7 @@ class ItemEventReduceService(
     templateProvider: ItemTemplateProvider,
     reducer: ItemReducer,
     private val onNftItemLogEventListener: OnNftItemLogEventListener,
+    private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties
 ) {
     private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
@@ -30,11 +31,11 @@ class ItemEventReduceService(
     suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
         withSpan(
             name = "onItemEvents",
-            labels = listOf("itemId" to (events.firstOrNull()?.let { ItemEventConverter.convertToItemId(it.record) }?.stringValue ?: ""))
+            labels = listOf("itemId" to (events.firstOrNull()?.let { itemEventConverter.convertToItemId(it.record) }?.stringValue ?: ""))
         ) {
             events
                 .onEach { onNftItemLogEventListener.onLogEvent(it) }
-                .mapNotNull { ItemEventConverter.convert(it.record) }
+                .mapNotNull { itemEventConverter.convert(it.record) }
                 .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         }

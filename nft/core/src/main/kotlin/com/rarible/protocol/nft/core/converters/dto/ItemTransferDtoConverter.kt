@@ -47,6 +47,14 @@ object ItemTransferDtoConverter : Converter<ItemTransfer, ItemTransferDto> {
                 date = source.log.createdAt,
                 value = source.value.value,
             )
+            is ItemEvent.OpenSeaLazyItemMintEvent -> ItemTransferDto(
+                owner = source.log.address,
+                from = source.from,
+                contract = itemId.token,
+                tokenId = itemId.tokenId.value,
+                date = source.log.createdAt,
+                value = source.supply.value,
+            )
             is ItemEvent.LazyItemBurnEvent,
             is ItemEvent.LazyItemMintEvent,
             is ItemEvent.ItemCreatorsEvent -> null
