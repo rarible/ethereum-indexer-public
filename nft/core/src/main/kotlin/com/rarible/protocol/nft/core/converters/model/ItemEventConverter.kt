@@ -19,7 +19,7 @@ import java.math.BigInteger
 
 @Component
 class ItemEventConverter(
-    private val properties: NftIndexerProperties
+    properties: NftIndexerProperties
 ) {
     private val openSeaLazyMintAddress = Address.apply(properties.openseaLazyMintAddress)
 

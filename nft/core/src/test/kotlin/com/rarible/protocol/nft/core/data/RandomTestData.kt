@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.data
 
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLog
 import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
+import com.rarible.blockchain.scanner.ethereum.model.ReversedEthereumLogRecord
 import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
@@ -10,9 +11,12 @@ import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.EventData
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -20,6 +24,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import io.daonomic.rpc.domain.Word
+import io.mockk.verify
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigInteger
@@ -54,6 +59,24 @@ fun createRandomEthereumLog(
         blockTimestamp = nowMillis().epochSecond,
         createdAt = nowMillis()
     )
+
+fun createRandomReversedEthereumLogRecord(data: EventData): ReversedEthereumLogRecord =
+    ReversedEthereumLogRecord(
+        id = randomString(),
+        version = randomLong(),
+        data = data,
+        log = createRandomEthereumLog()
+    )
+
+fun createRandomItemTransfer(): ItemTransfer =
+    ItemTransfer(
+        owner = randomAddress(),
+        token = randomAddress(),
+        tokenId = EthUInt256(randomBigInt()),
+        date = nowMillis(),
+        from = randomAddress(),
+        value = EthUInt256(randomBigInt())
+)
 
 fun EthereumLog.withNewValues(
     status: EthereumLogStatus? = null,
