@@ -31,7 +31,8 @@ class MintServiceImp(
     private val ownershipReduceService: OwnershipEventReduceService,
     private val itemMetaService: ItemMetaService,
     private val nftIndexerApiProperties: NftIndexerApiProperties,
-    private val ownershipEventConverter: OwnershipEventConverter
+    private val ownershipEventConverter: OwnershipEventConverter,
+    private val itemEventConverter: ItemEventConverter
 ) : MintService {
 
     override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): ExtendedItem {
@@ -43,7 +44,7 @@ class MintServiceImp(
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
         )
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
-        val itemEvent = ItemEventConverter.convert(logRecord)
+        val itemEvent = itemEventConverter.convert(logRecord)
         val ownershipEvents = ownershipEventConverter.convert(logRecord)
         ownershipReduceService.reduce(ownershipEvents)
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
@@ -64,7 +65,7 @@ class MintServiceImp(
             )
         ).awaitFirst()
         itemMetaService.removeMeta(itemId)
-        val itemEvent = ItemEventConverter.convert(savedItemHistory.wrapWithEthereumLogRecord())
+        val itemEvent = itemEventConverter.convert(savedItemHistory.wrapWithEthereumLogRecord())
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
     }
 }
