@@ -21,6 +21,7 @@ class ItemMetricReducer(
             is ItemEvent.ItemTransferEvent -> "transfer"
             is ItemEvent.LazyItemBurnEvent -> "lazy_burn"
             is ItemEvent.LazyItemMintEvent -> "lazy_mint"
+            is ItemEvent.OpenSeaLazyItemMintEvent -> "open_sea_lazy_mint"
         }
     }
 }

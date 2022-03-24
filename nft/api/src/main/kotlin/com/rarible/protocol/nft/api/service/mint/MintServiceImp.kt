@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.api.service.mint
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
-import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
@@ -20,7 +19,6 @@ import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipEventRedu
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Component
 @CaptureSpan(type = SpanType.APP)
@@ -30,25 +28,19 @@ class MintServiceImp(
     private val itemReduceService: ItemEventReduceService,
     private val ownershipReduceService: OwnershipEventReduceService,
     private val itemMetaService: ItemMetaService,
-    private val nftIndexerApiProperties: NftIndexerApiProperties,
     private val ownershipEventConverter: OwnershipEventConverter
 ) : MintService {
 
     override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): ExtendedItem {
         val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItemHistory).awaitFirst()
         val itemId = ItemId(savedItemHistory.token, savedItemHistory.tokenId)
-        // It is important to load meta right now and save to the cache to make sure that item update events are sent with full meta.
-        val itemMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
-            itemId = itemId,
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
-        )
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
         val itemEvent = ItemEventConverter.convert(logRecord)
         val ownershipEvents = ownershipEventConverter.convert(logRecord)
         ownershipReduceService.reduce(ownershipEvents)
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
         val item = itemRepository.findById(itemId).awaitFirst()
-        return ExtendedItem(item, itemMeta)
+        return ExtendedItem(item, null)
     }
 
     override suspend fun burnLazyMint(itemId: ItemId) {

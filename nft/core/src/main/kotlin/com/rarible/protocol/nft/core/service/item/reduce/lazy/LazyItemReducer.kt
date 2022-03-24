@@ -32,6 +32,7 @@ class LazyItemReducer : Reducer<ItemEvent, Item> {
                 is ItemEvent.ItemBurnEvent,
                 is ItemEvent.ItemMintEvent,
                 is ItemEvent.ItemCreatorsEvent,
+                is ItemEvent.OpenSeaLazyItemMintEvent,
                 is ItemEvent.ItemTransferEvent -> {
                     throw IllegalArgumentException("This events can't be in this reducer")
                 }

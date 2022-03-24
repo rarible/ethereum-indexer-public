@@ -47,6 +47,13 @@ sealed class ItemEvent : EthereumEntityEvent<ItemEvent>() {
         override fun invert(): ItemCreatorsEvent = this
     }
 
+    data class OpenSeaLazyItemMintEvent(
+        val from: Address,
+        val supply: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : ItemEvent()
+
     data class LazyItemMintEvent(
         val supply: EthUInt256,
         val creators: List<Part>,

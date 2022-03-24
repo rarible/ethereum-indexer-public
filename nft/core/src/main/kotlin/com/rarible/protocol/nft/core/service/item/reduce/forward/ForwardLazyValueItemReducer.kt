@@ -24,6 +24,7 @@ class ForwardLazyValueItemReducer : Reducer<ItemEvent, Item> {
                     entity
                 }
             }
+            is ItemEvent.OpenSeaLazyItemMintEvent,
             is ItemEvent.ItemTransferEvent,
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemCreatorsEvent -> entity

@@ -104,10 +104,10 @@ class LazyMintControllerFt : EventAwareBaseTest() {
         checkItemDto(lazyItemDto, itemDto)
 
         val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
-        assertThat(itemDto.meta).isEqualTo(expectedMeta)
+        assertThat(itemDto.meta).isEqualTo(null)
         assertThat(itemEvents).anySatisfy { event ->
             assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
-                assertThat(it.item.meta).isEqualTo(expectedMeta)
+                assertThat(it.item.meta).isEqualTo(null)
             }
         }
     }

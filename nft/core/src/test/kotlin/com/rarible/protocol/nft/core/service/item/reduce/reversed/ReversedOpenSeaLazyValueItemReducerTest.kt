@@ -2,12 +2,10 @@ package com.rarible.protocol.nft.core.service.item.reduce.reversed
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomEthereumLog
 import com.rarible.protocol.nft.core.data.createRandomItem
+import com.rarible.protocol.nft.core.data.createRandomOpenSeaLazyItemMintEvent
 import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -15,18 +13,16 @@ import scalether.domain.Address
 import java.math.BigInteger
 
 internal class ReversedOpenSeaLazyValueItemReducerTest {
-    private val properties = mockk<NftIndexerProperties> {
-        every { openseaLazyMintAddress } returns randomAddress().hex()
-    }
-    private val reversedOpenSeaLazyValueItemReducer = ReversedOpenSeaLazyValueItemReducer(properties)
+    private val reversedOpenSeaLazyValueItemReducer = ReversedOpenSeaLazyValueItemReducer()
 
     @Test
     fun `should revert value for lazy transfer`() = runBlocking<Unit> {
-        val event = createRandomTransferItemEvent().copy(
+        val openSeaLazyMintAddress = randomAddress()
+
+        val event = createRandomOpenSeaLazyItemMintEvent().copy(
             from = minter,
-            to = randomAddress(),
-            value = EthUInt256.TEN,
-            log = createRandomEthereumLog().copy(address = Address.apply(properties.openseaLazyMintAddress))
+            supply = EthUInt256.TEN,
+            log = createRandomEthereumLog().copy(address = openSeaLazyMintAddress)
         )
         val item = createRandomItem().copy(
             tokenId = tokenId,
