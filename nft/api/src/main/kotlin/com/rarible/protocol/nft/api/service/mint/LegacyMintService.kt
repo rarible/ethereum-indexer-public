@@ -35,7 +35,8 @@ class LegacyMintService(
         // It is important to load meta right now and save to the cache to make sure that item update events are sent with full meta.
         val itemMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = itemId,
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
+            demander = "lazy mint"
         )
         optimisticLock {
             itemReduceService.update(savedItemHistory.token, savedItemHistory.tokenId).awaitFirstOrNull()
@@ -56,7 +57,7 @@ class LegacyMintService(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId)
+        itemMetaService.removeMeta(itemId, "burn lazy mint")
         optimisticLock {
             itemReduceService.update(token = itemId.token, tokenId = itemId.tokenId).awaitFirst()
         }

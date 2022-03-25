@@ -41,7 +41,8 @@ class MintServiceImp(
         // It is important to load meta right now and save to the cache to make sure that item update events are sent with full meta.
         val itemMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = itemId,
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
+            demander = "lazy mint"
         )
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
         val itemEvent = itemEventConverter.convert(logRecord)
@@ -64,7 +65,7 @@ class MintServiceImp(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId)
+        itemMetaService.removeMeta(itemId,"burn lazy mint")
         val itemEvent = itemEventConverter.convert(savedItemHistory.wrapWithEthereumLogRecord())
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
     }

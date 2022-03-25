@@ -22,7 +22,7 @@ class ReduceEventListenerListener(
 ) {
 
     fun onItemChanged(item: Item): Mono<Void> = mono {
-        val availableMeta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id)
+        val availableMeta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id, "on item changed")
         publisher.publish(conversionService.convert<NftItemEventDto>(ExtendedItem(item, availableMeta)))
     }.then()
 

@@ -24,7 +24,7 @@ class LegacyInternalItemQueueUsedForMetaLoadingHandler(
     override suspend fun handle(event: NftItemEventDto) {
         logger.info("Handle internal item event $event")
         when (event) {
-            is NftItemUpdateEventDto -> itemMetaService.scheduleMetaUpdate(ItemId.parseId(event.item.id))
+            is NftItemUpdateEventDto -> itemMetaService.scheduleMetaUpdate(ItemId.parseId(event.item.id), "legacy queue")
             is NftItemDeleteEventDto -> Unit
         }
     }

@@ -23,9 +23,9 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
-        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isNull()
         Wait.waitAssert {
-            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isEqualTo(itemMeta)
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
     }
@@ -35,23 +35,23 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val itemId = createRandomItemId()
         val error = RuntimeException("loading error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         Wait.waitAssert {
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
 
         // Must not be re-scheduled, because the meta loading has already failed.
-        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isNull()
         delay(1000)
         coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
 
         // Schedule a successful update.
         val itemMeta = randomItemMeta()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         Wait.waitAssert {
             coVerify(exactly = 2) { mockItemMetaResolver.resolveItemMeta(itemId) }
-            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isEqualTo(itemMeta)
         }
     }
 
@@ -66,7 +66,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         assertThat(
             itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
-                synchronous = true
+                synchronous = true,
+                demander = "test"
             )
         ).isEqualTo(itemMeta)
         Wait.waitAssert {
@@ -85,7 +86,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         assertThat(
             itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
-                synchronous = true
+                synchronous = true,
+                demander = "test"
             )
         ).isEqualTo(itemMeta)
     }
@@ -99,7 +101,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         assertThat(
             itemMetaService.getAvailableMetaOrLoadSynchronously(
                 itemId = itemId,
-                synchronous = true
+                synchronous = true,
+                demander = "test"
             )
         ).isNull()
     }
@@ -109,13 +112,13 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         Wait.waitAssert {
-            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isEqualTo(itemMeta)
             coVerify(exactly = 1) { mockItemMetaResolver.resolveItemMeta(itemId) }
         }
-        itemMetaService.removeMeta(itemId)
-        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
+        itemMetaService.removeMeta(itemId, "test")
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isNull()
     }
 
     @Test
@@ -125,7 +128,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val tokenUri = createRandomUrl()
         coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
         itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
-        assertThat(itemMetaService.getAvailableMetaOrLoadSynchronously(itemId, true)).isEqualTo(itemMeta)
+        assertThat(itemMetaService.getAvailableMetaOrLoadSynchronously(itemId, true, "test")).isEqualTo(itemMeta)
         coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
     }
