@@ -48,8 +48,7 @@ class CollectionService(
     suspend fun resetMeta(collectionId: Address) {
         logger.info("Refreshing collection meta by $collectionId")
         tokenMetaService.reset(collectionId)
-        // TODO: temporarily disable scheduling items meta refresh until we decide how to limit them.
-        //  tokenMetaService.refreshMetadataForCollectionItems(collectionId)
+        tokenMetaService.refreshMetadataForCollectionItems(collectionId)
     }
 
     suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {
