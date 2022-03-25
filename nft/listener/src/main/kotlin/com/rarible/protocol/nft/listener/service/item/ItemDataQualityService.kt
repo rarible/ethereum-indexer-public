@@ -22,7 +22,7 @@ class ItemDataQualityService(
 ) {
     fun checkItems(from: String?): Flow<String> {
         val filter = ItemFilterAll(
-            sort = ItemFilter.Sort.LAST_UPDATE_ASC,
+            sort = ItemFilter.Sort.LAST_UPDATE_DESC,
             showDeleted = false
         )
         return flow {
