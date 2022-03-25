@@ -52,13 +52,13 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         ).flatten().forEach { ownershipRepository.save(it).awaitFirst() }
         var continuations = itemDataQualityService.checkItems(from = null).toList()
         assertThat(continuations).hasSize(2)
-        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem1.id)
-        assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem1.id)
+        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem1.id)
+        assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem1.id)
 
         verify(exactly = 1) { counter.increment() }
 
-        val validItem2 = createRandomItem().copy(supply = EthUInt256.of(4), date = now - Duration.ofMinutes(3))
-        val invalidItem2 = createRandomItem().copy(supply = EthUInt256.of(4), date = now - Duration.ofMinutes(2))
+        val validItem2 = createRandomItem().copy(supply = EthUInt256.of(4), date = now - Duration.ofMinutes(7))
+        val invalidItem2 = createRandomItem().copy(supply = EthUInt256.of(4), date = now - Duration.ofMinutes(6))
         listOf(validItem2, invalidItem2).forEach { itemRepository.save(it).awaitFirst() }
         listOf(
             createValidOwnerships(validItem2),
@@ -67,8 +67,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
 
         continuations = itemDataQualityService.checkItems(from = continuations.last()).toList()
         assertThat(continuations).hasSize(2)
-        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem2.id)
-        assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem2.id)
+        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem2.id)
+        assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem2.id)
         verify(exactly = 2) { counter.increment() }
     }
 
