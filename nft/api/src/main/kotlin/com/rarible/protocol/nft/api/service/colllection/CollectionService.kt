@@ -15,6 +15,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import org.web3j.crypto.Sign
@@ -33,6 +34,7 @@ class CollectionService(
     private val tokenIdRepository: TokenIdRepository,
     private val tokenMetaService: TokenMetaService
 ) {
+    private val logger = LoggerFactory.getLogger(CollectionService::class.java)
     private val operatorPrivateKey = Numeric.toBigInt(Hex.toBytes(operator.privateKey))
     private val operatorPublicKey = Sign.publicKeyFromPrivate(operatorPrivateKey)
 
@@ -44,8 +46,10 @@ class CollectionService(
     }
 
     suspend fun resetMeta(collectionId: Address) {
+        logger.info("Refreshing collection meta by $collectionId")
         tokenMetaService.reset(collectionId)
-        tokenMetaService.refreshMetadataForCollectionItems(collectionId)
+        // TODO: temporarily disable scheduling items meta refresh until we decide how to limit them.
+        //  tokenMetaService.refreshMetadataForCollectionItems(collectionId)
     }
 
     suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {
