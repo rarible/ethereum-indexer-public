@@ -43,7 +43,8 @@ class ItemMetaService(
     suspend fun getAvailableMetaOrLoadSynchronously(
         itemId: ItemId,
         synchronous: Boolean,
-        demander: String
+        demander: String,
+        scheduleIfNeeded: Boolean = true
     ): ItemMeta? {
         val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
         val availableMeta = metaCacheEntry.getAvailable()
@@ -53,7 +54,7 @@ class ItemMetaService(
         if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
             return null
         }
-        if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
+        if (scheduleIfNeeded && !synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
             scheduleMetaUpdate(itemId, demander)
         }
         if (synchronous) {

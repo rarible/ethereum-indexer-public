@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
@@ -76,10 +77,7 @@ class ItemService(
         val requestSize = PageSize.ITEM.limit(size)
         val items = itemRepository.search(filter.toCriteria(continuation, requestSize))
         items.mapAsync { item ->
-            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(
-                itemId = item.id,
-                demander = "search with ${filter.javaClass.simpleName}"
-            )
+            val meta = getAvailableMetaWithoutScheduling(item.id)
             ExtendedItem(item, meta)
         }
     }
@@ -95,8 +93,7 @@ class ItemService(
 
         val items = itemRepository.searchByIds(ownerships.keys)
         items.mapAsync { item ->
-            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id, "search by owner $owner")
-
+            val meta = getAvailableMetaWithoutScheduling(item.id)
             // We need to replace item's date with ownership's date due to correct ordering
             val date = ownerships[item.id] ?: item.date
             ExtendedItem(item.copy(date = date), meta)
@@ -109,8 +106,22 @@ class ItemService(
     ): List<ExtendedItem> = coroutineScope {
         val items = itemRepository.searchByIds(list)
         items.mapAsync { item ->
-            val meta = itemMetaService.getAvailableMetaOrScheduleLoading(item.id, metaLoadingDemander)
+            val meta = getAvailableMetaWithoutScheduling(item.id)
             ExtendedItem(item, meta)
         }
+    }
+
+    /**
+     * Temporary workaround to BRAVO-1925 until there is a prioritization of meta loading.
+     *
+     * We ignore scheduling here because if it is a whole collection without meta, the task queue will be full of unnecessary items.
+     */
+    private suspend fun getAvailableMetaWithoutScheduling(itemId: ItemId): ItemMeta? {
+        return itemMetaService.getAvailableMetaOrLoadSynchronously(
+            itemId = itemId,
+            demander = "search",
+            synchronous = false,
+            scheduleIfNeeded = false
+        )
     }
 }
