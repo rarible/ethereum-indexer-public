@@ -6,13 +6,16 @@ import com.rarible.protocol.nft.core.model.EthereumEntityEvent
 
 open class RevertEventApplyPolicy<T : EthereumEntityEvent<T>> : EventApplyPolicy<T> {
     override fun reduce(events: List<T>, event: T): List<T> {
-        require(events.isNotEmpty()) {
+        val confirmedEvents = events.filter {
+            it.log.status == EthereumLogStatus.CONFIRMED
+        }
+        require(confirmedEvents.isNotEmpty()) {
             "Can't revert from empty list (event=$event)"
         }
-        require(event >= events.first()) {
+        require(event >= confirmedEvents.first()) {
             "Can't revert to old event (events=$events, event=$event)"
         }
-        val confirmedEvent = findConfirmedEvent(events, event)
+        val confirmedEvent = findConfirmedEvent(confirmedEvents, event)
         return if (confirmedEvent != null) {
             //TODO: back after bug in blockchain scanner wiil be fixed
 //            require(events.last() == confirmedEvent) {
