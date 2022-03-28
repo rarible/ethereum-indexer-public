@@ -7,10 +7,12 @@ import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriter
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
@@ -19,7 +21,8 @@ class ItemDataQualityService(
     private val itemRepository: ItemRepository,
     private val ownershipRepository: OwnershipRepository,
     private val itemDataQualityErrorRegisteredCounter: RegisteredCounter,
-    private val nftListenerProperties: NftListenerProperties
+    private val nftListenerProperties: NftListenerProperties,
+    private val itemReduceService: ItemReduceService
 ) {
     fun checkItems(from: String?): Flow<String> {
         val filter = ItemFilterAll(
@@ -37,17 +40,28 @@ class ItemDataQualityService(
                 ).toList()
                 items.forEach { item ->
                     val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
-                    if (ownershipsValue != item.supply) {
-                        logger.info(
-                            "Find potential data corruption for item ${item.id}, lastUpdateAt ${item.date}: supply=${item.supply}, ownershipsValue=$ownershipsValue"
-                        )
-                        itemDataQualityErrorRegisteredCounter.increment()
+                    if(!checkItem(item)) {
+                        val message = "Find potential data corruption for item ${item.id}, " +
+                        "lastUpdateAt ${item.date}: supply=${item.supply}, " +
+                                "ownershipsValue=$ownershipsValue."
+                        logger.info("$message Try to fix.")
+                        itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
+                        if(!checkItem(item)) {
+                            itemDataQualityErrorRegisteredCounter.increment()
+                            logger.warn("$message Can't be fixed.")
+                        }
                     }
                     emit(ItemContinuation(item.date, item.id).toString())
                 }
                 continuation = items.lastOrNull()?.let { item -> ItemContinuation(item.date, item.id).toString() }
             } while (continuation != null)
         }
+    }
+
+    suspend fun checkItem(item: Item):Boolean {
+        val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
+        return ownershipsValue == item.supply
+
     }
 
     private suspend fun getOwnershipsValue(itemId: ItemId, limit: Int): EthUInt256 {
