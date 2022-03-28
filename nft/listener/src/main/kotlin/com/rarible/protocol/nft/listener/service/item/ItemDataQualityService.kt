@@ -58,8 +58,14 @@ class ItemDataQualityService(
         }
     }
 
-    suspend fun checkItem(item: Item):Boolean {
+    suspend fun checkItem(item: Item, showLog: Boolean = false):Boolean {
         val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
+
+        if(showLog) {
+            println("Ownership: $ownershipsValue")
+            println("Supply: ${item.supply}")
+        }
+
         return ownershipsValue == item.supply
 
     }
