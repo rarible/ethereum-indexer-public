@@ -3,7 +3,9 @@
 services:
 
   protocol-ethereum-nft-api:
-    build: ../nft/api
+    build:
+      context: ../nft/api
+      dockerfile: ../../docker/Dockerfile
     image: protocol-ethereum-nft-api
     environment:
       - JAVA_OPTIONS=-Xmx$PROTOCOL_NFT_API_HEAP -Xms$PROTOCOL_NFT_API_HEAP -XX:MaxDirectMemorySize=$PROTOCOL_NFT_API_DIRECT_MEMORY
@@ -39,7 +41,9 @@ services:
       - "${NFT_COMMON_EXPOSE_PORT}:8080"
 
   protocol-ethereum-nft-listener:
-    build: ../nft/listener
+    build:
+      context: ../nft/listener
+      dockerfile: ../../docker/Dockerfile
     image: protocol-ethereum-nft-listener
     environment:
       - JAVA_OPTIONS=-Xmx$PROTOCOL_NFT_LISTENER_HEAP -Xms$PROTOCOL_NFT_LISTENER_HEAP -XX:MaxDirectMemorySize=$PROTOCOL_NFT_LISTENER_DIRECT_MEMORY
@@ -71,7 +75,9 @@ services:
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
 
   protocol-ethereum-nft-migration:
-    build: ../nft/migration
+    build:
+      context: ../nft/migration
+      dockerfile: ../../docker/Dockerfile
     image: protocol-ethereum-nft-migration
     environment:
       - JAVA_OPTIONS=-Xmx$PROTOCOL_NFT_MIGRATION_HEAP -Xms$PROTOCOL_NFT_MIGRATION_HEAP -XX:MaxDirectMemorySize=$PROTOCOL_NFT_MIGRATION_DIRECT_MEMORY
