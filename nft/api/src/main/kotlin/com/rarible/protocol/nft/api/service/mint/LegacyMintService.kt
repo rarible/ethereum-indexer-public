@@ -48,7 +48,7 @@ class LegacyMintService(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId)
+        itemMetaService.removeMeta(itemId, "burn lazy mint")
         optimisticLock {
             itemReduceService.update(token = itemId.token, tokenId = itemId.tokenId).awaitFirst()
         }

@@ -23,7 +23,7 @@ class ItemDataQualityService(
 ) {
     fun checkItems(from: String?): Flow<String> {
         val filter = ItemFilterAll(
-            sort = ItemFilter.Sort.LAST_UPDATE_ASC,
+            sort = ItemFilter.Sort.LAST_UPDATE_DESC,
             showDeleted = false
         )
         return flow {
@@ -39,7 +39,7 @@ class ItemDataQualityService(
                     val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
                     if (ownershipsValue != item.supply) {
                         logger.info(
-                            "Find potential data corruption for item ${item.id}: supply=${item.supply}, ownershipsValue=$ownershipsValue"
+                            "Find potential data corruption for item ${item.id}, lastUpdateAt ${item.date}: supply=${item.supply}, ownershipsValue=$ownershipsValue"
                         )
                         itemDataQualityErrorRegisteredCounter.increment()
                     }

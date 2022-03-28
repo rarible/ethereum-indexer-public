@@ -66,7 +66,8 @@ class ItemController(
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
         val result = itemService.getWithAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
+            demander = "get item by ID"
         )
         return ResponseEntity.ok(result)
     }
@@ -77,7 +78,7 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = getItemMeta(itemId)
+        val availableMeta = getItemMeta(itemId, "get meta by ID")
         return ResponseEntity.ok(nftItemMetaDtoConverter.convert(availableMeta, itemId))
     }
 
@@ -88,7 +89,7 @@ class ItemController(
         @RequestParam(value = "animation", required = false) animation: Boolean?
     ): ResponseEntity<Any> {
         // We need to use raw meta here, because converted contains converted base64 url
-        val itemMeta = getItemMeta(itemId)
+        val itemMeta = getItemMeta(itemId, "get image by ID")
         val url = if (animation == true) {
             itemMeta.properties.animationUrl
         } else {
@@ -103,7 +104,7 @@ class ItemController(
         if (detector != null) {
             //TODO Workaround for BRAVO-1872.
             if(detector is SVGDetector && SVGDetector.spaceCode in url) {
-                itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId))
+                itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId), "get-nft-item-image-by-id")
             }
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_TYPE, detector.getMimeType())
@@ -122,7 +123,7 @@ class ItemController(
     }
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
-        itemMetaService.removeMeta(conversionService.convert(itemId))
+        itemMetaService.removeMeta(conversionService.convert(itemId), "reset meta by ID")
         return ResponseEntity.noContent().build()
     }
 
@@ -211,7 +212,10 @@ class ItemController(
     override fun getNftItemsByIds(nftItemIdsDto: NftItemIdsDto): ResponseEntity<Flow<NftItemDto>> {
         val ids = nftItemIdsDto.ids.map { ItemId.parseId(it) }.toSet()
         val items = flow<NftItemDto> {
-            itemService.search(ids).forEach { emit(conversionService.convert(it)) }
+            itemService.search(
+                list = ids,
+                metaLoadingDemander = "items by IDs"
+            ).forEach { emit(conversionService.convert(it)) }
         }.flowOn(RaribleMDCContext())
         return ResponseEntity.ok(items)
     }
@@ -237,7 +241,11 @@ class ItemController(
         size: Int?
     ): NftItemsDto {
         val requestSize = PageSize.ITEM.limit(size)
-        val result = itemService.search(filter, ItemContinuation.parse(continuation), requestSize)
+        val result = itemService.search(
+            filter = filter,
+            continuation = ItemContinuation.parse(continuation),
+            size = requestSize
+        )
         return result2Dto(result, requestSize)
     }
 
@@ -248,10 +256,11 @@ class ItemController(
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 
-    private suspend fun getItemMeta(itemId: String): ItemMeta {
+    private suspend fun getItemMeta(itemId: String, demander: String): ItemMeta {
         return itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
             itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout)
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
+            demander = demander
         ) ?: throw EntityNotFoundApiException("Item meta", itemId)
     }
 

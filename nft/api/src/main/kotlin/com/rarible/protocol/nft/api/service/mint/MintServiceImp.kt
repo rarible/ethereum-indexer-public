@@ -56,7 +56,7 @@ class MintServiceImp(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId)
+        itemMetaService.removeMeta(itemId,"burn lazy mint")
         val itemEvent = itemEventConverter.convert(savedItemHistory.wrapWithEthereumLogRecord())
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
     }
