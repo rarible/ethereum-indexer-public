@@ -32,6 +32,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `error on loading - then update`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemId = createRandomItemId()
         val error = RuntimeException("loading error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
