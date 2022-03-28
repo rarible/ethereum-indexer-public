@@ -32,7 +32,7 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
 
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
-        Assertions.assertThat(itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, Duration.ofHours(1))).isEqualTo(itemMeta)
+        Assertions.assertThat(itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(itemMeta)
     }
 
     @Test
@@ -46,6 +46,6 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), cachedItemMeta)
 
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns resolvedItemMeta
-        Assertions.assertThat(itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, Duration.ofHours(1))).isEqualTo(resolvedItemMeta)
+        Assertions.assertThat(itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(resolvedItemMeta)
     }
 }

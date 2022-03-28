@@ -41,7 +41,7 @@ class TokenMetaService(
 
     suspend fun refreshMetadataForCollectionItems(token: Address) {
         itemRepository.findTokenItems(token, null).map { it }.onEach {
-            itemMetaService.scheduleMetaUpdate(it.id)
+            itemMetaService.scheduleMetaUpdate(it.id, "refresh the whole collection $token")
         }.collect()
     }
 

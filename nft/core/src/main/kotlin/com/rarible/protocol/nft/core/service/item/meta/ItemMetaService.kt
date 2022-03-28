@@ -32,8 +32,11 @@ class ItemMetaService(
      * has failed, or hasn't been requested yet.
      * Schedule an update in the last case.
      */
-    suspend fun getAvailableMetaOrScheduleLoading(itemId: ItemId): ItemMeta? =
-        getAvailableMetaOrLoadSynchronously(itemId = itemId, synchronous = false)
+    suspend fun getAvailableMetaOrScheduleLoading(
+        itemId: ItemId,
+        demander: String
+    ): ItemMeta? =
+        getAvailableMetaOrLoadSynchronously(itemId = itemId, synchronous = false, demander = demander)
 
     /**
      * Return available meta, if any. Otherwise, load the meta in the current coroutine (it may be slow).
@@ -41,7 +44,9 @@ class ItemMetaService(
      */
     suspend fun getAvailableMetaOrLoadSynchronously(
         itemId: ItemId,
-        synchronous: Boolean
+        synchronous: Boolean,
+        demander: String,
+        scheduleIfNeeded: Boolean = true
     ): ItemMeta? {
         if (properties.enableMetaCache) {
             val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
@@ -52,20 +57,20 @@ class ItemMetaService(
             if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
                 return null
             }
-            if (!synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
-                scheduleMetaUpdate(itemId)
+            if (scheduleIfNeeded && !synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
+                scheduleMetaUpdate(itemId, demander)
             }
         }
         if (synchronous) {
-            logMetaLoading(itemId, "Loading meta synchronously")
+            logMetaLoading(itemId, "Loading meta synchronously by '$demander'")
             val itemMeta = try {
                 itemMetaCacheLoader.load(itemId.toCacheKey())
             } catch (e: ItemMetaCacheLoader.ItemMetaResolutionException) {
-                logMetaLoading(itemId, "Synchronous meta loading failed for $itemId", warn = true)
+                logMetaLoading(itemId, "Synchronous meta loading for '$demander' failed for $itemId", warn = true)
                 null
             }
             if (itemMeta != null) {
-                logMetaLoading(itemId, "Saving synchronously loaded meta to cache")
+                logMetaLoading(itemId, "Saving synchronously loaded meta for '$demander' to the cache")
                 try {
                     itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
                 } catch (e: Exception) {
@@ -82,20 +87,22 @@ class ItemMetaService(
 
     suspend fun getAvailableMetaOrLoadSynchronouslyWithTimeout(
         itemId: ItemId,
-        timeout: Duration
+        timeout: Duration,
+        demander: String
     ): ItemMeta? {
         return try {
             withTimeout(timeout) {
                 getAvailableMetaOrLoadSynchronously(
                     itemId = itemId,
-                    synchronous = true
+                    synchronous = true,
+                    demander = demander
                 )
             }
         } catch (e: CancellationException) {
-            logger.warn("Timeout synchronously load meta for $itemId with timeout ${timeout.toMillis()} ms", e)
+            logger.warn("Timeout synchronously load meta by $itemId for '$demander' with timeout ${timeout.toMillis()} ms", e)
             null
         } catch (e: Exception) {
-            logger.error("Cannot synchronously load meta for $itemId with timeout ${timeout.toMillis()} ms", e)
+            logger.error("Cannot synchronously load meta by $itemId for '$demander' with timeout ${timeout.toMillis()} ms", e)
             null
         }
     }
@@ -103,8 +110,8 @@ class ItemMetaService(
     /**
      * Schedule an update (or initial loading) of metadata.
      */
-    suspend fun scheduleMetaUpdate(itemId: ItemId) {
-        logMetaLoading(itemId, "scheduling update")
+    suspend fun scheduleMetaUpdate(itemId: ItemId, demander: String) {
+        logMetaLoading(itemId, "scheduling update requested by '$demander'")
         itemMetaCacheLoaderService.update(itemId.toCacheKey())
     }
 
@@ -112,8 +119,8 @@ class ItemMetaService(
      * Remove metadata for an item. After this method returns, [getAvailable] will return `null`
      * unless another scheduled update has been executed.
      */
-    suspend fun removeMeta(itemId: ItemId) {
-        logMetaLoading(itemId, "removing meta")
+    suspend fun removeMeta(itemId: ItemId, demander: String) {
+        logMetaLoading(itemId, "removing meta requested by '$demander'")
         itemMetaCacheLoaderService.remove(itemId.toCacheKey())
     }
 

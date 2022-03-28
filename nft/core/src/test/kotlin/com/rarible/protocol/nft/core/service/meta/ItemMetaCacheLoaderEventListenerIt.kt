@@ -33,7 +33,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
         itemRepository.save(item).awaitFirst()
 
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         val itemDto = conversionService.convert<NftItemDto>(ExtendedItem(item, itemMeta))
         Wait.waitAssert {
             assertThat(itemEvents).anySatisfy { event ->
@@ -46,7 +46,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         // Update the meta.
         val itemMeta2 = randomItemMeta()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta2
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         val itemDto2 = conversionService.convert<NftItemDto>(ExtendedItem(item, itemMeta2))
         Wait.waitAssert {
             assertThat(itemEvents).anySatisfy { event ->
@@ -71,9 +71,9 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws(error)
         itemRepository.save(item).awaitFirst()
 
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
         delay(1000)
-        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isNull()
+        assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isNull()
 
         // Initiate retrying of tasks.
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns(itemMeta)
@@ -81,7 +81,7 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
 
         val itemDto = conversionService.convert<NftItemDto>(ExtendedItem(item, itemMeta))
         Wait.waitAssert {
-            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId)).isEqualTo(itemMeta)
+            assertThat(itemMetaService.getAvailableMetaOrScheduleLoading(itemId, "test")).isEqualTo(itemMeta)
 
             assertThat(itemEvents).anySatisfy { event ->
                 assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
@@ -100,11 +100,11 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
         itemRepository.save(item).awaitFirst()
 
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
 
         val error = RuntimeException("update error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
-        itemMetaService.scheduleMetaUpdate(itemId)
+        itemMetaService.scheduleMetaUpdate(itemId, "test")
 
         delay(3000)
         assertThat(itemEvents).noneSatisfy { event ->
