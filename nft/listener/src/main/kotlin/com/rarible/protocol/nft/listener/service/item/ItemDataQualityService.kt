@@ -12,9 +12,12 @@ import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
+import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class ItemDataQualityService(
@@ -22,14 +25,16 @@ class ItemDataQualityService(
     private val ownershipRepository: OwnershipRepository,
     private val itemDataQualityErrorRegisteredCounter: RegisteredCounter,
     private val nftListenerProperties: NftListenerProperties,
-    private val itemReduceService: ItemReduceService
+    private val itemReduceService: ItemReduceService,
+    private val mongo: ReactiveMongoOperations
 ) {
-    fun checkItems(from: String?): Flow<String> {
+    fun checkItems(from: String?, dropCollection: Boolean = true): Flow<String> {
         val filter = ItemFilterAll(
             sort = ItemFilter.Sort.LAST_UPDATE_DESC,
             showDeleted = false
         )
         return flow {
+            initializeCollection(dropCollection)
             var continuation = from
             do {
                 val items = itemRepository.search(
@@ -46,9 +51,12 @@ class ItemDataQualityService(
                                 "ownershipsValue=$ownershipsValue."
                         logger.info("$message Try to fix.")
                         itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
-                        if(!checkItem(item)) {
+
+                        if(!checkItem(item,fromRepository = true, writeToBd = true)) {
                             itemDataQualityErrorRegisteredCounter.increment()
                             logger.warn("$message Can't be fixed.")
+                        } else {
+                            logger.info("Item ${item.id}, lastUpdateAt ${item.date}: supply=${item.supply} was fixed")
                         }
                     }
                     emit(ItemContinuation(item.date, item.id).toString())
@@ -58,16 +66,29 @@ class ItemDataQualityService(
         }
     }
 
-    suspend fun checkItem(item: Item, showLog: Boolean = false):Boolean {
-        val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
-
-        if(showLog) {
-            println("Ownership: $ownershipsValue")
-            println("Supply: ${item.supply}")
+    private suspend fun initializeCollection(dropInconsistentCollection: Boolean) {
+        if (dropInconsistentCollection) {
+            mongo.dropCollection(COLLECTION).awaitFirstOrNull()
         }
+        if(!mongo.collectionExists(COLLECTION).awaitFirst()) {
+            mongo.createCollection(COLLECTION).awaitFirst()
+        }
+    }
 
-        return ownershipsValue == item.supply
-
+    suspend fun checkItem(item: Item, fromRepository: Boolean = false, writeToBd: Boolean = false): Boolean {
+        var updatedItem = item
+        if (fromRepository) {
+            val repositoryItem = itemRepository.findById(ItemId(item.token, item.tokenId)).awaitFirstOrNull()
+            repositoryItem ?: return false
+            updatedItem = repositoryItem
+        }
+        val ownershipsValue = getOwnershipsValue(updatedItem.id, nftListenerProperties.elementsFetchJobSize)
+        val result = ownershipsValue == updatedItem.supply
+        if (!result && writeToBd) {
+            mongo.save(InconsistentItems(item.token, item.tokenId, item.supply, ownershipsValue), COLLECTION)
+                .awaitFirstOrNull()
+        }
+        return result
     }
 
     private suspend fun getOwnershipsValue(itemId: ItemId, limit: Int): EthUInt256 {
@@ -88,6 +109,16 @@ class ItemDataQualityService(
     }
 
     companion object {
+        const val COLLECTION = "inconsistent_items"
         private val logger = LoggerFactory.getLogger(ItemDataQualityService::class.java)
+
+        data class InconsistentItems(
+            val token: Address,
+            val tokenId: EthUInt256,
+            val supply: EthUInt256,
+            val supplyOwnership: EthUInt256
+        )
     }
+
 }
+
