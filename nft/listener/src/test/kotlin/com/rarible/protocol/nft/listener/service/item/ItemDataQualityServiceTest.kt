@@ -100,7 +100,6 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
 
         var invalidItemsCount =
             mongo.getCollection(ItemDataQualityService.COLLECTION).awaitFirst().countDocuments().awaitFirstOrNull()
-
         assertThat(invalidItemsCount).isEqualTo(2)
 
         getOwnershipsByItem(invalidItem1).forEach {
