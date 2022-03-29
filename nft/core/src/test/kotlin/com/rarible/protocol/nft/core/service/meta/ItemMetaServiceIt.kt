@@ -20,6 +20,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `get available or schedule loading`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
@@ -32,6 +34,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `error on loading - then update`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemId = createRandomItemId()
         val error = RuntimeException("loading error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
@@ -57,6 +61,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `load and wait`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
@@ -77,6 +83,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `load synchronously`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
@@ -94,6 +102,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `load synchronously - return null if loading has failed`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemId = createRandomItemId()
         val error = RuntimeException("loading-error")
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } throws error
@@ -109,6 +119,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `remove meta`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns itemMeta
@@ -123,6 +135,8 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `resolve meta for a pending item`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
+
         val itemMeta = randomItemMeta()
         val itemId = createRandomItemId()
         val tokenUri = createRandomUrl()
