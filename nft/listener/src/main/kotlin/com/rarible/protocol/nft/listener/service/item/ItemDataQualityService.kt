@@ -52,7 +52,7 @@ class ItemDataQualityService(
                         logger.info("$message Try to fix.")
                         itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
 
-                        if(!checkItem(item,fromRepository = true, writeToBd = true)) {
+                        if(!checkItem(item,fromRepository = true, writeToDb = true)) {
                             itemDataQualityErrorRegisteredCounter.increment()
                             logger.warn("$message Can't be fixed.")
                         } else {
@@ -75,7 +75,7 @@ class ItemDataQualityService(
         }
     }
 
-    suspend fun checkItem(item: Item, fromRepository: Boolean = false, writeToBd: Boolean = false): Boolean {
+    suspend fun checkItem(item: Item, fromRepository: Boolean = false, writeToDb: Boolean = false): Boolean {
         var updatedItem = item
         if (fromRepository) {
             val repositoryItem = itemRepository.findById(ItemId(item.token, item.tokenId)).awaitFirstOrNull()
@@ -84,7 +84,7 @@ class ItemDataQualityService(
         }
         val ownershipsValue = getOwnershipsValue(updatedItem.id, nftListenerProperties.elementsFetchJobSize)
         val result = ownershipsValue == updatedItem.supply
-        if (!result && writeToBd) {
+        if (!result && writeToDb) {
             mongo.save(InconsistentItems(item.token, item.tokenId, item.supply, ownershipsValue), COLLECTION)
                 .awaitFirstOrNull()
         }
