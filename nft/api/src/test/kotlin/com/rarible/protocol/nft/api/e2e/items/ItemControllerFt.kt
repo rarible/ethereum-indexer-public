@@ -481,6 +481,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Test
     fun `should get items by ids`() = runBlocking<Unit> {
+        nftIndexerProperties.enableMetaCache = true
         val owner = AddressFactory.create()
         val item = createItem().copy(owners = listOf(owner))
         val itemMeta = randomItemMeta()
@@ -497,11 +498,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
         // Firstly, meta of all items are null because they were not loaded yet.
         assertThat(fetchItems(item.id))
             .isEqualTo(listOf(extendedItemDtoConverter.convert(ExtendedItem(item, null))))
-
-        Wait.waitAssert {
-            assertThat(fetchItems(item.id))
-                .isEqualTo(listOf(extendedItemDtoConverter.convert(ExtendedItem(item, itemMeta))))
-        }
     }
 
     @ParameterizedTest
