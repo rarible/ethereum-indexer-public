@@ -50,6 +50,11 @@ class TestPropertiesConfiguration {
     }
 
     @Bean
+    fun featureFlags(): OrderIndexerProperties.FeatureFlags {
+        return OrderIndexerProperties.FeatureFlags()
+    }
+
+    @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
     }

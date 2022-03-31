@@ -548,6 +548,23 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                     createLogEvent(orderErc1155SellSideMatch().copy(date = now.minus(4, ChronoUnit.MINUTES)))
                 ),
                 listOf(
+                    createLogEvent(orderErc1155SellCancel().copy(date = now.minus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellCancel().copy(date = now.minus(4, ChronoUnit.MINUTES)))
+                ),
+                listOf(createErc721BidOrderVersion(), createErc1155ListOrderVersion()),
+                OrderActivityFilterAllDto(listOf(OrderActivityFilterAllDto.Types.MATCH)),
+                ActivitySortDto.LATEST_FIRST
+            ),
+            Arguments.of(
+                listOf(
+                    createLogEvent(orderErc721SellSideMatch().copy(date = now.plus(2, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc721SellSideMatch().copy(date = now.plus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellSideMatch().copy(date = now.minus(1, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellSideMatch().copy(date = now.minus(2, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellSideMatch().copy(date = now.minus(3, ChronoUnit.MINUTES))),
+                    createLogEvent(orderErc1155SellSideMatch().copy(date = now.minus(4, ChronoUnit.MINUTES)))
+                ),
+                listOf(
                     createLogEvent(orderErc1155BidCancel().copy(date = now.minus(1, ChronoUnit.MINUTES))),
                     createLogEvent(orderErc721BidCancel().copy(date = now.minus(4, ChronoUnit.MINUTES)))
                 ),
