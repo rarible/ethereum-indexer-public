@@ -72,10 +72,16 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun resolve(itemId: ItemId, tokenUri: String): ItemProperties? {
-        if (tokenUri.startsWith(BASE_64_JSON_PREFIX)) {
-            return parseFromBase64(itemId, tokenUri.removePrefix(BASE_64_JSON_PREFIX))?.fixEmptyName(itemId)
+        val resolvedItemProperties = when {
+            tokenUri.startsWith(BASE_64_JSON_PREFIX) ->
+                parseFromBase64(itemId, tokenUri.removePrefix(BASE_64_JSON_PREFIX))?.fixEmptyName(itemId)
+
+            tokenUri.startsWith(JSON_PREFIX) ->
+                parseJsonProperties(itemId, tokenUri.removePrefix(JSON_PREFIX))?.fixEmptyName(itemId)
+
+            else -> getByUri(itemId, tokenUri)?.fixEmptyName(itemId)
         }
-        return getByUri(itemId, tokenUri)?.fixEmptyName(itemId)
+        return resolvedItemProperties?.fixEmptyName(itemId)
     }
 
     private suspend fun ItemProperties.fixEmptyName(itemId: ItemId): ItemProperties {
