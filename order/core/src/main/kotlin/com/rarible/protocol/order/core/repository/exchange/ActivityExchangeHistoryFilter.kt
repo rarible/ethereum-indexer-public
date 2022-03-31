@@ -38,7 +38,7 @@ sealed class ActivityExchangeHistoryFilter {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
 
         override fun getCriteria(): Criteria {
-            return (makeNftKey isEqualTo true).scrollTo(sort, continuation)
+            return (makeNftKey isEqualTo true sideMatch true).scrollTo(sort, continuation)
         }
     }
 
@@ -61,6 +61,13 @@ sealed class ActivityExchangeHistoryFilter {
     protected infix fun Criteria.canceled(isCancel: Boolean): Criteria =
         if (isCancel) {
             and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.CANCEL)
+        } else {
+            this
+        }
+
+    protected infix fun Criteria.sideMatch(sideMatch: Boolean): Criteria =
+        if (sideMatch) {
+            and(LogEvent::data / OrderExchangeHistory::type).isEqualTo(ItemType.ORDER_SIDE_MATCH)
         } else {
             this
         }
