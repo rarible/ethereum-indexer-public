@@ -20,7 +20,8 @@ import java.math.BigInteger
 @Component
 class RaribleExchangeV2OrderParser(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val traceCallService: TraceCallService
+    private val traceCallService: TraceCallService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEvent): RaribleMatchedOrders? {
@@ -53,6 +54,8 @@ class RaribleExchangeV2OrderParser(
         val metaTransactionSignature = EIP712MetaTransaction.executeMetaTransactionSignature().id()
         return if (txInput.methodSignatureId() in setOf(matchOrderSignature, metaTransactionSignature)) {
             listOf(txInput)
+        } else if (featureFlags.skipGetTrace) {
+            emptyList()
         } else {
             traceCallService.findAllRequiredCallInputs(
                 txHash,
