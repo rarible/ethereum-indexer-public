@@ -82,11 +82,12 @@ class ItemPropertiesService(
     ): ItemProperties {
         fun <T> extend(rarible: T, openSea: T, fieldName: String): T {
             if (openSea != null && rarible != openSea) {
-                if (rarible is List<*>
-                    && openSea is List<*>
-                    && rarible.sortedBy { it.toString() } == openSea.sortedBy { it.toString() }
-                ) {
-                    return rarible
+                if (rarible is List<*> && openSea is List<*>) {
+                    if (rarible.isNotEmpty() && openSea.isEmpty()
+                        || rarible.sortedBy { it.toString() } == openSea.sortedBy { it.toString() }
+                    ) {
+                        return rarible
+                    }
                 }
                 if (fieldName == "name"
                     && rarible is String
