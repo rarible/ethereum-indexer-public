@@ -7,4 +7,5 @@ spring:
 parityUrls: ${node.hosts}
 parityWebSocketUrls: ${node.webSocketHosts}
 
-jms-brokerUrls: ${broker.jms.hosts}
+common:
+  kafka-replica-set: ${kafka.hosts}
