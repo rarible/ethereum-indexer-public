@@ -248,6 +248,37 @@ Token ID: 51561
     }
 
     @Test
+    fun ashChapter() = runBlocking<Unit> {
+        val address = Address.apply("0x4d232cd85294acd53ec03f4a57f57888c9ea1946")
+        mockTokenStandard(address, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(
+            ItemId(
+                address,
+                EthUInt256.of(4423)
+            )
+        )
+        val expectedProperties =
+            ItemProperties(
+                name = "Sunlight Over a City, 2022 #173",
+                description = "\"Sunlight Over the City\" is an expression of a day passing through a made-up architectural maze of a nonsensical composition.  \n" +
+                        "Artist : LIŔONA  \n" +
+                        "b. 1989  \n" +
+                        "Medium: Digital, \"Painted on Wood\" (Not)  \n" +
+                        "Year : 2022",
+                image = "https://arweave.net/lVS0SkeSF8_alma1ayYMZcH9VSMLrmhAmikrDyshUcg",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = "https://arweave.net/MkwJUiGCyTRIFkyrrnpApVEdAcFggVIFYtHIE65h8D8",
+                attributes = listOf(
+                    ItemAttribute("Creator", "Lirona"),
+                    ItemAttribute("Form", "1")
+                ),
+                rawJsonContent = """{"name":"Sunlight Over a City, 2022 #173","description":"\"Sunlight Over the City\" is an expression of a day passing through a made-up architectural maze of a nonsensical composition.  \nArtist : LIŔONA  \nb. 1989  \nMedium: Digital, \"Painted on Wood\" (Not)  \nYear : 2022","created_by":"Lirona","image":"https://arweave.net/lVS0SkeSF8_alma1ayYMZcH9VSMLrmhAmikrDyshUcg","animation_url":"https://arweave.net/MkwJUiGCyTRIFkyrrnpApVEdAcFggVIFYtHIE65h8D8","attributes":[{"trait_type":"Creator","value":"Lirona"},{"trait_type":"Form","value":"1"}]}"""
+            )
+        assertThat(properties).isEqualTo(expectedProperties)
+    }
+
+    @Test
     fun etherCats() = runBlocking<Unit> {
         val token = Address.apply("0xff3559412c4618af7c6e6f166c74252ff6364456")
         mockTokenStandard(token, TokenStandard.ERC1155)

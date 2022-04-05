@@ -23,7 +23,10 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
 
-val IGNORE_LIST = listOf(WyvernAtomicizer.atomicizeSignature().id())
+val IGNORE_LIST = listOf(
+    WyvernAtomicizer.atomicizeSignature().id(),
+    Binary.apply("0x6d5cb2f5") //TODO: need support ALPHA-339
+)
 
 @Component
 class OpenSeaOrderEventConverter(
