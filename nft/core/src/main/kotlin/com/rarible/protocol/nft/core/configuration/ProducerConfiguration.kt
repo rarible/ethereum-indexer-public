@@ -36,4 +36,7 @@ class ProducerConfiguration(
 
     @Bean
     fun itemActivityProducer(producerFactory: ProducerFactory) = producerFactory.createItemActivityProducer()
+
+    @Bean
+    fun actionProducer(producerFactory: ProducerFactory) = producerFactory.createItemActionEventProducer()
 }

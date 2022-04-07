@@ -4,8 +4,10 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver.Companion.PROPERTIES_NOT_FOUND
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -17,6 +19,9 @@ import scalether.domain.Address
 class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val ensDomainsAddress: Address = Address.apply("0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85")
+    private val ensDomainService = mockk<EnsDomainService> {
+        coEvery { onGetProperties(any(), any()) } returns Unit
+    }
     private val resolver = EnsDomainsPropertiesResolver(
         externalHttpClient = ExternalHttpClient(
             openseaUrl = "",
@@ -25,6 +30,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
             connectTimeout = 10000,
             proxyUrl = ""
         ),
+        ensDomainService = ensDomainService,
         nftIndexerProperties = mockk {
             every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
         },

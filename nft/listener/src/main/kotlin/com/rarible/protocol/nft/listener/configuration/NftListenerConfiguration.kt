@@ -10,8 +10,11 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.configuration.ProducerConfiguration
+import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
+import com.rarible.protocol.nft.core.producer.InternalTopicProvider
+import com.rarible.protocol.nft.core.service.action.InternalActionHandler
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
@@ -53,6 +56,25 @@ class NftListenerConfiguration(
                 eventHandler = internalCollectionHandler,
                 meterRegistry = meterRegistry,
                 workerName = "nftCollectionMetaExtender.$it"
+            )
+        }
+        return ConsumerWorkerHolder(workers)
+    }
+
+    @Bean
+    fun actionWorker(internalActionHandler: InternalActionHandler): ConsumerWorkerHolder<ActionEvent> {
+        logger.info("Creating batch of ${nftIndexerProperties.actionWorkersCount} action workers")
+        val workers = (1..nftIndexerProperties.actionWorkersCount).map {
+            ConsumerWorker(
+                consumer = InternalTopicProvider.createInternalActionEventConsumer(
+                    applicationEnvironmentInfo,
+                    nftIndexerProperties.blockchain,
+                    nftIndexerProperties.kafkaReplicaSet
+                ),
+                properties = nftIndexerProperties.daemonWorkerProperties,
+                eventHandler = internalActionHandler,
+                meterRegistry = meterRegistry,
+                workerName = "ActionHandler.$it"
             )
         }
         return ConsumerWorkerHolder(workers)
