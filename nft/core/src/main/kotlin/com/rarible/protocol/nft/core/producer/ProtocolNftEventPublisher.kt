@@ -16,6 +16,7 @@ import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
 import com.rarible.protocol.nft.core.model.Action
+import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.collect
@@ -30,7 +31,7 @@ class ProtocolNftEventPublisher(
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
     private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>,
-    private val actionProducer: RaribleKafkaProducer<Action>
+    private val actionProducer: RaribleKafkaProducer<ActionEvent>
 ) {
     suspend fun publish(event: NftCollectionEventDto) {
         val message = KafkaMessage(
@@ -93,7 +94,7 @@ class ProtocolNftEventPublisher(
         logger.info("Sent item activity event ${event.id}: $event")
     }
 
-    suspend fun publish(event: Action) {
+    suspend fun publish(event: ActionEvent) {
         val itemId = ItemId(event.token, event.tokenId)
         val message = KafkaMessage(
             key = itemId.stringValue,

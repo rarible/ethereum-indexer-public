@@ -17,7 +17,7 @@ enum class ActionState {
     EXECUTED
 }
 
-sealed class Action(val type: ActionType) {
+sealed class Action(var type: ActionType) {
     abstract val token: Address
     abstract val tokenId: EthUInt256
     abstract val createdAt: Instant
@@ -25,6 +25,10 @@ sealed class Action(val type: ActionType) {
     abstract val state: ActionState
     abstract val id: String
     abstract val version: Long?
+
+    fun itemId(): ItemId {
+        return ItemId(token, tokenId)
+    }
 }
 
 data class BurnItemAction(

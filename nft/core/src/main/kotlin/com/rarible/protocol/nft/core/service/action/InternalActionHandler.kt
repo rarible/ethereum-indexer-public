@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ActionState
+import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemActionEvent
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
@@ -28,7 +29,7 @@ class InternalActionHandler(
     }
 
     private suspend fun handleBurnActionEvent(event: BurnItemActionEvent) {
-        val existedActions = nftItemActionEventRepository.findByItemIdAndType(event.itemId(), event.type)
+        val existedActions = nftItemActionEventRepository.findByItemIdAndType(event.itemId(), ActionType.BURN)
         val lastUpdatedAt = clock.instant()
         val burnItemAction = BurnItemAction(
             token = event.token,
@@ -43,6 +44,7 @@ class InternalActionHandler(
             if (event.burnAt > existedAction.burnAt) {
                 existedAction.copy(
                     burnAt = event.burnAt,
+                    lastUpdatedAt = lastUpdatedAt,
                     state = ActionState.PENDING
                 ) to true
             } else {
