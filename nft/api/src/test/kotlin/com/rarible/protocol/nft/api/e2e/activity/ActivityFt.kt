@@ -11,6 +11,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -591,6 +592,21 @@ class ActivityFt : SpringContainerBaseTest() {
         activities.items.forEachIndexed { index, nftActivity ->
             checkItem(nftActivity, logs[index])
         }
+    }
+
+    @Test
+    fun `should get activities by ids`(): Unit = runBlocking {
+        val mint = createItemMint()
+        val burn = createItemBurn()
+        val transfer = createItemTransfer()
+
+        save(mint, burn, transfer)
+
+        val activities = nftActivityApiClient.getNftActivitiesById(
+            NftActivitiesByIdRequestDto(listOf(mint.id.toHexString(), transfer.id.toHexString()))
+        ).awaitFirst().items
+
+        assertThat(activities.map { it.id }).containsExactly(mint.id.toHexString(), transfer.id.toHexString())
     }
 
     private suspend fun save(vararg history: LogEvent) {

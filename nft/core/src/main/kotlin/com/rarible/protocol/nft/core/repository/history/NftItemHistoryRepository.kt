@@ -13,6 +13,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepositoryIndexes.ALL_INDEXES
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -20,6 +21,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import org.springframework.stereotype.Component
@@ -147,6 +149,18 @@ class NftItemHistoryRepository(
         }
         query.with(sort.sort)
         return mongo.find(query, LogEvent::class.java, COLLECTION)
+    }
+
+    suspend fun findByIds(ids: Set<ObjectId>): List<LogEvent> {
+        return mongo
+            .find(
+                Query(
+                    LogEvent::id inValues ids
+                ),
+                LogEvent::class.java, COLLECTION
+            )
+            .collectList()
+            .awaitFirst()
     }
 
     companion object {
