@@ -2,11 +2,11 @@ package com.rarible.protocol.nft.core.service
 
 import com.rarible.protocol.nft.core.event.OutgoingEventListener
 import com.rarible.protocol.nft.core.model.*
-import org.springframework.stereotype.Service
+import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Instant
 
-@Service
+@Component
 class EnsDomainService(
     private val actionListeners: List<OutgoingEventListener<ActionEvent>>,
     private val clock: Clock

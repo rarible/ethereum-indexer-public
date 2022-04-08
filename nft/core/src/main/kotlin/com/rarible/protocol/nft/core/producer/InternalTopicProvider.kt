@@ -21,7 +21,7 @@ object InternalTopicProvider {
     ): RaribleKafkaConsumer<ActionEvent> {
         val environment = applicationEnvironmentInfo.name
         val host = applicationEnvironmentInfo.host
-        val consumerGroup = "$environment.protocol.${blockchain.value}.nft.indexer.action.internal"
+        val consumerGroup = "$environment.protocol.${blockchain.value}.nft.indexer.internal.action"
         val clientIdPrefix = "$environment.${blockchain.value}.$host.${UUID.randomUUID()}"
         return RaribleKafkaConsumer(
             clientId = "$clientIdPrefix.nft.indexer.action.internal",
