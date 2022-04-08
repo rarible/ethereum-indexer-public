@@ -37,13 +37,13 @@ class InternalActionHandler(
             createdAt = lastUpdatedAt,
             lastUpdatedAt = lastUpdatedAt,
             state = ActionState.PENDING,
-            burnAt = event.burnAt
+            actionAt = event.burnAt
         )
         val (burnAction, needSave) = if (existedActions.isNotEmpty()) {
             val existedAction = existedActions.single() as BurnItemAction
-            if (event.burnAt > existedAction.burnAt) {
+            if (event.burnAt > existedAction.actionAt) {
                 existedAction.copy(
-                    burnAt = event.burnAt,
+                    actionAt = event.burnAt,
                     lastUpdatedAt = lastUpdatedAt,
                     state = ActionState.PENDING
                 ) to true

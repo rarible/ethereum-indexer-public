@@ -330,7 +330,7 @@ fun createRandomBurnAction(): BurnItemAction {
         createdAt = nowMillis(),
         lastUpdatedAt = nowMillis(),
         state = ActionState.values().random(),
-        burnAt = nowMillis()
+        actionAt = nowMillis()
     )
 }
 
@@ -359,7 +359,7 @@ fun createRandomBurnItemAction(): BurnItemAction {
     return BurnItemAction(
         token = randomAddress(),
         tokenId = EthUInt256.of(randomBigInt()),
-        burnAt = Instant.now(),
+        actionAt = Instant.now(),
         lastUpdatedAt = Instant.now(),
         createdAt = Instant.now(),
         state = ActionState.values().random(),

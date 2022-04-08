@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.model
 
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -23,6 +22,7 @@ sealed class Action(var type: ActionType) {
     abstract val createdAt: Instant
     abstract val lastUpdatedAt: Instant
     abstract val state: ActionState
+    abstract val actionAt: Instant,
     abstract val id: String
     abstract val version: Long?
 
@@ -37,14 +37,9 @@ data class BurnItemAction(
     override val createdAt: Instant,
     override val lastUpdatedAt: Instant,
     override val state: ActionState,
-    val burnAt: Instant,
+    override val actionAt: Instant,
     @Id
     override val id: String = ObjectId().toHexString(),
     @Version
     override val version: Long? = null,
-) : Action(ActionType.BURN) {
-
-    fun needBurn(): Boolean {
-        return nowMillis() >= burnAt
-    }
-}
+) : Action(ActionType.BURN)

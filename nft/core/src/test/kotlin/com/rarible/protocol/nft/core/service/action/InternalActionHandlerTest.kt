@@ -43,7 +43,7 @@ internal class InternalActionHandlerTest {
                 assertThat(it).isInstanceOf(BurnItemAction::class.java)
                 it as BurnItemAction
                 assertThat(it.itemId()).isEqualTo(event.itemId())
-                assertThat(it.burnAt).isEqualTo(event.burnAt)
+                assertThat(it.actionAt).isEqualTo(event.burnAt)
                 assertThat(it.lastUpdatedAt).isEqualTo(now)
                 assertThat(it.createdAt).isEqualTo(now)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
@@ -62,7 +62,7 @@ internal class InternalActionHandlerTest {
             tokenId = tokenId
         )
         val event = createRandomBurnItemActionEvent().copy(
-            burnAt = action.burnAt + Duration.ofDays(1),
+            burnAt = action.actionAt + Duration.ofDays(1),
             token = token,
             tokenId = tokenId
         )
@@ -79,7 +79,7 @@ internal class InternalActionHandlerTest {
                 assertThat(it.id).isEqualTo(action.id)
                 assertThat(it.version).isEqualTo(action.version)
                 assertThat(it.itemId()).isEqualTo(event.itemId())
-                assertThat(it.burnAt).isEqualTo(event.burnAt)
+                assertThat(it.actionAt).isEqualTo(event.burnAt)
                 assertThat(it.lastUpdatedAt).isEqualTo(now)
                 assertThat(it.createdAt).isEqualTo(action.createdAt)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
@@ -98,7 +98,7 @@ internal class InternalActionHandlerTest {
             tokenId = tokenId
         )
         val event = createRandomBurnItemActionEvent().copy(
-            burnAt = action.burnAt,
+            burnAt = action.actionAt,
             token = token,
             tokenId = tokenId
         )

@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Action
 import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.repository.action.NftItemActionRepositoryIndexes.ALL_INDEXES
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -23,6 +24,12 @@ import scalether.domain.Address
 class NftItemActionEventRepository(
     private val mongo: ReactiveMongoOperations
 ) {
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            mongo.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
+        }
+    }
+
     fun save(action: Action): Mono<Action> {
         return mongo.save(action, COLLECTION)
     }
