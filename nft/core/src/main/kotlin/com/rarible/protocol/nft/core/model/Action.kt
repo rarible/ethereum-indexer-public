@@ -22,7 +22,7 @@ sealed class Action(var type: ActionType) {
     abstract val createdAt: Instant
     abstract val lastUpdatedAt: Instant
     abstract val state: ActionState
-    abstract val actionAt: Instant,
+    abstract val actionAt: Instant
     abstract val id: String
     abstract val version: Long?
 
