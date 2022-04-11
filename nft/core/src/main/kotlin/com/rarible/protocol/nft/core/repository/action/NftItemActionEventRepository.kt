@@ -4,9 +4,12 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Action
+import com.rarible.protocol.nft.core.model.ActionState
 import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.action.NftItemActionRepositoryIndexes.ALL_INDEXES
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
@@ -14,10 +17,12 @@ import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lte
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import java.time.Instant
 
 @Component
 @CaptureSpan(type = SpanType.DB)
@@ -32,6 +37,14 @@ class NftItemActionEventRepository(
 
     fun save(action: Action): Mono<Action> {
         return mongo.save(action, COLLECTION)
+    }
+
+    suspend fun findPendingActions(actionAt: Instant): Flow<Action> {
+        val criteria = Criteria().andOperator(
+            Action::state isEqualTo ActionState.PENDING,
+            Action:: actionAt lte actionAt
+        )
+        return mongo.find<Action>(Query.query(criteria), COLLECTION).asFlow()
     }
 
     suspend fun findByItemIdAndType(itemId: ItemId, type: ActionType): List<Action> {
