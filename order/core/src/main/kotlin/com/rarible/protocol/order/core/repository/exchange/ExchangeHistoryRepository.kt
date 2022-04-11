@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHin
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -154,6 +155,11 @@ class ExchangeHistoryRepository(
             query.withHint(hint)
         }
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
+    }
+
+    fun findByIds(ids: List<ObjectId>): Flux<LogEvent> {
+        val query = Query(LogEvent::id inValues ids)
+        return template.find(query, LogEvent::class.java, COLLECTION)
     }
 
     // TODO remove later

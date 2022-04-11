@@ -128,6 +128,11 @@ class OrderVersionRepository(
         return template.remove(Query(criteria), COLLECTION).then()
     }
 
+    fun findByIds(ids: List<ObjectId>): Flux<OrderVersion> {
+        val query = Query(OrderVersion::id inValues ids)
+        return template.find(query, OrderVersion::class.java, COLLECTION)
+    }
+
     companion object {
         const val COLLECTION = "order_version"
         val logger: Logger = LoggerFactory.getLogger(OrderVersionRepository::class.java)

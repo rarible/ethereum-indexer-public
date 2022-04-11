@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivitiesDto
 import com.rarible.protocol.dto.AuctionActivityFilterDto
@@ -47,5 +48,18 @@ class AuctionActivityController(
         }
         val auctionActivities = AuctionActivitiesDto(nextContinuation, result)
         return ResponseEntity.ok(auctionActivities)
+    }
+
+    override suspend fun getAuctionActivitiesById(activitiesByIdRequestDto: ActivitiesByIdRequestDto): ResponseEntity<AuctionActivitiesDto> {
+        val result = auctionActivityService
+            .findByIds(activitiesByIdRequestDto.ids)
+            .mapNotNull {
+                when(it) {
+                    is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)
+                    is AuctionActivityResult.OffchainHistory -> auctionActivityConverter.convert(it.value)
+                }
+            }
+
+        return ResponseEntity.ok(AuctionActivitiesDto(null, result))
     }
 }

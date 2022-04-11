@@ -11,6 +11,7 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
@@ -76,6 +77,13 @@ class AuctionHistoryRepository(
         AuctionHistoryIndexes.ALL_INDEXES.forEach { index ->
             template.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
         }
+    }
+
+    fun findByIds(ids: List<String>): Flux<LogEvent> {
+        val query = Query(
+            LogEvent::id inValues ids.map { ObjectId(it) }
+        )
+        return template.find(query, LogEvent::class.java, COLLECTION)
     }
 
     private object AuctionHistoryIndexes {

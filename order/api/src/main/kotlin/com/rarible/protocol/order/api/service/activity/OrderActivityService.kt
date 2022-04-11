@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.model.ActivitySort
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import kotlinx.coroutines.reactive.awaitFirst
+import org.bson.types.ObjectId
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
@@ -39,5 +40,12 @@ class OrderActivityService(
             ActivityResult.comparator(sort),
             *(histories + versions).toTypedArray()
         ).take(size.toLong()).collectList().awaitFirst()
+    }
+
+    suspend fun findByIds(ids: List<ObjectId>) : List<OrderActivityResult> {
+        val histories = exchangeHistoryRepository.findByIds(ids).map { OrderActivityResult.History(it) }
+        val versions = orderVersionRepository.findByIds(ids).map { OrderActivityResult.Version(it) }
+
+        return Flux.merge(histories, versions).collectList().awaitFirst()
     }
 }

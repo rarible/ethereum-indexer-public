@@ -13,6 +13,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 
@@ -44,6 +45,13 @@ class AuctionOffchainHistoryRepository(
         AuctionOffchainIndexes.ALL_INDEXES.forEach { index ->
             template.indexOps(AuctionHistoryRepository.COLLECTION).ensureIndex(index).awaitFirst()
         }
+    }
+
+    fun findByIds(ids: List<String>): Flux<AuctionOffchainHistory> {
+        val query = Query(
+            AuctionOffchainHistory::id inValues ids
+        )
+        return template.find(query, COLLECTION)
     }
 
     private object AuctionOffchainIndexes {
