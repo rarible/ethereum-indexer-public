@@ -7,7 +7,20 @@ import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
 import com.rarible.protocol.contracts.common.wyvern.atomicizer.WyvernAtomicizer
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
+import com.rarible.protocol.order.core.model.OrderCancel
+import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
+import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.Transfer
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -42,7 +55,8 @@ class OpenSeaOrderEventConverter(
         price: BigInteger,
         date: Instant
     ): List<OrderSideMatch> {
-        val externalOrderExecutedOnRarible = openSeaOrders.externalOrderExecutedOnRarible
+        val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id.prefixed()
+        val origin = openSeaOrders.origin
         val buyOrder = openSeaOrders.buyOrder
         val buyOrderSide = getBuyOrderSide(openSeaOrders)
 
@@ -64,7 +78,7 @@ class OpenSeaOrderEventConverter(
         require(buyOrder.paymentToken == sellOrder.paymentToken) { "buy and sell payment token must equals" }
 
         val transfer = encodeTransfer(Binary.apply(sellCallData)) ?: return run {
-            logger.warn("Can't parse transefr for orders $openSeaOrders")
+            logger.warn("Can't parse transfer for orders $openSeaOrders")
             emptyList()
         }
         val nftAsset = createNftAsset(sellOrder.target, transfer)
@@ -98,6 +112,7 @@ class OpenSeaOrderEventConverter(
                 makePriceUsd = buyUsdValue?.makePriceUsd,
                 takePriceUsd = buyUsdValue?.takePriceUsd,
                 source = HistorySource.OPEN_SEA,
+                origin = origin,
                 externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
                 date = date,
                 adhoc = buyAdhoc,
@@ -118,6 +133,7 @@ class OpenSeaOrderEventConverter(
                 takeValue = prizeNormalizer.normalize(paymentAsset),
                 makePriceUsd = sellUsdValue?.makePriceUsd,
                 takePriceUsd = sellUsdValue?.takePriceUsd,
+                origin = origin,
                 externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
                 date = date,
                 source = HistorySource.OPEN_SEA,
