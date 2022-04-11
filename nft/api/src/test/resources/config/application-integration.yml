@@ -5,6 +5,7 @@ rarible:
         enabled: false
   loader:
     enableWorkers: true
+    broker-replica-set: ${kafka.hosts}
     retry:
       job:
         runner:
