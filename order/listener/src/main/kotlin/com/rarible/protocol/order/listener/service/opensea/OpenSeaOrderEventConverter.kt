@@ -55,7 +55,7 @@ class OpenSeaOrderEventConverter(
         price: BigInteger,
         date: Instant
     ): List<OrderSideMatch> {
-        val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id.prefixed()
+        val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id
         val origin = openSeaOrders.origin
         val buyOrder = openSeaOrders.buyOrder
         val buyOrderSide = getBuyOrderSide(openSeaOrders)

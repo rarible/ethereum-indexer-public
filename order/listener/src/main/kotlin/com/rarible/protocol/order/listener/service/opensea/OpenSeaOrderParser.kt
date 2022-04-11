@@ -110,7 +110,7 @@ class OpenSeaOrderParser(
         return OpenSeaMatchedOrders(
             buyOrder = buyOrder,
             sellOrder = sellOrder,
-            origin = origin?.prefixed()
+            origin = origin
         )
     }
 
