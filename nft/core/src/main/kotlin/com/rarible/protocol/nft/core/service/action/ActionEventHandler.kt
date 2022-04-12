@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.core.service.action
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.daemon.sequential.ConsumerEventHandler
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ActionState
 import com.rarible.protocol.nft.core.model.ActionType
@@ -19,7 +20,8 @@ import java.time.Clock
 @CaptureSpan(SpanType.APP)
 class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
-    private val clock: Clock
+    private val clock: Clock,
+    private val incomeBurnActionMetric: RegisteredCounter
 ) : ConsumerEventHandler<ActionEvent> {
 
     override suspend fun handle(event: ActionEvent) = when(event) {
@@ -55,6 +57,7 @@ class ActionEventHandler(
         }
         if (needSave) {
             nftItemActionEventRepository.save(burnAction).awaitFirst()
+            incomeBurnActionMetric.increment()
             logger.info("Save action for item ${event.itemId().decimalStringValue}: $burnAction")
         }
     }

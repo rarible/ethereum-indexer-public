@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.action.executor
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
@@ -10,7 +11,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class BurnActionExecutor(
-    private val reducer: ItemReduceService
+    private val reducer: ItemReduceService,
+    private val executedBurnActionMetric: RegisteredCounter
 ) : ActionExecutor<BurnItemAction> {
     override val type: ActionType = ActionType.BURN
 
@@ -18,6 +20,7 @@ class BurnActionExecutor(
         val itemId = reducer.update(token = action.token, tokenId = action.tokenId).awaitFirstOrNull()?.decimalStringValue
         if (itemId != null) {
             loader.info("Action burn for $itemId was executed")
+            executedBurnActionMetric.increment()
         } else {
             loader.error("Can't execute action for $itemId")
         }

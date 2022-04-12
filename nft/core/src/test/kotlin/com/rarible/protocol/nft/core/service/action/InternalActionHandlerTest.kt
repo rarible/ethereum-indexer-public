@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.action
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
@@ -25,7 +26,8 @@ import java.time.Instant
 internal class InternalActionHandlerTest {
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
     private val clock = mockk<Clock>()
-    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock)
+    private val registeredCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock, registeredCounter)
 
     @Test
     fun `should save a new burn action`() = runBlocking {
