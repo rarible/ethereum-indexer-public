@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.task.TaskHandler
-import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +17,7 @@ class ReduceTokensTaskHandler(
 ) : TaskHandler<String> {
 
     override val type: String
-        get() = ReduceTokenTaskParams.ADMIN_REDUCE_TOKEN
+        get() = "ADMIN_REDUCE_ALL_TOKENS"
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
         val params = from?.let { Address.apply(it) }
