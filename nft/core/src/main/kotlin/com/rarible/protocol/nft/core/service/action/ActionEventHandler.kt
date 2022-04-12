@@ -17,7 +17,7 @@ import java.time.Clock
 
 @Component
 @CaptureSpan(SpanType.APP)
-class InternalActionHandler(
+class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
     private val clock: Clock
 ) : ConsumerEventHandler<ActionEvent> {
@@ -60,6 +60,6 @@ class InternalActionHandler(
     }
 
     private companion object {
-        val logger: Logger = LoggerFactory.getLogger(InternalActionHandler::class.java)
+        val logger: Logger = LoggerFactory.getLogger(ActionEventHandler::class.java)
     }
 }

@@ -29,6 +29,8 @@ sealed class Action(var type: ActionType) {
     fun itemId(): ItemId {
         return ItemId(token, tokenId)
     }
+
+    abstract fun withState(state: ActionState): Action
 }
 
 data class BurnItemAction(
@@ -42,4 +44,9 @@ data class BurnItemAction(
     override val id: String = ObjectId().toHexString(),
     @Version
     override val version: Long? = null,
-) : Action(ActionType.BURN)
+) : Action(ActionType.BURN) {
+
+    override fun withState(state: ActionState): BurnItemAction {
+        return copy(state = state)
+    }
+}

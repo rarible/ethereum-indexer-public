@@ -9,13 +9,11 @@ internal object NftItemActionRepositoryIndexes {
         .on(Action::token.name, Sort.Direction.ASC)
         .on(Action::tokenId.name, Sort.Direction.ASC)
         .on(Action::type.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
         .background()
 
     private val BY_STATE_AND_ACTION_AT_DEFINITION: Index = Index()
         .on(Action::state.name, Sort.Direction.ASC)
         .on(Action::actionAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(

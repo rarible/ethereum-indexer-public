@@ -25,7 +25,7 @@ import java.time.Instant
 internal class InternalActionHandlerTest {
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
     private val clock = mockk<Clock>()
-    private val internalActionHandler = InternalActionHandler(nftItemActionEventRepository, clock)
+    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock)
 
     @Test
     fun `should save a new burn action`() = runBlocking {
