@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.action
+package com.rarible.protocol.nft.core.service.action.executor
 
 import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction

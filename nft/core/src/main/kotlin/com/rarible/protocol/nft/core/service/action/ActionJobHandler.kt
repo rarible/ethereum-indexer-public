@@ -1,15 +1,15 @@
-package com.rarible.protocol.nft.listener.job
+package com.rarible.protocol.nft.core.service.action
 
 import com.rarible.core.daemon.job.JobHandler
 import com.rarible.protocol.nft.core.model.Action
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
-import com.rarible.protocol.nft.core.service.action.ActionExecutor
+import com.rarible.protocol.nft.core.service.action.executor.ActionExecutor
 import kotlinx.coroutines.flow.collect
 import org.springframework.stereotype.Component
 import java.time.Clock
 
 @Component
-class ActionExecutorHandler(
+class ActionJobHandler(
     private val actionEventRepository: NftItemActionEventRepository,
     private val clock: Clock,
     actionExecutors: List<ActionExecutor<*>>
