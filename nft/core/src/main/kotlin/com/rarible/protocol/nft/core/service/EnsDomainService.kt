@@ -21,7 +21,7 @@ class EnsDomainService(
             // If attributes is empty we assume that this is expired item, so burn it now
             clock.instant()
         } else {
-            val expirationProperty = attributes.firstOrNull { it.key == EXPIRATION_DATE_PROPERTY }?.value
+            val expirationProperty = getExpirationProperty(this)
             Instant.parse(expirationProperty)
         }
         return BurnItemActionEvent(
@@ -29,6 +29,10 @@ class EnsDomainService(
             tokenId = itemId.tokenId,
             burnAt = burnAt,
         )
+    }
+
+    fun getExpirationProperty(properties: ItemProperties): String? {
+        return  properties.attributes.firstOrNull { it.key == EXPIRATION_DATE_PROPERTY }?.value
     }
 
     companion object {
