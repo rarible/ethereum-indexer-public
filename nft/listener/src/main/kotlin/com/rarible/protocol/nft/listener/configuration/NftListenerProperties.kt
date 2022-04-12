@@ -17,5 +17,11 @@ data class NftListenerProperties(
     val monitoringWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val eventConsumerWorker: DaemonWorkerProperties = DaemonWorkerProperties(),
     val enableCheckDataQualityJob: Boolean = false,
-    var elementsFetchJobSize: Int = 1000
+    var elementsFetchJobSize: Int = 1000,
+    val actionExecute: ActionExecuteProperties = ActionExecuteProperties()
+)
+
+data class ActionExecuteProperties(
+    val enabled: Boolean = false,
+    val daemon: DaemonWorkerProperties = DaemonWorkerProperties()
 )
