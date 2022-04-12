@@ -42,7 +42,7 @@ class NftItemActionEventRepository(
     fun findPendingActions(actionAt: Instant): Flow<Action> {
         val criteria = Criteria().andOperator(
             Action::state isEqualTo ActionState.PENDING,
-            Action:: actionAt lte actionAt
+            Action::actionAt lte actionAt
         )
         return mongo.find<Action>(Query.query(criteria), COLLECTION).asFlow()
     }
