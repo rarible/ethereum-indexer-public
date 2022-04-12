@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.listener.job
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.daemon.job.JobDaemonWorker
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
@@ -12,6 +13,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.EnsDomainService
@@ -38,8 +40,11 @@ internal class BurnActionExecutorFt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var reduceService: ItemReduceService
 
+    @Autowired
+    private lateinit var actionExecutorWorker: JobDaemonWorker
+
     @Test
-    fun `should execute burn action for ens domain`() = runBlocking<Unit> {
+    fun `should execute burn action for ens domain`() = withReducer(ReduceVersion.V1) {
         val expirationDate = "1970-04-01T17:26:15Z"
 
         val owner = AddressFactory.create()
@@ -70,11 +75,13 @@ internal class BurnActionExecutorFt : AbstractIntegrationTest() {
             )
         )
         endDoomainService.onGetProperties(itemId, properties)
+        actionExecutorWorker.start()
 
         Wait.waitAssert {
             val updatedItem = itemRepository.findById(itemId).awaitFirst()
             assertThat(updatedItem.deleted).isTrue()
         }
+        actionExecutorWorker.close()
     }
 
     suspend fun saveItemHistory(data: ItemHistory): ItemHistory {

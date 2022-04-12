@@ -12,7 +12,7 @@ import java.time.Clock
 class ActionExecutorHandler(
     private val actionEventRepository: NftItemActionEventRepository,
     private val clock: Clock,
-    actionExecutors: List<ActionExecutor<Action>>
+    actionExecutors: List<ActionExecutor<*>>
 ) : JobHandler {
     private val executors = actionExecutors.groupBy { it.type }
 
@@ -22,7 +22,10 @@ class ActionExecutorHandler(
             val foundExecutors = requireNotNull(executors[action.type]) {
                 "Can't find any action executors for ${action.type}, action=$action"
             }
-            foundExecutors.forEach { executor -> executor.execute(action) }
+            foundExecutors.forEach { executor ->
+                @Suppress("UNCHECKED_CAST")
+                (executor as ActionExecutor<Action>).execute(action)
+            }
         }
     }
 }

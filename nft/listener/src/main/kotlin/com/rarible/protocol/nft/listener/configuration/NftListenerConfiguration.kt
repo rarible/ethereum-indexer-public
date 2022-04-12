@@ -64,7 +64,7 @@ class NftListenerConfiguration(
     }
 
     @Bean
-    fun actionWorker(internalActionHandler: InternalActionHandler): ConsumerWorkerHolder<ActionEvent> {
+    fun actionConsumerWorker(internalActionHandler: InternalActionHandler): ConsumerWorkerHolder<ActionEvent> {
         logger.info("Creating batch of ${nftIndexerProperties.actionWorkersCount} action workers")
         val workers = (1..nftIndexerProperties.actionWorkersCount).map {
             ConsumerWorker(
@@ -93,11 +93,9 @@ class NftListenerConfiguration(
     }
 
     @Bean
-    fun actionExecutorWorkerStarter(actionExecutorWorker: JobDaemonWorker): CommandLineRunner {
+    fun actionConsumerWorkerStarter(actionConsumerWorker: ConsumerWorkerHolder<ActionEvent>): CommandLineRunner {
         return CommandLineRunner {
-            if (nftListenerProperties.actionExecute.enabled) {
-                actionExecutorWorker.start()
-            }
+            actionConsumerWorker.start()
         }
     }
 

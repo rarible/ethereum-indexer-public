@@ -36,9 +36,9 @@ api:
 
 listener:
   action-execute:
-    enabled: true
+    enabled: false
     daemon:
-      polling-period: PT0.05
+      polling-period: 1000ms
 
 common:
   kafka-replica-set: ${kafka.hosts}
