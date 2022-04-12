@@ -39,7 +39,7 @@ class NftItemActionEventRepository(
         return mongo.save(action, COLLECTION)
     }
 
-    suspend fun findPendingActions(actionAt: Instant): Flow<Action> {
+    fun findPendingActions(actionAt: Instant): Flow<Action> {
         val criteria = Criteria().andOperator(
             Action::state isEqualTo ActionState.PENDING,
             Action:: actionAt lte actionAt
