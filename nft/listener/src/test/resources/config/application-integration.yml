@@ -34,6 +34,12 @@ api:
   royalty:
     cache-timeout: 600000 # 10 min
 
+listener:
+  action-execute:
+    enabled: false
+    daemon:
+      polling-period: 1000ms
+
 common:
   kafka-replica-set: ${kafka.hosts}
   basePublicApiUrl: "http://localhost:8080/"

@@ -25,6 +25,7 @@ data class NftIndexerProperties(
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
     val nftCollectionMetaExtenderWorkersCount: Int = 4,
+    val actionWorkersCount: Int = 4,
     val confirmationBlocks: Int = 12,
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,

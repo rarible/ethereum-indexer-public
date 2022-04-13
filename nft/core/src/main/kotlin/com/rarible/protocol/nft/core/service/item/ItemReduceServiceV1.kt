@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryLog
@@ -21,6 +22,7 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
+import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
@@ -28,6 +30,7 @@ import com.rarible.protocol.nft.core.service.RoyaltyService
 import com.rarible.protocol.nft.core.service.ownership.OwnershipService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -46,6 +49,7 @@ class ItemReduceServiceV1(
     private val ownershipService: OwnershipService,
     private val historyRepository: NftItemHistoryRepository,
     private val lazyHistoryRepository: LazyNftItemHistoryRepository,
+    private val nftItemActionEventRepository: NftItemActionEventRepository,
     private val itemCreatorService: ItemCreatorService,
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
@@ -104,6 +108,7 @@ class ItemReduceServiceV1(
         byItem
             .reduce(initial, mutableMapOf(), this::itemReducer, this::ownershipsReducer)
             .flatMap { royalty(it) }
+            .flatMap { reduceActions(it) }
             .flatMap { (item, ownerships) ->
                 if (item.token != Address.ZERO()) {
                     val fixed = fixOwnerships(ownerships.values)
@@ -124,6 +129,23 @@ class ItemReduceServiceV1(
                     Mono.empty()
                 }
             }
+
+    private fun reduceActions(initial: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
+        val item = initial.first
+        val actions = nftItemActionEventRepository.find(item.token, item.tokenId).collectList().awaitFirst()
+
+        actions.fold(initial) { acc, action ->
+            when (action) {
+                is BurnItemAction -> {
+                    acc.first to acc.second.mapValues { (_, ownership) ->
+                        val value = ownership.value
+                        val updatedValue = if (value > EthUInt256.ZERO) value - EthUInt256.ONE else value
+                        ownership.copy(value = updatedValue)
+                    }
+                }
+            }
+        }
+    }
 
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = pair.first

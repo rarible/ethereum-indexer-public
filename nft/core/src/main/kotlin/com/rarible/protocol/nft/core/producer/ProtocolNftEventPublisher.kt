@@ -15,6 +15,9 @@ import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.nft.core.model.Action
+import com.rarible.protocol.nft.core.model.ActionEvent
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.collect
 import org.slf4j.LoggerFactory
@@ -27,19 +30,14 @@ class ProtocolNftEventPublisher(
     private val internalCollectionEventsProducer: RaribleKafkaProducer<NftCollectionEventDto>,
     private val itemEventsProducer: RaribleKafkaProducer<NftItemEventDto>,
     private val ownershipEventProducer: RaribleKafkaProducer<NftOwnershipEventDto>,
-    private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>
+    private val nftItemActivityProducer: RaribleKafkaProducer<ActivityDto>,
+    private val actionProducer: RaribleKafkaProducer<ActionEvent>
 ) {
-    private val collectionEventHeaders = mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
-    private val itemEventHeaders = mapOf("protocol.item.event.version" to NftItemEventTopicProvider.VERSION)
-    private val ownershipEventHeaders =
-        mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
-    private val itemActivityHeaders = mapOf("protocol.item.activity.version" to ActivityTopicProvider.VERSION)
-
     suspend fun publish(event: NftCollectionEventDto) {
         val message = KafkaMessage(
             key = event.id.hex(),
             value = event,
-            headers = collectionEventHeaders,
+            headers = COLLECTION_EVENT_HEADERS,
             id = event.eventId
         )
         collectionEventsProducer.send(message).ensureSuccess()
@@ -50,7 +48,7 @@ class ProtocolNftEventPublisher(
         val message = KafkaMessage(
             key = event.id.hex(),
             value = event,
-            headers = collectionEventHeaders,
+            headers = COLLECTION_EVENT_HEADERS,
             id = event.eventId
         )
         internalCollectionEventsProducer.send(message).ensureSuccess()
@@ -61,7 +59,7 @@ class ProtocolNftEventPublisher(
         val message = KafkaMessage(
             key = event.itemId,
             value = event,
-            headers = itemEventHeaders,
+            headers = ITEM_EVENT_HEADERS,
             id = event.eventId
         )
         itemEventsProducer.send(message).ensureSuccess()
@@ -89,11 +87,23 @@ class ProtocolNftEventPublisher(
         val message = KafkaMessage(
             key = itemId,
             value = event as ActivityDto,
-            headers = itemActivityHeaders,
+            headers = ITEM_ACTIVITY_HEADERS,
             id = itemId
         )
         nftItemActivityProducer.send(message).ensureSuccess()
         logger.info("Sent item activity event ${event.id}: $event")
+    }
+
+    suspend fun publish(event: ActionEvent) {
+        val itemId = ItemId(event.token, event.tokenId)
+        val message = KafkaMessage(
+            key = itemId.stringValue,
+            value = event,
+            headers = ACTION_HEADERS,
+            id = itemId.stringValue
+        )
+        actionProducer.send(message).ensureSuccess()
+        logger.info("Sent action event for ${itemId.decimalStringValue}: $event")
     }
 
     private fun prepareOwnershipKafkaMessage(event: NftOwnershipEventDto): KafkaMessage<NftOwnershipEventDto> {
@@ -103,13 +113,9 @@ class ProtocolNftEventPublisher(
         return KafkaMessage(
             key = itemId,
             value = event,
-            headers = ownershipEventHeaders,
+            headers = OWNERSHIP_EVENT_HEADERS,
             id = event.eventId
         )
-    }
-
-    private companion object {
-        private val logger = LoggerFactory.getLogger(ProtocolNftEventPublisher::class.java)
     }
 
     private fun NftItemEventDto.toShort() =
@@ -118,4 +124,13 @@ class ProtocolNftEventPublisher(
             is NftItemDeleteEventDto -> this
         }
 
+    private companion object {
+        private val logger = LoggerFactory.getLogger(ProtocolNftEventPublisher::class.java)
+
+        val COLLECTION_EVENT_HEADERS = mapOf("protocol.collection.event.version" to NftCollectionEventTopicProvider.VERSION)
+        val ITEM_EVENT_HEADERS = mapOf("protocol.item.event.version" to NftItemEventTopicProvider.VERSION)
+        val OWNERSHIP_EVENT_HEADERS = mapOf("protocol.ownership.event.version" to NftOwnershipEventTopicProvider.VERSION)
+        val ITEM_ACTIVITY_HEADERS = mapOf("protocol.item.activity.version" to ActivityTopicProvider.VERSION)
+        val ACTION_HEADERS = mapOf("protocol.item.internal.action.version" to InternalTopicProvider.VERSION)
+    }
 }

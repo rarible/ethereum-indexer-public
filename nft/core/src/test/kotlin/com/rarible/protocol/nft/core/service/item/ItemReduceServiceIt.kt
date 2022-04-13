@@ -10,8 +10,11 @@ import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
+import com.rarible.protocol.nft.core.data.createRandomBurnAction
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.model.ActionState
+import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -24,12 +27,16 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository.Companion.COLLECTION
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
@@ -63,6 +70,9 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
+    @Autowired
+    private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
 
     @BeforeEach
     fun setUpMeta() {
@@ -937,6 +947,46 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
         val realItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(realItem.royalties).isEqualTo(realRoyalties)
+    }
+
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should burn item by action`(version: ReduceVersion) = withReducer(ReduceVersion.V1) {
+        val owner = AddressFactory.create()
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+        val blockTimestamp = Instant.ofEpochSecond(12)
+
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        )
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
+        val burnAction = createRandomBurnAction().copy(
+            token = token,
+            tokenId = tokenId
+        )
+        nftItemActionEventRepository.save(burnAction).awaitFirst()
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.supply).isEqualTo(EthUInt256.ZERO)
+        assertThat(item.deleted).isTrue()
+        val ownershipFilter = OwnershipFilterByItem(
+            sort = OwnershipFilter.Sort.LAST_UPDATE,
+            contract = token,
+            tokenId = tokenId.value
+        )
+        val ownerships = ownershipRepository.search(ownershipFilter.toCriteria(null, null))
+        assertThat(ownerships).hasSize(0)
     }
 
     private val itemMeta = ItemMeta(

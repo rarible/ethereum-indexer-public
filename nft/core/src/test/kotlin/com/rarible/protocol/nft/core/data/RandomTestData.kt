@@ -11,10 +11,14 @@ import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.model.ActionState
+import com.rarible.protocol.nft.core.model.BurnItemAction
+import com.rarible.protocol.nft.core.model.BurnItemActionEvent
 import com.rarible.protocol.nft.core.model.EventData
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
@@ -316,5 +320,49 @@ fun randomReversedLogRecord(data: EventData, log: EthereumLog): ReversedEthereum
         log = log,
         version = null,
         data = data
+    )
+}
+
+fun createRandomBurnAction(): BurnItemAction {
+    return BurnItemAction(
+        token= randomAddress(),
+        tokenId = EthUInt256.Companion.of(randomBigInt()),
+        createdAt = nowMillis(),
+        lastUpdatedAt = nowMillis(),
+        state = ActionState.values().random(),
+        actionAt = nowMillis()
+    )
+}
+
+fun createRandomItemProperties(): ItemProperties {
+    return ItemProperties(
+        name = randomString(),
+        description = randomString(),
+        image = randomString(),
+        imagePreview = randomString(),
+        imageBig = randomString(),
+        animationUrl = randomString(),
+        attributes = emptyList(),
+        rawJsonContent = randomString()
+    )
+}
+
+fun createRandomBurnItemActionEvent(): BurnItemActionEvent {
+    return BurnItemActionEvent(
+        token = randomAddress(),
+        tokenId = EthUInt256.of(randomBigInt()),
+        burnAt = Instant.now()
+    )
+}
+
+fun createRandomBurnItemAction(): BurnItemAction {
+    return BurnItemAction(
+        token = randomAddress(),
+        tokenId = EthUInt256.of(randomBigInt()),
+        actionAt = Instant.now(),
+        lastUpdatedAt = Instant.now(),
+        createdAt = Instant.now(),
+        state = ActionState.values().random(),
+        version = randomLong()
     )
 }

@@ -3,28 +3,27 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 
-
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class EnsDomainsPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
+    private val ensDomainService: EnsDomainService,
     nftIndexerProperties: NftIndexerProperties,
 ) : ItemPropertiesResolver {
 
@@ -32,6 +31,7 @@ class EnsDomainsPropertiesResolver(
         private val logger = LoggerFactory.getLogger(EnsDomainsPropertiesResolver::class.java)
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
+
         val PROPERTIES_NOT_FOUND = ItemProperties(
             name = "Not found",
             description = null,
@@ -53,7 +53,7 @@ class EnsDomainsPropertiesResolver(
         if (itemId.token != contractAddress) {
             return null
         }
-        return LoggingUtils.withMarker { marker ->
+        val properties = LoggingUtils.withMarker { marker ->
             logger.info(marker, "get EnsDomains properties ${itemId.tokenId.value}")
 
             externalHttpClient.get("${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}")
@@ -88,5 +88,7 @@ class EnsDomainsPropertiesResolver(
                     }
                 }
         }.awaitFirstOrNull()
+
+        return properties?.also { ensDomainService.onGetProperties(itemId, it) }
     }
 }
