@@ -93,6 +93,15 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    fun actionExecutorWorkerStarter(actionExecutorWorker: JobDaemonWorker): CommandLineRunner {
+        return CommandLineRunner {
+            if (nftListenerProperties.actionExecute.enabled) {
+                actionExecutorWorker.start()
+            }
+        }
+    }
+
+    @Bean
     fun actionConsumerWorkerStarter(actionConsumerWorker: ConsumerWorkerHolder<ActionEvent>): CommandLineRunner {
         return CommandLineRunner {
             actionConsumerWorker.start()
