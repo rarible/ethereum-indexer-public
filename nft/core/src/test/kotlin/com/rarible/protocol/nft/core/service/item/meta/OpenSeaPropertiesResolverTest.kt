@@ -25,7 +25,7 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
             openseaApiKey = "",
             readTimeout = 10000,
             connectTimeout = 3000,
-            proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL")
+            proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
         )
     }
 
