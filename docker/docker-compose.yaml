@@ -2,7 +2,7 @@
 
 services:
 
-  protocol-ethereum-gateway:
+  local-ethereum-gateway:
     build:
       context: ../gateway
       dockerfile: ../docker/Dockerfile
@@ -17,10 +17,11 @@ services:
       - SPRING_CLOUD_SERVICEREGISTRY_AUTOREGISTRATION_ENABLED=$SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED
       - SPRING_CLOUD_DISCOVERY_ENABLED=$SPRING_CLOUD_DISCOVERY_ENABLED
       - GATEWAY_BLOCKCHAIN=$GATEWAY_BLOCKCHAIN
+      - RARIBLE_CORE_NGINX-EXPOSE_SERVER=$GATEWAY_NGINX_EXPOSE
     ports:
-      - "${NFT_COMMON_EXPOSE_PORT}:8080"
+      - "${GATE_EXPOSE_PORT}:8080"
 
-  local-protocol-ethereum-nft-api:
+  local-ethereum-nft-api:
     build:
       context: ../nft/api
       dockerfile: ../../docker/Dockerfile
@@ -56,7 +57,7 @@ services:
       - API_OPERATOR_PRIVATE_KEY=$API_OPERATOR_PRIVATE_KEY
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
 
-  local-protocol-ethereum-nft-listener:
+  local-ethereum-nft-listener:
     build:
       context: ../nft/listener
       dockerfile: ../../docker/Dockerfile
@@ -93,7 +94,7 @@ services:
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
       - BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCH-LOAD_BATCH-SIZE=$NFT_BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCH_LOAD_BATCH_SIZE
 
-  local-protocol-ethereum-nft-migration:
+  local-ethereum-nft-migration:
     build:
       context: ../nft/migration
       dockerfile: ../../docker/Dockerfile
@@ -127,7 +128,7 @@ services:
       - COMMON_BLOCKCHAIN=$NFT_COMMON_BLOCKCHAIN
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
 
-  local-protocol-ethereum-erc20-api:
+  local-ethereum-erc20-api:
     build:
       context: ../erc20/api
       dockerfile: ../../docker/Dockerfile
@@ -152,7 +153,7 @@ services:
       - COMMON_KAFKA_REPLICA_SET=$KAFKA_CONNECTION_STRING
       - API_BLOCKCHAIN=$ERC20_COMMON_BLOCKCHAIN
 
-  local-protocol-ethereum-erc20-listener:
+  local-ethereum-erc20-listener:
     build:
       context: ../erc20/listener
       dockerfile: ../../docker/Dockerfile
@@ -179,7 +180,7 @@ services:
       - COMMON_KAFKA_REPLICA_SET=$KAFKA_CONNECTION_STRING
       - LISTENER_BLOCKCHAIN=$ERC20_COMMON_BLOCKCHAIN
 
-  local-protocol-ethereum-order-api:
+  local-ethereum-order-api:
     build:
       context: ../order/api
       dockerfile: ../../docker/Dockerfile
@@ -219,7 +220,7 @@ services:
       - COMMON_OPERATOR-PRIVATE-KEY=$ORDER_COMMON_OPERATOR_PRIVATE_KEY
       - COMMON_PROTOCOL-COMMISSION=$ORDER_COMMON_PROTOCOL_COMMISSION
 
-  local-protocol-ethereum-order-listener:
+  local-ethereum-order-listener:
     build:
       context: ../order/listener
       dockerfile: ../../docker/Dockerfile
