@@ -2,7 +2,25 @@
 
 services:
 
-  protocol-ethereum-nft-api:
+  protocol-ethereum-gateway:
+    build:
+      context: ../gateway
+      dockerfile: ../docker/Dockerfile
+    image: protocol-ethereum-gateway
+    environment:
+      - JAVA_OPTIONS=-Xmx$PROTOCOL_NFT_API_HEAP -Xms$PROTOCOL_NFT_API_HEAP -XX:MaxDirectMemorySize=$PROTOCOL_NFT_API_DIRECT_MEMORY
+      - APPLICATION_ENVIRONMENT=$APPLICATION_ENVIRONMENT
+      - SPRING_PROFILES_ACTIVE=$APPLICATION_ENVIRONMENT
+      - LOGGING_LOGSTASH_TCP-SOCKET_ENABLED=$LOGGING_LOGSTASH_TCP_SOCKET_ENABLED
+      - SPRING_CLOUD_CONSUL_CONFIG_ENABLED=$SPRING_CLOUD_CONSUL_CONFIG_ENABLED
+      - SPRING_CLOUD_BOOTSTRAP_ENABLED=$SPRING_CLOUD_BOOTSTRAP_ENABLED
+      - SPRING_CLOUD_SERVICEREGISTRY_AUTOREGISTRATION_ENABLED=$SPRING_CLOUD_SERVICE_REGISTRY_AUTO_REGISTRATION_ENABLED
+      - SPRING_CLOUD_DISCOVERY_ENABLED=$SPRING_CLOUD_DISCOVERY_ENABLED
+      - GATEWAY_BLOCKCHAIN=$GATEWAY_BLOCKCHAIN
+    ports:
+      - "${NFT_COMMON_EXPOSE_PORT}:8080"
+
+  local-protocol-ethereum-nft-api:
     build:
       context: ../nft/api
       dockerfile: ../../docker/Dockerfile
@@ -18,8 +36,8 @@ services:
       - SPRING_CLOUD_DISCOVERY_ENABLED=$SPRING_CLOUD_DISCOVERY_ENABLED
       - SPRING_DATA_MONGODB_URI=$MONGO_CONNECTION_STRING
       - SPRING_DATA_MONGODB_DATABASE=$NFT_COMMON_DATABASE
-      - RARIBLE_ETHEREUM_HTTPURL=$RARIBLE_ETHEREUM_HTTP-URL
-      - RARIBLE_ETHEREUM_WEBSOCKETURL=$RARIBLE_ETHEREUM_WEBSOCKET-URL
+      - RARIBLE_ETHEREUM_HTTPURL=$RARIBLE_ETHEREUM_HTTP_URL
+      - RARIBLE_ETHEREUM_WEBSOCKETURL=$RARIBLE_ETHEREUM_WEBSOCKET_URL
       - RARIBLE_LOADER_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
       - RARIBLE_CORE_APM_AGENT_ENABLED=$RARIBLE_CORE_APM_AGENT_ENABLED
       - RARIBLE_CORE_APM_WEB_ENABLED=$RARIBLE_CORE_APM_WEB_ENABLED
@@ -37,10 +55,8 @@ services:
       - API_CHAIN_ID=$API_CHAIN_ID
       - API_OPERATOR_PRIVATE_KEY=$API_OPERATOR_PRIVATE_KEY
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
-    ports:
-      - "${NFT_COMMON_EXPOSE_PORT}:8080"
 
-  protocol-ethereum-nft-listener:
+  local-protocol-ethereum-nft-listener:
     build:
       context: ../nft/listener
       dockerfile: ../../docker/Dockerfile
@@ -77,7 +93,7 @@ services:
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
       - BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCH-LOAD_BATCH-SIZE=$NFT_BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCH_LOAD_BATCH_SIZE
 
-  protocol-ethereum-nft-migration:
+  local-protocol-ethereum-nft-migration:
     build:
       context: ../nft/migration
       dockerfile: ../../docker/Dockerfile
@@ -111,7 +127,7 @@ services:
       - COMMON_BLOCKCHAIN=$NFT_COMMON_BLOCKCHAIN
       - BLOCKCHAIN_SCANNER_KAFKA_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
 
-  protocol-ethereum-erc20-api:
+  local-protocol-ethereum-erc20-api:
     build:
       context: ../erc20/api
       dockerfile: ../../docker/Dockerfile
@@ -127,18 +143,16 @@ services:
       - SPRING_CLOUD_DISCOVERY_ENABLED=$SPRING_CLOUD_DISCOVERY_ENABLED
       - SPRING_DATA_MONGODB_URI=$MONGO_CONNECTION_STRING
       - SPRING_DATA_MONGODB_DATABASE=$ERC20_COMMON_DATABASE
-      - RARIBLE_ETHEREUM_HTTPURL=$RARIBLE_ETHEREUM_HTTP-URL
-      - RARIBLE_ETHEREUM_WEBSOCKETURL=$RARIBLE_ETHEREUM_WEBSOCKET-URL
+      - RARIBLE_ETHEREUM_HTTPURL=$RARIBLE_ETHEREUM_HTTP_URL
+      - RARIBLE_ETHEREUM_WEBSOCKETURL=$RARIBLE_ETHEREUM_WEBSOCKET_URL
       - RARIBLE_LOADER_BROKER-REPLICA-SET=$KAFKA_CONNECTION_STRING
       - RARIBLE_CORE_APM_AGENT_ENABLED=$RARIBLE_CORE_APM_AGENT_ENABLED
       - RARIBLE_CORE_APM_WEB_ENABLED=$RARIBLE_CORE_APM_WEB_ENABLED
       - RARIBLE_CORE_APM_ANNOTATION_ENABLED=$RARIBLE_CORE_APM_ANNOTATION_ENABLED
       - COMMON_KAFKA_REPLICA_SET=$KAFKA_CONNECTION_STRING
       - API_BLOCKCHAIN=$ERC20_COMMON_BLOCKCHAIN
-    ports:
-      - "${ERC20_COMMON_EXPOSE_PORT}:8080"
 
-  protocol-ethereum-erc20-listener:
+  local-protocol-ethereum-erc20-listener:
     build:
       context: ../erc20/listener
       dockerfile: ../../docker/Dockerfile
@@ -165,7 +179,7 @@ services:
       - COMMON_KAFKA_REPLICA_SET=$KAFKA_CONNECTION_STRING
       - LISTENER_BLOCKCHAIN=$ERC20_COMMON_BLOCKCHAIN
 
-  protocol-ethereum-order-api:
+  local-protocol-ethereum-order-api:
     build:
       context: ../order/api
       dockerfile: ../../docker/Dockerfile
@@ -204,10 +218,8 @@ services:
       - COMMON_CHAIN-ID=$ORDER_COMMON_CHAIN_ID
       - COMMON_OPERATOR-PRIVATE-KEY=$ORDER_COMMON_OPERATOR_PRIVATE_KEY
       - COMMON_PROTOCOL-COMMISSION=$ORDER_COMMON_PROTOCOL_COMMISSION
-    ports:
-      - "${ORDER_COMMON_EXPOSE_PORT}:8080"
 
-  protocol-ethereum-order-listener:
+  local-protocol-ethereum-order-listener:
     build:
       context: ../order/listener
       dockerfile: ../../docker/Dockerfile
