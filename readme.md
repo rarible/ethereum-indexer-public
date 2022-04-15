@@ -30,6 +30,7 @@ The recommended requirements for running the Indexer via Docker Compose are list
     * [Windows](https://maven.apache.org/download.cgi)
     * [macOS M1](https://dev.to/shane/configure-m1-mac-to-use-jdk8-with-maven-4b4g)
 * [Docker](https://docs.docker.com/desktop/)
+    * After installation, turn on _Use Docker Compose V2_ in the Settings > General
 
 ### Get started
 
