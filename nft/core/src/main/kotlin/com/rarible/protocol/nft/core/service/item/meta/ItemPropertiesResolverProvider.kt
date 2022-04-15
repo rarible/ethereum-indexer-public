@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertie
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
 import org.springframework.beans.factory.annotation.Autowired
@@ -27,7 +28,8 @@ class ItemPropertiesResolverProvider(
     cryptoPunksResolver: CryptoPunksPropertiesResolver,
     ensDomainsPropertiesResolver: EnsDomainsPropertiesResolver,
     hashmasksPropertiesResolver: HashmasksPropertiesResolver,
-    lazyItemPropertiesResolver: LazyItemPropertiesResolver
+    lazyItemPropertiesResolver: LazyItemPropertiesResolver,
+    stonerCatsPropertiesResolver: StonerCatsPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -46,6 +48,7 @@ class ItemPropertiesResolverProvider(
         mutantsBoredApeYachtClubPropertiesResolver,
         lootResolver,
         lazyItemPropertiesResolver,
+        stonerCatsPropertiesResolver,
         raribleResolver
     )
 }
