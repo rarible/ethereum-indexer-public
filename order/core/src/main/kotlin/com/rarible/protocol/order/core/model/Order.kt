@@ -44,6 +44,7 @@ data class Order(
 
     val createdAt: Instant,
     val lastUpdateAt: Instant,
+    val dbUpdatedAt: Instant = nowMillis(),
 
     val pending: List<OrderExchangeHistory> = emptyList(),
 

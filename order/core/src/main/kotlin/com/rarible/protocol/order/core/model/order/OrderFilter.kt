@@ -42,13 +42,15 @@ sealed class OrderFilter {
 
     abstract fun toQuery(continuation: String?, limit: Int): Query
 
-    open fun toContinuation(order: Order) = when (sort) {
-        OrderFilterSort.LAST_UPDATE_DESC -> {
+    open fun toContinuation(order: Order): String = when (sort) {
+
+        OrderFilterSort.LAST_UPDATE_DESC,
+        OrderFilterSort.LAST_UPDATE_ASC,
+        OrderFilterSort.DB_UPDATE_DESC,
+        OrderFilterSort.DB_UPDATE_ASC -> {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }
-        OrderFilterSort.LAST_UPDATE_ASC -> {
-            Continuation.LastDate(order.lastUpdateAt, order.hash)
-        }
+
         OrderFilterSort.TAKE_PRICE_DESC -> {
             order.takePriceUsd?.let {
                 logger.warn("Using deprecated field ${Order::takePriceUsd.name} for sorting")
@@ -68,6 +70,16 @@ sealed class OrderFilter {
             OrderFilterSort.LAST_UPDATE_ASC -> Sort.by(
                 Sort.Direction.ASC,
                 Order::lastUpdateAt.name,
+                Order::hash.name
+            )
+            OrderFilterSort.DB_UPDATE_ASC -> Sort.by(
+                Sort.Direction.ASC,
+                Order::dbUpdatedAt.name,
+                Order::hash.name
+            )
+            OrderFilterSort.DB_UPDATE_DESC -> Sort.by(
+                Sort.Direction.DESC,
+                Order::dbUpdatedAt.name,
                 Order::hash.name
             )
             else -> Sort.by(
@@ -106,6 +118,8 @@ sealed class OrderFilter {
 enum class OrderFilterSort {
     LAST_UPDATE_DESC,
     LAST_UPDATE_ASC,
+    DB_UPDATE_DESC,
+    DB_UPDATE_ASC,
     TAKE_PRICE_DESC,
     MAKE_PRICE_ASC
 }
@@ -205,6 +219,30 @@ fun Criteria.scrollTo(continuation: String?, sort: OrderFilterSort) = when (sort
                 Order::lastUpdateAt lt c.afterDate,
                 Criteria().andOperator(
                     Order::lastUpdateAt isEqualTo c.afterDate,
+                    Order::hash lt c.afterId
+                )
+            )
+        }
+    }
+    OrderFilterSort.DB_UPDATE_ASC -> {
+        val dbDate = Continuation.parse<Continuation.LastDate>(continuation)
+        dbDate?.let { c ->
+            this.orOperator(
+                Order::dbUpdatedAt gt c.afterDate,
+                Criteria().andOperator(
+                    Order::dbUpdatedAt isEqualTo c.afterDate,
+                    Order::hash gt c.afterId
+                )
+            )
+        }
+    }
+    OrderFilterSort.DB_UPDATE_DESC -> {
+        val dbtDate = Continuation.parse<Continuation.LastDate>(continuation)
+        dbtDate?.let { c ->
+            this.orOperator(
+                Order::dbUpdatedAt lt c.afterDate,
+                Criteria().andOperator(
+                    Order::dbUpdatedAt isEqualTo c.afterDate,
                     Order::hash lt c.afterId
                 )
             )

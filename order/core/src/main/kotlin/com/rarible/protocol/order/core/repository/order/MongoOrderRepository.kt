@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
@@ -68,7 +69,7 @@ class MongoOrderRepository(
     }
 
     override suspend fun save(order: Order): Order {
-        return template.save(order).awaitFirst()
+        return template.save(order.copy(dbUpdatedAt = nowMillis())).awaitFirst()
     }
 
     override suspend fun findById(hash: Word): Order? {
