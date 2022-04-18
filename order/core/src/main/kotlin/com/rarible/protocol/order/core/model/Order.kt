@@ -141,6 +141,10 @@ data class Order(
         return copy(status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data))
     }
 
+    fun withRefreshedDbUpdatedField(): Order{
+        return copy(dbUpdatedAt = nowMillis())
+    }
+
     fun isEnded() = Companion.isEnded(end)
 
     fun isLegacyOpenSea(exchange: Address): Boolean {
