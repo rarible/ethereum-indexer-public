@@ -36,7 +36,7 @@ class ForwardCreatorsItemReducer(
                     entity.creators
                 }
                 entity.copy(
-                    mintedAt = event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
+                    mintedAt = entity.mintedAt ?: event.log.blockTimestamp?.let { Instant.ofEpochSecond(it) },
                     creators = getCreator(entity.id, creators)
                 )
             }

@@ -50,6 +50,8 @@ import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -479,6 +481,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     fun confirmedItemTransfer(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+        val instantDate1 = LocalDate.parse("2022-04-12").atStartOfDay().toInstant(ZoneOffset.UTC)
+        val instantDate2 = LocalDate.parse("2022-04-13").atStartOfDay().toInstant(ZoneOffset.UTC)
 
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
@@ -487,25 +491,25 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             owner = AddressFactory.create(),
             token = token,
             tokenId = tokenId,
-            date = nowMillis(),
+            date = instantDate1,
             from = Address.ZERO(),
             value = EthUInt256.of(2)
         )
-        saveItemHistory(transfer, logIndex = 1)
+        saveItemHistory(transfer, logIndex = 1, blockTimestamp = instantDate1)
 
         val owner = AddressFactory.create()
         val transfer2 = ItemTransfer(
             owner = owner,
             token = token,
             tokenId = tokenId,
-            date = nowMillis(),
+            date = instantDate2,
             from = Address.ZERO(),
             value = EthUInt256.of(3)
         )
-        saveItemHistory(transfer2, logIndex = 2)
+        saveItemHistory(transfer2, logIndex = 2, blockTimestamp = instantDate2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
-        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5))
+        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5), instantDate1)
     }
 
     @Test
@@ -964,11 +968,13 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         token: Address,
         tokenId: EthUInt256,
         expSupply: EthUInt256,
+        mintedAtDate: Instant = nowMillis(),
         expLazySupply: EthUInt256 = EthUInt256.ZERO,
         expCreator: Address? = null,
         deleted: Boolean = false
     ) {
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.mintedAt).isEqualTo(mintedAtDate)
 
         assertThat(item)
             .hasFieldOrPropertyWithValue(Item::supply.name, expSupply)
