@@ -34,6 +34,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.IpfsService
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
@@ -69,7 +70,7 @@ import java.util.stream.Stream
 @End2EndTest
 class ItemControllerFt : SpringContainerBaseTest() {
 
-    private val svgUrl = "https://rarible.mypinata.cloud/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
+    private val svgUrl = "${IpfsService.RARIBLE_IPFS}/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
     private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
 
     @Autowired

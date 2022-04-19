@@ -31,7 +31,7 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "African Warrior",
                 description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
-                image = "https://rarible.mypinata.cloud/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
+                image = "${IpfsService.RARIBLE_IPFS}/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
                 imageBig = null,
                 imagePreview = null,
                 animationUrl = null,

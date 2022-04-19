@@ -62,12 +62,12 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = name,
-                image = "https://rarible.mypinata.cloud/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
+                image = "${IpfsService.RARIBLE_IPFS}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,
                 description = "Hi fren! I'm \$$name, a Haunt 2 Aavegotchi with a Rarity Score of 495, Devoted ($devoted) Kinship, and 12.$timestamp amWMATIC staked inside me.\n \n" +
-                        " If you'd like to learn more about me and my gotchigang, head to https://wiki.aavegotchi.com for lots of good info!",
+                    " If you'd like to learn more about me and my gotchigang, head to https://wiki.aavegotchi.com for lots of good info!",
                 attributes = listOf(
                     ItemAttribute("Haunt", "2"),
                     ItemAttribute("Rarity Score", "495"),
@@ -110,7 +110,7 @@ Fee Tier: 0.3%
 Token ID: 51561
 
 ⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.""",
-                image = "https://rarible.mypinata.cloud/ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx",
+                image = "${IpfsService.RARIBLE_IPFS}/ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx",
                 animationUrl = null,
                 imageBig = null,
                 imagePreview = null,
