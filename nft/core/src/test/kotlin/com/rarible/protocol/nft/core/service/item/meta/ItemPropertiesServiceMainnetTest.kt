@@ -11,7 +11,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createOpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
@@ -40,11 +39,11 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     private val rariblePropertiesResolver = RariblePropertiesResolver(
         sender = sender,
         tokenRepository = tokenRepository,
-        ipfsService = IpfsService(),
+        ipfsService = ipfsService,
         requestTimeout = 20000,
         externalHttpClient = externalHttpClient
     )
-    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, IpfsService())
+    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
         MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
     private val openSeaPropertiesResolver = createOpenSeaPropertiesResolver()
@@ -58,7 +57,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        ipfsService = IpfsService()
+        ipfsService = ipfsService
     )
 
     private val jacksonObjectMapper = jacksonObjectMapper()

@@ -14,6 +14,7 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class StonerCatsPropertiesResolver(
+    private val ipfsService: IpfsService,
     private val raribleResolver: RariblePropertiesResolver,
     private val externalHttpClient: ExternalHttpClient
 ) : ItemPropertiesResolver {
@@ -29,7 +30,7 @@ class StonerCatsPropertiesResolver(
         val imageUrl = properties.image ?: return properties
         val etag = getEtag(itemId, imageUrl)
         return etag?.let {
-            properties.copy(image = "${IpfsService.RARIBLE_IPFS}/ipfs/$etag")
+            properties.copy(image = "${ipfsService.publicGateway}/ipfs/$etag")
         } ?: properties
     }
 

@@ -48,6 +48,9 @@ common:
   itemMeta:
     maxNameLength: 1000
     maxDescriptionLength: 10000
+  ipfs:
+    ipfsGateway: "https://ipfs.io,https://nftstorage.link"
+    ipfsPublicGateway: "https://rarible.mypinata.cloud"
 
 api:
   opensea:

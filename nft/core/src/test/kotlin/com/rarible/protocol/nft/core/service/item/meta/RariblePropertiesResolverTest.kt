@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
@@ -28,10 +27,11 @@ import scalether.domain.Address
 class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
+
     private val rariblePropertiesResolver: RariblePropertiesResolver = RariblePropertiesResolver(
         sender = createSender(),
         tokenRepository = tokenRepository,
-        ipfsService = IpfsService(),
+        ipfsService = ipfsService,
         requestTimeout = 20000,
         externalHttpClient = createExternalHttpClient()
     )
@@ -57,12 +57,12 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         val description = properties!!.description!!
         val timestamp = description.substringAfter("Kinship, and 12.").substringBefore(" amWMATIC")
         val devoted = description.substringAfter("Devoted (").substringBefore(") Kinship")
-        val experience = properties.attributes.find { it.key == "Experience"}?.value!!
+        val experience = properties.attributes.find { it.key == "Experience" }?.value!!
         val name = properties.name
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = name,
-                image = "${IpfsService.RARIBLE_IPFS}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
+                image = "${ipfsService.publicGateway}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,
@@ -87,7 +87,6 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         )
     }
 
-
     @Test
     fun uniswap() = runBlocking<Unit> {
         val token = Address.apply("0xc36442b4a4522e871399cd717abdd847ab11fe88")
@@ -110,7 +109,7 @@ Fee Tier: 0.3%
 Token ID: 51561
 
 ⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.""",
-                image = "${IpfsService.RARIBLE_IPFS}/ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx",
+                image = "${ipfsService.publicGateway}/ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx",
                 animationUrl = null,
                 imageBig = null,
                 imagePreview = null,
@@ -127,7 +126,9 @@ Token ID: 51561
         val properties = rariblePropertiesResolver.resolve(
             ItemId(
                 address,
-                EthUInt256("10855508365998400056289941914472950957046112164229867356526540410650888241152".toBigInteger())
+                EthUInt256(
+                    "10855508365998400056289941914472950957046112164229867356526540410650888241152".toBigInteger()
+                )
             )
         )
         assertThat(properties).isEqualTo(
@@ -261,10 +262,10 @@ Token ID: 51561
             ItemProperties(
                 name = "Sunlight Over a City, 2022 #173",
                 description = "\"Sunlight Over the City\" is an expression of a day passing through a made-up architectural maze of a nonsensical composition.  \n" +
-                        "Artist : LIŔONA  \n" +
-                        "b. 1989  \n" +
-                        "Medium: Digital, \"Painted on Wood\" (Not)  \n" +
-                        "Year : 2022",
+                    "Artist : LIŔONA  \n" +
+                    "b. 1989  \n" +
+                    "Medium: Digital, \"Painted on Wood\" (Not)  \n" +
+                    "Year : 2022",
                 image = "https://arweave.net/lVS0SkeSF8_alma1ayYMZcH9VSMLrmhAmikrDyshUcg",
                 imagePreview = null,
                 imageBig = null,
@@ -320,8 +321,8 @@ Token ID: 51561
             ItemProperties(
                 name = "A Russian Mountain",
                 description = "HD version. An abandoned roller coaster in the middle of nowhere.\n" +
-                        "Still version: https://knownorigin.io/edition/194575\n" +
-                        "GIF version: https://knownorigin.io/edition/185875",
+                    "Still version: https://knownorigin.io/edition/194575\n" +
+                    "GIF version: https://knownorigin.io/edition/185875",
                 image = "https://ipfs.infura.io/ipfs/QmY5c8rW2W4M8qUCiG4RSymprHvMPxhDfhRLUc2u5YMDJN/asset.mp4",
                 imagePreview = null,
                 imageBig = null,
@@ -358,7 +359,6 @@ Token ID: 51561
         )
     }
 
-
     @Test
     fun `ens domain`() = runBlocking<Unit> {
         Assumptions.assumeFalse(true)
@@ -369,7 +369,9 @@ Token ID: 51561
         val properties = rariblePropertiesResolver.resolve(
             ItemId(
                 token,
-                EthUInt256("13081560491824663516256299825698718846215943324818953005193338190475271748185".toBigInteger())
+                EthUInt256(
+                    "13081560491824663516256299825698718846215943324818953005193338190475271748185".toBigInteger()
+                )
             )
         )
         assertThat(properties).isEqualTo(
@@ -394,7 +396,9 @@ Token ID: 51561
         val properties = rariblePropertiesResolver.resolve(
             ItemId(
                 token,
-                EthUInt256("7527318126427839760955556375940656963553345796624576370101029944213257584641".toBigInteger())
+                EthUInt256(
+                    "7527318126427839760955556375940656963553345796624576370101029944213257584641".toBigInteger()
+                )
             )
         )
         assertThat(properties).isEqualTo(

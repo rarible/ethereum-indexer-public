@@ -27,7 +27,8 @@ class AdminErc721TransferLogDescriptor(
             erc721RaribleUser = Address.ZERO().hex(),
             erc1155Rarible = Address.ZERO().hex(),
             erc1155RaribleUser = Address.ZERO().hex()
-        )
+        ),
+        ipfs = NftIndexerProperties.IpfsProperties("", "")
     ),
     NftListenerProperties()
 ) {
