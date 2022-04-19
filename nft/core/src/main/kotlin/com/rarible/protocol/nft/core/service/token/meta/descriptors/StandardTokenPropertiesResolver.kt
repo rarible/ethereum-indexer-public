@@ -38,7 +38,7 @@ class StandardTokenPropertiesResolver(
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
         return uri?.let {
-            val url = ipfsService.resolveHttpUrl(it)
+            val url = ipfsService.resolveInnerHttpUrl(it)
             logProperties(id, "$it was resolved to: $url")
             request(id, url)
         }

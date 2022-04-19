@@ -50,7 +50,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         assertThat(itemProps).isEqualTo(
             ItemProperties(
                 name = "CryptoPunk #2",
-                image = "${IpfsService.RARIBLE_IPFS}/ipfs/QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS",
+                image = "${ipfsService.publicGateway}/ipfs/QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS",
                 description = null,
                 imagePreview = null,
                 imageBig = null,

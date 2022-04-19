@@ -111,7 +111,7 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
-        val httpUrl = ipfsService.resolveHttpUrl(uri)
+        val httpUrl = ipfsService.resolveInnerHttpUrl(uri)
         logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
         val clientSpec = try {
             externalHttpClient.get(httpUrl)
