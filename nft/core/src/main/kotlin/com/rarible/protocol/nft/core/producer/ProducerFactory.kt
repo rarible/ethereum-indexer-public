@@ -11,6 +11,7 @@ import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.dto.NftOwnershipEventTopicProvider
+import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 
 class ProducerFactory(
@@ -66,6 +67,16 @@ class ProducerFactory(
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = ActivityDto::class.java,
             defaultTopic = ActivityTopicProvider.getTopic(environment, blockchain.value),
+            bootstrapServers = kafkaReplicaSet
+        )
+    }
+
+    fun createItemActionEventProducer(): RaribleKafkaProducer<ActionEvent> {
+        return RaribleKafkaProducer(
+            clientId = "$clientId.item.internal.action",
+            valueSerializerClass = JsonSerializer::class.java,
+            valueClass = ActionEvent::class.java,
+            defaultTopic = InternalTopicProvider.getItemActionTopic(environment, blockchain.value),
             bootstrapServers = kafkaReplicaSet
         )
     }

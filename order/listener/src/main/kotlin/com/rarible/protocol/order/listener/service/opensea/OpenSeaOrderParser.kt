@@ -9,7 +9,6 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -113,10 +112,11 @@ class OpenSeaOrderParser(
             expirationTime = uints[16],
             salt = uints[17]
         )
+        val origin = Binary.apply(rssMetadata[4])
         return OpenSeaMatchedOrders(
             buyOrder = buyOrder,
             sellOrder = sellOrder,
-            externalOrderExecutedOnRarible = Binary.apply(rssMetadata[4]) == Platform.RARIBLE.id
+            origin = origin
         )
     }
 

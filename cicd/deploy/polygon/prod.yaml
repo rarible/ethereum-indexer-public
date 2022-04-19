@@ -2,7 +2,7 @@ global:
   network: mainnet
 
 polygon-erc20-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1024
@@ -24,7 +24,7 @@ polygon-gateway:
     - 'proxy'
 
 polygon-order-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 2048
@@ -37,7 +37,7 @@ polygon-order-listener:
       max_direct_memory_megabytes: 256
 
 polygon-nft-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1536
