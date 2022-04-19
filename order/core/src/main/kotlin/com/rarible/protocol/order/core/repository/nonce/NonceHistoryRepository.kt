@@ -53,6 +53,7 @@ class NonceHistoryRepository(
 
     object Indexes {
         private val MAKER_DEFINITION: Index = Index()
+            .on(LogEvent::status.name, Sort.Direction.ASC)
             .on("${LogEvent::data.name}.${ChangeNonceHistory::maker.name}", Sort.Direction.ASC)
             .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
             .on(LogEvent::logIndex.name, Sort.Direction.ASC)
