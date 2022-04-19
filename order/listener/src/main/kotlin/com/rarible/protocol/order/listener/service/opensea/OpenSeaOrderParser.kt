@@ -3,39 +3,51 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.core.misc.methodSignatureId
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
 class OpenSeaOrderParser(
     private val traceCallService: TraceCallService
 ) {
-    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: OrdersMatchedEvent, index: Int, totalLogs: Int, eip712: Boolean): OpenSeaMatchedOrders? {
+    suspend fun parseMatchedOrders(
+        txHash: Word,
+        txInput: Binary,
+        event: OrdersMatchedEvent,
+        index: Int,
+        totalLogs: Int,
+        eip712: Boolean
+    ): OpenSeaMatchedOrders {
         val signature = WyvernExchange.atomicMatch_Signature()
         val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, event.log().address(), signature.id())
-            .map(::parseMatchedOrders)
         assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
-        val parsed = inputs[index]
+        val parsed = parseMatchedOrders(inputs[index])
         return if (eip712) {
-            val buyOrder = Word.apply(event.buyHash()).let { eventHash ->
-                if (eventHash == ZERO_WORD) parsed.buyOrder else parsed.buyOrder.copy(hash = eventHash)
-            }
-            val sellOrder = Word.apply(event.sellHash()).let { eventHash ->
-                if (eventHash == ZERO_WORD) parsed.sellOrder else parsed.sellOrder.copy(hash = eventHash)
-            }
             parsed.copy(
-                buyOrder = buyOrder,
-                sellOrder = sellOrder
+                buyOrder = replaceHash(order = parsed.buyOrder, hash = event.buyHash()),
+                sellOrder = replaceHash(order = parsed.sellOrder, hash = event.sellHash())
             )
         } else {
             parsed
         }
     }
+
+    private fun replaceHash(
+        order: OpenSeaTransactionOrder,
+        hash: ByteArray
+    ): OpenSeaTransactionOrder =
+        Word.apply(hash).let { eventHash ->
+            if (eventHash == ZERO_WORD) order else order.copy(hash = eventHash)
+        }
 
     fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders {
         val signature = WyvernExchange.atomicMatch_Signature()
@@ -151,7 +163,6 @@ class OpenSeaOrderParser(
     }
 
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(OpenSeaOrderParser::class.java)
-        val ZERO_WORD: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
+        private val ZERO_WORD: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
     }
 }

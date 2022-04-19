@@ -49,8 +49,8 @@ class OpenSeaOrderEventConverter(
         val sellOrder = openSeaOrders.sellOrder
         val sellOrderSide = buyOrderSide.revert()
 
-        val buyCallData = Arrays.copyOfRange(buyOrder.callData.bytes(), 0, buyOrder.callData.bytes().size)
-        val sellCallData = Arrays.copyOfRange(sellOrder.callData.bytes(), 0, sellOrder.callData.bytes().size)
+        val buyCallData = buyOrder.callData.bytes()
+        val sellCallData = sellOrder.callData.bytes()
 
         if (buyOrder.replacementPattern.length() > 0) {
             applyMask(buyCallData, sellCallData, buyOrder.replacementPattern.bytes())
