@@ -62,7 +62,7 @@ class MediaMetaService(
     }
 
     companion object {
-        private const val rariblePinata = "https://rarible.mypinata.cloud/ipfs/"
+        private const val rariblePinata = "${IpfsService.RARIBLE_IPFS}/ipfs/"
         private const val ipfsRarible = "https://ipfs.rarible.com/ipfs/"
         private val ipfsPrefixes = listOf(rariblePinata, ipfsRarible)
     }

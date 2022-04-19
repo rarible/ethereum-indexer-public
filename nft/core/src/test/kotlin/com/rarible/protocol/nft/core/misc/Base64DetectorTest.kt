@@ -1,18 +1,19 @@
 package com.rarible.protocol.nft.core.misc
 
 import com.rarible.protocol.nft.core.misc.detector.Base64Detector
+import com.rarible.protocol.nft.core.service.IpfsService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class Base64DetectorTest {
 
-    private val base64 = "https://rarible.mypinata.cloud/data:image/png;base64,abc"
-    private val base64TextType = "https://rarible.mypinata.cloud/data:text/html;base64,abc"
+    private val base64 = "${IpfsService.RARIBLE_IPFS}/data:image/png;base64,abc"
+    private val base64TextType = "${IpfsService.RARIBLE_IPFS}/data:text/html;base64,abc"
 
     @Test
     fun `is base64 url`() {
         val base64 = Base64Detector(base64)
-        val regularUrl = Base64Detector("https://rarible.mypinata.cloud/ipfs/abc/image.png")
+        val regularUrl = Base64Detector("${IpfsService.RARIBLE_IPFS}/ipfs/abc/image.png")
 
         assertThat(base64.canDecode()).isTrue
         assertThat(regularUrl.canDecode()).isFalse
