@@ -28,7 +28,7 @@ class IpfsService(
         return resolveHttpUrl(uri, publicGateway)
     }
 
-    fun resolveHttpUrl(uri: String, gateway: String): String {
+    private fun resolveHttpUrl(uri: String, gateway: String): String {
         val ipfsUri = if (uri.contains("/ipfs/")) {
             val end = uri.substring(uri.lastIndexOf("/ipfs/"))
             val first = end.split("/")[2]

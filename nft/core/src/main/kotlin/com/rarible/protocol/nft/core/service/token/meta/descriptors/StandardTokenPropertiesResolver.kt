@@ -33,15 +33,17 @@ class StandardTokenPropertiesResolver(
     private val mapper: ObjectMapper,
     private val externalHttpClient: ExternalHttpClient,
     @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
-): TokenPropertiesResolver {
+) : TokenPropertiesResolver {
 
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
-        return uri?.let {
-            val url = ipfsService.resolveInnerHttpUrl(it)
-            logProperties(id, "$it was resolved to: $url")
-            request(id, url)
+        if (uri.isNullOrBlank()) {
+            return null
         }
+
+        val url = ipfsService.resolveInnerHttpUrl(uri)
+        logProperties(id, "$uri was resolved to: $url")
+        return request(id, url)
     }
 
     override val order get() = Int.MIN_VALUE

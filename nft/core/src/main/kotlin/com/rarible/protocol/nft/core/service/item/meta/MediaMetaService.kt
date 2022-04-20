@@ -19,6 +19,9 @@ class MediaMetaService(
 
     suspend fun getMediaMetaFromCache(url: String): ContentMeta? {
         // For cache, if we still use it, lets use mypinata urls, as previously
+        if (url.isBlank()) {
+            return null
+        }
         val realUrl = ipfsService.resolvePublicHttpUrl(url)
         return fetchFromCache(realUrl)
     }
