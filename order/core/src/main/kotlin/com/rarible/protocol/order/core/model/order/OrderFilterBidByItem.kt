@@ -43,12 +43,16 @@ data class OrderFilterBidByItem(
     }
 
     override fun toContinuation(order: Order) = when (sort) {
-        OrderFilterSort.LAST_UPDATE_DESC -> {
-            Continuation.LastDate(order.lastUpdateAt, order.hash)
-        }
+        OrderFilterSort.LAST_UPDATE_DESC,
         OrderFilterSort.LAST_UPDATE_ASC -> {
             Continuation.LastDate(order.lastUpdateAt, order.hash)
         }
+
+        OrderFilterSort.DB_UPDATE_DESC,
+        OrderFilterSort.DB_UPDATE_ASC -> {
+            Continuation.LastDate(order.dbUpdatedAt, order.hash)
+        }
+
         OrderFilterSort.TAKE_PRICE_DESC -> {
             if (currency != null) {
                 Continuation.Price(order.takePrice ?: BigDecimal.ZERO, order.hash)
@@ -59,6 +63,7 @@ data class OrderFilterBidByItem(
                 Continuation.Price(order.takePriceUsd ?: BigDecimal.ZERO, order.hash)
             }
         }
+
         OrderFilterSort.MAKE_PRICE_ASC -> {
             if (currency != null) {
                 Continuation.Price(order.makePrice ?: BigDecimal.ZERO, order.hash)

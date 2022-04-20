@@ -68,7 +68,7 @@ class MongoOrderRepository(
     }
 
     override suspend fun save(order: Order): Order {
-        return template.save(order).awaitFirst()
+        return template.save(order.withDbUpdated()).awaitFirst()
     }
 
     override suspend fun findById(hash: Word): Order? {

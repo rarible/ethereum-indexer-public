@@ -44,6 +44,7 @@ data class Order(
 
     val createdAt: Instant,
     val lastUpdateAt: Instant,
+    val dbUpdatedAt: Instant = nowMillis(),
 
     val pending: List<OrderExchangeHistory> = emptyList(),
 
@@ -134,6 +135,10 @@ data class Order(
             takeUsd = usdValue.takeUsd,
             makeUsd = usdValue.makeUsd
         )
+    }
+
+    fun withDbUpdated(): Order {
+        return copy(dbUpdatedAt = nowMillis())
     }
 
     fun withUpdatedStatus(): Order {
