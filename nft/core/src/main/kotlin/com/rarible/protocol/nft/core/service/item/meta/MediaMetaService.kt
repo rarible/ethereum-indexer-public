@@ -30,9 +30,7 @@ class MediaMetaService(
                 collectionName = CachedContentMetaEntry.CACHE_META_COLLECTION
             ).awaitFirstOrNull()
             if (cacheEntry != null) {
-                if(cacheEntry.data == null) {
-                    return null
-                }
+                cacheEntry.data ?: run { return null }
                 return cacheEntry.data.let {
                     ContentMeta(
                         type = it.type,
