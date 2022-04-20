@@ -43,20 +43,16 @@ class WyvernExchangeOrderMatchDescriptor(
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == exchangeContractAddresses.openSeaV2
-        return try {
-            val orders = openSeaOrderParser.parseMatchedOrders(
-                transaction.hash(),
-                transaction.input(),
-                event,
-                index,
-                totalLogs,
-                eip712
-            )
-            openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
-        } catch (e: Exception) {
-            logger.warn("Can't parser OpenSea match transaction ${transaction.value()}")
-            emptyList()
-        }
+
+        val orders = openSeaOrderParser.parseMatchedOrders(
+            transaction.hash(),
+            transaction.input(),
+            event,
+            index,
+            totalLogs,
+            eip712
+        )
+        return openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

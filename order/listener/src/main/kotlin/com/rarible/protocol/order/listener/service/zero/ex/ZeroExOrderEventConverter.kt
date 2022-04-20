@@ -4,6 +4,7 @@ import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.common.toHexString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.HistorySource
@@ -42,9 +43,7 @@ class ZeroExOrderEventConverter(
         val secondOrder = (orders - order).first()
 
         require(order.makerAssetData == secondOrder.takerAssetData) { "make and take assets must be equal" }
-        require(order.makerAssetAmount == secondOrder.takerAssetAmount) { "make and take asset amount must be equal" }
         require(order.takerAssetData == secondOrder.makerAssetData) { "take and make assets must be equal" }
-        require(order.takerAssetAmount == secondOrder.makerAssetAmount) { "make and take asset amount must be equal" }
 
         val makeAsset = createAsset(assetData = order.makerAssetData, amount = order.makerAssetAmount)
         val takeAsset = createAsset(assetData = order.takerAssetData, amount = order.takerAssetAmount)
@@ -92,11 +91,12 @@ class ZeroExOrderEventConverter(
     ): Asset {
         val type = assetData.slice(0, 4).toString()
         val token = Address.apply(assetData.slice(16, 36))
+        val value = EthUInt256.of(amount)
         return when (type) {
             ERC20_ASSET_TYPE -> {
                 Asset(
                     type = Erc20AssetType(token = token),
-                    value = EthUInt256.of(amount)
+                    value = value
                 )
             }
             ERC721_ASSET_TYPE -> {
@@ -106,7 +106,17 @@ class ZeroExOrderEventConverter(
                         token = token,
                         tokenId = EthUInt256.of(tokenId)
                     ),
-                    value = EthUInt256.ONE
+                    value = value
+                )
+            }
+            ERC1155_ASSET_TYPE -> {
+                val tokenId = assetData.slice(164, 196).toBigInteger()
+                Asset(
+                    type = Erc1155AssetType(
+                        token = token,
+                        tokenId = EthUInt256.of(tokenId)
+                    ),
+                    value = value
                 )
             }
             else -> {
@@ -117,7 +127,7 @@ class ZeroExOrderEventConverter(
 
     private fun getOrderSide(makeAsset: Asset): OrderSide =
     // невозможно определить, какой ордер создан раньше, т к данные идентичные в обоих случаях
-        // (для покупки через sell order и для принятия бида)
+    // (для покупки через sell order и для принятия бида)
         // поэтому за OrderSide.LEFT принимается sell order
         if (makeAsset.type.nft) {
             // sell order
@@ -196,5 +206,6 @@ class ZeroExOrderEventConverter(
             "0xf80322eb8376aafb64eadf8f0d7623f22130fd9491a221e902b713cb984a7534"
         private const val ERC20_ASSET_TYPE = "0xf47261b0"
         private const val ERC721_ASSET_TYPE = "0x02571792"
+        private const val ERC1155_ASSET_TYPE = "0xa7cb5fb7"
     }
 }

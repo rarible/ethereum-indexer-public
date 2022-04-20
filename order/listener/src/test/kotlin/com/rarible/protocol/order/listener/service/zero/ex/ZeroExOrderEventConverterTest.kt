@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.zero.ex
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.HistorySource
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import scalether.domain.Address
+import java.math.BigInteger
 import java.time.Instant
 
 @ExtendWith(MockKExtension::class)
@@ -57,89 +59,98 @@ class ZeroExOrderEventConverterTest {
 
     @Test
     fun `convert by left order log`() = runBlocking<Unit> {
-        val from = Address.ONE()
-        val date = Instant.now()
-        val orderHash = Word.apply("0x935b13465952ccbf981a264761b2edf0c0edf46f2e62a6a57ab37a32b224d6b0")
-        val makerAddress = leftOrder.makerAddress
-        val takerAssetFilledAmount = 50.toBigInteger()
+        with(Erc721Data) {
+            val from = Address.ONE()
+            val date = Instant.now()
+            val orderHash = leftOrderHash
+            val counterHash = rightOrderHash
+            val makerAddress = leftOrder.makerAddress
+            val takerAssetFilledAmount = 50.toBigInteger()
 
-        val result = zeroExOrderEventConverter.convert(
-            matchOrdersData = data,
-            from = from,
-            date = date,
-            orderHash = orderHash,
-            makerAddress = makerAddress,
-            takerAssetFilledAmount = takerAssetFilledAmount,
-        )
-
-        assertThat(result).containsExactly(
-            OrderSideMatch(
-                hash = orderHash,
-                counterHash = Word.apply("0xdcbcc2880a85e7b7e1b80c2fd714dcd6f275ee203298a52a0702b75691aec628"),
-                side = OrderSide.RIGHT,
-                fill = EthUInt256(takerAssetFilledAmount),
-                make = leftMakeErc20Asset,
-                take = leftTakeErc721Asset,
-                maker = leftOrder.makerAddress,
-                taker = rightOrder.makerAddress,
-                makeUsd = null,
-                takeUsd = null,
-                makePriceUsd = null,
-                takePriceUsd = null,
-                makeValue = 1.toBigDecimal(),
-                takeValue = 1.toBigDecimal(),
+            val result = zeroExOrderEventConverter.convert(
+                matchOrdersData = data,
+                from = from,
                 date = date,
-                source = HistorySource.OPEN_SEA,
-                externalOrderExecutedOnRarible = false,
-                adhoc = false,
-                counterAdhoc = false,
-            ),
-        )
+                orderHash = orderHash,
+                makerAddress = makerAddress,
+                takerAssetFilledAmount = takerAssetFilledAmount,
+            )
+
+            assertThat(result).containsExactly(
+                OrderSideMatch(
+                    hash = orderHash,
+                    counterHash = counterHash,
+                    side = OrderSide.RIGHT,
+                    fill = EthUInt256(takerAssetFilledAmount),
+                    make = leftMakeErc20Asset,
+                    take = leftTakeErc721Asset,
+                    maker = leftOrder.makerAddress,
+                    taker = rightOrder.makerAddress,
+                    makeUsd = null,
+                    takeUsd = null,
+                    makePriceUsd = null,
+                    takePriceUsd = null,
+                    makeValue = 1.toBigDecimal(),
+                    takeValue = 1.toBigDecimal(),
+                    date = date,
+                    source = HistorySource.OPEN_SEA,
+                    externalOrderExecutedOnRarible = false,
+                    adhoc = false,
+                    counterAdhoc = false,
+                ),
+            )
+        }
     }
 
     @Test
     fun `convert by right order log`() = runBlocking<Unit> {
-        val from = Address.ONE()
-        val date = Instant.now()
-        val orderHash = Word.apply("0xdcbcc2880a85e7b7e1b80c2fd714dcd6f275ee203298a52a0702b75691aec628")
-        val makerAddress = rightOrder.makerAddress
-        val takerAssetFilledAmount = 50.toBigInteger()
+        with(Erc721Data) {
+            val from = Address.ONE()
+            val date = Instant.now()
+            val orderHash = rightOrderHash
+            val counterHash = leftOrderHash
+            val makerAddress = rightOrder.makerAddress
+            val takerAssetFilledAmount = 50.toBigInteger()
 
-        val result = zeroExOrderEventConverter.convert(
-            matchOrdersData = data,
-            from = from,
-            date = date,
-            orderHash = orderHash,
-            makerAddress = makerAddress,
-            takerAssetFilledAmount = takerAssetFilledAmount,
-        )
-
-        assertThat(result).containsExactly(
-            OrderSideMatch(
-                hash = orderHash,
-                counterHash = Word.apply("0x935b13465952ccbf981a264761b2edf0c0edf46f2e62a6a57ab37a32b224d6b0"),
-                side = OrderSide.LEFT,
-                fill = EthUInt256(takerAssetFilledAmount),
-                make = leftTakeErc721Asset,
-                take = leftMakeErc20Asset,
-                maker = rightOrder.makerAddress,
-                taker = leftOrder.makerAddress,
-                makeUsd = null,
-                takeUsd = null,
-                makePriceUsd = null,
-                takePriceUsd = null,
-                makeValue = 1.toBigDecimal(),
-                takeValue = 1.toBigDecimal(),
+            val result = zeroExOrderEventConverter.convert(
+                matchOrdersData = data,
+                from = from,
                 date = date,
-                source = HistorySource.OPEN_SEA,
-                externalOrderExecutedOnRarible = false,
-                adhoc = false,
-                counterAdhoc = false,
-            ),
-        )
+                orderHash = orderHash,
+                makerAddress = makerAddress,
+                takerAssetFilledAmount = takerAssetFilledAmount,
+            )
+
+            assertThat(result).containsExactly(
+                OrderSideMatch(
+                    hash = orderHash,
+                    counterHash = counterHash,
+                    side = OrderSide.LEFT,
+                    fill = EthUInt256(takerAssetFilledAmount),
+                    make = leftTakeErc721Asset,
+                    take = leftMakeErc20Asset,
+                    maker = rightOrder.makerAddress,
+                    taker = leftOrder.makerAddress,
+                    makeUsd = null,
+                    takeUsd = null,
+                    makePriceUsd = null,
+                    takePriceUsd = null,
+                    makeValue = 1.toBigDecimal(),
+                    takeValue = 1.toBigDecimal(),
+                    date = date,
+                    source = HistorySource.OPEN_SEA,
+                    externalOrderExecutedOnRarible = false,
+                    adhoc = false,
+                    counterAdhoc = false,
+                ),
+            )
+        }
     }
 
-    private companion object {
+    private object Erc721Data {
+        val leftOrderHash = Word.apply("0x935b13465952ccbf981a264761b2edf0c0edf46f2e62a6a57ab37a32b224d6b0")
+        val rightOrderHash = Word.apply("0xdcbcc2880a85e7b7e1b80c2fd714dcd6f275ee203298a52a0702b75691aec628")
+
         val leftOrder = ZeroExOrder(
             // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
             makerAddress = Address.apply("0x4d3b39791d9bfe56304b32c35fe8f3d411d85a02"),
@@ -220,6 +231,185 @@ class ZeroExOrderEventConverterTest {
                 tokenId = EthUInt256.of("0x000000000000000000000000000000000000000000000000000000000000762b")
             ),
             value = EthUInt256.ONE
+        )
+    }
+
+    @Test
+    fun `convert by left order log for buying 1155`() = runBlocking<Unit> {
+        with(Erc1155Data) {
+            val from = Address.ONE()
+            val date = Instant.now()
+            val orderHash = leftOrderHash
+            val counterHash = rightOrderHash
+            val makerAddress = leftOrder.makerAddress
+            val takerAssetFilledAmount = 50.toBigInteger()
+
+            val result = zeroExOrderEventConverter.convert(
+                matchOrdersData = data,
+                from = from,
+                date = date,
+                orderHash = orderHash,
+                makerAddress = makerAddress,
+                takerAssetFilledAmount = takerAssetFilledAmount,
+            )
+
+            assertThat(result).containsExactly(
+                OrderSideMatch(
+                    hash = orderHash,
+                    counterHash = counterHash,
+                    side = OrderSide.RIGHT,
+                    fill = EthUInt256(takerAssetFilledAmount),
+                    make = erc20Asset(leftOrder.makerAssetAmount),
+                    take = erc1155Asset(leftOrder.takerAssetAmount),
+                    maker = leftOrder.makerAddress,
+                    taker = rightOrder.makerAddress,
+                    makeUsd = null,
+                    takeUsd = null,
+                    makePriceUsd = null,
+                    takePriceUsd = null,
+                    makeValue = 1.toBigDecimal(),
+                    takeValue = 1.toBigDecimal(),
+                    date = date,
+                    source = HistorySource.OPEN_SEA,
+                    externalOrderExecutedOnRarible = false,
+                    adhoc = false,
+                    counterAdhoc = false,
+                ),
+            )
+        }
+    }
+
+    @Test
+    fun `convert by right order log for buying 1155`() = runBlocking<Unit> {
+        with(Erc1155Data) {
+            val from = Address.ONE()
+            val date = Instant.now()
+            val orderHash = rightOrderHash
+            val counterHash = leftOrderHash
+            val makerAddress = rightOrder.makerAddress
+            val takerAssetFilledAmount = 3251429816261702.toBigInteger()
+
+            val result = zeroExOrderEventConverter.convert(
+                matchOrdersData = data,
+                from = from,
+                date = date,
+                orderHash = orderHash,
+                makerAddress = makerAddress,
+                takerAssetFilledAmount = takerAssetFilledAmount,
+            )
+
+            assertThat(result).containsExactly(
+                OrderSideMatch(
+                    hash = orderHash,
+                    counterHash = counterHash,
+                    side = OrderSide.LEFT,
+                    fill = EthUInt256(takerAssetFilledAmount),
+                    make = erc1155Asset(rightOrder.makerAssetAmount),
+                    take = erc20Asset(rightOrder.takerAssetAmount),
+                    maker = rightOrder.makerAddress,
+                    taker = leftOrder.makerAddress,
+                    makeUsd = null,
+                    takeUsd = null,
+                    makePriceUsd = null,
+                    takePriceUsd = null,
+                    makeValue = 1.toBigDecimal(),
+                    takeValue = 1.toBigDecimal(),
+                    date = date,
+                    source = HistorySource.OPEN_SEA,
+                    externalOrderExecutedOnRarible = false,
+                    adhoc = false,
+                    counterAdhoc = false,
+                ),
+            )
+        }
+    }
+
+    private object Erc1155Data {
+        val leftOrderHash = Word.apply("0xef68293b01ac69bc07565eff24076efaa54d467933fed48f4a5108bf227274f4")
+        val rightOrderHash = Word.apply("0xf3c8f29c6bc8c7ae4574de304b42f7e35a38848144c8429ff01ed749e13c6d77")
+
+        val leftOrder = ZeroExOrder(
+            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            makerAddress = Address.apply("0x06737052e87392acad6b5a23c8ded8dd8e4db07d"),
+            takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
+            feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
+            senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
+            makerAssetAmount = 3251429816261702.toBigInteger(),
+            takerAssetAmount = 2000000000000000000.toBigInteger(),
+            makerFee = 0.toBigInteger(),
+            takerFee = 0.toBigInteger(),
+            expirationTimeSeconds = 1650934720.toBigInteger(),
+            salt = 54392042574797132.toBigInteger(),
+            makerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
+            takerAssetData = Binary.apply("0xa7cb5fb700000000000000000000000022d5f9b75c524fec1d6619787e582644cd4d7422000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000d10000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+            makerFeeAssetData = Binary.apply("0x"),
+            takerFeeAssetData = Binary.apply("0x")
+        )
+        val rightOrder = ZeroExOrder(
+            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            makerAddress = Address.apply("0xf10fb2fd902cbeb9bccef76cc9f4756eff76c92c"),
+            takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
+            // получатель комиссии - это zero ex fee wrapper
+            feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
+            // отправитель - это zero ex fee wrapper
+            senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
+            // кол-во продаваемого asset
+            makerAssetAmount = "19000000000000000000".toBigInteger(),
+            // кол-во покупаемого asset
+            takerAssetAmount = 30888583254486169.toBigInteger(),
+            // комиссия продавца
+            makerFee = 3861072906810771.toBigInteger(),
+            // комиссия покупателя
+            takerFee = 0.toBigInteger(),
+            expirationTimeSeconds = 1650934720.toBigInteger(),
+            salt = 98036274358853111.toBigInteger(),
+            // asset продаваемый
+            makerAssetData = Binary.apply("0xa7cb5fb700000000000000000000000022d5f9b75c524fec1d6619787e582644cd4d7422000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000d10000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+            // asset покупаемый - WETH
+            takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
+            // валюта комиссии продавца - WETH
+            makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
+            // валюта комиссии покупателя
+            takerFeeAssetData = Binary.apply("0x")
+        )
+        val leftSignature =
+            Binary.apply("0x1bd8e7a7950db289cf65676124f061995b92bcec6b0310414629be8e0ed480764f6f7d3d12bb8197f102d9d9939cb2f59ecbb2bfaf89a461480f4751a6b4d4633102")
+        val rightSignature =
+            Binary.apply("0x1b375de0aa1bf7802aa01cacd70ff7beaaa3ba8aca145802f171d877a09cef18c25cee2b100c15de460db738a30178d9776d33615fec28b6eefd0afd0c2ac942eb02")
+
+        // кому перечислит fee feeRecipientAddress и в каком размере
+        val feeData = listOf(
+            ZeroExFeeData(
+                recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
+                paymentTokenAmount = 81285745406542.toBigInteger()
+            ),
+            ZeroExFeeData(
+                recipient = Address.apply("0x0bbdd174198c3bafff09f58d62119e680141ab44"),
+                paymentTokenAmount = 325142981626170.toBigInteger()
+            )
+        )
+        val paymentTokenAddress: Address = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
+        val data = ZeroExMatchOrdersData(
+            leftOrder = leftOrder,
+            rightOrder = rightOrder,
+            leftSignature = leftSignature,
+            rightSignature = rightSignature,
+            feeData = feeData,
+            paymentTokenAddress = paymentTokenAddress,
+        )
+
+        fun erc20Asset(amount: BigInteger) = Asset(
+            type = Erc20AssetType(token = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")),
+            value = EthUInt256.of(amount)
+        )
+
+        fun erc1155Asset(amount: BigInteger) = Asset(
+            type = Erc1155AssetType(
+                //https://opensea.io/assets/matic/0x22d5f9b75c524fec1d6619787e582644cd4d7422/209
+                token = Address.apply("0x22d5f9b75c524fec1d6619787e582644cd4d7422"),
+                tokenId = EthUInt256.of("0x00000000000000000000000000000000000000000000000000000000000000d1")
+            ),
+            value = EthUInt256.of(amount)
         )
     }
 }

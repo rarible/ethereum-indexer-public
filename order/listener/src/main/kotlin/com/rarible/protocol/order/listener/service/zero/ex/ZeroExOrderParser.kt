@@ -34,7 +34,7 @@ class ZeroExOrderParser(
             to = event.log().address(),
             id = signature.id()
         )
-        assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
+        require(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
         return parse(inputs[index])
     }
 
