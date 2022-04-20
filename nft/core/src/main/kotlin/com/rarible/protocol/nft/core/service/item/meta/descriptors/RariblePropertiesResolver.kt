@@ -111,6 +111,10 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
+        if (uri.isBlank()) {
+            return null
+        }
+
         val httpUrl = ipfsService.resolveInnerHttpUrl(uri)
         logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
         val clientSpec = try {
@@ -184,11 +188,12 @@ class RariblePropertiesResolver(
             logMetaLoading(itemId, "token is not found", warn = true)
             return null
         }
-        return when (token.standard) {
+        val result = when (token.standard) {
             TokenStandard.ERC1155 -> getErc1155TokenUri(itemId)
             TokenStandard.ERC721 -> getErc721TokenUri(itemId)
             else -> null
         }
+        return if (result.isNullOrBlank()) null else result
     }
 
     private suspend fun getCollectionName(itemId: ItemId): String? {
