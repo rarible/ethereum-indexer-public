@@ -148,11 +148,11 @@ class ZeroExOrderEventConverterTest {
     }
 
     private object Erc721Data {
-        val leftOrderHash = Word.apply("0x935b13465952ccbf981a264761b2edf0c0edf46f2e62a6a57ab37a32b224d6b0")
-        val rightOrderHash = Word.apply("0xdcbcc2880a85e7b7e1b80c2fd714dcd6f275ee203298a52a0702b75691aec628")
+        val leftOrderHash: Word = Word.apply("0x935b13465952ccbf981a264761b2edf0c0edf46f2e62a6a57ab37a32b224d6b0")
+        val rightOrderHash: Word = Word.apply("0xdcbcc2880a85e7b7e1b80c2fd714dcd6f275ee203298a52a0702b75691aec628")
 
         val leftOrder = ZeroExOrder(
-            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0x4d3b39791d9bfe56304b32c35fe8f3d411d85a02"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
@@ -169,30 +169,30 @@ class ZeroExOrderEventConverterTest {
             takerFeeAssetData = Binary.apply("0x")
         )
         val rightOrder = ZeroExOrder(
-            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            // seller of order (he sells nft and buys erc20), it's seller of nft in this deal
             makerAddress = Address.apply("0xdfa346c49c159c58d8316978b0f721ecebd10a3c"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
-            // получатель комиссии - это zero ex fee wrapper
+            // fee receiver - zero ex fee wrapper
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // отправитель - это zero ex fee wrapper
+            // sender - zero ex fee wrapper
             senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // кол-во продаваемого asset
+            // how much asset he sells
             makerAssetAmount = 1.toBigInteger(),
-            // кол-во покупаемого asset
+            // how much asset he buys
             takerAssetAmount = 1520000000000000.toBigInteger(),
-            // комиссия продавца
+            // seller fee
             makerFee = 190000000000000.toBigInteger(),
-            // комиссия покупателя
+            // buyer fee
             takerFee = 0.toBigInteger(),
             expirationTimeSeconds = 1650013671.toBigInteger(),
             salt = 71765602873448650.toBigInteger(),
-            // asset продаваемый
+            // selling asset
             makerAssetData = Binary.apply("0x025717920000000000000000000000002b4a66557a79263275826ad31a4cddc2789334bd000000000000000000000000000000000000000000000000000000000000762b"),
-            // asset покупаемый - WETH
+            // buying asset - WETH
             takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии продавца - WETH
+            // seller fee asset - WETH
             makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии покупателя
+            // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
         val leftSignature: Binary =
@@ -200,8 +200,8 @@ class ZeroExOrderEventConverterTest {
         val rightSignature: Binary =
             Binary.apply("0x1c40e0c8008601b2df04d165574e899598e63caa7f7a68f2c2ba274bd088c56e8162513d0f1a69a31770981117d8533133295cef7fa4ec5978376caa8e7ff8c0d103")
 
-        // кому перечислит fee feeRecipientAddress и в каком размере
-        // (zero ex fee wrapper передаст полученные 190000000000000 WETH этим адресам)
+        // to whom and how much will feeRecipientAddress send fee
+        // (zero ex fee wrapper will send received 190000000000000 WETH to these addresses)
         val feeData: List<ZeroExFeeData> = listOf(
             ZeroExFeeData(
                 recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
@@ -329,7 +329,7 @@ class ZeroExOrderEventConverterTest {
         val rightOrderHash = Word.apply("0xf3c8f29c6bc8c7ae4574de304b42f7e35a38848144c8429ff01ed749e13c6d77")
 
         val leftOrder = ZeroExOrder(
-            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0x06737052e87392acad6b5a23c8ded8dd8e4db07d"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
@@ -346,30 +346,30 @@ class ZeroExOrderEventConverterTest {
             takerFeeAssetData = Binary.apply("0x")
         )
         val rightOrder = ZeroExOrder(
-            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            // seller of order (he sells nft and buys erc20), it's seller of nft in this deal
             makerAddress = Address.apply("0xf10fb2fd902cbeb9bccef76cc9f4756eff76c92c"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
-            // получатель комиссии - это zero ex fee wrapper
+            // fee receiver - zero ex fee wrapper
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // отправитель - это zero ex fee wrapper
+            // sender - zero ex fee wrapper
             senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // кол-во продаваемого asset
+            // how much asset he sells
             makerAssetAmount = "19000000000000000000".toBigInteger(),
-            // кол-во покупаемого asset
+            // how much asset he buys
             takerAssetAmount = 30888583254486169.toBigInteger(),
-            // комиссия продавца
+            // seller fee
             makerFee = 3861072906810771.toBigInteger(),
-            // комиссия покупателя
+            // buyer fee
             takerFee = 0.toBigInteger(),
             expirationTimeSeconds = 1650934720.toBigInteger(),
             salt = 98036274358853111.toBigInteger(),
-            // asset продаваемый
+            // selling asset
             makerAssetData = Binary.apply("0xa7cb5fb700000000000000000000000022d5f9b75c524fec1d6619787e582644cd4d7422000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000d10000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
-            // asset покупаемый - WETH
+            // buying asset - WETH
             takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии продавца - WETH
+            // seller fee asset - WETH
             makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии покупателя
+            // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
         val leftSignature =
@@ -377,7 +377,7 @@ class ZeroExOrderEventConverterTest {
         val rightSignature =
             Binary.apply("0x1b375de0aa1bf7802aa01cacd70ff7beaaa3ba8aca145802f171d877a09cef18c25cee2b100c15de460db738a30178d9776d33615fec28b6eefd0afd0c2ac942eb02")
 
-        // кому перечислит fee feeRecipientAddress и в каком размере
+        // to whom and how much will feeRecipientAddress send fee
         val feeData = listOf(
             ZeroExFeeData(
                 recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),

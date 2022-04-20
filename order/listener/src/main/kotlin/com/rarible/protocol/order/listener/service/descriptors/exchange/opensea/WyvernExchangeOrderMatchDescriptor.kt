@@ -12,7 +12,6 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -28,8 +27,6 @@ class WyvernExchangeOrderMatchDescriptor(
     private val openSeaOrdersSideMatcher: OpenSeaOrderEventConverter,
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
-
-    private val logger = LoggerFactory.getLogger(javaClass)
 
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION

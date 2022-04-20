@@ -66,11 +66,11 @@ class ZeroExOrderParserTest {
                     // 736
                     "00000000000000000000000000000000000000000000000000000000000002e0" +
 
-                    // 36 - размер данных makerAssetData
+                    // 36 - size of makerAssetData
                     "0000000000000000000000000000000000000000000000000000000000000024" +
                     // makerAssetData
                     "f47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f61900000000000000000000000000000000000000000000000000000000" +
-                    // 68 - размер данных takerAssetData
+                    // 68 - size of takerAssetData
                     "0000000000000000000000000000000000000000000000000000000000000044" +
                     // takerAssetData
                     "025717920000000000000000000000002b4a66557a79263275826ad31a4cddc2789334bd000000000000000000000000000000000000000000000000000000000000762b" +
@@ -82,7 +82,7 @@ class ZeroExOrderParserTest {
         )
 
         val expLeftOrder = ZeroExOrder(
-            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0x4d3b39791d9bfe56304b32c35fe8f3d411d85a02"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
@@ -99,38 +99,38 @@ class ZeroExOrderParserTest {
             takerFeeAssetData = Binary.apply("0x")
         )
         val expRightOrder = ZeroExOrder(
-            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            // seller of order (he sells nft and buys erc20), it's seller of nft in this deal
             makerAddress = Address.apply("0xdfa346c49c159c58d8316978b0f721ecebd10a3c"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
-            // получатель комиссии - это zero ex fee wrapper
+            // fee receiver - zero ex fee wrapper
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // отправитель - это zero ex fee wrapper
+            // sender - zero ex fee wrapper
             senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // кол-во продаваемого asset
+            // how much asset he sells
             makerAssetAmount = 1.toBigInteger(),
-            // кол-во покупаемого asset
+            // how much asset he buys
             takerAssetAmount = 1520000000000000.toBigInteger(),
-            // комиссия продавца
+            // seller fee
             makerFee = 190000000000000.toBigInteger(),
-            // комиссия покупателя
+            // buyer fee
             takerFee = 0.toBigInteger(),
             expirationTimeSeconds = 1650013671.toBigInteger(),
             salt = 71765602873448650.toBigInteger(),
-            // asset продаваемый
+            // selling asset
             makerAssetData = Binary.apply("0x025717920000000000000000000000002b4a66557a79263275826ad31a4cddc2789334bd000000000000000000000000000000000000000000000000000000000000762b"),
-            // asset покупаемый - WETH
+            // buying asset - WETH
             takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии продавца - WETH
+            // seller fee asset - WETH
             makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии покупателя
+            // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
         val expLeftSignature =
             Binary.apply("0x1c7763a38bdc4a8cc3bfdab4302a54c5c76f0aafb5ff54fafb4a809d34d84277dd3a940201f11fd8bf824c2732af189ef6f922ef351157ea0d3a3c13e6c4543db303")
         val expRightSignature =
             Binary.apply("0x1c40e0c8008601b2df04d165574e899598e63caa7f7a68f2c2ba274bd088c56e8162513d0f1a69a31770981117d8533133295cef7fa4ec5978376caa8e7ff8c0d103")
-        // кому перечислит fee feeRecipientAddress и в каком размере
-        // (zero ex fee wrapper передаст полученные 190000000000000 WETH этим адресам)
+        // to whom and how much will feeRecipientAddress send fee
+        // (zero ex fee wrapper will send received 190000000000000 WETH to these addresses)
         val expFeeData = listOf(
             ZeroExFeeData(
                 recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
@@ -162,7 +162,7 @@ class ZeroExOrderParserTest {
         )
 
         val expLeftOrder = ZeroExOrder(
-            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0xbf228c81e042502adb2c3a8e281b826c61eea5ec"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
@@ -179,38 +179,37 @@ class ZeroExOrderParserTest {
             takerFeeAssetData = Binary.apply("0x")
         )
         val expRightOrder = ZeroExOrder(
-            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            // seller of order (he sells nft and buys erc20), it's seller of nft in this deal
             makerAddress = Address.apply("0x965f73921d8304e702fabc58e31f1fe07ea5e368"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
-            // получатель комиссии - это zero ex fee wrapper
+            // fee receiver - zero ex fee wrapper
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // отправитель - это zero ex fee wrapper
+            // sender - zero ex fee wrapper
             senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // кол-во продаваемого asset
+            // how much asset he sells
             makerAssetAmount = 1.toBigInteger(),
-            // кол-во покупаемого asset
+            // how much asset he buys
             takerAssetAmount = 2000000000000000.toBigInteger(),
-            // комиссия продавца
+            // seller fee
             makerFee = 100000000000000.toBigInteger(),
-            // комиссия покупателя
+            // buyer fee
             takerFee = 0.toBigInteger(),
             expirationTimeSeconds = 1649124749.toBigInteger(),
             salt = 4260553436496603.toBigInteger(),
-            // asset продаваемый
+            // selling asset
             makerAssetData = Binary.apply("0xa7cb5fb70000000000000000000000002953399124f0cbb46d2cbacd8a89cf0599974963000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000001965f73921d8304e702fabc58e31f1fe07ea5e3680000000000000e00000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
-            // asset покупаемый - WETH
+            // buying asset - WETH
             takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии продавца - WETH
+            // seller fee asset - WETH
             makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии покупателя
+            // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
         val expLeftSignature =
             Binary.apply("0x1b99ade9f291e32983f7aca293534f3c72e6ac1c5e671fe757d76cc7eeb22d4d992b93655dd481b4a093a98eab63b6de7f840c8d331f017982fabb515a77e4c51103")
         val expRightSignature =
             Binary.apply("0x1c63dabbb9d0fe15914fb890275d551207f0300511bac12394871c898fd6edacf44def7516e1be41effd046efe832ed972ea95eb7f589893430035534aa059e43503")
-        // кому перечислит fee feeRecipientAddress и в каком размере
-        // (zero ex fee wrapper передаст полученные 190000000000000 WETH этим адресам)
+        // to whom and how much will feeRecipientAddress send fee
         val expFeeData = listOf(
             ZeroExFeeData(
                 recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
@@ -233,8 +232,8 @@ class ZeroExOrderParserTest {
 
     @Test
     fun `parse input for buying 1155 by sell order`() = runBlocking<Unit> {
-        // 0xf10fb2fd902cbeb9bccef76cc9f4756eff76c92c выставил на продажу 19 шт (по 0,0016)
-        // 0x06737052e87392Acad6b5a23C8dED8dd8e4DB07d купил 2 шт
+        // 0xf10fb2fd902cbeb9bccef76cc9f4756eff76c92c wanted to sell 19 copies of nft (0,0016 for each)
+        // 0x06737052e87392Acad6b5a23C8dED8dd8e4DB07d bought 2 of them
         // https://polygonscan.com/tx/0x7a91f7df871fa7718a4057684951d476db3fa1427604c335fd760bb3bc9ac49e
         val result = zeroExParser.parse(
             Binary.apply(
@@ -243,7 +242,7 @@ class ZeroExOrderParserTest {
         )
 
         val expLeftOrder = ZeroExOrder(
-            // продавец в ордере (он продавец валюты за nft), покупатель в сделке - покупатель nft
+            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0x06737052e87392acad6b5a23c8ded8dd8e4db07d"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
@@ -260,37 +259,37 @@ class ZeroExOrderParserTest {
             takerFeeAssetData = Binary.apply("0x")
         )
         val expRightOrder = ZeroExOrder(
-            // продавец в ордере (он продавец nft за валюту), продавец в сделке - продавец nft
+            // seller of order (he sells nft and buys erc20), it's seller of nft in this deal
             makerAddress = Address.apply("0xf10fb2fd902cbeb9bccef76cc9f4756eff76c92c"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
-            // получатель комиссии - это zero ex fee wrapper
+            // fee receiver - zero ex fee wrapper
             feeRecipientAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // отправитель - это zero ex fee wrapper
+            // sender - zero ex fee wrapper
             senderAddress = Address.apply("0xf715beb51ec8f63317d66f491e37e7bb048fcc2d"),
-            // кол-во продаваемого asset
+            // how much asset he sells
             makerAssetAmount = "19000000000000000000".toBigInteger(),
-            // кол-во покупаемого asset
+            // how much asset he buys
             takerAssetAmount = 30888583254486169.toBigInteger(),
-            // комиссия продавца
+            // seller fee
             makerFee = 3861072906810771.toBigInteger(),
-            // комиссия покупателя
+            // buyer fee
             takerFee = 0.toBigInteger(),
             expirationTimeSeconds = 1650934720.toBigInteger(),
             salt = 98036274358853111.toBigInteger(),
-            // asset продаваемый
+            // selling asset
             makerAssetData = Binary.apply("0xa7cb5fb700000000000000000000000022d5f9b75c524fec1d6619787e582644cd4d7422000000000000000000000000000000000000000000000000000000000000008000000000000000000000000000000000000000000000000000000000000000c00000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000d10000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
-            // asset покупаемый - WETH
+            // buying asset - WETH
             takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии продавца - WETH
+            // seller fee asset - WETH
             makerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
-            // валюта комиссии покупателя
+            // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
         val expLeftSignature =
             Binary.apply("0x1bd8e7a7950db289cf65676124f061995b92bcec6b0310414629be8e0ed480764f6f7d3d12bb8197f102d9d9939cb2f59ecbb2bfaf89a461480f4751a6b4d4633102")
         val expRightSignature =
             Binary.apply("0x1b375de0aa1bf7802aa01cacd70ff7beaaa3ba8aca145802f171d877a09cef18c25cee2b100c15de460db738a30178d9776d33615fec28b6eefd0afd0c2ac942eb02")
-        // кому перечислит fee feeRecipientAddress и в каком размере
+        // to whom and how much will feeRecipientAddress send fee
         val expFeeData = listOf(
             ZeroExFeeData(
                 recipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),

@@ -36,9 +36,9 @@ class ZeroExOrderEventConverter(
         makerAddress: Address,
         takerAssetFilledAmount: BigInteger
     ): List<OrderSideMatch> {
-        // ордера, участвующие с сделке
+        // filling orders
         val orders = listOf(matchOrdersData.leftOrder, matchOrdersData.rightOrder)
-        // ордер, по которому прилетел ивент
+        // event order
         val order = orders.first { it.makerAddress == makerAddress }
         val secondOrder = (orders - order).first()
 
@@ -126,9 +126,9 @@ class ZeroExOrderEventConverter(
     }
 
     private fun getOrderSide(makeAsset: Asset): OrderSide =
-    // невозможно определить, какой ордер создан раньше, т к данные идентичные в обоих случаях
-    // (для покупки через sell order и для принятия бида)
-        // поэтому за OrderSide.LEFT принимается sell order
+    // we can't determine which order was created earlier,
+    // because data is the same for buying by sell order and selling by bid order
+        // thus we always consider sell order as OrderSide.LEFT type
         if (makeAsset.type.nft) {
             // sell order
             OrderSide.LEFT
@@ -138,10 +138,10 @@ class ZeroExOrderEventConverter(
         }
 
     /**
-     * Соответствует LibEIP712.hashEIP712Message(bytes32 eip712DomainHash, bytes32 hashStruct)
-     * и LibOrder.getTypedDataHash(Order memory order, bytes32 eip712ExchangeDomainHash)
+     * According to LibEIP712.hashEIP712Message(bytes32 eip712DomainHash, bytes32 hashStruct)
+     * and LibOrder.getTypedDataHash(Order memory order, bytes32 eip712ExchangeDomainHash)
      *
-     * exchange domain hash определяется так
+     * exchange domain hash could be calculated as
     POST https://polygon-rpc.com/
     Content-Type: application/json
 
@@ -158,9 +158,9 @@ class ZeroExOrderEventConverter(
     "latest"
     ]
     }
-     * где
-     * 0xfede379e48c873c75f3cc0c81f7c784ad730a8f7 - адрес exchange контракта
-     * 0xc26cfecd - read-метод чтения константы контракта EIP712_EXCHANGE_DOMAIN_HASH
+     * where
+     * 0xfede379e48c873c75f3cc0c81f7c784ad730a8f7 - zero ex exchange contract address
+     * 0xc26cfecd - read-method for reading constant variable EIP712_EXCHANGE_DOMAIN_HASH of that contract
      */
     private fun orderHash(order: ZeroExOrder): Word {
         val orderStructHash = orderStructHash(order)
@@ -173,7 +173,7 @@ class ZeroExOrderEventConverter(
     }
 
     /**
-     * Соответствует LibOrder.getStructHash(Order memory order)
+     * According to LibOrder.getStructHash(Order memory order)
      */
     private fun orderStructHash(order: ZeroExOrder): Word = with(order) {
         keccak256(

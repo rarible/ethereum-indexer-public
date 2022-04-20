@@ -243,7 +243,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             )
         }
 
-        // это второй лог по этим ордерам, для ознакомления с данными. логика вся та же, проверять нет смысла
+        // it's the second log by these orders only for information. test for it is the same and is omitted
         val log2 = Log(
             BigInteger.ONE, // logIndex
             BigInteger.TEN, // transactionIndex
@@ -517,7 +517,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             )
         }
 
-        // это второй лог по этим ордерам, для ознакомления с данными. логика вся та же, проверять нет смысла
+        // it's the second log by these orders only for information. test for it is the same and is omitted
         val log2 = Log(
             BigInteger.ONE, // logIndex
             BigInteger.TEN, // transactionIndex
@@ -802,7 +802,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             )
         }
 
-        // это второй лог по этим ордерам, для ознакомления с данными. логика вся та же, проверять нет смысла
+        // it's the second log by these orders only for information. test for it is the same and is omitted
         val log2 = Log(
             BigInteger.ONE, // logIndex
             BigInteger.TEN, // transactionIndex
