@@ -17,7 +17,7 @@ import java.math.BigInteger
 @Component
 class ZeroExOrderParser(
     private val traceCallService: TraceCallService
-)  {
+) {
 
     suspend fun parseMatchOrdersData(
         txHash: Word,
@@ -33,7 +33,7 @@ class ZeroExOrderParser(
             to = event.log().address(),
             id = signature.id()
         )
-        require(inputs.size == totalLogs) {
+        require(inputs.size * 2 == totalLogs) {
             "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs"
         }
         return parse(inputs[index])
