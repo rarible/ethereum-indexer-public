@@ -11,9 +11,9 @@ import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.MediaUrlSanitizer
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -78,7 +78,7 @@ class RariblePropertiesResolver(
         } ?: return null
 
         val result = properties.fixEmptyName(itemId)
-        return MediaUrlSanitizer.sanitize(result)
+        return ItemPropertiesUrlSanitizer.sanitize(itemId, result)
     }
 
     private suspend fun ItemProperties.fixEmptyName(itemId: ItemId): ItemProperties {

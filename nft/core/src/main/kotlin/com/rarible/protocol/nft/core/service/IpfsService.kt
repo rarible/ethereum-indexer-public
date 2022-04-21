@@ -29,6 +29,10 @@ class IpfsService(
     }
 
     private fun resolveHttpUrl(uri: String, gateway: String): String {
+        if (uri.startsWith(SVG_START)) {
+            return uri
+        }
+
         val ipfsUri = if (uri.contains("/ipfs/")) {
             val end = uri.substring(uri.lastIndexOf("/ipfs/"))
             val first = end.split("/")[2]
@@ -40,19 +44,17 @@ class IpfsService(
         } else {
             uri
         }
-        return if (ipfsUri.startsWith(SVG_START)) {
-            ipfsUri
-        } else {
-            when {
-                ipfsUri.startsWith("http") -> ipfsUri
-                ipfsUri.startsWith("ipfs:///ipfs/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
-                ipfsUri.startsWith("ipfs://ipfs/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
-                ipfsUri.startsWith("ipfs://") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs://")}"
-                ipfsUri.startsWith("ipfs:/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs:/")}"
-                ipfsUri.startsWith("Qm") -> "$gateway/ipfs/$ipfsUri"
-                else -> "$gateway/${ipfsUri.trimStart('/')}"
-            }.encodeHtmlUrl()
-        }
+
+        return when {
+            ipfsUri.startsWith("http") -> ipfsUri
+            ipfsUri.startsWith("ipfs:///ipfs/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs:///ipfs/")}"
+            ipfsUri.startsWith("ipfs://ipfs/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs://ipfs/")}"
+            ipfsUri.startsWith("ipfs://") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs://")}"
+            ipfsUri.startsWith("ipfs:/") -> "$gateway/ipfs/${ipfsUri.removePrefix("ipfs:/")}"
+            ipfsUri.startsWith("Qm") -> "$gateway/ipfs/$ipfsUri"
+            else -> "$gateway/${ipfsUri.trimStart('/')}"
+        }.encodeHtmlUrl()
+
     }
 
     private fun String.encodeHtmlUrl(): String {

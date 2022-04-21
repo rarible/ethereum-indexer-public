@@ -8,6 +8,12 @@ import org.junit.jupiter.api.Test
 class JsonPropertiesParserTest {
 
     @Test
+    fun `not a json`() {
+        val data = "abc"
+        assertThat(JsonPropertiesParser.parse(createRandomItemId(), data)).isNull()
+    }
+
+    @Test
     fun `regular json`() {
         val data = """{"a": "b"}"""
         val node = JsonPropertiesParser.parse(createRandomItemId(), data)!!
