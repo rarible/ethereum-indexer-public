@@ -603,7 +603,7 @@ class ActivityFt : SpringContainerBaseTest() {
         save(mint, burn, transfer)
 
         val activities = nftActivityApiClient.getNftActivitiesById(
-            NftActivitiesByIdRequestDto(listOf(mint.id.toHexString(), transfer.id.toHexString()))
+            ActivitiesByIdRequestDto(listOf(mint.id.toHexString(), transfer.id.toHexString()))
         ).awaitFirst().items
 
         assertThat(activities.map { it.id }).containsExactly(mint.id.toHexString(), transfer.id.toHexString())
