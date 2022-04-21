@@ -5,6 +5,7 @@ import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -35,5 +36,8 @@ class OrderSetDbUpdatedFieldHandlerTest : AbstractIntegrationTest() {
 
         Assertions.assertThat(orderRepository.findWithoutDbUpdatedField().toList()).isEmpty()
 
+        Assertions.assertThat(orderRepository.findAll().toList()).hasSize(30)
+
+        orderRepository.findAll().map {Assertions.assertThat(it.lastUpdateAt).isEqualTo(it.dbUpdatedAt)}
     }
 }
