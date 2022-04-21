@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.api.controller
 
+import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
-import com.rarible.protocol.dto.NftActivitiesByIdRequestDto
 import com.rarible.protocol.dto.NftActivitiesDto
 import com.rarible.protocol.dto.NftActivityFilterDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
@@ -48,7 +48,7 @@ class ActivityController(
         return ResponseEntity.ok(NftActivitiesDto(nextContinuation, result))
     }
 
-    override suspend fun getNftActivitiesById(nftActivitiesByIdRequestDto: NftActivitiesByIdRequestDto): ResponseEntity<NftActivitiesDto> {
+    override suspend fun getNftActivitiesById(nftActivitiesByIdRequestDto: ActivitiesByIdRequestDto): ResponseEntity<NftActivitiesDto> {
         val objectIds = nftActivitiesByIdRequestDto.ids.map { ObjectId(it) }.toSet()
         val activities = nftActivityService
             .findByIds(objectIds)
