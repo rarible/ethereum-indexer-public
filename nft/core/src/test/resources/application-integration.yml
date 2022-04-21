@@ -16,6 +16,9 @@ common:
     erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
   reduceProperties:
     skipOwnerships: true
+  ipfs:
+    ipfsGateway: "https://ipfs.io"
+    ipfsPublicGateway: "https://rarible.mypinata.cloud"
 
 rarible:
   loader:

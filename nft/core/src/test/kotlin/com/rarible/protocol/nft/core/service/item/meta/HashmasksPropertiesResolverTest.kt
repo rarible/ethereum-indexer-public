@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -16,7 +15,7 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val hashmasksPropertiesResolver: HashmasksPropertiesResolver = HashmasksPropertiesResolver(
         sender = createSender(),
-        ipfsService = IpfsService()
+        ipfsService = ipfsService
     )
 
     @Test
@@ -31,7 +30,7 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "African Warrior",
                 description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
-                image = "https://rarible.mypinata.cloud/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
+                image = "${ipfsService.publicGateway}/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
                 imageBig = null,
                 imagePreview = null,
                 animationUrl = null,

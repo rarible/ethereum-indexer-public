@@ -124,7 +124,8 @@ class ItemPropertiesService(
     }
 
     private fun ItemProperties.fixIpfsUrls(): ItemProperties {
-        fun String?.resolveHttpUrl() = if (this != null) ipfsService.resolveHttpUrl(this) else null
+        // Make all URL with public IPFS gateway
+        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else ipfsService.resolvePublicHttpUrl(this)
         return copy(
             image = image.resolveHttpUrl(),
             imagePreview = imagePreview.resolveHttpUrl(),

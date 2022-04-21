@@ -68,6 +68,9 @@ common:
     maxDescriptionLength: 10000
   contractAddresses:
     market:
+  ipfs:
+    ipfsGateway: "https://ipfs.io,https://nftstorage.link"
+    ipfsPublicGateway: "https://rarible.mypinata.cloud"
 
 api:
   opensea:
