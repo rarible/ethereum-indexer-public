@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.listener.configuration
 
 import com.rarible.core.daemon.DaemonWorkerProperties
-import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.Duration
@@ -24,7 +23,8 @@ data class OrderListenerProperties(
     val updateAuctionOngoingStateEndLag: Duration = Duration.ofMinutes(5),
     val openSeaClientUserAgents: String = "",
     val metricJobStartEnd: String = "",
-    val ownershipConsumerWorkersCount: Int = 4
+    val ownershipConsumerWorkersCount: Int = 4,
+    val zeroExExchangeDomainHash: String = "0x"
 ) {
     enum class OrderSide {
         ALL,
