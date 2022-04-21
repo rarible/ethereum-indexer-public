@@ -33,9 +33,11 @@ class OrderSetDbUpdatedFieldHandler (
             return null
         }
 
-        val updatedOrder = order.copy(dbUpdatedAt = order.lastUpdateAt)
-        orderRepository.saveWithoutDbUpdated(updatedOrder)
-        logger.info("[$ORDER_SET_DB_UPDATE_FIELD] Order $updatedOrder has been updated!")
+        orderRepository.orderDbFieldUpdate(order)
+        val updatedOrder = orderRepository.findById(order.hash)
+
+        logger.info("[$ORDER_SET_DB_UPDATE_FIELD] Field Order::dbUpdatedAt of order:" +
+                " ${updatedOrder?.hash} has been updated and now is equal: ${updatedOrder?.dbUpdatedAt}.")
 
         return updatedOrder.toString()
     }

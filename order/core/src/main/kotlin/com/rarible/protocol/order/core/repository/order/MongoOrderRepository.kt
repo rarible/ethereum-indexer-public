@@ -27,6 +27,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.gt
@@ -74,6 +75,15 @@ class MongoOrderRepository(
     // TODO should be deleted after migration ALPHA-405
     override suspend fun saveWithoutDbUpdated(order: Order): Order {
         return template.save(order).awaitFirst()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override suspend fun orderDbFieldUpdate(order: Order) {
+        template.updateFirst(
+            Query(Order::hash isEqualTo order.hash),
+            Update().set("dbUpdatedAt", order.lastUpdateAt),
+            Order::class.java
+        ).awaitFirst()
     }
 
     override suspend fun findById(hash: Word): Order? {

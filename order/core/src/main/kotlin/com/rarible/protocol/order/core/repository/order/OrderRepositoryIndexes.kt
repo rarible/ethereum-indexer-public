@@ -210,6 +210,7 @@ object OrderRepositoryIndexes {
 
     private val BY_DB_UPDATE_UPDATE_DEFINITION = Index()
         .on(Order::dbUpdatedAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION = Index()
