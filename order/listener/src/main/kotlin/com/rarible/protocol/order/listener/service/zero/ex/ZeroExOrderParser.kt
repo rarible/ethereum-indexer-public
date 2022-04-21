@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.zero.ex
 
-import com.rarible.protocol.contracts.exchange.zero.ex.Exchange
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.ZeroExFeeWrapper
 import com.rarible.protocol.order.core.model.ZeroExFeeData
@@ -27,7 +26,7 @@ class ZeroExOrderParser(
         index: Int,
         totalLogs: Int
     ): ZeroExMatchOrdersData {
-        val signature = Exchange.matchOrdersSignature()
+        val signature = ZeroExFeeWrapper.matchOrdersSignature()
         val inputs = traceCallService.findAllRequiredCallInputs(
             txHash = txHash,
             txInput = txInput,
