@@ -41,6 +41,17 @@ class AuctionActivityService(
         ).take(size.toLong()).collectList().awaitFirst()
     }
 
+    suspend fun findByIds(ids: List<String>): List<AuctionActivityResult> {
+        val onchain = auctionHistoryRepository
+            .findByIds(ids)
+            .map { AuctionActivityResult.History(it) }
+        val offchain = offchainHistoryRepository
+            .findByIds(ids)
+            .map { AuctionActivityResult.OffchainHistory(it) }
+
+        return Flux.merge(onchain, offchain).collectList().awaitFirst()
+    }
+
     companion object {
         private val COMPARATOR = compareByDescending(ActivityResult::getDate)
             .then(compareByDescending(ActivityResult::getId))

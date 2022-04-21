@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivityDto
 import com.rarible.protocol.dto.AuctionActivityFilterAllDto
@@ -27,6 +28,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -87,7 +89,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(
-                        createAuctionLogEvent(randomAuctionCreated(auction.contract, auction.auctionId).copy(date = now.plus(4, ChronoUnit.MINUTES))),
+                        createAuctionLogEvent(
+                            randomAuctionCreated(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(date = now.plus(4, ChronoUnit.MINUTES))
+                        ),
                         createAuctionLogEvent(
                             randomBidPlaced(auction.contract, auction.auctionId).copy(
                                 date = now.plus(
@@ -96,7 +103,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 )
                             )
                         ),
-                        createAuctionLogEvent(randomCanceled(auction.contract, auction.auctionId).copy(date = now.plus(2, ChronoUnit.MINUTES))),
+                        createAuctionLogEvent(
+                            randomCanceled(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(date = now.plus(2, ChronoUnit.MINUTES))
+                        ),
                         createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId))
                     ),
                     emptyList<LogEvent>(),
@@ -115,7 +127,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 Arguments.of(
                     listOf(auction),
                     listOf(
-                        createAuctionLogEvent(randomAuctionCreated(auction.contract, auction.auctionId).copy(date = now.plus(4, ChronoUnit.MINUTES))),
+                        createAuctionLogEvent(
+                            randomAuctionCreated(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(date = now.plus(4, ChronoUnit.MINUTES))
+                        ),
                         createAuctionLogEvent(
                             randomBidPlaced(auction.contract, auction.auctionId).copy(
                                 date = now.plus(
@@ -124,7 +141,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 )
                             )
                         ),
-                        createAuctionLogEvent(randomCanceled(auction.contract, auction.auctionId).copy(date = now.plus(2, ChronoUnit.MINUTES))),
+                        createAuctionLogEvent(
+                            randomCanceled(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(date = now.plus(2, ChronoUnit.MINUTES))
+                        ),
                         createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId))
                     ).asReversed(),
                     emptyList<LogEvent>(),
@@ -341,7 +363,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 date = now.plus(2, ChronoUnit.MINUTES)
                             )
                         ),
-                        createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId).copy(sell = auction.sell))
+                        createAuctionLogEvent(
+                            randomFinished(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(sell = auction.sell)
+                        )
                     ),
                     randomLogList(randomAuctions),
                     AuctionActivityFilterByItemDto(
@@ -379,7 +406,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 date = now.plus(2, ChronoUnit.MINUTES)
                             )
                         ),
-                        createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId).copy(sell = auction.sell))
+                        createAuctionLogEvent(
+                            randomFinished(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(sell = auction.sell)
+                        )
                     ).asReversed(),
                     randomLogList(randomAuctions),
                     AuctionActivityFilterByItemDto(
@@ -472,7 +504,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 date = now.plus(2, ChronoUnit.MINUTES)
                             )
                         ),
-                        createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId).copy(sell = auction.sell))
+                        createAuctionLogEvent(
+                            randomFinished(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(sell = auction.sell)
+                        )
                     ),
                     randomLogList(randomAuctions),
                     AuctionActivityFilterByCollectionDto(
@@ -509,7 +546,12 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                                 date = now.plus(2, ChronoUnit.MINUTES)
                             )
                         ),
-                        createAuctionLogEvent(randomFinished(auction.contract, auction.auctionId).copy(sell = auction.sell))
+                        createAuctionLogEvent(
+                            randomFinished(
+                                auction.contract,
+                                auction.auctionId
+                            ).copy(sell = auction.sell)
+                        )
                     ).asReversed(),
                     randomLogList(randomAuctions),
                     AuctionActivityFilterByCollectionDto(
@@ -550,18 +592,40 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.ENDED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)
+                    ),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED, AuctionActivityFilterAllDto.Types.STARTED)),
+                    AuctionActivityFilterAllDto(
+                        listOf(
+                            AuctionActivityFilterAllDto.Types.ENDED,
+                            AuctionActivityFilterAllDto.Types.STARTED
+                        )
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run {  // all filter with all statuses reversed
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)).asReversed(),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.ENDED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)
+                    ).asReversed(),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterAllDto(listOf(AuctionActivityFilterAllDto.Types.ENDED, AuctionActivityFilterAllDto.Types.STARTED)),
+                    AuctionActivityFilterAllDto(
+                        listOf(
+                            AuctionActivityFilterAllDto.Types.ENDED,
+                            AuctionActivityFilterAllDto.Types.STARTED
+                        )
+                    ),
                     ActivitySortDto.EARLIEST_FIRST
                 )
             }, run { // item
@@ -570,7 +634,11 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED)),
+                    AuctionActivityFilterByItemDto(
+                        auction.sell.type.token,
+                        auction.sell.type.tokenId!!.value,
+                        listOf(AuctionActivityFilterByItemDto.Types.STARTED)
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run {
@@ -579,25 +647,49 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.ENDED)),
+                    AuctionActivityFilterByItemDto(
+                        auction.sell.type.token,
+                        auction.sell.type.tokenId!!.value,
+                        listOf(AuctionActivityFilterByItemDto.Types.ENDED)
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run { // user filter with all statuses
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.STARTED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)
+                    ),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)),
+                    AuctionActivityFilterByItemDto(
+                        auction.sell.type.token,
+                        auction.sell.type.tokenId!!.value,
+                        listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run { // user filter with all statuses reversed
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)).asReversed(),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.STARTED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)
+                    ).asReversed(),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByItemDto(auction.sell.type.token, auction.sell.type.tokenId!!.value, listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)),
+                    AuctionActivityFilterByItemDto(
+                        auction.sell.type.token,
+                        auction.sell.type.tokenId!!.value,
+                        listOf(AuctionActivityFilterByItemDto.Types.STARTED, AuctionActivityFilterByItemDto.Types.ENDED)
+                    ),
                     ActivitySortDto.EARLIEST_FIRST
                 )
             }, run { // collection
@@ -606,7 +698,10 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED)),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED)),
+                    AuctionActivityFilterByCollectionDto(
+                        auction.sell.type.token,
+                        listOf(AuctionActivityFilterByCollectionDto.Types.STARTED)
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run {
@@ -615,25 +710,52 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
                     listOf(auction),
                     listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    AuctionActivityFilterByCollectionDto(
+                        auction.sell.type.token,
+                        listOf(AuctionActivityFilterByCollectionDto.Types.ENDED)
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run { // collection filter with all statuses
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.STARTED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)
+                    ),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED, AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    AuctionActivityFilterByCollectionDto(
+                        auction.sell.type.token,
+                        listOf(
+                            AuctionActivityFilterByCollectionDto.Types.STARTED,
+                            AuctionActivityFilterByCollectionDto.Types.ENDED
+                        )
+                    ),
                     ActivitySortDto.LATEST_FIRST
                 )
             }, run { // collection filter with all statuses reversed
                 val auction = randomAuction()
                 Arguments.of(
                     listOf(auction),
-                    listOf(createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.STARTED).copy(date = now.plus(1, ChronoUnit.MINUTES)), createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)).asReversed(),
+                    listOf(
+                        createOffchainHistoryEvent(
+                            auction,
+                            AuctionOffchainHistory.Type.STARTED
+                        ).copy(date = now.plus(1, ChronoUnit.MINUTES)),
+                        createOffchainHistoryEvent(auction, AuctionOffchainHistory.Type.ENDED)
+                    ).asReversed(),
                     emptyList<AuctionOffchainHistory>(),
-                    AuctionActivityFilterByCollectionDto(auction.sell.type.token, listOf(AuctionActivityFilterByCollectionDto.Types.STARTED, AuctionActivityFilterByCollectionDto.Types.ENDED)),
+                    AuctionActivityFilterByCollectionDto(
+                        auction.sell.type.token,
+                        listOf(
+                            AuctionActivityFilterByCollectionDto.Types.STARTED,
+                            AuctionActivityFilterByCollectionDto.Types.ENDED
+                        )
+                    ),
                     ActivitySortDto.EARLIEST_FIRST
                 )
             }
@@ -737,6 +859,37 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
         allActivities.forEachIndexed { index, orderActivityDto ->
             checkAuctionActivityDto(orderActivityDto, logs[index])
         }
+    }
+
+    @Test
+    fun `should find auction activity by ids`(): Unit = runBlocking {
+        val offchainAuction = randomAuction()
+        val offchainStarted = createOffchainHistoryEvent(offchainAuction, AuctionOffchainHistory.Type.STARTED)
+        val offchainFinished = createOffchainHistoryEvent(offchainAuction, AuctionOffchainHistory.Type.ENDED).copy(
+            date = now.plus(1, ChronoUnit.MINUTES)
+        )
+        saveOffchainHistory(
+            offchainStarted,
+            offchainFinished
+        )
+
+        val onchainAuction = randomAuction()
+        val onchainCreated = createAuctionLogEvent(
+            randomAuctionCreated(onchainAuction.contract, onchainAuction.auctionId).copy(
+                sell = onchainAuction.sell,
+                date = now.plus(4, ChronoUnit.MINUTES)
+            )
+        )
+        saveHistory(onchainCreated)
+
+        val result = auctionActivityClient.getAuctionActivitiesById(
+            ActivitiesByIdRequestDto(listOf(offchainStarted.id, onchainCreated.id.toHexString()))
+        ).awaitFirst()
+
+        assertThat(result.items.map { it.id })
+            .contains(offchainStarted.id)
+            .contains(onchainCreated.id.toHexString())
+            .doesNotContain(offchainFinished.id)
     }
 
     private fun checkAuctionActivityDto(auctionActivityDto: AuctionActivityDto, history: LogEvent) {
