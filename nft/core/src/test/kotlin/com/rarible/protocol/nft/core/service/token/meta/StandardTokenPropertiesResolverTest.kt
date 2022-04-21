@@ -98,7 +98,8 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
         return WebClient.builder()
             .exchangeFunction { request ->
                 assertThat(request.url())
-                    .isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
+                    // URL taken from application-integration.properties
+                    .isEqualTo(URI("https://ipfs.io/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
                 Mono.just(
                     ClientResponse.create(HttpStatus.OK)
                         .header("content-type", "application/json")
@@ -113,7 +114,9 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
         return WebClient.builder()
             .clientConnector(ReactorClientHttpConnector(httpClient))
             .exchangeFunction { request ->
-                assertThat(request.url()).isEqualTo(URI("https://rarible.mypinata.cloud/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T"))
+                assertThat(request.url()).isEqualTo(
+                    URI("${ipfsService.publicGateway}/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T")
+                )
                 Mono.just(ClientResponse.create(HttpStatus.NOT_FOUND).build())
             }.build()
     }

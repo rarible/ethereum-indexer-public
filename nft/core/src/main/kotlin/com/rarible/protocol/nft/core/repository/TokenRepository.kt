@@ -1,10 +1,11 @@
 package com.rarible.protocol.nft.core.repository
 
 import com.rarible.protocol.nft.core.model.ContractStatus
-import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenStandard
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.Criteria
@@ -25,12 +26,17 @@ class TokenRepository(
     }
 
     fun remove(token: Address): Mono<Void> {
-        val criteria = Criteria.where("_id").isEqualTo(token)
+        val criteria = Criteria.where(ID).isEqualTo(token)
         return mongo.remove<Token>(Query(criteria)).then()
     }
 
     fun findAll(): Flux<Token> {
         return mongo.findAll()
+    }
+
+    fun findAllFrom(from: Address?): Flow<Token> {
+        val criteria = from?.let { Criteria.where(ID).gt(it) } ?: Criteria()
+        return mongo.find(Query.query(criteria).with(ID_ASC_SORT), Token::class.java).asFlow()
     }
 
     fun count(): Mono<Long> {
@@ -42,15 +48,14 @@ class TokenRepository(
     }
 
     fun search(filter: TokenFilter): Flux<Token> {
-        return mongo.find(filter.toQuery().with(Sort.by(Sort.Direction.ASC, "_id")))
+        return mongo.find(filter.toQuery().with(ID_ASC_SORT))
     }
 
     private fun TokenFilter.toQuery(): Query {
         val criteria = when (this) {
             is TokenFilter.All -> all()
             is TokenFilter.ByOwner -> byOwner(owner)
-        }.and(Token::standard).ne(TokenStandard.NONE)
-         .and(Token::status).ne(ContractStatus.ERROR) scrollTo continuation
+        }.and(Token::standard).ne(TokenStandard.NONE).and(Token::status).ne(ContractStatus.ERROR) scrollTo continuation
 
         return Query.query(criteria).limit(size)
     }
@@ -64,6 +69,11 @@ class TokenRepository(
         if (continuation == null) {
             this
         } else {
-            and("_id").gt(continuation)
+            and(ID).gt(continuation)
         }
+
+    private companion object {
+        const val ID = "_id"
+        val ID_ASC_SORT: Sort = Sort.by(Sort.Direction.ASC, ID)
+    }
 }

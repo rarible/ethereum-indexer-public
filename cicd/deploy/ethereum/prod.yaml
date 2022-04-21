@@ -2,7 +2,7 @@ global:
   network: mainnet
 
 ethereum-erc20-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1024
@@ -24,7 +24,7 @@ ethereum-gateway:
     - 'proxy'
 
 ethereum-order-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 2048
@@ -37,7 +37,7 @@ ethereum-order-listener:
       max_direct_memory_megabytes: 512
 
 ethereum-nft-api:
-  replicas: 3
+  replicas: 2
   resources:
     jvm:
       xmx_megabytes: 1536

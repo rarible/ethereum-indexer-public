@@ -197,10 +197,11 @@ class MongoOrderRepository(
         val idFiled = "_id"
         val query = Query(
             Criteria().andOperator(
+                Order::status ne OrderStatus.CANCELLED,
                 Order::platform isEqualTo Platform.OPEN_SEA,
                 Order::maker isEqualTo maker,
-                Order::data /  OrderOpenSeaV1DataV1::nonce gte fromIncluding,
-                Order::data /  OrderOpenSeaV1DataV1::nonce lt toExcluding,
+                Order::data / OrderOpenSeaV1DataV1::nonce gte fromIncluding,
+                Order::data / OrderOpenSeaV1DataV1::nonce lt toExcluding,
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_AND_NONCE.indexKeys)

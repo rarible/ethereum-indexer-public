@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id
 data class CachedContentMetaEntry(
     @Id
     val id: String,
-    val data: CachedContentMeta
+    val data: CachedContentMeta?
 ) {
     companion object {
         const val CACHE_META_COLLECTION = "cache_meta"

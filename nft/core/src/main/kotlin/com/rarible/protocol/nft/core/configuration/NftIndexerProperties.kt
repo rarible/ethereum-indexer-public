@@ -25,13 +25,15 @@ data class NftIndexerProperties(
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
     val nftCollectionMetaExtenderWorkersCount: Int = 4,
+    val actionWorkersCount: Int = 4,
     val confirmationBlocks: Int = 12,
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
     var enableMetaCache: Boolean = true,
     val scannerProperties: ScannerProperties = ScannerProperties(),
     val itemMeta: ItemMetaProperties = ItemMetaProperties(),
-    val contractAddresses: ContractAddresses = ContractAddresses()
+    val contractAddresses: ContractAddresses = ContractAddresses(),
+    val ipfs: IpfsProperties
 ) {
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList()
@@ -55,5 +57,10 @@ data class NftIndexerProperties(
 
         val marketAddresses = toAddressSet(market)
     }
+
+    data class IpfsProperties(
+        val ipfsGateway: String,
+        val ipfsPublicGateway: String
+    )
 
 }

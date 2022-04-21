@@ -1,8 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.service.IpfsService
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -24,6 +26,15 @@ annotation class ItemMetaTest
 abstract class BasePropertiesResolverTest {
 
     protected val tokenRepository: TokenRepository = mockk()
+
+    protected val ipfsPublicGateway = "https://rarible.mypinata.com"
+
+    protected val ipfsService = IpfsService(
+        NftIndexerProperties.IpfsProperties(
+            ipfsPublicGateway,
+            ipfsPublicGateway
+        )
+    )
 
     @BeforeEach
     fun clear() {

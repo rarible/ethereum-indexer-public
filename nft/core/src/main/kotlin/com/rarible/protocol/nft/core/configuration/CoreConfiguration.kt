@@ -4,6 +4,7 @@ import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
+import com.rarible.protocol.nft.core.event.EventListenerPackage
 import com.rarible.protocol.nft.core.model.CollectionEventType
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
@@ -25,13 +26,23 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 @EnableRaribleCacheLoader
 @EnableConfigurationProperties(NftIndexerProperties::class)
 @Import(RepositoryConfiguration::class, ProducerConfiguration::class, MetricsCountersConfiguration::class)
-@ComponentScan(basePackageClasses = [Package::class, ConvertersPackage::class])
+@ComponentScan(basePackageClasses = [
+    Package::class,
+    ConvertersPackage::class,
+    EventListenerPackage::class
+])
 class CoreConfiguration(
     private val properties: NftIndexerProperties
 ) {
+
     @Bean
     fun featureFlags(): FeatureFlags {
         return properties.featureFlags
+    }
+
+    @Bean
+    fun ipfsProperties(): NftIndexerProperties.IpfsProperties {
+        return properties.ipfs
     }
 
     @Bean
@@ -39,7 +50,9 @@ class CoreConfiguration(
     fun metaCacheLoaderService(
         cacheLoaderServices: List<CacheLoaderService<*>>
     ): CacheLoaderService<ItemMeta> =
-        @Suppress("UNCHECKED_CAST")(cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
+        @Suppress(
+            "UNCHECKED_CAST"
+        ) (cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
 
     @Bean
     fun historyTopics(): HistoryTopics {
