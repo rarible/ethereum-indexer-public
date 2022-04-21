@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.zero.ex.Exchange
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -129,7 +128,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             )
         )
         val date = Instant.now().epochSecond
-        val index = 1
+        val index = 0
         val totalLogs = 2
         val result = zeroExExchangeOrderMatchDescriptor.convert(
             log = log,
@@ -194,21 +193,6 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             transactionHash: Word,
             to: Address,
             id: Binary
-        ): List<SimpleTraceResult> = if (id == Exchange.matchOrdersSignature().id()) {
-            listOf(
-                SimpleTraceResult(
-                    from = Address.ONE(),
-                    to = Address.ONE(),
-                    input = Binary.apply("0x")
-                ),
-                SimpleTraceResult(
-                    from = Address.ONE(),
-                    to = Address.ONE(),
-                    input = Binary.apply(transactionInput)
-                )
-            )
-        } else {
-            throw IllegalStateException("wrong id: $id must be ${Exchange.matchOrdersSignature().id()}")
-        }
+        ): List<SimpleTraceResult> = listOf()
     }
 }
