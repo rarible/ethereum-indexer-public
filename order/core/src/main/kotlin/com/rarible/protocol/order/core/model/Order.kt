@@ -44,7 +44,8 @@ data class Order(
 
     val createdAt: Instant,
     val lastUpdateAt: Instant,
-    val dbUpdatedAt: Instant = nowMillis(),
+    //TODO after migration ALPHA-405 can't be null
+    val dbUpdatedAt: Instant? = null,
 
     val pending: List<OrderExchangeHistory> = emptyList(),
 

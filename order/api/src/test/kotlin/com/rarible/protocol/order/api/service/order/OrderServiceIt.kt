@@ -264,7 +264,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val result = orderService.findOrders(filter, 5, null)
 
         assertThat(result).hasSize(orderQuantity)
-        assertThat(result).isSortedAccordingTo { o1, o2 -> o1.dbUpdatedAt.compareTo(o2.dbUpdatedAt) }
+        assertThat(result).isSortedAccordingTo { o1, o2 -> o1.dbUpdatedAt!!.compareTo(o2.dbUpdatedAt) }
     }
 
     @Test
@@ -284,7 +284,7 @@ class OrderServiceIt : AbstractOrderIt() {
         val result = orderService.findOrders(filter, orderQuantity, null)
 
         assertThat(result).hasSize(orderQuantity)
-        assertThat(result).isSortedAccordingTo { o1, o2 -> o2.dbUpdatedAt.compareTo(o1.dbUpdatedAt) }
+        assertThat(result).isSortedAccordingTo { o1, o2 -> o2.dbUpdatedAt!!.compareTo(o1.dbUpdatedAt) }
     }
 
     @Test

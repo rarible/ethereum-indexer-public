@@ -50,7 +50,7 @@ data class OrderFilterBidByItem(
 
         OrderFilterSort.DB_UPDATE_DESC,
         OrderFilterSort.DB_UPDATE_ASC -> {
-            Continuation.LastDate(order.dbUpdatedAt, order.hash)
+            Continuation.LastDate(order.dbUpdatedAt ?: order.lastUpdateAt, order.hash)
         }
 
         OrderFilterSort.TAKE_PRICE_DESC -> {
