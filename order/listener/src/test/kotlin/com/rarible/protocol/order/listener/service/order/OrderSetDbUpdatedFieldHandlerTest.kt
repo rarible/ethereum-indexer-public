@@ -38,6 +38,6 @@ class OrderSetDbUpdatedFieldHandlerTest : AbstractIntegrationTest() {
 
         Assertions.assertThat(orderRepository.findAll().toList()).hasSize(30)
 
-        orderRepository.findAll().map {Assertions.assertThat(it.lastUpdateAt).isEqualTo(it.dbUpdatedAt)}
+        orderRepository.findAll().map {Assertions.assertThat(it.lastUpdateAt).isEqualTo(it.dbUpdatedAt)}.collect()
     }
 }
