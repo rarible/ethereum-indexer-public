@@ -12,7 +12,6 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderParser
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -29,8 +28,6 @@ class WyvernExchangeOrderMatchDescriptor(
     private val openSeaOrderParser: OpenSeaOrderParser
 ) : LogEventDescriptor<OrderSideMatch> {
 
-    private val logger = LoggerFactory.getLogger(javaClass)
-
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
 
@@ -43,13 +40,16 @@ class WyvernExchangeOrderMatchDescriptor(
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == exchangeContractAddresses.openSeaV2
-        val orders = openSeaOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), event, index, totalLogs, eip712)
-        return if (orders != null) {
-            openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
-        } else {
-            logger.warn("Can't parser OpenSea match transaction ${transaction.value()}")
-            emptyList()
-        }
+
+        val orders = openSeaOrderParser.parseMatchedOrders(
+            transaction.hash(),
+            transaction.input(),
+            event,
+            index,
+            totalLogs,
+            eip712
+        )
+        return openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

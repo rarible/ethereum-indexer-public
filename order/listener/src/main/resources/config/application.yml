@@ -70,6 +70,9 @@ listener:
     rate: PT1M
     timeOffset: PT1H
     batchSize: 20
+  zero:
+    ex:
+      exchangeDomainHash: 0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50
