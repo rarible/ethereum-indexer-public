@@ -24,7 +24,6 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
     private lateinit var mongoTemplate: ReactiveMongoTemplate
 
     @Test
-    @Disabled
     fun `return content meta from cache`() = runBlocking<Unit> {
         val collection = mongoTemplate.getCollection(CachedContentMetaEntry.CACHE_META_COLLECTION).awaitFirst()
         collection.insertOne(
