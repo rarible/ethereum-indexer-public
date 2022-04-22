@@ -23,6 +23,7 @@ import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.util.Hex
 import java.math.BigInteger
+import kotlinx.coroutines.flow.toList
 
 @Component
 class CollectionService(
@@ -42,6 +43,13 @@ class CollectionService(
             ?.takeIf { it.standard != TokenStandard.NONE && it.status != ContractStatus.ERROR }
             ?: throw EntityNotFoundApiException("Collection", collectionId)
         return collectionDtoConverter.convert(ExtendedToken(token, tokenMetaService.get(collectionId)))
+    }
+
+    suspend fun get(ids: List<Address>): List<NftCollectionDto> {
+        val tokens = tokenRepository.findByIds(ids).toList()
+        return tokens.map {
+            collectionDtoConverter.convert(ExtendedToken(it, tokenMetaService.get(it.id)))
+        }
     }
 
     suspend fun resetMeta(collectionId: Address) {

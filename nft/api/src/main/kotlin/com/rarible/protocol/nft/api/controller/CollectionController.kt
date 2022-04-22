@@ -65,6 +65,17 @@ class CollectionController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun searchNftCollectionsByIds(ids: List<String>): ResponseEntity<NftCollectionsDto> {
+        val collections = collectionService.get(ids.map { AddressParser.parse(it) })
+        return ResponseEntity.ok(
+            NftCollectionsDto(
+                total = collections.size.toLong(),
+                collections = collections,
+                continuation = null
+            )
+        )
+    }
+
     override suspend fun searchNftCollectionsByOwner(
         owner: String,
         continuation: String?,
