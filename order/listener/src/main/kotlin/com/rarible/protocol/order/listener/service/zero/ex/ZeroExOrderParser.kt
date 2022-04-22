@@ -36,7 +36,7 @@ class ZeroExOrderParser(
         require(inputs.size * 2 == totalLogs) {
             "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs"
         }
-        return parse(inputs[index])
+        return parse(inputs[index / 2])
     }
 
     fun parse(input: Binary): ZeroExMatchOrdersData {

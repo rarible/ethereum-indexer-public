@@ -78,7 +78,9 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         )
 
         assertThat(
-            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com//ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg")
+            mediaMetaService.getMediaMetaFromCache(
+                "https://ipfs.rarible.com/ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg"
+            )
         ).isEqualTo(
             ContentMeta(
                 type = "image/jpeg",
