@@ -557,8 +557,8 @@ class OrderController(
         source: OrderSyncSortDto?
     ): OrderFilterSort {
         return when (source) {
-            OrderSyncSortDto.DB_UPDATE_ASC -> OrderFilterSort.DB_UPDATE_ASC
-            else -> OrderFilterSort.DB_UPDATE_DESC
+            OrderSyncSortDto.DB_UPDATE_DESC -> OrderFilterSort.DB_UPDATE_DESC
+            else -> OrderFilterSort.DB_UPDATE_ASC
         }
     }
 
