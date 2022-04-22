@@ -9,6 +9,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -23,6 +24,7 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
     private lateinit var mongoTemplate: ReactiveMongoTemplate
 
     @Test
+    @Disabled
     fun `return content meta from cache`() = runBlocking<Unit> {
         val collection = mongoTemplate.getCollection(CachedContentMetaEntry.CACHE_META_COLLECTION).awaitFirst()
         collection.insertOne(

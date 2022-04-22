@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
@@ -38,6 +39,7 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository.Companion.COLLECTION
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -51,6 +53,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -73,6 +76,10 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
+
+    @Autowired
+    @Qualifier("meta.cache.loader.service")
+    private lateinit var itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
 
     @BeforeEach
     fun setUpMeta() {
@@ -115,7 +122,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
+            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -156,7 +163,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
+            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -172,7 +179,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-        val transfer = saveItemHistory(
+        itemMetaCacheLoaderService.save(ItemId(token, tokenId).toCacheKey(), itemMeta)
+        saveItemHistory(
             ItemTransfer(
                 owner = owner,
                 token = token,
@@ -193,7 +201,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             expValue = EthUInt256.ZERO,
             expLazyValue = EthUInt256.ZERO
         )
-
         checkItemEventWasPublished(
             token,
             tokenId,
