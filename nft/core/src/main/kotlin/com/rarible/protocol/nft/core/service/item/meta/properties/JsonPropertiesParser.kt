@@ -4,12 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.BASE_64_JSON_PREFIX
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.JSON_PREFIX
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.base64MimeToBytes
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 
 object JsonPropertiesParser {
+
+    private const val BASE_64_JSON_PREFIX = "data:application/json;base64,"
+    private const val JSON_PREFIX = "data:application/json;utf8,"
 
     private val mapper = ObjectMapper().registerKotlinModule()
 
