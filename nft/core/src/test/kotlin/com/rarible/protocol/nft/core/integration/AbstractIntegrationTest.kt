@@ -155,11 +155,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     }
 
     @BeforeEach
-    fun initFeatureFlags() {
-        nftIndexerProperties.enableMetaCache = true
-    }
-
-    @BeforeEach
     fun cleanDatabase() {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
