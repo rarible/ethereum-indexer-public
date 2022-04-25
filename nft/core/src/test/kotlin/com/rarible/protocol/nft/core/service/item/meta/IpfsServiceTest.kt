@@ -27,51 +27,53 @@ class IpfsServiceTest : BasePropertiesResolverTest() {
     }
 
     @Test
-    fun `foreign ipfs urls`() {
-        // Regular IPFS URL
-        assertIpfsUrl("https://ipfs.io/ipfs/$cid", cid)
-        // Regular IPFS URL with 2 /ipfs/ parts
-        assertIpfsUrl("https://ipfs.io/ipfs/something/ipfs/$cid", cid)
+    fun `foreign ipfs urls - replaced by public gateway`() {
         // Broken IPFS URL
-        assertIpfsUrl("https://mypinata.com/ipfs/http://ipfs.io/ipfs/$cid", cid)
+        assertFixedIpfsUrl("htt://mypinata.com/ipfs/$cid", cid)
         // Relative IPFS path
-        assertIpfsUrl("/ipfs/$cid/abc .png", "$cid/abc%20.png")
+        assertFixedIpfsUrl("/ipfs/$cid/abc .png", "$cid/abc%20.png")
 
         // Abstract IPFS urls with /ipfs/ path and broken slashes
-        assertIpfsUrl("ipfs:/ipfs/$cid", cid)
-        assertIpfsUrl("ipfs://ipfs/$cid", cid)
-        assertIpfsUrl("ipfs:///ipfs/$cid", cid)
-        assertIpfsUrl("ipfs:////ipfs/$cid", cid)
+        assertFixedIpfsUrl("ipfs:/ipfs/$cid", cid)
+        assertFixedIpfsUrl("ipfs://ipfs/$cid", cid)
+        assertFixedIpfsUrl("ipfs:///ipfs/$cid", cid)
+        assertFixedIpfsUrl("ipfs:////ipfs/$cid", cid)
 
-        assertIpfsUrl("ipfs:////ipfs/$cid", cid)
-        assertIpfsUrl("ipfs:////ipfs//$cid", cid)
-        assertIpfsUrl("ipfs:////ipfs///$cid", cid)
+        assertFixedIpfsUrl("ipfs:////ipfs/$cid", cid)
+        assertFixedIpfsUrl("ipfs:////ipfs//$cid", cid)
+        assertFixedIpfsUrl("ipfs:////ipfs///$cid", cid)
+    }
 
-        // Regular IPFS URL but without CID, should stay as is
-        val publicUrlWithoutCid = "https://ipfs.io/ipfs/123.jpg"
-        assertThat(service.resolvePublicHttpUrl(publicUrlWithoutCid)).isEqualTo(publicUrlWithoutCid)
+    @Test
+    fun `foreign ipfs urls - original gateway kept`() {
+        // Regular IPFS URL
+        assertOriginalIpfsUrl("https://ipfs.io/ipfs/$cid")
+        // Regular IPFS URL with 2 /ipfs/ parts
+        assertOriginalIpfsUrl("https://ipfs.io/ipfs/something/ipfs/$cid")
+        // Regular IPFS URL but without CID
+        assertOriginalIpfsUrl("http://ipfs.io/ipfs/123.jpg")
     }
 
     @Test
     fun `prefixed ipfs urls`() {
-        assertIpfsUrl("ipfs:/folder/$cid/abc .json", "folder/$cid/abc%20.json")
-        assertIpfsUrl("ipfs://folder/abc", "folder/abc")
-        assertIpfsUrl("ipfs:///folder/subfolder/$cid", "folder/subfolder/$cid")
-        assertIpfsUrl("ipfs:////$cid", cid)
+        assertFixedIpfsUrl("ipfs:/folder/$cid/abc .json", "folder/$cid/abc%20.json")
+        assertFixedIpfsUrl("ipfs://folder/abc", "folder/abc")
+        assertFixedIpfsUrl("ipfs:///folder/subfolder/$cid", "folder/subfolder/$cid")
+        assertFixedIpfsUrl("ipfs:////$cid", cid)
 
         // Various case of ipfs prefix
-        assertIpfsUrl("IPFS://$cid", cid)
-        assertIpfsUrl("Ipfs:///$cid", cid)
+        assertFixedIpfsUrl("IPFS://$cid", cid)
+        assertFixedIpfsUrl("Ipfs:///$cid", cid)
 
         // Abstract IPFS urls with /ipfs/ path and broken slashes without a CID
-        assertIpfsUrl("ipfs:/ipfs/abc", "abc")
-        assertIpfsUrl("ipfs://ipfs/folder/abc", "folder/abc")
-        assertIpfsUrl("ipfs:///ipfs/abc", "abc")
+        assertFixedIpfsUrl("ipfs:/ipfs/abc", "abc")
+        assertFixedIpfsUrl("ipfs://ipfs/folder/abc", "folder/abc")
+        assertFixedIpfsUrl("ipfs:///ipfs/abc", "abc")
     }
 
     @Test
     fun `single sid`() {
-        assertIpfsUrl(cid, cid)
+        assertFixedIpfsUrl(cid, cid)
     }
 
     @Test
@@ -89,8 +91,14 @@ class IpfsServiceTest : BasePropertiesResolverTest() {
         assertThat(service.resolvePublicHttpUrl(path)).isEqualTo("${service.publicGateway}/hel%20lo.png")
     }
 
-    private fun assertIpfsUrl(url: String, expectedPath: String) {
+    private fun assertFixedIpfsUrl(url: String, expectedPath: String) {
         val result = ipfsService.resolvePublicHttpUrl(url)
         assertThat(result).isEqualTo("${service.publicGateway}/ipfs/$expectedPath")
+    }
+
+    private fun assertOriginalIpfsUrl(url: String, expectedPath: String? = null) {
+        val expected = expectedPath ?: url // in most cases we expect URL not changed
+        val result = ipfsService.resolvePublicHttpUrl(url)
+        assertThat(result).isEqualTo(expected)
     }
 }
