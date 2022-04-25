@@ -80,7 +80,12 @@ class MongoOrderRepository(
     // TODO should be deleted after migration ALPHA-405
     override suspend fun orderDbFieldUpdate(order: Order) {
         template.updateFirst(
-            Query(Order::hash isEqualTo order.hash),
+            Query(
+                Criteria().andOperator(
+                    Order::hash isEqualTo order.hash,
+                    Order::dbUpdatedAt isEqualTo null
+                )
+            ),
             Update().set("dbUpdatedAt", order.lastUpdateAt),
             Order::class.java
         ).awaitFirst()
