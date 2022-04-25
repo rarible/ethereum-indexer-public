@@ -82,7 +82,7 @@ class MongoOrderRepository(
         template.updateFirst(
             Query(
                 Criteria().andOperator(
-                    Order::hash isEqualTo order.hash,
+                    Criteria.where("_id").isEqualTo(order.hash),
                     Order::dbUpdatedAt isEqualTo null
                 )
             ),
