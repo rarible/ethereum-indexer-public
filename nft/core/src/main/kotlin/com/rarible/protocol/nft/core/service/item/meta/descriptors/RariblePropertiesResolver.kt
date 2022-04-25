@@ -39,6 +39,8 @@ class RariblePropertiesResolver(
 
     override val name get() = "Rarible"
 
+    private val uriToIgnore = "aavegotchi.com/metadata/"
+
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         val tokenUri = getUri(itemId)
         if (tokenUri.isNullOrBlank()) {
@@ -70,6 +72,9 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun resolve(itemId: ItemId, tokenUri: String): ItemProperties? {
+        if (tokenUri != null && uriToIgnore in tokenUri) {
+            return null
+        }
         // Sometimes there could be a json instead of URL
         val json = JsonPropertiesParser.parse(itemId, tokenUri)
         val properties = when {
