@@ -25,7 +25,7 @@ interface OrderRepository {
     //TODO should be deleted after migration ALPHA-405
     suspend fun saveWithoutDbUpdated(order: Order): Order
     //TODO should be deleted after migration ALPHA-405
-    suspend fun orderDbFieldUpdate(order: Order)
+    suspend fun orderDbUpdatedAtFieldUpdate(order: Order)
 
     suspend fun findById(hash: Word): Order?
 

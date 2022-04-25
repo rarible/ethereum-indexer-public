@@ -78,7 +78,7 @@ class MongoOrderRepository(
     }
 
     // TODO should be deleted after migration ALPHA-405
-    override suspend fun orderDbFieldUpdate(order: Order) {
+    override suspend fun orderDbUpdatedAtFieldUpdate(order: Order) {
         template.updateFirst(
             Query(
                 Criteria().andOperator(
