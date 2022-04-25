@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -21,17 +22,18 @@ class StonerCatsPropertiesResolver(
 
     override val name get() = "StonerCats"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != STONER_CAT_NFT_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "Resolving $name Nft properties")
-        val properties = raribleResolver.resolve(itemId) ?: return null
-        val imageUrl = properties.image ?: return properties
+        val properties = raribleResolver.resolve(itemId) ?: return wrapAsUnResolved(null)
+        val imageUrl = properties.image ?: return wrapAsResolved(properties)
         val etag = getEtag(itemId, imageUrl)
-        return etag?.let {
+        val ipsProperties = etag?.let {
             properties.copy(image = "${ipfsService.publicGateway}/ipfs/$etag")
         } ?: properties
+        return wrapAsResolved(ipsProperties)
     }
 
     private suspend fun getEtag(itemId: ItemId, url: String): String? {

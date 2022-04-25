@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.findById
@@ -32,11 +33,11 @@ class CryptoPunksPropertiesResolver(
     suspend fun save(punk: CryptoPunksMeta): CryptoPunksMeta? =
         cryptoPunksRepository.save(punk).awaitFirstOrNull()
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != cryptoPunksAddress) {
-            return null
+            return wrapAsUnResolved(null)
         }
-        return get(itemId.tokenId.value).map {
+        val properties = get(itemId.tokenId.value).map {
             ItemProperties(
                 name = "CryptoPunk #${it.id}",
                 description = null,
@@ -48,6 +49,8 @@ class CryptoPunksPropertiesResolver(
                 rawJsonContent = null
             )
         }.awaitFirstOrNull()
+
+        return wrapAsResolved(properties)
     }
 }
 

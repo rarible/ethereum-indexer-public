@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -27,11 +28,11 @@ class WaifusionPropertiesResolver(
 
     override val name get() = "Waifusion"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != WAIFUSION_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
-        return waifusion.tokenNameByIndex(itemId.tokenId.value).call()
+        val properties = waifusion.tokenNameByIndex(itemId.tokenId.value).call()
             .flatMap { tuple ->
                 val name = if (tuple.isNullOrEmpty()) "Waifu #${itemId.tokenId.value}" else tuple
                 waifusion.ownerOf(itemId.tokenId.value).call()
@@ -52,5 +53,7 @@ class WaifusionPropertiesResolver(
                         )
                     }
             }.awaitFirstOrNull()
+
+        return wrapAsResolved(properties)
     }
 }
