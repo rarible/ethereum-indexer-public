@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
@@ -11,10 +12,11 @@ import com.rarible.protocol.order.api.service.activity.OrderActivityService
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
 import com.rarible.protocol.order.core.model.ActivitySort
+import org.bson.types.ObjectId
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
-@RestController
+ @RestController
 class OrderActivityController(
     private val orderActivityService: OrderActivityService,
     private val orderActivityConverter: OrderActivityConverter,
@@ -44,6 +46,15 @@ class OrderActivityController(
             ContinuationMapper.toString(result.last())
         }
         val orderActivities = OrderActivitiesDto(nextContinuation, result)
+        return ResponseEntity.ok(orderActivities)
+    }
+
+    override suspend fun getOrderActivitiesById(activitiesByIdRequestDto: ActivitiesByIdRequestDto): ResponseEntity<OrderActivitiesDto> {
+        val ids = activitiesByIdRequestDto.ids.map { ObjectId(it) }
+        val result = orderActivityService
+            .findByIds(ids)
+            .mapNotNull { orderActivityConverter.convert(it) }
+        val orderActivities = OrderActivitiesDto(null, result)
         return ResponseEntity.ok(orderActivities)
     }
 }
