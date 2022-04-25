@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
+import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.LazyErc1155Dto
@@ -27,6 +28,7 @@ import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
+import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
@@ -34,6 +36,8 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
+import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
@@ -50,6 +54,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -89,6 +94,10 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
+
+    @Autowired
+    @Qualifier("meta.cache.loader.service")
+    private lateinit var itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
 
     private lateinit var extendedItemDtoConverter: ExtendedItemDtoConverter
 
@@ -252,7 +261,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
         val owner = AddressFactory.create()
         val item = createItem().copy(owners = listOf(owner))
         val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
+        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
         itemRepository.save(item).awaitFirst()
         val ownership = createOwnership(item.token, item.tokenId, null, owner)
         ownershipRepository.save(ownership).awaitFirst()
@@ -481,7 +490,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @Test
     fun `should get items by ids`() = runBlocking<Unit> {
-        nftIndexerProperties.enableMetaCache = true
         val owner = AddressFactory.create()
         val item = createItem().copy(owners = listOf(owner))
         val itemMeta = randomItemMeta()

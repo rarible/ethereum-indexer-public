@@ -24,21 +24,17 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
 
     @Test
     fun `should get meta from cache`() = runBlocking<Unit> {
-        nftIndexerProperties.enableMetaCache = true
-
         val item = createRandomItem()
         val itemId = item.id
         val itemMeta = randomItemMeta()
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
 
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
-        Assertions.assertThat(itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(itemMeta)
+        Assertions.assertThat(itemMetaService.getAvailableMeta(itemId, "test")).isEqualTo(itemMeta)
     }
 
     @Test
     fun `should always load meta`() = runBlocking<Unit> {
-        nftIndexerProperties.enableMetaCache = false
-
         val item = createRandomItem()
         val itemId = item.id
         val cachedItemMeta = randomItemMeta()
