@@ -155,11 +155,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     }
 
     @BeforeEach
-    fun initFeatureFlags() {
-        nftIndexerProperties.enableMetaCache = true
-    }
-
-    @BeforeEach
     fun cleanDatabase() {
         mongo.collectionNames
             .filter { !it.startsWith("system") }
@@ -262,7 +257,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected suspend fun checkItemEventWasPublished(
         token: Address,
         tokenId: EthUInt256,
-        itemMeta: NftItemMetaDto,
+        itemMeta: NftItemMetaDto?,
         pendingSize: Int,
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {

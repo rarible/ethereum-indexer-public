@@ -1,8 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
@@ -14,6 +11,9 @@ import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
+import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
+import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -36,8 +36,6 @@ class RariblePropertiesResolver(
 ) : ItemPropertiesResolver {
 
     private val timeout = Duration.ofMillis(requestTimeout)
-
-    private val mapper = ObjectMapper().registerKotlinModule()
 
     override val name get() = "Rarible"
 
@@ -72,16 +70,15 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun resolve(itemId: ItemId, tokenUri: String): ItemProperties? {
-        val resolvedItemProperties = when {
-            tokenUri.startsWith(BASE_64_JSON_PREFIX) ->
-                parseFromBase64(itemId, tokenUri.removePrefix(BASE_64_JSON_PREFIX))?.fixEmptyName(itemId)
+        // Sometimes there could be a json instead of URL
+        val json = JsonPropertiesParser.parse(itemId, tokenUri)
+        val properties = when {
+            (json != null) -> JsonPropertiesMapper.map(itemId, json)
+            else -> getByUri(itemId, tokenUri)
+        } ?: return null
 
-            tokenUri.startsWith(JSON_PREFIX) ->
-                parseJsonProperties(itemId, tokenUri.removePrefix(JSON_PREFIX))?.fixEmptyName(itemId)
-
-            else -> getByUri(itemId, tokenUri)?.fixEmptyName(itemId)
-        }
-        return resolvedItemProperties?.fixEmptyName(itemId)
+        val result = properties.fixEmptyName(itemId)
+        return ItemPropertiesUrlSanitizer.sanitize(itemId, result)
     }
 
     private suspend fun ItemProperties.fixEmptyName(itemId: ItemId): ItemProperties {
@@ -97,17 +94,6 @@ class RariblePropertiesResolver(
         val tokenId = "#${itemId.tokenId.value}"
         val newName = if (collectionName.isNullOrBlank()) tokenId else "$collectionName $tokenId"
         return copy(name = newName)
-    }
-
-    private suspend fun parseFromBase64(itemId: ItemId, uri: String): ItemProperties? {
-        logMetaLoading(itemId, "parsing properties as Base64")
-        val decodedJson = try {
-            String(base64MimeToBytes(uri))
-        } catch (e: Exception) {
-            logMetaLoading(itemId, "failed to decode Base64: ${e.message}", warn = true)
-            return null
-        }
-        return parseJsonProperties(itemId, decodedJson)
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
@@ -135,51 +121,15 @@ class RariblePropertiesResolver(
                 if (it.length > 1_000_000) {
                     logMetaLoading(itemId, "suspiciously big item properties ${it.length} for $httpUrl", warn = true)
                 }
-                mono { parseJsonProperties(itemId, it) }
+                mono {
+                    val json = JsonPropertiesParser.parse(itemId, it)
+                    json?.let { JsonPropertiesMapper.map(itemId, json) }
+                }
             }
             .onErrorResume {
                 logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
                 Mono.empty()
             }.awaitFirstOrNull()
-    }
-
-    private suspend fun parseJsonProperties(itemId: ItemId, jsonBody: String): ItemProperties? {
-        @Suppress("BlockingMethodInNonBlockingContext")
-        val node = try {
-            mapper.readTree(jsonBody) as ObjectNode
-        } catch (e: Exception) {
-            logMetaLoading(itemId, "failed to parse properties from json: ${e.message}", warn = true)
-            return null
-        }
-        val imageUrl = node.getText("image", "image_url", "image_content", "image_data")?.let { parseImageUrl(it) }
-        val imagePreview = node.getText("imagePreview", "image_preview", "image_preview_url")?.let { parseImageUrl(it) }
-        val imageBig = node.getText("imageBig", "image_big", "image_big_url")?.let { parseImageUrl(it) }
-        val animationUrl = node.getText("animation", "animation_url", "animationUrl")?.let { parseImageUrl(it) }
-        val name = node.getText("name", "label", "title")
-        if (name == null) {
-            logMetaLoading(itemId, "no 'name' available in the JSON properties", warn = true)
-            return null
-        }
-        return ItemProperties(
-            name = name,
-            description = node.getText("description"),
-            image = imageUrl,
-            imagePreview = imagePreview,
-            imageBig = imageBig,
-            animationUrl = animationUrl,
-            attributes = node.parseAttributes(),
-            rawJsonContent = node.toString()
-        )
-    }
-
-    private suspend fun parseImageUrl(imageUrl: String): String {
-        if (imageUrl.startsWith(BASE_64_SVG_PREFIX)) {
-            return String(base64MimeToBytes(imageUrl.removePrefix(BASE_64_SVG_PREFIX)))
-        }
-        if (imageUrl.startsWith(UTF8_SVG_PREFIX)) {
-            return imageUrl.removePrefix(UTF8_SVG_PREFIX)
-        }
-        return imageUrl
     }
 
     private suspend fun getUri(itemId: ItemId): String? {
