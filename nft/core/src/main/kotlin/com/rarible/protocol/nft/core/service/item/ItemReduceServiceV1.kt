@@ -277,7 +277,11 @@ class ItemReduceServiceV1(
         } else {
             this.creators
         }
-        return this.copy(creators = creators, mintedAt = itemTransfer.date)
+        return if (this.mintedAt == null && itemTransfer.from == Address.ZERO()) {
+            this.copy(creators = creators, mintedAt = itemTransfer.date)
+        } else {
+            this.copy(creators = creators)
+        }
     }
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {
