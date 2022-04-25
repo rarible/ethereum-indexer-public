@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -24,12 +25,12 @@ class MutantsBoredApeYachtClubPropertiesResolver(
 
     override val name get() = "Bored"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != MUTANTS_BAYC_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "Resolving MutantApeYachtClub properties")
-        return externalHttpClient.get("$MUTANTS_URL/${itemId.tokenId}", useProxy = true)
+        val properties = externalHttpClient.get("$MUTANTS_URL/${itemId.tokenId}", useProxy = true)
             .bodyToMono<String>()
             .map { jsonContent ->
                 val node = mapper.readTree(jsonContent) as ObjectNode
@@ -50,6 +51,8 @@ class MutantsBoredApeYachtClubPropertiesResolver(
                     rawJsonContent = jsonContent
                 )
             }.awaitFirstOrNull()
+
+        return wrapAsResolved(properties)
     }
 
     companion object {

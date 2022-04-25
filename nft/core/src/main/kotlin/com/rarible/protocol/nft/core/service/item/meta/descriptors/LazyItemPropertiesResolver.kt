@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -20,10 +21,10 @@ class LazyItemPropertiesResolver(
 
     override val name: String get() = "Lazy"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
-        val tokenUri = getUriForLazyMintedItem(itemId) ?: return null
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
+        val tokenUri = getUriForLazyMintedItem(itemId) ?: return wrapAsUnResolved(null)
         logMetaLoading(itemId, "found the lazy item's URI: $tokenUri")
-        return rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri)
+        return wrapAsResolved(rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri))
     }
 
     private suspend fun getUriForLazyMintedItem(itemId: ItemId): String? {

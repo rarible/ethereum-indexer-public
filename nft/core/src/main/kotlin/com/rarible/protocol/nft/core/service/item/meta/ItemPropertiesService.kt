@@ -22,9 +22,9 @@ class ItemPropertiesService(
     private suspend fun callResolvers(itemId: ItemId): ItemProperties? {
         for (resolver in itemPropertiesResolverProvider.orderedResolvers) {
             try {
-                val itemProperties = resolver.resolve(itemId)
-                if (itemProperties != null) {
-                    return itemProperties
+                val itemPropertiesWrapper = resolver.resolve(itemId)
+                if (itemPropertiesWrapper != null && itemPropertiesWrapper.propertiesProcessed) {
+                    return itemPropertiesWrapper.itemProperties
                 }
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)

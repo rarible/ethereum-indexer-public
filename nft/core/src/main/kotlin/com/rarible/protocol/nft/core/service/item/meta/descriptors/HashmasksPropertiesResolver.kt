@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -31,17 +32,17 @@ class HashmasksPropertiesResolver(
 
     override val name get() = "Hashmasks"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != HASH_MASKS_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "resolving Hashmasks properties")
         val tokenName = hashmasks.tokenNameByIndex(itemId.tokenId.value)
-            .call().awaitFirstOrNull() ?: return null
+            .call().awaitFirstOrNull() ?: return wrapAsUnResolved(null)
         val ipfsHash = hashmasksRegistry.getIPFSHashOfMaskId(itemId.tokenId.value)
-            .call().awaitFirstOrNull() ?: return null
+            .call().awaitFirstOrNull() ?: return wrapAsUnResolved(null)
         val traitsOfMaskId = hashmasksRegistry.getTraitsOfMaskId(itemId.tokenId.value)
-            .call().awaitFirstOrNull() ?: return null
+            .call().awaitFirstOrNull() ?: return wrapAsUnResolved(null)
         val character = traitsOfMaskId._1()
         val mask = traitsOfMaskId._2()
         val eyeColor = traitsOfMaskId._3()
@@ -55,15 +56,17 @@ class HashmasksPropertiesResolver(
             "item" to item
         ).map { ItemAttribute(it.key, it.value) }
         val imageUrl = ipfsService.resolvePublicHttpUrl(ipfsHash)
-        return ItemProperties(
-            name = tokenName,
-            description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
-            attributes = attributes,
-            image = imageUrl,
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
-            rawJsonContent = null
+        return wrapAsResolved(
+            ItemProperties(
+                name = tokenName,
+                description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
+                attributes = attributes,
+                image = imageUrl,
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                rawJsonContent = null
+            )
         )
     }
 }

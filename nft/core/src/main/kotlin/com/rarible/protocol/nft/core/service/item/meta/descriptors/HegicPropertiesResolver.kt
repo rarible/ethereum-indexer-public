@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
@@ -42,11 +43,11 @@ class HegicPropertiesResolver(
 
     override val name get() = "Hegic"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != HEGIC_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
-        return hegic.getUnderlyingOptionParams(itemId.tokenId.value).call()
+        val properties = hegic.getUnderlyingOptionParams(itemId.tokenId.value).call()
             .onErrorResume {
                 logMetaLoading(itemId, "hegic failed on 'getUnderlyingOptionParams': ${it.message}", warn = true)
                 Mono.empty()
@@ -99,5 +100,6 @@ class HegicPropertiesResolver(
                     }
             }
             .awaitFirstOrNull()
+        return wrapAsResolved(properties)
     }
 }
