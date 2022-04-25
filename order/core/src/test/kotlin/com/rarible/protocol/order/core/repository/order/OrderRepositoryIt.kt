@@ -44,6 +44,17 @@ internal class OrderRepositoryIt {
     }
 
     @Test
+    fun `test dbUpdatedAt field update`() = runBlocking<Unit> {
+        val initialOrder = createOrder()
+        orderRepository.saveWithoutDbUpdated(initialOrder)
+        orderRepository.orderDbUpdatedAtFieldUpdate(initialOrder)
+        val dataBaseOrder = orderRepository.findById(initialOrder.hash)
+
+        val updatedInitialOrder = initialOrder.copy(dbUpdatedAt = initialOrder.lastUpdateAt)
+        assertThat(updatedInitialOrder).isEqualTo(dataBaseOrder)
+    }
+
+    @Test
     fun `test order raw format`() = runBlocking<Unit> {
         val order = createOrder()
 

@@ -27,6 +27,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.gt
@@ -68,7 +69,26 @@ class MongoOrderRepository(
     }
 
     override suspend fun save(order: Order): Order {
+        return template.save(order.withDbUpdated()).awaitFirst()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override suspend fun saveWithoutDbUpdated(order: Order): Order {
         return template.save(order).awaitFirst()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override suspend fun orderDbUpdatedAtFieldUpdate(order: Order) {
+        template.updateFirst(
+            Query(
+                Criteria().andOperator(
+                    Criteria.where("_id").isEqualTo(order.hash),
+                    Order::dbUpdatedAt isEqualTo null
+                )
+            ),
+            Update().set("dbUpdatedAt", order.lastUpdateAt),
+            Order::class.java
+        ).awaitFirst()
     }
 
     override suspend fun findById(hash: Word): Order? {
@@ -78,6 +98,13 @@ class MongoOrderRepository(
     override fun findAll(hashes: Collection<Word>): Flow<Order> {
         val criteria = Criteria.where("_id").inValues(hashes)
         return template.find<Order>(Query.query(criteria)).asFlow()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override fun findWithoutDbUpdatedField(): Flow<Order> {
+        return template.query<Order>().matching(
+            Query(Order::dbUpdatedAt isEqualTo null)
+        ).all().asFlow()
     }
 
     override suspend fun search(query: Query): List<Order> {

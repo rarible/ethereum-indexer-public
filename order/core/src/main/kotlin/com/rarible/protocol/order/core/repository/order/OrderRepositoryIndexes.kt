@@ -208,6 +208,11 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    private val BY_DB_UPDATE_UPDATE_DEFINITION = Index()
+        .on(Order::dbUpdatedAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION = Index()
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
@@ -268,6 +273,7 @@ object OrderRepositoryIndexes {
 
         BY_LAST_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_ID_DEFINITION,
+        BY_DB_UPDATE_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
