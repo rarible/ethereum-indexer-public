@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test
 class LootPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lootPropertiesResolver = LootPropertiesResolver(
-        sender = createSender(),
+        sender = sender,
         mapper = jacksonObjectMapper(),
         ipfsService = ipfsService
     )

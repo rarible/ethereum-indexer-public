@@ -25,8 +25,8 @@ class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
     private val rariblePropertiesResolver = mockk<RariblePropertiesResolver>()
     private val lazyItemPropertiesResolver = LazyItemPropertiesResolver(
-        rariblePropertiesResolver,
-        lazyNftItemHistoryRepository
+        rariblePropertiesResolver = rariblePropertiesResolver,
+        lazyNftItemHistoryRepository = lazyNftItemHistoryRepository
     )
 
     @Test

@@ -14,22 +14,11 @@ import scalether.domain.Address
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
-    companion object {
-        fun createOpenSeaPropertiesResolver() = OpenSeaPropertiesResolver(
-            externalHttpClient = createExternalHttpClient(),
-            requestTimeout = 20000
-        )
 
-        fun createExternalHttpClient(): ExternalHttpClient = ExternalHttpClient(
-            openseaUrl = "https://api.opensea.io/api/v1",
-            openseaApiKey = "",
-            readTimeout = 10000,
-            connectTimeout = 3000,
-            proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
-        )
-    }
-
-    private val openSeaPropertiesResolver: OpenSeaPropertiesResolver = createOpenSeaPropertiesResolver()
+    private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
+        externalHttpClient = externalHttpClient,
+        requestTimeout = REQUEST_TIMEOUT
+    )
 
     @Test
     fun `attribute with date time format`() = runBlocking<Unit> {
@@ -59,6 +48,4 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
             )
         )
     }
-
-
 }

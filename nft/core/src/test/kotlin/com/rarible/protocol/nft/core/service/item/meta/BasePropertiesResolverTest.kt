@@ -5,6 +5,8 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.BlockchainTokenUriResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesHttpLoader
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -27,21 +29,7 @@ abstract class BasePropertiesResolverTest {
 
     protected val tokenRepository: TokenRepository = mockk()
 
-    protected val ipfsPublicGateway = "https://rarible.mypinata.com"
-
-    protected val ipfsService = IpfsService(
-        NftIndexerProperties.IpfsProperties(
-            ipfsPublicGateway,
-            ipfsPublicGateway
-        )
-    )
-
-    @BeforeEach
-    fun clear() {
-        clearMocks(tokenRepository)
-    }
-
-    fun createSender() = ReadOnlyMonoTransactionSender(
+    protected val sender = ReadOnlyMonoTransactionSender(
         MonoEthereum(
             WebClientTransport(
                 "https://dark-solitary-resonance.quiknode.pro/c0b7c629520de6c3d39261f6417084d71c3f8791/",
@@ -53,7 +41,38 @@ abstract class BasePropertiesResolverTest {
         Address.ZERO()
     )
 
-    fun mockTokenStandard(address: Address, standard: TokenStandard) {
+    protected val externalHttpClient = ExternalHttpClient(
+        openseaUrl = "https://api.opensea.io/api/v1",
+        openseaApiKey = "",
+        readTimeout = 10000,
+        connectTimeout = 3000,
+        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+    )
+
+    protected val ipfsService = IpfsService(
+        NftIndexerProperties.IpfsProperties(
+            IPFS_PUBLIC_GATEWAY,
+            IPFS_PUBLIC_GATEWAY
+        )
+    )
+
+    protected val tokenUriResolver = BlockchainTokenUriResolver(
+        sender = sender,
+        tokenRepository = tokenRepository,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+
+    protected val propertiesHttpLoader = PropertiesHttpLoader(
+        externalHttpClient = externalHttpClient,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+
+    @BeforeEach
+    fun clear() {
+        clearMocks(tokenRepository)
+    }
+
+    protected fun mockTokenStandard(address: Address, standard: TokenStandard) {
         @Suppress("ReactiveStreamsUnusedPublisher")
         every { tokenRepository.findById(address) } returns Mono.just(
             Token(
@@ -64,4 +83,8 @@ abstract class BasePropertiesResolverTest {
         )
     }
 
+    protected companion object {
+        const val REQUEST_TIMEOUT: Long = 20000
+        const val IPFS_PUBLIC_GATEWAY = "https://rarible.mypinata.com"
+    }
 }

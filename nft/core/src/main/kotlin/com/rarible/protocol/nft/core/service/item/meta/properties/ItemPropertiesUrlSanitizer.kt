@@ -18,8 +18,11 @@ object ItemPropertiesUrlSanitizer {
         if (url == null) {
             return null
         }
-        val svg = SvgSanitizer.sanitize(itemId, url)
 
-        return svg ?: url
+        val fixedUrl = ShortUrlResolver.resolve(url)
+
+        val svg = SvgSanitizer.sanitize(itemId, fixedUrl)
+
+        return svg ?: fixedUrl
     }
 }
