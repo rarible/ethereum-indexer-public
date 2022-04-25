@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.apm.SpanType
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
@@ -12,7 +13,7 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 
 @Component
-@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
+@CaptureSpan(type = SpanType.EXT)
 class PropertiesHttpLoader(
     private val externalHttpClient: ExternalHttpClient,
     @Value("\${api.properties.request-timeout}") requestTimeout: Long
