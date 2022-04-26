@@ -9,6 +9,7 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
+import java.time.Instant
 import java.util.*
 
 interface OrderRepository {
@@ -25,7 +26,7 @@ interface OrderRepository {
     //TODO should be deleted after migration ALPHA-405
     suspend fun saveWithoutDbUpdated(order: Order): Order
     //TODO should be deleted after migration ALPHA-405
-    suspend fun orderDbUpdatedAtFieldUpdate(order: Order)
+    suspend fun setDbUpdatedAtField(hash: Word, dbUpdatedAt: Instant)
 
     suspend fun findById(hash: Word): Order?
 

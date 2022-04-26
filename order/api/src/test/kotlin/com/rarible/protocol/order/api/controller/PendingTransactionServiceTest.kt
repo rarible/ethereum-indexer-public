@@ -490,7 +490,8 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                 ),
                 // Non-primary fields that are hard to calculate.
                 Order::lastEventId.name,
-                Order::version.name
+                Order::version.name,
+                Order::dbUpdatedAt.name
             )
         }
     }
