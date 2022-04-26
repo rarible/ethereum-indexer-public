@@ -170,6 +170,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
@@ -188,6 +189,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -266,10 +268,8 @@ object OrderRepositoryIndexes {
 
         BIDS_BY_ITEM_DEFINITION_DEPRECATED,
         BIDS_BY_ITEM_DEFINITION,
-        BIDS_BY_ITEM_PLATFORM_DEFINITION,
 
         BIDS_BY_MAKER_DEFINITION,
-        BIDS_BY_MAKER_PLATFORM_DEFINITION,
 
         BY_LAST_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_ID_DEFINITION,

@@ -28,8 +28,7 @@ data class OrderFilterBidByMaker(
         ).limit(limit).with(sort(sort)).withHint(hint())
     }
 
-    private fun hint(): Document = when {
-        platforms.isEmpty() -> OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexKeys
-        else -> OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexKeys
+    private fun hint(): Document  {
+        return OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexKeys
     }
 }
