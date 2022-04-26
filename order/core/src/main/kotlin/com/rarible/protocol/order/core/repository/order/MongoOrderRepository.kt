@@ -91,7 +91,7 @@ class MongoOrderRepository(
                     Order::dbUpdatedAt isEqualTo null
                 )
             ),
-            Update().set("dbUpdatedAt", order.lastUpdateAt),
+            Update().set(Order::dbUpdatedAt.name, order.lastUpdateAt),
             Order::class.java
         ).awaitFirst()
     }
