@@ -1,0 +1,47 @@
+global:
+  network: mainnet
+  springExtraProfile: ''
+
+sharedEnvironments: &sharedEnvironments
+  APPLICATION_ENVIRONMENT: prod
+  RARIBLE_CORE_AGENT_SERVER: http://apm-server:8200
+
+ethereum-erc20-api:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-erc20-listener:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-gateway:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-api: 
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-listener: 
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-migration:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-unlockable-api:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-api: 
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-listener:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-migration:
+  environments:
+    <<: *sharedEnvironments
