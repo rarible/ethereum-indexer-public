@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
@@ -53,7 +54,7 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     private lateinit var inconsistentItemRepository: InconsistentItemRepository
 
     @Test
-    fun `should alert invalid items`() = runBlocking<Unit> {
+    fun `should alert invalid items`() = withReducer(ReduceVersion.V1) {
         val now = nowMillis()
         val counter = mockk<RegisteredCounter> {
             every { increment() } returns Unit
@@ -176,5 +177,4 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
             blockTimestamp = nowMillis().epochSecond
         )
     }
-
 }
