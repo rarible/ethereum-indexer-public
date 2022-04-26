@@ -281,7 +281,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
             lazyNftItemHistoryRepository
         )
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
-            val itemProperties = lazyItemPropertiesResolver.resolve(itemId) ?: return@coAnswers null
+            val itemProperties = lazyItemPropertiesResolver.resolve(itemId).itemProperties ?: return@coAnswers null
             ItemMeta(itemProperties, itemMeta.itemContentMeta)
         }
     }

@@ -27,7 +27,7 @@ class StonerCatsPropertiesResolver(
             return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "Resolving $name Nft properties")
-        val properties = raribleResolver.resolve(itemId) ?: return wrapAsUnResolved(null)
+        val properties = raribleResolver.resolve(itemId).itemProperties ?: return wrapAsUnResolved(null)
         val imageUrl = properties.image ?: return wrapAsResolved(properties)
         val etag = getEtag(itemId, imageUrl)
         val ipsProperties = etag?.let {

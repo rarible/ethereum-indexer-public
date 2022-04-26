@@ -53,7 +53,7 @@ class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
         val itemProperties = randomItemProperties()
         val itemId = ItemId(token, tokenId)
         coEvery { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) } returns itemProperties
-        val properties = lazyItemPropertiesResolver.resolve(itemId)
+        val properties = lazyItemPropertiesResolver.resolve(itemId).itemProperties
         assertThat(properties).isEqualTo(itemProperties)
     }
 }

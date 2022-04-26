@@ -69,7 +69,7 @@ class ItemPropertiesService(
     }
 
     private suspend fun resolveOpenSeaProperties(itemId: ItemId): ItemProperties? = try {
-        itemPropertiesResolverProvider.openSeaResolver.resolve(itemId)
+        itemPropertiesResolverProvider.openSeaResolver.resolve(itemId).itemProperties
     } catch (e: Exception) {
         logMetaLoading(itemId, "unable to get properties from OpenSea: ${e.message}", warn = true)
         null

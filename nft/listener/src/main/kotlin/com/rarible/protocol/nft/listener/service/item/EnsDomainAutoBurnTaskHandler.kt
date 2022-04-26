@@ -31,7 +31,7 @@ class EnsDomainAutoBurnTaskHandler(
         val token = Address.apply(nftIndexerProperties.ensDomainsContractAddress)
         val tokenId = from?.let { EthUInt256.of(from) }
         return itemRepository.findTokenItems(token, tokenId).map { item ->
-            val properties = ensDomainsPropertiesResolver.resolve(item.id)
+            val properties = ensDomainsPropertiesResolver.resolve(item.id).itemProperties
             val expirationProperty = properties?.let { ensDomainService.getExpirationProperty(it) }
             if (expirationProperty != null) {
                 logger.info("Got properties for ${item.id.decimalStringValue}, burn at $expirationProperty")
