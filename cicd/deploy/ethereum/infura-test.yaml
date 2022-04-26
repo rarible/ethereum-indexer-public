@@ -4,7 +4,8 @@ global:
 
 sharedEnvironments: &sharedEnvironments
   APPLICATION_ENVIRONMENT: staging
-  RARIBLE_CORE_AGENT_SERVER: http://apm-server:8200
+  # this secrets assigns automatically
+  # RARIBLE_CORE_AGENT_SERVER:
 
 ethereum-erc20-api:
   environments:
