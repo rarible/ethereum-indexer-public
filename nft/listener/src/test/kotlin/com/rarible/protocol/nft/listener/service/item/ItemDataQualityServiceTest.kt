@@ -66,8 +66,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
             itemReduceService = itemReduceService,
             inconsistentItemRepository = inconsistentItemRepository
         )
-        val validItem = createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(5))
-        val fixableItem = createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(4))
+        val validItem = createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(1))
+        val fixableItem = createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(2))
         val invalidItem = createRandomItem().copy(supply = EthUInt256.of(OWNERS_NUMBER), date = now - Duration.ofMinutes(3))
         listOf(
             validItem,
@@ -91,9 +91,9 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         val continuations = itemDataQualityService.checkItems(from = null).toList()
 
         assertThat(continuations).hasSize(3)
-        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem.id)
+        assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem.id)
         assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(fixableItem.id)
-        assertThat(continuations[2].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem.id)
+        assertThat(continuations[2].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem.id)
 
         verify(exactly = 1) { counter.increment() }
 
