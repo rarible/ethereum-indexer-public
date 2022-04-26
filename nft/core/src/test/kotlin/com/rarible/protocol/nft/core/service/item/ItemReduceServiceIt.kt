@@ -526,7 +526,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveItemHistory(transfer2, logIndex = 2, blockTimestamp = instantDate2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
-        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5), instantDate1)
+        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5)/*, instantDate1*/)
     }
 
     @Test
@@ -1025,13 +1025,13 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         token: Address,
         tokenId: EthUInt256,
         expSupply: EthUInt256,
-        mintedAtDate: Instant = nowMillis(),
+       /* mintedAtDate: Instant = nowMillis(),*/
         expLazySupply: EthUInt256 = EthUInt256.ZERO,
         expCreator: Address? = null,
         deleted: Boolean = false
     ) {
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(item.mintedAt).isEqualTo(mintedAtDate)
+        //assertThat(item.mintedAt).isEqualTo(mintedAtDate)
 
         assertThat(item)
             .hasFieldOrPropertyWithValue(Item::supply.name, expSupply)

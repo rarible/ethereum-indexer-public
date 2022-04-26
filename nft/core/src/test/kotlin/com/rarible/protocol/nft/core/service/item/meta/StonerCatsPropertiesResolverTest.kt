@@ -33,7 +33,7 @@ class StonerCatsPropertiesResolverTest : BasePropertiesResolverTest() {
     fun `stonercat image url from etag`() = runBlocking<Unit> {
         val address = StonerCatsPropertiesResolver.STONER_CAT_NFT_ADDRESS
         mockTokenStandard(address, TokenStandard.ERC721)
-        val properties = stonerCatsPropertiesResolver.resolve(ItemId(address, EthUInt256.of(3709)))!!
+        val properties = stonerCatsPropertiesResolver.resolve(ItemId(address, EthUInt256.of(3709))).itemProperties!!
 
         // There is no need to check all fields, it is already tested in RariblePropertiesResolver
         assertThat(properties.name).isEqualTo("Stoner Cats #3709")
