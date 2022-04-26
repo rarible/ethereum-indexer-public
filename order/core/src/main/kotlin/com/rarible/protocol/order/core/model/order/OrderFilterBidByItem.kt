@@ -91,6 +91,6 @@ data class OrderFilterBidByItem(
     private fun hint(): Document = when {
         currency != null -> OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
         platforms.isEmpty() -> OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION.indexKeys
-        else -> OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexKeys
+        else -> OrderRepositoryIndexes.BIDS_BY_ITEM_DEFINITION_DEPRECATED.indexKeys
     }
 }
