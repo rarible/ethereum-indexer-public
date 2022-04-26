@@ -11,10 +11,9 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createOpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
@@ -34,19 +33,20 @@ import kotlin.io.path.toPath
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
-    private val sender = createSender()
-    private val externalHttpClient = createExternalHttpClient()
     private val rariblePropertiesResolver = RariblePropertiesResolver(
-        sender = sender,
-        tokenRepository = tokenRepository,
         ipfsService = ipfsService,
-        requestTimeout = 20000,
-        externalHttpClient = externalHttpClient
+        propertiesHttpLoader = propertiesHttpLoader,
+        tokenUriResolver = tokenUriResolver
     )
+
     private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
         MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
-    private val openSeaPropertiesResolver = createOpenSeaPropertiesResolver()
+
+    private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
+        externalHttpClient = externalHttpClient,
+        requestTimeout = REQUEST_TIMEOUT
+    )
 
     private val service = ItemPropertiesService(
         itemPropertiesResolverProvider = mockk {
