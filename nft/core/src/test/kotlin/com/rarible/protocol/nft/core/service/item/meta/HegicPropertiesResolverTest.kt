@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test
 @ItemMetaTest
 class HegicPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val hegicPropertiesResolver: HegicPropertiesResolver = HegicPropertiesResolver(
-        sender = createSender(),
+    private val hegicPropertiesResolver = HegicPropertiesResolver(
+        sender = sender,
         apiUrl = "http://localhost:8080"
     )
 
@@ -57,5 +57,4 @@ class HegicPropertiesResolverTest : BasePropertiesResolverTest() {
         )
         assertThat(properties).isNull()
     }
-
 }

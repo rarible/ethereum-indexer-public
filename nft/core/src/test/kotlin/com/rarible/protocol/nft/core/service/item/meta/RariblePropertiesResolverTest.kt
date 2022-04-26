@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
 import io.mockk.every
@@ -28,12 +27,10 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
 
-    private val rariblePropertiesResolver: RariblePropertiesResolver = RariblePropertiesResolver(
-        sender = createSender(),
-        tokenRepository = tokenRepository,
+    private val rariblePropertiesResolver = RariblePropertiesResolver(
         ipfsService = ipfsService,
-        requestTimeout = 20000,
-        externalHttpClient = createExternalHttpClient()
+        propertiesHttpLoader = propertiesHttpLoader,
+        tokenUriResolver = tokenUriResolver
     )
 
     @BeforeEach
@@ -340,7 +337,8 @@ Token ID: 51561
         mockTokenStandard(token, TokenStandard.ERC721)
         val properties = rariblePropertiesResolver.resolve(ItemId(token, EthUInt256.of(27)))
         // Raw JSON content of this item has changing order of parameters.
-        val expectedRawJsonContent = """{"forSale":true,"price":"0.00005","mintedOn":{"_seconds":1579357427,"_nanoseconds":148000000},"contractAddress":"0x1866c6907e70eb176109363492b95e3617b4a195","description":"First door at your left.","numAvailable":0,"type":"ERC721","attributes":[{"value":"https://opensea.io/assets/keep-calm-v2","trait_type":"website"}],"minted":"Minted on Mintbase.io","fiatPrice":"${'$'}0.01","name":"Freaky Hallway","tags":[],"minter":"","external_link":"https://mintbase.io/minted/0x1866c6907e70eb176109363492b95e3617b4a195/B4tb5lHTnjBNVKlJSG49","amountToMint":3,"external_url":"https://mintbase.io","image":"https://firebasestorage.googleapis.com/v0/b/thing-1d2be.appspot.com/o/token%2Fasset-1579357359533?alt=media&token=31a77b56-b030-4a29-ac52-8393f67584f3"}"""
+        val expectedRawJsonContent =
+            """{"forSale":true,"price":"0.00005","mintedOn":{"_seconds":1579357427,"_nanoseconds":148000000},"contractAddress":"0x1866c6907e70eb176109363492b95e3617b4a195","description":"First door at your left.","numAvailable":0,"type":"ERC721","attributes":[{"value":"https://opensea.io/assets/keep-calm-v2","trait_type":"website"}],"minted":"Minted on Mintbase.io","fiatPrice":"${'$'}0.01","name":"Freaky Hallway","tags":[],"minter":"","external_link":"https://mintbase.io/minted/0x1866c6907e70eb176109363492b95e3617b4a195/B4tb5lHTnjBNVKlJSG49","amountToMint":3,"external_url":"https://mintbase.io","image":"https://firebasestorage.googleapis.com/v0/b/thing-1d2be.appspot.com/o/token%2Fasset-1579357359533?alt=media&token=31a77b56-b030-4a29-ac52-8393f67584f3"}"""
         val mapper = jacksonObjectMapper()
         assertThat(mapper.readTree(properties!!.rawJsonContent)).isEqualTo(mapper.readTree(expectedRawJsonContent))
         assertThat(properties).isEqualTo(
@@ -411,6 +409,55 @@ Token ID: 51561
                 animationUrl = null,
                 attributes = emptyList(),
                 rawJsonContent = """{"name":"Abiding Axolotl #4907","description":null,"external_link":null,"image":"https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw","animation_url":null}"""
+            )
+        )
+    }
+
+    @Test
+    fun `arweave net penguin`() = runBlocking<Unit> {
+        val penguin = Address.apply("0x63d48ed3f50aba950c17e37ca03356ccd6b6a280")
+        mockTokenStandard(penguin, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(ItemId(penguin, EthUInt256.of(9003)))!!
+
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Cozy Penguin #9003",
+                description = null,
+                image = "https://arweave.net/veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(
+                    ItemAttribute("Background", "Beige"),
+                    ItemAttribute("Penguin", "Pastel Green"),
+                    ItemAttribute("Eyes", "Shine"),
+                    ItemAttribute("Prop", "Boxers - Striped")
+                ),
+                rawJsonContent = "{\"name\":\"Cozy Penguin #9003\",\"image\":\"ar://veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png\",\"attributes\":[{\"trait_type\":\"Background\",\"value\":\"Beige\"},{\"trait_type\":\"Penguin\",\"value\":\"Pastel Green\"},{\"trait_type\":\"Eyes\",\"value\":\"Shine\"},{\"trait_type\":\"Prop\",\"value\":\"Boxers - Striped\"}]}"
+            )
+        )
+    }
+
+    @Test
+    fun `arweave net metacraft`() = runBlocking<Unit> {
+        val metacraft = Address.apply("0x0b1d6565d88f9bf6473e21c2ab58d28a495d7bb5")
+        mockTokenStandard(metacraft, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(ItemId(metacraft, EthUInt256.of(8200)))!!
+
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Axolotl Gold #8200",
+                description = "Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.",
+                image = "https://arweave.net/ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(
+                    ItemAttribute("score", "2530"),
+                    ItemAttribute("creature", "Axolotl"),
+                    ItemAttribute("material", "Gold"),
+                ),
+                rawJsonContent = "{\"name\":\"Axolotl Gold #8200\",\"description\":\"Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.\",\"image\":\"ar://ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc\",\"attributes\":[{\"trait_type\":\"score\",\"value\":\"2530\"},{\"trait_type\":\"creature\",\"value\":\"Axolotl\"},{\"trait_type\":\"material\",\"value\":\"Gold\"}]}"
             )
         )
     }
