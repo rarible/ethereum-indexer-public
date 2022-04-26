@@ -2,7 +2,16 @@ package com.rarible.protocol.nft.listener.service.item
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.InconsistentItem
+import com.rarible.protocol.nft.core.model.Item
+import com.rarible.protocol.nft.core.model.ItemContinuation
+import com.rarible.protocol.nft.core.model.ItemFilter
+import com.rarible.protocol.nft.core.model.ItemFilterAll
+import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
+import com.rarible.protocol.nft.core.model.OwnershipFilter
+import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
+import com.rarible.protocol.nft.core.repository.InconsistentItemRepository
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
@@ -12,12 +21,9 @@ import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
-import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.stereotype.Component
-import scalether.domain.Address
 
 @Component
 class ItemDataQualityService(
@@ -26,15 +32,17 @@ class ItemDataQualityService(
     private val itemDataQualityErrorRegisteredCounter: RegisteredCounter,
     private val nftListenerProperties: NftListenerProperties,
     private val itemReduceService: ItemReduceService,
-    private val mongo: ReactiveMongoOperations
+    private val inconsistentItemRepository: InconsistentItemRepository
 ) {
-    fun checkItems(from: String?, dropCollection: Boolean = true): Flow<String> {
-        val filter = ItemFilterAll(
-            sort = ItemFilter.Sort.LAST_UPDATE_DESC,
-            showDeleted = false
-        )
+    fun checkItems(from: String?): Flow<String> {
         return flow {
-            initializeCollection(dropCollection)
+            initializeCollection(dropInconsistentCollection = from == null)
+
+            val filter = ItemFilterAll(
+                sort = ItemFilter.Sort.LAST_UPDATE_DESC,
+                showDeleted = false
+            )
+
             var continuation = from
             do {
                 val items = itemRepository.search(
@@ -43,20 +51,33 @@ class ItemDataQualityService(
                         nftListenerProperties.elementsFetchJobSize
                     )
                 ).toList()
-                items.forEach { item ->
-                    val ownershipsValue = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
-                    if(!checkItem(item)) {
-                        val message = "Find potential data corruption for item ${item.id}, " +
-                        "lastUpdateAt ${item.date}: supply=${item.supply}, " +
-                                "ownershipsValue=$ownershipsValue."
-                        logger.info("$message Try to fix.")
-                        itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
 
-                        if(!checkItem(item,fromRepository = true, writeToDb = true)) {
-                            itemDataQualityErrorRegisteredCounter.increment()
-                            logger.warn("$message Can't be fixed.")
-                        } else {
-                            logger.info("Item ${item.id}, lastUpdateAt ${item.date}: supply=${item.supply} was fixed")
+                items.forEach { item ->
+                    when (val checkResult = checkItem(item)) {
+                        is CheckResult.Success -> {}
+                        is CheckResult.Fail -> {
+                            logger.info("Try fix item ${item.id.stringValue}, supply=${checkResult.supply}, ownerships=${checkResult.ownerships}")
+                            itemReduceService.update(item.token, item.tokenId).awaitSingle()
+                            val fixedItem = itemRepository.findById(item.id).awaitSingle()
+                            when (val check = checkItem(fixedItem)) {
+                                is CheckResult.Success -> {
+                                    logger.info("Item ${fixedItem.id} was fixed")
+                                }
+                                is CheckResult.Fail -> {
+                                    logger.warn("Can't fix item ${item.id.stringValue}, supply=${check.supply}, ownerships=${check.ownerships}")
+                                    inconsistentItemRepository.save(
+                                        InconsistentItem(
+                                            token = item.token,
+                                            tokenId = item.tokenId,
+                                            supply = check.supply,
+                                            ownerships = check.ownerships,
+                                            supplyValue = check.supply.value.toLong(),
+                                            ownershipsValue = check.ownerships.value.toLong()
+                                        )
+                                    )
+                                    itemDataQualityErrorRegisteredCounter.increment()
+                                }
+                            }
                         }
                     }
                     emit(ItemContinuation(item.date, item.id).toString())
@@ -68,27 +89,17 @@ class ItemDataQualityService(
 
     private suspend fun initializeCollection(dropInconsistentCollection: Boolean) {
         if (dropInconsistentCollection) {
-            mongo.dropCollection(COLLECTION).awaitFirstOrNull()
-        }
-        if(!mongo.collectionExists(COLLECTION).awaitFirst()) {
-            mongo.createCollection(COLLECTION).awaitFirst()
+            inconsistentItemRepository.dropCollection()
         }
     }
 
-    suspend fun checkItem(item: Item, fromRepository: Boolean = false, writeToDb: Boolean = false): Boolean {
-        var updatedItem = item
-        if (fromRepository) {
-            val repositoryItem = itemRepository.findById(ItemId(item.token, item.tokenId)).awaitFirstOrNull()
-            repositoryItem ?: return false
-            updatedItem = repositoryItem
+    suspend fun checkItem(item: Item): CheckResult {
+        val ownerships = getOwnershipsValue(item.id, nftListenerProperties.elementsFetchJobSize)
+        return if (ownerships == item.supply) {
+            CheckResult.Success
+        } else {
+            CheckResult.Fail(supply = item.supply, ownerships = ownerships)
         }
-        val ownershipsValue = getOwnershipsValue(updatedItem.id, nftListenerProperties.elementsFetchJobSize)
-        val result = ownershipsValue == updatedItem.supply
-        if (!result && writeToDb) {
-            mongo.save(InconsistentItems(item.token, item.tokenId, item.supply, ownershipsValue), COLLECTION)
-                .awaitFirstOrNull()
-        }
-        return result
     }
 
     private suspend fun getOwnershipsValue(itemId: ItemId, limit: Int): EthUInt256 {
@@ -108,17 +119,18 @@ class ItemDataQualityService(
         return value
     }
 
-    companion object {
-        const val COLLECTION = "inconsistent_items"
-        private val logger = LoggerFactory.getLogger(ItemDataQualityService::class.java)
+    sealed class CheckResult {
+        object Success : CheckResult()
 
-        data class InconsistentItems(
-            val token: Address,
-            val tokenId: EthUInt256,
+        data class Fail(
             val supply: EthUInt256,
-            val supplyOwnership: EthUInt256
-        )
+            val ownerships: EthUInt256
+        ) : CheckResult()
     }
 
+    companion object {
+        private val logger = LoggerFactory.getLogger(ItemDataQualityService::class.java)
+    }
 }
+
 
