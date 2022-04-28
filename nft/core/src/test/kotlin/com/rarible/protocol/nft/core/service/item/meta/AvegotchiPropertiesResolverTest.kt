@@ -37,9 +37,9 @@ class AvegotchiPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val openseaPropertiesResolverMock = mockk<OpenSeaPropertiesResolver>()
 
-    var wireMockServer: WireMockServer? = null
-    var webClient: WebClient? = null
-    var baseUrl: String? = null
+    private var wireMockServer: WireMockServer? = null
+    private var webClient: WebClient? = null
+    private var baseUrl: String? = null
 
     @BeforeEach
     @Throws(Exception::class)
