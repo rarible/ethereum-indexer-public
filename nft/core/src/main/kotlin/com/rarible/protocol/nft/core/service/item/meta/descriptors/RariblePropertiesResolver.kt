@@ -11,19 +11,21 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.ShortUrlResolver
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
+@Qualifier("RariblePropertiesResolver")
 class RariblePropertiesResolver(
     private val ipfsService: IpfsService,
     private val propertiesHttpLoader: PropertiesHttpLoader,
-    private val tokenUriResolver: BlockchainTokenUriResolver
+    protected val tokenUriResolver: BlockchainTokenUriResolver
 ) : ItemPropertiesResolver {
 
     override val name get() = "Rarible"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         val tokenUri = tokenUriResolver.getUri(itemId)
         if (tokenUri.isNullOrBlank()) {
             logMetaLoading(itemId, "empty token URI", warn = true)

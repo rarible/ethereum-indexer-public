@@ -22,7 +22,7 @@ class ItemPropertiesService(
     private suspend fun callResolvers(itemId: ItemId): ItemProperties? {
         for (resolver in itemPropertiesResolverProvider.orderedResolvers) {
             try {
-                val itemProperties = resolver.resolve(itemId)
+                val itemProperties = resolver.resolve(itemId).itemProperties
                 if (itemProperties != null) {
                     return itemProperties
                 }

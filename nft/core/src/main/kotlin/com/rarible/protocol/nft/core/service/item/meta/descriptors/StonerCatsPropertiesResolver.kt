@@ -6,8 +6,10 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -15,23 +17,23 @@ import scalether.domain.Address
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class StonerCatsPropertiesResolver(
     private val ipfsService: IpfsService,
-    private val raribleResolver: RariblePropertiesResolver,
+    @Qualifier("RariblePropertiesResolver") private val raribleResolver: RariblePropertiesResolver,
     private val externalHttpClient: ExternalHttpClient
 ) : ItemPropertiesResolver {
 
     override val name get() = "StonerCats"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != STONER_CAT_NFT_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "Resolving $name Nft properties")
-        val properties = raribleResolver.resolve(itemId) ?: return null
-        val imageUrl = properties.image ?: return properties
+        val properties = raribleResolver.resolve(itemId).itemProperties
+        val imageUrl = properties?.image ?: return wrapAsResolved(properties)
         val etag = getEtag(itemId, imageUrl)
-        return etag?.let {
+        return wrapAsResolved(etag?.let {
             properties.copy(image = "${ipfsService.publicGateway}/ipfs/$etag")
-        } ?: properties
+        } ?: properties)
     }
 
     private suspend fun getEtag(itemId: ItemId, url: String): String? {
