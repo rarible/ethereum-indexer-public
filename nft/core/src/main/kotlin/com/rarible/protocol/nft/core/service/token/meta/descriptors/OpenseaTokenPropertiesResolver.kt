@@ -49,7 +49,6 @@ class OpenseaTokenPropertiesResolver(
             }
             .timeout(Duration.ofMillis(requestTimeout))
             .onErrorResume {
-                println("$it")
                 logProperties(id, "failed to parse properties by URI: $httpUrl", true)
                 Mono.empty()
             }
