@@ -2,7 +2,7 @@ global:
   springExtraProfile: ''
 
 sharedEnvironments: &sharedEnvironments
-  EXTRA_ENV: placeHere
+  SPRING_CLOUD_CONSUL_ENABLED: false
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
 
