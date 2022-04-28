@@ -18,6 +18,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
@@ -57,6 +58,12 @@ class AvegotchiPropertiesResolverTest : BasePropertiesResolverTest() {
                         .withBody("")
                 )
         )
+    }
+
+    @AfterEach
+    @Throws(Exception::class)
+    fun shutdown() {
+        wireMockServer?.shutdownServer()
     }
 
 
