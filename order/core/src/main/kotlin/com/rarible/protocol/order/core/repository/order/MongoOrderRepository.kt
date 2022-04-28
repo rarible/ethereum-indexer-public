@@ -63,7 +63,10 @@ class MongoOrderRepository(
             "platform_1_lastUpdateAt_1__id_1",
             "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
             OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName
+            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName,
+            OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexName,
+            OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexName,
+            OrderRepositoryIndexes.BY_LAST_UPDATE_DEFINITION.indexName
         )
     }
 

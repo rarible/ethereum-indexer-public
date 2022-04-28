@@ -38,7 +38,6 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterBidByItem
-import com.rarible.protocol.order.core.model.order.OrderFilterBidByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSell
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
@@ -311,24 +310,6 @@ class OrderController(
         }
     }
 
-    override suspend fun getSellOrdersByMaker(
-        maker: String,
-        origin: String?,
-        platform: PlatformDto?,
-        continuation: String?,
-        size: Int?
-    ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterSellByMaker(
-            maker = Address.apply(maker),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilterSort.LAST_UPDATE_DESC,
-            status = listOf(OrderStatusDto.ACTIVE)
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
-    }
-
     override suspend fun getSellOrdersByMakerAndByStatus(
         maker: String,
         origin: String?,
@@ -419,24 +400,6 @@ class OrderController(
             priceContinuation
         )
         return searchBids(status, filter, requestSize)
-    }
-
-    override suspend fun getOrderBidsByMaker(
-        maker: String,
-        origin: String?,
-        platform: PlatformDto?,
-        continuation: String?,
-        size: Int?
-    ): ResponseEntity<OrdersPaginationDto> {
-        val filter = OrderFilterBidByMaker(
-            maker = Address.apply(maker),
-            origin = safeAddress(origin),
-            platforms = safePlatforms(platform),
-            sort = OrderFilterSort.LAST_UPDATE_DESC,
-            status = listOf(OrderStatusDto.ACTIVE)
-        )
-        val result = searchOrders(filter, continuation, size)
-        return ResponseEntity.ok(result)
     }
 
     override suspend fun getOrderBidsByMakerAndByStatus(
