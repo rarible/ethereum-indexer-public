@@ -78,7 +78,7 @@ class AvegotchiPropertiesResolverTest : BasePropertiesResolverTest() {
     }
 
     /**
-     * Aavegotchi resolver should trigger Opensea on 3XX redirrect response from Avegotchi server
+     * Aavegotchi resolver should trigger Opensea on 3XX redirect response from Aavegotchi server
      */
     @Test
     fun aavegotchi_3xx() = runBlocking<Unit> {
