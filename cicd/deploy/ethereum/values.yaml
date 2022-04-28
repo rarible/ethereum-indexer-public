@@ -2,6 +2,7 @@ global:
   blockchain: ethereum
   network: mainnet
   springExtraProfile: consul
+
 ethereum-erc20-api:
   image:
     repository: ethereum-indexer-erc20-api

@@ -1,9 +1,7 @@
 global:
-  network: rinkeby
   springExtraProfile: ''
 
 sharedEnvironments: &sharedEnvironments
-  APPLICATION_ENVIRONMENT: staging
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
 
@@ -19,11 +17,11 @@ ethereum-gateway:
   environments:
     <<: *sharedEnvironments
 
-ethereum-order-api: 
+ethereum-order-api:
   environments:
     <<: *sharedEnvironments
 
-ethereum-order-listener: 
+ethereum-order-listener:
   environments:
     <<: *sharedEnvironments
 

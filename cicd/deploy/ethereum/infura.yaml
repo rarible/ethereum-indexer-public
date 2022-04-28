@@ -1,9 +1,7 @@
 global:
-  network: mainnet
   springExtraProfile: ''
 
 sharedEnvironments: &sharedEnvironments
-  APPLICATION_ENVIRONMENT: prod
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
 
@@ -23,7 +21,7 @@ ethereum-order-api:
   environments:
     <<: *sharedEnvironments
 
-ethereum-order-listener: 
+ethereum-order-listener:
   environments:
     <<: *sharedEnvironments
 
