@@ -21,7 +21,7 @@ class Erc20TaskService(
     suspend fun createReindexErc20TokenTasks(tokens: List<Address>, fromBlock: Long?, force: Boolean): List<Task> {
         require(tokens.isNotEmpty()) { throw IllegalArgumentException("Erc20 tokens are not specified") }
 
-        checkRunningReindexErc20TokenTask(tokens)
+        if (!force) checkRunningReindexErc20TokenTask(tokens)
         return ReindexErc20TokenTaskParam.Descriptor.values().map {
             saveTask(
                 param = ReindexErc20TokenTaskParam(it, tokens).toParamString(),

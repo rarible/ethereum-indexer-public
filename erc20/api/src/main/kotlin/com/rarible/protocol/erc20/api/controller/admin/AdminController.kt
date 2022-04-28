@@ -16,8 +16,7 @@ class AdminController(
 
     @PostMapping(
         value = ["/admin/tokens/reindex"],
-        produces = ["application/json"],
-        consumes = ["application/json"]
+        produces = ["application/json"]
     )
     suspend fun reindexErc20Token(
         @RequestParam(name = "token", required = true) tokens: List<String>,
@@ -34,8 +33,7 @@ class AdminController(
 
     @PostMapping(
         value = ["/admin/tokens/reduce"],
-        produces = ["application/json"],
-        consumes = ["application/json"]
+        produces = ["application/json"]
     )
     suspend fun reduceErc20Token(
         @RequestParam(name = "token", required = true) token: String,
