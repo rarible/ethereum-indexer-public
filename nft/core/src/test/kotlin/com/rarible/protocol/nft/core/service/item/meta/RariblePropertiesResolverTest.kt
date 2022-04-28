@@ -50,7 +50,7 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         //  val imageUrl = "https://storage.opensea.io/files/9931fc66855dccf59e0524864b2c2231.svg"
         val address = Address.apply("0x1906fd9c4ac440561f7197da0a4bd2e88df5fa70")
         mockTokenStandard(address, TokenStandard.ERC721)
-        val properties = rariblePropertiesResolver.resolve(ItemId(address, EthUInt256.of(21089)))
+        val properties = rariblePropertiesResolver.resolve(ItemId(address, EthUInt256.of(21089))).itemProperties
         val description = properties!!.description!!
         val timestamp = description.substringAfter("Kinship, and 12.").substringBefore(" amWMATIC")
         val devoted = description.substringAfter("Devoted (").substringBefore(") Kinship")
@@ -335,7 +335,7 @@ Token ID: 51561
         // https://rarible.com/token/0x1866c6907e70eb176109363492b95e3617b4a195:27
         val token = Address.apply("0x1866c6907e70eb176109363492b95e3617b4a195")
         mockTokenStandard(token, TokenStandard.ERC721)
-        val properties = rariblePropertiesResolver.resolve(ItemId(token, EthUInt256.of(27)))
+        val properties = rariblePropertiesResolver.resolve(ItemId(token, EthUInt256.of(27))).itemProperties
         // Raw JSON content of this item has changing order of parameters.
         val expectedRawJsonContent =
             """{"forSale":true,"price":"0.00005","mintedOn":{"_seconds":1579357427,"_nanoseconds":148000000},"contractAddress":"0x1866c6907e70eb176109363492b95e3617b4a195","description":"First door at your left.","numAvailable":0,"type":"ERC721","attributes":[{"value":"https://opensea.io/assets/keep-calm-v2","trait_type":"website"}],"minted":"Minted on Mintbase.io","fiatPrice":"${'$'}0.01","name":"Freaky Hallway","tags":[],"minter":"","external_link":"https://mintbase.io/minted/0x1866c6907e70eb176109363492b95e3617b4a195/B4tb5lHTnjBNVKlJSG49","amountToMint":3,"external_url":"https://mintbase.io","image":"https://firebasestorage.googleapis.com/v0/b/thing-1d2be.appspot.com/o/token%2Fasset-1579357359533?alt=media&token=31a77b56-b030-4a29-ac52-8393f67584f3"}"""

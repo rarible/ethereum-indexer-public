@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
@@ -24,13 +25,13 @@ class LuckyManekiNftPropertiesResolver(
 
     override val name get() = "LuckyManekiNft"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != LUCKY_MANEKI_NFT_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "Resolving Lucky Maneki Nft properties")
 
-        return externalHttpClient.get("$LUCKY_MANEKI_NFT_URL/${itemId.tokenId.value}", useProxy = true)
+        val properties = externalHttpClient.get("$LUCKY_MANEKI_NFT_URL/${itemId.tokenId.value}", useProxy = true)
             .bodyToMono<String>()
             .map { jsonContent ->
                 val node = mapper.readTree(jsonContent) as ObjectNode
@@ -51,6 +52,7 @@ class LuckyManekiNftPropertiesResolver(
                     rawJsonContent = jsonContent
                 )
             }.awaitFirstOrNull()
+        return wrapAsResolved(properties)
     }
 
     companion object {

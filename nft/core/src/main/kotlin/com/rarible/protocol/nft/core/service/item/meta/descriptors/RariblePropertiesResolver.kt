@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
@@ -26,10 +27,10 @@ class RariblePropertiesResolver(
         val tokenUri = tokenUriResolver.getUri(itemId)
         if (tokenUri.isNullOrBlank()) {
             logMetaLoading(itemId, "empty token URI", warn = true)
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "got URI from token contract: $tokenUri")
-        return resolveByTokenUri(itemId, tokenUri)
+        return wrapAsResolved(resolveByTokenUri(itemId, tokenUri))
     }
 
     suspend fun resolveByTokenUri(itemId: ItemId, tokenUri: String): ItemProperties? {

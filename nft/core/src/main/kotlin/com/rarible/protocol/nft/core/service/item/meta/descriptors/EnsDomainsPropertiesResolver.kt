@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -49,9 +50,9 @@ class EnsDomainsPropertiesResolver(
 
     override val name get() = "EnsDomains"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != contractAddress) {
-            return null
+            return wrapAsUnResolved(null)
         }
         val properties = LoggingUtils.withMarker { marker ->
             logger.info(marker, "get EnsDomains properties ${itemId.tokenId.value}")
@@ -89,6 +90,6 @@ class EnsDomainsPropertiesResolver(
                 }
         }.awaitFirstOrNull()
 
-        return properties?.also { ensDomainService.onGetProperties(itemId, it) }
+        return wrapAsResolved(properties?.also { ensDomainService.onGetProperties(itemId, it) })
     }
 }

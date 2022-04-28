@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -104,11 +105,11 @@ class YInsurePropertiesResolver(
 
     override val name get() = "YInsure"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != YINSURE_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
-        return yInsure.tokens(itemId.tokenId.value)
+        val properties = yInsure.tokens(itemId.tokenId.value)
             .flatMap { tuple ->
                 val currency = String(tuple._2()).replace("\u0000", "")
                 val amount = String.format(Locale.ENGLISH, "%,d", tuple._3().toLong())
@@ -146,6 +147,8 @@ class YInsurePropertiesResolver(
                         )
                     }
             }.awaitFirstOrNull()
+
+        return wrapAsResolved(properties)
     }
 
     private data class YInsurePlatform(

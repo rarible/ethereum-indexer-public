@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -27,11 +28,11 @@ class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
 
     override val name get() = "CryptoKitties"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != CRYPTO_KITTIES_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
-        return LoggingUtils.withMarker { marker ->
+        val properties = LoggingUtils.withMarker { marker ->
             logger.info(marker, "get CryptoKitties properties ${itemId.tokenId.value}")
 
             client.get().uri("$CK_URL/${itemId.tokenId.value}")
@@ -47,11 +48,18 @@ class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
                         imageBig = null,
                         animationUrl = null,
                         attributes = node.withArray("enhanced_cattributes")
-                            .map { attr -> ItemAttribute(attr.path("type").asText(), attr.path("description").asText()) },
+                            .map { attr ->
+                                ItemAttribute(
+                                    attr.path("type").asText(),
+                                    attr.path("description").asText()
+                                )
+                            },
                         rawJsonContent = null
                     )
                 }
         }.awaitFirstOrNull()
+
+        return wrapAsResolved(properties)
     }
 
     companion object {

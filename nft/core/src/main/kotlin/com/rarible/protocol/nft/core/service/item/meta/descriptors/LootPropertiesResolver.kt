@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.SvgSanitizer
@@ -32,9 +33,9 @@ class LootPropertiesResolver(
 
     override val name get() = "Loot"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         if (itemId.token != LOOT_ADDRESS) {
-            return null
+            return wrapAsUnResolved(null)
         }
         logMetaLoading(itemId, "getting Loot properties")
         val tokenId = itemId.tokenId.value
@@ -60,16 +61,18 @@ class LootPropertiesResolver(
         val imageUrl = node.getText("image")?.let {
             SvgSanitizer.sanitize(itemId, it)
         }
-        val name = node.getText("name") ?: return null
-        return ItemProperties(
-            name = name,
-            description = node.getText("description"),
-            image = imageUrl,
-            imagePreview = null,
-            animationUrl = imageUrl,
-            imageBig = null,
-            attributes = attrs,
-            rawJsonContent = null
+        val name = node.getText("name") ?: return wrapAsUnResolved(null)
+        return wrapAsResolved(
+            ItemProperties(
+                name = name,
+                description = node.getText("description"),
+                image = imageUrl,
+                imagePreview = null,
+                animationUrl = imageUrl,
+                imageBig = null,
+                attributes = attrs,
+                rawJsonContent = null
+            )
         )
     }
 

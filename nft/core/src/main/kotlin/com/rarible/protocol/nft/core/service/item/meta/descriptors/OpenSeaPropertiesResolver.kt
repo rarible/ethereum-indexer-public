@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesWrapper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
@@ -25,11 +26,11 @@ class OpenSeaPropertiesResolver(
 
     override val name get() = "OpenSea"
 
-    override suspend fun resolve(itemId: ItemId): ItemProperties? {
-        if (externalHttpClient.openseaUrl.isBlank()) return null
+    override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
+        if (externalHttpClient.openseaUrl.isBlank()) return wrapAsUnResolved(null)
         val openSeaUrl = "${externalHttpClient.openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
         logMetaLoading(itemId, "OpenSea: getting properties from $openSeaUrl")
-        return externalHttpClient
+        val properties =  externalHttpClient
             .get(openSeaUrl)
             .bodyToMono<ObjectNode>()
             .map {
@@ -62,6 +63,7 @@ class OpenSeaPropertiesResolver(
                 Mono.empty()
             }
             .awaitFirstOrNull()
+        return wrapAsResolved(properties)
     }
 
     private fun parseName(node: ObjectNode, tokenId: BigInteger): String {
