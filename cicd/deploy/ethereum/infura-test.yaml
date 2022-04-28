@@ -1,5 +1,5 @@
 global:
-  springExtraProfile: ''
+  network: 'testnet'
 
 sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
