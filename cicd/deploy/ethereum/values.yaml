@@ -12,6 +12,7 @@ ethereum-erc20-api:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-erc20
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -32,6 +33,7 @@ ethereum-erc20-listener:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-erc20
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -79,6 +81,7 @@ ethereum-order-api:
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
     JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-order
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -101,6 +104,7 @@ ethereum-order-listener:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-order
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -122,6 +126,7 @@ ethereum-order-migration:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-order
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -150,6 +155,7 @@ ethereum-unlockable-api:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-unlockable
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -168,11 +174,11 @@ ethereum-nft-api:
   replicas: 2
   service:
     enabled: true
-  blockchain: ethereum
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -195,6 +201,7 @@ ethereum-nft-listener:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -216,6 +223,7 @@ ethereum-nft-migration:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
     SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
