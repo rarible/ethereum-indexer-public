@@ -3,6 +3,7 @@ global:
   springExtraProfile: ''
 
 sharedEnvironments: &sharedEnvironments
+  EXTRA_ENV: placeHere
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
   # MONGODB_HOSTS: 
