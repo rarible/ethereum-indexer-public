@@ -13,54 +13,44 @@ sharedEnvironments: &sharedEnvironments
 
 
 polygon-erc20-api:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-erc20-listener:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-gateway:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-order-api:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 
 polygon-order-listener:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 
 polygon-order-migration:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 
 polygon-unlockable-api:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-nft-api:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-nft-listener:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
 
 polygon-nft-migration:
-  nodeSelector: false
   environments:
     <<: *sharedEnvironments
