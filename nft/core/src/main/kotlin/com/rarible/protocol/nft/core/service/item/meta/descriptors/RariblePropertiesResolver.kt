@@ -31,16 +31,14 @@ import java.time.Duration
 class RariblePropertiesResolver(
     private val sender: MonoTransactionSender,
     private val tokenRepository: TokenRepository,
-    private val ipfsService: IpfsService,
-    private val externalHttpClient: ExternalHttpClient,
+    protected val ipfsService: IpfsService,
+    protected val externalHttpClient: ExternalHttpClient,
     @Value("\${api.properties.request-timeout}") requestTimeout: Long
 ) : ItemPropertiesResolver {
 
-    private val timeout = Duration.ofMillis(requestTimeout)
+    protected val timeout = Duration.ofMillis(requestTimeout)
 
     override val name get() = "Rarible"
-
-    private val uriToIgnore = "aavegotchi.com/metadata/"
 
     override suspend fun resolve(itemId: ItemId): ItemPropertiesWrapper {
         val tokenUri = getUri(itemId)
@@ -73,9 +71,6 @@ class RariblePropertiesResolver(
     }
 
     private suspend fun resolve(itemId: ItemId, tokenUri: String): ItemProperties? {
-        if (tokenUri != null && uriToIgnore in tokenUri) {
-            return null
-        }
         // Sometimes there could be a json instead of URL
         val json = JsonPropertiesParser.parse(itemId, tokenUri)
         val properties = when {
@@ -102,7 +97,7 @@ class RariblePropertiesResolver(
         return copy(name = newName)
     }
 
-    private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
+    protected suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         if (uri.isBlank()) {
             return null
         }
@@ -138,7 +133,7 @@ class RariblePropertiesResolver(
             }.awaitFirstOrNull()
     }
 
-    private suspend fun getUri(itemId: ItemId): String? {
+    protected suspend fun getUri(itemId: ItemId): String? {
         val token = tokenRepository.findById(itemId.token).awaitFirstOrNull()
         if (token == null) {
             logMetaLoading(itemId, "token is not found", warn = true)
