@@ -600,6 +600,57 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
         assertThat(reducedItem.deleted).isFalse()
     }
 
+    @Test
+    fun `should remove related pending log if confirmed event come`() = runBlocking<Unit> {
+        val item = initial().copy(
+            tokenId = EthUInt256.TEN,
+            supply = EthUInt256.ONE
+        )
+        val pendingEvent = createRandomTransferItemEvent()
+            .withNewValues(EthereumLogStatus.PENDING)
+        val confirmedEvent = pendingEvent
+            .withNewValues(
+                EthereumLogStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 1,
+                minorLogIndex = 1
+            )
+
+        val reducedItemWithPending = reduce(item, pendingEvent)
+        assertThat(reducedItemWithPending.revertableEvents).hasSize(1)
+        assertThat(reducedItemWithPending.revertableEvents.single().log.status).isEqualTo(EthereumLogStatus.PENDING)
+
+        val reducedItemWithConfirmed = reduce(reducedItemWithPending, confirmedEvent)
+        assertThat(reducedItemWithConfirmed.revertableEvents).hasSize(1)
+        assertThat(reducedItemWithConfirmed.revertableEvents.single().log.status).isEqualTo(EthereumLogStatus.CONFIRMED)
+    }
+
+    @Test
+    fun `should not remove unrelated pending log if confirmed event come`() = runBlocking<Unit> {
+        val item = initial().copy(
+            tokenId = EthUInt256.TEN,
+            supply = EthUInt256.ONE
+        )
+        val pendingEvent = createRandomTransferItemEvent()
+            .withNewValues(EthereumLogStatus.PENDING)
+        val confirmedEvent = createRandomTransferItemEvent()
+            .withNewValues(
+                EthereumLogStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 1,
+                minorLogIndex = 1
+            )
+
+        val reducedItemWithPending = reduce(item, pendingEvent)
+        assertThat(reducedItemWithPending.revertableEvents).hasSize(1)
+        assertThat(reducedItemWithPending.revertableEvents.single().log.status).isEqualTo(EthereumLogStatus.PENDING)
+
+        val reducedItemWithConfirmed = reduce(reducedItemWithPending, confirmedEvent)
+        assertThat(reducedItemWithConfirmed.revertableEvents).hasSize(2)
+        assertThat(reducedItemWithConfirmed.revertableEvents[0].log.status).isEqualTo(EthereumLogStatus.PENDING)
+        assertThat(reducedItemWithConfirmed.revertableEvents[1].log.status).isEqualTo(EthereumLogStatus.CONFIRMED)
+    }
+
     private fun initial(): Item {
         val itemId = createRandomItemId()
         return itemTemplateProvider.getEntityTemplate(itemId)
