@@ -11,7 +11,7 @@ polygon-erc20-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -31,7 +31,7 @@ polygon-erc20-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -77,7 +77,7 @@ polygon-order-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
     JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
   nodeSelector:
     node.labels.rarible.service: true
@@ -101,7 +101,7 @@ polygon-order-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -123,7 +123,7 @@ polygon-order-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -152,7 +152,7 @@ polygon-unlockable-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -174,7 +174,7 @@ polygon-nft-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -196,7 +196,7 @@ polygon-nft-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -217,7 +217,7 @@ polygon-nft-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr

@@ -1,7 +1,8 @@
 global:
   blockchain: ethereum
   network: mainnet
-  springExtraProfile: consul
+  # spring extra profiles should start with ,
+  springExtraProfile: ',consul'
 
 ethereum-erc20-api:
   image:
@@ -13,7 +14,7 @@ ethereum-erc20-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -34,7 +35,7 @@ ethereum-erc20-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -82,7 +83,7 @@ ethereum-order-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
     JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
   nodeSelector:
     node.labels.rarible.service: true
@@ -106,7 +107,7 @@ ethereum-order-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -128,7 +129,7 @@ ethereum-order-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -157,7 +158,7 @@ ethereum-unlockable-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -180,7 +181,7 @@ ethereum-nft-api:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -203,7 +204,7 @@ ethereum-nft-listener:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -225,7 +226,7 @@ ethereum-nft-migration:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.springExtraProfile }},{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}{{ .Values.global.springExtraProfile }}'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
