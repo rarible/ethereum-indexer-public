@@ -39,6 +39,10 @@
             <artifactId>rarible-core-application</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-task</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-contracts-interfaces</artifactId>
         </dependency>
