@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.repository.order
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.protocol.order.api.misc.indexName
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -42,7 +43,9 @@ class OrderVersionRepository(
             "take.type.token_1_take.type.tokenId_1_createdAt_-1_id_-1",
             "take.type.token_1_take.type.tokenId_1_createdAt_1_takePriceUsd_1__id_1",
             "hash_1",
-            "makeStock_-1_lastUpdateAt_-1__id_1"
+            "makeStock_-1_lastUpdateAt_-1__id_1",
+            OrderVersionRepositoryIndexes.MAKER_TAKE_PRICE_USD_BID_DEFINITION.indexName,
+            OrderVersionRepositoryIndexes.HASH_PLATFORM_AND_ID_DEFINITION.indexName
         )
     }
 
