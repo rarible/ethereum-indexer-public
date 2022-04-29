@@ -39,7 +39,7 @@ class ReduceErc20BalanceTaskHandler(
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
                 it.next()
-            }.takeUntil {
+            }.takeWhile {
                 param.isBlank() || it.token == Address.apply(param)
             }.asFlow()
     }
