@@ -15,12 +15,15 @@ data class AuctionOffchainHistory(
     val seller: Address,
     val sell: Asset,
     val source: HistorySource,
-    val type: Type
+    val type: Type,
+    val updatedAt: Instant = date
 ) {
+    fun withDbUpdated(): AuctionOffchainHistory {
+        return copy(updatedAt = Instant.now())
+    }
 
     enum class Type {
         STARTED,
         ENDED
     }
-
 }

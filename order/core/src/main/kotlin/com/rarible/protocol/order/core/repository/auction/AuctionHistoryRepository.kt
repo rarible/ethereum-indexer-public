@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
@@ -33,7 +34,15 @@ class AuctionHistoryRepository(
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     fun save(logEvent: LogEvent): Mono<LogEvent> {
-        return template.save(logEvent, COLLECTION)
+        return template.save(logEvent.withDbUpdated(), COLLECTION)
+    }
+
+    fun find(query: Query): Flow<LogEvent> {
+        return template.find(query,LogEvent::class.java, COLLECTION).asFlow()
+    }
+
+    fun findById(id: ObjectId): Mono<LogEvent> {
+        return template.findById(id, COLLECTION)
     }
 
     fun findByType(type: AuctionHistoryType): Flux<LogEvent> {
@@ -103,10 +112,18 @@ class AuctionHistoryRepository(
             .on("${LogEvent::data.name}.${OnChainAuction::buyer.name}", Sort.Direction.ASC)
             .background()
 
+        val BY_UPDATED_AT_FIELD: Index = Index()
+            .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+            .on(LogEvent::createdAt.name, Sort.Direction.ASC)
+            .on(LogEvent::id.name, Sort.Direction.ASC)
+            .background()
+
+
         val ALL_INDEXES = listOf(
             BY_TYPE_TOKEN_ID_DEFINITION,
             BY_TYPE_SELLER_DEFINITION,
-            BY_TYPE_BUYER_DEFINITION
+            BY_TYPE_BUYER_DEFINITION,
+            BY_UPDATED_AT_FIELD
         )
     }
 

@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.mongodb.client.result.UpdateResult
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.protocol.order.core.misc.div
@@ -19,6 +20,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -65,7 +67,15 @@ class OrderVersionRepository(
     }
 
     fun save(orderVersion: OrderVersion): Mono<OrderVersion> {
-        return template.save(orderVersion, COLLECTION)
+        return template.save(orderVersion.withDbUpdated(), COLLECTION)
+    }
+
+    fun updateMulti(query: Query, update: UpdateDefinition): Mono<UpdateResult> {
+        return template.updateMulti(query, update,  COLLECTION)
+    }
+
+    fun find(query: Query): Flow<OrderVersion> {
+        return template.query<OrderVersion>().matching(query).all().asFlow()
     }
 
     fun search(filter: OrderVersionFilter): Flux<OrderVersion> {

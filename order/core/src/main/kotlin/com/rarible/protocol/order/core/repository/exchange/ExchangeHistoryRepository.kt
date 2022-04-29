@@ -21,6 +21,8 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.bson.types.ObjectId
@@ -32,6 +34,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
@@ -83,6 +86,14 @@ class ExchangeHistoryRepository(
 
     fun save(logEvent: LogEvent): Mono<LogEvent> {
         return template.save(logEvent, COLLECTION)
+    }
+
+    fun find(query: Query): Flow<LogEvent> {
+        return template.find(query,LogEvent::class.java, COLLECTION).asFlow()
+    }
+
+    fun findById(id: ObjectId): Mono<LogEvent> {
+        return template.findById(id, COLLECTION)
     }
 
     @TestOnly // this query may be slow, use in tests only

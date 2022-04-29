@@ -102,6 +102,11 @@ internal object OrderVersionRepositoryIndexes {
         .unique()
         .background()
 
+    private val BY_UPDATED_AT_FIELD: Index = Index()
+        .on(OrderVersion::updatedAt.name, Sort.Direction.ASC)
+        .on(OrderVersion::id.name, Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_BID_DEFINITION,
         ALL_LIST_DEFINITION,
@@ -116,6 +121,7 @@ internal object OrderVersionRepositoryIndexes {
         MAKER_TAKE_PRICE_USD_BID_DEFINITION,
         HASH_AND_ID_DEFINITION,
         ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION,
-        HASH_PLATFORM_AND_ID_DEFINITION
+        HASH_PLATFORM_AND_ID_DEFINITION,
+        BY_UPDATED_AT_FIELD
     )
 }
