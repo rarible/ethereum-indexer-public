@@ -14,6 +14,7 @@ import org.slf4j.Marker
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import java.time.Instant
 
 @Service
 class OwnershipService(
@@ -44,7 +45,9 @@ class OwnershipService(
             .flatMap { opt ->
                 val found = opt.orNull()
                 when {
-                    found == null || found != ownership.withCalculatedFields() -> saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
+                    found == null || found != ownership.withCalculatedFields(
+                        if (found.owner == ownership.owner) null else Instant.now()
+                    ) -> saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
                     else -> {
                         logger.info(marker, "Ownership ${ownership.id} don't need to be saved")
                         Mono.just(OwnershipSaveResult(ownership, false))
