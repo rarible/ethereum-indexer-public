@@ -28,6 +28,7 @@ data class OrderVersion(
     val id: ObjectId = ObjectId(),
     val onChainOrderKey: LogEventKey? = null,
     val createdAt: Instant = nowMillis(),
+    val updatedAt: Instant = createdAt,
     val platform: Platform = Platform.RARIBLE,
     val type: OrderType,
     val salt: EthUInt256,
@@ -39,6 +40,10 @@ data class OrderVersion(
     val hash: Word = Order.hashKey(maker, make.type, take.type, salt.value, data)
 ) {
     fun isBid(): Boolean = take.type.nft
+
+    fun withDbUpdated(): OrderVersion {
+        return copy(updatedAt = Instant.now())
+    }
 
     fun withOrderUsdValue(usdValue: OrderUsdValue): OrderVersion {
         return copy(

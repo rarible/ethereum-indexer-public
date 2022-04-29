@@ -384,7 +384,8 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 orderVersion.ignore().copy(
                     createdAt = upsertTimestamp,
                     makePrice = version.makePrice,
-                    takePrice = version.takePrice
+                    takePrice = version.takePrice,
+                    updatedAt = version.updatedAt
                 )
             )
         }

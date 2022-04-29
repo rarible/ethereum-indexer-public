@@ -88,6 +88,12 @@ object ExchangeHistoryRepositoryIndexes {
         .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
         .background()
 
+    private val BY_UPDATED_AT_FIELD: Index = Index()
+        .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+        .on(LogEvent::createdAt.name, Sort.Direction.ASC)
+        .on(LogEvent::id.name, Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
         MAKER_SELL_DEFINITION,
@@ -100,6 +106,7 @@ object ExchangeHistoryRepositoryIndexes {
         COLLECTION_BID_DEFINITION,
         AGGREGATION_DEFINITION,
         HASH_DEFINITION,
-        HASH_AND_SOURCE_DEFINITION
+        HASH_AND_SOURCE_DEFINITION,
+        BY_UPDATED_AT_FIELD
     )
 }
