@@ -28,6 +28,7 @@ data class Ownership(
     val value: EthUInt256,
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
+    val lastUpdatedAt: Instant,
     @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
@@ -56,17 +57,19 @@ data class Ownership(
         return copy(revertableEvents = events)
     }
 
-    fun withCalculatedFields(): Ownership {
+    fun withCalculatedFields(lastUpdatedAt: Instant? = null): Ownership {
         val deleted = this.lazyValue == EthUInt256.ZERO
-            && this.value == EthUInt256.ZERO
-            && this.getPendingEvents().isEmpty()
-            && this.pending.isEmpty() // TODO this check not needed for reducerV2
+                && this.value == EthUInt256.ZERO
+                && this.getPendingEvents().isEmpty()
+                && this.pending.isEmpty() // TODO this check not needed for reducerV2
         val updatedAt =
             // We try to get timestamp of the latest blockchain event
             this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
             // If no blockchain event, we get latest pending createdAt event timestamp
-            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?:
-            this.date
+            this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?: this.date
+        if (lastUpdatedAt != null) {
+            return this.copy(deleted = deleted, date = updatedAt, lastUpdatedAt = lastUpdatedAt)
+        }
         return this.copy(deleted = deleted, date = updatedAt)
     }
 
@@ -90,6 +93,7 @@ data class Ownership(
                 value = EthUInt256.ZERO,
                 lazyValue = EthUInt256.ZERO,
                 date = nowMillis(),
+                lastUpdatedAt = nowMillis(),
                 pending = emptyList()
             )
         }
