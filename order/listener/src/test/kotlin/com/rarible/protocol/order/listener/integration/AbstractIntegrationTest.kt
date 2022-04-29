@@ -87,7 +87,7 @@ import javax.annotation.PostConstruct
 @FlowPreview
 abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
-    private val logger = LoggerFactory.getLogger(javaClass)
+    protected val logger = LoggerFactory.getLogger(javaClass)
     protected lateinit var sender: MonoTransactionSender
 
     @Autowired
