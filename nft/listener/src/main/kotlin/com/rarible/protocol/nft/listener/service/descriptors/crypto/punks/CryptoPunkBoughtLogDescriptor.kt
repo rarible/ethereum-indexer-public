@@ -32,8 +32,8 @@ class CryptoPunkBoughtLogDescriptor(
 
     override fun convertItemTransfer(log: Log, date: Instant): Mono<ItemTransfer> {
         val event = PunkBoughtEvent.apply(log)
-        val toAddressMono = if (event.toAddress() != Address.ZERO() && event.toAddress() != event.fromAddress()) {
-            event.toAddress().toMono()
+        val addresses = if (event.toAddress() != Address.ZERO() && event.toAddress() != event.fromAddress()) {
+            (event.fromAddress() to event.toAddress()).toMono()
         } else {
             /*
                 Workaround https://github.com/larvalabs/cryptopunks/issues/19.
@@ -54,14 +54,14 @@ class CryptoPunkBoughtLogDescriptor(
                                 && (it.logIndex() == log.logIndex() - BigInteger.ONE || it.logIndex() == log.logIndex() - BigInteger("2"))
                     }
                         ?.let { TransferEvent.apply(it) }
-                        ?.to()
-                        ?: event.toAddress()
+                        ?.let { it.from() to it.to() }
+                        ?: (event.fromAddress() to event.toAddress())
                 }
         }
-        return toAddressMono.map { toAddress ->
+        return addresses.map { (from, to) ->
             ItemTransfer(
-                from = event.fromAddress(),
-                owner = toAddress,
+                from = from,
+                owner = to,
                 token = log.address(),
                 tokenId = EthUInt256.of(event.punkIndex()),
                 date = date,
