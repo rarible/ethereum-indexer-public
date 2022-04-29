@@ -40,6 +40,7 @@ class CryptoPunkBoughtLogDescriptor(
                 We have to find "Transfer" event going before "PunkBought"
                 from the same function in order to extract correct value for "toAddress".
              */
+            logger.info("trying workaround for PunkBought bug for $log")
             val filter = LogFilter
                 .apply(TopicFilter.simple(TransferEvent.id()))
                 .address(cryptoPunksContractAddress)
@@ -50,7 +51,7 @@ class CryptoPunkBoughtLogDescriptor(
                     logs.find {
                         it.topics().head() == TransferEvent.id()
                                 && it.transactionHash() == log.transactionHash()
-                                && it.logIndex() == log.logIndex().minus(BigInteger.ONE)
+                                && (it.logIndex() == log.logIndex() - BigInteger.ONE || it.logIndex() == log.logIndex() - BigInteger("2"))
                     }
                         ?.let { TransferEvent.apply(it) }
                         ?.to()
