@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LuckyManekiNftPropertiesResolver
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
@@ -17,7 +16,7 @@ import scalether.domain.Address
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class LuckyManekiNftPropertiesResolverTest : BasePropertiesResolverTest() {
     private val luckyManekiNftPropertiesResolver = LuckyManekiNftPropertiesResolver(
-        externalHttpClient = OpenSeaPropertiesResolverTest.createExternalHttpClient()
+        externalHttpClient = externalHttpClient
     )
 
     @Test

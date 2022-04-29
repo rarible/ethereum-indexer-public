@@ -62,8 +62,6 @@ class ItemMetaCacheLoaderEventListenerIt : AbstractIntegrationTest() {
 
     @Test
     fun `send notification with loaded meta after retry`() = runBlocking<Unit> {
-        nftIndexerProperties.enableMetaCache = true
-
         val item = createRandomItem()
         val itemId = item.id
         val itemMeta = randomItemMeta()

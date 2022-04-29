@@ -8,7 +8,7 @@ internal const val RARIBLE_PROTOCOL_LISTENER_STORAGE = "listener"
 
 @ConstructorBinding
 @ConfigurationProperties(RARIBLE_PROTOCOL_LISTENER_STORAGE)
-class Erc20ListenerProperties(
+data class Erc20ListenerProperties(
     val blockchain: Blockchain,
     val tokens: List<String> = emptyList(),
     val ignoredOwners: List<String> = emptyList(),

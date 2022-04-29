@@ -22,7 +22,7 @@
     </repositories>
 
     <properties>
-        <revision>1.26</revision>
+        <revision>1.27</revision>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring-cloud-gateway.version>3.0.4</spring-cloud-gateway.version>
@@ -33,7 +33,8 @@
         <rarible.ethereum.contracts.version>1.0.20</rarible.ethereum.contracts.version>
         <rarible.core.version>2.3.68</rarible.core.version>
         <rarible.blockchain.scanner.version>2.2.26</rarible.blockchain.scanner.version>
-        <rarible.protocol.ethereum.version>1.26.4</rarible.protocol.ethereum.version>
+
+        <rarible.protocol.ethereum.version>1.27.0</rarible.protocol.ethereum.version>
         <rarible.protocol.currency.version>1.23.2</rarible.protocol.currency.version>
 
         <dev-jna.version>5.7.0</dev-jna.version>

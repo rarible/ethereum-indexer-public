@@ -29,7 +29,6 @@ data class NftIndexerProperties(
     val confirmationBlocks: Int = 12,
     val ownershipSaveBatch: Int = 20,
     val returnOnlyCacheItemMeta: Boolean = false,
-    var enableMetaCache: Boolean = true,
     val scannerProperties: ScannerProperties = ScannerProperties(),
     val itemMeta: ItemMetaProperties = ItemMetaProperties(),
     val contractAddresses: ContractAddresses = ContractAddresses(),

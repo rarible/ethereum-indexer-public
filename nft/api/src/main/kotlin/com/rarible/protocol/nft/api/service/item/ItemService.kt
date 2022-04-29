@@ -24,6 +24,7 @@ import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryReposi
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -43,17 +44,21 @@ class ItemService(
     private val ownershipApiService: OwnershipApiService,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
-    suspend fun getWithAvailableMetaOrLoadSynchronouslyWithTimeout(
+    suspend fun getWithAvailableMeta(
         itemId: ItemId,
         timeout: Duration,
         demander: String
     ): NftItemDto {
-        val item = itemRepository
-            .findById(itemId).awaitFirstOrNull()
-            ?: throw EntityNotFoundApiException("Item", itemId)
-        val itemMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(itemId, timeout, demander)
-        val extendedItem = ExtendedItem(item, itemMeta)
-        return conversionService.convert(extendedItem)
+        return coroutineScope {
+            val item = async {
+                itemRepository.findById(itemId).awaitFirstOrNull() ?: throw EntityNotFoundApiException("Item", itemId)
+            }
+            val itemMeta = async {
+                itemMetaService.getAvailableMeta(itemId, demander)
+            }
+            val extendedItem = ExtendedItem(item.await(), itemMeta.await())
+            conversionService.convert(extendedItem)
+        }
     }
 
     suspend fun getLazy(itemId: ItemId): LazyNftDto {
@@ -122,6 +127,7 @@ class ItemService(
             itemId = itemId,
             demander = "search",
             synchronous = false,
+            useMetaCache = true,
             scheduleIfNeeded = false
         )
     }

@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
 import io.mockk.every
@@ -28,12 +27,10 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
 
-    private val rariblePropertiesResolver: RariblePropertiesResolver = RariblePropertiesResolver(
-        sender = createSender(),
-        tokenRepository = tokenRepository,
+    private val rariblePropertiesResolver = RariblePropertiesResolver(
         ipfsService = ipfsService,
-        requestTimeout = 20000,
-        externalHttpClient = createExternalHttpClient()
+        propertiesHttpLoader = propertiesHttpLoader,
+        tokenUriResolver = tokenUriResolver
     )
 
     @BeforeEach
@@ -109,7 +106,7 @@ Fee Tier: 0.3%
 Token ID: 51561
 
 ⚠️ DISCLAIMER: Due diligence is imperative when assessing this NFT. Make sure token addresses match the expected tokens, as token symbols may be imitated.""",
-                image = "${ipfsService.publicGateway}/ipfs/QmTeoZ678pim8mFdVqrEsPfAaMJnnofH6G7Z4MWjFqoFxx",
+                image = "<svg width=\"290\" height=\"500\" viewBox=\"0 0 290 500\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink='http://www.w3.org/1999/xlink'><defs><filter id=\"f1\"><feImage result=\"p0\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjkwJyBoZWlnaHQ9JzUwMCcgdmlld0JveD0nMCAwIDI5MCA1MDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PHJlY3Qgd2lkdGg9JzI5MHB4JyBoZWlnaHQ9JzUwMHB4JyBmaWxsPScjN2QxYWZhJy8+PC9zdmc+\"/><feImage result=\"p1\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjkwJyBoZWlnaHQ9JzUwMCcgdmlld0JveD0nMCAwIDI5MCA1MDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PGNpcmNsZSBjeD0nMTE5JyBjeT0nMjUzJyByPScxMjBweCcgZmlsbD0nI2MwMmFhYScvPjwvc3ZnPg==\"/><feImage result=\"p2\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjkwJyBoZWlnaHQ9JzUwMCcgdmlld0JveD0nMCAwIDI5MCA1MDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PGNpcmNsZSBjeD0nMTcwJyBjeT0nMzMwJyByPScxMjBweCcgZmlsbD0nI2NmZWJiMCcvPjwvc3ZnPg==\" /><feImage result=\"p3\" xlink:href=\"data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjkwJyBoZWlnaHQ9JzUwMCcgdmlld0JveD0nMCAwIDI5MCA1MDAnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zyc+PGNpcmNsZSBjeD0nMTE5JyBjeT0nNDA3JyByPScxMDBweCcgZmlsbD0nIzc1NmNjMicvPjwvc3ZnPg==\" /><feBlend mode=\"overlay\" in=\"p0\" in2=\"p1\" /><feBlend mode=\"exclusion\" in2=\"p2\" /><feBlend mode=\"overlay\" in2=\"p3\" result=\"blendOut\" /><feGaussianBlur in=\"blendOut\" stdDeviation=\"42\" /></filter> <clipPath id=\"corners\"><rect width=\"290\" height=\"500\" rx=\"42\" ry=\"42\" /></clipPath><path id=\"text-path-a\" d=\"M40 12 H250 A28 28 0 0 1 278 40 V460 A28 28 0 0 1 250 488 H40 A28 28 0 0 1 12 460 V40 A28 28 0 0 1 40 12 z\" /><path id=\"minimap\" d=\"M234 444C234 457.949 242.21 463 253 463\" /><filter id=\"top-region-blur\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"24\" /></filter><linearGradient id=\"grad-up\" x1=\"1\" x2=\"0\" y1=\"1\" y2=\"0\"><stop offset=\"0.0\" stop-color=\"white\" stop-opacity=\"1\" /><stop offset=\".9\" stop-color=\"white\" stop-opacity=\"0\" /></linearGradient><linearGradient id=\"grad-down\" x1=\"0\" x2=\"1\" y1=\"0\" y2=\"1\"><stop offset=\"0.0\" stop-color=\"white\" stop-opacity=\"1\" /><stop offset=\"0.9\" stop-color=\"white\" stop-opacity=\"0\" /></linearGradient><mask id=\"fade-up\" maskContentUnits=\"objectBoundingBox\"><rect width=\"1\" height=\"1\" fill=\"url(#grad-up)\" /></mask><mask id=\"fade-down\" maskContentUnits=\"objectBoundingBox\"><rect width=\"1\" height=\"1\" fill=\"url(#grad-down)\" /></mask><mask id=\"none\" maskContentUnits=\"objectBoundingBox\"><rect width=\"1\" height=\"1\" fill=\"white\" /></mask><linearGradient id=\"grad-symbol\"><stop offset=\"0.7\" stop-color=\"white\" stop-opacity=\"1\" /><stop offset=\".95\" stop-color=\"white\" stop-opacity=\"0\" /></linearGradient><mask id=\"fade-symbol\" maskContentUnits=\"userSpaceOnUse\"><rect width=\"290px\" height=\"200px\" fill=\"url(#grad-symbol)\" /></mask></defs><g clip-path=\"url(#corners)\"><rect fill=\"7d1afa\" x=\"0px\" y=\"0px\" width=\"290px\" height=\"500px\" /><rect style=\"filter: url(#f1)\" x=\"0px\" y=\"0px\" width=\"290px\" height=\"500px\" /> <g style=\"filter:url(#top-region-blur); transform:scale(1.5); transform-origin:center top;\"><rect fill=\"none\" x=\"0px\" y=\"0px\" width=\"290px\" height=\"500px\" /><ellipse cx=\"50%\" cy=\"0px\" rx=\"180px\" ry=\"120px\" fill=\"#000\" opacity=\"0.85\" /></g><rect x=\"0\" y=\"0\" width=\"290\" height=\"500\" rx=\"42\" ry=\"42\" fill=\"rgba(0,0,0,0)\" stroke=\"rgba(255,255,255,0.2)\" /></g><text text-rendering=\"optimizeSpeed\"><textPath startOffset=\"-100%\" fill=\"white\" font-family=\"'Courier New', monospace\" font-size=\"10px\" xlink:href=\"#text-path-a\">0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 • WETH <animate additive=\"sum\" attributeName=\"startOffset\" from=\"0%\" to=\"100%\" begin=\"0s\" dur=\"30s\" repeatCount=\"indefinite\" /></textPath> <textPath startOffset=\"0%\" fill=\"white\" font-family=\"'Courier New', monospace\" font-size=\"10px\" xlink:href=\"#text-path-a\">0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 • WETH <animate additive=\"sum\" attributeName=\"startOffset\" from=\"0%\" to=\"100%\" begin=\"0s\" dur=\"30s\" repeatCount=\"indefinite\" /> </textPath><textPath startOffset=\"50%\" fill=\"white\" font-family=\"'Courier New', monospace\" font-size=\"10px\" xlink:href=\"#text-path-a\">0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0 • MATIC <animate additive=\"sum\" attributeName=\"startOffset\" from=\"0%\" to=\"100%\" begin=\"0s\" dur=\"30s\" repeatCount=\"indefinite\" /></textPath><textPath startOffset=\"-50%\" fill=\"white\" font-family=\"'Courier New', monospace\" font-size=\"10px\" xlink:href=\"#text-path-a\">0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0 • MATIC <animate additive=\"sum\" attributeName=\"startOffset\" from=\"0%\" to=\"100%\" begin=\"0s\" dur=\"30s\" repeatCount=\"indefinite\" /></textPath></text><g mask=\"url(#fade-symbol)\"><rect fill=\"none\" x=\"0px\" y=\"0px\" width=\"290px\" height=\"200px\" /> <text y=\"70px\" x=\"32px\" fill=\"white\" font-family=\"'Courier New', monospace\" font-weight=\"200\" font-size=\"36px\">MATIC/WETH</text><text y=\"115px\" x=\"32px\" fill=\"white\" font-family=\"'Courier New', monospace\" font-weight=\"200\" font-size=\"36px\">0.3%</text></g><rect x=\"16\" y=\"16\" width=\"258\" height=\"468\" rx=\"26\" ry=\"26\" fill=\"rgba(0,0,0,0)\" stroke=\"rgba(255,255,255,0.2)\" /><g mask=\"url(#fade-down)\" style=\"transform:translate(72px,189px)\"><rect x=\"-16px\" y=\"-16px\" width=\"180px\" height=\"180px\" fill=\"none\" /><path d=\"M1 1C33 49 97 113 145 145\" stroke=\"rgba(0,0,0,0.3)\" stroke-width=\"32px\" fill=\"none\" stroke-linecap=\"round\" /></g><g mask=\"url(#fade-down)\" style=\"transform:translate(72px,189px)\"><rect x=\"-16px\" y=\"-16px\" width=\"180px\" height=\"180px\" fill=\"none\" /><path d=\"M1 1C33 49 97 113 145 145\" stroke=\"rgba(255,255,255,1)\" fill=\"none\" stroke-linecap=\"round\" /></g><circle cx=\"73px\" cy=\"190px\" r=\"4px\" fill=\"white\" /><circle cx=\"73px\" cy=\"190px\" r=\"24px\" fill=\"none\" stroke=\"white\" /> <g style=\"transform:translate(29px, 384px)\"><rect width=\"91px\" height=\"26px\" rx=\"8px\" ry=\"8px\" fill=\"rgba(0,0,0,0.6)\" /><text x=\"12px\" y=\"17px\" font-family=\"'Courier New', monospace\" font-size=\"12px\" fill=\"white\"><tspan fill=\"rgba(255,255,255,0.6)\">ID: </tspan>51561</text></g> <g style=\"transform:translate(29px, 414px)\"><rect width=\"140px\" height=\"26px\" rx=\"8px\" ry=\"8px\" fill=\"rgba(0,0,0,0.6)\" /><text x=\"12px\" y=\"17px\" font-family=\"'Courier New', monospace\" font-size=\"12px\" fill=\"white\"><tspan fill=\"rgba(255,255,255,0.6)\">Min Tick: </tspan>-73800</text></g> <g style=\"transform:translate(29px, 444px)\"><rect width=\"140px\" height=\"26px\" rx=\"8px\" ry=\"8px\" fill=\"rgba(0,0,0,0.6)\" /><text x=\"12px\" y=\"17px\" font-family=\"'Courier New', monospace\" font-size=\"12px\" fill=\"white\"><tspan fill=\"rgba(255,255,255,0.6)\">Max Tick: </tspan>-73500</text></g><g style=\"transform:translate(226px, 433px)\"><rect width=\"36px\" height=\"36px\" rx=\"8px\" ry=\"8px\" fill=\"none\" stroke=\"rgba(255,255,255,0.2)\" /><path stroke-linecap=\"round\" d=\"M8 9C8.00004 22.9494 16.2099 28 27 28\" fill=\"none\" stroke=\"white\" /><circle style=\"transform:translate3d(8px, 10.5px, 0px)\" cx=\"0px\" cy=\"0px\" r=\"4px\" fill=\"white\"/></g></svg>",
                 animationUrl = null,
                 imageBig = null,
                 imagePreview = null,
@@ -340,7 +337,8 @@ Token ID: 51561
         mockTokenStandard(token, TokenStandard.ERC721)
         val properties = rariblePropertiesResolver.resolve(ItemId(token, EthUInt256.of(27)))
         // Raw JSON content of this item has changing order of parameters.
-        val expectedRawJsonContent = """{"forSale":true,"price":"0.00005","mintedOn":{"_seconds":1579357427,"_nanoseconds":148000000},"contractAddress":"0x1866c6907e70eb176109363492b95e3617b4a195","description":"First door at your left.","numAvailable":0,"type":"ERC721","attributes":[{"value":"https://opensea.io/assets/keep-calm-v2","trait_type":"website"}],"minted":"Minted on Mintbase.io","fiatPrice":"${'$'}0.01","name":"Freaky Hallway","tags":[],"minter":"","external_link":"https://mintbase.io/minted/0x1866c6907e70eb176109363492b95e3617b4a195/B4tb5lHTnjBNVKlJSG49","amountToMint":3,"external_url":"https://mintbase.io","image":"https://firebasestorage.googleapis.com/v0/b/thing-1d2be.appspot.com/o/token%2Fasset-1579357359533?alt=media&token=31a77b56-b030-4a29-ac52-8393f67584f3"}"""
+        val expectedRawJsonContent =
+            """{"forSale":true,"price":"0.00005","mintedOn":{"_seconds":1579357427,"_nanoseconds":148000000},"contractAddress":"0x1866c6907e70eb176109363492b95e3617b4a195","description":"First door at your left.","numAvailable":0,"type":"ERC721","attributes":[{"value":"https://opensea.io/assets/keep-calm-v2","trait_type":"website"}],"minted":"Minted on Mintbase.io","fiatPrice":"${'$'}0.01","name":"Freaky Hallway","tags":[],"minter":"","external_link":"https://mintbase.io/minted/0x1866c6907e70eb176109363492b95e3617b4a195/B4tb5lHTnjBNVKlJSG49","amountToMint":3,"external_url":"https://mintbase.io","image":"https://firebasestorage.googleapis.com/v0/b/thing-1d2be.appspot.com/o/token%2Fasset-1579357359533?alt=media&token=31a77b56-b030-4a29-ac52-8393f67584f3"}"""
         val mapper = jacksonObjectMapper()
         assertThat(mapper.readTree(properties!!.rawJsonContent)).isEqualTo(mapper.readTree(expectedRawJsonContent))
         assertThat(properties).isEqualTo(
@@ -411,6 +409,55 @@ Token ID: 51561
                 animationUrl = null,
                 attributes = emptyList(),
                 rawJsonContent = """{"name":"Abiding Axolotl #4907","description":null,"external_link":null,"image":"https://lh3.googleusercontent.com/zBwPX8jENaTm2eeUb2a4MyN3iRIC39Kl_kz9hmOAx0gkC24nsVW_h3jxDEeo0QKJvRBppsq62O0sk8Uzvqt9dIhGdMScMCmR39F6Cw","animation_url":null}"""
+            )
+        )
+    }
+
+    @Test
+    fun `arweave net penguin`() = runBlocking<Unit> {
+        val penguin = Address.apply("0x63d48ed3f50aba950c17e37ca03356ccd6b6a280")
+        mockTokenStandard(penguin, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(ItemId(penguin, EthUInt256.of(9003)))!!
+
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Cozy Penguin #9003",
+                description = null,
+                image = "https://arweave.net/veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(
+                    ItemAttribute("Background", "Beige"),
+                    ItemAttribute("Penguin", "Pastel Green"),
+                    ItemAttribute("Eyes", "Shine"),
+                    ItemAttribute("Prop", "Boxers - Striped")
+                ),
+                rawJsonContent = "{\"name\":\"Cozy Penguin #9003\",\"image\":\"ar://veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png\",\"attributes\":[{\"trait_type\":\"Background\",\"value\":\"Beige\"},{\"trait_type\":\"Penguin\",\"value\":\"Pastel Green\"},{\"trait_type\":\"Eyes\",\"value\":\"Shine\"},{\"trait_type\":\"Prop\",\"value\":\"Boxers - Striped\"}]}"
+            )
+        )
+    }
+
+    @Test
+    fun `arweave net metacraft`() = runBlocking<Unit> {
+        val metacraft = Address.apply("0x0b1d6565d88f9bf6473e21c2ab58d28a495d7bb5")
+        mockTokenStandard(metacraft, TokenStandard.ERC721)
+        val properties = rariblePropertiesResolver.resolve(ItemId(metacraft, EthUInt256.of(8200)))!!
+
+        assertThat(properties).isEqualTo(
+            ItemProperties(
+                name = "Axolotl Gold #8200",
+                description = "Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.",
+                image = "https://arweave.net/ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
+                imagePreview = null,
+                imageBig = null,
+                animationUrl = null,
+                attributes = listOf(
+                    ItemAttribute("score", "2530"),
+                    ItemAttribute("creature", "Axolotl"),
+                    ItemAttribute("material", "Gold"),
+                ),
+                rawJsonContent = "{\"name\":\"Axolotl Gold #8200\",\"description\":\"Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.\",\"image\":\"ar://ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc\",\"attributes\":[{\"trait_type\":\"score\",\"value\":\"2530\"},{\"trait_type\":\"creature\",\"value\":\"Axolotl\"},{\"trait_type\":\"material\",\"value\":\"Gold\"}]}"
             )
         )
     }

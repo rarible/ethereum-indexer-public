@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 class YinsurePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val yInsurePropertiesResolver: YInsurePropertiesResolver = YInsurePropertiesResolver(
-        sender = createSender(),
+        sender = sender,
         apiUrl = "http://localhost:8080"
     )
 
