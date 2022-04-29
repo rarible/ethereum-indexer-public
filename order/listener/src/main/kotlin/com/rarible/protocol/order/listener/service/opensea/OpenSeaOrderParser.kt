@@ -1,5 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.contracts.exchange.wrapper.ExchangeWrapper
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -9,14 +11,20 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.OpenSeaTransactionOrder
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
+import scalether.abi.Uint256Type
+import scalether.domain.Address
+import java.math.BigInteger
 
 @Component
 class OpenSeaOrderParser(
-    private val traceCallService: TraceCallService
+    private val traceCallService: TraceCallService,
+    private var callDataEncoder: CallDataEncoder
 ) {
     suspend fun parseMatchedOrders(
         txHash: Word,
@@ -27,7 +35,12 @@ class OpenSeaOrderParser(
         eip712: Boolean
     ): OpenSeaMatchedOrders {
         val signature = WyvernExchange.atomicMatch_Signature()
-        val inputs = traceCallService.findAllRequiredCallInputs(txHash, txInput, event.log().address(), signature.id())
+        val inputs = traceCallService.findAllRequiredCallInputs(
+            txHash = txHash,
+            txInput = txInput,
+            to = event.log().address(),
+            id = signature.id()
+        )
         assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
         val parsed = parseMatchedOrders(inputs[index])
         return if (eip712) {
@@ -48,7 +61,42 @@ class OpenSeaOrderParser(
             if (eventHash == ZERO_WORD) order else order.copy(hash = eventHash)
         }
 
-    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders {
+    fun parseMatchedOrders(input: Binary): OpenSeaMatchedOrders =
+        when (input.methodSignatureId()) {
+            WyvernExchange.atomicMatch_Signature().id() -> parseOrdersForAtomicMatch(input)
+            ExchangeWrapper.singlePurchaseSignature().id() -> parseOrdersForSinglePurchase(input)
+            else -> throw NotImplementedError("Not Implemented for function with signature = ${input.methodSignatureId()}")
+        }
+
+    fun parseOrdersForSinglePurchase(input: Binary): OpenSeaMatchedOrders {
+        val signature = ExchangeWrapper.singlePurchaseSignature()
+        val decoded = signature.`in`().decode(input, 4)
+        val purchaseDetails = decoded.value()._1()
+        val originFees = decoded.value()._2().map { convertToFeePart(it) }
+        val marketId = purchaseDetails._1()
+        val amount = purchaseDetails._2()
+        val data: ByteArray = purchaseDetails._3()
+
+        val orders = parseOrdersForAtomicMatch(Binary.apply(data))
+
+        val buyCallData = orders.buyOrder.callData
+        val buyMaker = callDataEncoder.decodeTransfer(buyCallData).to
+
+        return orders.copy(
+            buyOrder = orders.buyOrder.copy(
+                maker = buyMaker,
+                originFees = originFees
+            )
+        )
+    }
+
+    private fun convertToFeePart(feeUint256: BigInteger): Part =
+        Part(
+            account = Address.apply(Uint256Type.encode(feeUint256).slice(12, 32)),
+            value = EthUInt256.of(Uint256Type.encode(feeUint256).slice(0, 12).toBigInteger())
+        )
+
+    fun parseOrdersForAtomicMatch(input: Binary): OpenSeaMatchedOrders {
         val signature = WyvernExchange.atomicMatch_Signature()
         val decoded = signature.`in`().decode(input, 4)
         val addrs = decoded.value()._1()
