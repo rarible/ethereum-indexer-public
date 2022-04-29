@@ -1,11 +1,11 @@
 package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 
 import com.rarible.contracts.test.erc20.TestERC20
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.contract.repository.ContractRepository
 import com.rarible.protocol.erc20.core.model.Erc20TokenApproval
 import com.rarible.protocol.erc20.core.repository.Erc20ApprovalHistoryRepository
-import com.rarible.protocol.erc20.listener.data.createAddress
 import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -44,7 +44,7 @@ internal class ApprovalLogDescriptorTest : AbstractIntegrationTest() {
         val token = TestERC20.deployAndWait(userSender, poller, "Test name", "Test symbol").awaitFirst()
 
         val owner = userSender.from()
-        val spender = createAddress()
+        val spender = randomAddress()
 
         val value = BigInteger.valueOf(10)
         token.approve(spender, value).execute().verifySuccess()
