@@ -32,7 +32,7 @@ class CryptoPunkBoughtLogDescriptor(
 
     override fun convertItemTransfer(log: Log, date: Instant): Mono<ItemTransfer> {
         val event = PunkBoughtEvent.apply(log)
-        val toAddressMono = if (event.toAddress() != Address.ZERO()) {
+        val toAddressMono = if (event.toAddress() != Address.ZERO() && event.toAddress() != event.fromAddress()) {
             event.toAddress().toMono()
         } else {
             /*
