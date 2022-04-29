@@ -1,15 +1,16 @@
 package com.rarible.protocol.erc20.listener.data
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import io.daonomic.rpc.domain.Word
 
-fun createReduceEventFactory(event: Erc20TokenHistory): Erc20ReduceEvent {
+fun randomErc20ReduceEvent(event: Erc20TokenHistory): Erc20ReduceEvent {
     return Erc20ReduceEvent(
         logEvent = LogEvent(
-            address = createAddress(),
+            address = randomAddress(),
             blockHash = Word.apply(ByteArray(32)),
             data = event,
             blockNumber = 1L,

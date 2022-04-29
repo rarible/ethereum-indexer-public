@@ -3,12 +3,10 @@ package com.rarible.protocol.erc20.core.admin.service
 import com.rarible.core.task.TaskStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomLong
-import com.rarible.core.test.ext.MongoCleanup
-import com.rarible.core.test.ext.MongoTest
+import com.rarible.protocol.erc20.core.IntegrationTest
 import com.rarible.protocol.erc20.core.admin.model.ReduceErc20BalanceTaskParam
 import com.rarible.protocol.erc20.core.admin.model.ReindexErc20TokenTaskParam
 import com.rarible.protocol.erc20.core.admin.repository.Erc20TaskRepository
-import com.rarible.protocol.erc20.core.configuration.CoreConfiguration
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
@@ -16,14 +14,9 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
-import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 
-@MongoTest
-@MongoCleanup
-@DataMongoTest
-@ContextConfiguration(classes = [CoreConfiguration::class])
+@IntegrationTest
 class Erc20TaskServiceIt {
 
     @Autowired

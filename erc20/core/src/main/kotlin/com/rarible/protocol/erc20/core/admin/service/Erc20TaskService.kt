@@ -33,7 +33,7 @@ class Erc20TaskService(
     }
 
     suspend fun createReduceErc20BalanceTask(token: Address, force: Boolean): Task {
-        checkRunningReduceErc20BalanceTask(token)
+        if (!force) checkRunningReduceErc20BalanceTask(token)
         return saveTask(
             param = ReduceErc20BalanceTaskParam(token).toParamString(),
             type = ReduceErc20BalanceTaskParam.ADMIN_BALANCE_REDUCE,
@@ -43,12 +43,11 @@ class Erc20TaskService(
     }
 
     private suspend fun checkRunningReduceErc20BalanceTask(token: Address) {
-        val running = taskRepository
+        taskRepository
             .findByType(ReduceErc20BalanceTaskParam.ADMIN_BALANCE_REDUCE)
             .filter { it.lastStatus != TaskStatus.COMPLETED }
             .firstOrNull()
             ?.let { throw IllegalArgumentException("Token $token reduce already in progress: $it") }
-
     }
 
     private suspend fun checkRunningReindexErc20TokenTask(tokens: List<Address>) {
