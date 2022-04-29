@@ -21,6 +21,8 @@ spring:
     mongodb:
       uri: ${MONGODB_URI}
       database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USER}
+      password: ${MONGODB_PASSWORD}
 
 ethereumBlockProcessingDelay: 5000
 ethereumMaxProcessTime: 1200000
