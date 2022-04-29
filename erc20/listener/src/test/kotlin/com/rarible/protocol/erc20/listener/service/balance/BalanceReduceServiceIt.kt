@@ -5,6 +5,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.kafka.json.JsonDeserializer
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.ext.KafkaTestExtension
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
@@ -20,8 +21,7 @@ import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.core.repository.Erc20BalanceRepository
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
-import com.rarible.protocol.erc20.listener.data.createAddress
-import com.rarible.protocol.erc20.listener.data.createReduceEventFactory
+import com.rarible.protocol.erc20.listener.data.randomErc20ReduceEvent
 import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -70,8 +70,8 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
                 .collect { events.add(it) }
         }
 
-        val walletToken = createAddress()
-        val walletOwner = createAddress()
+        val walletToken = randomAddress()
+        val walletOwner = randomAddress()
         val balanceId = BalanceId(walletToken, walletOwner)
 
         val transfer = mockk<Erc20TokenHistory> {
@@ -91,7 +91,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = finalUpdateDate, value = EthUInt256.of(5))
         )
 
-        balanceReduceService.onEvents(listOf(createReduceEventFactory(transfer)))
+        balanceReduceService.onEvents(listOf(randomErc20ReduceEvent(transfer)))
 
         val balance = erc20BalanceRepository.get(balanceId)!!
         assertThat(balance.balance).isEqualTo(EthUInt256.ONE)
@@ -120,8 +120,8 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
                 .collect { events.add(it) }
         }
 
-        val walletToken = createAddress()
-        val walletOwner = createAddress()
+        val walletToken = randomAddress()
+        val walletOwner = randomAddress()
         val balanceId = BalanceId(walletToken, walletOwner)
 
         val currentBalance = Erc20Balance(
@@ -146,7 +146,7 @@ internal class BalanceReduceServiceIt : AbstractIntegrationTest() {
             Erc20IncomeTransfer(owner = walletOwner, token = walletToken, date = incomeDate, value = EthUInt256.of(10)),
             Erc20OutcomeTransfer(owner = walletOwner, token = walletToken, date = outcomeDate, value = EthUInt256.of(5))
         )
-        balanceReduceService.onEvents(listOf(createReduceEventFactory(transfer)))
+        balanceReduceService.onEvents(listOf(randomErc20ReduceEvent(transfer)))
 
         val balance = erc20BalanceRepository.get(balanceId)!!
         assertThat(balance.balance).isEqualTo(EthUInt256.of(5))
