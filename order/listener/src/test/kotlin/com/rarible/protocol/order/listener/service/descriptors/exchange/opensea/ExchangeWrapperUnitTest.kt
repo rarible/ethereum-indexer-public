@@ -118,6 +118,5 @@ class ExchangeWrapperUnitTest {
         val expectedOriginsFees = listOf(Part(account = Address.apply("0x4c9d38c11c1c72bdcb71199b82e8ba869599e099"), value = EthUInt256.of(300)))
         assertEquals(Address.apply("0x4c9d38c11c1c72bdcb71199b82e8ba869599e099"), buyOrder.maker)
         assertEquals(expectedOriginsFees, buyOrder.originFees)
-        assertEquals(expectedOriginsFees, sellOrder.originFees)
     }
 }

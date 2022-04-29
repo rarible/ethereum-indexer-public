@@ -86,9 +86,6 @@ class OpenSeaOrderParser(
             buyOrder = orders.buyOrder.copy(
                 maker = buyMaker,
                 originFees = originFees
-            ),
-            sellOrder = orders.sellOrder.copy(
-                originFees = originFees
             )
         )
     }
