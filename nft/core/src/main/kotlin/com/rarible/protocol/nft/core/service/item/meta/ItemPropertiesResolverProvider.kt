@@ -15,10 +15,12 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPro
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 
 @Component
 class ItemPropertiesResolverProvider(
+    @Qualifier("RariblePropertiesResolver")
     raribleResolver: RariblePropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
     mutantsBoredApeYachtClubPropertiesResolver: MutantsBoredApeYachtClubPropertiesResolver,
