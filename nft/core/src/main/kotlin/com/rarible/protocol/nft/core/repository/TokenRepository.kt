@@ -49,7 +49,7 @@ class TokenRepository(
 
     fun findByIds(ids: List<Address>): Flow<Token> {
         val criteria = Criteria.where(ID).`in`(ids)
-        return mongo.find(Query.query(criteria).with(ID_ASC_SORT), Token::class.java).asFlow()
+        return mongo.find(Query.query(criteria), Token::class.java).asFlow()
     }
 
     fun search(filter: TokenFilter): Flux<Token> {

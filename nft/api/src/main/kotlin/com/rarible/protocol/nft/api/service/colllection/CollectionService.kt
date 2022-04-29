@@ -5,14 +5,23 @@ import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties.OperatorProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.core.converters.dto.ExtendedCollectionDtoConverter
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ContractStatus
+import com.rarible.protocol.nft.core.model.ExtendedToken
+import com.rarible.protocol.nft.core.model.SignedTokenId
+import com.rarible.protocol.nft.core.model.Token
+import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.model.TokenFilter
+import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenIdRepository
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.core.service.token.meta.TokenMetaService
+import java.math.BigInteger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
@@ -22,8 +31,6 @@ import org.web3j.utils.Numeric
 import scalether.abi.Uint256Type
 import scalether.domain.Address
 import scalether.util.Hex
-import java.math.BigInteger
-import kotlinx.coroutines.flow.toList
 
 @Component
 class CollectionService(
@@ -46,10 +53,9 @@ class CollectionService(
     }
 
     suspend fun get(ids: List<Address>): List<NftCollectionDto> {
-        val tokens = tokenRepository.findByIds(ids).toList()
-        return tokens.map {
+        return tokenRepository.findByIds(ids).map {
             collectionDtoConverter.convert(ExtendedToken(it, tokenMetaService.get(it.id)))
-        }
+        }.toList()
     }
 
     suspend fun resetMeta(collectionId: Address) {
