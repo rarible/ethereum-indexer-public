@@ -3,8 +3,8 @@ global:
 
 sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
-  APPLICATION_ENVIRONMENT: infura-test
   SPRING_CLOUD_BOOTSTRAP_ENABLED: false
+  SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: []
