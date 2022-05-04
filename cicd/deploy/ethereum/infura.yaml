@@ -5,6 +5,12 @@ sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
+  # KAFKA_HOSTS:
+  # SPRING_DATA_MONGODB_PASSWORD:
+  # SPRING_DATA_MONGODB_USER:
+  # SPRING_DATA_MONGODB_URI:
+  # ETH_NODE_HTTP_URL:
+  # ETH_NODE_WS_URL:
 
 ethereum-erc20-api:
   environments:
