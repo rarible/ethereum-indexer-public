@@ -3,6 +3,11 @@ global:
 
 sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
+  APPLICATION_ENVIRONMENT: infura-test
+  SPRING_CLOUD_BOOTSTRAP_ENABLED: false
+  RARIBLE_CORE_APM_AGENT_ENABLED: false
+  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
+  LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: []
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
   # KAFKA_HOSTS:
@@ -15,10 +20,19 @@ sharedEnvironments: &sharedEnvironments
 ethereum-erc20-api:
   environments:
     <<: *sharedEnvironments
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
+    RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
 
 ethereum-erc20-listener:
   environments:
     <<: *sharedEnvironments
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
+    RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
+    SPRING_TASK_SCHEDULING_POOL_SIZE: 30
+    ETHEREUM-BLOCK-PROCESSING-DELAY: 5000
+    ETHEREUM-MAX-PROCESS-TIME: 1200000
+    USE-NEW-MONGO-INDEX: true
+    COMMON_KAFKA-REPLICA-SET: {{ .Values.environments.KAFKA_HOSTS }}
 
 ethereum-gateway:
   environments:
