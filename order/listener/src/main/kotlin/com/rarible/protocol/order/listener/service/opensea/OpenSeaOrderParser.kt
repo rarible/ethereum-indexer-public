@@ -37,12 +37,12 @@ class OpenSeaOrderParser(
         val inputs = if (ExchangeWrapper.singlePurchaseSignature().id() == txInput.methodSignatureId()) {
             listOf(txInput)
         } else {
-            val signature = WyvernExchange.atomicMatch_Signature()
+            val signatureId = WyvernExchange.atomicMatch_Signature().id()
             traceCallService.findAllRequiredCallInputs(
                 txHash = txHash,
                 txInput = txInput,
                 to = event.log().address(),
-                id = signature.id()
+                id = signatureId
             )
         }
         assert(inputs.size == totalLogs) {
@@ -79,8 +79,6 @@ class OpenSeaOrderParser(
         val decoded = signature.`in`().decode(input, 4)
         val purchaseDetails = decoded.value()._1()
         val originFees = decoded.value()._2().map { convertToFeePart(it) }
-        val marketId = purchaseDetails._1()
-        val amount = purchaseDetails._2()
         val data: ByteArray = purchaseDetails._3()
 
         val orders = parseOrdersForAtomicMatch(Binary.apply(data))

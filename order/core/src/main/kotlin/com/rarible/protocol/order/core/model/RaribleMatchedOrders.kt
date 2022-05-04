@@ -11,5 +11,16 @@ data class RaribleMatchedOrders(
         val takeAssetType: AssetType,
         val data: OrderData,
         val salt: EthUInt256
-    )
+    ) {
+        val originFees: List<Part>?
+            get() {
+                return when (data) {
+                    is OrderRaribleV2DataV1 -> data.originFees
+                    is OrderRaribleV2DataV2 -> data.originFees
+                    is OrderOpenSeaV1DataV1,
+                    is OrderCryptoPunksData,
+                    is OrderDataLegacy -> null
+                }
+            }
+    }
 }
