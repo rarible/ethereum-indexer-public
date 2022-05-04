@@ -34,14 +34,20 @@ class OpenSeaOrderParser(
         totalLogs: Int,
         eip712: Boolean
     ): OpenSeaMatchedOrders {
-        val signature = WyvernExchange.atomicMatch_Signature()
-        val inputs = traceCallService.findAllRequiredCallInputs(
-            txHash = txHash,
-            txInput = txInput,
-            to = event.log().address(),
-            id = signature.id()
-        )
-        assert(inputs.size == totalLogs) { "Number of events != number of traces for tx: $txHash" }
+        val inputs = if (ExchangeWrapper.singlePurchaseSignature().id() == txInput.methodSignatureId()) {
+            listOf(txInput)
+        } else {
+            val signature = WyvernExchange.atomicMatch_Signature()
+            traceCallService.findAllRequiredCallInputs(
+                txHash = txHash,
+                txInput = txInput,
+                to = event.log().address(),
+                id = signature.id()
+            )
+        }
+        assert(inputs.size == totalLogs) {
+            "Number of events != number of traces for tx: $txHash"
+        }
         val parsed = parseMatchedOrders(inputs[index])
         return if (eip712) {
             parsed.copy(
