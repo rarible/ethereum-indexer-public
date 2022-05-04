@@ -8,6 +8,10 @@ sharedEnvironments: &sharedEnvironments
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: []
+  RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
+  COMMON_KAFKAREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
+  RARIBLE_LOADER_BROKERREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
+  BLOCKCHAIN_SCANNER_KAFKA_BROKERREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
   # KAFKA_HOSTS:
@@ -21,22 +25,20 @@ ethereum-erc20-api:
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
-    RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
 
 ethereum-erc20-listener:
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
-    RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
     SPRING_TASK_SCHEDULING_POOL_SIZE: 30
-    ETHEREUM-BLOCK-PROCESSING-DELAY: 5000
-    ETHEREUM-MAX-PROCESS-TIME: 1200000
-    USE-NEW-MONGO-INDEX: true
-    COMMON_KAFKA-REPLICA-SET: {{ .Values.environments.KAFKA_HOSTS }}
+    ETHEREUMBLOCKPROCESSINGDELAY: 5000
+    ETHEREUMMAXPROCESSTIME: 1200000
+    USENEWMONGOINDEX: true
 
 ethereum-gateway:
   environments:
     <<: *sharedEnvironments
+    RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
 
 ethereum-order-api:
   environments:
@@ -57,10 +59,19 @@ ethereum-unlockable-api:
 ethereum-nft-api: 
   environments:
     <<: *sharedEnvironments
+    RARIBLE_LOADER_LOADTASKSBATCHSIZE: 50
+    RARIBLE_LOADER_WORKERS: 32
+    ETHEREUMBLOCKPROCESSINGDELAY: 5000
+    ETHEREUMMAXPROCESSTIME: 1200000
+    USENEWMONGOINDEX: true
+    API_CHAINID: 420
 
 ethereum-nft-listener:
   environments:
     <<: *sharedEnvironments
+    COMMON_FEATUREFLAGS_SCANNERVERSION: V2
+    COMMON_FEATUREFLAGS_REDUCEVERSION: V2
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 50
 
 ethereum-nft-migration:
   environments:
