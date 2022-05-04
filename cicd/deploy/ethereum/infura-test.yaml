@@ -8,7 +8,7 @@ sharedEnvironments: &sharedEnvironments
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: []
-  RARIBLE_ETHEREUM_MAX-FRAME-SIZE: 10485760
+  RARIBLE_ETHEREUM_MAXFRAMESIZE: 10485760
   COMMON_KAFKAREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
   RARIBLE_LOADER_BROKERREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
   BLOCKCHAIN_SCANNER_KAFKA_BROKERREPLICASET: '{{ .Values.environments.KAFKA_HOSTS }}'
@@ -65,6 +65,7 @@ ethereum-nft-api:
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
     API_CHAINID: 420
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
 
 ethereum-nft-listener:
   environments:
@@ -72,7 +73,9 @@ ethereum-nft-listener:
     COMMON_FEATUREFLAGS_SCANNERVERSION: V2
     COMMON_FEATUREFLAGS_REDUCEVERSION: V2
     BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 50
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
 
 ethereum-nft-migration:
   environments:
     <<: *sharedEnvironments
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
