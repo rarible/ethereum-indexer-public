@@ -7,7 +7,7 @@ sharedEnvironments: &sharedEnvironments
   SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
-  LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: []
+  LOGGING_LOGSTASH_TCPSOCKET_DESTINATIONS: ""
   RARIBLE_ETHEREUM_MAXFRAMESIZE: 10485760
   # this secrets assigns automatically
   # RARIBLE_CORE_AGENT_SERVER:
