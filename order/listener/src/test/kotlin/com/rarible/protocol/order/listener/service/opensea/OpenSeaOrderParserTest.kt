@@ -23,7 +23,7 @@ import java.math.BigInteger
 
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
-        traceCallService = TraceCallService(NoopTransactionTraceProvider()),
+        traceCallService = TraceCallService(NoopTransactionTraceProvider(), CallDataEncoder()),
         callDataEncoder = CallDataEncoder()
     )
 

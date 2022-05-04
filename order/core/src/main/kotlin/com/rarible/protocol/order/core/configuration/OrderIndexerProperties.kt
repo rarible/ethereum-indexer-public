@@ -43,6 +43,7 @@ data class OrderIndexerProperties(
         var v2: Address,
         var openSeaV1: Address,
         var openSeaV2: Address,
+        var exchangeWrapper: Address? = null,
         var cryptoPunks: Address,
         var zeroEx: Address,
     )

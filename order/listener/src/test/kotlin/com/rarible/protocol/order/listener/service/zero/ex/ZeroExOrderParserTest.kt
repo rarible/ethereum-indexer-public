@@ -4,6 +4,7 @@ import com.rarible.protocol.order.core.model.SimpleTraceResult
 import com.rarible.protocol.order.core.model.ZeroExFeeData
 import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
+import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import io.daonomic.rpc.domain.Binary
@@ -15,7 +16,7 @@ import scalether.domain.Address
 
 class ZeroExOrderParserTest {
 
-    private val zeroExParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
+    private val zeroExParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider(), CallDataEncoder()))
 
     @Test
     fun `parse input for buying by sell order`() = runBlocking<Unit> {

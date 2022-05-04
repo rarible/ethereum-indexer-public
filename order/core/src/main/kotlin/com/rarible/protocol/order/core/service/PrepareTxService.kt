@@ -163,15 +163,43 @@ class PrepareTxService(
         order: Order,
         form: PrepareOrderTxFormDto
     ): PrepareTxResponse {
-        if (form.payouts.isNotEmpty() && form.payouts != listOf(PartDto(form.maker, 10000))) {
-            throw IllegalArgumentException("payouts not supported by OpenSea orders")
-        }
+        val invertedOrder = prepareInvertedOrder(order = order, form = form)
+
+        val atomicSwapEncodedData = prepareDataForAtomicMatchSignature(
+            order = order,
+            invertedOrder = invertedOrder,
+            form = form
+        )
+        return PrepareTxResponse(
+            null,
+            invertedOrder.make,
+            PreparedTx(
+                to = exchangeContractAddresses.openSeaV1,
+                data = atomicSwapEncodedData
+            )
+        )
+    }
+
+    fun prepareInvertedOrder(
+        order: Order,
+        form: PrepareOrderTxFormDto
+    ): Order {
         val bytes = ByteArray(32)
         ThreadLocalRandom.current().nextBytes(bytes)
         val newSalt = Word.apply(bytes)
 
         val originFees = form.originFees.map { PartConverter.convert(it) }
-        val invertedOrder = orderInvertService.invert(order, form.maker, form.amount, newSalt, originFees)
+        return orderInvertService.invert(order, form.maker, form.amount, newSalt, originFees)
+    }
+
+    private fun prepareDataForAtomicMatchSignature(
+        order: Order,
+        invertedOrder: Order,
+        form: PrepareOrderTxFormDto
+    ): Binary {
+        if (form.payouts.isNotEmpty() && form.payouts != listOf(PartDto(form.maker, 10000))) {
+            throw IllegalArgumentException("payouts not supported by OpenSea orders")
+        }
 
         val data = order.data as OrderOpenSeaV1DataV1
         val invertedData = invertedOrder.data as OrderOpenSeaV1DataV1
@@ -187,82 +215,90 @@ class PrepareTxService(
             OpenSeaOrderSide.BUY -> data to invertedData
         }
 
-        val inputData = WyvernExchange.atomicMatch_Signature().encode(
-            Tuple11(
-                arrayOf(
-                    buyData.exchange,
-                    buyOrder.maker,
-                    buyOrder.taker ?: Address.ZERO(),
-                    buyData.feeRecipient,
-                    buyData.target ?: buyOrder.take.type.token,
-                    buyData.staticTarget,
-                    buyOrder.make.type.token,
-                    sellData.exchange,
-                    sellOrder.maker,
-                    sellOrder.taker ?: Address.ZERO(),
-                    sellData.feeRecipient,
-                    sellData.target ?: sellOrder.make.type.token,
-                    sellData.staticTarget,
-                    sellOrder.take.type.token
-                ),
-                arrayOf(
-                    buyData.makerRelayerFee,
-                    buyData.takerRelayerFee,
-                    buyData.makerProtocolFee,
-                    buyData.takerProtocolFee,
-                    buyOrder.make.value.value,
-                    buyData.extra,
-                    buyOrder.start?.toBigInteger() ?: BigInteger.valueOf(0),
-                    buyOrder.end?.toBigInteger() ?: BigInteger.valueOf(0),
-                    buyOrder.salt.value,
-                    sellData.makerRelayerFee,
-                    sellData.takerRelayerFee,
-                    sellData.makerProtocolFee,
-                    sellData.takerProtocolFee,
-                    sellOrder.take.value.value,
-                    sellData.extra,
-                    sellOrder.start?.toBigInteger() ?: BigInteger.valueOf(0),
-                    sellOrder.end?.toBigInteger() ?: BigInteger.valueOf(0),
-                    sellOrder.salt.value
-                ),
-                arrayOf(
-                    buyData.feeMethod.value,
-                    buyData.side.value,
-                    buyData.saleKind.value,
-                    buyData.howToCall.value,
-                    sellData.feeMethod.value,
-                    sellData.side.value,
-                    sellData.saleKind.value,
-                    sellData.howToCall.value
-                ),
-                buyData.callData.bytes(),
-                sellData.callData.bytes(),
-                buyData.replacementPattern.bytes(),
-                sellData.replacementPattern.bytes(),
-                buyData.staticExtraData.bytes(),
-                sellData.staticExtraData.bytes(),
-                arrayOf(
-                    BigInteger(byteArrayOf(signature.v)),
-                    BigInteger(byteArrayOf(signature.v))
-                ),
-                arrayOf(
-                    signature.r,
-                    signature.s,
-                    signature.r,
-                    signature.s,
-                    RARIBLE_PLATFORM_METADATA
-                )
-            )
+        val callDataOpenSea = prepareEncodedOpenSeaCallData(
+            buyData = buyData,
+            sellData = sellData,
+            buyOrder = buyOrder,
+            sellOrder = sellOrder,
+            signature = signature
         )
-        return PrepareTxResponse(
-            null,
-            invertedOrder.make,
-            PreparedTx(
-                to = exchangeContractAddresses.openSeaV1,
-                data = inputData
-            )
-        )
+
+        return WyvernExchange.atomicMatch_Signature().encode(callDataOpenSea)
     }
+
+    private fun prepareEncodedOpenSeaCallData(
+        buyData: OrderOpenSeaV1DataV1,
+        sellData: OrderOpenSeaV1DataV1,
+        buyOrder: Order,
+        sellOrder: Order,
+        signature: Sign.SignatureData
+    ) =
+        Tuple11(
+            arrayOf(
+                buyData.exchange,
+                buyOrder.maker,
+                buyOrder.taker ?: Address.ZERO(),
+                buyData.feeRecipient,
+                buyData.target ?: buyOrder.take.type.token,
+                buyData.staticTarget,
+                buyOrder.make.type.token,
+
+                sellData.exchange,
+                sellOrder.maker,
+                sellOrder.taker ?: Address.ZERO(),
+                sellData.feeRecipient,
+                sellData.target ?: sellOrder.make.type.token,
+                sellData.staticTarget,
+                sellOrder.take.type.token
+            ),
+            arrayOf(
+                buyData.makerRelayerFee,
+                buyData.takerRelayerFee,
+                buyData.makerProtocolFee,
+                buyData.takerProtocolFee,
+                buyOrder.make.value.value,
+                buyData.extra,
+                buyOrder.start?.toBigInteger() ?: BigInteger.valueOf(0),
+                buyOrder.end?.toBigInteger() ?: BigInteger.valueOf(0),
+                buyOrder.salt.value,
+                sellData.makerRelayerFee,
+                sellData.takerRelayerFee,
+                sellData.makerProtocolFee,
+                sellData.takerProtocolFee,
+                sellOrder.take.value.value,
+                sellData.extra,
+                sellOrder.start?.toBigInteger() ?: BigInteger.valueOf(0),
+                sellOrder.end?.toBigInteger() ?: BigInteger.valueOf(0),
+                sellOrder.salt.value
+            ),
+            arrayOf(
+                buyData.feeMethod.value,
+                buyData.side.value,
+                buyData.saleKind.value,
+                buyData.howToCall.value,
+                sellData.feeMethod.value,
+                sellData.side.value,
+                sellData.saleKind.value,
+                sellData.howToCall.value
+            ),
+            buyData.callData.bytes(),
+            sellData.callData.bytes(),
+            buyData.replacementPattern.bytes(),
+            sellData.replacementPattern.bytes(),
+            buyData.staticExtraData.bytes(),
+            sellData.staticExtraData.bytes(),
+            arrayOf(
+                BigInteger(byteArrayOf(signature.v)),
+                BigInteger(byteArrayOf(signature.v))
+            ),
+            arrayOf(
+                signature.r,
+                signature.s,
+                signature.r,
+                signature.s,
+                RARIBLE_PLATFORM_METADATA
+            )
+        )
 
     private fun prepareTxForCryptoPunk(
         order: Order,
@@ -287,7 +323,6 @@ class PrepareTxService(
             PreparedTx(exchangeContractAddresses.cryptoPunks, withPlatform)
         )
     }
-
 
     fun prepareCancelTxForOpenSeaV1(order: Order): PreparedTx {
         val data = order.data as OrderOpenSeaV1DataV1

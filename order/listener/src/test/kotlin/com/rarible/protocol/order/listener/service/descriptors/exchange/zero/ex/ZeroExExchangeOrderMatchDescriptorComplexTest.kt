@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.SimpleTraceResult
+import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -67,7 +68,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
                 priceNormalizer = priceNormalizer,
                 properties = OrderListenerProperties().copy(zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67")
             ),
-            zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
+            zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider(), CallDataEncoder()))
         )
 
         // https://polygonscan.com/tx/0x08ef7447c15669631b1b54bf6b035df31c0b3b19720a760b2093db8b1eeb14cb
