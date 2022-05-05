@@ -35,27 +35,35 @@ open class OpenSeaOrdersFetcherWorker(
     private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties,
     meterRegistry: MeterRegistry,
-    workerProperties: DaemonWorkerProperties
-) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
+    workerProperties: DaemonWorkerProperties,
+    workerName: String = WORKER_NAME
+) : SequentialDaemonWorker(meterRegistry, workerProperties, workerName) {
 
     override suspend fun handle() {
         try {
             withTransaction(name = "loadOpenSeaOrders") {
-                handleSafely()
+                if (properties.loadOpenSeaOrders) {
+                    val state = openSeaFetchStateRepository.get(OpenSeaFetchState.ID) ?: INIT_FETCH_STATE
+                    val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
+                    val newState = loadOpenSeaOrders(
+                        state = state,
+                        timeBoundary = now
+                    )
+                    openSeaFetchStateRepository.save(newState)
+                }
             }
         } catch (ex: AssertionError) {
             throw IllegalStateException(ex)
         }
     }
 
-    private suspend fun handleSafely() {
-        if (properties.loadOpenSeaOrders.not()) return
-
-        val state = openSeaFetchStateRepository.get(OpenSeaFetchState.ID) ?: INIT_FETCH_STATE
-        val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
+    protected suspend fun loadOpenSeaOrders(
+        state: OpenSeaFetchState,
+        timeBoundary: Long
+    ): OpenSeaFetchState {
 
         val listedAfter = state.listedAfter
-        val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
+        val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, timeBoundary)
 
         logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
         val openSeaOrders = withSpan(
@@ -102,8 +110,8 @@ open class OpenSeaOrdersFetcherWorker(
             logger.info("[OpenSea] No new orders to fetch")
             delay(pollingPeriod)
         }
-        val nextListedAfter = if (listedBefore > now) now else listedBefore
-        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter))
+        val nextListedAfter = if (listedBefore > timeBoundary) timeBoundary else listedBefore
+        return state.withListedAfter(nextListedAfter)
     }
 
     private suspend fun saveOrder(orderVersion: OrderVersion) {
@@ -116,6 +124,7 @@ open class OpenSeaOrdersFetcherWorker(
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
+        const val WORKER_NAME = "open-sea-orders-fetcher-job"
     }
 
     override fun health(): Health {
