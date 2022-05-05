@@ -50,15 +50,7 @@ ethereum-gateway:
     <<: *sharedEnvironments
     RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
 
-ethereum-order-api:
-  environments:
-    <<: *sharedEnvironments
-    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-order
-
-ethereum-order-listener:
-  environments:
-    <<: *sharedEnvironments
-    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 100
+oderEnvironment: &oderEnvironment
     COMMON_AUCTIONCONTRACTADDRESSES_V1: "0xA8B4ab8aE8C40cD6b11a3A6BFCb00B2B8106150f"
     COMMON_EXCHANGECONTRACTADDRESSES_CRYPTOPUNKS: "0xaf2584a8b198f5d0b360b95d92aec852f7902e52"
     COMMON_EXCHANGECONTRACTADDRESSES_HOLDERV1: "0x0000000000000000000000000000000000000000"
@@ -77,6 +69,18 @@ ethereum-order-listener:
     COMMON_TRANSFERPROXYADDRESSES_ERC721LAZYTRANSFERPROXY: "0x0cF0AAb68432a3710ECbf2f1b112a11cEe31a83C"
     COMMON_TRANSFERPROXYADDRESSES_TRANSFERPROXY: "0x7d47126a2600e22eab9ed6cf0e515678727779a6"
     COMMON_PROTOCOLCOMMISSION: 0
+    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-order
+
+ethereum-order-api:
+  environments:
+    <<: *sharedEnvironments
+    <<: *oderEnvironment
+
+ethereum-order-listener:
+  environments:
+    <<: *sharedEnvironments
+    <<: *oderEnvironment
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 100
     ETHEREUMBLOCKPROCESSINGDELAY: 5000
     LISTENER_LOADOLDOPENSEAORDERS: true
     LISTENER_LOADOPENSEADELAY: "180s"
@@ -90,13 +94,12 @@ ethereum-order-listener:
     LISTENER_UPDATESTATUSBYSTARTENDENABLED: true
     LISTENER_UPDATESTATUSBYSTARTENDRATE: "PT1M"
     RARIBLE_ETHEREUM_MAXFRAMESIZE: 209715200
-    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-order
     SPRING_TASK_SCHEDULING_POOL_SIZE: 60
     USENEWMONGOINDEX: true
 ethereum-order-migration:
   environments:
     <<: *sharedEnvironments
-    SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-order
+    <<: *oderEnvironment
 
 ethereum-unlockable-api:
   environments:
