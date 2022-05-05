@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.job
 import com.rarible.core.apm.CaptureTransaction
 import com.rarible.core.apm.withTransaction
 import com.rarible.core.daemon.DaemonWorkerProperties
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -25,6 +26,7 @@ open class OpenSeaOrdersPeriodFetcherWorker(
     orderUpdateService: OrderUpdateService,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val properties: OrderListenerProperties,
+    openSeaOrderSaveCounter: RegisteredCounter,
     meterRegistry: MeterRegistry,
     workerProperties: DaemonWorkerProperties
 ) : OpenSeaOrdersFetcherWorker(
@@ -35,6 +37,7 @@ open class OpenSeaOrdersPeriodFetcherWorker(
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
         properties = properties,
+        openSeaOrderSaveCounter = openSeaOrderSaveCounter,
         meterRegistry = meterRegistry,
         workerProperties = workerProperties,
         workerName = WORKER_NAME,

@@ -24,8 +24,8 @@ class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val openSeaConverterErrorRegisteredCounter: RegisteredCounter,
-    private val properties: OrderListenerProperties
+    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter,
+    properties: OrderListenerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val openSeaExchangeDomainHashV2 = Word.apply(properties.openSeaExchangeDomainHashV2)
@@ -205,17 +205,12 @@ class OpenSeaOrderConverter(
                 return nonce
             }
         }
-        openSeaConverterErrorRegisteredCounter.increment()
+        openSeaOrderErrorRegisteredCounter.increment()
         return null
     }
 
     private data class Assets(
         val make: Asset,
         val take: Asset
-    )
-
-    private data class OrderInfo(
-        val hash: Word,
-        val nonce: Long
     )
 }

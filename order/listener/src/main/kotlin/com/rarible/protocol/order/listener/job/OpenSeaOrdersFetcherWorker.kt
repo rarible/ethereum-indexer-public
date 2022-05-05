@@ -6,6 +6,7 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
@@ -34,6 +35,7 @@ open class OpenSeaOrdersFetcherWorker(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties,
+    private val openSeaOrderSaveCounter : RegisteredCounter,
     meterRegistry: MeterRegistry,
     workerProperties: DaemonWorkerProperties,
     workerName: String = WORKER_NAME,
@@ -118,6 +120,7 @@ open class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
+            openSeaOrderSaveCounter.increment()
             logger.info("[$logPrefix] Saved new OpenSea order ${orderVersion.hash}")
         }
     }

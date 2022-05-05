@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.model.OpenSeaOrder
-import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Primary
@@ -15,13 +15,10 @@ import javax.annotation.PostConstruct
 class MeasurableOpenSeaOrderService(
     private val delegate: OpenSeaOrderService,
     private val micrometer: MeterRegistry,
-    private val blockchain: Blockchain
+    private val blockchain: Blockchain,
+    private val openSeaOrderLoadRegisteredCounter: RegisteredCounter
 ) : OpenSeaOrderService {
     @Volatile private var latestSeanOpenSeaOrderTimestamp: Long? = null
-
-    private val counter = Counter.builder("protocol.opensea.order.load")
-        .tag("blockchain", blockchain.value)
-        .register(micrometer)
 
     override suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> {
         return delegate.getNextOrdersBatch(listedAfter, listedBefore).also { orders ->
@@ -31,7 +28,7 @@ class MeasurableOpenSeaOrderService(
                     latestSeanOpenSeaOrderTimestamp = it
                 }
 
-            counter.increment(orders.size.toDouble())
+            openSeaOrderLoadRegisteredCounter.increment(orders.size.toDouble())
         }
     }
 
