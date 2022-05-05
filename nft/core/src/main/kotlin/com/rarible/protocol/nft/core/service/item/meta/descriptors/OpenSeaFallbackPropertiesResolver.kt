@@ -20,6 +20,7 @@ class OpenSeaFallbackPropertiesResolver : ItemPropertiesResolver {
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         if (brokenCollections.contains(itemId.token)) {
+            // Fallback to OpenSea will be performed in ItemPropertiesService
             throw ItemResolutionAbortedException()
         }
         return null
