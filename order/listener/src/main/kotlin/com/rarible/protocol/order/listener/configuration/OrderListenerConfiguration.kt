@@ -22,6 +22,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
+import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
@@ -148,6 +149,37 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["load-open-sea-orders-period"],
+        havingValue="true",
+        matchIfMissing = true
+    )
+    fun openSeaOrderPeriodLoadWorker(
+        openSeaOrderService: OpenSeaOrderService,
+        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
+        openSeaOrderConverter: OpenSeaOrderConverter,
+        openSeaOrderValidator: OpenSeaOrderValidator,
+        orderRepository: OrderRepository,
+        orderUpdateService: OrderUpdateService,
+        orderVersionListener: OrderVersionListener,
+        meterRegistry: MeterRegistry,
+        properties: OrderListenerProperties
+    ): OpenSeaOrdersPeriodFetcherWorker {
+        return OpenSeaOrdersPeriodFetcherWorker(
+            properties = properties,
+            openSeaOrderService = openSeaOrderService,
+            openSeaFetchStateRepository = openSeaFetchStateRepository,
+            openSeaOrderConverter = openSeaOrderConverter,
+            openSeaOrderValidator = openSeaOrderValidator,
+            orderRepository = orderRepository,
+            orderUpdateService = orderUpdateService,
+            meterRegistry = meterRegistry,
+            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2)),
         ).apply { start() }
     }
 }

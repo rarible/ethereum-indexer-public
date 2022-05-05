@@ -63,7 +63,8 @@ class MongoOrderRepository(
             "platform_1_lastUpdateAt_1__id_1",
             "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
             OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName
+            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName,
+            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName
         )
     }
 
@@ -138,21 +139,6 @@ class MongoOrderRepository(
 
     override fun findAll(): Flow<Order> {
         return template.findAll<Order>().asFlow()
-    }
-
-    override fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order> {
-        return template.query<Order>().matching(
-            Query(
-                Criteria().andOperator(
-                    listOfNotNull(
-                        Order::platform isEqualTo platform,
-                        Order::status isEqualTo status,
-                        if (fromHash != null) Order::hash gt fromHash else null
-                    )
-                )
-            ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
-                .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
-        ).all().asFlow()
     }
 
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {

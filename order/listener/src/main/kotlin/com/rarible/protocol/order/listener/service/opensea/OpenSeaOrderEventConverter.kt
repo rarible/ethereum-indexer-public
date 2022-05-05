@@ -116,7 +116,8 @@ class OpenSeaOrderEventConverter(
                 externalOrderExecutedOnRarible = externalOrderExecutedOnRarible,
                 date = date,
                 adhoc = buyAdhoc,
-                counterAdhoc = sellAdhoc
+                counterAdhoc = sellAdhoc,
+                originFees = buyOrder.originFees
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -138,7 +139,8 @@ class OpenSeaOrderEventConverter(
                 date = date,
                 source = HistorySource.OPEN_SEA,
                 adhoc = sellAdhoc,
-                counterAdhoc = buyAdhoc
+                counterAdhoc = buyAdhoc,
+                originFees = sellOrder.originFees
             )
         )
     }

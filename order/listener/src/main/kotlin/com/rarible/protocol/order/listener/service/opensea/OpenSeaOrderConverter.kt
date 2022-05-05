@@ -185,7 +185,6 @@ class OpenSeaOrderConverter(
         data: OrderOpenSeaV1DataV1
     ): Long? {
         (0L..featureFlags.maxOpenSeaNonceCalculation).forEach { nonce ->
-            logger.info("checking $nonce for $expectedHash")
             val calculatedHash = Order.openSeaV1EIP712Hash(
                 maker = maker,
                 taker = taker,
@@ -196,7 +195,12 @@ class OpenSeaOrderConverter(
                 end = end,
                 data = data.copy(nonce = nonce)
             )
-            if (calculatedHash == expectedHash) return nonce
+            if (calculatedHash == expectedHash ||
+                Order.openSeaV1EIP712HashToSign(calculatedHash) == expectedHash
+            ) {
+                logger.info("Calculated nonce $nonce for $expectedHash")
+                return nonce
+            }
         }
         openSeaConverterErrorRegisteredCounter.increment()
         return null
@@ -205,5 +209,10 @@ class OpenSeaOrderConverter(
     private data class Assets(
         val make: Asset,
         val take: Asset
+    )
+
+    private data class OrderInfo(
+        val hash: Word,
+        val nonce: Long
     )
 }
