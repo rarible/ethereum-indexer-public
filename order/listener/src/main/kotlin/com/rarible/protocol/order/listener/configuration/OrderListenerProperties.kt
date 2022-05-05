@@ -26,6 +26,7 @@ data class OrderListenerProperties(
     val metricJobStartEnd: String = "",
     val ownershipConsumerWorkersCount: Int = 4,
     val zeroExExchangeDomainHash: String = "0x",
+    val openSeaExchangeDomainHashV2: String = "0x",
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties()
 ) {
     enum class OrderSide {

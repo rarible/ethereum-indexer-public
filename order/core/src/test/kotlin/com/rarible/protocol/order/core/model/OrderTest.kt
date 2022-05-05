@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -80,7 +81,10 @@ class OrderTest {
             )
 
         )
-        val hashToSign = Order.openSeaV1EIP712HashToSign(hash)
+        val hashToSign = Order.openSeaV1EIP712HashToSign(
+            hash = hash,
+            domain = Word.apply("0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68")
+        )
         assertThat(hashToSign).isEqualTo(Binary.apply("0x51cae95c8d9d85f58b34c08416473b4267e20ddcbf266794d9a0fd54136a0872"))
     }
 

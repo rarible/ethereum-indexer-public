@@ -7,6 +7,7 @@ import com.rarible.opensea.client.model.OpenSeaOrder
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
@@ -23,9 +24,11 @@ class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val openSeaConverterErrorRegisteredCounter: RegisteredCounter
+    private val openSeaConverterErrorRegisteredCounter: RegisteredCounter,
+    private val properties: OrderListenerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+    private val openSeaExchangeDomainHashV2 = Word.apply(properties.openSeaExchangeDomainHashV2)
 
     suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): OrderVersion? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
@@ -196,7 +199,7 @@ class OpenSeaOrderConverter(
                 data = data.copy(nonce = nonce)
             )
             if (calculatedHash == expectedHash ||
-                Order.openSeaV1EIP712HashToSign(calculatedHash) == expectedHash
+                Order.openSeaV1EIP712HashToSign(hash = calculatedHash, domain = openSeaExchangeDomainHashV2) == expectedHash
             ) {
                 logger.info("Calculated nonce $nonce for $expectedHash")
                 return nonce

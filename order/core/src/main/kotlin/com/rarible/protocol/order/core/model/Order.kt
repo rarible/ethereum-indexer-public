@@ -559,12 +559,11 @@ data class Order(
             keccak256("Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)")
 
         private val OPEN_SEA_ORDER_TYPE_HASH = Word.apply("0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8")
-        private val OPEN_SEA_DOMAIN_SEPARATOR = Word.apply("0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68")
 
-        fun openSeaV1EIP712HashToSign(hash: Word): Word {
+        fun openSeaV1EIP712HashToSign(hash: Word, domain: Word): Word {
             return Word(Hash.sha3(
                 Binary.apply("0x1901")
-                    .add(OPEN_SEA_DOMAIN_SEPARATOR)
+                    .add(domain)
                     .add(hash).bytes()))
         }
 
