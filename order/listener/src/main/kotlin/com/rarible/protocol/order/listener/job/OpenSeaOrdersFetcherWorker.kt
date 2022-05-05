@@ -36,7 +36,8 @@ open class OpenSeaOrdersFetcherWorker(
     private val properties: OrderListenerProperties,
     meterRegistry: MeterRegistry,
     workerProperties: DaemonWorkerProperties,
-    workerName: String = WORKER_NAME
+    workerName: String = WORKER_NAME,
+    protected val logPrefix: String = LOG_PREFIX
 ) : SequentialDaemonWorker(meterRegistry, workerProperties, workerName) {
 
     override suspend fun handle() {
@@ -65,7 +66,7 @@ open class OpenSeaOrdersFetcherWorker(
         val listedAfter = state.listedAfter
         val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, timeBoundary)
 
-        logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
+        logger.info("[$logPrefix] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
         val openSeaOrders = withSpan(
             name = "fetchOpenSeaOrders",
             labels = listOf("listedAfter" to listedAfter, "listedBefore" to listedBefore)
@@ -81,7 +82,7 @@ open class OpenSeaOrdersFetcherWorker(
             val minCreatedAt = createdAts.minOrNull() ?: error("Can't be empty value")
             val maxCreatedAt = createdAts.maxOrNull() ?: error("Can't be empty value")
 
-            logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
+            logger.info("[$logPrefix] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
             coroutineScope {
                 withSpan(name = "saveOpenSeaOrders", labels = listOf("size" to openSeaOrders.size)) {
@@ -105,9 +106,9 @@ open class OpenSeaOrdersFetcherWorker(
                         .lastOrNull()
                 }
             }
-            logger.info("[OpenSea] All new OpenSea orders saved")
+            logger.info("[$logPrefix] All new OpenSea orders saved")
         } else {
-            logger.info("[OpenSea] No new orders to fetch")
+            logger.info("[$logPrefix] No new orders to fetch")
             delay(pollingPeriod)
         }
         val nextListedAfter = if (listedBefore > timeBoundary) timeBoundary else listedBefore
@@ -117,7 +118,7 @@ open class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
-            logger.info("Saved new OpenSea order ${orderVersion.hash}")
+            logger.info("[$logPrefix] Saved new OpenSea order ${orderVersion.hash}")
         }
     }
 
@@ -125,6 +126,7 @@ open class OpenSeaOrdersFetcherWorker(
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
         const val WORKER_NAME = "open-sea-orders-fetcher-job"
+        const val LOG_PREFIX = "OpenSea"
     }
 
     override fun health(): Health {

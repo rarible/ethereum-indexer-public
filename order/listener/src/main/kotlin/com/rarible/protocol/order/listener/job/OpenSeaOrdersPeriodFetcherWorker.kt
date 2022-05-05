@@ -37,7 +37,8 @@ open class OpenSeaOrdersPeriodFetcherWorker(
         properties = properties,
         meterRegistry = meterRegistry,
         workerProperties = workerProperties,
-        workerName = WORKER_NAME
+        workerName = WORKER_NAME,
+        logPrefix = LOG_PREFIX
 ) {
     override suspend fun handle() {
         try {
@@ -55,7 +56,7 @@ open class OpenSeaOrdersPeriodFetcherWorker(
                         )
                         openSeaFetchStateRepository.save(newState)
                     } else {
-                        logger.info("[OpenSea] All order was loaded from $state to $end")
+                        logger.info("[$logPrefix] All order was loaded from $state to $end")
                         delay(Duration.ofDays(Long.MAX_VALUE))
                     }
                 }
@@ -72,5 +73,6 @@ open class OpenSeaOrdersPeriodFetcherWorker(
     private companion object {
         const val STATE_ID_PREFIX = "open_sea_past_order_fetch"
         const val WORKER_NAME = "open-sea-orders-period-fetcher-job"
+        const val LOG_PREFIX = "OpenSeaPeriod"
     }
 }
