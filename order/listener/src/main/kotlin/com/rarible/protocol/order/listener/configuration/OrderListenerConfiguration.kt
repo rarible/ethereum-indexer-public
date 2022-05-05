@@ -5,6 +5,7 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -137,7 +138,8 @@ class OrderListenerConfiguration(
         orderUpdateService: OrderUpdateService,
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties
+        properties: OrderListenerProperties,
+        openSeaOrderSaveRegisteredCounter: RegisteredCounter
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
             properties = properties,
@@ -148,6 +150,7 @@ class OrderListenerConfiguration(
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
+            openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
             workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
         ).apply { start() }
     }
@@ -168,7 +171,8 @@ class OrderListenerConfiguration(
         orderUpdateService: OrderUpdateService,
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
-        properties: OrderListenerProperties
+        properties: OrderListenerProperties,
+        openSeaOrderSaveRegisteredCounter: RegisteredCounter
     ): OpenSeaOrdersPeriodFetcherWorker {
         return OpenSeaOrdersPeriodFetcherWorker(
             properties = properties,
@@ -179,6 +183,7 @@ class OrderListenerConfiguration(
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
+            openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
             workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2)),
         ).apply { start() }
     }
