@@ -36,7 +36,7 @@ class OpenSeaPropertiesResolver(
             .get(openSeaUrl)
             .bodyToMono<ObjectNode>()
             .map {
-                val image = it.getText("image_original_url") ?: it.getText("image_url") ?: it.getText("image")
+                val image = parseImage(it)
                 ItemProperties(
                     name = parseName(it, itemId.tokenId.value),
                     description = it.getText("description"),
@@ -65,6 +65,13 @@ class OpenSeaPropertiesResolver(
                 Mono.empty()
             }
             .awaitFirstOrNull()
+    }
+
+    private fun parseImage(node: ObjectNode): String? {
+        return when (properties.blockchain) {
+            Blockchain.ETHEREUM -> node.getText("image_original_url") ?: node.getText("image_url")
+            Blockchain.POLYGON -> node.getText("image")
+        }
     }
 
     private fun createOpenSeaUrl(itemId: ItemId): String {
