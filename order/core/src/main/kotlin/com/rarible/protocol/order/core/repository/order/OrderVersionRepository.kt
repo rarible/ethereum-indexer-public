@@ -67,7 +67,7 @@ class OrderVersionRepository(
     }
 
     fun save(orderVersion: OrderVersion): Mono<OrderVersion> {
-        return template.save(orderVersion.withDbUpdated(), COLLECTION)
+        return template.save(orderVersion, COLLECTION)
     }
 
     fun updateMulti(query: Query, update: UpdateDefinition): Mono<UpdateResult> {

@@ -102,9 +102,9 @@ internal object OrderVersionRepositoryIndexes {
         .unique()
         .background()
 
-    private val BY_UPDATED_AT_FIELD: Index = Index()
-        .on(OrderVersion::updatedAt.name, Sort.Direction.ASC)
-        .on(OrderVersion::id.name, Sort.Direction.ASC)
+    private val BY_CREATED_AT_FIELD: Index = Index()
+        .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(
@@ -122,6 +122,6 @@ internal object OrderVersionRepositoryIndexes {
         HASH_AND_ID_DEFINITION,
         ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION,
         HASH_PLATFORM_AND_ID_DEFINITION,
-        BY_UPDATED_AT_FIELD
+        BY_CREATED_AT_FIELD
     )
 }
