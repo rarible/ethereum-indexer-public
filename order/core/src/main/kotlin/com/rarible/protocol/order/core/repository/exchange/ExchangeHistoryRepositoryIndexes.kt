@@ -90,8 +90,7 @@ object ExchangeHistoryRepositoryIndexes {
 
     private val BY_UPDATED_AT_FIELD: Index = Index()
         .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
-        .on(LogEvent::createdAt.name, Sort.Direction.ASC)
-        .on(LogEvent::id.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(

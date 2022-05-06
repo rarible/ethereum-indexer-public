@@ -81,8 +81,8 @@ internal class OrderVersionRepositoryTest {
         )
         val versions = orderVersionRepository.search(filter).collectList().awaitFirst()
         assertThat(versions.size).isEqualTo(4)
-        assertThat(versions[0].copy(updatedAt = version3.updatedAt)).isEqualTo(version3)
-        assertThat(versions[1].copy(updatedAt = version1.updatedAt)).isEqualTo(version1)
+        assertThat(versions[0]).isEqualTo(version3)
+        assertThat(versions[1]).isEqualTo(version1)
     }
 
     @Test

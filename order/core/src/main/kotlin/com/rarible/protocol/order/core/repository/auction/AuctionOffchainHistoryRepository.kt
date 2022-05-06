@@ -31,7 +31,7 @@ class AuctionOffchainHistoryRepository(
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun save(logEvent: AuctionOffchainHistory): AuctionOffchainHistory {
-        return template.save(logEvent.withDbUpdated(), COLLECTION).awaitFirst()
+        return template.save(logEvent, COLLECTION).awaitFirst()
     }
 
     fun find(query: Query): Flow<AuctionOffchainHistory> {
@@ -87,16 +87,16 @@ class AuctionOffchainHistoryRepository(
             .on("${AuctionOffchainHistory::sell.name}.${Asset::type.name}.${NftAssetType::tokenId::name}", Sort.Direction.ASC)
             .background()
 
-        val BY_DB_UPDATED_AT_FIELD: Index = Index()
-            .on(AuctionOffchainHistory::updatedAt.name, Sort.Direction.ASC)
-            .on(AuctionOffchainHistory::id.name, Sort.Direction.ASC)
+        val BY_CREATED_AT_FIELD: Index = Index()
+            .on(AuctionOffchainHistory::createdAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
             .background()
 
         val ALL_INDEXES = listOf(
             BY_LAST_UPDATE_AND_ID_DEFINITION,
             BY_TYPE_SELLER_DEFINITION,
             BY_TYPE_TOKEN_ID_DEFINITION,
-            BY_DB_UPDATED_AT_FIELD
+            BY_CREATED_AT_FIELD
         )
     }
 
