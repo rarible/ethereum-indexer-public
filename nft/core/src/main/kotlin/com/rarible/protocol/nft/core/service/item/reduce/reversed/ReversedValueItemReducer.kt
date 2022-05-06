@@ -15,8 +15,8 @@ class ReversedValueItemReducer : Reducer<ItemEvent, Item> {
             is ItemEvent.ItemMintEvent,
             is ItemEvent.ItemBurnEvent,
             is ItemEvent.ItemCreatorsEvent,
-            is ItemEvent.OpenSeaLazyItemMintEvent,
             is ItemEvent.ItemTransferEvent -> forwardValueItemReducer.reduce(entity, event.invert())
+            is ItemEvent.OpenSeaLazyItemMintEvent -> entity
             is ItemEvent.LazyItemBurnEvent, is ItemEvent.LazyItemMintEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }
