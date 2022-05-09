@@ -71,7 +71,7 @@ class NftItemHistoryRepository(
     }
 
     fun save(event: LogEvent): Mono<LogEvent> {
-        return mongo.save(event, COLLECTION)
+        return mongo.save(event.withDbUpdated(), COLLECTION)
     }
 
     fun find(query: Query): Flow<LogEvent> {

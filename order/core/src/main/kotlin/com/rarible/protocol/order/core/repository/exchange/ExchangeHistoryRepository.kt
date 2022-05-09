@@ -188,6 +188,14 @@ class ExchangeHistoryRepository(
                 Sort.Order.asc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
                 Sort.Order.asc(OrderVersion::id.name)
             )
+            ActivitySort.SYNC_LATEST_FIRST -> Sort.by(
+                Sort.Order.desc(LogEvent::updatedAt.name),
+                Sort.Order.desc(LogEvent::id.name)
+            )
+            ActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc(LogEvent::updatedAt.name),
+                Sort.Order.asc(LogEvent::id.name)
+            )
         }
 
     fun getMakerNftSellAggregation(startDate: Date, endDate: Date, source: HistorySource?): Flux<AggregatedData> {

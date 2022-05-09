@@ -13,3 +13,12 @@ object AuctionActivitySortConverter : Converter<ActivitySortDto, AuctionActivity
     }
 }
 
+object AuctionActivitySyncSortConverter : Converter<ActivitySortDto, AuctionActivitySort> {
+    override fun convert(source: ActivitySortDto): AuctionActivitySort {
+        return when (source) {
+            ActivitySortDto.EARLIEST_FIRST -> AuctionActivitySort.SYNC_EARLIEST_FIRST
+            ActivitySortDto.LATEST_FIRST -> AuctionActivitySort.SYNC_LATEST_FIRST
+        }
+    }
+}
+

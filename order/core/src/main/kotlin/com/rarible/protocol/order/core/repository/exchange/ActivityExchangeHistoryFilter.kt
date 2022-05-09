@@ -42,6 +42,16 @@ sealed class ActivityExchangeHistoryFilter {
         }
     }
 
+    class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+
+        override fun getCriteria(): Criteria {
+            return Criteria()
+                .scrollTo(sort, continuation)
+        }
+
+    }
+
     class AllCanceledBid(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
 
@@ -86,6 +96,16 @@ sealed class ActivityExchangeHistoryFilter {
                     LogEvent::data / OrderExchangeHistory::date gt continuation.afterDate,
                     (LogEvent::data / OrderExchangeHistory::date isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
+            ActivitySort.SYNC_LATEST_FIRST ->
+                this.orOperator(
+                    LogEvent::updatedAt lt continuation.afterDate,
+                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
+                )
+            ActivitySort.SYNC_EARLIEST_FIRST ->
+                this.orOperator(
+                    LogEvent::updatedAt gt continuation.afterDate,
+                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
+                )
         }
 
     protected fun Criteria.dateBoundary(
@@ -106,6 +126,8 @@ sealed class ActivityExchangeHistoryFilter {
         return when (activitySort) {
             ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).gte(start)
             ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / OrderExchangeHistory::date).lte(end)
+            ActivitySort.SYNC_LATEST_FIRST -> this.and(LogEvent::updatedAt).gte(start)
+            ActivitySort.SYNC_EARLIEST_FIRST -> this.and(LogEvent::updatedAt).lte(end)
         }
     }
 }

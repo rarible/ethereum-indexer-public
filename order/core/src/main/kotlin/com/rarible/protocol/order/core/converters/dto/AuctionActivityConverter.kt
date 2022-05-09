@@ -58,7 +58,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    updatedAt = history.updatedAt
                 )
             }
             is BidPlaced -> {
@@ -72,7 +73,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    updatedAt = history.updatedAt
                 )
             }
             is AuctionFinished -> {
@@ -85,7 +87,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    updatedAt = history.updatedAt
                 )
             }
             is AuctionCancelled -> {
@@ -98,7 +101,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    updatedAt = history.updatedAt
                 )
             }
         }
@@ -118,14 +122,16 @@ class AuctionActivityConverter(
                 date = history.date,
                 source = source,
                 auction = auctionDto,
-                reverted = false
+                reverted = false,
+                updatedAt = history.createdAt
             )
             AuctionOffchainHistory.Type.ENDED -> AuctionActivityEndDto(
                 id = history.id,
                 date = history.date,
                 source = source,
                 auction = auctionDto,
-                reverted = false
+                reverted = false,
+                updatedAt = history.createdAt
             )
         }
     }

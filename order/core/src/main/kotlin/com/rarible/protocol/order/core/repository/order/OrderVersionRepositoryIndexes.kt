@@ -104,7 +104,7 @@ internal object OrderVersionRepositoryIndexes {
         .unique()
         .background()
 
-    private val BY_CREATED_AT_FIELD: Index = Index()
+    val BY_CREATED_AT_FIELD: Index = Index()
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()

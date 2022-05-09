@@ -11,8 +11,11 @@ import com.rarible.protocol.order.api.service.activity.AuctionActivityService
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.dto.AuctionActivityConverter
 import com.rarible.protocol.order.core.converters.model.AuctionActivitySortConverter
+import com.rarible.protocol.order.core.converters.model.AuctionActivitySyncSortConverter
 import com.rarible.protocol.order.core.model.AuctionActivityResult
 import com.rarible.protocol.order.core.model.AuctionActivitySort
+import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
+import com.rarible.protocol.order.core.repository.auction.ActivityAuctionOffchainFilter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -61,5 +64,33 @@ class AuctionActivityController(
             }
 
         return ResponseEntity.ok(AuctionActivitiesDto(null, result))
+    }
+
+    override suspend fun getAuctionActivitiesSync(
+        continuation: String?,
+        size: Int?,
+        sort: ActivitySortDto?
+    ): ResponseEntity<AuctionActivitiesDto> {
+        val requestSize = PageSize.AUCTION_ACTIVITY.limit(size)
+        val activitySort =
+            sort?.let { AuctionActivitySyncSortConverter.convert(sort) } ?: AuctionActivitySort.SYNC_EARLIEST_FIRST
+        val historyFilter = ActivityAuctionHistoryFilter.AllSync(continuation, activitySort)
+        val offchainFilter = ActivityAuctionOffchainFilter.AllSync(continuation, activitySort)
+        val result = auctionActivityService.search(listOf(historyFilter), listOf(offchainFilter), activitySort, requestSize)
+            .mapNotNull {
+                when(it) {
+                    is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)
+                    is AuctionActivityResult.OffchainHistory -> auctionActivityConverter.convert(it.value)
+                }
+            }
+
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) {
+            null
+        } else {
+            ContinuationMapper.toSyncString(result.last())
+        }
+
+        val auctionActivities = AuctionActivitiesDto(nextContinuation, result)
+        return ResponseEntity.ok(auctionActivities)
     }
 }
