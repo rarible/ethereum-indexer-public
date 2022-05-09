@@ -97,9 +97,6 @@ sealed class ActivityItemHistoryFilter {
                 )
         }
 
-
-    //private fun usualFilter
-
     protected fun Criteria.dateBoundary(
         activitySort: ActivitySort,
         continuation: Continuation?,
