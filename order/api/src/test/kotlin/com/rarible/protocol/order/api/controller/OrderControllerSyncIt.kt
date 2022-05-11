@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
 import com.rarible.protocol.dto.OrderDto
-import com.rarible.protocol.dto.OrderSyncSortDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.data.createOrder
@@ -30,9 +30,9 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
         val receivedOrders = mutableListOf<OrderDto>()
 
         do {
-            val dto = controller.getAllSync(OrderSyncSortDto.DB_UPDATE_DESC, continuation, ordersChunk)
-            continuation = dto.body.continuation
-            receivedOrders.addAll(dto.body.orders)
+            val dto = controller.getAllSync(SyncSortDto.DB_UPDATE_DESC, continuation, ordersChunk)
+            continuation = dto.body?.continuation
+            dto.body?.let { receivedOrders.addAll(it.orders) }
             pageCounter += 1
         } while (continuation != null)
 
@@ -55,9 +55,9 @@ class OrderControllerSyncIt  : AbstractIntegrationTest() {
         val receivedOrders = mutableListOf<OrderDto>()
 
         do {
-            val dto = controller.getAllSync(OrderSyncSortDto.DB_UPDATE_ASC, continuation, ordersChunk)
-            continuation = dto.body.continuation
-            receivedOrders.addAll(dto.body.orders)
+            val dto = controller.getAllSync(SyncSortDto.DB_UPDATE_ASC, continuation, ordersChunk)
+            continuation = dto.body?.continuation
+            dto.body?.let { receivedOrders.addAll(it.orders) }
             pageCounter += 1
         } while (continuation != null)
 

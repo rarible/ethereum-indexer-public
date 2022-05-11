@@ -92,7 +92,7 @@ class NftActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = reverted,
-                    updatedAt = updatedAt
+                    lastUpdatedAt = updatedAt
                 )
             }
             itemTransfer.owner == Address.ZERO() -> {
@@ -108,7 +108,7 @@ class NftActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = reverted,
-                    updatedAt = updatedAt
+                    lastUpdatedAt = updatedAt
                 )
             }
             else -> {
@@ -126,7 +126,7 @@ class NftActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = reverted,
-                    updatedAt = updatedAt
+                    lastUpdatedAt = updatedAt
                 )
             }
         }

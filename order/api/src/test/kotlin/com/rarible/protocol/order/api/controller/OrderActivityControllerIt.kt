@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivityDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.data.createLogEvent
 import com.rarible.protocol.order.api.data.orderErc1155SellSideMatch
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
@@ -36,7 +36,7 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
         do {
-            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, ActivitySortDto.LATEST_FIRST)
+            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_DESC)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1
@@ -44,7 +44,8 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
 
         Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(ordersQuantity)
-        Assertions.assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o2.updatedAt.compareTo(o1.updatedAt) }
+        Assertions.assertThat(receivedOrders)
+            .isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt, o1.lastUpdatedAt) }
     }
 
     @Test
@@ -64,7 +65,7 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
         do {
-            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, ActivitySortDto.EARLIEST_FIRST)
+            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_ASC)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1
@@ -72,7 +73,8 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
 
         Assertions.assertThat(pageCounter).isEqualTo(ordersQuantity/ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(ordersQuantity)
-        Assertions.assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o1.updatedAt.compareTo(o2.updatedAt) }
+        Assertions.assertThat(receivedOrders)
+            .isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt, o2.lastUpdatedAt) }
     }
 
 }

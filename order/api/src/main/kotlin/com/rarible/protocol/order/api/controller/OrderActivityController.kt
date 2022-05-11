@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivitiesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.order.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
@@ -65,7 +66,7 @@ class OrderActivityController(
      override suspend fun getOrderActivitiesSync(
          continuation: String?,
          size: Int?,
-         sort: ActivitySortDto?
+         sort: SyncSortDto?
      ): ResponseEntity<OrderActivitiesDto> {
          val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
          val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)

@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.api.controller
 
-import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivityDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.data.createAuctionLogEvent
@@ -34,7 +34,7 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<AuctionActivityDto>()
 
         do {
-            val dto = controller.getAuctionActivitiesSync(continuation, ordersChunk, ActivitySortDto.LATEST_FIRST)
+            val dto = controller.getAuctionActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_DESC)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1
@@ -42,7 +42,8 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
 
         Assertions.assertThat(pageCounter).isEqualTo(activityQuantities/ordersChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(activityQuantities)
-        Assertions.assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o2.updatedAt.compareTo(o1.updatedAt) }
+        Assertions.assertThat(receivedOrders)
+            .isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt, o1.lastUpdatedAt) }
     }
 
     @Test
@@ -57,7 +58,7 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<AuctionActivityDto>()
 
         do {
-            val dto = controller.getAuctionActivitiesSync(continuation, activitiesChunk, ActivitySortDto.EARLIEST_FIRST)
+            val dto = controller.getAuctionActivitiesSync(continuation, activitiesChunk, SyncSortDto.DB_UPDATE_ASC)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1
@@ -65,7 +66,8 @@ class AuctionActivityControllerIt : AbstractIntegrationTest()  {
 
         Assertions.assertThat(pageCounter).isEqualTo(activityQuantities/activitiesChunk + 1)
         Assertions.assertThat(receivedOrders).hasSize(activityQuantities)
-        Assertions.assertThat(receivedOrders).isSortedAccordingTo{ o1, o2 -> o1.updatedAt.compareTo(o2.updatedAt) }
+        Assertions.assertThat(receivedOrders)
+            .isSortedAccordingTo { o1, o2 -> compareValues(o1.lastUpdatedAt, o2.lastUpdatedAt) }
     }
 
     private suspend fun fillRepositories(activitiesQuantity: Int) {

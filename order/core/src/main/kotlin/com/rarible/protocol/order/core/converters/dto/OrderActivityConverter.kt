@@ -80,7 +80,7 @@ class OrderActivityConverter(
                     source = convert(data.source),
                     type = typeDto(data),
                     reverted = reverted,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is OrderCancel -> if (data.isBid()) {
@@ -97,7 +97,7 @@ class OrderActivityConverter(
                     logIndex = logIndex,
                     source = convert(data.source),
                     reverted = reverted,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             } else {
                 OrderActivityCancelListDto(
@@ -113,7 +113,7 @@ class OrderActivityConverter(
                     logIndex = logIndex,
                     source = convert(data.source),
                     reverted = reverted,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is OnChainOrder -> if (data.isBid()) {
@@ -128,7 +128,7 @@ class OrderActivityConverter(
                     source = convert(data.source),
                     priceUsd = data.priceUsd,
                     reverted = reverted,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             } else if (data.taker != null) {
                 //TODO[punk]: Sell orders (as for CryptoPunks sell orders) which are dedicated to only a concrete address (via "offer for sale to address" method call)
@@ -146,7 +146,7 @@ class OrderActivityConverter(
                     source = convert(data.source),
                     priceUsd = data.priceUsd,
                     reverted = reverted,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
         }
@@ -189,7 +189,7 @@ class OrderActivityConverter(
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform),
                 reverted = reverted,
-                updatedAt = version.createdAt
+                lastUpdatedAt = version.createdAt
             )
             else -> OrderActivityListDto(
                 date = version.createdAt,
@@ -202,7 +202,7 @@ class OrderActivityConverter(
                 priceUsd = version.takePriceUsd ?: version.makePriceUsd,
                 source = convert(version.platform),
                 reverted = reverted,
-                updatedAt = version.createdAt
+                lastUpdatedAt = version.createdAt
             )
         }
     }

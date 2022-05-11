@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.model
 
 import com.rarible.protocol.dto.ActivitySortDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.core.model.AuctionActivitySort
 import org.springframework.core.convert.converter.Converter
 
@@ -13,11 +14,11 @@ object AuctionActivitySortConverter : Converter<ActivitySortDto, AuctionActivity
     }
 }
 
-object AuctionActivitySyncSortConverter : Converter<ActivitySortDto, AuctionActivitySort> {
-    override fun convert(source: ActivitySortDto): AuctionActivitySort {
+object AuctionActivitySyncSortConverter : Converter<SyncSortDto, AuctionActivitySort> {
+    override fun convert(source: SyncSortDto): AuctionActivitySort {
         return when (source) {
-            ActivitySortDto.EARLIEST_FIRST -> AuctionActivitySort.SYNC_EARLIEST_FIRST
-            ActivitySortDto.LATEST_FIRST -> AuctionActivitySort.SYNC_LATEST_FIRST
+            SyncSortDto.DB_UPDATE_ASC -> AuctionActivitySort.SYNC_EARLIEST_FIRST
+            SyncSortDto.DB_UPDATE_DESC -> AuctionActivitySort.SYNC_LATEST_FIRST
         }
     }
 }

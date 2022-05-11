@@ -59,7 +59,7 @@ class AuctionActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = false,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is BidPlaced -> {
@@ -74,7 +74,7 @@ class AuctionActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = false,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is AuctionFinished -> {
@@ -88,7 +88,7 @@ class AuctionActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = false,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is AuctionCancelled -> {
@@ -102,7 +102,7 @@ class AuctionActivityConverter(
                     blockNumber = blockNumber,
                     logIndex = logIndex,
                     reverted = false,
-                    updatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt
                 )
             }
         }
@@ -123,7 +123,7 @@ class AuctionActivityConverter(
                 source = source,
                 auction = auctionDto,
                 reverted = false,
-                updatedAt = history.createdAt
+                lastUpdatedAt = history.createdAt
             )
             AuctionOffchainHistory.Type.ENDED -> AuctionActivityEndDto(
                 id = history.id,
@@ -131,7 +131,7 @@ class AuctionActivityConverter(
                 source = source,
                 auction = auctionDto,
                 reverted = false,
-                updatedAt = history.createdAt
+                lastUpdatedAt = history.createdAt
             )
         }
     }

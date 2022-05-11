@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.NftActivitiesDto
 import com.rarible.protocol.dto.NftActivityFilterDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.nft.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.nft.api.converter.ContinuationConverter
@@ -63,7 +64,7 @@ class ActivityController(
     override suspend fun getNftActivitiesSync(
         continuation: String?,
         size: Int?,
-        sort: ActivitySortDto?
+        sort: SyncSortDto?
     ): ResponseEntity<NftActivitiesDto> {
         val requestSize = PageSize.ITEM_ACTIVITY.limit(size)
         val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)

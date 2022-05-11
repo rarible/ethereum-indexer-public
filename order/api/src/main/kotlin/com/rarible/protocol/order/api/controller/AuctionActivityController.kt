@@ -4,6 +4,7 @@ import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivitiesDto
 import com.rarible.protocol.dto.AuctionActivityFilterDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.order.api.converter.AuctionHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.AuctionOffchainFilterConverter
@@ -69,7 +70,7 @@ class AuctionActivityController(
     override suspend fun getAuctionActivitiesSync(
         continuation: String?,
         size: Int?,
-        sort: ActivitySortDto?
+        sort: SyncSortDto?
     ): ResponseEntity<AuctionActivitiesDto> {
         val requestSize = PageSize.AUCTION_ACTIVITY.limit(size)
         val activitySort =
