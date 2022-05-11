@@ -78,6 +78,10 @@ internal object NftItemHistoryRepositoryIndexes {
         .on(LogEvent::logIndex.name, Sort.Direction.ASC)
         .background()
 
+    private val BY_DATA_DATE: Index = Index()
+        .on("data.date", Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         TRANSFER_FROM_DEFINITION,
         TRANSFER_TO_DEFINITION,
@@ -87,6 +91,7 @@ internal object NftItemHistoryRepositoryIndexes {
         BY_COLLECTION_OWNER_DEFINITION,
         BY_ITEM_DEFINITION,
         BY_ITEM_INT_DEFINITION,
-        BY_TYPE_DEFINITION
+        BY_TYPE_DEFINITION,
+        BY_DATA_DATE
     )
 }
