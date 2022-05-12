@@ -11,10 +11,13 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.migration.integration.AbstractMigrationTest
 import com.rarible.protocol.order.migration.integration.IntegrationTest
 import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00013AddTakeMakeToOrder
+import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00019AddDbUpdatedToOrder
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -70,6 +73,21 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
 
         var updatedOrder2 = orderRepository.findById(order2.hash)!!
         assertEquals(BigDecimal.valueOf(10L), updatedOrder2.takePrice)
+    }
+
+    @Test
+    fun `should set dbUpdatedAt field for orders`() = runBlocking {
+        repeat(30) {
+            orderRepository.saveWithoutDbUpdated(createOrder().copy(dbUpdatedAt = null))
+        }
+
+        ChangeLog00019AddDbUpdatedToOrder().addDbUpdatedFieldToOrder(template)
+        val orderList = orderRepository.findAll().toList()
+        assertThat(orderList).hasSize(30)
+
+        orderList.forEach {
+            assertThat(it.dbUpdatedAt).isNotNull()
+        }
     }
 
     @Test
