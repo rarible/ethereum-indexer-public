@@ -6,6 +6,7 @@ import com.rarible.core.apm.withTransaction
 import com.rarible.core.common.nowMillis
 import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.SequentialDaemonWorker
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
@@ -34,30 +35,40 @@ open class OpenSeaOrdersFetcherWorker(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: OrderListenerProperties,
+    private val openSeaOrderSaveCounter : RegisteredCounter,
     meterRegistry: MeterRegistry,
-    workerProperties: DaemonWorkerProperties
-) : SequentialDaemonWorker(meterRegistry, workerProperties, "open-sea-orders-fetcher-job") {
+    workerProperties: DaemonWorkerProperties,
+    workerName: String = WORKER_NAME,
+    protected val logPrefix: String = LOG_PREFIX
+) : SequentialDaemonWorker(meterRegistry, workerProperties, workerName) {
 
     override suspend fun handle() {
         try {
             withTransaction(name = "loadOpenSeaOrders") {
-                handleSafely()
+                if (properties.loadOpenSeaOrders) {
+                    val state = openSeaFetchStateRepository.get(OpenSeaFetchState.ID) ?: INIT_FETCH_STATE
+                    val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
+                    val newState = loadOpenSeaOrders(
+                        state = state,
+                        timeBoundary = now
+                    )
+                    openSeaFetchStateRepository.save(newState)
+                }
             }
         } catch (ex: AssertionError) {
             throw IllegalStateException(ex)
         }
     }
 
-    private suspend fun handleSafely() {
-        if (properties.loadOpenSeaOrders.not()) return
-
-        val state = openSeaFetchStateRepository.get() ?: INIT_FETCH_STATE
-        val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
+    protected suspend fun loadOpenSeaOrders(
+        state: OpenSeaFetchState,
+        timeBoundary: Long
+    ): OpenSeaFetchState {
 
         val listedAfter = state.listedAfter
-        val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, now)
+        val listedBefore = min(state.listedAfter + MAX_LOAD_PERIOD.seconds, timeBoundary)
 
-        logger.info("[OpenSea] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
+        logger.info("[$logPrefix] Starting fetching OpenSea orders, listedAfter=$listedAfter, listedBefore=$listedBefore")
         val openSeaOrders = withSpan(
             name = "fetchOpenSeaOrders",
             labels = listOf("listedAfter" to listedAfter, "listedBefore" to listedBefore)
@@ -73,7 +84,7 @@ open class OpenSeaOrdersFetcherWorker(
             val minCreatedAt = createdAts.minOrNull() ?: error("Can't be empty value")
             val maxCreatedAt = createdAts.maxOrNull() ?: error("Can't be empty value")
 
-            logger.info("[OpenSea] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
+            logger.info("[$logPrefix] Fetched ${openSeaOrders.size}, minId=$minId, maxId=$maxId, minCreatedAt=$minCreatedAt, maxCreatedAt=$maxCreatedAt, new OpenSea orders: ${openSeaOrders.joinToString { it.orderHash.toString() }}")
 
             coroutineScope {
                 withSpan(name = "saveOpenSeaOrders", labels = listOf("size" to openSeaOrders.size)) {
@@ -97,25 +108,28 @@ open class OpenSeaOrdersFetcherWorker(
                         .lastOrNull()
                 }
             }
-            logger.info("[OpenSea] All new OpenSea orders saved")
+            logger.info("[$logPrefix] All new OpenSea orders saved")
         } else {
-            logger.info("[OpenSea] No new orders to fetch")
+            logger.info("[$logPrefix] No new orders to fetch")
             delay(pollingPeriod)
         }
-        val nextListedAfter = if (listedBefore > now) now else listedBefore
-        openSeaFetchStateRepository.save(state.withListedAfter(nextListedAfter))
+        val nextListedAfter = if (listedBefore > timeBoundary) timeBoundary else listedBefore
+        return state.withListedAfter(nextListedAfter)
     }
 
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
-            logger.info("Saved new OpenSea order ${orderVersion.hash}")
+            openSeaOrderSaveCounter.increment()
+            logger.info("[$logPrefix] Saved new OpenSea order ${orderVersion.hash}")
         }
     }
 
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
         val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
+        const val WORKER_NAME = "open-sea-orders-fetcher-job"
+        const val LOG_PREFIX = "OpenSea"
     }
 
     override fun health(): Health {

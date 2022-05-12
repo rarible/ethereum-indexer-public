@@ -5,6 +5,7 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
@@ -41,15 +42,20 @@ class WyvernExchangeOrderMatchDescriptor(
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == exchangeContractAddresses.openSeaV2
 
-        val orders = openSeaOrderParser.parseMatchedOrders(
-            transaction.hash(),
-            transaction.input(),
-            event,
-            index,
-            totalLogs,
-            eip712
+        val orders: OpenSeaMatchedOrders = openSeaOrderParser.parseMatchedOrders(
+            txHash = transaction.hash(),
+            txInput = transaction.input(),
+            event = event,
+            index = index,
+            totalLogs = totalLogs,
+            eip712 = eip712
         )
-        return openSeaOrdersSideMatcher.convert(orders, transaction.from(), event.price(), date)
+        return openSeaOrdersSideMatcher.convert(
+            openSeaOrders = orders,
+            from = transaction.from(),
+            price = event.price(),
+            date = date
+        )
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

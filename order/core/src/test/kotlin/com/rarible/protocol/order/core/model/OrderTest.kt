@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -47,6 +48,44 @@ class OrderTest {
             )
         )
         assertThat(hash).isEqualTo(Binary.apply("0x1879973b20431b35d0bc0ba145b95fd2f2f3b5676a232fd2c78aa2f87b3703d8"))
+    }
+
+    @Test
+    fun `opensea eip712 hash to sign is calculated correctly`() {
+        val hash = Order.openSeaV1EIP712Hash(
+            maker = Address.apply("0x610c242726939372a5552f764a0187adfc68dd92"),
+            taker = Address.ZERO(),
+            paymentToken = Address.ZERO(),
+            basePrice = BigInteger("21500000000000000"),
+            salt = BigInteger("73340800862702466407162619666324034326883802828380792972767741691037469737478"),
+            start = 1651655292L,
+            end = 1654333789L,
+            OrderOpenSeaV1DataV1(
+                exchange = Address.apply("0x7f268357a8c2552623316e2562d90e642bb538e5"),
+                makerRelayerFee = BigInteger("750"),
+                takerRelayerFee = BigInteger.ZERO,
+                makerProtocolFee = BigInteger.ZERO,
+                takerProtocolFee = BigInteger.ZERO,
+                feeRecipient = Address.apply("0x5b3256965e7c3cf26e11fcaf296dfc8807c01073"),
+                feeMethod = OpenSeaOrderFeeMethod.SPLIT_FEE,
+                side = OpenSeaOrderSide.SELL,
+                saleKind = OpenSeaOrderSaleKind.FIXED_PRICE,
+                howToCall = OpenSeaOrderHowToCall.DELEGATE_CALL,
+                callData = Binary.apply("0x96809f90000000000000000000000000610c242726939372a5552f764a0187adfc68dd920000000000000000000000000000000000000000000000000000000000000000000000000000000000000000495f947276749ce646f68ac8c248420045cb7b5e610c242726939372a5552f764a0187adfc68dd920000000000017c00000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000e00000000000000000000000000000000000000000000000000000000000000000"),
+                replacementPattern = Binary.apply("0x000000000000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"),
+                staticTarget = Address.ZERO(),
+                staticExtraData = Binary.empty(),
+                extra = BigInteger.ZERO,
+                target = Address.apply("0xbaf2127b49fc93cbca6269fade0f7f31df4c88a7"),
+                nonce = 0L
+            )
+
+        )
+        val hashToSign = Order.openSeaV1EIP712HashToSign(
+            hash = hash,
+            domain = Word.apply("0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68")
+        )
+        assertThat(hashToSign).isEqualTo(Binary.apply("0x51cae95c8d9d85f58b34c08416473b4267e20ddcbf266794d9a0fd54136a0872"))
     }
 
     @Test

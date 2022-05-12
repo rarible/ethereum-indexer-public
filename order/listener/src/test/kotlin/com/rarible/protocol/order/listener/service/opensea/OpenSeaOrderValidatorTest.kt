@@ -8,7 +8,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
-import com.rarible.protocol.order.listener.misc.OpenSeaOrderValidatorErrorMetric
+import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
 import io.daonomic.rpc.domain.Binary
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
@@ -21,7 +21,7 @@ internal class OpenSeaOrderValidatorTest {
         commonSigner = CommonSigner(),
         callDataEncoder = CallDataEncoder(),
         openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744"))),
-        openSeaValidatorErrorRegisteredCounter = OpenSeaOrderValidatorErrorMetric("", Blockchain.ETHEREUM).bind(
+        openSeaOrderErrorRegisteredCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
             SimpleMeterRegistry()
         )
     )

@@ -15,7 +15,6 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
-import org.slf4j.LoggerFactory
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scalether.transaction.MonoGasPriceProvider
@@ -24,7 +23,6 @@ import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 
 abstract class AbstractOpenSeaV1Test : AbstractIntegrationTest() {
-    protected val logger = LoggerFactory.getLogger(javaClass)
 
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender

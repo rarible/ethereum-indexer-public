@@ -3,7 +3,11 @@ package com.rarible.protocol.erc20.listener.service.balance
 import com.rarible.contracts.erc20.TransferEvent
 import com.rarible.contracts.interfaces.weth9.DepositEvent
 import com.rarible.contracts.interfaces.weth9.WithdrawalEvent
-import com.rarible.core.task.*
+import com.rarible.core.task.RunTask
+import com.rarible.core.task.Task
+import com.rarible.core.task.TaskHandler
+import com.rarible.core.task.TaskRepository
+import com.rarible.core.task.TaskStatus
 import com.rarible.ethereum.listener.log.ReindexTopicTaskHandler
 import com.rarible.protocol.erc20.core.model.BalanceId
 import io.daonomic.rpc.domain.Word
