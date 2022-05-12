@@ -20,7 +20,7 @@ class ChangeLog00019AddDbUpdatedToOrder {
     ) = runBlocking<Unit> {
         val queryMulti = Query(Criteria.where(Order::dbUpdatedAt.name).exists(false))
         val multiUpdate = AggregationUpdate.update()
-            .set(Order::dbUpdatedAt.name).toValue("\$${Order::createdAt.name}")
+            .set(Order::dbUpdatedAt.name).toValue("\$${Order::lastUpdateAt.name}")
         template.updateMulti(queryMulti, multiUpdate, MongoOrderRepository.COLLECTION).awaitFirst()
     }
 }
