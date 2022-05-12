@@ -15,7 +15,7 @@ class Base64Detector(url: String) : ContentDetector(url) {
 
     // Don't want to use regex here, not sure how fast it will work on large strings
     companion object {
-        private const val mimeTypePrefix = "data:"
+        const val MIME_TYPE_PREFIX = "data:"
         private const val base64marker = ";base64,"
     }
 
@@ -29,6 +29,6 @@ class Base64Detector(url: String) : ContentDetector(url) {
     }
 
     override fun getMimeType(): String {
-        return url.substring(url.indexOf(mimeTypePrefix) + mimeTypePrefix.length, markerIndex).trim()
+        return url.substring(url.indexOf(MIME_TYPE_PREFIX) + MIME_TYPE_PREFIX.length, markerIndex).trim()
     }
 }
