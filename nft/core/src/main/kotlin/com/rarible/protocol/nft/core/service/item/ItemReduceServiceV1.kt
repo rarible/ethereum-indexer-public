@@ -132,19 +132,21 @@ class ItemReduceServiceV1(
 
     private fun reduceActions(initial: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = initial.first
-        val actions = nftItemActionEventRepository.find(item.token, item.tokenId).collectList().awaitFirst()
 
-        actions.fold(initial) { acc, action ->
-            when (action) {
-                is BurnItemAction -> {
-                    acc.first to acc.second.mapValues { (_, ownership) ->
-                        val value = ownership.value
-                        val updatedValue = if (value > EthUInt256.ZERO) value - EthUInt256.ONE else value
-                        ownership.copy(value = updatedValue)
+        nftItemActionEventRepository
+            .find(item.token, item.tokenId).collectList().awaitFirst()
+            .filter { action -> action.isActionable() }
+            .fold(initial) { acc, action ->
+                when (action) {
+                    is BurnItemAction -> {
+                        acc.first to acc.second.mapValues { (_, ownership) ->
+                            val value = ownership.value
+                            val updatedValue = if (value > EthUInt256.ZERO) value - EthUInt256.ONE else value
+                            ownership.copy(value = updatedValue)
+                        }
                     }
                 }
             }
-        }
     }
 
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
