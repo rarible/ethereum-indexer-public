@@ -132,24 +132,29 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         )
     }
 
-    private fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
-        hash = Word.apply(RandomUtils.nextBytes(32)),
-        maker = AddressFactory.create(),
-        taker = AddressFactory.create(),
-        makePriceUsd = (1..100).random().toBigDecimal(),
-        takePriceUsd = (1..100).random().toBigDecimal(),
-        makePrice = null,
-        takePrice = null,
-        makeUsd = (1..100).random().toBigDecimal(),
-        takeUsd = (1..100).random().toBigDecimal(),
-        make = make,
-        take = take,
-        platform = Platform.RARIBLE,
-        type = OrderType.RARIBLE_V2,
-        salt = EthUInt256.TEN,
-        start = null,
-        end = null,
-        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
-        signature = null
-    )
+    companion object {
+        fun createOrderVersion(
+            make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            take: Asset = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.ONE)
+        ) = OrderVersion(
+            hash = Word.apply(RandomUtils.nextBytes(32)),
+            maker = AddressFactory.create(),
+            taker = AddressFactory.create(),
+            makePriceUsd = (1..100).random().toBigDecimal(),
+            takePriceUsd = (1..100).random().toBigDecimal(),
+            makePrice = null,
+            takePrice = null,
+            makeUsd = (1..100).random().toBigDecimal(),
+            takeUsd = (1..100).random().toBigDecimal(),
+            make = make,
+            take = take,
+            platform = Platform.RARIBLE,
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            signature = null
+        )
+    }
 }
