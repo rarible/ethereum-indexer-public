@@ -93,6 +93,6 @@ abstract class BasePropertiesResolverTest {
 
     protected companion object {
         const val REQUEST_TIMEOUT: Long = 20000
-        const val IPFS_PUBLIC_GATEWAY = "https://rarible.mypinata.com"
+        const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
     }
 }
