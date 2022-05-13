@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.InternalTopicProvider
+import com.rarible.protocol.nft.core.service.CollectionFeaturesService
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
@@ -40,8 +41,13 @@ class NftListenerConfiguration(
     private val logger = LoggerFactory.getLogger(ProducerConfiguration::class.java)
 
     @Bean
-    fun reduceSkipTokens(): ReduceSkipTokens {
-        return ReduceSkipTokens(nftListenerProperties.skipReduceTokens.map { ItemId.parseId(it) })
+    fun reduceSkipTokens(
+        collectionFeaturesService: CollectionFeaturesService
+    ): ReduceSkipTokens {
+        return ReduceSkipTokens(
+            nftListenerProperties.skipReduceTokens.map { ItemId.parseId(it) },
+            collectionFeaturesService
+        )
     }
 
     @Bean

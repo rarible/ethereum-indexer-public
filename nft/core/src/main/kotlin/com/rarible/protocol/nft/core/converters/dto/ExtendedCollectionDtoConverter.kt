@@ -4,11 +4,14 @@ import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.ExtendedToken
 import com.rarible.protocol.nft.core.model.TokenFeature
+import com.rarible.protocol.nft.core.service.CollectionFeaturesService
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
 @Component
-class ExtendedCollectionDtoConverter : Converter<ExtendedToken, NftCollectionDto> {
+class ExtendedCollectionDtoConverter(
+    private val collectionFeaturesService: CollectionFeaturesService
+) : Converter<ExtendedToken, NftCollectionDto> {
     override fun convert(source: ExtendedToken): NftCollectionDto {
         val (token, meta) = source
         return NftCollectionDto(
@@ -21,7 +24,8 @@ class ExtendedCollectionDtoConverter : Converter<ExtendedToken, NftCollectionDto
             features = token.features.map { CollectionFeatureDtoConverter.convert(it) },
             supportsLazyMint = token.features.contains(TokenFeature.MINT_AND_TRANSFER),
             minters = if (token.isRaribleContract) listOfNotNull(token.owner) else emptyList(),
-            meta = NftCollectionMetaDtoConverter.convert(meta)
+            meta = NftCollectionMetaDtoConverter.convert(meta),
+            verified = collectionFeaturesService.isVerified(token.id)
         )
     }
 

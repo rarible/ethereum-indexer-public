@@ -9,6 +9,7 @@ import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.ethereum.nft.validation.LazyNftValidator
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
+import com.rarible.protocol.nft.core.service.CollectionFeaturesService
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -26,8 +27,8 @@ class NftIndexerApiConfiguration(
     private val nftIndexerApiProperties: NftIndexerApiProperties
 ) {
     @Bean
-    fun reduceSkipTokens(): ReduceSkipTokens {
-        return ReduceSkipTokens.NO_SKIP_TOKENS
+    fun reduceSkipTokens(collectionFeaturesService: CollectionFeaturesService): ReduceSkipTokens {
+        return ReduceSkipTokens.NO_SKIP_TOKENS(collectionFeaturesService)
     }
 
     @Bean
