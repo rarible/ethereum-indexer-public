@@ -15,12 +15,11 @@ data class AuctionOffchainHistory(
     val seller: Address,
     val sell: Asset,
     val source: HistorySource,
-    val type: Type
+    val type: Type,
+    val createdAt: Instant = Instant.now()
 ) {
-
     enum class Type {
         STARTED,
         ENDED
     }
-
 }

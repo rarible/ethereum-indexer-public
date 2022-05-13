@@ -11,7 +11,6 @@ import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import org.bson.Document
-import org.bson.types.ObjectId
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.query.*
 import scalether.domain.Address
@@ -36,6 +35,13 @@ sealed class ActivityItemHistoryFilter {
             return (typeKey isEqualTo  ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(ownerKey).isEqualTo(Address.ZERO())
+                .scrollTo(sort, continuation)
+        }
+    }
+
+    class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+        override fun getCriteria(): Criteria {
+            return Criteria()
                 .scrollTo(sort, continuation)
         }
     }
@@ -77,6 +83,18 @@ sealed class ActivityItemHistoryFilter {
                     LogEvent::data / ItemHistory::date gt continuation.afterDate,
                     (LogEvent::data / ItemHistory::date isEqualTo  continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
                 )
+            ActivitySort.SYNC_EARLIEST_FIRST ->
+                this.orOperator(
+                    LogEvent::updatedAt gt continuation.afterDate,
+                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id")
+                        .gt(continuation.afterId.safeQueryParam())
+                )
+            ActivitySort.SYNC_LATEST_FIRST ->
+                this.orOperator(
+                    LogEvent::updatedAt lt continuation.afterDate,
+                    (LogEvent::updatedAt isEqualTo continuation.afterDate).and("_id")
+                        .lt(continuation.afterId.safeQueryParam())
+                )
         }
 
     protected fun Criteria.dateBoundary(
@@ -96,7 +114,7 @@ sealed class ActivityItemHistoryFilter {
         }
         return when (activitySort) {
             ActivitySort.LATEST_FIRST -> this.and(LogEvent::data / ItemHistory::date).gte(start)
-            ActivitySort.EARLIEST_FIRST -> this.and(LogEvent::data / ItemHistory::date).lte(end)
+            else -> this.and(LogEvent::data / ItemHistory::date).lte(end)
         }
     }
 }
@@ -273,6 +291,18 @@ enum class ActivitySort(val sort: Sort) {
     EARLIEST_FIRST(
         Sort.by(
             Sort.Order.asc("${LogEvent::data.name}.${ItemHistory::date.name}"),
+            Sort.Order.asc("_id")
+        )
+    ),
+    SYNC_LATEST_FIRST(
+        Sort.by(
+            Sort.Order.desc("${LogEvent::updatedAt}"),
+            Sort.Order.desc("_id")
+        )
+    ),
+    SYNC_EARLIEST_FIRST(
+        Sort.by(
+            Sort.Order.asc("${LogEvent::updatedAt}"),
             Sort.Order.asc("_id")
         )
     );
