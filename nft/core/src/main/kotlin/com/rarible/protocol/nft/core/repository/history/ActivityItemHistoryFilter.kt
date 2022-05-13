@@ -40,6 +40,8 @@ sealed class ActivityItemHistoryFilter {
     }
 
     class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+
         override fun getCriteria(): Criteria {
             return Criteria()
                 .scrollTo(sort, continuation)
