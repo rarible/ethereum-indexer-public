@@ -57,7 +57,7 @@ class CollectionBlackListVerifiedJob(
                     val task = Task(
                         type = BlackListVerifiedTaskHandler.NAME,
                         param = param.toString(),
-                        state = TaskStatus.NONE,
+                        state = null,
                         running = false,
                         lastStatus = TaskStatus.NONE
                     )

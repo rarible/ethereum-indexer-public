@@ -31,7 +31,7 @@ class BlackListVerifiedTaskHandler(
                 Feature.VERIFIED -> item
             }
             reduceEventListenerListener.onItemChanged(savedItem)
-            item.id.token.prefixed()
+            item.id.tokenId.toString()
         }
     }
 
