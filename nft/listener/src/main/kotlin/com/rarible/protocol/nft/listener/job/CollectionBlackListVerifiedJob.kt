@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 
 class CollectionBlackListVerifiedJob(
-    @Value("\${listener.collectionBlackListVerified.enabled:false}")
+    @Value("\${listener.collectionBlackListVerified.enabled:true}")
     private val enabled: Boolean,
     private val taskRepository: TempTaskRepository,
     private val tokenUpdateService: TokenUpdateService,
