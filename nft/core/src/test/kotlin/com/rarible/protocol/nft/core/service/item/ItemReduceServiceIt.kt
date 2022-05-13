@@ -14,8 +14,6 @@ import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.data.createRandomBurnAction
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.ActionState
-import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -59,6 +57,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -984,7 +983,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
         val burnAction = createRandomBurnAction().copy(
             token = token,
-            tokenId = tokenId
+            tokenId = tokenId,
+            actionAt = nowMillis() - Duration.ofDays(1)
         )
         nftItemActionEventRepository.save(burnAction).awaitFirst()
 
@@ -1000,6 +1000,39 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
         val ownerships = ownershipRepository.search(ownershipFilter.toCriteria(null, null))
         assertThat(ownerships).hasSize(0)
+    }
+
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should not burn item by action if action not time to apply`(version: ReduceVersion) = withReducer(ReduceVersion.V1) {
+        val owner = AddressFactory.create()
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+        val blockTimestamp = Instant.ofEpochSecond(12)
+
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        )
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
+        val burnAction = createRandomBurnAction().copy(
+            token = token,
+            tokenId = tokenId,
+            actionAt = nowMillis() + Duration.ofDays(1)
+        )
+        nftItemActionEventRepository.save(burnAction).awaitFirst()
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.deleted).isFalse
     }
 
     private val itemMeta = ItemMeta(

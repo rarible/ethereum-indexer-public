@@ -22,30 +22,12 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class EnsDomainsPropertiesResolver(
-    private val externalHttpClient: ExternalHttpClient,
     private val ensDomainService: EnsDomainService,
+    private val ensDomainsPropertiesProvider: EnsDomainsPropertiesProvider,
     nftIndexerProperties: NftIndexerProperties,
 ) : ItemPropertiesResolver {
 
-    companion object {
-        private val logger = LoggerFactory.getLogger(EnsDomainsPropertiesResolver::class.java)
-        private const val URL = "https://metadata.ens.domains/"
-        private const val NETWORK = "mainnet"
-
-        val PROPERTIES_NOT_FOUND = ItemProperties(
-            name = "Not found",
-            description = null,
-            image = null,
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
-            attributes = emptyList(),
-            rawJsonContent = null,
-        )
-    }
-
     private val contractAddress: Address = Address.apply(nftIndexerProperties.ensDomainsContractAddress)
-    private val mapper = ObjectMapper()
 
     override val name get() = "EnsDomains"
 
@@ -53,6 +35,21 @@ class EnsDomainsPropertiesResolver(
         if (itemId.token != contractAddress) {
             return null
         }
+        return ensDomainsPropertiesProvider.get(itemId)?.also {  ensDomainService.onGetProperties(itemId, it)}
+    }
+}
+
+
+@Component
+@CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
+class EnsDomainsPropertiesProvider(
+    private val externalHttpClient: ExternalHttpClient,
+    nftIndexerProperties: NftIndexerProperties,
+) {
+    private val contractAddress: Address = Address.apply(nftIndexerProperties.ensDomainsContractAddress)
+    private val mapper = ObjectMapper()
+
+    suspend fun get(itemId: ItemId): ItemProperties? {
         val properties = LoggingUtils.withMarker { marker ->
             logger.info(marker, "get EnsDomains properties ${itemId.tokenId.value}")
 
@@ -89,6 +86,23 @@ class EnsDomainsPropertiesResolver(
                 }
         }.awaitFirstOrNull()
 
-        return properties?.also { ensDomainService.onGetProperties(itemId, it) }
+        return properties
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(EnsDomainsPropertiesProvider::class.java)
+        private const val URL = "https://metadata.ens.domains/"
+        private const val NETWORK = "mainnet"
+
+        val PROPERTIES_NOT_FOUND = ItemProperties(
+            name = "Not found",
+            description = null,
+            image = null,
+            imagePreview = null,
+            imageBig = null,
+            animationUrl = null,
+            attributes = emptyList(),
+            rawJsonContent = null,
+        )
     }
 }

@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.misc.toAddressSet
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
+import java.time.Duration
 
 const val RARIBLE_PROTOCOL_NFT_INDEXER = "common"
 
@@ -32,8 +33,13 @@ data class NftIndexerProperties(
     val scannerProperties: ScannerProperties = ScannerProperties(),
     val itemMeta: ItemMetaProperties = ItemMetaProperties(),
     val contractAddresses: ContractAddresses = ContractAddresses(),
+    val action: ActionProperties = ActionProperties(),
     val ipfs: IpfsProperties
 ) {
+    data class ActionProperties(
+        val burnDelay: Duration = Duration.ofHours(24)
+    )
+
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList()
     )
@@ -53,7 +59,6 @@ data class NftIndexerProperties(
     data class ContractAddresses(
         private val market: String = ""
     ) {
-
         val marketAddresses = toAddressSet(market)
     }
 
