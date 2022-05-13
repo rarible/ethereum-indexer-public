@@ -8,18 +8,17 @@ import com.rarible.protocol.nft.core.service.action.executor.ActionExecutor
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
-import java.time.Clock
+import java.time.Instant
 
 @Component
 class ActionJobHandler(
     private val actionEventRepository: NftItemActionEventRepository,
-    private val clock: Clock,
     actionExecutors: List<ActionExecutor<*>>
 ) : JobHandler {
     private val executors = actionExecutors.groupBy { it.type }
 
     override suspend fun handle() {
-        val now = clock.instant()
+        val now = Instant.now()
         actionEventRepository.findPendingActions(now).collect { action ->
             val foundExecutors = requireNotNull(executors[action.type]) {
                 "Can't find any action executors for ${action.type}, action=$action"
