@@ -25,6 +25,7 @@ class BlackListVerifiedTaskHandler(
         val params = parseParam(paramStr)
         val fromTokenId = from?.let { EthUInt256.of(it) }
         return itemRepository.findTokenItems(params.address, fromTokenId).map { item ->
+            logger.info("Handling item: ${item.id} with feature: ${params.feature}")
             val savedItem = when (params.feature) {
                 Feature.BLACKLIST -> itemRepository.save(item.copy(deleted = true)).awaitSingle()
                 Feature.VERIFIED -> item
@@ -35,7 +36,7 @@ class BlackListVerifiedTaskHandler(
     }
 
     companion object {
-        val NAME = "BLACKLIST_VERIFIED"
+        const val NAME = "BLACKLIST_VERIFIED"
         val logger: Logger = LoggerFactory.getLogger(BlackListVerifiedTaskHandler::class.java)
         fun parseParam(param: String): Param {
             val slices = param.split("_")

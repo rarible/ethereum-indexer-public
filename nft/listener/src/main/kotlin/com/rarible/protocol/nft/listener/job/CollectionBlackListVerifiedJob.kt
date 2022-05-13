@@ -3,6 +3,7 @@ package com.rarible.protocol.nft.listener.job
 import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import com.rarible.protocol.nft.core.service.token.TokenEventListener
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import com.rarible.protocol.nft.listener.admin.BlackListVerifiedTaskHandler
@@ -17,23 +18,28 @@ class CollectionBlackListVerifiedJob(
     private val enabled: Boolean,
     private val taskRepository: TempTaskRepository,
     private val tokenUpdateService: TokenUpdateService,
-    private val tokenListener: TokenEventListener
+    private val tokenListener: TokenEventListener,
+    private val collectionFeatureProvider: CollectionFeatureProvider
 ) {
 
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(
-        fixedDelayString = "\${listener.collectionBlackListVerifiedRefresh.rate:PT1H}",
+        fixedDelayString = "\${listener.collectionBlackListVerifiedRefresh.rate:PT30S}",
         initialDelayString = "PT1M"
     )
     fun execute() = runBlocking<Unit> {
         logger.info("Starting CollectionBlackListVerifiedJob")
         if (enabled) {
+            collectionFeatureProvider.refresh()
 
-            // TODO: get collections
-            val collections = emptyList<BlackListVerifiedTaskHandler.Param>()
-
-            collections.forEach { param ->
+            val blacklist = collectionFeatureProvider.getBlacklisted().map {
+                BlackListVerifiedTaskHandler.Param(it, BlackListVerifiedTaskHandler.Feature.BLACKLIST)
+            }
+            val verified = collectionFeatureProvider.getVerified().map {
+                BlackListVerifiedTaskHandler.Param(it, BlackListVerifiedTaskHandler.Feature.VERIFIED)
+            }
+            (blacklist + verified).forEach { param ->
                 val existedTask =
                     taskRepository.findByType(BlackListVerifiedTaskHandler.NAME, param.toString()).firstOrNull()
                 if (null == existedTask) {
@@ -47,6 +53,7 @@ class CollectionBlackListVerifiedJob(
                             }
                         }
                     }
+                    logger.info("Creating task for ${param}")
                     val task = Task(
                         type = BlackListVerifiedTaskHandler.NAME,
                         param = param.toString(),
@@ -58,5 +65,6 @@ class CollectionBlackListVerifiedJob(
                 }
             }
         }
+        logger.info("Finished CollectionBlackListVerifiedJob")
     }
 }
