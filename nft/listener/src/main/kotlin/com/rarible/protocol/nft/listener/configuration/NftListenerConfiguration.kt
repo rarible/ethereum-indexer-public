@@ -15,10 +15,10 @@ import com.rarible.protocol.nft.core.model.ActionEvent
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.producer.InternalTopicProvider
-import com.rarible.protocol.nft.core.service.CollectionFeaturesService
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import com.rarible.protocol.nft.core.service.action.ActionEventHandler
-import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.core.service.action.ActionJobHandler
+import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
@@ -42,11 +42,11 @@ class NftListenerConfiguration(
 
     @Bean
     fun reduceSkipTokens(
-        collectionFeaturesService: CollectionFeaturesService
+        collectionFeatureProvider: CollectionFeatureProvider
     ): ReduceSkipTokens {
         return ReduceSkipTokens(
             nftListenerProperties.skipReduceTokens.map { ItemId.parseId(it) },
-            collectionFeaturesService
+            collectionFeatureProvider
         )
     }
 

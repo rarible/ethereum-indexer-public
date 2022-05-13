@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import com.rarible.protocol.nft.core.service.Package
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
 import org.springframework.beans.factory.annotation.Qualifier
@@ -73,5 +74,10 @@ class CoreConfiguration(
     @Bean
     fun contractAddresses(): NftIndexerProperties.ContractAddresses {
         return properties.contractAddresses
+    }
+
+    @Bean
+    fun CollectionFeatureProvider(): CollectionFeatureProvider {
+        return CollectionFeatureProvider(properties.blockchain)
     }
 }

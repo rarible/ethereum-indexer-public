@@ -2,10 +2,12 @@ package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
 import com.rarible.protocol.nft.core.model.TokenProperties
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaResolver
 import com.rarible.protocol.nft.core.service.token.meta.InternalCollectionHandler
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
@@ -33,7 +35,7 @@ import scalether.transport.WebSocketPubSubTransport
 class TestPropertiesConfiguration {
     @Bean
     fun skipTokens(): ReduceSkipTokens {
-        return ReduceSkipTokens(hashSetOf())
+        return ReduceSkipTokens(hashSetOf(), CollectionFeatureProvider(Blockchain.ETHEREUM))
     }
 
     @Bean

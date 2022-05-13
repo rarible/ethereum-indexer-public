@@ -1,14 +1,14 @@
 package com.rarible.protocol.nft.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.nft.core.service.CollectionFeaturesService
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import org.slf4j.LoggerFactory
 import scalether.domain.Address
 import java.util.concurrent.atomic.AtomicLong
 
 class ReduceSkipTokens(
     tokens: Collection<ItemId>,
-    private val collectionFeaturesService: CollectionFeaturesService,
+    private val collectionFeatureProvider: CollectionFeatureProvider,
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val skipCounters = tokens.associateWith { AtomicLong(ALLOWING_PERIOD - 1) }
@@ -23,7 +23,7 @@ class ReduceSkipTokens(
             return false
         }
 
-        if (collectionFeaturesService.isBlacklisted(token)) {
+        if (collectionFeatureProvider.isBlacklisted(token)) {
             logger.info("Token ${itemId.decimalStringValue} is blacklisted")
             return false
         }
@@ -32,8 +32,9 @@ class ReduceSkipTokens(
     }
 
     companion object {
+
         const val ALLOWING_PERIOD = 100L
-        val NO_SKIP_TOKENS: (cfs: CollectionFeaturesService) -> ReduceSkipTokens =
+        val NO_SKIP_TOKENS: (cfs: CollectionFeatureProvider) -> ReduceSkipTokens =
             { cfs -> ReduceSkipTokens(emptyList(), cfs) }
     }
 }

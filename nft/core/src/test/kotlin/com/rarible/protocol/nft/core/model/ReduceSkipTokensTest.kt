@@ -1,17 +1,22 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 
 internal class ReduceSkipTokensTest {
+
     private val skipToken1 = ItemId(AddressFactory.create(), EthUInt256.ONE)
     private val skipToken2 = ItemId(AddressFactory.create(), EthUInt256.TEN)
 
+    private val collectionFeatureProvider = CollectionFeatureProvider(Blockchain.ETHEREUM)
+
     @Test
     fun `should not skip for the first time`() {
-        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2))
+        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2), collectionFeatureProvider)
 
         assertThat(reduceSkipTokens.allowReducing(skipToken1.token, skipToken1.tokenId)).isTrue()
         assertThat(reduceSkipTokens.allowReducing(skipToken2.token, skipToken2.tokenId)).isTrue()
@@ -20,7 +25,7 @@ internal class ReduceSkipTokensTest {
 
     @Test
     fun `should skip for the second and more time`() {
-        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2))
+        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2), collectionFeatureProvider)
 
         reduceSkipTokens.allowReducing(skipToken1.token, skipToken1.tokenId)
         reduceSkipTokens.allowReducing(skipToken2.token, skipToken2.tokenId)
@@ -33,7 +38,7 @@ internal class ReduceSkipTokensTest {
 
     @Test
     fun `should allow after period`() {
-        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2))
+        val reduceSkipTokens = ReduceSkipTokens(listOf(skipToken1, skipToken2), collectionFeatureProvider)
 
         for (i in (ReduceSkipTokens.ALLOWING_PERIOD - 1)..(ReduceSkipTokens.ALLOWING_PERIOD * 10)) {
             if (i / ReduceSkipTokens.ALLOWING_PERIOD == 0L) {

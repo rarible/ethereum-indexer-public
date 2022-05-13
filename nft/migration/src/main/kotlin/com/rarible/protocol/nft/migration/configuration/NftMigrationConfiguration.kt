@@ -4,7 +4,7 @@ import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.mongo.configuration.EnableRaribleMongo
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
-import com.rarible.protocol.nft.core.service.CollectionFeaturesService
+import com.rarible.protocol.nft.core.service.CollectionFeatureProvider
 import com.rarible.protocol.nft.migration.model.SpringDataMongodb
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
@@ -21,7 +21,7 @@ class NftMigrationConfiguration {
     }
 
     @Bean
-    fun reduceSkipTokens(collectionFeaturesService: CollectionFeaturesService): ReduceSkipTokens {
-        return ReduceSkipTokens.NO_SKIP_TOKENS(collectionFeaturesService)
+    fun reduceSkipTokens(collectionFeatureProvider: CollectionFeatureProvider): ReduceSkipTokens {
+        return ReduceSkipTokens.NO_SKIP_TOKENS(collectionFeatureProvider)
     }
 }
