@@ -48,7 +48,10 @@ class CompositeBidConverter(
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderDataLegacyDto,
                 makeBalance = BigInteger.ZERO,
-                lastUpdateAt = source.order.lastUpdateAt
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OrderType.RARIBLE_V2 -> RaribleV2OrderDto(
                 hash = source.order.hash,
@@ -73,7 +76,10 @@ class CompositeBidConverter(
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderRaribleV2DataDto,
                 makeBalance = BigInteger.ZERO,
-                lastUpdateAt = source.order.lastUpdateAt
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderDto(
                 hash = source.order.hash,
@@ -98,7 +104,10 @@ class CompositeBidConverter(
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderOpenSeaV1DataV1Dto,
                 makeBalance = BigInteger.ZERO,
-                lastUpdateAt = source.order.lastUpdateAt
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
             OrderType.CRYPTO_PUNKS -> CryptoPunkOrderDto(
                 hash = source.order.hash,
@@ -123,7 +132,10 @@ class CompositeBidConverter(
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderCryptoPunksDataDto,
                 makeBalance = BigInteger.ZERO,
-                lastUpdateAt = source.order.lastUpdateAt
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
         }
     }
