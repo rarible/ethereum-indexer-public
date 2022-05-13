@@ -34,6 +34,14 @@ sealed class ActivityAuctionHistoryFilter {
                 Sort.Order.desc("${LogEvent::data.name}.${BidPlaced::bidValue.name}"),
                 Sort.Order.desc("_id")
             )
+            AuctionActivitySort.SYNC_LATEST_FIRST -> Sort.by(
+                Sort.Order.desc(LogEvent::updatedAt.name),
+                Sort.Order.desc("_id")
+            )
+            AuctionActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc(LogEvent::updatedAt.name),
+                Sort.Order.asc("_id")
+            )
         }
 
     protected fun Criteria.scrollTo(sort: AuctionActivitySort, continuation: String?): Criteria =
@@ -70,7 +78,36 @@ sealed class ActivityAuctionHistoryFilter {
                     )
                 } ?: this
             }
+            AuctionActivitySort.SYNC_LATEST_FIRST -> {
+                val lastDate = DateIdContinuation.parse(continuation)
+                lastDate?.let {
+                    this.orOperator(
+                        LogEvent::updatedAt lt lastDate.date,
+                        (LogEvent::updatedAt isEqualTo lastDate.date).and("_id")
+                            .lt(lastDate.id.safeQueryParam())
+                    )
+                } ?: this
+            }
+            AuctionActivitySort.SYNC_EARLIEST_FIRST -> {
+                val lastDate = DateIdContinuation.parse(continuation)
+                lastDate?.let {
+                    this.orOperator(
+                        LogEvent::updatedAt gt lastDate.date,
+                        (LogEvent::updatedAt isEqualTo lastDate.date).and("_id")
+                            .gt(lastDate.id.safeQueryParam())
+                    )
+                } ?: this
+            }
         }
+
+    class AllSync(private val continuation: String?,
+                  override val auctionActivitySort: AuctionActivitySort
+    ) : ActivityAuctionHistoryFilter() {
+        override fun getCriteria(): Criteria {
+            return Criteria()
+                .scrollTo(auctionActivitySort, continuation)
+        }
+    }
 
     class AllAuctionBids(
         private val hash: Word,
