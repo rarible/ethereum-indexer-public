@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.model
 
+import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -28,6 +29,10 @@ sealed class Action(var type: ActionType) {
 
     fun itemId(): ItemId {
         return ItemId(token, tokenId)
+    }
+
+    fun isActionable(): Boolean {
+        return nowMillis() >= actionAt
     }
 
     abstract fun withState(state: ActionState): Action
