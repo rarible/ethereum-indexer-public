@@ -38,6 +38,7 @@ class EnsDomainBurnActionExecutor(
                 loader.error("Can't execute action for ${itemId.decimalStringValue}")
             }
         } else {
+            loader.info("New expiration date detected for ${itemId.decimalStringValue}, expected to burn at ${action.actionAt} but expired at $expiration")
             ensDomainService.onGetProperties(itemId, properties)
         }
     }
