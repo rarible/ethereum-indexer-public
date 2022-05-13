@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
@@ -18,17 +17,15 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 
 internal class EnsDomainServiceTest {
     private val listener = mockk<OutgoingEventListener<ActionEvent>>()
-    private val clock = mockk<Clock>()
     private val nftIndexerProperties = mockk<NftIndexerProperties> {
         every { action } returns NftIndexerProperties.ActionProperties(burnDelay = Duration.ZERO)
     }
-    private val ensDomainService = EnsDomainService(listOf(listener), nftIndexerProperties, clock)
+    private val ensDomainService = EnsDomainService(listOf(listener), nftIndexerProperties)
 
     @Test
     fun `should emit burn action with target burnAt params`() = runBlocking {
@@ -59,11 +56,9 @@ internal class EnsDomainServiceTest {
     fun `should emit burn action with now burn at`() = runBlocking {
         val itemId = ItemId(randomAddress(), EthUInt256.of(randomBigInt()))
         val properties = createRandomItemProperties().copy(
-            attributes = emptyList()
+            attributes = emptyList(),
         )
-        val burnAt = nowMillis()
         coEvery { listener.onEvent(any()) } returns Unit
-        coEvery { clock.instant() } returns burnAt
 
         ensDomainService.onGetProperties(itemId, properties)
 
@@ -72,7 +67,6 @@ internal class EnsDomainServiceTest {
                 assertThat(it).isInstanceOf(BurnItemActionEvent::class.java)
                 val burnEvent = it as BurnItemActionEvent
                 assertThat(burnEvent.itemId()).isEqualTo(itemId)
-                assertThat(burnEvent.burnAt).isEqualTo(burnAt)
             })
         }
     }

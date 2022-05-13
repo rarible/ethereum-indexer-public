@@ -1,12 +1,13 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesProvider
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver.Companion.PROPERTIES_NOT_FOUND
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -23,7 +24,10 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
     private val ensDomainService = mockk<EnsDomainService> {
         coEvery { onGetProperties(any(), any()) } returns Unit
     }
-    private val resolver = EnsDomainsPropertiesResolver(
+    private val nftIndexerProperties = mockk<NftIndexerProperties> {
+        every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
+    }
+    private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
         externalHttpClient = ExternalHttpClient(
             openseaUrl = "",
             openseaApiKey = "",
@@ -31,10 +35,12 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
             connectTimeout = 10000,
             proxyUrl = ""
         ),
+        nftIndexerProperties = nftIndexerProperties
+    )
+    private val resolver = EnsDomainsPropertiesResolver(
         ensDomainService = ensDomainService,
-        nftIndexerProperties = mockk {
-            every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
-        },
+        ensDomainsPropertiesProvider = ensDomainsPropertiesProvider,
+        nftIndexerProperties = nftIndexerProperties
     )
 
     @Test
@@ -80,6 +86,6 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
             )
         )
 
-        assertThat(properties).isEqualTo(PROPERTIES_NOT_FOUND)
+        assertThat(properties).isEqualTo(EnsDomainsPropertiesProvider.PROPERTIES_NOT_FOUND)
     }
 }
