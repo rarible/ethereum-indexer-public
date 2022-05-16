@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 
 class AavegotchiPropertiesResolver(
     private val openSeaPropertiesResolver: OpenSeaPropertiesResolver,
@@ -18,6 +19,8 @@ class AavegotchiPropertiesResolver(
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
         return openSeaPropertiesResolver.resolve(itemId, aavegotchiImageUrlParser)
+        // if nothing found, we should abort item resolution in order to do not fall back to default OpenSea resolver
+            ?: throw ItemResolutionAbortedException()
     }
 }
 
