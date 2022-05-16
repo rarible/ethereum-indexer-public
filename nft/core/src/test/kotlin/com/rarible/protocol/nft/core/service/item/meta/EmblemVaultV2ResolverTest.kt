@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.mongodb.assertions.Assertions
 import com.mongodb.assertions.Assertions.assertTrue
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
