@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.AavegotchiPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver
@@ -31,7 +32,8 @@ class ItemPropertiesResolverProvider(
     hashmasksPropertiesResolver: HashmasksPropertiesResolver,
     lazyItemPropertiesResolver: LazyItemPropertiesResolver,
     stonerCatsPropertiesResolver: StonerCatsPropertiesResolver,
-    emblemVaultV2Resolver: EmblemVaultV2Resolver
+    emblemVaultV2Resolver: EmblemVaultV2Resolver,
+    aavegotchiPropertiesResolver: AavegotchiPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -52,6 +54,7 @@ class ItemPropertiesResolverProvider(
         lazyItemPropertiesResolver,
         stonerCatsPropertiesResolver,
         emblemVaultV2Resolver,
+        aavegotchiPropertiesResolver,
         raribleResolver
     )
 }
