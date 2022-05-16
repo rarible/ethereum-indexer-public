@@ -294,7 +294,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
                 creators = listOf(Part(AddressFactory.create(), 1000)),
                 pending = emptyList(),
                 revertableEvents = emptyList(),
-                lastUpdatedAt = Instant.now()
+                lastUpdatedAt = nowMillis()
             )
         ).awaitFirst()
 
@@ -432,7 +432,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
                 value = EthUInt256.ONE,
                 date = Instant.now(),
                 pending = emptyList(),
-                lastUpdatedAt = Instant.now()
+                lastUpdatedAt = nowMillis()
             )
         ).awaitFirst()
 
