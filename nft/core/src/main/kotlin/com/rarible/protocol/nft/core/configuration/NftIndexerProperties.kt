@@ -41,7 +41,8 @@ data class NftIndexerProperties(
     )
 
     data class ScannerProperties(
-        val skipTransferContractTokens: List<String> = emptyList()
+        val skipTransferContractTokens: List<String> = emptyList(),
+        val scamTokens: List<String> = emptyList()
     )
 
     data class FactoryAddresses(
