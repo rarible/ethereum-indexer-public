@@ -40,6 +40,8 @@ sealed class ActivityItemHistoryFilter {
     }
 
     class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
+        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
+
         override fun getCriteria(): Criteria {
             return Criteria()
                 .scrollTo(sort, continuation)
@@ -296,13 +298,13 @@ enum class ActivitySort(val sort: Sort) {
     ),
     SYNC_LATEST_FIRST(
         Sort.by(
-            Sort.Order.desc("${LogEvent::updatedAt}"),
+            Sort.Order.desc(LogEvent::updatedAt.name),
             Sort.Order.desc("_id")
         )
     ),
     SYNC_EARLIEST_FIRST(
         Sort.by(
-            Sort.Order.asc("${LogEvent::updatedAt}"),
+            Sort.Order.asc(LogEvent::updatedAt.name),
             Sort.Order.asc("_id")
         )
     );
