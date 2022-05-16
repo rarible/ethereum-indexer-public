@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 
 @Component
 class AavegotchiPropertiesResolver(
@@ -20,9 +21,17 @@ class AavegotchiPropertiesResolver(
     override val name = "Aavegotchi"
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        if (itemId.token != AAVEGOTCHI_ADDRESS) {
+            return null
+        }
         return openSeaPropertiesResolver.resolve(itemId, aavegotchiImageUrlParser)
         // if nothing found, we should abort item resolution in order to do not fall back to default OpenSea resolver
             ?: throw ItemResolutionAbortedException()
+    }
+
+    companion object {
+
+        val AAVEGOTCHI_ADDRESS: Address = Address.apply("0x1906fd9c4ac440561f7197da0a4bd2e88df5fa70")
     }
 }
 
