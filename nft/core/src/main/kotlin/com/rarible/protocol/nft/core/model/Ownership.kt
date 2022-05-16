@@ -67,10 +67,12 @@ data class Ownership(
             this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
             // If no blockchain event, we get latest pending createdAt event timestamp
             this.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?: this.date
-        if (lastUpdatedAt != null) {
-            return this.copy(deleted = deleted, date = updatedAt, lastUpdatedAt = lastUpdatedAt)
-        }
-        return this.copy(deleted = deleted, date = updatedAt)
+
+        return this.copy(
+            deleted = deleted,
+            date = updatedAt,
+            lastUpdatedAt = lastUpdatedAt ?: this.lastUpdatedAt
+        )
     }
 
     companion object {
