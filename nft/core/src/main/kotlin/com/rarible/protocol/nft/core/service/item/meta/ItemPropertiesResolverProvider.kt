@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.AavegotchiPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver
@@ -9,7 +10,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicProperti
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaFallbackPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component
 @Component
 class ItemPropertiesResolverProvider(
     raribleResolver: RariblePropertiesResolver,
-    openSeaFallbackPropertiesResolver: OpenSeaFallbackPropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
     mutantsBoredApeYachtClubPropertiesResolver: MutantsBoredApeYachtClubPropertiesResolver,
     lootResolver: LootPropertiesResolver,
@@ -33,7 +32,8 @@ class ItemPropertiesResolverProvider(
     hashmasksPropertiesResolver: HashmasksPropertiesResolver,
     lazyItemPropertiesResolver: LazyItemPropertiesResolver,
     stonerCatsPropertiesResolver: StonerCatsPropertiesResolver,
-    emblemVaultV2Resolver: EmblemVaultV2Resolver
+    emblemVaultV2Resolver: EmblemVaultV2Resolver,
+    aavegotchiPropertiesResolver: AavegotchiPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -42,7 +42,6 @@ class ItemPropertiesResolverProvider(
     lateinit var openSeaResolver: OpenSeaPropertiesResolver
 
     val orderedResolvers: List<ItemPropertiesResolver> = listOf(
-        openSeaFallbackPropertiesResolver, // To fallback fast to opensea
         yInsureResolver,
         hegicResolver,
         waifusionResolver,
@@ -55,6 +54,7 @@ class ItemPropertiesResolverProvider(
         lazyItemPropertiesResolver,
         stonerCatsPropertiesResolver,
         emblemVaultV2Resolver,
+        aavegotchiPropertiesResolver,
         raribleResolver
     )
 }

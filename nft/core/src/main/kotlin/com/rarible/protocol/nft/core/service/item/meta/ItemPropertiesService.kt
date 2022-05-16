@@ -41,7 +41,7 @@ class ItemPropertiesService(
             callResolvers(itemId)
         } catch (e: ItemResolutionAbortedException) {
             logMetaLoading(itemId, "resolution aborted")
-            return fallbackToOpenSea(itemId)
+            return null
         } catch (e: Exception) {
             logMetaLoading(itemId, "failed: ${e.message}", warn = true)
             return fallbackToOpenSea(itemId)
