@@ -7,7 +7,9 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
+import org.springframework.stereotype.Component
 
+@Component
 class AavegotchiPropertiesResolver(
     private val openSeaPropertiesResolver: OpenSeaPropertiesResolver,
     properties: NftIndexerProperties,
