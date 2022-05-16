@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicProperti
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaFallbackPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component
 @Component
 class ItemPropertiesResolverProvider(
     raribleResolver: RariblePropertiesResolver,
-    openSeaFallbackPropertiesResolver: OpenSeaFallbackPropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
     mutantsBoredApeYachtClubPropertiesResolver: MutantsBoredApeYachtClubPropertiesResolver,
     lootResolver: LootPropertiesResolver,
@@ -42,7 +40,6 @@ class ItemPropertiesResolverProvider(
     lateinit var openSeaResolver: OpenSeaPropertiesResolver
 
     val orderedResolvers: List<ItemPropertiesResolver> = listOf(
-        openSeaFallbackPropertiesResolver, // To fallback fast to opensea
         yInsureResolver,
         hegicResolver,
         waifusionResolver,

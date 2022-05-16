@@ -26,8 +26,6 @@ class ItemPropertiesService(
                 if (itemProperties != null) {
                     return itemProperties
                 }
-            } catch (e: ItemResolutionAbortedException) {
-                throw e // re-throw upper
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
             }
@@ -39,9 +37,6 @@ class ItemPropertiesService(
         logMetaLoading(itemId, "started getting")
         val itemProperties = try {
             callResolvers(itemId)
-        } catch (e: ItemResolutionAbortedException) {
-            logMetaLoading(itemId, "resolution aborted")
-            return fallbackToOpenSea(itemId)
         } catch (e: Exception) {
             logMetaLoading(itemId, "failed: ${e.message}", warn = true)
             return fallbackToOpenSea(itemId)
