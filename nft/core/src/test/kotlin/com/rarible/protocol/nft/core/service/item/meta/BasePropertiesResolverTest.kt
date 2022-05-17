@@ -49,6 +49,14 @@ abstract class BasePropertiesResolverTest {
         proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
     )
 
+    protected val polygonExternalHttpClient = ExternalHttpClient(
+        openseaUrl = "https://api.opensea.io/api/v2",
+        openseaApiKey = "",
+        readTimeout = 10000,
+        connectTimeout = 3000,
+        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+    )
+
     protected val ipfsService = IpfsService(
         NftIndexerProperties.IpfsProperties(
             IPFS_PUBLIC_GATEWAY,
@@ -85,6 +93,6 @@ abstract class BasePropertiesResolverTest {
 
     protected companion object {
         const val REQUEST_TIMEOUT: Long = 20000
-        const val IPFS_PUBLIC_GATEWAY = "https://rarible.mypinata.com"
+        const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
     }
 }

@@ -56,10 +56,15 @@ class AuctionActivityService(
         private val COMPARATOR = compareByDescending(ActivityResult::getDate)
             .then(compareByDescending(ActivityResult::getId))
 
+        private val SYNC_COMPARATOR = compareByDescending(ActivityResult::getUpdatedAt)
+            .then(compareByDescending(ActivityResult::getId))
+
         fun comparator(sort: AuctionActivitySort): Comparator<ActivityResult> =
             when(sort) {
                 AuctionActivitySort.LATEST_FIRST -> COMPARATOR
                 AuctionActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
+                AuctionActivitySort.SYNC_LATEST_FIRST -> SYNC_COMPARATOR
+                AuctionActivitySort.SYNC_EARLIEST_FIRST -> SYNC_COMPARATOR.reversed()
                 else -> throw IllegalArgumentException("$sort sorting is not possible here")
             }
     }

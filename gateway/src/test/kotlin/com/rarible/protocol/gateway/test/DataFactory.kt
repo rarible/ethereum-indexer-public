@@ -36,6 +36,7 @@ fun randomAssetErc1155() = randomAssetErc721(randomItemId())
 fun randomTransferDto(): TransferDto {
     return TransferDto(
         date = nowMillis(),
+        lastUpdatedAt = nowMillis(),
         id = randomString(),
         owner = randomAddress(),
         contract = randomAddress(),
@@ -53,6 +54,7 @@ fun randomTransferDto(): TransferDto {
 fun randomOrderBidActivityDto(): OrderActivityBidDto {
     return OrderActivityBidDto(
         date = nowMillis(),
+        lastUpdatedAt = nowMillis(),
         id = randomString(),
         maker = randomAddress(),
         make = randomAssetErc1155(),

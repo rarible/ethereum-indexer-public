@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.protocol.nft.core.model.ErrorBurnActionMetric
 import com.rarible.protocol.nft.core.model.ExecutedBurnActionMetric
 import com.rarible.protocol.nft.core.model.IncomeBurnActionMetric
 import com.rarible.protocol.nft.core.model.ItemDataQualityErrorMetric
@@ -37,5 +38,11 @@ class MetricsCountersConfiguration(
     @Qualifier("ExecutedBurnActionCounter")
     fun executedBurnActionMetric(): RegisteredCounter{
         return ExecutedBurnActionMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    @Qualifier("ErrorBurnActionMetric")
+    fun errorBurnActionMetric(): RegisteredCounter{
+        return ErrorBurnActionMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }

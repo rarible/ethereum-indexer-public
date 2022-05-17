@@ -105,7 +105,8 @@ class ExchangeOrderMatchDescriptor(
                 date = date,
                 data = transactionOrders?.left?.data,
                 adhoc = leftAdhoc,
-                counterAdhoc = rightAdhoc
+                counterAdhoc = rightAdhoc,
+                originFees = transactionOrders?.left?.originFees
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -126,7 +127,8 @@ class ExchangeOrderMatchDescriptor(
                 date = date,
                 data = transactionOrders?.right?.data,
                 adhoc = rightAdhoc,
-                counterAdhoc = leftAdhoc
+                counterAdhoc = leftAdhoc,
+                originFees = transactionOrders?.right?.originFees
             )
         )
     }

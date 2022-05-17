@@ -39,6 +39,7 @@ internal class OpenSeaOrderTest {
             extra = BigInteger.valueOf(0),
             listingTime = BigInteger.valueOf(1627563829),
             expirationTime = BigInteger.valueOf(0),
+            originFees = emptyList(),
             salt = BigInteger("55652726740606487390401878629540348216828293896576543584531238490014347709943")
         )
 

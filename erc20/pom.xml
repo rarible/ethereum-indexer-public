@@ -17,8 +17,8 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- ============ Internal dependencies ============ -->
 
+            <!-- ============ Internal dependencies ============ -->
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-erc20-indexer-api</artifactId>
@@ -32,6 +32,14 @@
             <dependency>
                 <groupId>com.rarible.protocol</groupId>
                 <artifactId>protocol-erc20-indexer-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.protocol</groupId>
+                <artifactId>protocol-erc20-indexer-core</artifactId>
+                <classifier>tests</classifier>
+                <type>test-jar</type>
+                <scope>test</scope>
                 <version>${project.version}</version>
             </dependency>
 

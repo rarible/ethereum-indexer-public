@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Duration
@@ -20,6 +21,7 @@ import java.time.Duration
 @Component
 class ReduceErc20BalanceTaskHandler(
     private val taskRepository: Erc20TaskRepository,
+    @Qualifier("tokenBalanceReduceService")
     private val balanceReduceService: Erc20BalanceReduceService
 ) : TaskHandler<BalanceReduceState> {
 
@@ -39,8 +41,6 @@ class ReduceErc20BalanceTaskHandler(
             .windowTimeout(Int.MAX_VALUE, Duration.ofSeconds(5))
             .flatMap {
                 it.next()
-            }.takeUntil {
-                param.isBlank() || it.token == Address.apply(param)
             }.asFlow()
     }
 

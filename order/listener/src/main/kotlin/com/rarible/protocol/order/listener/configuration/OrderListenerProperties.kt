@@ -4,6 +4,7 @@ import com.rarible.core.daemon.DaemonWorkerProperties
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.Duration
+import java.time.Instant
 
 internal const val RARIBLE_PROTOCOL_LISTENER = "listener"
 
@@ -24,7 +25,9 @@ data class OrderListenerProperties(
     val openSeaClientUserAgents: String = "",
     val metricJobStartEnd: String = "",
     val ownershipConsumerWorkersCount: Int = 4,
-    val zeroExExchangeDomainHash: String = "0x"
+    val zeroExExchangeDomainHash: String = "0x",
+    val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
+    val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties()
 ) {
     enum class OrderSide {
         ALL,
@@ -32,3 +35,9 @@ data class OrderListenerProperties(
         BID
     }
 }
+
+data class OpenSeaOrdersLoadPeriodWorkerProperties(
+    val enabled: Boolean = false,
+    val start: Instant = Instant.now(),
+    val end: Instant = Instant.now()
+)
