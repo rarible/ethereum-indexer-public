@@ -51,7 +51,9 @@ class OpenSeaOrderServiceImpl(
                 limit = MAX_SIZE
             )
             val result = getOrdersWithLogIfException(request)
-
+            logger.info(
+                "[OpenSea] Load result: size=${request.side}, offset=${orders.size}, listedAfter=${request.listedAfter}, listedBefore=${request.listedBefore}"
+            )
             orders.addAll(result)
         } while (result.isNotEmpty() && result.size >= MAX_SIZE && orders.size <= MAX_OFFSET)
 
