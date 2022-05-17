@@ -95,7 +95,8 @@ class RemoveIrrelevantTaskHandlerTest : AbstractIntegrationTest() {
             value = EthUInt256.ONE,
             lazyValue = EthUInt256.ZERO,
             date = Instant.now(),
-            pending = listOf()
+            pending = listOf(),
+            lastUpdatedAt = nowMillis()
         )
     }
 
