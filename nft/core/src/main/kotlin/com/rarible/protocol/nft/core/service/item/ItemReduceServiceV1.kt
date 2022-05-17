@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.FeatureFlags
@@ -54,10 +55,12 @@ class ItemReduceServiceV1(
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService,
-    private val featureFlags: FeatureFlags
+    private val featureFlags: FeatureFlags,
+    private val scannerProperties: NftIndexerProperties.ScannerProperties
 ) : ItemReduceService {
 
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
+    private val scamTokens = scannerProperties.scamTokens.map(Address::apply).toHashSet()
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
@@ -268,7 +271,7 @@ class ItemReduceServiceV1(
             && creators.isEmpty()
             && !creatorsFinal
         ) {
-            if (featureFlags.validateCreatorByTransactionSender
+            if ((featureFlags.validateCreatorByTransactionSender || token in scamTokens)
                 && transactionSender != null
                 && itemTransfer.owner != transactionSender
             ) {

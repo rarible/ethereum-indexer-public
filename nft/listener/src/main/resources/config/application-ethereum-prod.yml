@@ -1,0 +1,3 @@
+common:
+  scanner-properties:
+    scam-tokens: "0xd4d15a32c2087cf8ca00f448f7337d1c29ec87af"

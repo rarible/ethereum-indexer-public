@@ -26,9 +26,15 @@ class OpenSeaPropertiesResolver(
     @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
 ) : ItemPropertiesResolver {
 
+    private val defaultImageUrlParser = DefaultOpenSeaImageUrlParser(properties.blockchain)
+
     override val name get() = "OpenSea"
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
+        return resolve(itemId, defaultImageUrlParser)
+    }
+
+    suspend fun resolve(itemId: ItemId, imageUrlParser: OpenSeaImageUrlParser): ItemProperties? {
         if (externalHttpClient.openseaUrl.isBlank()) return null
         val openSeaUrl = createOpenSeaUrl(itemId)
         logMetaLoading(itemId, "OpenSea: getting properties from $openSeaUrl")
@@ -36,7 +42,7 @@ class OpenSeaPropertiesResolver(
             .get(openSeaUrl)
             .bodyToMono<ObjectNode>()
             .map {
-                val image = parseImage(it)
+                val image = imageUrlParser.parseImage(it)
                 ItemProperties(
                     name = parseName(it, itemId.tokenId.value),
                     description = it.getText("description"),
@@ -67,13 +73,6 @@ class OpenSeaPropertiesResolver(
             .awaitFirstOrNull()
     }
 
-    private fun parseImage(node: ObjectNode): String? {
-        return when (properties.blockchain) {
-            Blockchain.ETHEREUM -> node.getText("image_original_url") ?: node.getText("image_url")
-            Blockchain.POLYGON -> node.getText("image")
-        }
-    }
-
     private fun createOpenSeaUrl(itemId: ItemId): String {
         return when (properties.blockchain) {
             Blockchain.ETHEREUM -> "${externalHttpClient.openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
@@ -85,5 +84,22 @@ class OpenSeaPropertiesResolver(
         return node.getText("name")
             ?: node.get("asset_contract")?.getText("name")?.let { "$it #$tokenId" }
             ?: "#$tokenId"
+    }
+}
+
+interface OpenSeaImageUrlParser {
+
+    fun parseImage(node: ObjectNode): String?
+}
+
+class DefaultOpenSeaImageUrlParser(
+    private val blockchain: Blockchain
+) : OpenSeaImageUrlParser {
+
+    override fun parseImage(node: ObjectNode): String? {
+        return when (blockchain) {
+            Blockchain.ETHEREUM -> node.getText("image_original_url") ?: node.getText("image_url")
+            Blockchain.POLYGON -> node.getText("image")
+        }
     }
 }
