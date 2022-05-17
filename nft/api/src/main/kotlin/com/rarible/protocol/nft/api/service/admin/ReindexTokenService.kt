@@ -100,8 +100,8 @@ class ReindexTokenService(
     }
 
     suspend fun createReindexCryptoPunksTasks(currentBlock: Long): List<Task> {
-        val startBlock = 0L
-        val step = 5000000L
+        val startBlock = 1L
+        val step = 500_000L
 
         val createdTasks = mutableListOf<Task>()
         ReindexCryptoPunksTaskParam.PunkEvent.values().forEach { event ->
