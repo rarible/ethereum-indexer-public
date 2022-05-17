@@ -15,6 +15,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import scalether.domain.Address
 
 @ItemMetaTest
@@ -80,13 +81,13 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
 
     @Test
     fun `ensDomains resolver - 404`() = runBlocking<Unit> {
-        val properties = resolver.resolve(
-            ItemId(
-                ensDomainsAddress,
-                EthUInt256.of("42")
+        assertThrows<ItemResolutionAbortedException> {
+            resolver.resolve(
+                ItemId(
+                    ensDomainsAddress,
+                    EthUInt256.of("42")
+                )
             )
-        )
-
-        assertThat(properties).isEqualTo(EnsDomainsPropertiesProvider.PROPERTIES_NOT_FOUND)
+        }
     }
 }
