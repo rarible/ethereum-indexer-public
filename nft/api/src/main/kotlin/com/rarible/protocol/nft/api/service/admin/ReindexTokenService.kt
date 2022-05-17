@@ -4,6 +4,7 @@ import com.rarible.core.task.Task
 import com.rarible.core.task.TaskStatus
 import com.rarible.protocol.nft.core.model.ReduceTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams
+import com.rarible.protocol.nft.core.model.ReindexCryptoPunksTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.SUPPORTED_REINDEX_TOKEN_STANDARD
@@ -26,7 +27,6 @@ class ReindexTokenService(
     private val tokenRegistrationService: TokenRegistrationService,
     private val taskRepository: TempTaskRepository
 ) {
-
     suspend fun getTokenTasks(): List<Task> {
         return taskRepository.findByType(ReindexTokenItemsTaskParams.ADMIN_REINDEX_TOKEN_ITEMS).toList() +
             taskRepository.findByType(ReduceTokenItemsTaskParams.ADMIN_REDUCE_TOKEN_ITEMS).toList() +
@@ -97,6 +97,27 @@ class ReindexTokenService(
             state = null,
             force = force
         )
+    }
+
+    suspend fun createReindexCryptoPunksTasks(currentBlock: Long): List<Task> {
+        val startBlock = 0L
+        val step = 5000000L
+
+        val createdTasks = mutableListOf<Task>()
+        ReindexCryptoPunksTaskParam.PunkEvent.values().forEach { event ->
+            var from = startBlock
+            while (from < currentBlock) {
+                val task = saveTask(
+                    param = ReindexCryptoPunksTaskParam(event = event, from = from).toParamString(),
+                    type = ReindexCryptoPunksTaskParam.ADMIN_REINDEX_CRYPTO_PUNKS,
+                    state = null,
+                    force = false
+                )
+                createdTasks.add(task)
+                from += step
+            }
+        }
+        return createdTasks
     }
 
     private suspend fun checkOtherTasksAreNotProcessingTheSameTokens(params: TokenTaskParam, type: String) {
