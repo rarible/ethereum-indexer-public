@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.CollectionsByIdRequestDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -21,6 +22,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.AddressFactory
 import java.time.Duration
+import kotlin.random.Random
+import kotlinx.coroutines.reactive.awaitSingle
 
 @End2EndTest
 class CollectionControllerTest : SpringContainerBaseTest() {
@@ -135,4 +138,31 @@ class CollectionControllerTest : SpringContainerBaseTest() {
         // TODO[meta]: also in this test make sure the collection metadata is re-loaded.
     }
 
+    @Test
+    fun `should return collections by ids`() = runBlocking {
+        val token1 = createToken().copy(standard = TokenStandard.ERC1155)
+        val token2 = createToken().copy(standard = TokenStandard.ERC1155)
+        val token3 = createToken().copy(standard = TokenStandard.ERC1155)
+        val token4 = createToken().copy(standard = TokenStandard.ERC1155)
+        val token5 = createToken().copy(standard = TokenStandard.ERC1155)
+
+        // collections with an "ERROR" status
+        val token6 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+        val token7 = createToken().copy(standard = TokenStandard.ERC1155, status = ContractStatus.ERROR)
+
+        val tokens = listOf(token1, token2, token3, token4, token5, token6, token7)
+        tokens.forEach {
+            tokenRepository.save(it).awaitFirst()
+        }
+
+        val random = Random.nextInt(3, 7)
+
+        val expectedIds = tokens.take(random).map { it.id }
+
+        val actual = nftCollectionApiClient.getNftCollectionsByIds(CollectionsByIdRequestDto(expectedIds.map{ "$it" }))
+            .awaitSingle()
+
+        assertThat(actual.collections.map { it.id }).containsAll(expectedIds)
+        assertThat(actual.continuation).isNull()
+    }
 }
