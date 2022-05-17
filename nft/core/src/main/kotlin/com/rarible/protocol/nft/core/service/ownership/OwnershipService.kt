@@ -45,7 +45,8 @@ class OwnershipService(
             .flatMap { opt ->
                 val existOwnership = opt.orNull()
                 if (isOwnershipChanged(existOwnership, ownership)) {
-                    saveInternal(marker, ownership).map { OwnershipSaveResult(it, true) }
+                    saveInternal(marker, ownership.copy(lastUpdatedAt = nowMillis()))
+                        .map { OwnershipSaveResult(it, true) }
                 } else {
                     logger.info(marker, "Ownership ${ownership.id} don't need to be saved")
                     Mono.just(OwnershipSaveResult(ownership, false))
@@ -53,12 +54,8 @@ class OwnershipService(
             }
     }
 
-    private fun isOwnershipChanged(existOwnership: Ownership?, updatedOwnership: Ownership): Boolean {
-        val calculatedOwnership = updatedOwnership.withCalculatedFields(
-            lastUpdatedAt = if (existOwnership?.owner == updatedOwnership.owner) null else nowMillis()
-        )
-        return existOwnership == null || existOwnership != calculatedOwnership
-    }
+    private fun isOwnershipChanged(existOwnership: Ownership?, updatedOwnership: Ownership): Boolean =
+        existOwnership == null || existOwnership != updatedOwnership.withCalculatedFields()
 
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {
         logger.info(marker, "Saving Ownership ${ownership.id}")
