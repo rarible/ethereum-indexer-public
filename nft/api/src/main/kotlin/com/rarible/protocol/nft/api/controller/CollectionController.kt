@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
+import com.rarible.protocol.dto.CollectionsByIdRequestDto
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftCollectionStatsDto
 import com.rarible.protocol.dto.NftCollectionsDto
@@ -51,6 +52,17 @@ class CollectionController(
         return ResponseEntity.ok(result)
     }
 
+    override suspend fun getNftCollectionsByIds(collectionsByIdRequestDto: CollectionsByIdRequestDto): ResponseEntity<NftCollectionsDto> {
+        val collections = collectionService.get(collectionsByIdRequestDto.ids.map { AddressParser.parse(it) })
+        return ResponseEntity.ok(
+            NftCollectionsDto(
+                total = collections.size.toLong(),
+                collections = collections,
+                continuation = null
+            )
+        )
+    }
+
     override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
         collectionService.resetMeta(AddressParser.parse(collection))
         return ResponseEntity.noContent().build()
@@ -63,17 +75,6 @@ class CollectionController(
         val filter = TokenFilter.All(continuation, limit(size))
         val result = searchCollections(filter)
         return ResponseEntity.ok(result)
-    }
-
-    override suspend fun searchNftCollectionsByIds(ids: List<String>): ResponseEntity<NftCollectionsDto> {
-        val collections = collectionService.get(ids.map { AddressParser.parse(it) })
-        return ResponseEntity.ok(
-            NftCollectionsDto(
-                total = collections.size.toLong(),
-                collections = collections,
-                continuation = null
-            )
-        )
     }
 
     override suspend fun searchNftCollectionsByOwner(

@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.e2e.items
 
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.CollectionsByIdRequestDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
@@ -158,7 +159,8 @@ class CollectionControllerTest : SpringContainerBaseTest() {
 
         val expectedIds = tokens.take(random).map { it.id }
 
-        val actual = nftCollectionApiClient.searchNftCollectionsByIds(expectedIds.map{ "$it" }).awaitSingle()
+        val actual = nftCollectionApiClient.getNftCollectionsByIds(CollectionsByIdRequestDto(expectedIds.map{ "$it" }))
+            .awaitSingle()
 
         assertThat(actual.collections.map { it.id }).containsAll(expectedIds)
         assertThat(actual.continuation).isNull()
