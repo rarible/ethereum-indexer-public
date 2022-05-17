@@ -112,4 +112,17 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         assertThat(ownershipDto.ownerships[0].id).isEqualTo(ownership.id.decimalStringValue)
         assertThat(ownershipDto.continuation).isNull()
     }
+
+    @Test
+    fun `should get ownerships by ids`() = runBlocking<Unit> {
+        val ownerships = (1..5).map { createOwnership() }
+            .sortedBy { it.id.stringValue }
+            .onEach { ownershipRepository.save(it).awaitFirst() }
+
+        val ids = ownerships.map { it.id.stringValue }
+        val result = nftOwnershipApiClient.getNftOwnershipsByIds(ids).awaitFirst()
+
+        assertThat(result.ownerships).hasSize(ids.size)
+        assertThat(result.ownerships.map { it.id }).isEqualTo(ids.map { OwnershipId.parseId(it).decimalStringValue })
+    }
 }
