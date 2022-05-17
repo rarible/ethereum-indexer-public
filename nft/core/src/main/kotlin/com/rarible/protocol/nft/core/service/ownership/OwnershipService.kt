@@ -55,7 +55,7 @@ class OwnershipService(
     }
 
     private fun isOwnershipChanged(existOwnership: Ownership?, updatedOwnership: Ownership): Boolean =
-        existOwnership == null || existOwnership != updatedOwnership.withCalculatedFields()
+        existOwnership == null || existOwnership != updatedOwnership.copy(lastUpdatedAt = existOwnership.lastUpdatedAt).withCalculatedFields()
 
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {
         logger.info(marker, "Saving Ownership ${ownership.id}")

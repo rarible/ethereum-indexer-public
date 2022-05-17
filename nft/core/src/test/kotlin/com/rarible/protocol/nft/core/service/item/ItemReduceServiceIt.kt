@@ -582,6 +582,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `update ownership for ERC1155`(version: ReduceVersion) = withReducer(version) {
+
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -602,6 +603,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.TEN)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.TEN, expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt1 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
 
         val buyer = AddressFactory.create()
 
@@ -613,6 +615,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, EthUInt256.TEN)
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.of(2), expLazyValue = EthUInt256.ZERO)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.of(8), expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
+        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
     }
@@ -623,6 +627,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `ownership transferred for ERC721`(version: ReduceVersion) = withReducer(version) {
+
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -643,6 +648,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.ONE)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt1 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
 
         val buyer = AddressFactory.create()
 
@@ -654,6 +660,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, EthUInt256.ONE)
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
         checkEmptyOwnership(owner, token, tokenId)
+        val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
+        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
@@ -1103,6 +1111,14 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
         assertThat(ownership.deleted).isEqualTo(deleted)
+    }
+
+    private suspend fun getOwnershipLastUpdatedAt(
+        owner: Address,
+        token: Address,
+        tokenId: EthUInt256,
+    ): Instant {
+        return ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst().lastUpdatedAt
     }
 
     companion object {
