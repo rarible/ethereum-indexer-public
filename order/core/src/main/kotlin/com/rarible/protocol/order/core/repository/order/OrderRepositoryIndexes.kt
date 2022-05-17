@@ -129,6 +129,15 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val SELL_ORDERS_BY_COLLECTION_PLATFORM_STATUS_DEFINITION = Index()
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::nft.name}", Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     // --------------------- getSellOrdersByMaker ---------------------//
     val SELL_ORDERS_BY_MAKER_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
@@ -262,6 +271,7 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_COLLECTION_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_STATUS_DEFINITION,
         SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION,
+        SELL_ORDERS_BY_COLLECTION_PLATFORM_STATUS_DEFINITION,
 
         SELL_ORDERS_BY_MAKER_DEFINITION,
         SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION,

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.model.order
 
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.Criteria
@@ -29,7 +30,11 @@ data class OrderFilterSellByCollection(
     }
 
     private fun hint(): Document = when {
-        platforms.isEmpty() -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_DEFINITION.indexKeys
-        else -> OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION.indexKeys
+        platforms.isSingleton && status?.isSingleton == true ->
+            OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_STATUS_DEFINITION.indexKeys
+        platforms.isEmpty()  ->
+            OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_DEFINITION.indexKeys
+        else ->
+            OrderRepositoryIndexes.SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION.indexKeys
     }
 }
