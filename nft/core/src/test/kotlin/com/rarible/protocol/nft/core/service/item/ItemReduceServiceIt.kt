@@ -615,7 +615,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.of(2), expLazyValue = EthUInt256.ZERO)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.of(8), expLazyValue = EthUInt256.ZERO)
         val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
-        assertThat(lastUpdatedAt2).isAfterOrEqualTo(lastUpdatedAt1)
+        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
     }
@@ -660,7 +660,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
         checkEmptyOwnership(owner, token, tokenId)
         val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
-        assertThat(lastUpdatedAt2).isAfterOrEqualTo(lastUpdatedAt1)
+        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
