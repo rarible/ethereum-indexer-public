@@ -42,6 +42,7 @@ class ItemPropertiesResolverProvider(
     lateinit var openSeaResolver: OpenSeaPropertiesResolver
 
     val orderedResolvers: List<ItemPropertiesResolver> = listOf(
+        // Custom resolvers, should be first in the list
         yInsureResolver,
         hegicResolver,
         waifusionResolver,
@@ -51,10 +52,11 @@ class ItemPropertiesResolverProvider(
         ensDomainsPropertiesResolver,
         mutantsBoredApeYachtClubPropertiesResolver,
         lootResolver,
-        lazyItemPropertiesResolver,
         stonerCatsPropertiesResolver,
         emblemVaultV2Resolver,
         aavegotchiPropertiesResolver,
+        // Default resolvers, should be last in the list
+        lazyItemPropertiesResolver,
         raribleResolver
     )
 }
