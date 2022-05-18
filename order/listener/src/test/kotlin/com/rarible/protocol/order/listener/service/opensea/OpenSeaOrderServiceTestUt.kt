@@ -43,7 +43,7 @@ internal class OpenSeaOrderServiceTestUt {
                 )
             )
         }
-        openSeaOrderService.getNextOrdersBatch(listedAfter, listenerBefore)
+        openSeaOrderService.getNextOrdersBatch(listedAfter, listenerBefore, "")
         coVerify (exactly = 4) { openSeaClient.getOrders(any()) }
     }
 }

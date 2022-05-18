@@ -60,7 +60,7 @@ open class OpenSeaOrdersPeriodFetcherWorker(
                         openSeaFetchStateRepository.save(newState)
                     } else {
                         logger.info("[$logPrefix] All order was loaded from $state to $end")
-                        delay(Duration.ofDays(Long.MAX_VALUE))
+                        delay(Duration.ofDays(1))
                     }
                 }
             }

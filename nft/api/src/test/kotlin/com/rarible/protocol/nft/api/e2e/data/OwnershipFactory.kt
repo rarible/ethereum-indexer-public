@@ -18,7 +18,8 @@ fun createOwnership(): Ownership {
         value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000)),
         lazyValue = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000)),
         date = nowMillis(),
-        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemTransfer().getItemTransfer() }
+        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemTransfer().getItemTransfer() },
+        lastUpdatedAt = nowMillis()
     )
 }
 
@@ -41,5 +42,6 @@ fun createOwnership(
     creators = creator?.let { listOf(createPart().copy(account = it)) } ?: listOf(createPart(), createPart()),
     owner = owners,
     date = nowMillis(),
-    pending = emptyList()
+    pending = emptyList(),
+    lastUpdatedAt = nowMillis()
 )

@@ -73,7 +73,7 @@ open class OpenSeaOrdersFetcherWorker(
             name = "fetchOpenSeaOrders",
             labels = listOf("listedAfter" to listedAfter, "listedBefore" to listedBefore)
         ) {
-            openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore)
+            openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore, logPrefix)
         }
         if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }

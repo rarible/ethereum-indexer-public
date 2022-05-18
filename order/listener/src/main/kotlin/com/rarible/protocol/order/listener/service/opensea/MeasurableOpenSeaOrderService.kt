@@ -20,8 +20,8 @@ class MeasurableOpenSeaOrderService(
 ) : OpenSeaOrderService {
     @Volatile private var latestSeanOpenSeaOrderTimestamp: Long? = null
 
-    override suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> {
-        return delegate.getNextOrdersBatch(listedAfter, listedBefore).also { orders ->
+    override suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long, logPrefix: String): List<OpenSeaOrder> {
+        return delegate.getNextOrdersBatch(listedAfter, listedBefore, logPrefix).also { orders ->
             orders
                 .maxOfOrNull { it.createdAt.epochSecond }
                 ?.let {
