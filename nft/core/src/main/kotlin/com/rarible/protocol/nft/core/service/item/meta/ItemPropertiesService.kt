@@ -35,7 +35,7 @@ class ItemPropertiesService(
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
                 e.message?.let {
                     if (it.contains("Timed")) {
-                        logger.warn("CHECK ME: ", e)
+                        logger.warn("Timeout for ${resolver.name}, itemId: ${itemId.decimalStringValue}", e)
                     }
                 }
             }
