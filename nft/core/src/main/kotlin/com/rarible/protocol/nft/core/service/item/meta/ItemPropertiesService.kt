@@ -30,6 +30,7 @@ class ItemPropertiesService(
             } catch (e: ItemResolutionAbortedException) {
                 throw e // re-throw upper
             } catch (e: TimeoutCancellationException) {
+                logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
                 return null // Meta resolution timed out, return null
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
