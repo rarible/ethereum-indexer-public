@@ -73,7 +73,7 @@ listener:
   open-sea-orders-load-delay-worker:
     log-prefix: "OpenSeaDelay"
     state-id: "open_sea_order_delay_fetch"
-    worker-name: "open-sea-orders-load-worker"
+    worker-name: "open-sea-orders-delay-load-worker"
     delay: PT60M
     load-period: 30s
     polling-period: 30s
