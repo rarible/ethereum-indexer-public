@@ -31,16 +31,20 @@ class OpenSeaOrderServiceImpl(
         logPrefix: String,
     ): List<OpenSeaOrder> =
         coroutineScope {
-            val batches = ceil ((listedBefore - listedAfter).toDouble() / loadPeriod.seconds.toDouble()).toLong()
-            assert(batches > 0) { "OpenSea batch count must be positive" }
+            if (listedBefore == listedAfter) {
+                emptyList()
+            } else {
+                val batches = ceil ((listedBefore - listedAfter).toDouble() / loadPeriod.seconds.toDouble()).toLong()
+                assert(batches > 0) { "OpenSea batch count must be positive" }
 
-            (1..batches).map {
-                async {
-                    val nextListedAfter = listedAfter + ((it - 1) * loadPeriod.seconds)
-                    val nextListedBefore = java.lang.Long.min(listedAfter + (it * loadPeriod.seconds), listedBefore)
-                    getNextOrders(nextListedAfter, nextListedBefore, logPrefix)
-                }
-            }.awaitAll().flatten()
+                (1..batches).map {
+                    async {
+                        val nextListedAfter = listedAfter + ((it - 1) * loadPeriod.seconds)
+                        val nextListedBefore = java.lang.Long.min(listedAfter + (it * loadPeriod.seconds), listedBefore)
+                        getNextOrders(nextListedAfter, nextListedBefore, logPrefix)
+                    }
+                }.awaitAll().flatten()
+            }
         }
 
     private suspend fun getNextOrders(listedAfter: Long, listedBefore: Long, logPrefix: String): List<OpenSeaOrder> {
