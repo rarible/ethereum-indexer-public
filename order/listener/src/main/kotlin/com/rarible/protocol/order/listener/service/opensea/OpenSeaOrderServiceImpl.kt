@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
+import kotlin.math.ceil
 
 @Component
 @CaptureSpan(type = SpanType.EXT)
@@ -30,8 +31,8 @@ class OpenSeaOrderServiceImpl(
         logPrefix: String,
     ): List<OpenSeaOrder> =
         coroutineScope {
-            val batches = (listedBefore - listedAfter) / loadPeriod.seconds
-            assert(batches >= 0) { "OpenSea batch count must be positive" }
+            val batches = ceil ((listedBefore - listedAfter).toDouble() / loadPeriod.seconds.toDouble()).toLong()
+            assert(batches > 0) { "OpenSea batch count must be positive" }
 
             (1..batches).map {
                 async {
