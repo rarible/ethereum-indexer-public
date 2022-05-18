@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -13,6 +14,8 @@ class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
     private val ipfsService: IpfsService
 ) {
+
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun resolve(itemId: ItemId): ItemProperties? {
         val resolveResult = doResolve(itemId) ?: return null
@@ -30,6 +33,11 @@ class ItemPropertiesService(
                 throw e // re-throw upper
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
+                e.message?.let {
+                    if (it.contains("Timed")) {
+                        logger.warn("CHECK ME: ", e)
+                    }
+                }
             }
         }
         return null
