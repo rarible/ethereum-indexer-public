@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.configuration
 
 import com.rarible.core.daemon.DaemonWorkerProperties
+import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import java.time.Duration
@@ -43,6 +44,7 @@ sealed class BaseOpenSeaOrderLoadWorkerProperties {
     abstract val saveBatchSize: Int
     abstract val logPrefix: String
     abstract val workerName: String
+    abstract val stateId: String
 }
 
 data class OpenSeaOrderLoadWorkerProperties(
@@ -53,7 +55,8 @@ data class OpenSeaOrderLoadWorkerProperties(
     override val errorDelay: Duration = Duration.ofSeconds(5),
     override val saveBatchSize: Int = 100,
     override val logPrefix: String = "OpenSea",
-    override val workerName: String = ""
+    override val workerName: String = "open-sea-orders-load-worker",
+    override val stateId: String = OpenSeaFetchState.ID
 ) : BaseOpenSeaOrderLoadWorkerProperties()
 
 data class OpenSeaOrdersLoadPeriodWorkerProperties(
@@ -66,5 +69,6 @@ data class OpenSeaOrdersLoadPeriodWorkerProperties(
     override val errorDelay: Duration = Duration.ofSeconds(5),
     override val saveBatchSize: Int = 100,
     override val logPrefix: String = "OpenSeaPeriod",
-    override val workerName: String = ""
+    override val workerName: String = "",
+    override val stateId: String = ""
 ) : BaseOpenSeaOrderLoadWorkerProperties()

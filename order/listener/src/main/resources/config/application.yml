@@ -70,6 +70,13 @@ listener:
     rate: PT1M
     timeOffset: PT1H
     batchSize: 20
+  open-sea-orders-load-delay-worker:
+    log-prefix: "OpenSeaDelay"
+    state-id: "open_sea_order_delay_fetch"
+    worker-name: "open-sea-orders-load-worker"
+    delay: PT60M
+    load-period: 30s
+    polling-period: 30s
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50

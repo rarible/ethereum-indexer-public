@@ -34,20 +34,25 @@ open class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderValidator: OpenSeaOrderValidator,
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
-    private val openSeaOrderSaveCounter : RegisteredCounter,
+    private val saveCounter : RegisteredCounter,
     private val properties: BaseOpenSeaOrderLoadWorkerProperties,
     meterRegistry: MeterRegistry,
 ) : SequentialDaemonWorker(
     meterRegistry,
-    DaemonWorkerProperties().copy(pollingPeriod = properties.pollingPeriod, errorDelay = properties.errorDelay))
+    DaemonWorkerProperties().copy(pollingPeriod = properties.pollingPeriod, errorDelay = properties.errorDelay),
+    properties.workerName)
 {
     protected val logPrefix = properties.logPrefix
+
+    init {
+        logger.info("[$logPrefix] Start OpenSea loader with properties: $properties")
+    }
 
     override suspend fun handle() {
         try {
             withTransaction(name = "loadOpenSeaOrders") {
                 if (properties.enabled) {
-                    val state = openSeaFetchStateRepository.get(OpenSeaFetchState.ID) ?: getInitFetchState()
+                    val state = openSeaFetchStateRepository.get(properties.stateId) ?: getInitFetchState()
                     val now = nowMillis().epochSecond - properties.delay.seconds
                     val newState = loadOpenSeaOrders(
                         state = state,
@@ -125,7 +130,7 @@ open class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
-            openSeaOrderSaveCounter.increment()
+            saveCounter.increment()
             logger.info("[$logPrefix] Saved new OpenSea order ${orderVersion.hash}")
         }
     }

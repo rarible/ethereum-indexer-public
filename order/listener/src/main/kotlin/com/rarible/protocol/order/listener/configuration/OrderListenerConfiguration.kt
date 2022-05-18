@@ -26,6 +26,7 @@ import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
+import com.rarible.protocol.order.listener.service.opensea.MeasurableOpenSeaOrderWrapper
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
@@ -137,18 +138,24 @@ class OrderListenerConfiguration(
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
         properties: OrderListenerProperties,
-        openSeaOrderSaveRegisteredCounter: RegisteredCounter
+        openSeaOrderSaveRegisteredCounter: RegisteredCounter,
+        openSeaOrderLoadRegisteredCounter: RegisteredCounter,
+        measurableOpenSeaOrderWrapper: MeasurableOpenSeaOrderWrapper
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
             properties = properties.openSeaOrdersLoadWorker,
-            openSeaOrderService = openSeaOrderService,
+            openSeaOrderService = measurableOpenSeaOrderWrapper.wrap(
+                delegate = openSeaOrderService,
+                loadCounter = openSeaOrderLoadRegisteredCounter,
+                measureDelay = true
+            ) ,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
-            openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
+            saveCounter = openSeaOrderSaveRegisteredCounter,
         ).apply { start() }
     }
 
@@ -169,18 +176,24 @@ class OrderListenerConfiguration(
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
         properties: OrderListenerProperties,
-        openSeaOrderSaveRegisteredCounter: RegisteredCounter
+        openSeaOrderDelaySaveRegisteredCounter: RegisteredCounter,
+        openSeaOrderDelayLoadRegisteredCounter: RegisteredCounter,
+        measurableOpenSeaOrderWrapper: MeasurableOpenSeaOrderWrapper
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
             properties = properties.openSeaOrdersLoadDelayWorker,
-            openSeaOrderService = openSeaOrderService,
+            openSeaOrderService = measurableOpenSeaOrderWrapper.wrap(
+                delegate = openSeaOrderService,
+                loadCounter = openSeaOrderDelayLoadRegisteredCounter,
+                measureDelay = false
+            ),
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
-            openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
+            saveCounter = openSeaOrderDelaySaveRegisteredCounter,
         ).apply { start() }
     }
 
@@ -201,11 +214,17 @@ class OrderListenerConfiguration(
         orderVersionListener: OrderVersionListener,
         properties: OrderListenerProperties,
         meterRegistry: MeterRegistry,
-        openSeaOrderSaveRegisteredCounter: RegisteredCounter
+        openSeaOrderSaveRegisteredCounter: RegisteredCounter,
+        openSeaOrderLoadRegisteredCounter: RegisteredCounter,
+        measurableOpenSeaOrderWrapper: MeasurableOpenSeaOrderWrapper
     ): OpenSeaOrdersPeriodFetcherWorker {
         return OpenSeaOrdersPeriodFetcherWorker(
             properties = properties.openSeaOrdersLoadPeriodWorker,
-            openSeaOrderService = openSeaOrderService,
+            openSeaOrderService = measurableOpenSeaOrderWrapper.wrap(
+                delegate = openSeaOrderService,
+                loadCounter = openSeaOrderLoadRegisteredCounter,
+                measureDelay = false
+            ) ,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,

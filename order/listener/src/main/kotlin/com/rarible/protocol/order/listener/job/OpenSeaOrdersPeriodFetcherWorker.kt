@@ -28,15 +28,15 @@ open class OpenSeaOrdersPeriodFetcherWorker(
     openSeaOrderSaveCounter: RegisteredCounter,
     meterRegistry: MeterRegistry,
 ) : OpenSeaOrdersFetcherWorker(
-        openSeaOrderService = openSeaOrderService,
-        openSeaFetchStateRepository = openSeaFetchStateRepository,
-        openSeaOrderConverter = openSeaOrderConverter,
-        openSeaOrderValidator = openSeaOrderValidator,
-        orderRepository = orderRepository,
-        orderUpdateService = orderUpdateService,
-        properties = properties,
-        openSeaOrderSaveCounter = openSeaOrderSaveCounter,
-        meterRegistry = meterRegistry,
+    openSeaOrderService = openSeaOrderService,
+    openSeaFetchStateRepository = openSeaFetchStateRepository,
+    openSeaOrderConverter = openSeaOrderConverter,
+    openSeaOrderValidator = openSeaOrderValidator,
+    orderRepository = orderRepository,
+    orderUpdateService = orderUpdateService,
+    properties = properties,
+    saveCounter = openSeaOrderSaveCounter,
+    meterRegistry = meterRegistry
 ) {
     override suspend fun handle() {
         try {
