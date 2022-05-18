@@ -615,7 +615,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.of(2), expLazyValue = EthUInt256.ZERO)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.of(8), expLazyValue = EthUInt256.ZERO)
         val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
-        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
+        assertThat(lastUpdatedAt2!!.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
     }
@@ -660,7 +660,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
         checkEmptyOwnership(owner, token, tokenId)
         val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
-        assertThat(lastUpdatedAt2.isAfter(lastUpdatedAt1)).isTrue
+        assertThat(lastUpdatedAt2!!.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
@@ -1118,7 +1118,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         tokenId: EthUInt256
     ): Instant {
         val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
-        val reducedLastUpdatedAt = ownership.lastUpdatedAt.minusMillis(1)
+        val reducedLastUpdatedAt = ownership.lastUpdatedAt!!.minusMillis(1)
         ownershipRepository.save(ownership.copy(lastUpdatedAt = reducedLastUpdatedAt)).awaitFirst()
         return reducedLastUpdatedAt
     }
@@ -1127,7 +1127,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         owner: Address,
         token: Address,
         tokenId: EthUInt256
-    ): Instant {
+    ): Instant? {
         return ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst().lastUpdatedAt
     }
 

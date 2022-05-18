@@ -18,6 +18,7 @@ fun createNftOwnershipDto(): NftOwnershipDto {
         contract = token,
         tokenId = tokenId,
         date = nowMillis(),
+        lastUpdatedAt = nowMillis(),
         value = EthUInt256.ONE.value,
         owner = AddressFactory.create(),
         creators = emptyList(),

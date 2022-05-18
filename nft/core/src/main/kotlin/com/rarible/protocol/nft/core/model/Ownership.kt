@@ -28,7 +28,7 @@ data class Ownership(
     val value: EthUInt256,
     val lazyValue: EthUInt256 = EthUInt256.ZERO,
     val date: Instant,
-    val lastUpdatedAt: Instant,
+    val lastUpdatedAt: Instant?,
     @Deprecated("Should use getPendingEvents()")
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
