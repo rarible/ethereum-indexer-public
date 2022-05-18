@@ -15,8 +15,7 @@ import java.time.Duration
 
 internal class OpenSeaOrderServiceTestUt {
     private val openSeaClient: OpenSeaClient = mockk()
-    private val properties =  OrderListenerProperties(loadOpenSeaPeriod = Duration.ofSeconds(1))
-
+    private val properties =  OrderListenerProperties()
     private val openSeaOrderService = OpenSeaOrderServiceImpl(openSeaClient, properties)
 
     @Test
@@ -43,7 +42,7 @@ internal class OpenSeaOrderServiceTestUt {
                 )
             )
         }
-        openSeaOrderService.getNextOrdersBatch(listedAfter, listenerBefore, "")
+        openSeaOrderService.getNextOrdersBatch(listedAfter, listenerBefore, Duration.ofSeconds(1), "")
         coVerify (exactly = 4) { openSeaClient.getOrders(any()) }
     }
 }

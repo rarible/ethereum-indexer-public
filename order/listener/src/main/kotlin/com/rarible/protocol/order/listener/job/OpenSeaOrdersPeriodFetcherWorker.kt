@@ -2,13 +2,12 @@ package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.apm.CaptureTransaction
 import com.rarible.core.apm.withTransaction
-import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.configuration.OpenSeaOrdersLoadPeriodWorkerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
@@ -25,10 +24,9 @@ open class OpenSeaOrdersPeriodFetcherWorker(
     orderRepository: OrderRepository,
     orderUpdateService: OrderUpdateService,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
-    private val properties: OrderListenerProperties,
+    private val properties: OpenSeaOrdersLoadPeriodWorkerProperties,
     openSeaOrderSaveCounter: RegisteredCounter,
     meterRegistry: MeterRegistry,
-    workerProperties: DaemonWorkerProperties
 ) : OpenSeaOrdersFetcherWorker(
         openSeaOrderService = openSeaOrderService,
         openSeaFetchStateRepository = openSeaFetchStateRepository,
@@ -39,16 +37,13 @@ open class OpenSeaOrdersPeriodFetcherWorker(
         properties = properties,
         openSeaOrderSaveCounter = openSeaOrderSaveCounter,
         meterRegistry = meterRegistry,
-        workerProperties = workerProperties,
-        workerName = WORKER_NAME,
-        logPrefix = LOG_PREFIX
 ) {
     override suspend fun handle() {
         try {
             withTransaction(name = "loadOpenSeaOrdersPeriod") {
-                if (properties.loadOpenSeaOrders && properties.openSeaOrdersLoadPeriodWorker.enabled) {
-                    val start = properties.openSeaOrdersLoadPeriodWorker.start
-                    val end =  properties.openSeaOrdersLoadPeriodWorker.end
+                if (properties.enabled) {
+                    val start = properties.start
+                    val end =  properties.end
 
                     val stateId = getStateId(start = start, end = end)
                     val state = openSeaFetchStateRepository.get(stateId) ?: OpenSeaFetchState(start.epochSecond, stateId)
@@ -75,7 +70,5 @@ open class OpenSeaOrdersPeriodFetcherWorker(
 
     private companion object {
         const val STATE_ID_PREFIX = "open_sea_past_order_fetch"
-        const val WORKER_NAME = "open-sea-orders-period-fetcher-job"
-        const val LOG_PREFIX = "OpenSeaPeriod"
     }
 }

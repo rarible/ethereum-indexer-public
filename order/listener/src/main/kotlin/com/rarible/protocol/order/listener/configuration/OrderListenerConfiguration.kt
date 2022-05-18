@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.configuration
 
 import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
-import com.rarible.core.daemon.DaemonWorkerProperties
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.telemetry.metrics.RegisteredCounter
@@ -36,7 +35,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import java.time.Duration
 
 @Configuration
 @EnableMongock
@@ -142,7 +140,7 @@ class OrderListenerConfiguration(
         openSeaOrderSaveRegisteredCounter: RegisteredCounter
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
-            properties = properties,
+            properties = properties.openSeaOrdersLoadWorker,
             openSeaOrderService = openSeaOrderService,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
@@ -151,7 +149,38 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
-            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2))
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["load-open-sea-orders-with-delay"],
+        havingValue="true",
+        matchIfMissing = true
+    )
+    fun openSeaOrderLoadWithDelayWorker(
+        openSeaOrderService: OpenSeaOrderService,
+        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
+        openSeaOrderConverter: OpenSeaOrderConverter,
+        openSeaOrderValidator: OpenSeaOrderValidator,
+        orderRepository: OrderRepository,
+        orderUpdateService: OrderUpdateService,
+        orderVersionListener: OrderVersionListener,
+        meterRegistry: MeterRegistry,
+        properties: OrderListenerProperties,
+        openSeaOrderSaveRegisteredCounter: RegisteredCounter
+    ): OpenSeaOrdersFetcherWorker {
+        return OpenSeaOrdersFetcherWorker(
+            properties = properties.openSeaOrdersLoadDelayWorker,
+            openSeaOrderService = openSeaOrderService,
+            openSeaFetchStateRepository = openSeaFetchStateRepository,
+            openSeaOrderConverter = openSeaOrderConverter,
+            openSeaOrderValidator = openSeaOrderValidator,
+            orderRepository = orderRepository,
+            orderUpdateService = orderUpdateService,
+            meterRegistry = meterRegistry,
+            openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
         ).apply { start() }
     }
 
@@ -170,12 +199,12 @@ class OrderListenerConfiguration(
         orderRepository: OrderRepository,
         orderUpdateService: OrderUpdateService,
         orderVersionListener: OrderVersionListener,
-        meterRegistry: MeterRegistry,
         properties: OrderListenerProperties,
+        meterRegistry: MeterRegistry,
         openSeaOrderSaveRegisteredCounter: RegisteredCounter
     ): OpenSeaOrdersPeriodFetcherWorker {
         return OpenSeaOrdersPeriodFetcherWorker(
-            properties = properties,
+            properties = properties.openSeaOrdersLoadPeriodWorker,
             openSeaOrderService = openSeaOrderService,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
             openSeaOrderConverter = openSeaOrderConverter,
@@ -184,7 +213,6 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             openSeaOrderSaveCounter = openSeaOrderSaveRegisteredCounter,
-            workerProperties = DaemonWorkerProperties(pollingPeriod = Duration.ofSeconds(2), errorDelay = Duration.ofSeconds(2)),
         ).apply { start() }
     }
 }
