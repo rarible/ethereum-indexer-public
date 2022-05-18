@@ -94,6 +94,17 @@ class AdminController(
     }
 
     @GetMapping(
+        value = ["/admin/nft/collections/tasks/reindexPunks"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    suspend fun createReindexCryptoPunksTasks(
+        @RequestParam(value = "currentBlock", required = true) currentBlock: Long
+    ): ResponseEntity<List<AdminTaskDto>> {
+        val tasks = reindexTokenService.createReindexCryptoPunksTasks(currentBlock)
+        return ResponseEntity.ok().body(tasks.map { convert(it) })
+    }
+
+    @GetMapping(
         value = ["/admin/nft/collections/tasks/reduceToken"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )

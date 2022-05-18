@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
+import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
 
 @Service
@@ -28,6 +29,8 @@ class ItemPropertiesService(
                 }
             } catch (e: ItemResolutionAbortedException) {
                 throw e // re-throw upper
+            } catch (e: TimeoutCancellationException) {
+                return null // Meta resolution timed out, return null
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
             }
