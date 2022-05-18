@@ -2,6 +2,8 @@ package com.rarible.protocol.order.listener.configuration
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
+import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderSaveMetric
@@ -27,5 +29,15 @@ class MetricsCountersConfiguration(
     @Bean
     fun openSeaOrderLoadRegisteredCounter() : RegisteredCounter {
         return OpenSeaOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun openSeaOrderDelaySaveRegisteredCounter() : RegisteredCounter {
+        return OpenSeaOrderDelaySaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun openSeaOrderDelayLoadRegisteredCounter() : RegisteredCounter {
+        return OpenSeaOrderDelayLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }

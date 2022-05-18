@@ -12,7 +12,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.configuration.BaseOpenSeaOrderLoadWorkerProperties
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
@@ -34,20 +34,26 @@ open class OpenSeaOrdersFetcherWorker(
     private val openSeaOrderValidator: OpenSeaOrderValidator,
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
-    private val properties: OrderListenerProperties,
-    private val openSeaOrderSaveCounter : RegisteredCounter,
+    private val saveCounter : RegisteredCounter,
+    private val properties: BaseOpenSeaOrderLoadWorkerProperties,
     meterRegistry: MeterRegistry,
-    workerProperties: DaemonWorkerProperties,
-    workerName: String = WORKER_NAME,
-    protected val logPrefix: String = LOG_PREFIX
-) : SequentialDaemonWorker(meterRegistry, workerProperties, workerName) {
+) : SequentialDaemonWorker(
+    meterRegistry,
+    DaemonWorkerProperties().copy(pollingPeriod = properties.pollingPeriod, errorDelay = properties.errorDelay),
+    properties.workerName)
+{
+    protected val logPrefix = properties.logPrefix
+
+    init {
+        logger.info("[$logPrefix] Start OpenSea loader with properties: $properties")
+    }
 
     override suspend fun handle() {
         try {
             withTransaction(name = "loadOpenSeaOrders") {
-                if (properties.loadOpenSeaOrders) {
-                    val state = openSeaFetchStateRepository.get(OpenSeaFetchState.ID) ?: INIT_FETCH_STATE
-                    val now = nowMillis().epochSecond - properties.loadOpenSeaDelay.seconds
+                if (properties.enabled) {
+                    val state = openSeaFetchStateRepository.get(properties.stateId) ?: getInitFetchState()
+                    val now = nowMillis().epochSecond - properties.delay.seconds
                     val newState = loadOpenSeaOrders(
                         state = state,
                         timeBoundary = now
@@ -73,7 +79,11 @@ open class OpenSeaOrdersFetcherWorker(
             name = "fetchOpenSeaOrders",
             labels = listOf("listedAfter" to listedAfter, "listedBefore" to listedBefore)
         ) {
-            openSeaOrderService.getNextOrdersBatch(listedAfter = listedAfter, listedBefore = listedBefore, logPrefix)
+            openSeaOrderService.getNextOrdersBatch(
+                listedAfter = listedAfter,
+                listedBefore = listedBefore,
+                loadPeriod = properties.loadPeriod,
+                logPrefix = properties.logPrefix)
         }
         if (openSeaOrders.isNotEmpty()) {
             val ids = openSeaOrders.map { it.id }
@@ -89,7 +99,7 @@ open class OpenSeaOrdersFetcherWorker(
             coroutineScope {
                 withSpan(name = "saveOpenSeaOrders", labels = listOf("size" to openSeaOrders.size)) {
                     openSeaOrders
-                        .chunked(properties.saveOpenSeaOrdersBatchSize)
+                        .chunked(properties.saveBatchSize)
                         .map { chunk ->
                             chunk.map { openSeaOrder ->
                                 async {
@@ -120,16 +130,17 @@ open class OpenSeaOrdersFetcherWorker(
     private suspend fun saveOrder(orderVersion: OrderVersion) {
         if (orderRepository.findById(orderVersion.hash) == null) {
             orderUpdateService.save(orderVersion)
-            openSeaOrderSaveCounter.increment()
+            saveCounter.increment()
             logger.info("[$logPrefix] Saved new OpenSea order ${orderVersion.hash}")
         }
     }
 
+    private fun getInitFetchState(): OpenSeaFetchState {
+        return OpenSeaFetchState((Instant.now() - properties.delay - properties.loadPeriod).epochSecond)
+    }
+
     private companion object {
         val MAX_LOAD_PERIOD: Duration = Duration.ofSeconds(30)
-        val INIT_FETCH_STATE: OpenSeaFetchState = OpenSeaFetchState((Instant.now() - MAX_LOAD_PERIOD).epochSecond)
-        const val WORKER_NAME = "open-sea-orders-fetcher-job"
-        const val LOG_PREFIX = "OpenSea"
     }
 
     override fun health(): Health {
