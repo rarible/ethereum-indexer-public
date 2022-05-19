@@ -23,7 +23,7 @@ class RariblePropertiesResolver(
     override val name get() = "Rarible"
 
     override suspend fun resolve(itemId: ItemId): ItemProperties? {
-        val tokenUri = tokenUriResolver.getUri(itemId)
+        val tokenUri = tokenUriResolver.getUri(itemId)?.trim()
         if (tokenUri.isNullOrBlank()) {
             logMetaLoading(itemId, "empty token URI", warn = true)
             return null
