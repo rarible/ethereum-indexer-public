@@ -198,7 +198,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             zeroExOrderEventConverter = ZeroExOrderEventConverter(
                 priceUpdateService = priceUpdateService,
                 priceNormalizer = priceNormalizer,
-                exchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
+                properties = OrderListenerProperties().copy(zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67")
             ),
             zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
         )
@@ -338,7 +338,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             zeroExOrderEventConverter = ZeroExOrderEventConverter(
                 priceUpdateService = priceUpdateService,
                 priceNormalizer = priceNormalizer,
-                exchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
+                properties = OrderListenerProperties().copy(zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67")
             ),
             zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
         )
