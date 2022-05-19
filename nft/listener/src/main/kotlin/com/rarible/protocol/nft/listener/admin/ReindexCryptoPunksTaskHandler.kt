@@ -10,12 +10,10 @@ import com.rarible.protocol.nft.listener.service.descriptors.crypto.punks.Crypto
 import com.rarible.protocol.nft.listener.service.descriptors.crypto.punks.CryptoPunkTransferLogDescriptor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
-import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
 
-@Component
 class ReindexCryptoPunksTaskHandler(
     private val logListenService: LogListenService,
     private val tokenRegistrationService: TokenRegistrationService,
