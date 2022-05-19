@@ -136,7 +136,10 @@ open class OpenSeaOrdersFetcherWorker(
     }
 
     private fun getInitFetchState(): OpenSeaFetchState {
-        return OpenSeaFetchState((Instant.now() - properties.delay - properties.loadPeriod).epochSecond)
+        return OpenSeaFetchState(
+            id = properties.stateId,
+            listedAfter = (Instant.now() - properties.delay - properties.loadPeriod).epochSecond
+        )
     }
 
     private companion object {

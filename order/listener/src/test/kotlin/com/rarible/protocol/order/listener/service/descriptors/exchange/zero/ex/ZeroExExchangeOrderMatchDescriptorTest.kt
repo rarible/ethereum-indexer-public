@@ -124,6 +124,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                     any(),
                     any(),
                     any(),
+                    any(),
                 )
             }
         } returns listOf(orderSideMatchFromConverter)
@@ -239,7 +240,8 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 date = Instant.ofEpochSecond(date),
                 orderHash = Word.apply(event.orderHash()),
                 makerAddress = event.makerAddress(),
-                takerAssetFilledAmount = event.takerAssetFilledAmount()
+                takerAssetFilledAmount = event.takerAssetFilledAmount(),
+                makerAssetFilledAmount = event.makerAssetFilledAmount(),
             )
         }
 
@@ -391,6 +393,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                     any(),
                     any(),
                     any(),
+                    any(),
                 )
             }
         } returns listOf(orderSideMatchFromConverter)
@@ -513,7 +516,8 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 date = Instant.ofEpochSecond(date),
                 orderHash = Word.apply(event.orderHash()),
                 makerAddress = event.makerAddress(),
-                takerAssetFilledAmount = event.takerAssetFilledAmount()
+                takerAssetFilledAmount = event.takerAssetFilledAmount(),
+                makerAssetFilledAmount = event.makerAssetFilledAmount(),
             )
         }
 
@@ -673,6 +677,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                     any(),
                     any(),
                     any(),
+                    any(),
                 )
             }
         } returns listOf(orderSideMatchFromConverter)
@@ -798,7 +803,8 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 date = Instant.ofEpochSecond(date),
                 orderHash = Word.apply(event.orderHash()),
                 makerAddress = event.makerAddress(),
-                takerAssetFilledAmount = event.takerAssetFilledAmount()
+                takerAssetFilledAmount = event.takerAssetFilledAmount(),
+                makerAssetFilledAmount = event.makerAssetFilledAmount(),
             )
         }
 
