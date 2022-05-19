@@ -31,12 +31,19 @@ sharedEnvironments: &sharedEnvironments
   # RARIBLE_ETHEREUM_HTTPURL: 
   # RARIBLE_ETHEREUM_WEBSOCKETURL:
 
+sharedTolerations: &sharedTolerations
+  env: infura-test
+
 ethereum-erc20-api:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
 
 ethereum-erc20-listener:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-erc20
@@ -46,11 +53,13 @@ ethereum-erc20-listener:
     USENEWMONGOINDEX: true
 
 ethereum-gateway:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
 
-oderEnvironment: &oderEnvironment
+orderEnvironment: &orderEnvironment
     COMMON_AUCTIONCONTRACTADDRESSES_V1: "0xA8B4ab8aE8C40cD6b11a3A6BFCb00B2B8106150f"
     COMMON_EXCHANGECONTRACTADDRESSES_CRYPTOPUNKS: "0xaf2584a8b198f5d0b360b95d92aec852f7902e52"
     COMMON_EXCHANGECONTRACTADDRESSES_HOLDERV1: "0x0000000000000000000000000000000000000000"
@@ -72,14 +81,18 @@ oderEnvironment: &oderEnvironment
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-order
 
 ethereum-order-api:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
-    <<: *oderEnvironment
+    <<: *orderEnvironment
 
 ethereum-order-listener:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
-    <<: *oderEnvironment
+    <<: *orderEnvironment
     BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 100
     ETHEREUMBLOCKPROCESSINGDELAY: 5000
     LISTENER_LOADOLDOPENSEAORDERS: true
@@ -97,15 +110,21 @@ ethereum-order-listener:
     SPRING_TASK_SCHEDULING_POOL_SIZE: 60
     USENEWMONGOINDEX: true
 ethereum-order-migration:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
-    <<: *oderEnvironment
+    <<: *orderEnvironment
 
 ethereum-unlockable-api:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-unlockable
 ethereum-nft-api: 
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     RARIBLE_LOADER_LOADTASKSBATCHSIZE: 50
@@ -116,6 +135,8 @@ ethereum-nft-api:
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
 
 ethereum-nft-listener:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     COMMON_FEATUREFLAGS_SCANNERVERSION: V2
@@ -124,6 +145,8 @@ ethereum-nft-listener:
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
 
 ethereum-nft-migration:
+  tolerations:
+    <<: *sharedTolerations
   environments:
     <<: *sharedEnvironments
     SPRING_DATA_MONGODB_DATABASE: test-protocol-ethereum-nft
