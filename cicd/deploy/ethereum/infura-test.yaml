@@ -32,7 +32,10 @@ sharedEnvironments: &sharedEnvironments
   # RARIBLE_ETHEREUM_WEBSOCKETURL:
 
 sharedTolerations: &sharedTolerations
-  env: infura-test
+  - effect: NoSchedule
+    key: env
+    operator: Equal
+    value: infura
 
 ethereum-erc20-api:
   tolerations:
