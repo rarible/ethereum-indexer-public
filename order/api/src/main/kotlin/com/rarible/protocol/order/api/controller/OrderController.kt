@@ -9,6 +9,7 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.OrdersPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
@@ -175,6 +176,19 @@ class OrderController(
             platforms = safePlatforms(platform),
             sort = OrderFilterSort.LAST_UPDATE_DESC,
             status = listOf(OrderStatusDto.ACTIVE)
+        )
+        val result = searchOrders(filter, continuation, size)
+        return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getAllSync(
+        sort: SyncSortDto?,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val filter = OrderFilterAll(
+            sort = convert(sort),
+            platforms = safePlatforms(null)
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -537,6 +551,15 @@ class OrderController(
         default: OrderFilterSort = OrderFilterSort.LAST_UPDATE_DESC
     ): OrderFilterSort {
         return source?.let { OrderSortDtoConverter.convert(it) } ?: default
+    }
+
+    private fun convert(
+        source: SyncSortDto?
+    ): OrderFilterSort {
+        return when (source) {
+            SyncSortDto.DB_UPDATE_DESC -> OrderFilterSort.DB_UPDATE_DESC
+            else -> OrderFilterSort.DB_UPDATE_ASC
+        }
     }
 
     private fun toContinuation(orderVersion: OrderVersion): String {

@@ -13,9 +13,7 @@ import org.junit.jupiter.api.Test
 @ItemMetaTest
 class WaifusionPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val waifusionPropertiesResolver: WaifusionPropertiesResolver = WaifusionPropertiesResolver(
-        sender = createSender()
-    )
+    private val waifusionPropertiesResolver = WaifusionPropertiesResolver(sender = sender)
 
     @Test
     fun `waifusion resolver`() = runBlocking<Unit> {
@@ -49,5 +47,4 @@ class WaifusionPropertiesResolverTest : BasePropertiesResolverTest() {
         )
         assertThat(properties).isNull()
     }
-
 }

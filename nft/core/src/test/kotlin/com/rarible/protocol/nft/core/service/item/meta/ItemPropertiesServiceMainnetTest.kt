@@ -4,6 +4,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -11,11 +12,9 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createExternalHttpClient
-import com.rarible.protocol.nft.core.service.item.meta.OpenSeaPropertiesResolverTest.Companion.createOpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
@@ -35,19 +34,21 @@ import kotlin.io.path.toPath
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
-    private val sender = createSender()
-    private val externalHttpClient = createExternalHttpClient()
     private val rariblePropertiesResolver = RariblePropertiesResolver(
-        sender = sender,
-        tokenRepository = tokenRepository,
-        ipfsService = IpfsService(),
-        requestTimeout = 20000,
-        externalHttpClient = externalHttpClient
+        ipfsService = ipfsService,
+        propertiesHttpLoader = propertiesHttpLoader,
+        tokenUriResolver = tokenUriResolver
     )
-    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, IpfsService())
+
+    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
         MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
-    private val openSeaPropertiesResolver = createOpenSeaPropertiesResolver()
+
+    private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
+        externalHttpClient = externalHttpClient,
+        requestTimeout = REQUEST_TIMEOUT,
+        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
+    )
 
     private val service = ItemPropertiesService(
         itemPropertiesResolverProvider = mockk {
@@ -58,7 +59,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        ipfsService = IpfsService()
+        ipfsService = ipfsService
     )
 
     private val jacksonObjectMapper = jacksonObjectMapper()

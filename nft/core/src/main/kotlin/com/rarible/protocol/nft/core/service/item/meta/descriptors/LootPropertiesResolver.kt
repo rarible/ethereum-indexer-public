@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -10,6 +9,8 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
+import com.rarible.protocol.nft.core.service.item.meta.properties.SvgSanitizer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -52,12 +53,12 @@ class LootPropertiesResolver(
         val def = "chest foot hand head neck ring waist weapon".split(" ")
         val attrs = ll.mapIndexed { i, v -> ItemAttribute(def[i], v) }.toList()
         val tokenUri = contract.tokenURI(tokenId).call().awaitSingle()
-        check(tokenUri.startsWith(BASE_64_JSON_PREFIX))
+
         @Suppress("BlockingMethodInNonBlockingContext")
-        val node = mapper.readTree(base64MimeToBytes(tokenUri.removePrefix(BASE_64_JSON_PREFIX))) as ObjectNode
+        val node = JsonPropertiesParser.parse(itemId, tokenUri)
+        check(node != null)
         val imageUrl = node.getText("image")?.let {
-            check(it.startsWith(BASE_64_SVG_PREFIX))
-            String(base64MimeToBytes(it.removePrefix(BASE_64_SVG_PREFIX)))
+            SvgSanitizer.sanitize(itemId, it)
         }
         val name = node.getText("name") ?: return null
         return ItemProperties(

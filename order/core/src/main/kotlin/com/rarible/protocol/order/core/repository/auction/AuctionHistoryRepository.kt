@@ -11,12 +11,14 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
@@ -32,7 +34,15 @@ class AuctionHistoryRepository(
     val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     fun save(logEvent: LogEvent): Mono<LogEvent> {
-        return template.save(logEvent, COLLECTION)
+        return template.save(logEvent.withDbUpdated(), COLLECTION)
+    }
+
+    fun find(query: Query): Flow<LogEvent> {
+        return template.find(query,LogEvent::class.java, COLLECTION).asFlow()
+    }
+
+    fun findById(id: ObjectId): Mono<LogEvent> {
+        return template.findById(id, COLLECTION)
     }
 
     fun findByType(type: AuctionHistoryType): Flux<LogEvent> {
@@ -78,6 +88,13 @@ class AuctionHistoryRepository(
         }
     }
 
+    fun findByIds(ids: List<String>): Flux<LogEvent> {
+        val query = Query(
+            LogEvent::id inValues ids.map { ObjectId(it) }
+        )
+        return template.find(query, LogEvent::class.java, COLLECTION)
+    }
+
     private object AuctionHistoryIndexes {
         val BY_TYPE_TOKEN_ID_DEFINITION: Index = Index()
             .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
@@ -95,10 +112,17 @@ class AuctionHistoryRepository(
             .on("${LogEvent::data.name}.${OnChainAuction::buyer.name}", Sort.Direction.ASC)
             .background()
 
+        val BY_UPDATED_AT_FIELD: Index = Index()
+            .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
+
         val ALL_INDEXES = listOf(
             BY_TYPE_TOKEN_ID_DEFINITION,
             BY_TYPE_SELLER_DEFINITION,
-            BY_TYPE_BUYER_DEFINITION
+            BY_TYPE_BUYER_DEFINITION,
+            BY_UPDATED_AT_FIELD
         )
     }
 

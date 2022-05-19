@@ -6,7 +6,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -16,9 +15,9 @@ import org.junit.jupiter.api.Test
 class LootPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lootPropertiesResolver = LootPropertiesResolver(
-        sender = createSender(),
+        sender = sender,
         mapper = jacksonObjectMapper(),
-        ipfsService = IpfsService()
+        ipfsService = ipfsService
     )
 
     @Test

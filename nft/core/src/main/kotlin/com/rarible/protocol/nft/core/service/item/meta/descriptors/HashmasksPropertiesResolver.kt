@@ -54,7 +54,7 @@ class HashmasksPropertiesResolver(
             "skinColor" to skinColor,
             "item" to item
         ).map { ItemAttribute(it.key, it.value) }
-        val imageUrl = ipfsService.resolveHttpUrl(ipfsHash)
+        val imageUrl = ipfsService.resolvePublicHttpUrl(ipfsHash)
         return ItemProperties(
             name = tokenName,
             description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",

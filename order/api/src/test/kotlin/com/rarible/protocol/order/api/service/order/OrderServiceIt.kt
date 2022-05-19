@@ -35,6 +35,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.order.OrderFilterAll
 import com.rarible.protocol.order.core.model.order.OrderFilterSell
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
@@ -45,6 +46,7 @@ import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
@@ -244,6 +246,45 @@ class OrderServiceIt : AbstractOrderIt() {
         assertThat(orders).hasSize(2)
         assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order1.hash) }
         assertThat(orders).anySatisfy { assertThat(it.hash).isEqualTo(order2.hash) }
+    }
+
+    @Test
+    fun `get all orders sorted by db updated asc`() = runBlocking<Unit> {
+        val orderQuantity = 5
+        repeat(orderQuantity) {
+            saveRandomOrder()
+            delay(50)
+        }
+
+        val filter = OrderFilterAll(
+            sort = OrderFilterSort.DB_UPDATE_ASC,
+            platforms = listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.OPEN_SEA)
+        )
+
+        val result = orderService.findOrders(filter, 5, null)
+
+        assertThat(result).hasSize(orderQuantity)
+        assertThat(result).isSortedAccordingTo { o1, o2 -> o1.dbUpdatedAt!!.compareTo(o2.dbUpdatedAt) }
+    }
+
+    @Test
+    fun `get all orders sorted by db updated desc`() = runBlocking<Unit> {
+
+        val orderQuantity = 5
+        repeat(orderQuantity) {
+            saveRandomOrder()
+            delay(50)
+        }
+
+        val filter = OrderFilterAll(
+            sort = OrderFilterSort.DB_UPDATE_DESC,
+            platforms = listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.OPEN_SEA)
+        )
+
+        val result = orderService.findOrders(filter, orderQuantity, null)
+
+        assertThat(result).hasSize(orderQuantity)
+        assertThat(result).isSortedAccordingTo { o1, o2 -> o2.dbUpdatedAt!!.compareTo(o1.dbUpdatedAt) }
     }
 
     @Test
@@ -835,6 +876,12 @@ class OrderServiceIt : AbstractOrderIt() {
         val (_, _, signer) = generateNewKeys()
         val order =
             orderCryptoPunksData(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
+        return orderRepository.save(order)
+    }
+
+    private suspend fun saveRandomOrder(): Order{
+        val (_, _, signer) = generateNewKeys()
+        val order = createOrder(signer)
         return orderRepository.save(order)
     }
 }

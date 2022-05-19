@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.core.repository.order
 
+import com.mongodb.client.result.UpdateResult
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.protocol.order.api.misc.indexName
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.LogEventKey
 import com.rarible.protocol.order.core.model.OrderVersion
@@ -19,6 +21,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
 import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.*
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -42,7 +45,9 @@ class OrderVersionRepository(
             "take.type.token_1_take.type.tokenId_1_createdAt_-1_id_-1",
             "take.type.token_1_take.type.tokenId_1_createdAt_1_takePriceUsd_1__id_1",
             "hash_1",
-            "makeStock_-1_lastUpdateAt_-1__id_1"
+            "makeStock_-1_lastUpdateAt_-1__id_1",
+            OrderVersionRepositoryIndexes.MAKER_TAKE_PRICE_USD_BID_DEFINITION.indexName,
+            OrderVersionRepositoryIndexes.HASH_PLATFORM_AND_ID_DEFINITION.indexName
         )
     }
 
@@ -66,6 +71,14 @@ class OrderVersionRepository(
 
     fun save(orderVersion: OrderVersion): Mono<OrderVersion> {
         return template.save(orderVersion, COLLECTION)
+    }
+
+    fun updateMulti(query: Query, update: UpdateDefinition): Mono<UpdateResult> {
+        return template.updateMulti(query, update,  COLLECTION)
+    }
+
+    fun find(query: Query): Flow<OrderVersion> {
+        return template.query<OrderVersion>().matching(query).all().asFlow()
     }
 
     fun search(filter: OrderVersionFilter): Flux<OrderVersion> {
@@ -126,6 +139,11 @@ class OrderVersionRepository(
     fun deleteByOnChainOrderKey(key: LogEventKey): Mono<Void> {
         val criteria = OrderVersion::onChainOrderKey isEqualTo key
         return template.remove(Query(criteria), COLLECTION).then()
+    }
+
+    fun findByIds(ids: List<ObjectId>): Flux<OrderVersion> {
+        val query = Query(OrderVersion::id inValues ids)
+        return template.find(query, OrderVersion::class.java, COLLECTION)
     }
 
     companion object {

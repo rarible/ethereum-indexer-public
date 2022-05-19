@@ -7,3 +7,4 @@ class IncomeBurnActionMetric(root: String, blockchain: Blockchain) : CountingMet
     "$root.action.burn.income", tag("blockchain", blockchain.value)
 )
 
+

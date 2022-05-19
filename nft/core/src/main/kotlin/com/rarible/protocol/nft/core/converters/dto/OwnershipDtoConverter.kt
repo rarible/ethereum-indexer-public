@@ -23,6 +23,7 @@ class OwnershipDtoConverter(
             value = source.value.value,
             lazyValue = source.lazyValue.value,
             date = source.date,
+            lastUpdatedAt = source.lastUpdatedAt,
             pending = convertPending(source)
         )
     }

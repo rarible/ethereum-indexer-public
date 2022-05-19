@@ -34,7 +34,8 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
     ) = runBlocking<Unit> {
         val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         if (address == Address.ZERO()) return@runBlocking
-        val zipResponse = downloadArchive(CRYPTO_PUNKS_ARCHIVE_URL).awaitSingle()
+        val url = "${ipfsService.publicGateway}/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"
+        val zipResponse = downloadArchive(url).awaitSingle()
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->
                 var entry: ZipEntry?
@@ -92,7 +93,6 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
         const val rateLimit = 100
         const val timeframe = 60_000L
         const val betweenRequest = timeframe / rateLimit
-        val CRYPTO_PUNKS_ARCHIVE_URL: String = "${IpfsService.RARIBLE_IPFS}/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"
         val logger: Logger = LoggerFactory.getLogger(ChangeLog00014UploadSvgsForCryptoPunks::class.java)
     }
 }

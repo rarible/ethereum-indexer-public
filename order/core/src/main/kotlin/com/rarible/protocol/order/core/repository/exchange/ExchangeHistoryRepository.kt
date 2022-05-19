@@ -21,8 +21,11 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepositoryIndexes.ITEM_SELL_DEFINITION
 import com.rarible.protocol.order.core.repository.exchange.misc.aggregateWithHint
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.jetbrains.annotations.TestOnly
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -31,6 +34,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.find
 import org.springframework.data.mongodb.core.findAll
+import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.and
@@ -82,6 +86,14 @@ class ExchangeHistoryRepository(
 
     fun save(logEvent: LogEvent): Mono<LogEvent> {
         return template.save(logEvent, COLLECTION)
+    }
+
+    fun find(query: Query): Flow<LogEvent> {
+        return template.find(query,LogEvent::class.java, COLLECTION).asFlow()
+    }
+
+    fun findById(id: ObjectId): Mono<LogEvent> {
+        return template.findById(id, COLLECTION)
     }
 
     @TestOnly // this query may be slow, use in tests only
@@ -156,6 +168,11 @@ class ExchangeHistoryRepository(
         return template.find(query.with(filter.sort.toMongo()), LogEvent::class.java, COLLECTION)
     }
 
+    fun findByIds(ids: List<ObjectId>): Flux<LogEvent> {
+        val query = Query(LogEvent::id inValues ids)
+        return template.find(query, LogEvent::class.java, COLLECTION)
+    }
+
     // TODO remove later
     fun <T> aggregate(aggregation: Aggregation, collectionName: String, outputType: Class<T>): Flux<T> {
         return template.aggregateWithHint(aggregation, collectionName, outputType, null)
@@ -170,6 +187,14 @@ class ExchangeHistoryRepository(
             ActivitySort.EARLIEST_FIRST -> Sort.by(
                 Sort.Order.asc("${LogEvent::data.name}.${OrderExchangeHistory::date.name}"),
                 Sort.Order.asc(OrderVersion::id.name)
+            )
+            ActivitySort.SYNC_LATEST_FIRST -> Sort.by(
+                Sort.Order.desc(LogEvent::updatedAt.name),
+                Sort.Order.desc(LogEvent::id.name)
+            )
+            ActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc(LogEvent::updatedAt.name),
+                Sort.Order.asc(LogEvent::id.name)
             )
         }
 

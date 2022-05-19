@@ -13,12 +13,20 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
         val lastNotRevertableEvent = newEventList.lastOrNull { current ->
             current.log.status == EthereumLogStatus.CONFIRMED && isNotReverted(incomeEvent = event, current = current)
         }
-        return newEventList.filter { current ->
-            current.log.status != EthereumLogStatus.CONFIRMED || current == lastNotRevertableEvent || isReverted(
-                incomeEvent = event,
-                current = current
-            )
-        }
+        return newEventList
+            .filter { current ->
+                // we remove all CONFIRMED logs which can't be reverted anymore,
+                // except the latest not revertable logs
+                // we always must have at least one not revertable log in the list
+                current.log.status != EthereumLogStatus.CONFIRMED ||
+                        current == lastNotRevertableEvent ||
+                        isReverted(incomeEvent = event, current = current)
+            }
+            .filter { current ->
+                // try to remove PENDING logs related to this income CONFIRMED event
+                current.log.status == EthereumLogStatus.CONFIRMED ||
+                        isNotRelatedPendingLog(incomeEvent = event, pending = current)
+            }
     }
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
@@ -39,5 +47,9 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
             "Block diff between income=$incomeEvent and current=$current can't be negative"
         }
         return blockDiff >= confirmationBlocks
+    }
+
+    private fun isNotRelatedPendingLog(incomeEvent: T, pending: T): Boolean {
+        return pending.log.status == EthereumLogStatus.PENDING && pending.compareTo(incomeEvent) != 0
     }
 }

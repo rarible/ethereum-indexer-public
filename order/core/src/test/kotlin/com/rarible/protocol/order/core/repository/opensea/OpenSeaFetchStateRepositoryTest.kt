@@ -28,19 +28,19 @@ internal class OpenSeaFetchStateRepositoryTest {
 
     @Test
     fun `should save and get fetch state`() = runBlocking<Unit> {
-        val noState = openSeaFetchStateRepository.get()
+        val noState = openSeaFetchStateRepository.get(OpenSeaFetchState.ID)
         assertThat(noState).isNull()
 
         val initState = OpenSeaFetchState(1)
         openSeaFetchStateRepository.save(initState)
 
-        var currentState = openSeaFetchStateRepository.get()
+        var currentState = openSeaFetchStateRepository.get(OpenSeaFetchState.ID)
         assertThat(currentState).isEqualTo(initState)
 
         val newState = OpenSeaFetchState(2)
         openSeaFetchStateRepository.save(newState)
 
-        currentState = openSeaFetchStateRepository.get()
+        currentState = openSeaFetchStateRepository.get(OpenSeaFetchState.ID)
         assertThat(currentState).isEqualTo(newState)
     }
 }

@@ -11,7 +11,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.time.Duration
 import java.time.Instant
+import kotlin.math.ceil
 
 @Component
 @CaptureSpan(type = SpanType.EXT)
@@ -20,24 +22,32 @@ class OpenSeaOrderServiceImpl(
     properties: OrderListenerProperties
 ) : OpenSeaOrderService {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val loadOpenSeaPeriod = properties.loadOpenSeaPeriod.seconds
     private val loadOpenSeaOrderSide = convert(properties.openSeaOrderSide)
 
-    override suspend fun getNextOrdersBatch(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> =
+    override suspend fun getNextOrdersBatch(
+        listedAfter: Long,
+        listedBefore: Long,
+        loadPeriod: Duration,
+        logPrefix: String,
+    ): List<OpenSeaOrder> =
         coroutineScope {
-            val batches = (listedBefore - listedAfter) / loadOpenSeaPeriod
-            assert(batches >= 0) { "OpenSea batch count must be positive" }
+            if (listedBefore == listedAfter) {
+                emptyList()
+            } else {
+                val batches = ceil ((listedBefore - listedAfter).toDouble() / loadPeriod.seconds.toDouble()).toLong()
+                assert(batches > 0) { "OpenSea batch count must be positive" }
 
-            (1..batches).map {
-                async {
-                    val nextListedAfter = listedAfter + ((it - 1) * loadOpenSeaPeriod)
-                    val nextListedBefore = java.lang.Long.min(listedAfter + (it * loadOpenSeaPeriod), listedBefore)
-                    getNextOrders(nextListedAfter, nextListedBefore)
-                }
-            }.awaitAll().flatten()
+                (1..batches).map {
+                    async {
+                        val nextListedAfter = listedAfter + ((it - 1) * loadPeriod.seconds)
+                        val nextListedBefore = java.lang.Long.min(listedAfter + (it * loadPeriod.seconds), listedBefore)
+                        getNextOrders(nextListedAfter, nextListedBefore, logPrefix)
+                    }
+                }.awaitAll().flatten()
+            }
         }
 
-    private suspend fun getNextOrders(listedAfter: Long, listedBefore: Long): List<OpenSeaOrder> {
+    private suspend fun getNextOrders(listedAfter: Long, listedBefore: Long, logPrefix: String): List<OpenSeaOrder> {
         val orders = mutableListOf<OpenSeaOrder>()
 
         do {
@@ -50,8 +60,10 @@ class OpenSeaOrderServiceImpl(
                 side = loadOpenSeaOrderSide,
                 limit = MAX_SIZE
             )
-            val result = getOrdersWithLogIfException(request)
-
+            val result = getOrdersWithLogIfException(request, logPrefix)
+            logger.info(
+                "[$logPrefix] Load result: size=${result.size}, offset=${orders.size}, listedAfter=${listedAfter}, listedBefore=${listedBefore}"
+            )
             orders.addAll(result)
         } while (result.isNotEmpty() && result.size >= MAX_SIZE && orders.size <= MAX_OFFSET)
 
@@ -72,11 +84,11 @@ class OpenSeaOrderServiceImpl(
         throw IllegalStateException("Can't fetch OpenSea orders, number of attempts exceeded, last error: $lastError")
     }
 
-    private suspend fun getOrdersWithLogIfException(request: OrdersRequest): List<OpenSeaOrder> {
+    private suspend fun getOrdersWithLogIfException(request: OrdersRequest, logPrefix: String): List<OpenSeaOrder> {
         return try {
             getOrders(request)
         } catch (ex: Exception) {
-            logger.error("Exception while get OpenSea orders with request: listedAfter=${request.listedAfter?.epochSecond}, listedBefore=${request.listedBefore?.epochSecond}, offset=${request.offset}, side=${request.side}, ex=${ex.javaClass.simpleName}")
+            logger.error("[$logPrefix] Exception while get OpenSea orders with request: listedAfter=${request.listedAfter?.epochSecond}, listedBefore=${request.listedBefore?.epochSecond}, offset=${request.offset}, side=${request.side}, ex=${ex.javaClass.simpleName}")
             throw ex
         }
     }

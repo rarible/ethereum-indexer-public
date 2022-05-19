@@ -287,7 +287,8 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
             assertThat(pendingOrder.copy(version = 0)).isEqualTo(order.copy(
                 pending = listOf(onChainOrder.copy(createdAt = order.createdAt, date = order.createdAt)),
                 version = 0,
-                createdAt = pendingOrder.createdAt
+                createdAt = pendingOrder.createdAt,
+                dbUpdatedAt = pendingOrder.dbUpdatedAt
             ))
         }
     }
@@ -416,7 +417,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 )
             )
             assertThat(order.copy(lastEventId = null)).isEqualTo(
-                expectedOrder.copy(takePrice = order.takePrice, makePrice = order.makePrice)
+                expectedOrder.copy(takePrice = order.takePrice, makePrice = order.makePrice, dbUpdatedAt = order.dbUpdatedAt)
             )
         }
     }

@@ -9,6 +9,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
@@ -76,7 +77,9 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         )
 
         assertThat(
-            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com//ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg")
+            mediaMetaService.getMediaMetaFromCache(
+                "https://ipfs.rarible.com/ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg"
+            )
         ).isEqualTo(
             ContentMeta(
                 type = "image/jpeg",
@@ -85,4 +88,26 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
             )
         )
     }
+
+    @Test
+    fun `return content meta from cache without data`() = runBlocking<Unit> {
+        val collection = mongoTemplate.getCollection(CachedContentMetaEntry.CACHE_META_COLLECTION).awaitFirst()
+        collection.insertOne(
+            Document.parse(
+                """
+                    {
+                      "_id": "https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg",
+                      "updateDate": "2021-10-14T14:21:04.528Z",
+                      "version": 0,
+                      "_class": "com.rarible.core.cache.Cache"
+                    }
+                """.trimIndent()
+            )
+        ).awaitFirst()
+
+        assertThat(
+            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg")
+        ).isNull()
+    }
+
 }

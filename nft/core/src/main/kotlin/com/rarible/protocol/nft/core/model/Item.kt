@@ -84,9 +84,4 @@ data class Item(
             )
         }
     }
-
-    object Fields {
-        val TOKEN_ID = Item::tokenId.name
-        val CREATORS_RECIPIENT = "${Item::creators.name}.recipient"
-    }
 }

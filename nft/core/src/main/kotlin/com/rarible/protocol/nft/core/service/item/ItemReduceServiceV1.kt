@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
 import com.rarible.protocol.nft.core.model.FeatureFlags
@@ -54,10 +55,12 @@ class ItemReduceServiceV1(
     private val eventListenerListener: ReduceEventListenerListener,
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService,
-    private val featureFlags: FeatureFlags
+    private val featureFlags: FeatureFlags,
+    private val scannerProperties: NftIndexerProperties.ScannerProperties
 ) : ItemReduceService {
 
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
+    private val scamTokens = scannerProperties.scamTokens.map(Address::apply).toHashSet()
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
@@ -132,19 +135,21 @@ class ItemReduceServiceV1(
 
     private fun reduceActions(initial: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
         val item = initial.first
-        val actions = nftItemActionEventRepository.find(item.token, item.tokenId).collectList().awaitFirst()
 
-        actions.fold(initial) { acc, action ->
-            when (action) {
-                is BurnItemAction -> {
-                    acc.first to acc.second.mapValues { (_, ownership) ->
-                        val value = ownership.value
-                        val updatedValue = if (value > EthUInt256.ZERO) value - EthUInt256.ONE else value
-                        ownership.copy(value = updatedValue)
+        nftItemActionEventRepository
+            .find(item.token, item.tokenId).collectList().awaitFirst()
+            .filter { action -> action.isActionable() }
+            .fold(initial) { acc, action ->
+                when (action) {
+                    is BurnItemAction -> {
+                        acc.first to acc.second.mapValues { (_, ownership) ->
+                            val value = ownership.value
+                            val updatedValue = if (value > EthUInt256.ZERO) value - EthUInt256.ONE else value
+                            ownership.copy(value = updatedValue)
+                        }
                     }
                 }
             }
-        }
     }
 
     private fun royalty(pair: Pair<Item, Map<Address, Ownership>>): Mono<Pair<Item, Map<Address, Ownership>>> = mono {
@@ -266,7 +271,7 @@ class ItemReduceServiceV1(
             && creators.isEmpty()
             && !creatorsFinal
         ) {
-            if (featureFlags.validateCreatorByTransactionSender
+            if ((featureFlags.validateCreatorByTransactionSender || token in scamTokens)
                 && transactionSender != null
                 && itemTransfer.owner != transactionSender
             ) {
@@ -277,7 +282,11 @@ class ItemReduceServiceV1(
         } else {
             this.creators
         }
-        return this.copy(creators = creators, mintedAt = itemTransfer.date)
+        return if (this.mintedAt == null && itemTransfer.from == Address.ZERO()) {
+            this.copy(creators = creators, mintedAt = itemTransfer.date)
+        } else {
+            this.copy(creators = creators)
+        }
     }
 
     private fun ownershipsReducer(map: MutableMap<Address, Ownership>, log: HistoryLog): MutableMap<Address, Ownership> {

@@ -34,9 +34,20 @@ import org.springframework.data.mongodb.core.ReactiveMongoOperations
 class CoreConfiguration(
     private val properties: NftIndexerProperties
 ) {
+
     @Bean
     fun featureFlags(): FeatureFlags {
         return properties.featureFlags
+    }
+
+    @Bean
+    fun scannerProperties(): NftIndexerProperties.ScannerProperties {
+        return properties.scannerProperties
+    }
+
+    @Bean
+    fun ipfsProperties(): NftIndexerProperties.IpfsProperties {
+        return properties.ipfs
     }
 
     @Bean
@@ -44,7 +55,9 @@ class CoreConfiguration(
     fun metaCacheLoaderService(
         cacheLoaderServices: List<CacheLoaderService<*>>
     ): CacheLoaderService<ItemMeta> =
-        @Suppress("UNCHECKED_CAST")(cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
+        @Suppress(
+            "UNCHECKED_CAST"
+        ) (cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
 
     @Bean
     fun historyTopics(): HistoryTopics {

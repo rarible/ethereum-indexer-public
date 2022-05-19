@@ -10,19 +10,16 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.migration.integration.AbstractMigrationTest
 import com.rarible.protocol.order.migration.integration.IntegrationTest
-import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00012AddStatusToOrder
 import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00013AddTakeMakeToOrder
+import com.rarible.protocol.order.migration.mongock.mongo.ChangeLog00019AddDbUpdatedToOrder
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
-import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.query.Query
@@ -30,7 +27,6 @@ import org.springframework.data.mongodb.core.query.Update
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
-import java.util.stream.Stream
 
 @IntegrationTest
 class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
@@ -80,6 +76,21 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
     }
 
     @Test
+    fun `should set dbUpdatedAt field for orders`() = runBlocking {
+        repeat(30) {
+            orderRepository.saveWithoutDbUpdated(createOrder().copy(dbUpdatedAt = null))
+        }
+
+        ChangeLog00019AddDbUpdatedToOrder().addDbUpdatedFieldToOrder(template)
+        val orderList = orderRepository.findAll().toList()
+        assertThat(orderList).hasSize(30)
+
+        orderList.forEach {
+            assertThat(it.dbUpdatedAt).isNotNull()
+        }
+    }
+
+    @Test
     fun `should set prices for order versions`() = runBlocking {
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
@@ -121,24 +132,29 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
         )
     }
 
-    private fun createOrderVersion(make: Asset, take: Asset) = OrderVersion(
-        hash = Word.apply(RandomUtils.nextBytes(32)),
-        maker = AddressFactory.create(),
-        taker = AddressFactory.create(),
-        makePriceUsd = (1..100).random().toBigDecimal(),
-        takePriceUsd = (1..100).random().toBigDecimal(),
-        makePrice = null,
-        takePrice = null,
-        makeUsd = (1..100).random().toBigDecimal(),
-        takeUsd = (1..100).random().toBigDecimal(),
-        make = make,
-        take = take,
-        platform = Platform.RARIBLE,
-        type = OrderType.RARIBLE_V2,
-        salt = EthUInt256.TEN,
-        start = null,
-        end = null,
-        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
-        signature = null
-    )
+    companion object {
+        fun createOrderVersion(
+            make: Asset = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN),
+            take: Asset = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256.ONE), EthUInt256.ONE)
+        ) = OrderVersion(
+            hash = Word.apply(RandomUtils.nextBytes(32)),
+            maker = AddressFactory.create(),
+            taker = AddressFactory.create(),
+            makePriceUsd = (1..100).random().toBigDecimal(),
+            takePriceUsd = (1..100).random().toBigDecimal(),
+            makePrice = null,
+            takePrice = null,
+            makeUsd = (1..100).random().toBigDecimal(),
+            takeUsd = (1..100).random().toBigDecimal(),
+            make = make,
+            take = take,
+            platform = Platform.RARIBLE,
+            type = OrderType.RARIBLE_V2,
+            salt = EthUInt256.TEN,
+            start = null,
+            end = null,
+            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+            signature = null
+        )
+    }
 }

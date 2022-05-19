@@ -170,6 +170,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
@@ -188,6 +189,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -208,12 +210,18 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    private val BY_DB_UPDATE_UPDATE_DEFINITION = Index()
+        .on(Order::dbUpdatedAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION = Index()
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.27")
     val BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
@@ -261,15 +269,13 @@ object OrderRepositoryIndexes {
 
         BIDS_BY_ITEM_DEFINITION_DEPRECATED,
         BIDS_BY_ITEM_DEFINITION,
-        BIDS_BY_ITEM_PLATFORM_DEFINITION,
 
         BIDS_BY_MAKER_DEFINITION,
-        BIDS_BY_MAKER_PLATFORM_DEFINITION,
 
         BY_LAST_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_ID_DEFINITION,
+        BY_DB_UPDATE_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
-        BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
         BY_PLATFORM_MAKER_AND_NONCE

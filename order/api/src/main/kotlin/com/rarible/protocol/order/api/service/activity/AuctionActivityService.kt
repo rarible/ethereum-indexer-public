@@ -41,14 +41,30 @@ class AuctionActivityService(
         ).take(size.toLong()).collectList().awaitFirst()
     }
 
+    suspend fun findByIds(ids: List<String>): List<AuctionActivityResult> {
+        val onchain = auctionHistoryRepository
+            .findByIds(ids)
+            .map { AuctionActivityResult.History(it) }
+        val offchain = offchainHistoryRepository
+            .findByIds(ids)
+            .map { AuctionActivityResult.OffchainHistory(it) }
+
+        return Flux.merge(onchain, offchain).collectList().awaitFirst()
+    }
+
     companion object {
         private val COMPARATOR = compareByDescending(ActivityResult::getDate)
+            .then(compareByDescending(ActivityResult::getId))
+
+        private val SYNC_COMPARATOR = compareByDescending(ActivityResult::getUpdatedAt)
             .then(compareByDescending(ActivityResult::getId))
 
         fun comparator(sort: AuctionActivitySort): Comparator<ActivityResult> =
             when(sort) {
                 AuctionActivitySort.LATEST_FIRST -> COMPARATOR
                 AuctionActivitySort.EARLIEST_FIRST -> COMPARATOR.reversed()
+                AuctionActivitySort.SYNC_LATEST_FIRST -> SYNC_COMPARATOR
+                AuctionActivitySort.SYNC_EARLIEST_FIRST -> SYNC_COMPARATOR.reversed()
                 else -> throw IllegalArgumentException("$sort sorting is not possible here")
             }
     }

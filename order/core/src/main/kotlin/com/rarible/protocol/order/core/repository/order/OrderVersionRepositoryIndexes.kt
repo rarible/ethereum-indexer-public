@@ -21,14 +21,14 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val MAKER_BID_DEFINITION: Index = Index()
+    private val MAKER_BID_DEFINITION: Index = Index()
         .on("${OrderVersion::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(OrderVersion::maker.name, Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val MAKER_LIST_DEFINITION: Index = Index()
+    private val MAKER_LIST_DEFINITION: Index = Index()
         .on("${OrderVersion::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(OrderVersion::maker.name, Sort.Direction.ASC)
         .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
@@ -78,6 +78,7 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val MAKER_TAKE_PRICE_USD_BID_DEFINITION: Index = Index()
         .on("${OrderVersion::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(OrderVersion::maker.name, Sort.Direction.ASC)
@@ -85,21 +86,27 @@ internal object OrderVersionRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val HASH_AND_ID_DEFINITION: Index = Index()
+    private val HASH_AND_ID_DEFINITION: Index = Index()
         .on(OrderVersion::hash.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.26")
     val HASH_PLATFORM_AND_ID_DEFINITION: Index = Index()
         .on(OrderVersion::hash.name, Sort.Direction.ASC)
         .on(OrderVersion::platform.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION: Index = Index()
+    private val ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION: Index = Index()
         .on("${OrderVersion::onChainOrderKey.name}.${LogEventKey::databaseKey.name}", Sort.Direction.ASC)
         .sparse()
         .unique()
+        .background()
+
+    val BY_CREATED_AT_FIELD: Index = Index()
+        .on(OrderVersion::createdAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(
@@ -113,9 +120,8 @@ internal object OrderVersionRepositoryIndexes {
         ITEM_BID_DEFINITION,
         ITEM_TAKE_PRICE_USD_BID_DEFINITION,
         ITEM_TAKE_PRICE_BID_DEFINITION,
-        MAKER_TAKE_PRICE_USD_BID_DEFINITION,
         HASH_AND_ID_DEFINITION,
         ON_CHAIN_ORDER_PRIMARY_KEY_DEFINITION,
-        HASH_PLATFORM_AND_ID_DEFINITION
+        BY_CREATED_AT_FIELD
     )
 }

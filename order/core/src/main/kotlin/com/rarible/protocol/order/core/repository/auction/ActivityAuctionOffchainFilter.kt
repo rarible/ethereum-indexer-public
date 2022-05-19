@@ -27,11 +27,19 @@ sealed class ActivityAuctionOffchainFilter {
     internal val sort: Sort
         get() = when (auctionActivitySort) {
             AuctionActivitySort.LATEST_FIRST -> Sort.by(
-                Sort.Order.desc("${AuctionOffchainHistory::date.name}"),
+                Sort.Order.desc(AuctionOffchainHistory::date.name),
                 Sort.Order.desc("_id")
             )
             AuctionActivitySort.EARLIEST_FIRST -> Sort.by(
-                Sort.Order.asc("${AuctionOffchainHistory::date.name}"),
+                Sort.Order.asc(AuctionOffchainHistory::date.name),
+                Sort.Order.asc("_id")
+            )
+            AuctionActivitySort.SYNC_LATEST_FIRST -> Sort.by(
+                Sort.Order.desc(AuctionOffchainHistory::createdAt.name),
+                Sort.Order.desc("_id")
+            )
+            AuctionActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
+                Sort.Order.asc(AuctionOffchainHistory::createdAt.name),
                 Sort.Order.asc("_id")
             )
             else -> throw IllegalArgumentException("$auctionActivitySort is not allowed here")
@@ -61,6 +69,26 @@ sealed class ActivityAuctionOffchainFilter {
                     )
                 } ?: this
             }
+            AuctionActivitySort.SYNC_LATEST_FIRST -> {
+                val lastDate = DateIdContinuation.parse(continuation)
+                lastDate?.let {
+                    this.orOperator(
+                        AuctionOffchainHistory::createdAt lt lastDate.date,
+                        (AuctionOffchainHistory::createdAt isEqualTo lastDate.date).and("_id")
+                            .lt(lastDate.id.safeQueryParam())
+                    )
+                } ?: this
+            }
+            AuctionActivitySort.SYNC_EARLIEST_FIRST -> {
+                val lastDate = DateIdContinuation.parse(continuation)
+                lastDate?.let {
+                    this.orOperator(
+                        AuctionOffchainHistory::createdAt gt lastDate.date,
+                        (AuctionOffchainHistory::createdAt isEqualTo lastDate.date).and("_id")
+                            .gt(lastDate.id.safeQueryParam())
+                    )
+                } ?: this
+            }
             else -> this
         }
 
@@ -73,6 +101,15 @@ sealed class ActivityAuctionOffchainFilter {
 
         override fun getCriteria(): Criteria {
             return (AuctionOffchainHistory::type).isEqualTo(type).scrollTo(auctionActivitySort, continuation)
+        }
+    }
+
+    class AllSync(private val continuation: String?,
+                  override val auctionActivitySort: AuctionActivitySort
+    ) : ActivityAuctionOffchainFilter() {
+        override fun getCriteria(): Criteria {
+            return Criteria()
+                .scrollTo(auctionActivitySort, continuation)
         }
     }
 }

@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
@@ -13,8 +14,6 @@ import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.data.createRandomBurnAction
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.ActionState
-import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -38,6 +37,7 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository.Companion.COLLECTION
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -51,12 +51,16 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.stream.Stream
 
 @IntegrationTest
@@ -73,6 +77,10 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
+
+    @Autowired
+    @Qualifier("meta.cache.loader.service")
+    private lateinit var itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
 
     @BeforeEach
     fun setUpMeta() {
@@ -115,7 +123,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
+            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -156,7 +164,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
+            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -172,7 +180,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-        val transfer = saveItemHistory(
+        itemMetaCacheLoaderService.save(ItemId(token, tokenId).toCacheKey(), itemMeta)
+        saveItemHistory(
             ItemTransfer(
                 owner = owner,
                 token = token,
@@ -193,7 +202,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             expValue = EthUInt256.ZERO,
             expLazyValue = EthUInt256.ZERO
         )
-
         checkItemEventWasPublished(
             token,
             tokenId,
@@ -284,7 +292,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
                 date = nowMillis(),
                 creators = listOf(Part(AddressFactory.create(), 1000)),
                 pending = emptyList(),
-                revertableEvents = emptyList()
+                revertableEvents = emptyList(),
+                lastUpdatedAt = nowMillis()
             )
         ).awaitFirst()
 
@@ -421,7 +430,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
                 owner = owner,
                 value = EthUInt256.ONE,
                 date = Instant.now(),
-                pending = emptyList()
+                pending = emptyList(),
+                lastUpdatedAt = nowMillis()
             )
         ).awaitFirst()
 
@@ -489,6 +499,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     fun confirmedItemTransfer(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
+        val instantDate1 = LocalDate.parse("2022-04-12").atStartOfDay().toInstant(ZoneOffset.UTC)
+        val instantDate2 = LocalDate.parse("2022-04-13").atStartOfDay().toInstant(ZoneOffset.UTC)
 
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
@@ -497,25 +509,27 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             owner = AddressFactory.create(),
             token = token,
             tokenId = tokenId,
-            date = nowMillis(),
+            date = instantDate1,
             from = Address.ZERO(),
             value = EthUInt256.of(2)
         )
-        saveItemHistory(transfer, logIndex = 1)
+        saveItemHistory(transfer, logIndex = 1, blockTimestamp = instantDate1)
 
         val owner = AddressFactory.create()
         val transfer2 = ItemTransfer(
             owner = owner,
             token = token,
             tokenId = tokenId,
-            date = nowMillis(),
+            date = instantDate2,
             from = Address.ZERO(),
             value = EthUInt256.of(3)
         )
-        saveItemHistory(transfer2, logIndex = 2)
+        saveItemHistory(transfer2, logIndex = 2, blockTimestamp = instantDate2)
 
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.of(5))
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.mintedAt).isEqualTo(instantDate1)
     }
 
     @Test
@@ -588,6 +602,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.TEN)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.TEN, expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt1 = getLastUpdatedAtForBeforeTest(owner = owner, token = token, tokenId = tokenId)
 
         val buyer = AddressFactory.create()
 
@@ -599,6 +614,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, EthUInt256.TEN)
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.of(2), expLazyValue = EthUInt256.ZERO)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.of(8), expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
+        assertThat(lastUpdatedAt2!!.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
     }
@@ -609,6 +626,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `ownership transferred for ERC721`(version: ReduceVersion) = withReducer(version) {
+
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -629,6 +647,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
         checkItem(token, tokenId, EthUInt256.ONE)
         checkOwnership(owner, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
+        val lastUpdatedAt1 = getLastUpdatedAtForBeforeTest(owner = owner, token = token, tokenId = tokenId)
 
         val buyer = AddressFactory.create()
 
@@ -640,6 +659,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token, tokenId, EthUInt256.ONE)
         checkOwnership(buyer, token, tokenId, expValue = EthUInt256.ONE, expLazyValue = EthUInt256.ZERO)
         checkEmptyOwnership(owner, token, tokenId)
+        val lastUpdatedAt2 = getOwnershipLastUpdatedAt(owner = owner, token = token, tokenId = tokenId)
+        assertThat(lastUpdatedAt2!!.isAfter(lastUpdatedAt1)).isTrue
 
         checkOwnershipEventWasPublished(token, tokenId, buyer, NftOwnershipUpdateEventDto::class.java)
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
@@ -971,7 +992,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
         val burnAction = createRandomBurnAction().copy(
             token = token,
-            tokenId = tokenId
+            tokenId = tokenId,
+            actionAt = nowMillis() - Duration.ofDays(1)
         )
         nftItemActionEventRepository.save(burnAction).awaitFirst()
 
@@ -987,6 +1009,39 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
         val ownerships = ownershipRepository.search(ownershipFilter.toCriteria(null, null))
         assertThat(ownerships).hasSize(0)
+    }
+
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    fun `should not burn item by action if action not time to apply`(version: ReduceVersion) = withReducer(ReduceVersion.V1) {
+        val owner = AddressFactory.create()
+        val token = AddressFactory.create()
+        val tokenId = EthUInt256.ONE
+        val blockTimestamp = Instant.ofEpochSecond(12)
+
+        saveToken(
+            Token(token, name = "TEST", standard = TokenStandard.ERC721)
+        )
+        val transfer = ItemTransfer(
+            owner = owner,
+            token = token,
+            tokenId = tokenId,
+            date = nowMillis(),
+            from = Address.ZERO(),
+            value = EthUInt256.ONE
+        )
+        saveItemHistory(transfer, logIndex = 0, from = owner, blockTimestamp = blockTimestamp)
+        val burnAction = createRandomBurnAction().copy(
+            token = token,
+            tokenId = tokenId,
+            actionAt = nowMillis() + Duration.ofDays(1)
+        )
+        nftItemActionEventRepository.save(burnAction).awaitFirst()
+
+        historyService.update(token, tokenId).awaitFirstOrNull()
+
+        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
+        assertThat(item.deleted).isFalse
     }
 
     private val itemMeta = ItemMeta(
@@ -1055,6 +1110,25 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownership.value).isEqualTo(expValue)
         assertThat(ownership.lazyValue).isEqualTo(expLazyValue)
         assertThat(ownership.deleted).isEqualTo(deleted)
+    }
+
+    private suspend fun getLastUpdatedAtForBeforeTest(
+        owner: Address,
+        token: Address,
+        tokenId: EthUInt256
+    ): Instant {
+        val ownership = ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst()
+        val reducedLastUpdatedAt = ownership.lastUpdatedAt!!.minusMillis(1)
+        ownershipRepository.save(ownership.copy(lastUpdatedAt = reducedLastUpdatedAt)).awaitFirst()
+        return reducedLastUpdatedAt
+    }
+
+    private suspend fun getOwnershipLastUpdatedAt(
+        owner: Address,
+        token: Address,
+        tokenId: EthUInt256
+    ): Instant? {
+        return ownershipRepository.findById(OwnershipId(token, tokenId, owner)).awaitFirst().lastUpdatedAt
     }
 
     companion object {

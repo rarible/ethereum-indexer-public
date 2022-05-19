@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
+import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
 
 @Service
@@ -26,6 +27,11 @@ class ItemPropertiesService(
                 if (itemProperties != null) {
                     return itemProperties
                 }
+            } catch (e: ItemResolutionAbortedException) {
+                throw e // re-throw upper
+            } catch (e: TimeoutCancellationException) {
+                logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
+                return null // Meta resolution timed out, return null
             } catch (e: Exception) {
                 logMetaLoading(itemId, "failed to resolve using ${resolver.name}: ${e.message}", warn = true)
             }
@@ -37,6 +43,9 @@ class ItemPropertiesService(
         logMetaLoading(itemId, "started getting")
         val itemProperties = try {
             callResolvers(itemId)
+        } catch (e: ItemResolutionAbortedException) {
+            logMetaLoading(itemId, "resolution aborted")
+            return null
         } catch (e: Exception) {
             logMetaLoading(itemId, "failed: ${e.message}", warn = true)
             return fallbackToOpenSea(itemId)
@@ -124,7 +133,8 @@ class ItemPropertiesService(
     }
 
     private fun ItemProperties.fixIpfsUrls(): ItemProperties {
-        fun String?.resolveHttpUrl() = if (this != null) ipfsService.resolveHttpUrl(this) else null
+        // Make all URL with public IPFS gateway
+        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else ipfsService.resolvePublicHttpUrl(this)
         return copy(
             image = image.resolveHttpUrl(),
             imagePreview = imagePreview.resolveHttpUrl(),

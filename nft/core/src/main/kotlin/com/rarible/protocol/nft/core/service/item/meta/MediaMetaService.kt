@@ -18,7 +18,11 @@ class MediaMetaService(
 ) {
 
     suspend fun getMediaMetaFromCache(url: String): ContentMeta? {
-        val realUrl = ipfsService.resolveHttpUrl(url)
+        // For cache, if we still use it, lets use mypinata urls, as previously
+        if (url.isBlank()) {
+            return null
+        }
+        val realUrl = ipfsService.resolvePublicHttpUrl(url)
         return fetchFromCache(realUrl)
     }
 
@@ -29,6 +33,7 @@ class MediaMetaService(
                 collectionName = CachedContentMetaEntry.CACHE_META_COLLECTION
             ).awaitFirstOrNull()
             if (cacheEntry != null) {
+                cacheEntry.data ?: run { return null }
                 return cacheEntry.data.let {
                     ContentMeta(
                         type = it.type,
@@ -62,6 +67,7 @@ class MediaMetaService(
     }
 
     companion object {
+
         private const val rariblePinata = "https://rarible.mypinata.cloud/ipfs/"
         private const val ipfsRarible = "https://ipfs.rarible.com/ipfs/"
         private val ipfsPrefixes = listOf(rariblePinata, ipfsRarible)

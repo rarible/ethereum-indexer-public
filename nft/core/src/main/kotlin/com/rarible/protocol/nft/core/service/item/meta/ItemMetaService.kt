@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.loader.cache.CacheLoaderService
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import kotlinx.coroutines.CancellationException
@@ -21,10 +20,8 @@ class ItemMetaService(
     @Qualifier("meta.cache.loader.service")
     private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>,
     private val itemMetaCacheLoader: ItemMetaCacheLoader,
-    private val itemMetaResolver: ItemMetaResolver,
-    private val properties: NftIndexerProperties
+    private val itemMetaResolver: ItemMetaResolver
 ) {
-
     private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
 
     /**
@@ -36,7 +33,7 @@ class ItemMetaService(
         itemId: ItemId,
         demander: String
     ): ItemMeta? =
-        getAvailableMetaOrLoadSynchronously(itemId = itemId, synchronous = false, demander = demander)
+        getAvailableMetaOrLoadSynchronously(itemId = itemId, synchronous = false, useMetaCache = true, demander = demander)
 
     /**
      * Return available meta, if any. Otherwise, load the meta in the current coroutine (it may be slow).
@@ -46,19 +43,14 @@ class ItemMetaService(
         itemId: ItemId,
         synchronous: Boolean,
         demander: String,
+        useMetaCache: Boolean,
         scheduleIfNeeded: Boolean = true
     ): ItemMeta? {
-        if (properties.enableMetaCache) {
+        if (useMetaCache) {
             val metaCacheEntry = itemMetaCacheLoaderService.get(itemId.toCacheKey())
             val availableMeta = metaCacheEntry.getAvailable()
             if (availableMeta != null) {
                 return availableMeta
-            }
-            if (metaCacheEntry.isMetaInitiallyLoadedOrFailed()) {
-                return null
-            }
-            if (scheduleIfNeeded && !synchronous && !metaCacheEntry.isMetaInitiallyScheduledForLoading()) {
-                scheduleMetaUpdate(itemId, demander)
             }
         }
         if (synchronous) {
@@ -85,6 +77,18 @@ class ItemMetaService(
         return null
     }
 
+    suspend fun getAvailableMeta(
+        itemId: ItemId,
+        demander: String
+    ): ItemMeta? {
+        return getAvailableMetaOrLoadSynchronously(
+            itemId = itemId,
+            useMetaCache = true,
+            synchronous = false,
+            demander = demander
+        )
+    }
+
     suspend fun getAvailableMetaOrLoadSynchronouslyWithTimeout(
         itemId: ItemId,
         timeout: Duration,
@@ -95,6 +99,7 @@ class ItemMetaService(
                 getAvailableMetaOrLoadSynchronously(
                     itemId = itemId,
                     synchronous = true,
+                    useMetaCache = false,
                     demander = demander
                 )
             }

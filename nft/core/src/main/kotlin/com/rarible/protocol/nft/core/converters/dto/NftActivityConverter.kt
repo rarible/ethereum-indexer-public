@@ -35,7 +35,8 @@ class NftActivityConverter(
                     blockNumber,
                     logIndex,
                     reverted,
-                    logEvent.to
+                    logEvent.to,
+                    logEvent.updatedAt
                 )
             }
             else -> null
@@ -58,7 +59,8 @@ class NftActivityConverter(
                     blockNumber,
                     logIndex,
                     reverted,
-                    logEvent.to
+                    logEvent.to,
+                    logEvent.updatedAt
                 )
             }
             else -> null
@@ -73,7 +75,8 @@ class NftActivityConverter(
         blockNumber: Long,
         logIndex: Int,
         reverted: Boolean,
-        to: Address? = null
+        to: Address? = null,
+        updatedAt: java.time.Instant
     ): NftActivityDto {
         return when {
             itemTransfer.from == Address.ZERO() -> {
@@ -88,7 +91,8 @@ class NftActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = reverted
+                    reverted = reverted,
+                    lastUpdatedAt = updatedAt
                 )
             }
             itemTransfer.owner == Address.ZERO() -> {
@@ -103,7 +107,8 @@ class NftActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = reverted
+                    reverted = reverted,
+                    lastUpdatedAt = updatedAt
                 )
             }
             else -> {
@@ -120,7 +125,8 @@ class NftActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = reverted
+                    reverted = reverted,
+                    lastUpdatedAt = updatedAt
                 )
             }
         }

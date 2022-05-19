@@ -33,15 +33,17 @@ class StandardTokenPropertiesResolver(
     private val mapper: ObjectMapper,
     private val externalHttpClient: ExternalHttpClient,
     @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
-): TokenPropertiesResolver {
+) : TokenPropertiesResolver {
 
     override suspend fun resolve(id: Address): TokenProperties? {
         val uri = getCollectionUri(id)
-        return uri?.let {
-            val url = ipfsService.resolveHttpUrl(it)
-            logProperties(id, "$it was resolved to: $url")
-            request(id, url)
+        if (uri.isNullOrBlank()) {
+            return null
         }
+
+        val url = ipfsService.resolveInnerHttpUrl(uri)
+        logProperties(id, "$uri was resolved to: $url")
+        return request(id, url)
     }
 
     override val order get() = Int.MIN_VALUE
@@ -70,7 +72,7 @@ class StandardTokenPropertiesResolver(
             image = node.getText("image"),
             externalLink = node.getText("external_link"),
             sellerFeeBasisPoints = node.getInt("seller_fee_basis_points"),
-            feeRecipient = node.getText("fee_recipient").let { Address.apply(it) } ?: null,
+            feeRecipient = node.getText("fee_recipient")?.let { Address.apply(it) },
         )
     }
 

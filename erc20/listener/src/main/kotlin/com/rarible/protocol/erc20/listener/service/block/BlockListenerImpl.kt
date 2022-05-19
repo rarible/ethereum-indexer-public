@@ -4,7 +4,8 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.erc20.core.model.*
+import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
+import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
 import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
 import kotlinx.coroutines.reactor.mono
@@ -16,7 +17,7 @@ import scalether.domain.Address
 
 @Service
 class BlockListenerImpl(
-    private val reduceService: Erc20BalanceReduceService,
+    private val balanceReduceService: Erc20BalanceReduceService,
     properties: Erc20ListenerProperties
 ) : LogEventsListener {
 
@@ -31,7 +32,7 @@ class BlockListenerImpl(
             .map { log -> Erc20ReduceEvent(log, log.blockNumber ?: 0) }
 
         return LoggingUtils.withMarker { marker ->
-            mono { reduceService.onEvents(reduceHistory) }
+            mono { balanceReduceService.onEvents(reduceHistory) }
             .toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Process time: ${it.t1}ms") }

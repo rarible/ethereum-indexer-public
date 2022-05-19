@@ -11,15 +11,21 @@ import com.rarible.protocol.nft.core.model.ItemHistory
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepositoryIndexes.ALL_INDEXES
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import org.bson.types.ObjectId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.findById
+import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
 import org.springframework.stereotype.Component
@@ -65,7 +71,15 @@ class NftItemHistoryRepository(
     }
 
     fun save(event: LogEvent): Mono<LogEvent> {
-        return mongo.save(event, COLLECTION)
+        return mongo.save(event.withDbUpdated(), COLLECTION)
+    }
+
+    fun find(query: Query): Flow<LogEvent> {
+        return mongo.query<LogEvent>().matching(query).all().asFlow()
+    }
+
+    fun findById(id: ObjectId): Mono<LogEvent> {
+        return mongo.findById(id)
     }
 
     fun findAllItemsHistory(): Flux<HistoryLog> {
@@ -147,6 +161,18 @@ class NftItemHistoryRepository(
         }
         query.with(sort.sort)
         return mongo.find(query, LogEvent::class.java, COLLECTION)
+    }
+
+    suspend fun findByIds(ids: Set<ObjectId>): List<LogEvent> {
+        return mongo
+            .find(
+                Query(
+                    LogEvent::id inValues ids
+                ),
+                LogEvent::class.java, COLLECTION
+            )
+            .collectList()
+            .awaitFirst()
     }
 
     companion object {

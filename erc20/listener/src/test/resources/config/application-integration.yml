@@ -4,6 +4,9 @@ ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false
 
+common:
+  kafka-replica-set: ${kafka.hosts}
+
 rarible:
   core:
     apm:

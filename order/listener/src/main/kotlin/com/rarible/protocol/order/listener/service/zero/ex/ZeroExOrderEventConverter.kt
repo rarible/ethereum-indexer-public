@@ -14,9 +14,9 @@ import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
@@ -26,7 +26,7 @@ import java.time.Instant
 class ZeroExOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
     private val priceNormalizer: PriceNormalizer,
-    @Value("\${listener.zero.ex.exchangeDomainHash}") private val exchangeDomainHash: String
+    private val properties: OrderListenerProperties
 ) {
     suspend fun convert(
         matchOrdersData: ZeroExMatchOrdersData,
@@ -168,7 +168,7 @@ class ZeroExOrderEventConverter(
         return keccak256(
             // EIP191 header
             Binary.apply("1901")
-                .add(Binary.apply(exchangeDomainHash))
+                .add(Binary.apply(properties.zeroExExchangeDomainHash))
                 .add(orderStructHash)
         )
     }

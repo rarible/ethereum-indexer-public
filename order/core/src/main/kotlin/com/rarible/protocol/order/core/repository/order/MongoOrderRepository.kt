@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.api.misc.indexName
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
@@ -27,6 +28,7 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.gt
@@ -57,7 +59,12 @@ class MongoOrderRepository(
             "make.type.nft_1_platform_1_createdAt_1__id_1",// Incorrect SELL_ORDERS_PLATFORM_DEFINITION
             "makeStock_-1_lastUpdateAt_-1",
             "makeStock_-1_lastUpdateAt_-1__id_1",
-            "makeStock_1_lastUpdateAt_1__id_1"
+            "makeStock_1_lastUpdateAt_1__id_1",
+            "platform_1_lastUpdateAt_1__id_1",
+            "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
+            OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexName,
+            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName,
+            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName
         )
     }
 
@@ -68,7 +75,26 @@ class MongoOrderRepository(
     }
 
     override suspend fun save(order: Order): Order {
+        return template.save(order.withDbUpdated()).awaitFirst()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override suspend fun saveWithoutDbUpdated(order: Order): Order {
         return template.save(order).awaitFirst()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override suspend fun setDbUpdatedAtField(hash: Word, dbUpdatedAt: Instant) {
+        template.updateFirst(
+            Query(
+                Criteria().andOperator(
+                    Criteria.where("_id").isEqualTo(hash),
+                    Order::dbUpdatedAt isEqualTo null
+                )
+            ),
+            Update().set(Order::dbUpdatedAt.name, dbUpdatedAt),
+            Order::class.java
+        ).awaitFirst()
     }
 
     override suspend fun findById(hash: Word): Order? {
@@ -78,6 +104,13 @@ class MongoOrderRepository(
     override fun findAll(hashes: Collection<Word>): Flow<Order> {
         val criteria = Criteria.where("_id").inValues(hashes)
         return template.find<Order>(Query.query(criteria)).asFlow()
+    }
+
+    // TODO should be deleted after migration ALPHA-405
+    override fun findWithoutDbUpdatedField(): Flow<Order> {
+        return template.query<Order>().matching(
+            Query(Order::dbUpdatedAt isEqualTo null)
+        ).all().asFlow()
     }
 
     override suspend fun search(query: Query): List<Order> {
@@ -106,34 +139,6 @@ class MongoOrderRepository(
 
     override fun findAll(): Flow<Order> {
         return template.findAll<Order>().asFlow()
-    }
-
-    override fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order> {
-        return template.query<Order>().matching(
-            Query(
-                Criteria().andOperator(
-                    listOfNotNull(
-                        Order::platform isEqualTo platform,
-                        Order::status isEqualTo status,
-                        if (fromHash != null) Order::hash gt fromHash else null
-                    )
-                )
-            ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
-                .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
-        ).all().asFlow()
-    }
-
-    override fun findAll(platform: Platform, status: Set<OrderStatus>): Flow<Order> {
-        return template.query<Order>().matching(
-            Query(
-                Criteria().andOperator(
-                    Order::platform isEqualTo platform,
-                    Order::status inValues status,
-                )
-            )
-                .withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexKeys)
-                .with(Sort.by(Order::platform.name, Order::status.name, Order::lastUpdateAt.name, "_id"))
-        ).all().asFlow()
     }
 
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {
