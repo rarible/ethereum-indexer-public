@@ -14,7 +14,7 @@ class IgnoredOwnersResolver(
 ) {
 
     fun resolve(): Set<Address> {
-        return ClassPathResource("ignored-owners/${appEnv.name}-${properties.blockchain.name}.json")
+        return ClassPathResource("ignored-owners/${appEnv.name}-${properties.blockchain.name.lowercase()}.json")
             .inputStream.use { stream ->
                 jacksonObjectMapper().readValue(stream, Owners::class.java).ignored.map {
                     Address.apply(it)
