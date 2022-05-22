@@ -37,7 +37,7 @@ polygon-order-listener:
       max_direct_memory_megabytes: 256
 
 polygon-nft-api:
-  replicas: 2
+  replicas: 3
   resources:
     jvm:
       xmx_megabytes: 1536
