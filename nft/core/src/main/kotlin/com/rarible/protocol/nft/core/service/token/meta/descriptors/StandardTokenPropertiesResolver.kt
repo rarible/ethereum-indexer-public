@@ -72,7 +72,7 @@ class StandardTokenPropertiesResolver(
             image = node.getText("image"),
             externalLink = node.getText("external_link"),
             sellerFeeBasisPoints = node.getInt("seller_fee_basis_points"),
-            feeRecipient = node.getText("fee_recipient").let { Address.apply(it) } ?: null,
+            feeRecipient = node.getText("fee_recipient")?.let { Address.apply(it) },
         )
     }
 

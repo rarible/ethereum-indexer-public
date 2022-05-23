@@ -14,13 +14,13 @@ class OpenSeaOrderValidatorImp(
     private val openSeaSigner: OpenSeaSigner,
     private val commonSigner: CommonSigner,
     private val callDataEncoder: CallDataEncoder,
-    private val openSeaValidatorErrorRegisteredCounter: RegisteredCounter
+    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter
 ) : OpenSeaOrderValidator {
 
     override fun validate(order: OrderVersion): Boolean {
         val result = innerValidate(order)
         if (!result) {
-            openSeaValidatorErrorRegisteredCounter.increment()
+            openSeaOrderErrorRegisteredCounter.increment()
         }
         return result
     }

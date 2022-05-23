@@ -86,9 +86,15 @@ class IpfsServiceTest : BasePropertiesResolverTest() {
     }
 
     @Test
-    fun `some ipfs path path`() {
+    fun `some ipfs path`() {
         val path = "///hel lo.png"
         assertThat(service.resolvePublicHttpUrl(path)).isEqualTo("${service.publicGateway}/hel%20lo.png")
+    }
+
+    @Test
+    fun `foreign ipfs urls - replaced by internal gateway`() {
+        val result = service.resolveInnerHttpUrl("https://dweb.link/ipfs/$cid/1.png")
+        assertThat(result).isEqualTo("${service.publicGateway}/ipfs/$cid/1.png")
     }
 
     private fun assertFixedIpfsUrl(url: String, expectedPath: String) {

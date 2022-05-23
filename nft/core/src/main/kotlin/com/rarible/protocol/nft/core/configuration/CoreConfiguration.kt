@@ -41,6 +41,11 @@ class CoreConfiguration(
     }
 
     @Bean
+    fun scannerProperties(): NftIndexerProperties.ScannerProperties {
+        return properties.scannerProperties
+    }
+
+    @Bean
     fun ipfsProperties(): NftIndexerProperties.IpfsProperties {
         return properties.ipfs
     }

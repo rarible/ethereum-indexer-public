@@ -9,7 +9,7 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
-import com.rarible.protocol.dto.OrderSyncSortDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.OrdersPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
@@ -181,7 +181,7 @@ class OrderController(
     }
 
     override suspend fun getAllSync(
-        sort: OrderSyncSortDto?,
+        sort: SyncSortDto?,
         continuation: String?,
         size: Int?
     ): ResponseEntity<OrdersPaginationDto> {
@@ -517,10 +517,10 @@ class OrderController(
     }
 
     private fun convert(
-        source: OrderSyncSortDto?
+        source: SyncSortDto?
     ): OrderFilterSort {
         return when (source) {
-            OrderSyncSortDto.DB_UPDATE_DESC -> OrderFilterSort.DB_UPDATE_DESC
+            SyncSortDto.DB_UPDATE_DESC -> OrderFilterSort.DB_UPDATE_DESC
             else -> OrderFilterSort.DB_UPDATE_ASC
         }
     }

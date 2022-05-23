@@ -61,12 +61,14 @@ class ZeroExOrderEventConverterTest {
     @Test
     fun `convert by left order log`() = runBlocking<Unit> {
         with(Erc721Data) {
+            // https://polygonscan.com/tx/0x08ef7447c15669631b1b54bf6b035df31c0b3b19720a760b2093db8b1eeb14cb
             val from = Address.ONE()
             val date = Instant.now()
             val orderHash = leftOrderHash
             val counterHash = rightOrderHash
             val makerAddress = leftOrder.makerAddress
-            val takerAssetFilledAmount = 50.toBigInteger()
+            val makerAssetFilledAmount = 1520000000000000.toBigInteger()
+            val takerAssetFilledAmount = 1.toBigInteger()
 
             val result = zeroExOrderEventConverter.convert(
                 matchOrdersData = data,
@@ -74,6 +76,7 @@ class ZeroExOrderEventConverterTest {
                 date = date,
                 orderHash = orderHash,
                 makerAddress = makerAddress,
+                makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
             )
 
@@ -111,7 +114,8 @@ class ZeroExOrderEventConverterTest {
             val orderHash = rightOrderHash
             val counterHash = leftOrderHash
             val makerAddress = rightOrder.makerAddress
-            val takerAssetFilledAmount = 50.toBigInteger()
+            val makerAssetFilledAmount = 1.toBigInteger()
+            val takerAssetFilledAmount = 1520000000000000.toBigInteger()
 
             val result = zeroExOrderEventConverter.convert(
                 matchOrdersData = data,
@@ -119,6 +123,7 @@ class ZeroExOrderEventConverterTest {
                 date = date,
                 orderHash = orderHash,
                 makerAddress = makerAddress,
+                makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
             )
 
@@ -238,12 +243,14 @@ class ZeroExOrderEventConverterTest {
     @Test
     fun `convert by left order log for buying 1155`() = runBlocking<Unit> {
         with(Erc1155Data) {
+            // https://polygonscan.com/tx/0x7a91f7df871fa7718a4057684951d476db3fa1427604c335fd760bb3bc9ac49e
             val from = Address.ONE()
             val date = Instant.now()
             val orderHash = leftOrderHash
             val counterHash = rightOrderHash
             val makerAddress = leftOrder.makerAddress
-            val takerAssetFilledAmount = 50.toBigInteger()
+            val makerAssetFilledAmount = 3251429816261702.toBigInteger()
+            val takerAssetFilledAmount = 2000000000000000000.toBigInteger()
 
             val result = zeroExOrderEventConverter.convert(
                 matchOrdersData = data,
@@ -251,6 +258,7 @@ class ZeroExOrderEventConverterTest {
                 date = date,
                 orderHash = orderHash,
                 makerAddress = makerAddress,
+                makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
             )
 
@@ -260,8 +268,8 @@ class ZeroExOrderEventConverterTest {
                     counterHash = counterHash,
                     side = OrderSide.RIGHT,
                     fill = EthUInt256(takerAssetFilledAmount),
-                    make = erc20Asset(leftOrder.makerAssetAmount),
-                    take = erc1155Asset(leftOrder.takerAssetAmount),
+                    make = erc20Asset(makerAssetFilledAmount),
+                    take = erc1155Asset(takerAssetFilledAmount),
                     maker = leftOrder.makerAddress,
                     taker = rightOrder.makerAddress,
                     makeUsd = null,
@@ -288,6 +296,7 @@ class ZeroExOrderEventConverterTest {
             val orderHash = rightOrderHash
             val counterHash = leftOrderHash
             val makerAddress = rightOrder.makerAddress
+            val makerAssetFilledAmount = 2000000000000000000.toBigInteger()
             val takerAssetFilledAmount = 3251429816261702.toBigInteger()
 
             val result = zeroExOrderEventConverter.convert(
@@ -296,6 +305,7 @@ class ZeroExOrderEventConverterTest {
                 date = date,
                 orderHash = orderHash,
                 makerAddress = makerAddress,
+                makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
             )
 
@@ -305,8 +315,8 @@ class ZeroExOrderEventConverterTest {
                     counterHash = counterHash,
                     side = OrderSide.LEFT,
                     fill = EthUInt256(takerAssetFilledAmount),
-                    make = erc1155Asset(rightOrder.makerAssetAmount),
-                    take = erc20Asset(rightOrder.takerAssetAmount),
+                    make = erc1155Asset(makerAssetFilledAmount),
+                    take = erc20Asset(takerAssetFilledAmount),
                     maker = rightOrder.makerAddress,
                     taker = leftOrder.makerAddress,
                     makeUsd = null,
@@ -326,8 +336,8 @@ class ZeroExOrderEventConverterTest {
     }
 
     private object Erc1155Data {
-        val leftOrderHash = Word.apply("0xef68293b01ac69bc07565eff24076efaa54d467933fed48f4a5108bf227274f4")
-        val rightOrderHash = Word.apply("0xf3c8f29c6bc8c7ae4574de304b42f7e35a38848144c8429ff01ed749e13c6d77")
+        val leftOrderHash: Word = Word.apply("0xef68293b01ac69bc07565eff24076efaa54d467933fed48f4a5108bf227274f4")
+        val rightOrderHash: Word = Word.apply("0xf3c8f29c6bc8c7ae4574de304b42f7e35a38848144c8429ff01ed749e13c6d77")
 
         val leftOrder = ZeroExOrder(
             // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
@@ -373,9 +383,9 @@ class ZeroExOrderEventConverterTest {
             // buyer fee asset
             takerFeeAssetData = Binary.apply("0x")
         )
-        val leftSignature =
+        val leftSignature: Binary =
             Binary.apply("0x1bd8e7a7950db289cf65676124f061995b92bcec6b0310414629be8e0ed480764f6f7d3d12bb8197f102d9d9939cb2f59ecbb2bfaf89a461480f4751a6b4d4633102")
-        val rightSignature =
+        val rightSignature: Binary =
             Binary.apply("0x1b375de0aa1bf7802aa01cacd70ff7beaaa3ba8aca145802f171d877a09cef18c25cee2b100c15de460db738a30178d9776d33615fec28b6eefd0afd0c2ac942eb02")
 
         // to whom and how much will feeRecipientAddress send fee

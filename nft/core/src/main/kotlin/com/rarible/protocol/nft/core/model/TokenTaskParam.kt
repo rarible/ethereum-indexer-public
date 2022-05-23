@@ -16,6 +16,7 @@ sealed class TokenTaskParam {
             ReindexTokenItemRoyaltiesTaskParam::class -> ReindexTokenItemRoyaltiesTaskParam.fromParamString(param)
             ReindexTokenTaskParams::class -> ReindexTokenTaskParams.fromParamString(param)
             ReduceTokenTaskParams::class -> ReduceTokenTaskParams.fromParamString(param)
+            ReindexCryptoPunksTaskParam::class -> ReindexCryptoPunksTaskParam.fromParamString(param)
             else -> error("Unknown param type $paramType")
         } as P
     }
@@ -93,5 +94,31 @@ data class ReindexTokenItemRoyaltiesTaskParam(val oneToken: Address) : TokenTask
 
         fun fromParamString(param: String): ReindexTokenItemRoyaltiesTaskParam =
             ReindexTokenItemRoyaltiesTaskParam(Address.apply(param))
+    }
+}
+
+data class ReindexCryptoPunksTaskParam(val event: PunkEvent, val from: Long) : TokenTaskParam() {
+    override val tokens: List<Address> get() = emptyList()
+
+    override fun toParamString(): String = "${event.name}:$from"
+
+    companion object {
+        const val ADMIN_REINDEX_CRYPTO_PUNKS = "ADMIN_REINDEX_CRYPTO_PUNKS"
+
+        fun fromParamString(param: String): ReindexCryptoPunksTaskParam {
+            val parts = param.split(":")
+            require(parts.size == 2) { "Wrong param string" }
+
+            return ReindexCryptoPunksTaskParam(
+                event = PunkEvent.valueOf(parts[0]),
+                from = parts[1].toLong()
+            )
+        }
+    }
+
+    enum class PunkEvent {
+        TRANSFER,
+        BOUGHT,
+        ASSIGN
     }
 }

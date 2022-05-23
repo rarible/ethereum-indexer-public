@@ -34,6 +34,7 @@ class ZeroExOrderEventConverter(
         date: Instant,
         orderHash: Word,
         makerAddress: Address,
+        makerAssetFilledAmount: BigInteger,
         takerAssetFilledAmount: BigInteger
     ): List<OrderSideMatch> {
         // filling orders
@@ -45,8 +46,8 @@ class ZeroExOrderEventConverter(
         require(order.makerAssetData == secondOrder.takerAssetData) { "make and take assets must be equal" }
         require(order.takerAssetData == secondOrder.makerAssetData) { "take and make assets must be equal" }
 
-        val makeAsset = createAsset(assetData = order.makerAssetData, amount = order.makerAssetAmount)
-        val takeAsset = createAsset(assetData = order.takerAssetData, amount = order.takerAssetAmount)
+        val makeAsset = createAsset(assetData = order.makerAssetData, amount = makerAssetFilledAmount)
+        val takeAsset = createAsset(assetData = order.takerAssetData, amount = takerAssetFilledAmount)
 
         val leftOrderSide = getOrderSide(makeAsset)
 

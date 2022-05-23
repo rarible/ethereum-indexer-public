@@ -46,7 +46,9 @@ data class OrderSideMatch(
     val externalOrderExecutedOnRarible: Boolean? = null,
     val data: OrderData? = null,
     val adhoc: Boolean? = null,
-    val counterAdhoc: Boolean? = null
+    val counterAdhoc: Boolean? = null,
+    // Fees which were got above price
+    val originFees: List<Part>? = emptyList(),
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
 
 data class OrderCancel(

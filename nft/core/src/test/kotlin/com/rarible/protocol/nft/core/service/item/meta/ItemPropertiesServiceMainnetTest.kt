@@ -4,6 +4,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -45,7 +46,8 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
 
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT
+        requestTimeout = REQUEST_TIMEOUT,
+        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
     )
 
     private val service = ItemPropertiesService(

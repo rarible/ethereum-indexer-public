@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ReduceTokenTaskParams.Companion.ADMIN
 import com.rarible.protocol.nft.core.model.ReindexTokenItemRoyaltiesTaskParam.Companion.ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
 import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion.ADMIN_REINDEX_TOKEN_ITEMS
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.ADMIN_REINDEX_TOKEN
+import com.rarible.protocol.nft.core.model.ReindexCryptoPunksTaskParam.Companion.ADMIN_REINDEX_CRYPTO_PUNKS
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
@@ -29,7 +30,8 @@ class AdminTaskHandlersInitializer(
             ADMIN_REDUCE_TOKEN,
             ADMIN_REINDEX_TOKEN_ITEMS,
             ADMIN_REDUCE_TOKEN_ITEMS,
-            ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES
+            ADMIN_REINDEX_TOKEN_ITEM_ROYALTIES,
+            ADMIN_REINDEX_CRYPTO_PUNKS
         ).forEach { type -> run(type) }
     }
 

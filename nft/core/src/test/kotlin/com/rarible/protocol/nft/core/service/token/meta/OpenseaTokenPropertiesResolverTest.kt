@@ -43,7 +43,7 @@ class OpenseaTokenPropertiesResolverTest : AbstractIntegrationTest() {
     @Test
     fun `should parse from json`() = runBlocking<Unit> {
         val openSeaClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
-            override val proxyClient get() = mockOpenSeaResponse()
+            override val proxyClient get() = mockOpenSeaResponse("opensea.json")
         }
         resolver = OpenseaTokenPropertiesResolver(mapper, openSeaClient, 60000)
         val props = resolver.resolve(token.id)
@@ -57,14 +57,32 @@ class OpenseaTokenPropertiesResolverTest : AbstractIntegrationTest() {
         ))
     }
 
-    private fun mockOpenSeaResponse(): WebClient {
+
+    @Test
+    fun `should parse with unidentified contract name`() = runBlocking<Unit> {
+        val openSeaClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
+            override val proxyClient get() = mockOpenSeaResponse("opensea_unidentified_contract.json")
+        }
+        resolver = OpenseaTokenPropertiesResolver(mapper, openSeaClient, 60000)
+        val props = resolver.resolve(token.id)
+        assertThat(props).isEqualTo(TokenProperties(
+            name = "My contract",
+            description = null,
+            externalLink = null,
+            image = null,
+            feeRecipient = null,
+            sellerFeeBasisPoints = null
+        ))
+    }
+
+    private fun mockOpenSeaResponse(resourceName: String): WebClient {
         return WebClient.builder()
             .exchangeFunction { request ->
                 assertThat(request.url().toStr()).startsWith("https://api.opensea.io/api/v1/asset_contract/0x")
                 Mono.just(
                     ClientResponse.create(HttpStatus.OK)
                         .header("content-type", "application/json")
-                        .body("opensea.json".asResource())
+                        .body(resourceName.asResource())
                         .build()
                 )
             }.build()

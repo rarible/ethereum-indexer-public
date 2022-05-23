@@ -20,8 +20,8 @@ class OpenSeaFetchStateRepository(
         template.save(fetchState).awaitFirst()
     }
 
-    suspend fun get(): OpenSeaFetchState? {
-        return template.findById(OpenSeaFetchState.ID, OpenSeaFetchState::class.java).awaitFirstOrNull()
+    suspend fun get(id: String): OpenSeaFetchState? {
+        return template.findById(id, OpenSeaFetchState::class.java).awaitFirstOrNull()
     }
 
     suspend fun delete() {

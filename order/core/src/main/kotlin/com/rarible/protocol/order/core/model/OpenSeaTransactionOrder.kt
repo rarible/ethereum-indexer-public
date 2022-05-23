@@ -28,6 +28,8 @@ data class OpenSeaTransactionOrder(
     val extra: BigInteger,
     val listingTime: BigInteger,
     val expirationTime: BigInteger,
+    // Fees which were got above price
+    val originFees: List<Part>? = emptyList(),
     val salt: BigInteger,
     val hash: Word = Order.openSeaV1Hash(
         maker = maker,

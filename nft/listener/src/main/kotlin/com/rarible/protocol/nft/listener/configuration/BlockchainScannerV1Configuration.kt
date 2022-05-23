@@ -8,6 +8,7 @@ import com.rarible.ethereum.monitoring.BlockchainMonitoringWorker
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.NftListenerApplication
+import com.rarible.protocol.nft.listener.admin.ReindexCryptoPunksTaskHandler
 import com.rarible.protocol.nft.listener.admin.ReindexTokenItemsTaskHandler
 import com.rarible.protocol.nft.listener.admin.ReindexTokenTaskHandler
 import io.micrometer.core.instrument.MeterRegistry
@@ -63,6 +64,21 @@ class BlockchainScannerV1Configuration(
             tokenRegistrationService = tokenRegistrationService,
             ethereum = ethereum,
             nftListenerProperties = nftListenerProperties,
+        )
+    }
+
+    @Bean
+    fun reindexCryptoPunksTaskHandler(
+        logListenService: LogListenService,
+        tokenRegistrationService: TokenRegistrationService,
+        ethereum: MonoEthereum,
+        nftListenerProperties: NftListenerProperties,
+    ) : ReindexCryptoPunksTaskHandler {
+        return ReindexCryptoPunksTaskHandler(
+            logListenService = logListenService,
+            tokenRegistrationService = tokenRegistrationService,
+            ethereum = ethereum,
+            properties = nftIndexerProperties
         )
     }
 }
