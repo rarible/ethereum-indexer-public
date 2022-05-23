@@ -137,6 +137,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    @Deprecated("Remove in release 1.27")
     val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -170,7 +171,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    @Deprecated("Remove in release 1.26")
+    @Deprecated("Remove in release 1.27")
     val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
@@ -182,6 +183,7 @@ object OrderRepositoryIndexes {
     // --------------------- getBidsByMaker ---------------------//
     // TODO these indices have 0 usage in prod, need to check them
 
+    @Deprecated("Remove in release 1.27")
     val BIDS_BY_MAKER_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -189,7 +191,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    @Deprecated("Remove in release 1.26")
+    @Deprecated("Remove in release 1.27")
     val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
         .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -200,7 +202,8 @@ object OrderRepositoryIndexes {
 
     // --------------------- getAllOrders ---------------------//
     // TODO has 0 usage in prod, functionality can be covered by BY_LAST_UPDATE_AND_ID_DEFINITION
-    private val BY_LAST_UPDATE_DEFINITION = Index()
+    @Deprecated("Remove in release 1.27")
+    val BY_LAST_UPDATE_DEFINITION = Index()
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .background()
 
@@ -264,15 +267,11 @@ object OrderRepositoryIndexes {
         SELL_ORDERS_BY_COLLECTION_PLATFORM_DEFINITION,
 
         SELL_ORDERS_BY_MAKER_DEFINITION,
-        SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION,
         SELL_ORDERS_BY_MAKER_PLATFORM_STATUS_DEFINITION,
 
         BIDS_BY_ITEM_DEFINITION_DEPRECATED,
         BIDS_BY_ITEM_DEFINITION,
 
-        BIDS_BY_MAKER_DEFINITION,
-
-        BY_LAST_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_ID_DEFINITION,
         BY_DB_UPDATE_UPDATE_DEFINITION,
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
