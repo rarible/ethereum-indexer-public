@@ -71,10 +71,13 @@ fun createItemTransfer(): LogEvent {
     return createLogEvent(data)
 }
 
-fun createItemTransfer(owner: Address = createAddress()) = ItemTransfer(
+fun createItemTransfer(
+    owner: Address = createAddress(),
+    tokenId: EthUInt256 = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 2)),
+) = ItemTransfer(
     owner = owner,
     token = createAddress(),
-    tokenId = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 2)),
+    tokenId = tokenId,
     date = nowMillis(),
     from = createAddress(),
     value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000))

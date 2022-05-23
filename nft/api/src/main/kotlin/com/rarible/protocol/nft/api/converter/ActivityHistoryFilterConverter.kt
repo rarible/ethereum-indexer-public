@@ -1,9 +1,21 @@
 package com.rarible.protocol.nft.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.ActivityContinuationDto
+import com.rarible.protocol.dto.NftActivityFilterAllDto
+import com.rarible.protocol.dto.NftActivityFilterByCollectionDto
+import com.rarible.protocol.dto.NftActivityFilterByItemAndOwnerDto
+import com.rarible.protocol.dto.NftActivityFilterByItemDto
+import com.rarible.protocol.dto.NftActivityFilterByUserDto
+import com.rarible.protocol.dto.NftActivityFilterDto
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
-import com.rarible.protocol.nft.core.repository.history.*
+import com.rarible.protocol.nft.core.model.ItemType
+import com.rarible.protocol.nft.core.repository.history.ActivityItemHistoryFilter
+import com.rarible.protocol.nft.core.repository.history.ActivitySort
+import com.rarible.protocol.nft.core.repository.history.CollectionActivityItemHistoryFilter
+import com.rarible.protocol.nft.core.repository.history.ItemActivityItemHistoryFilter
+import com.rarible.protocol.nft.core.repository.history.ItemAndOwnerActivityHistoryFilter
+import com.rarible.protocol.nft.core.repository.history.UserActivityItemHistoryFilter
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -100,6 +112,11 @@ class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
                         continuation
                     )
                 }
+            }
+            is NftActivityFilterByItemAndOwnerDto -> {
+                val tokenId = EthUInt256.of(source.tokenId)
+                val owner = source.owner
+                listOf(ItemAndOwnerActivityHistoryFilter(tokenId, owner, continuation))
             }
         }
     }

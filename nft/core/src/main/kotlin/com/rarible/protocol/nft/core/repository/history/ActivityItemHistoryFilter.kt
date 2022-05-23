@@ -4,6 +4,7 @@ import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.dto.NftActivityFilterByItemAndOwnerDto
 import com.rarible.protocol.nft.core.misc.isSingleton
 import com.rarible.protocol.nft.core.misc.safeQueryParam
 import com.rarible.protocol.nft.core.model.Continuation
@@ -12,7 +13,12 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import org.bson.Document
 import org.springframework.data.domain.Sort
-import org.springframework.data.mongodb.core.query.*
+import org.springframework.data.mongodb.core.query.Criteria
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.gt
+import org.springframework.data.mongodb.core.query.inValues
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.lt
 import scalether.domain.Address
 import java.time.Instant
 
@@ -281,6 +287,27 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
                 .scrollTo(sort, continuation)
         }
     }
+}
+
+data class ItemAndOwnerActivityHistoryFilter(
+    val tokenId: EthUInt256,
+    val owner: Address,
+    val continuation: Continuation?,
+) : ActivityItemHistoryFilter() {
+    private val ownerKey = LogEvent::data / ItemTransfer::owner
+    private val tokenIdKey = LogEvent::data / ItemTransfer::tokenId
+
+    override val hint: Document = NftItemHistoryRepositoryIndexes.BY_ITEM_AND_OWNER_DEFINITION.indexKeys
+
+    override fun getCriteria(): Criteria {
+        return (typeKey isEqualTo ItemType.TRANSFER)
+            .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
+            .and(tokenIdKey).isEqualTo(tokenId)
+            .and(ownerKey).isEqualTo(owner)
+            .scrollTo(sort, continuation)
+    }
+
+    override val sort: ActivitySort = ActivitySort.LATEST_FIRST
 }
 
 enum class ActivitySort(val sort: Sort) {
