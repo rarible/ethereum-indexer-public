@@ -73,10 +73,11 @@ fun createItemTransfer(): LogEvent {
 
 fun createItemTransfer(
     owner: Address = createAddress(),
+    token: Address = createAddress(),
     tokenId: EthUInt256 = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 2)),
 ) = ItemTransfer(
     owner = owner,
-    token = createAddress(),
+    token = token,
     tokenId = tokenId,
     date = nowMillis(),
     from = createAddress(),

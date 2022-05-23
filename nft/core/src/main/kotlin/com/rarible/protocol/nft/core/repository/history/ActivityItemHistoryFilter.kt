@@ -4,7 +4,6 @@ import com.rarible.core.mongo.util.div
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.NftActivityFilterByItemAndOwnerDto
 import com.rarible.protocol.nft.core.misc.isSingleton
 import com.rarible.protocol.nft.core.misc.safeQueryParam
 import com.rarible.protocol.nft.core.model.Continuation
@@ -289,25 +288,49 @@ sealed class ItemActivityItemHistoryFilter(contract: Address, protected val toke
     }
 }
 
-data class ItemAndOwnerActivityHistoryFilter(
-    val tokenId: EthUInt256,
-    val owner: Address,
-    val continuation: Continuation?,
-) : ActivityItemHistoryFilter() {
-    private val ownerKey = LogEvent::data / ItemTransfer::owner
-    private val tokenIdKey = LogEvent::data / ItemTransfer::tokenId
+sealed class ItemAndOwnerActivityItemHistoryFilter(contract: Address, tokenId: EthUInt256) :
+    ItemActivityItemHistoryFilter(contract, tokenId) {
 
-    override val hint: Document = NftItemHistoryRepositoryIndexes.BY_ITEM_AND_OWNER_DEFINITION.indexKeys
-
-    override fun getCriteria(): Criteria {
+    protected fun makeCriteria(
+        sort: ActivitySort,
+        contract: Address,
+        tokenId: EthUInt256,
+        continuation: Continuation?,
+        expression: Criteria.() -> Criteria,
+    ): Criteria {
         return (typeKey isEqualTo ItemType.TRANSFER)
             .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
+            .and(collectionKey).isEqualTo(contract)
             .and(tokenIdKey).isEqualTo(tokenId)
-            .and(ownerKey).isEqualTo(owner)
+            .expression()
             .scrollTo(sort, continuation)
     }
 
-    override val sort: ActivitySort = ActivitySort.LATEST_FIRST
+    class ByItemAndOwnerMint(
+        override val sort: ActivitySort,
+        contract: Address,
+        tokenId: EthUInt256,
+        private val owner: Address,
+        private val continuation: Continuation?,
+    ) : ItemAndOwnerActivityItemHistoryFilter(contract, tokenId) {
+        override fun getCriteria(): Criteria = makeCriteria(sort, contract, tokenId, continuation) {
+            and(fromKey).isEqualTo(Address.ZERO())
+            and(ownerKey).isEqualTo(owner)
+        }
+    }
+
+    class ByItemAndOwnerTransfer(
+        override val sort: ActivitySort,
+        contract: Address,
+        tokenId: EthUInt256,
+        private val owner: Address,
+        private val continuation: Continuation?,
+    ) : ItemAndOwnerActivityItemHistoryFilter(contract, tokenId) {
+        override fun getCriteria(): Criteria = makeCriteria(sort, contract, tokenId, continuation) {
+            and(fromKey).ne(Address.ZERO())
+            and(ownerKey).isEqualTo(owner)
+        }
+    }
 }
 
 enum class ActivitySort(val sort: Sort) {

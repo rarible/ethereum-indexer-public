@@ -106,18 +106,19 @@ class ActivityControllerIt : SpringContainerBaseTest() {
     @Test
     fun `activity controller by item and owner`() = runBlocking<Unit> {
         val owner = randomAddress()
+        val token = randomAddress()
         val tokenId = EthUInt256.of(randomLong())
         val date = Instant.now()
 
-        val transfer = createItemTransfer(owner, tokenId).copy(date = date)
-        val mint = createItemTransfer(owner, tokenId).copy(date = date.minusMillis(1000), from = Address.ZERO())
+        val transfer = createItemTransfer(owner, token, tokenId).copy(date = date)
+        val mint = createItemTransfer(owner, token, tokenId).copy(date = date.minusMillis(1000), from = Address.ZERO())
 
         listOf(transfer, mint)
             .map { createLogEvent(it) }
             .onEach { historyRepository.save(it).awaitFirst() }
         repeat(10) { historyRepository.save(createItemTransfer()).awaitFirst() }
 
-        val filter = NftActivityFilterByItemAndOwnerDto(tokenId.value, owner)
+        val filter = NftActivityFilterByItemAndOwnerDto(token, tokenId.value, owner, NftActivityFilterByItemAndOwnerDto.Types.values().asList())
         val result = activityController.getNftActivities(filter, null, 10, ActivitySortDto.LATEST_FIRST)
 
         assertThat(result.body).isNotNull
