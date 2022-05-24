@@ -36,7 +36,7 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
         do {
-            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_DESC)
+            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_DESC, null)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1
@@ -65,7 +65,7 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
         val receivedOrders = mutableListOf<OrderActivityDto>()
 
         do {
-            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_ASC)
+            val dto = controller.getOrderActivitiesSync(continuation, ordersChunk, SyncSortDto.DB_UPDATE_ASC, null)
             continuation = dto.body?.continuation
             dto.body?.let { receivedOrders.addAll(it.items) }
             pageCounter += 1

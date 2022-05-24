@@ -95,4 +95,32 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
             }
         }
     }
+
+    fun syncConvert(
+        sort: ActivitySort,
+        filter: List<OrderActivitiesSyncTypesDto>?,
+        activityContinuation: ActivityContinuationDto?
+    ): List<ActivityExchangeHistoryFilter> {
+        val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }
+
+        if (filter == null) {
+            return listOf(ActivityExchangeHistoryFilter.AllSync(sort, continuation))
+        }
+
+        val filterSet = filter.toSet()
+        val count = filterSet.count { it == OrderActivitiesSyncTypesDto.BID || it == OrderActivitiesSyncTypesDto.LIST }
+
+        if (filterSet.size == count) {
+            return listOf(ActivityExchangeHistoryFilter.AllSync(sort, continuation))
+        }
+
+        return filterSet.mapNotNull {
+            when (it) {
+                OrderActivitiesSyncTypesDto.MATCH -> ActivityExchangeHistoryFilter.AllSell(sort, continuation)
+                OrderActivitiesSyncTypesDto.CANCEL_BID ->  ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
+                OrderActivitiesSyncTypesDto.CANCEL_LIST -> ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation)
+                OrderActivitiesSyncTypesDto.LIST, OrderActivitiesSyncTypesDto.BID -> null
+            }
+        }
+    }
 }

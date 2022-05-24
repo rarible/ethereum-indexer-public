@@ -34,8 +34,16 @@ sealed class ActivityExchangeHistoryFilter {
     internal open val hint: Document? = null
     internal abstract val sort: ActivitySort
 
-    class AllSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-        override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
+    class AllSell(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = if (isSync) {
+            ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true sideMatch true).scrollTo(sort, continuation)
@@ -52,16 +60,33 @@ sealed class ActivityExchangeHistoryFilter {
 
     }
 
-    class AllCanceledBid(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-        override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
+    class AllCanceledBid(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityExchangeHistoryFilter() {
+        override val hint: Document = if (isSync) {
+            ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            ExchangeHistoryRepositoryIndexes.ALL_BID_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
             return (takeNftKey isEqualTo true canceled true).scrollTo(sort, continuation)
         }
     }
 
-    class AllCanceledSell(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
-        override val hint: Document = ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
+    class AllCanceledSell(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityExchangeHistoryFilter() {
+
+        override val hint: Document = if (isSync) {
+            ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            ExchangeHistoryRepositoryIndexes.ALL_SELL_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true canceled true).scrollTo(sort, continuation)

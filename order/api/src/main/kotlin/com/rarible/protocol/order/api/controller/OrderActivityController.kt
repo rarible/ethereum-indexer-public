@@ -3,20 +3,18 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.OrderActivitiesDto
+import com.rarible.protocol.dto.OrderActivitiesSyncTypesDto
 import com.rarible.protocol.dto.OrderActivityFilterDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
 import com.rarible.protocol.order.api.converter.ActivityHistoryFilterConverter
 import com.rarible.protocol.order.api.converter.ActivityVersionFilterConverter
-import com.rarible.protocol.order.api.converter.ContinuationConverter
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
 import com.rarible.protocol.order.api.service.activity.OrderActivityService
 import com.rarible.protocol.order.core.continuation.page.PageSize
 import com.rarible.protocol.order.core.converters.model.ActivitySortConverter
 import com.rarible.protocol.order.core.converters.model.ActivitySyncSortConverter
 import com.rarible.protocol.order.core.model.ActivitySort
-import com.rarible.protocol.order.core.repository.exchange.ActivityExchangeHistoryFilter
-import com.rarible.protocol.order.core.repository.order.ActivityOrderVersionFilter
 import org.bson.types.ObjectId
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
@@ -66,22 +64,17 @@ class OrderActivityController(
      override suspend fun getOrderActivitiesSync(
          continuation: String?,
          size: Int?,
-         sort: SyncSortDto?
+         sort: SyncSortDto?,
+         filter: List<OrderActivitiesSyncTypesDto>?
      ): ResponseEntity<OrderActivitiesDto> {
          val requestSize = PageSize.ORDER_ACTIVITY.limit(size)
          val continuationDto = ContinuationMapper.toActivityContinuationDto(continuation)
          val activitySort = sort?.let { ActivitySyncSortConverter.convert(sort) } ?: ActivitySort.SYNC_EARLIEST_FIRST
-
-         val historyFilter = ActivityExchangeHistoryFilter.AllSync(
-             activitySort,
-             continuationDto?.let { ContinuationConverter.convert(it) })
-
-         val versionFilter = ActivityOrderVersionFilter.AllSync(
-             activitySort,
-             continuationDto?.let { ContinuationConverter.convert(it) })
+         val historyFilters = historyFilterConverter.syncConvert(activitySort, filter, continuationDto)
+         val versionFilters = versionFilterConverter.syncConvert(activitySort, filter, continuationDto)
 
          val result = orderActivityService
-             .search(listOf(historyFilter), listOf(versionFilter), activitySort, requestSize)
+             .search(historyFilters, versionFilters, activitySort, requestSize)
              .mapNotNull { orderActivityConverter.convert(it) }
 
          val nextContinuation = if (result.isEmpty() || result.size < requestSize) {

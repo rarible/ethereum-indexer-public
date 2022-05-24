@@ -93,6 +93,20 @@ object ExchangeHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
+    val ALL_SELL_DEFINITION_BY_UPDATED_AT: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::type.name}", Sort.Direction.ASC)
+        .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
+    val ALL_BID_DEFINITION_BY_UPDATED_AT: Index = Index()
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on("${LogEvent::data.name}.${OrderExchangeHistory::type.name}", Sort.Direction.ASC)
+        .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         ALL_SELL_DEFINITION,
         MAKER_SELL_DEFINITION,
@@ -106,6 +120,8 @@ object ExchangeHistoryRepositoryIndexes {
         AGGREGATION_DEFINITION,
         HASH_DEFINITION,
         HASH_AND_SOURCE_DEFINITION,
-        BY_UPDATED_AT_FIELD
+        BY_UPDATED_AT_FIELD,
+        ALL_SELL_DEFINITION_BY_UPDATED_AT,
+        ALL_BID_DEFINITION_BY_UPDATED_AT
     )
 }

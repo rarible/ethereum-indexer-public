@@ -123,4 +123,42 @@ class ActivityVersionFilterConverter(
             }
         }
     }
+
+    fun syncConvert(
+        sort: ActivitySort,
+        filter: List<OrderActivitiesSyncTypesDto>?,
+        activityContinuation: ActivityContinuationDto?
+    ): List<ActivityOrderVersionFilter> {
+        val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }
+
+        if (filter == null) {
+            return listOf(ActivityOrderVersionFilter.AllSync(sort, continuation))
+        }
+
+        val filterSet = filter.toSet()
+        val count = filterSet.count { it in SKIP_ACTIVITY_TYPES }
+
+        if (filterSet.size == count) {
+            return listOf(ActivityOrderVersionFilter.AllSync(sort, continuation))
+        }
+
+        return filterSet.mapNotNull {
+            when (it) {
+                OrderActivitiesSyncTypesDto.LIST -> ActivityOrderVersionFilter.AllList(sort, continuation)
+                OrderActivitiesSyncTypesDto.BID -> ActivityOrderVersionFilter.AllBid(sort, continuation)
+                OrderActivitiesSyncTypesDto.MATCH,
+                OrderActivitiesSyncTypesDto.CANCEL_BID,
+                OrderActivitiesSyncTypesDto.CANCEL_LIST -> null
+            }
+        }
+    }
+
+
+    companion object{
+        private val SKIP_ACTIVITY_TYPES = listOf(
+            OrderActivitiesSyncTypesDto.MATCH,
+            OrderActivitiesSyncTypesDto.CANCEL_BID,
+            OrderActivitiesSyncTypesDto.CANCEL_LIST
+        )
+    }
 }

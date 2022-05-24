@@ -115,7 +115,9 @@ class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
             return listOf(ActivityItemHistoryFilter.AllSync(sort, continuation))
         }
 
-        return filter.map {
+        val filterSet = filter.toSet()
+
+        return filterSet.map {
             when (it) {
                 NftActivitiesSyncTypesDto.TRANSFER -> ActivityItemHistoryFilter.AllTransfer(sort, continuation, true)
                 NftActivitiesSyncTypesDto.MINT -> ActivityItemHistoryFilter.AllMint(sort, continuation, true)
