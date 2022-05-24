@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.listener.service.zero.ex
 
+import com.rarible.protocol.contracts.exchange.zero.ex.Exchange
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.ZeroExFeeWrapper
+import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.ZeroExFeeData
 import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
@@ -26,12 +28,15 @@ class ZeroExOrderParser(
         index: Int,
         totalLogs: Int
     ): ZeroExMatchOrdersData {
-        val signature = ZeroExFeeWrapper.matchOrdersSignature()
+        val wrapperMatchSignatureId = ZeroExFeeWrapper.matchOrdersSignature().id()
+        val byWrapper = txInput.methodSignatureId() == wrapperMatchSignatureId
+        val id = if (byWrapper) wrapperMatchSignatureId else Exchange.matchOrdersSignature().id()
+
         val inputs = traceCallService.findAllRequiredCallInputs(
             txHash = txHash,
             txInput = txInput,
             to = event.log().address(),
-            id = signature.id()
+            id = id
         )
         require(inputs.size * 2 == totalLogs) {
             "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs"
