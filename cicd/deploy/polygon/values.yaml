@@ -1,8 +1,8 @@
 global:
-  blockchain: ethereum
-  network: mainnet
-polygon-erc20-api:
   blockchain: polygon
+  network: mainnet
+
+polygon-erc20-api:
   image:
     repository: ethereum-indexer-erc20-api
   replicas: 2
@@ -10,8 +10,8 @@ polygon-erc20-api:
     enabled: true
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -26,13 +26,12 @@ polygon-erc20-api:
       - '{{ .Values.global.network }}-ethereum'
 
 polygon-erc20-listener:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-erc20-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -46,7 +45,6 @@ polygon-erc20-listener:
     - '{{ .Values.global.network }}-ethereum'
 
 polygon-gateway:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-gateway
   replicas: 2
@@ -55,7 +53,7 @@ polygon-gateway:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: ',consul,{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }}'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -71,7 +69,6 @@ polygon-gateway:
     - 'proxy-staging'
 
 polygon-order-api:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-order-api
   replicas: 2
@@ -79,8 +76,8 @@ polygon-order-api:
     enabled: true
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
     JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
   nodeSelector:
     node.labels.rarible.service: true
@@ -99,13 +96,12 @@ polygon-order-api:
 
 
 polygon-order-listener:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-order-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -122,13 +118,12 @@ polygon-order-listener:
 
 
 polygon-order-migration:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-order-migration
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -149,7 +144,6 @@ polygon-order-migration:
 
 
 polygon-unlockable-api:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-unlockable-api
   replicas: 2
@@ -157,8 +151,8 @@ polygon-unlockable-api:
     enabled: true
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -172,7 +166,6 @@ polygon-unlockable-api:
     - '{{ include "service.appEnv" $ }}-backend'
 
 polygon-nft-api:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-nft-api
   replicas: 2
@@ -180,8 +173,8 @@ polygon-nft-api:
     enabled: true
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
@@ -198,13 +191,12 @@ polygon-nft-api:
       - '{{ .Values.global.network }}-ethereum'
 
 polygon-nft-listener:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-nft-listener
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
@@ -220,13 +212,12 @@ polygon-nft-listener:
       - '{{ .Values.global.network }}-ethereum'
 
 polygon-nft-migration:
-  blockchain: polygon
   image:
     repository: ethereum-indexer-nft-migration
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.blockchain }}-{{ include "service.appEnv" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.job: true
   endpointMode: dnsrr
