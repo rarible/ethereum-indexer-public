@@ -1,0 +1,53 @@
+global:
+  newtwork: 'mainnet'
+
+sharedEnvironments: &sharedEnvironments
+  SPRING_CLOUD_CONSUL_ENABLED: false
+  # this secrets assigns automatically
+  # RARIBLE_CORE_AGENT_SERVER:
+  # KAFKA_HOSTS:
+  # SPRING_DATA_MONGODB_PASSWORD:
+  # SPRING_DATA_MONGODB_USER:
+  # SPRING_DATA_MONGODB_URI:
+  # ETH_NODE_HTTP_URL:
+  # ETH_NODE_WS_URL:
+
+ethereum-erc20-api:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-erc20-listener:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-gateway:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-api: 
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-listener:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-order-migration:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-unlockable-api:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-api: 
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-listener:
+  environments:
+    <<: *sharedEnvironments
+
+ethereum-nft-migration:
+  environments:
+    <<: *sharedEnvironments
