@@ -117,12 +117,19 @@ class AuctionHistoryRepository(
             .on("_id", Sort.Direction.ASC)
             .background()
 
+        val BY_TYPE_BY_UPDATED_AT_FIELD: Index = Index()
+            .on("${LogEvent::data.name}.${AuctionHistory::type.name}", Sort.Direction.ASC)
+            .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
 
         val ALL_INDEXES = listOf(
             BY_TYPE_TOKEN_ID_DEFINITION,
             BY_TYPE_SELLER_DEFINITION,
             BY_TYPE_BUYER_DEFINITION,
-            BY_UPDATED_AT_FIELD
+            BY_UPDATED_AT_FIELD,
+            BY_TYPE_BY_UPDATED_AT_FIELD
         )
     }
 

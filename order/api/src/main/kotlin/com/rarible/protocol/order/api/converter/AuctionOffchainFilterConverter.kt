@@ -1,12 +1,14 @@
 package com.rarible.protocol.order.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.AuctionActivitiesSyncTypesDto
 import com.rarible.protocol.dto.AuctionActivityFilterAllDto
 import com.rarible.protocol.dto.AuctionActivityFilterByCollectionDto
 import com.rarible.protocol.dto.AuctionActivityFilterByItemDto
 import com.rarible.protocol.dto.AuctionActivityFilterByUserDto
 import com.rarible.protocol.dto.AuctionActivityFilterDto
 import com.rarible.protocol.order.core.model.AuctionActivitySort
+import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.repository.auction.ActivityAuctionOffchainFilter
 import com.rarible.protocol.order.core.repository.auction.AuctionOffchainByCollection
@@ -52,5 +54,49 @@ class AuctionOffchainFilterConverter {
                 }
             }
         }
+    }
+
+    fun syncConvert(
+        filter: List<AuctionActivitiesSyncTypesDto>?,
+        sort: AuctionActivitySort,
+        continuation: String?
+    ): List<ActivityAuctionOffchainFilter> {
+
+        if (filter == null) {
+            return listOf(ActivityAuctionOffchainFilter.AllSync(continuation,sort))
+        }
+
+        val filterSet = filter.toSet()
+        val count = filterSet.count { it in SKIP_ACTIVITY_TYPES }
+
+        if (filterSet.size == count) {
+            return emptyList()
+        }
+
+        return filterSet.mapNotNull {
+            when (it) {
+                AuctionActivitiesSyncTypesDto.STARTED -> ActivityAuctionOffchainFilter.AuctionAllByType(
+                    AuctionOffchainHistory.Type.STARTED,
+                    continuation,
+                    sort
+                )
+                AuctionActivitiesSyncTypesDto.ENDED -> ActivityAuctionOffchainFilter.AuctionAllByType(
+                    AuctionOffchainHistory.Type.ENDED,
+                    continuation,
+                    sort
+                )
+                else -> null
+            }
+        }
+    }
+
+    companion object{
+        private val SKIP_ACTIVITY_TYPES = listOf(
+            AuctionActivitiesSyncTypesDto.CREATED,
+            AuctionHistoryType.ON_CHAIN_AUCTION,
+            AuctionActivitiesSyncTypesDto.BID,
+            AuctionActivitiesSyncTypesDto.CANCEL,
+            AuctionActivitiesSyncTypesDto.FINISHED
+        )
     }
 }

@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.protocol.dto.ActivitiesByIdRequestDto
 import com.rarible.protocol.dto.ActivitySortDto
 import com.rarible.protocol.dto.AuctionActivitiesDto
+import com.rarible.protocol.dto.AuctionActivitiesSyncTypesDto
 import com.rarible.protocol.dto.AuctionActivityFilterDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.mapper.ContinuationMapper
@@ -15,8 +16,6 @@ import com.rarible.protocol.order.core.converters.model.AuctionActivitySortConve
 import com.rarible.protocol.order.core.converters.model.AuctionActivitySyncSortConverter
 import com.rarible.protocol.order.core.model.AuctionActivityResult
 import com.rarible.protocol.order.core.model.AuctionActivitySort
-import com.rarible.protocol.order.core.repository.auction.ActivityAuctionHistoryFilter
-import com.rarible.protocol.order.core.repository.auction.ActivityAuctionOffchainFilter
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RestController
 
@@ -70,14 +69,15 @@ class AuctionActivityController(
     override suspend fun getAuctionActivitiesSync(
         continuation: String?,
         size: Int?,
-        sort: SyncSortDto?
+        sort: SyncSortDto?,
+        filter: List<AuctionActivitiesSyncTypesDto>?
     ): ResponseEntity<AuctionActivitiesDto> {
         val requestSize = PageSize.AUCTION_ACTIVITY.limit(size)
         val activitySort =
             sort?.let { AuctionActivitySyncSortConverter.convert(sort) } ?: AuctionActivitySort.SYNC_EARLIEST_FIRST
-        val historyFilter = ActivityAuctionHistoryFilter.AllSync(continuation, activitySort)
-        val offchainFilter = ActivityAuctionOffchainFilter.AllSync(continuation, activitySort)
-        val result = auctionActivityService.search(listOf(historyFilter), listOf(offchainFilter), activitySort, requestSize)
+        val historyFilters = auctionHistoryFilterConverter.syncConvert(filter, activitySort, continuation)
+        val offchainFilter =  auctionOffchainFilterConverter.syncConvert(filter, activitySort, continuation)
+        val result = auctionActivityService.search(historyFilters, offchainFilter, activitySort, requestSize)
             .mapNotNull {
                 when(it) {
                     is AuctionActivityResult.History -> auctionActivityConverter.convert(it.value)

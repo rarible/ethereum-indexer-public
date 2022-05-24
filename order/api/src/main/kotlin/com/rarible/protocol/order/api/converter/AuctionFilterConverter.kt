@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.converter
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.AuctionActivitiesSyncTypesDto
 import com.rarible.protocol.dto.AuctionActivityFilterAllDto
 import com.rarible.protocol.dto.AuctionActivityFilterByCollectionDto
 import com.rarible.protocol.dto.AuctionActivityFilterByItemDto
@@ -61,6 +62,35 @@ class AuctionHistoryFilterConverter {
                     AuctionActivityFilterByCollectionDto.Types.FINISHED -> listOf(AuctionByCollection.Finished(source.contract, continuation, sort))
                     else -> emptyList()
                 }
+            }
+        }
+    }
+
+    fun syncConvert(
+        filter: List<AuctionActivitiesSyncTypesDto>?,
+        sort: AuctionActivitySort,
+        continuation: String?
+    ): List<ActivityAuctionHistoryFilter> {
+
+        if (filter == null) {
+            return listOf(ActivityAuctionHistoryFilter.AllSync(continuation,sort))
+        }
+
+        val filterSet = filter.toSet()
+        val count = filterSet.count { it == AuctionActivitiesSyncTypesDto.STARTED || it == AuctionActivitiesSyncTypesDto.ENDED }
+
+        if (filterSet.size == count) {
+            return emptyList()
+        }
+
+        return filterSet.mapNotNull {
+            when (it) {
+                AuctionActivitiesSyncTypesDto.CREATED -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.ON_CHAIN_AUCTION, continuation, sort)
+                AuctionActivitiesSyncTypesDto.BID -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.BID_PLACED, continuation, sort)
+                AuctionActivitiesSyncTypesDto.CANCEL -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort)
+                AuctionActivitiesSyncTypesDto.FINISHED -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_FINISHED, continuation, sort)
+                AuctionActivitiesSyncTypesDto.STARTED,
+                AuctionActivitiesSyncTypesDto.ENDED -> null
             }
         }
     }

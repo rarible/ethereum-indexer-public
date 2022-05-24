@@ -92,11 +92,18 @@ class AuctionOffchainHistoryRepository(
             .on("_id", Sort.Direction.ASC)
             .background()
 
+        val BY_TYPE_BY_CREATED_AT_FIELD: Index = Index()
+            .on(AuctionOffchainHistory::type.name, Sort.Direction.ASC)
+            .on(AuctionOffchainHistory::createdAt.name, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
         val ALL_INDEXES = listOf(
             BY_LAST_UPDATE_AND_ID_DEFINITION,
             BY_TYPE_SELLER_DEFINITION,
             BY_TYPE_TOKEN_ID_DEFINITION,
-            BY_CREATED_AT_FIELD
+            BY_CREATED_AT_FIELD,
+            BY_TYPE_BY_CREATED_AT_FIELD
         )
     }
 
