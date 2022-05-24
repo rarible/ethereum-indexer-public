@@ -139,7 +139,7 @@ class ActivityVersionFilterConverter(
         val count = filterSet.count { it in SKIP_ACTIVITY_TYPES }
 
         if (filterSet.size == count) {
-            return listOf(ActivityOrderVersionFilter.AllSync(sort, continuation))
+            return emptyList()
         }
 
         return filterSet.mapNotNull {

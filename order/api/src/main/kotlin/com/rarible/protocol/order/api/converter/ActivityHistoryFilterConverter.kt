@@ -111,14 +111,14 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
         val count = filterSet.count { it == OrderActivitiesSyncTypesDto.BID || it == OrderActivitiesSyncTypesDto.LIST }
 
         if (filterSet.size == count) {
-            return listOf(ActivityExchangeHistoryFilter.AllSync(sort, continuation))
+            return emptyList()
         }
 
         return filterSet.mapNotNull {
             when (it) {
-                OrderActivitiesSyncTypesDto.MATCH -> ActivityExchangeHistoryFilter.AllSell(sort, continuation)
-                OrderActivitiesSyncTypesDto.CANCEL_BID ->  ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation)
-                OrderActivitiesSyncTypesDto.CANCEL_LIST -> ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation)
+                OrderActivitiesSyncTypesDto.MATCH -> ActivityExchangeHistoryFilter.AllSell(sort, continuation, true)
+                OrderActivitiesSyncTypesDto.CANCEL_BID ->  ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation, true)
+                OrderActivitiesSyncTypesDto.CANCEL_LIST -> ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation, true)
                 OrderActivitiesSyncTypesDto.LIST, OrderActivitiesSyncTypesDto.BID -> null
             }
         }
