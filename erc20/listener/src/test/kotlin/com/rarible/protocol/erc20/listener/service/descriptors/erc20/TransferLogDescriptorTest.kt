@@ -1,12 +1,12 @@
 package com.rarible.protocol.erc20.listener.service.descriptors.erc20
 
 import com.rarible.contracts.test.erc20.TestERC20
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.contract.repository.ContractRepository
 import com.rarible.protocol.erc20.core.model.Erc20IncomeTransfer
 import com.rarible.protocol.erc20.core.model.Erc20OutcomeTransfer
 import com.rarible.protocol.erc20.core.repository.Erc20TransferHistoryRepository
-import com.rarible.protocol.erc20.listener.data.createAddress
 import com.rarible.protocol.erc20.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.erc20.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
@@ -34,7 +34,7 @@ internal class TransferLogDescriptorTest : AbstractIntegrationTest() {
     @Test
     fun `should get transfer history events`() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
-        val recipient = createAddress()
+        val recipient = randomAddress()
         val value = BigInteger.valueOf(10)
 
         val userSender = MonoSigningTransactionSender(

@@ -33,7 +33,7 @@ class OrderSetDbUpdatedFieldHandler (
             return null
         }
 
-        orderRepository.orderDbUpdatedAtFieldUpdate(order)
+        orderRepository.setDbUpdatedAtField(order.hash, order.lastUpdateAt)
         val updatedOrder = orderRepository.findById(order.hash)
 
         logger.info("[$ORDER_SET_DB_UPDATE_FIELD] Field Order::dbUpdatedAt of order:" +

@@ -77,6 +77,13 @@ fun createOrderOpenSeaV1DataV1(): OrderOpenSeaV1DataV1 {
     )
 }
 
+fun createOrderRaribleV2DataV1(): OrderRaribleV2DataV1 {
+    return OrderRaribleV2DataV1(
+        originFees = listOf(Part(randomAddress(), EthUInt256.TEN), Part(randomAddress(), EthUInt256.ONE)),
+        payouts = listOf(Part(randomAddress(), EthUInt256.ONE), Part(randomAddress(), EthUInt256.TEN))
+    )
+}
+
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
     return copy(

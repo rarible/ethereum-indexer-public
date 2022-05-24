@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test
 @ItemMetaTest
 class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val hashmasksPropertiesResolver: HashmasksPropertiesResolver = HashmasksPropertiesResolver(
-        sender = createSender(),
+    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(
+        sender = sender,
         ipfsService = ipfsService
     )
 

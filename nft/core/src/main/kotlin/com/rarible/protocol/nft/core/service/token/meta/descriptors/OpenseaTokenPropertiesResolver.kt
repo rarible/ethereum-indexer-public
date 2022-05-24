@@ -60,12 +60,25 @@ class OpenseaTokenPropertiesResolver(
     private fun parseJsonProperties(jsonBody: String): TokenProperties? {
         val node = mapper.readTree(jsonBody) as ObjectNode
         return TokenProperties(
-            name = node.getText("name") ?: "Untitled",
+            name = getName(node) ?: "Untitled",
             description = node.getText("description"),
             image = node.getText("image_url"),
             externalLink = node.getText("external_link"),
             sellerFeeBasisPoints = node.getInt("opensea_seller_fee_basis_points"),
-            feeRecipient = node.getText("payout_address").let { Address.apply(it) } ?: null,
+            feeRecipient = node.getText("payout_address")?.let { Address.apply(it) },
         )
+    }
+
+    private fun getName(node: ObjectNode): String? {
+        val name = node.getText("name")
+        return if (name == OPEN_SEA_COLLECTION_DEFAULT_NAME) {
+            node.get("collection")?.getText("name") ?: name
+        } else {
+            name
+        }
+    }
+
+    private companion object {
+        const val OPEN_SEA_COLLECTION_DEFAULT_NAME = "Unidentified contract"
     }
 }

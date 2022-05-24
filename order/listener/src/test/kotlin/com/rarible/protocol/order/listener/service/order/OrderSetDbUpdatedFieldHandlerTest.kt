@@ -5,10 +5,9 @@ import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 
@@ -22,22 +21,23 @@ class OrderSetDbUpdatedFieldHandlerTest : AbstractIntegrationTest() {
     @Test
     fun `should update all orders without dbUpdatedAt field`() = runBlocking<Unit> {
         repeat(20) {
-            orderRepository.saveWithoutDbUpdated(createOrder())
+            val order = createOrder().copy(dbUpdatedAt = null)
+            orderRepository.saveWithoutDbUpdated(order)
         }
-
         repeat(10) {
             val order = createOrder()
             orderRepository.saveWithoutDbUpdated(order.copy(dbUpdatedAt = order.lastUpdateAt))
         }
-
-        Assertions.assertThat(orderRepository.findWithoutDbUpdatedField().toList()).hasSize(20)
+        assertThat(orderRepository.findWithoutDbUpdatedField().toList()).hasSize(20)
 
         handler.runLongTask(null, "").collect()
 
-        Assertions.assertThat(orderRepository.findWithoutDbUpdatedField().toList()).isEmpty()
+        assertThat(orderRepository.findWithoutDbUpdatedField().toList()).isEmpty()
 
-        Assertions.assertThat(orderRepository.findAll().toList()).hasSize(30)
-
-        orderRepository.findAll().map {Assertions.assertThat(it.lastUpdateAt).isEqualTo(it.dbUpdatedAt)}.collect()
+        val orders = orderRepository.findAll().toList()
+        assertThat(orders).hasSize(30)
+        orders.forEach {
+            assertThat(it.dbUpdatedAt).isEqualTo(it.lastUpdateAt)
+        }
     }
 }

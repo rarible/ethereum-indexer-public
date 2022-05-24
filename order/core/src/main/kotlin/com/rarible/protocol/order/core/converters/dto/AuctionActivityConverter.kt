@@ -58,7 +58,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is BidPlaced -> {
@@ -72,7 +73,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is AuctionFinished -> {
@@ -85,7 +87,8 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    lastUpdatedAt = history.updatedAt
                 )
             }
             is AuctionCancelled -> {
@@ -98,17 +101,18 @@ class AuctionActivityConverter(
                     blockHash = blockHash,
                     blockNumber = blockNumber,
                     logIndex = logIndex,
-                    reverted = false
+                    reverted = false,
+                    lastUpdatedAt = history.updatedAt
                 )
             }
         }
     }
 
     suspend fun convert(history: AuctionOffchainHistory, auction: Auction? = null): AuctionActivityDto {
-        val existingAuction = auction ?: auctionRepository.findById(history.hash)
-        if (existingAuction == null) {
-            throw IllegalArgumentException("Auction with hash ${history.hash} not found for AuctionOffchainHistory ${history}")
-        }
+        val existingAuction = auction
+            ?: auctionRepository.findById(history.hash)
+            ?: throw IllegalArgumentException("Auction with hash ${history.hash} not found for AuctionOffchainHistory ${history}")
+
         val auctionDto = auctionDtoConverter.convert(existingAuction)
         val source = convert(history.source)
 
@@ -118,14 +122,16 @@ class AuctionActivityConverter(
                 date = history.date,
                 source = source,
                 auction = auctionDto,
-                reverted = false
+                reverted = false,
+                lastUpdatedAt = history.createdAt
             )
             AuctionOffchainHistory.Type.ENDED -> AuctionActivityEndDto(
                 id = history.id,
                 date = history.date,
                 source = source,
                 auction = auctionDto,
-                reverted = false
+                reverted = false,
+                lastUpdatedAt = history.createdAt
             )
         }
     }

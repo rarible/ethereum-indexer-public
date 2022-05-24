@@ -486,7 +486,7 @@ data class Order(
         ): Word {
             val p1 = Tuples.openseaV1HashTypeP1().encode(
                 Tuple22(
-                    OPENSEA_ORDER_TYPE_HASH.bytes(),
+                    OPEN_SEA_ORDER_TYPE_HASH.bytes(),
                     data.exchange,
                     maker,
                     taker ?: Address.ZERO(),
@@ -558,7 +558,14 @@ data class Order(
         private val TYPE_HASH =
             keccak256("Order(address maker,Asset makeAsset,address taker,Asset takeAsset,uint256 salt,uint256 start,uint256 end,bytes4 dataType,bytes data)Asset(AssetType assetType,uint256 value)AssetType(bytes4 assetClass,bytes data)")
 
-        val OPENSEA_ORDER_TYPE_HASH = Word.apply("0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8")
+        private val OPEN_SEA_ORDER_TYPE_HASH = Word.apply("0xdba08a88a748f356e8faf8578488343eab21b1741728779c9dcfdc782bc800f8")
+
+        fun openSeaV1EIP712HashToSign(hash: Word, domain: Word): Word {
+            return Word(Hash.sha3(
+                Binary.apply("0x1901")
+                    .add(domain)
+                    .add(hash).bytes()))
+        }
 
         fun getFeeSide(make: AssetType, take: AssetType): FeeSide {
             return when {

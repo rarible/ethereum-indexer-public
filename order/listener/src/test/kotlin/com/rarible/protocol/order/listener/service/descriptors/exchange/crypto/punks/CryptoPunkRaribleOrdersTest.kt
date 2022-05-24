@@ -297,7 +297,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             assertThat(inactiveRaribleOrder).isEqualTo(
                 sellOrder.copy(
                     status = OrderStatus.INACTIVE,
-                    makeStock = EthUInt256.ZERO
+                    makeStock = EthUInt256.ZERO,
+                    dbUpdatedAt = inactiveRaribleOrder?.dbUpdatedAt
                 )
             )
         }
@@ -333,7 +334,8 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
                     priceHistory = createPriceHistory(onChainSellOrderTimestamp, make, onChainTake),
                     status = OrderStatus.ACTIVE,
                     platform = Platform.CRYPTO_PUNKS,
-                    lastEventId = onChainSellOrder.lastEventId
+                    lastEventId = onChainSellOrder.lastEventId,
+                    dbUpdatedAt = onChainSellOrder.dbUpdatedAt
                 )
             )
         }

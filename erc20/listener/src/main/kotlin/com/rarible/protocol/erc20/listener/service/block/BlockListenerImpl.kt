@@ -17,13 +17,11 @@ import scalether.domain.Address
 
 @Service
 class BlockListenerImpl(
-    private val reduceService: Erc20BalanceReduceService,
+    private val balanceReduceService: Erc20BalanceReduceService,
     private val ignoredOwnersResolver: IgnoredOwnersResolver
 ) : LogEventsListener {
 
-    private val ignoredOwners: Set<Address> by lazy {
-        ignoredOwnersResolver.resolve()
-    }
+    private val ignoredOwners: Set<Address> by lazy { ignoredOwnersResolver.resolve() }
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> =
         postProcessBlock(logs)
@@ -34,7 +32,7 @@ class BlockListenerImpl(
             .map { log -> Erc20ReduceEvent(log, log.blockNumber ?: 0) }
 
         return LoggingUtils.withMarker { marker ->
-            mono { reduceService.onEvents(reduceHistory) }
+            mono { balanceReduceService.onEvents(reduceHistory) }
             .toOptional()
                 .elapsed()
                 .doOnNext { logger.info(marker, "Process time: ${it.t1}ms") }

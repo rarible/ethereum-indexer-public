@@ -486,7 +486,8 @@ class PendingTransactionServiceTest : AbstractIntegrationTest() {
                     ),
                     makePrice = BigDecimal.valueOf(1),
                     createdAt = pendingLogDate,
-                    lastUpdateAt = pendingLogDate
+                    lastUpdateAt = pendingLogDate,
+                    dbUpdatedAt = savedOrder?.dbUpdatedAt
                 ),
                 // Non-primary fields that are hard to calculate.
                 Order::lastEventId.name,

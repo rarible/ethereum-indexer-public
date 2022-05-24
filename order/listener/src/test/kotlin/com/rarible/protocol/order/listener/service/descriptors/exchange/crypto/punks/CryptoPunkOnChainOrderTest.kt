@@ -85,7 +85,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = listOrder.lastEventId
+            lastEventId = listOrder.lastEventId,
+            dbUpdatedAt = listOrder.dbUpdatedAt
         )
         assertThat(listOrder).isEqualTo(expectedListOrder)
 
@@ -135,7 +136,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 makeStock = EthUInt256.ZERO,
                 lastUpdateAt = buyTimestamp,
                 taker = null,
-                lastEventId = sellOrder.lastEventId
+                lastEventId = sellOrder.lastEventId,
+                dbUpdatedAt = sellOrder.dbUpdatedAt
             )
             assertThat(sellOrder).isEqualTo(expectedSellOrder)
         }
@@ -279,7 +281,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = firstPriceUsd,
             priceHistory = createPriceHistory(firstSellTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = firstOrder.lastEventId
+            lastEventId = firstOrder.lastEventId,
+            dbUpdatedAt = firstOrder.dbUpdatedAt
         )
         assertThat(firstOrder).isEqualTo(expectedListOrder)
 
@@ -302,7 +305,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     takeUsd = secondPriceUsd,
                     makePrice = secondMakePrice,
                     priceHistory = createPriceHistory(secondSellTimestamp, make, secondTake),
-                    lastEventId = secondOrder.lastEventId
+                    lastEventId = secondOrder.lastEventId,
+                    dbUpdatedAt = secondOrder.dbUpdatedAt
                 )
             )
         }
@@ -352,7 +356,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = bidOrder.lastEventId
+            lastEventId = bidOrder.lastEventId,
+            dbUpdatedAt = bidOrder.dbUpdatedAt
         )
         assertThat(bidOrder).isEqualTo(expectedBidOrder)
 
@@ -397,7 +402,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 makeStock = EthUInt256.ZERO,
                 lastUpdateAt = acceptBidTimestamp,
                 taker = null,
-                lastEventId = buyOrder.lastEventId
+                lastEventId = buyOrder.lastEventId,
+                dbUpdatedAt = buyOrder.dbUpdatedAt
             )
             assertThat(buyOrder).isEqualTo(expectedBuyOrder)
         }
@@ -546,7 +552,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = null,
             priceHistory = createPriceHistory(firstBidTimestamp, firstBidMake, bidTake),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = firstBidOrder.lastEventId
+            lastEventId = firstBidOrder.lastEventId,
+            dbUpdatedAt = firstBidOrder.dbUpdatedAt
         )
         assertThat(firstBidOrder).isEqualTo(expectedFirstBidOrder)
 
@@ -571,7 +578,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     status = OrderStatus.CANCELLED,
                     makeStock = EthUInt256.ZERO,
                     lastUpdateAt = secondBidTimestamp,
-                    lastEventId = firstBidCancelledOrder?.lastEventId
+                    lastEventId = firstBidCancelledOrder?.lastEventId,
+                    dbUpdatedAt = firstBidCancelledOrder?.dbUpdatedAt
                 )
             )
 
@@ -592,7 +600,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     makeUsd = secondBidTakePriceUsd,
                     takePrice = secondTakePrice,
                     priceHistory = createPriceHistory(secondBidTimestamp, secondMake, bidTake),
-                    lastEventId = secondBidOrder.lastEventId
+                    lastEventId = secondBidOrder.lastEventId,
+                    dbUpdatedAt = secondBidOrder.dbUpdatedAt
                 )
             )
         }
@@ -654,7 +663,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = bidOrder.lastEventId
+            lastEventId = bidOrder.lastEventId,
+            dbUpdatedAt = bidOrder.dbUpdatedAt
         )
         assertThat(bidOrder).isEqualTo(expectedBidOrder)
 
@@ -670,7 +680,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     status = OrderStatus.CANCELLED,
                     makeStock = EthUInt256.ZERO,
                     lastUpdateAt = transferTimestamp,
-                    lastEventId = bidCancelledOrder?.lastEventId
+                    lastEventId = bidCancelledOrder?.lastEventId,
+                    dbUpdatedAt = bidCancelledOrder?.dbUpdatedAt
                 )
             )
         }
@@ -718,7 +729,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = priceUsd,
             priceHistory = createPriceHistory(sellTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = sellOrder.lastEventId
+            lastEventId = sellOrder.lastEventId,
+            dbUpdatedAt = sellOrder.dbUpdatedAt
         )
         assertThat(sellOrder).isEqualTo(expectedSellOrder)
 
@@ -737,7 +749,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     status = OrderStatus.CANCELLED,
                     makeStock = EthUInt256.ZERO,
                     lastUpdateAt = transferTimestamp,
-                    lastEventId = sellCancelledOrder?.lastEventId
+                    lastEventId = sellCancelledOrder?.lastEventId,
+                    dbUpdatedAt = sellCancelledOrder?.dbUpdatedAt
                 )
             )
         }
@@ -792,7 +805,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = priceUsd,
             priceHistory = createPriceHistory(sellTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = sellOrder.lastEventId
+            lastEventId = sellOrder.lastEventId,
+            dbUpdatedAt = sellOrder.dbUpdatedAt
         )
         assertThat(sellOrder).isEqualTo(expectedSellOrder)
 
@@ -837,7 +851,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = null,
             priceHistory = createPriceHistory(bidTimestamp, bidMake, bidTake),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = bidOrder.lastEventId
+            lastEventId = bidOrder.lastEventId,
+            dbUpdatedAt = bidOrder.dbUpdatedAt
         )
         assertThat(bidOrder).isEqualTo(expectedBidOrder)
 
@@ -854,7 +869,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     makeStock = EthUInt256.ZERO,
                     fill = EthUInt256.ZERO,
                     lastUpdateAt = acceptBidTimestamp,
-                    lastEventId = sellCancelledOrder?.lastEventId
+                    lastEventId = sellCancelledOrder?.lastEventId,
+                    dbUpdatedAt = sellCancelledOrder?.dbUpdatedAt
                 )
             )
 
@@ -871,7 +887,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                     takePriceUsd = bidTakePriceUsd,
                     makeUsd = bidTakePriceUsd,
                     takePrice = bidTakePrice,
-                    lastEventId = filledBidOrder?.lastEventId
+                    lastEventId = filledBidOrder?.lastEventId,
+                    dbUpdatedAt = filledBidOrder?.dbUpdatedAt
                 )
             )
         }
@@ -937,7 +954,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 takeUsd = punkPriceUsd,
                 priceHistory = createPriceHistory(saleToAddressTimestamp, make, take),
                 platform = Platform.CRYPTO_PUNKS,
-                lastEventId = order.lastEventId
+                lastEventId = order.lastEventId,
+                dbUpdatedAt = order.dbUpdatedAt
             )
             assertThat(order).isEqualTo(expectedOrder)
         }
@@ -997,7 +1015,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 takeUsd = punkPriceUsd,
                 priceHistory = createPriceHistory(forSaleTimestamp, make, take),
                 platform = Platform.CRYPTO_PUNKS,
-                lastEventId = order.lastEventId
+                lastEventId = order.lastEventId,
+                dbUpdatedAt = order.dbUpdatedAt
             )
             assertThat(order).isEqualTo(expectedOrder)
         }
@@ -1047,7 +1066,8 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             takeUsd = punkPriceUsd,
             priceHistory = createPriceHistory(listOrderTimestamp, make, take),
             platform = Platform.CRYPTO_PUNKS,
-            lastEventId = listOrder.lastEventId
+            lastEventId = listOrder.lastEventId,
+            dbUpdatedAt = listOrder.dbUpdatedAt
         )
         assertThat(listOrder).isEqualTo(expectedListOrder)
 

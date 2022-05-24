@@ -865,22 +865,20 @@ class AuctionActivityControllerFt : AbstractIntegrationTest() {
     fun `should find auction activity by ids`(): Unit = runBlocking {
         val offchainAuction = randomAuction()
         val offchainStarted = createOffchainHistoryEvent(offchainAuction, AuctionOffchainHistory.Type.STARTED)
-        val offchainFinished = createOffchainHistoryEvent(offchainAuction, AuctionOffchainHistory.Type.ENDED).copy(
-            date = now.plus(1, ChronoUnit.MINUTES)
-        )
+        val offchainFinished = createOffchainHistoryEvent(offchainAuction, AuctionOffchainHistory.Type.ENDED)
+
         saveOffchainHistory(
             offchainStarted,
             offchainFinished
         )
+        saveAuction(offchainAuction)
 
         val onchainAuction = randomAuction()
         val onchainCreated = createAuctionLogEvent(
-            randomAuctionCreated(onchainAuction.contract, onchainAuction.auctionId).copy(
-                sell = onchainAuction.sell,
-                date = now.plus(4, ChronoUnit.MINUTES)
-            )
+            randomAuctionCreated(onchainAuction.contract, onchainAuction.auctionId)
         )
         saveHistory(onchainCreated)
+        saveAuction(onchainAuction)
 
         val result = auctionActivityClient.getAuctionActivitiesById(
             ActivitiesByIdRequestDto(listOf(offchainStarted.id, onchainCreated.id.toHexString()))

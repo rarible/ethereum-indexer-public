@@ -241,7 +241,8 @@ fun createRandomOwnership(): Ownership {
         value = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
         lazyValue = EthUInt256.of(BigInteger.valueOf(ThreadLocalRandom.current().nextLong(1, 10000))),
         date = nowMillis(),
-        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemHistory() }
+        pending = (1..ThreadLocalRandom.current().nextInt(1, 20)).map { createItemHistory() },
+        lastUpdatedAt = nowMillis()
     )
 }
 

@@ -19,12 +19,14 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
 
     abstract val activitySort: ActivitySort
     override val sort: Sort
-        get() = when(activitySort) {
-            ActivitySort.LATEST_FIRST -> Sort.by(
+        get() = when (activitySort) {
+            ActivitySort.LATEST_FIRST,
+            ActivitySort.SYNC_LATEST_FIRST -> Sort.by(
                 Sort.Order.desc(OrderVersion::createdAt.name),
                 Sort.Order.desc("_id")
             )
-            ActivitySort.EARLIEST_FIRST -> Sort.by(
+            ActivitySort.EARLIEST_FIRST,
+            ActivitySort.SYNC_EARLIEST_FIRST -> Sort.by(
                 Sort.Order.asc(OrderVersion::createdAt.name),
                 Sort.Order.asc("_id")
             )
@@ -35,6 +37,14 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
 
         override fun getCriteria(): Criteria {
             return (makeNftKey isEqualTo true).scrollTo(activitySort, continuation)
+        }
+    }
+
+    class AllSync(override val activitySort: ActivitySort, private val continuation: Continuation?) : ActivityOrderVersionFilter() {
+        override val hint: Document = OrderVersionRepositoryIndexes.BY_CREATED_AT_FIELD.indexKeys
+
+        override fun getCriteria(): Criteria {
+            return Criteria().scrollTo(activitySort, continuation)
         }
     }
 
@@ -50,12 +60,15 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
         return if (continuation == null) {
             this
         } else when (sort) {
-            ActivitySort.LATEST_FIRST ->
+            ActivitySort.LATEST_FIRST,
+            ActivitySort.SYNC_LATEST_FIRST ->
                 this.orOperator(
                     OrderVersion::createdAt lt continuation.afterDate,
                     (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").lt(continuation.afterId.safeQueryParam())
                 )
-            ActivitySort.EARLIEST_FIRST ->
+
+            ActivitySort.EARLIEST_FIRST,
+            ActivitySort.SYNC_EARLIEST_FIRST ->
                 this.orOperator(
                     OrderVersion::createdAt gt continuation.afterDate,
                     (OrderVersion::createdAt isEqualTo continuation.afterDate).and("_id").gt(continuation.afterId.safeQueryParam())
@@ -79,8 +92,10 @@ sealed class ActivityOrderVersionFilter : OrderVersionFilter() {
             return this.and(OrderVersion::createdAt).gte(start).lte(end)
         }
         return when (activitySort) {
-            ActivitySort.LATEST_FIRST -> this.and(OrderVersion::createdAt).gte(start)
-            ActivitySort.EARLIEST_FIRST -> this.and(OrderVersion::createdAt).lte(end)
+            ActivitySort.LATEST_FIRST,
+            ActivitySort.SYNC_LATEST_FIRST -> this.and(OrderVersion::createdAt).gte(start)
+            ActivitySort.EARLIEST_FIRST,
+            ActivitySort.SYNC_EARLIEST_FIRST -> this.and(OrderVersion::createdAt).lte(end)
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.action
 
-import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.data.createRandomBurnItemAction
 import com.rarible.protocol.nft.core.model.Action
 import com.rarible.protocol.nft.core.model.ActionState
@@ -16,11 +15,9 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
-import java.time.Clock
 
 internal class ActionJobHandlerTest {
     private val actionEventRepository = mockk<NftItemActionEventRepository>()
-    private val clock = mockk<Clock>()
     private val executor1 = mockk<ActionExecutor<Action>> {
         every { type } returns ActionType.BURN
     }
@@ -29,17 +26,14 @@ internal class ActionJobHandlerTest {
     }
     private val jobHandler = ActionJobHandler(
         actionEventRepository = actionEventRepository,
-        clock = clock,
         actionExecutors = listOf(executor1, executor2)
     )
 
     @Test
     fun `should execute actions`() = runBlocking<Unit> {
-        val now = nowMillis()
         val action = createRandomBurnItemAction().copy(state = ActionState.PENDING)
 
-        every { clock.instant() } returns now
-        every { actionEventRepository.findPendingActions(now) } returns listOf(action).asFlow()
+        every { actionEventRepository.findPendingActions(any()) } returns listOf(action).asFlow()
         every { actionEventRepository.save(any()) } answers { Mono.just(args.first() as Action) }
         listOf(executor1, executor2).forEach {
             coEvery { it.execute(action) } returns Unit
