@@ -36,7 +36,7 @@ class ActivityControllerIt : SpringContainerBaseTest() {
             historyRepository.save(createItemTransfer()).awaitFirst()
             delay(1)
         }
-        val result = activityController.getNftActivitiesSync(null, 20, SyncSortDto.DB_UPDATE_ASC)
+        val result = activityController.getNftActivitiesSync(null, 20, SyncSortDto.DB_UPDATE_ASC, null)
 
         assertThat(result.body!!.items).hasSize(20)
         assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
@@ -59,7 +59,7 @@ class ActivityControllerIt : SpringContainerBaseTest() {
         var totalPages = 0
 
         do{
-            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_ASC)
+            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_ASC, null)
             result.body?.let { activities.addAll(it.items) }
             continuation = result.body?.continuation
             totalPages += 1
@@ -82,7 +82,7 @@ class ActivityControllerIt : SpringContainerBaseTest() {
         var totalPages = 0
 
         do{
-            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_DESC)
+            val result = activityController.getNftActivitiesSync(continuation, 20, SyncSortDto.DB_UPDATE_DESC, null)
             result.body?.let { activities.addAll(it.items) }
             continuation = result.body?.continuation
             totalPages += 1

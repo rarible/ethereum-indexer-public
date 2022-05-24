@@ -103,4 +103,24 @@ class ActivityHistoryFilterConverter(properties: NftIndexerApiProperties) {
             }
         }
     }
+
+    fun syncConvert(
+        sort: ActivitySort,
+        filter: List<NftActivitiesSyncTypesDto>?,
+        activityContinuation: ActivityContinuationDto?
+    ): List<ActivityItemHistoryFilter> {
+        val continuation = activityContinuation?.let { ContinuationConverter.convert(it) }
+
+        if (filter == null) {
+            return listOf(ActivityItemHistoryFilter.AllSync(sort, continuation))
+        }
+
+        return filter.map {
+            when (it) {
+                NftActivitiesSyncTypesDto.TRANSFER -> ActivityItemHistoryFilter.AllTransfer(sort, continuation, true)
+                NftActivitiesSyncTypesDto.MINT -> ActivityItemHistoryFilter.AllMint(sort, continuation, true)
+                NftActivitiesSyncTypesDto.BURN -> ActivityItemHistoryFilter.AllBurn(sort, continuation, true)
+            }
+        }
+    }
 }

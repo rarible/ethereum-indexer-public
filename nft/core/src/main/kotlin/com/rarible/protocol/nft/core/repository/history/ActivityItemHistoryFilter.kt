@@ -28,11 +28,19 @@ sealed class ActivityItemHistoryFilter {
     internal abstract val sort: ActivitySort
     internal open val hint: Document? = null
 
-    class AllBurn(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
-        override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
+    class AllBurn(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityItemHistoryFilter() {
+        override val hint: Document = if (isSync) {
+            NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            NftItemHistoryRepositoryIndexes.TRANSFER_TO_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(ownerKey).isEqualTo(Address.ZERO())
                 .scrollTo(sort, continuation)
@@ -48,22 +56,38 @@ sealed class ActivityItemHistoryFilter {
         }
     }
 
-    class AllMint(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
-        override val hint: Document = NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
+    class AllMint(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityItemHistoryFilter() {
+        override val hint: Document = if (isSync) {
+            NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            NftItemHistoryRepositoryIndexes.TRANSFER_FROM_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(fromKey).isEqualTo(Address.ZERO())
                 .scrollTo(sort, continuation)
         }
     }
 
-    class AllTransfer(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityItemHistoryFilter() {
-        override val hint: Document = NftItemHistoryRepositoryIndexes.BY_TYPE_DEFINITION.indexKeys
+    class AllTransfer(
+        override val sort: ActivitySort,
+        private val continuation: Continuation?,
+        isSync: Boolean = false
+    ) : ActivityItemHistoryFilter() {
+        override val hint: Document = if (isSync) {
+            NftItemHistoryRepositoryIndexes.ALL_TRANSFER_DEFINITION_BY_UPDATED_AT.indexKeys
+        } else {
+            NftItemHistoryRepositoryIndexes.BY_TYPE_DEFINITION.indexKeys
+        }
 
         override fun getCriteria(): Criteria {
-            return (typeKey isEqualTo  ItemType.TRANSFER)
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .and(fromKey).ne(Address.ZERO())
                 .and(ownerKey).ne(Address.ZERO())
