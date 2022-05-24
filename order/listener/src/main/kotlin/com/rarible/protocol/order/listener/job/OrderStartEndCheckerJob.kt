@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.job
 
-import com.rarible.core.apm.CaptureTransaction
+import com.rarible.core.apm.withTransaction
 import com.rarible.protocol.dto.OrderUpdateEventDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
@@ -20,7 +20,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.Instant
-import java.util.UUID
+import java.util.*
 
 @Component
 @Profile("!integration")
@@ -37,10 +37,11 @@ class OrderStartEndCheckerJob(
     private val counter = meterRegistry.counter(properties.metricJobStartEnd)
 
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.updateStatusByStartEndRate}")
-    @CaptureTransaction(value = "order_status")
     fun update() = runBlocking {
         if (properties.updateStatusByStartEndEnabled.not()) return@runBlocking
-        update(Instant.now())
+        withTransaction("order_status") {
+            update(Instant.now())
+        }
         counter.increment()
     }
 

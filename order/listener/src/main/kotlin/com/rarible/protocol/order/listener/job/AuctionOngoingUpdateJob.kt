@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.job
 
-import com.rarible.core.apm.CaptureTransaction
+import com.rarible.core.apm.withTransaction
 import com.rarible.protocol.order.core.model.AuctionOffchainHistory
 import com.rarible.protocol.order.core.repository.auction.AuctionRepository
 import com.rarible.protocol.order.core.service.auction.AuctionStateService
@@ -22,17 +22,18 @@ class AuctionOngoingUpdateJob(
     private val logger: Logger = LoggerFactory.getLogger(javaClass)
 
     @Scheduled(initialDelay = 60000, fixedDelayString = "\${listener.updateAuctionOngoingState}")
-    @CaptureTransaction(value = "auction_ongoing_update")
     fun execute() = runBlocking<Unit> {
         if (properties.updateAuctionOngoingStateEnabled.not()) return@runBlocking
 
-        auctionRepository.findOngoingNotUpdatedIds().collect {
-            val auction = auctionStateService.updateOngoingState(it, true)
-            auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.STARTED)
-        }
-        auctionRepository.findEndedNotUpdatedIds(properties.updateAuctionOngoingStateEndLag).collect {
-            val auction = auctionStateService.updateOngoingState(it, false)
-            auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.ENDED)
+        withTransaction("auction_ongoing_update") {
+            auctionRepository.findOngoingNotUpdatedIds().collect {
+                val auction = auctionStateService.updateOngoingState(it, true)
+                auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.STARTED)
+            }
+            auctionRepository.findEndedNotUpdatedIds(properties.updateAuctionOngoingStateEndLag).collect {
+                val auction = auctionStateService.updateOngoingState(it, false)
+                auctionStateService.onAuctionOngoingStateUpdated(auction, AuctionOffchainHistory.Type.ENDED)
+            }
         }
     }
 
