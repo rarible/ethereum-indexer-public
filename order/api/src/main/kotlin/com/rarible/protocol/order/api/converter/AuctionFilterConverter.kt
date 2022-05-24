@@ -89,8 +89,7 @@ class AuctionHistoryFilterConverter {
                 AuctionActivitiesSyncTypesDto.BID -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.BID_PLACED, continuation, sort)
                 AuctionActivitiesSyncTypesDto.CANCEL -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_CANCELLED, continuation, sort)
                 AuctionActivitiesSyncTypesDto.FINISHED -> ActivityAuctionHistoryFilter.AuctionAllByType(AuctionHistoryType.AUCTION_FINISHED, continuation, sort)
-                AuctionActivitiesSyncTypesDto.STARTED,
-                AuctionActivitiesSyncTypesDto.ENDED -> null
+                else -> null
             }
         }
     }

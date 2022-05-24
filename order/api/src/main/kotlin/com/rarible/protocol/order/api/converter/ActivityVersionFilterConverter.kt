@@ -146,9 +146,7 @@ class ActivityVersionFilterConverter(
             when (it) {
                 OrderActivitiesSyncTypesDto.LIST -> ActivityOrderVersionFilter.AllList(sort, continuation)
                 OrderActivitiesSyncTypesDto.BID -> ActivityOrderVersionFilter.AllBid(sort, continuation)
-                OrderActivitiesSyncTypesDto.MATCH,
-                OrderActivitiesSyncTypesDto.CANCEL_BID,
-                OrderActivitiesSyncTypesDto.CANCEL_LIST -> null
+                else -> null
             }
         }
     }

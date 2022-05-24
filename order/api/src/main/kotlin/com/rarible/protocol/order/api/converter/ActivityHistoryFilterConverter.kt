@@ -119,7 +119,7 @@ class ActivityHistoryFilterConverter(properties: OrderIndexerApiProperties) {
                 OrderActivitiesSyncTypesDto.MATCH -> ActivityExchangeHistoryFilter.AllSell(sort, continuation, true)
                 OrderActivitiesSyncTypesDto.CANCEL_BID ->  ActivityExchangeHistoryFilter.AllCanceledBid(sort, continuation, true)
                 OrderActivitiesSyncTypesDto.CANCEL_LIST -> ActivityExchangeHistoryFilter.AllCanceledSell(sort, continuation, true)
-                OrderActivitiesSyncTypesDto.LIST, OrderActivitiesSyncTypesDto.BID -> null
+                else -> null
             }
         }
     }
