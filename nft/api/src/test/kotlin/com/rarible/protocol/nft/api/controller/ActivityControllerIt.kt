@@ -1,9 +1,12 @@
 package com.rarible.protocol.nft.api.controller
 
 import com.rarible.protocol.dto.ActivityDto
+import com.rarible.protocol.dto.NftActivitiesSyncTypesDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
+import com.rarible.protocol.nft.api.e2e.data.createItemBurn
+import com.rarible.protocol.nft.api.e2e.data.createItemMint
 import com.rarible.protocol.nft.api.e2e.data.createItemTransfer
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import kotlinx.coroutines.delay
@@ -93,4 +96,76 @@ class ActivityControllerIt : SpringContainerBaseTest() {
         assertThat(activities).isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt , o1.lastUpdatedAt) }
     }
 
+    @Test
+    fun `activity controller sync test transfer`() = runBlocking<Unit> {
+        val itemHistoryQuantity = 20
+        repeat(itemHistoryQuantity) {
+            historyRepository.save(createItemTransfer()).awaitFirst()
+            historyRepository.save(createItemBurn()).awaitFirst()
+            historyRepository.save(createItemMint()).awaitFirst()
+        }
+        val result = activityController.getNftActivitiesSync(
+            null,
+            itemHistoryQuantity*3,
+            SyncSortDto.DB_UPDATE_ASC,
+            listOf(NftActivitiesSyncTypesDto.TRANSFER)
+        )
+
+        assertThat(result.body!!.items).hasSize(itemHistoryQuantity)
+        assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
+            compareValues(
+                o1.lastUpdatedAt,
+                o2.lastUpdatedAt
+            )
+        }
+    }
+
+    @Test
+    fun `activity controller sync test transfer and mint`() = runBlocking<Unit> {
+        val itemHistoryQuantity = 20
+        repeat(itemHistoryQuantity) {
+            historyRepository.save(createItemTransfer()).awaitFirst()
+            historyRepository.save(createItemBurn()).awaitFirst()
+            historyRepository.save(createItemMint()).awaitFirst()
+        }
+        val result = activityController.getNftActivitiesSync(
+            null,
+            itemHistoryQuantity*3,
+            SyncSortDto.DB_UPDATE_ASC,
+            listOf(NftActivitiesSyncTypesDto.TRANSFER, NftActivitiesSyncTypesDto.MINT)
+        )
+
+        assertThat(result.body!!.items).hasSize(itemHistoryQuantity*2)
+        assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
+            compareValues(
+                o1.lastUpdatedAt,
+                o2.lastUpdatedAt
+            )
+        }
+    }
+
+
+    @Test
+    fun `activity controller sync test burn`() = runBlocking<Unit> {
+        val itemHistoryQuantity = 25
+        repeat(itemHistoryQuantity) {
+            historyRepository.save(createItemTransfer()).awaitFirst()
+            historyRepository.save(createItemBurn()).awaitFirst()
+            historyRepository.save(createItemMint()).awaitFirst()
+        }
+        val result = activityController.getNftActivitiesSync(
+            null,
+            itemHistoryQuantity*3,
+            SyncSortDto.DB_UPDATE_ASC,
+            listOf(NftActivitiesSyncTypesDto.BURN)
+        )
+
+        assertThat(result.body!!.items).hasSize(itemHistoryQuantity)
+        assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
+            compareValues(
+                o1.lastUpdatedAt,
+                o2.lastUpdatedAt
+            )
+        }
+    }
 }
