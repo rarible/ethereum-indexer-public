@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component
 import scala.Tuple14
 import scala.Tuple2
 import scalether.domain.Address
+import java.lang.IllegalStateException
 import java.math.BigInteger
 
 @Component
@@ -28,41 +29,78 @@ class ZeroExOrderParser(
         index: Int,
         totalLogs: Int
     ): ZeroExMatchOrdersData {
-        val wrapperMatchSignatureId = ZeroExFeeWrapper.matchOrdersSignature().id()
-        val byWrapper = txInput.methodSignatureId() == wrapperMatchSignatureId
-        val id = if (byWrapper) wrapperMatchSignatureId else Exchange.matchOrdersSignature().id()
+        val calledMethodSignatureId = txInput.methodSignatureId()
+        val supportedParsingMethods = listOf(
+            ZeroExFeeWrapper.matchOrdersSignature().id(),
+            Exchange.fillOrderSignature().id(),
+            Exchange.matchOrdersSignature().id()
+        )
+        if (calledMethodSignatureId !in supportedParsingMethods) {
+            throw IllegalStateException("Unsupported method $calledMethodSignatureId for parsing")
+        }
 
         val inputs = traceCallService.findAllRequiredCallInputs(
             txHash = txHash,
             txInput = txInput,
             to = event.log().address(),
-            id = id
+            id = calledMethodSignatureId!!
         )
         require(inputs.size * 2 == totalLogs) {
             "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs"
         }
-        return parse(inputs[index / 2])
+        return parse(inputs[index / 2], calledMethodSignatureId)
     }
 
-    fun parse(input: Binary): ZeroExMatchOrdersData {
-        val signature = ZeroExFeeWrapper.matchOrdersSignature()
-        val decoded = signature.`in`().decode(input, 4).value()
+    fun parse(input: Binary, calledMethodSignatureId: Binary): ZeroExMatchOrdersData = when (calledMethodSignatureId) {
+        ZeroExFeeWrapper.matchOrdersSignature().id() -> {
+            val signature = ZeroExFeeWrapper.matchOrdersSignature()
+            val decoded = signature.`in`().decode(input, 4).value()
 
-        val leftOrder = parseOrder(decoded._1())
-        val rightOrder = parseOrder(decoded._2())
-        val leftSignature = Binary.apply(decoded._3())
-        val rightSignature = Binary.apply(decoded._4())
-        val feeData = decoded._5().map { parseFeeData(it) }
-        val paymentTokenAddress = decoded._6()
+            val leftOrder = parseOrder(decoded._1())
+            val rightOrder = parseOrder(decoded._2())
+            val leftSignature = Binary.apply(decoded._3())
+            val rightSignature = Binary.apply(decoded._4())
+            val feeData = decoded._5().map { parseFeeData(it) }
+            val paymentTokenAddress = decoded._6()
 
-        return ZeroExMatchOrdersData(
-            leftOrder = leftOrder,
-            rightOrder = rightOrder,
-            leftSignature = leftSignature,
-            rightSignature = rightSignature,
-            feeData = feeData,
-            paymentTokenAddress = paymentTokenAddress,
-        )
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                rightOrder = rightOrder,
+                leftSignature = leftSignature,
+                rightSignature = rightSignature,
+                feeData = feeData,
+                paymentTokenAddress = paymentTokenAddress,
+            )
+        }
+        Exchange.matchOrdersSignature().id() -> {
+            val signature = Exchange.matchOrdersSignature()
+            val decoded = signature.`in`().decode(input, 4).value()
+
+            val leftOrder = parseOrder(decoded._1())
+            val rightOrder = parseOrder(decoded._2())
+            val leftSignature = Binary.apply(decoded._3())
+            val rightSignature = Binary.apply(decoded._4())
+
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                rightOrder = rightOrder,
+                leftSignature = leftSignature,
+                rightSignature = rightSignature,
+            )
+        }
+        Exchange.fillOrderSignature().id() -> {
+            val signature = Exchange.fillOrderSignature()
+            val decoded = signature.`in`().decode(input, 4).value()
+
+            val leftOrder = parseOrder(decoded._1())
+            val leftSignature = Binary.apply(decoded._3())
+
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                leftSignature = leftSignature,
+            )
+        }
+        else -> throw IllegalStateException("Unsupported method $calledMethodSignatureId for parsing")
     }
 
     private fun parseOrder(data: Tuple14<Address, Address, Address, Address, BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, ByteArray, ByteArray, ByteArray, ByteArray>): ZeroExOrder =
