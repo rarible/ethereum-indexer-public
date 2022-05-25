@@ -38,29 +38,33 @@ class ZeroExOrderEventConverter(
         takerAssetFilledAmount: BigInteger
     ): List<OrderSideMatch> {
         // filling orders
-        val orders = listOf(matchOrdersData.leftOrder, matchOrdersData.rightOrder)
+        val orders = listOfNotNull(matchOrdersData.leftOrder, matchOrdersData.rightOrder)
         // event order
         val order = orders.first { it.makerAddress == makerAddress }
-        val secondOrder = (orders - order).first()
+        val secondOrder = (orders - order).firstOrNull()
 
-        require(order.makerAssetData == secondOrder.takerAssetData) { "make and take assets must be equal" }
-        require(order.takerAssetData == secondOrder.makerAssetData) { "take and make assets must be equal" }
+        require(secondOrder == null || order.makerAssetData == secondOrder.takerAssetData) {
+            "make and take assets must be equal"
+        }
+        require(secondOrder == null || order.takerAssetData == secondOrder.makerAssetData) {
+            "take and make assets must be equal"
+        }
 
         val makeAsset = createAsset(assetData = order.makerAssetData, amount = makerAssetFilledAmount)
         val takeAsset = createAsset(assetData = order.takerAssetData, amount = takerAssetFilledAmount)
 
-        val leftOrderSide = getOrderSide(makeAsset)
+        val leftOrderSide = getOrderSide(makeAsset, secondOrder)
 
         val usdValue = priceUpdateService.getAssetsUsdValue(make = makeAsset, take = takeAsset, at = date)
 
         var adhoc = order.makerAddress == from
-        var counterAdhoc = secondOrder.makerAddress == from
+        var counterAdhoc = secondOrder?.makerAddress == from
         if (adhoc && counterAdhoc) {
             adhoc = EthUInt256.of(order.salt) == EthUInt256.ZERO
-            counterAdhoc = EthUInt256.of(secondOrder.salt) == EthUInt256.ZERO
+            counterAdhoc = EthUInt256.of(secondOrder!!.salt) == EthUInt256.ZERO
         }
 
-        val secondOrderHash = orderHash(secondOrder)
+        val secondOrderHash = secondOrder?.orderHash()
         return listOf(
             OrderSideMatch(
                 hash = orderHash,
@@ -70,7 +74,7 @@ class ZeroExOrderEventConverter(
                 take = takeAsset,
                 fill = EthUInt256(takerAssetFilledAmount),
                 maker = order.makerAddress,
-                taker = secondOrder.makerAddress,
+                taker = secondOrder?.makerAddress ?: from,
                 makeUsd = usdValue?.makeUsd,
                 takeUsd = usdValue?.takeUsd,
                 makeValue = priceNormalizer.normalize(makeAsset),
@@ -126,12 +130,13 @@ class ZeroExOrderEventConverter(
         }
     }
 
-    private fun getOrderSide(makeAsset: Asset): OrderSide =
-    // we can't determine which order was created earlier,
+    private fun getOrderSide(makeAsset: Asset, secondOrder: ZeroExOrder?): OrderSide =
+    // when we have 2 orders we can't determine which order was created earlier,
     // because data is the same for buying by sell order and selling by bid order
         // thus we always consider sell order as OrderSide.LEFT type
-        if (makeAsset.type.nft) {
-            // sell order
+        if (secondOrder == null || makeAsset.type.nft) {
+            // secondOrder == null - there was only one order
+            // makeAsset.type.nft - sell order
             OrderSide.LEFT
         } else {
             // bid order
@@ -163,8 +168,8 @@ class ZeroExOrderEventConverter(
      * 0xfede379e48c873c75f3cc0c81f7c784ad730a8f7 - zero ex exchange contract address
      * 0xc26cfecd - read-method for reading constant variable EIP712_EXCHANGE_DOMAIN_HASH of that contract
      */
-    private fun orderHash(order: ZeroExOrder): Word {
-        val orderStructHash = orderStructHash(order)
+    private fun ZeroExOrder.orderHash(): Word {
+        val orderStructHash = orderStructHash(this)
         return keccak256(
             // EIP191 header
             Binary.apply("1901")
