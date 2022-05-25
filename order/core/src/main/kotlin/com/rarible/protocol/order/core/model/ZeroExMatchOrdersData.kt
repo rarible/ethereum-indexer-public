@@ -5,9 +5,9 @@ import scalether.domain.Address
 
 data class ZeroExMatchOrdersData(
     val leftOrder: ZeroExOrder,
-    val rightOrder: ZeroExOrder,
+    val rightOrder: ZeroExOrder? = null,
     val leftSignature: Binary,
-    val rightSignature: Binary,
-    val feeData: List<ZeroExFeeData>,
-    val paymentTokenAddress: Address,
+    val rightSignature: Binary? = null,
+    val feeData: List<ZeroExFeeData> = listOf(),
+    val paymentTokenAddress: Address = Address.ZERO(),
 )
