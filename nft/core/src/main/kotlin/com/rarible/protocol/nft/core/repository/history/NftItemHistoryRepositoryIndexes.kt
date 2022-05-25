@@ -86,6 +86,7 @@ internal object NftItemHistoryRepositoryIndexes {
         .on("${LogEvent::data.name}.${ItemTransfer::owner.name}", Sort.Direction.DESC)
         .on("${LogEvent::data.name}.${ItemHistory::date.name}", Sort.Direction.DESC)
         .on("_id", Sort.Direction.DESC)
+        .background()
 
     val BY_UPDATED_AT_FIELD: Index = Index()
         .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
