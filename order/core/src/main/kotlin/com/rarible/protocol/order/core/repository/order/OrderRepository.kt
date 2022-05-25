@@ -7,7 +7,6 @@ import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.mongodb.core.query.Query
 import scalether.domain.Address
-import java.time.Instant
 import java.util.*
 
 interface OrderRepository {
@@ -21,11 +20,6 @@ interface OrderRepository {
 
     suspend fun save(order: Order): Order
 
-    //TODO should be deleted after migration ALPHA-405
-    suspend fun saveWithoutDbUpdated(order: Order): Order
-    //TODO should be deleted after migration ALPHA-405
-    suspend fun setDbUpdatedAtField(hash: Word, dbUpdatedAt: Instant)
-
     suspend fun findById(hash: Word): Order?
 
     fun findAll(hashes: Collection<Word>): Flow<Order>
@@ -37,9 +31,6 @@ interface OrderRepository {
     fun findActive(): Flow<Order>
 
     fun findAll(): Flow<Order>
-
-    //TODO should be deleted after migration ALPHA-405
-    fun findWithoutDbUpdatedField(): Flow<Order>
 
     fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order>
 
