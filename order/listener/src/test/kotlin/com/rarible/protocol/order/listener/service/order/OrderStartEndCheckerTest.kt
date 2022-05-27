@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
@@ -33,6 +32,7 @@ import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
 import scalether.domain.AddressFactory
 import java.time.Duration
+import java.time.Instant
 
 @IntegrationTest
 internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
@@ -86,8 +86,9 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("end", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.ACTIVE)
 
-        updaterJob.update(nowMillis())
-        check(orderVersion.hash, OrderStatus.ENDED)
+        val updateTime = nowMillis()
+        updaterJob.update(updateTime)
+        assertThat(check(orderVersion.hash, OrderStatus.ENDED)).isEqualTo(updateTime)
     }
 
     @Test
@@ -130,9 +131,13 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         val order = orderUpdateService.save(orderVersion)
         val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
         assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
+        println("------------------------------------------------------------")
+        println(updated.lastUpdateAt)
+        println("------------------------------------------------------------")
 
         updaterJob.update(nowMillis())
         check(orderVersion.hash, OrderStatus.INACTIVE)
+
     }
 
     @Test
@@ -280,10 +285,11 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         check(orderVersion.hash, OrderStatus.ENDED)
     }
 
-    suspend fun check(hash: Word, status: OrderStatus) {
+    suspend fun check(hash: Word, status: OrderStatus): Instant {
         val v = mongo.findById<OrderShort>(hash, MongoOrderRepository.COLLECTION).awaitFirst()
         assertThat(v.status).isEqualTo(status)
+        return v.lastUpdateAt
     }
 
-    data class OrderShort(val status: OrderStatus)
+    data class OrderShort(val status: OrderStatus, val lastUpdateAt: Instant)
 }

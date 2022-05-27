@@ -142,8 +142,11 @@ data class Order(
         return copy(dbUpdatedAt = nowMillis())
     }
 
-    fun withUpdatedStatus(): Order {
-        return copy(status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data))
+    fun withUpdatedStatus(updateTime: Instant = nowMillis()): Order {
+        return copy(
+            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data),
+            lastUpdateAt = updateTime
+        )
     }
 
     fun isEnded() = Companion.isEnded(end)
