@@ -131,9 +131,6 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         val order = orderUpdateService.save(orderVersion)
         val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
         assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
-        println("------------------------------------------------------------")
-        println(updated.lastUpdateAt)
-        println("------------------------------------------------------------")
 
         updaterJob.update(nowMillis())
         check(orderVersion.hash, OrderStatus.INACTIVE)
