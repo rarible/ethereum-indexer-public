@@ -134,7 +134,6 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
 
         updaterJob.update(nowMillis())
         check(orderVersion.hash, OrderStatus.INACTIVE)
-
     }
 
     @Test
