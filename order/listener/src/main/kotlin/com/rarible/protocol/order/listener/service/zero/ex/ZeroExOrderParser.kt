@@ -45,14 +45,37 @@ class ZeroExOrderParser(
             to = event.log().address(),
             id = calledMethodSignatureId!!
         )
-        require(inputs.size * 2 == totalLogs) {
-            "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs"
+        require(
+            calledMethodSignatureId == Exchange.fillOrderSignature().id() && inputs.size == totalLogs ||
+                calledMethodSignatureId in
+                listOf(ZeroExFeeWrapper.matchOrdersSignature().id(), Exchange.matchOrdersSignature().id()) &&
+                inputs.size * 2 == totalLogs
+        ) {
+            "Number of events != number of traces for tx: $txHash. inputs size: ${inputs.size}, totalLogs: $totalLogs, " +
+                "calledMethodSignatureId: $calledMethodSignatureId"
         }
-        return parse(inputs[index / 2], calledMethodSignatureId)
+        return parse(
+            txHash = txHash,
+            calledMethodSignatureId = calledMethodSignatureId,
+            inputs = inputs,
+            index = index,
+            totalLogs = totalLogs
+        )
     }
 
-    fun parse(input: Binary, calledMethodSignatureId: Binary): ZeroExMatchOrdersData = when (calledMethodSignatureId) {
+    private fun parse(
+        txHash: Word,
+        calledMethodSignatureId: Binary,
+        inputs: List<Binary>,
+        index: Int,
+        totalLogs: Int
+    ): ZeroExMatchOrdersData = when (calledMethodSignatureId) {
         ZeroExFeeWrapper.matchOrdersSignature().id() -> {
+            require(inputs.size * 2 == totalLogs) {
+                "Wrong number of inputs. Must be 'inputs.size * 2 == totalLogs' for wrapperMatchOrders. " +
+                    "Tx: $txHash, inputs size: ${inputs.size}, totalLogs: $totalLogs"
+            }
+            val input = inputs[index / 2]
             val signature = ZeroExFeeWrapper.matchOrdersSignature()
             val decoded = signature.`in`().decode(input, 4).value()
 
@@ -73,6 +96,11 @@ class ZeroExOrderParser(
             )
         }
         Exchange.matchOrdersSignature().id() -> {
+            require(inputs.size * 2 == totalLogs) {
+                "Wrong number of inputs. Must be 'inputs.size * 2 == totalLogs' for exchangeMatchOrders. " +
+                    "Tx: $txHash, inputs size: ${inputs.size}, totalLogs: $totalLogs"
+            }
+            val input = inputs[index / 2]
             val signature = Exchange.matchOrdersSignature()
             val decoded = signature.`in`().decode(input, 4).value()
 
@@ -89,6 +117,11 @@ class ZeroExOrderParser(
             )
         }
         Exchange.fillOrderSignature().id() -> {
+            require(inputs.size == totalLogs) {
+                "Wrong number of inputs. Must be 'inputs.size == totalLogs' for fillOrder. " +
+                    "Tx: $txHash, inputs size: ${inputs.size}, totalLogs: $totalLogs"
+            }
+            val input = inputs[index]
             val signature = Exchange.fillOrderSignature()
             val decoded = signature.`in`().decode(input, 4).value()
 
