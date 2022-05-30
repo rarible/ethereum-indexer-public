@@ -53,7 +53,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
     fun before() {
         every {
             runBlocking {
-                zeroExOrderParser.parseMatchOrdersData(any(), any(), any(), any(), any())
+                zeroExOrderParser.parseMatchOrdersData(any(), any(), any(), any(), any(), any())
             }
         } returns matchOrdersData
 
@@ -133,6 +133,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
+                txFrom = transaction.from(),
                 event = coMatch { actEvent ->
                     FillEventSimple(actEvent) == FillEventSimple(event)
                 },
@@ -284,6 +285,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
+                txFrom = transaction.from(),
                 event = coMatch { actEvent ->
                     FillEventSimple(actEvent) == FillEventSimple(event)
                 },
@@ -448,6 +450,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             zeroExOrderParser.parseMatchOrdersData(
                 txHash = transaction.hash(),
                 txInput = transaction.input(),
+                txFrom = transaction.from(),
                 event = coMatch { actEvent ->
                     FillEventSimple(actEvent) == FillEventSimple(event)
                 },
@@ -529,6 +532,97 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             .isEqualTo(FillEventSimple(fillEvent2))
     }
 
+    @Test
+    fun `convert fill order via execute transaction`() = runBlocking<Unit> {
+        // https://polygonscan.com/tx/0x48a3a2fdccbbb61a9dc90f88969b9095d5b64aac11c504492bf105a00184558e
+        val log = log(
+            data = "0000000000000000000000000000000000000000000000000000000000000160" +
+                "00000000000000000000000000000000000000000000000000000000000001e0" +
+                "0000000000000000000000000000000000000000000000000000000000000240" +
+                "0000000000000000000000000000000000000000000000000000000000000260" +
+                "00000000000000000000000028e9e72dbf7adee19b5279c23e40a1b0b35c2b90" +
+                "0000000000000000000000004e8c5dcd73df0448058e28b5205d1c63df7b30d9" +
+                "0000000000000000000000000000000000000000000000000000000000000001" +
+                "0000000000000000000000000000000000000000000000000000000005f5e100" +
+                "0000000000000000000000000000000000000000000000000000000000000000" +
+                "0000000000000000000000000000000000000000000000000000000000000000" +
+                "0000000000000000000000000000000000000000000000000005543df729c000" +
+                "0000000000000000000000000000000000000000000000000000000000000044" +
+                "02571792000000000000000000000000f556faf23fc2feefa33ee6db2d1ee4c7" +
+                "0e53451300000000000000000000000000000000000000000000000000000000" +
+                "00005ddc00000000000000000000000000000000000000000000000000000000" +
+                "0000000000000000000000000000000000000000000000000000000000000024" +
+                "f47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cf" +
+                "f1b9f61900000000000000000000000000000000000000000000000000000000" +
+                "0000000000000000000000000000000000000000000000000000000000000000" +
+                "0000000000000000000000000000000000000000000000000000000000000000",
+            topics = listOf(
+                Word.apply("0x6869791f0a34781b29882982cc39e882768cf2c96995c2a110c577c53bc932d5"),
+                Word.apply("0x000000000000000000000000fd71dc9721d9ddcf0480a582927c3dcd42f3064c"),
+                Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000"),
+                Word.apply("0xf28f67d3c870c5fe78b9dbe7c80b0a33b8e59a8da3eb0dd8ebc20c1cda2b9352"),
+            )
+        )
+        val event = FillEvent.apply(log)
+        val fillEvent = FillEvent(
+            log,
+            Address.apply("0xfd71dc9721d9ddcf0480a582927c3dcd42f3064c"), // makerAddress
+            Address.apply("0x0000000000000000000000000000000000000000"), // feeRecipientAddress
+            Binary.apply("0xf28f67d3c870c5fe78b9dbe7c80b0a33b8e59a8da3eb0dd8ebc20c1cda2b9352").bytes(), // orderHash
+            Binary.apply("0x02571792000000000000000000000000f556faf23fc2feefa33ee6db2d1ee4c70e5345130000000000000000000000000000000000000000000000000000000000005ddc")
+                .bytes(), // makerAssetData
+            Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619")
+                .bytes(), // takerAssetData
+            Binary.apply("0x")
+                .bytes(), // makerFeeAssetData
+            Binary.apply("0x").bytes(), // takerFeeAssetData
+            Address.apply("0x28e9e72dbf7adee19b5279c23e40a1b0b35c2b90"), // takerAddress
+            Address.apply("0x4e8c5dcd73df0448058e28b5205d1c63df7b30d9"), // senderAddress
+            1.toBigInteger(), // makerAssetFilledAmount
+            100000000.toBigInteger(), // takerAssetFilledAmount
+            0.toBigInteger(), // makerFeePaid
+            0.toBigInteger(), // takerFeePaid
+            1500000000000000.toBigInteger() // protocolFeePaid
+        )
+        assertThat(FillEventSimple(event))
+            .isEqualTo(FillEventSimple(fillEvent))
+
+        val date = Instant.now().epochSecond
+        val index = 1
+        val totalLogs = 21
+        val result = zeroExExchangeOrderMatchDescriptor.convert(
+            log = log,
+            transaction = transaction,
+            timestamp = date,
+            index = index,
+            totalLogs = totalLogs
+        ).awaitSingle()
+        assertThat(result).isEqualTo(orderSideMatchFromConverter)
+        coVerify {
+            zeroExOrderParser.parseMatchOrdersData(
+                txHash = transaction.hash(),
+                txInput = transaction.input(),
+                txFrom = transaction.from(),
+                event = coMatch { actEvent ->
+                    FillEventSimple(actEvent) == FillEventSimple(event)
+                },
+                index = index,
+                totalLogs = totalLogs
+            )
+        }
+        coVerify {
+            zeroExOrderEventConverter.convert(
+                matchOrdersData,
+                from = transaction.from(),
+                date = Instant.ofEpochSecond(date),
+                orderHash = Word.apply(event.orderHash()),
+                makerAddress = event.makerAddress(),
+                takerAssetFilledAmount = event.takerAssetFilledAmount(),
+                makerAssetFilledAmount = event.makerAssetFilledAmount(),
+            )
+        }
+    }
+
     private fun log(data: String, topics: List<Word>) = Log(
         BigInteger.ONE, // logIndex
         BigInteger.TEN, // transactionIndex
@@ -564,6 +658,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerFeeAssetData = Binary.apply("0x13"),
                 takerFeeAssetData = Binary.apply("0x14"),
             ),
+            takerAddress = AddressFactory.create(),
             rightOrder = ZeroExOrder(
                 makerAddress = AddressFactory.create(),
                 takerAddress = AddressFactory.create(),

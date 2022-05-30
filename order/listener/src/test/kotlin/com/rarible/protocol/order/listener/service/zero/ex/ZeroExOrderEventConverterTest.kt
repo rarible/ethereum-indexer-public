@@ -221,6 +221,7 @@ class ZeroExOrderEventConverterTest {
         val paymentTokenAddress: Address = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
         val data = ZeroExMatchOrdersData(
             leftOrder = leftOrder,
+            takerAddress = null,
             rightOrder = rightOrder,
             leftSignature = leftSignature,
             rightSignature = rightSignature,
@@ -402,6 +403,7 @@ class ZeroExOrderEventConverterTest {
         val paymentTokenAddress: Address = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
         val data = ZeroExMatchOrdersData(
             leftOrder = leftOrder,
+            takerAddress = null,
             rightOrder = rightOrder,
             leftSignature = leftSignature,
             rightSignature = rightSignature,

@@ -62,6 +62,7 @@ class ZeroExExchangeOrderMatchDescriptor(
         val matchOrdersData = zeroExOrderParser.parseMatchOrdersData(
             txHash = transaction.hash(),
             txInput = transaction.input(),
+            txFrom = transaction.from(),
             event = event,
             index = index,
             totalLogs = totalLogs
