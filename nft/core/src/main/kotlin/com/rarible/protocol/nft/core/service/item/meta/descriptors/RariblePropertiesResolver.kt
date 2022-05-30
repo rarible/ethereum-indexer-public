@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.ShortUrlResolver
 import org.springframework.stereotype.Component
 
 @Component
@@ -69,9 +68,7 @@ class RariblePropertiesResolver(
             return null
         }
 
-        val httpUrl = ipfsService.resolveInnerHttpUrl(
-            ShortUrlResolver.resolve(uri)
-        )
+        val httpUrl =  ipfsService.resolveInnerHttpUrl(uri)
         logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
 
         val propertiesString = propertiesHttpLoader.getByUrl(itemId, httpUrl) ?: return null

@@ -19,6 +19,8 @@ object ItemPropertiesUrlSanitizer {
             return null
         }
 
+        // TODO Add resolving of URL
+
         val fixedUrl = ShortUrlResolver.resolve(url)
 
         val svg = SvgSanitizer.sanitize(itemId, fixedUrl)

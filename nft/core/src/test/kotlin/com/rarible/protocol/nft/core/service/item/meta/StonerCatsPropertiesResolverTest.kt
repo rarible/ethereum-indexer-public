@@ -33,7 +33,7 @@ class StonerCatsPropertiesResolverTest : BasePropertiesResolverTest() {
         // There is no need to check all fields, it is already tested in RariblePropertiesResolver
         assertThat(properties.name).isEqualTo("Stoner Cats #3709")
         assertThat(properties.image).isEqualTo(
-            "${ipfsService.publicGateway}/ipfs/bafybeigvfr47mucanjlsqoz2dti5ariurqgvpergl5vkhgpvihskyj4t5m"
+            "${publicGatewayProvider.getGateway()}/ipfs/bafybeigvfr47mucanjlsqoz2dti5ariurqgvpergl5vkhgpvihskyj4t5m"
         )
     }
 }

@@ -41,4 +41,18 @@ class PropertiesHttpLoader(
                 Mono.empty()
             }.awaitFirstOrNull()
     }
+
+    suspend fun getEtag(itemId: ItemId, httpUrl: String): String? {
+        return try {
+            externalHttpClient.get(httpUrl)
+                .toBodilessEntity()
+                .awaitFirstOrNull()
+                ?.headers
+                ?.getFirst("etag")
+                ?.replace("\"", "")
+        } catch (e: Exception) {
+            logMetaLoading(itemId, "failed to parse URI: $httpUrl: ${e.message}", warn = true)
+            return null
+        }
+    }
 }

@@ -42,7 +42,14 @@ class ExternalHttpClient(
         .build()
 
     fun get(url: String, useProxy: Boolean = false): WebClient.ResponseSpec {
-        val get = if (url.startsWith(openseaUrl)) {
+        val get = getProxyGet(url, useProxy)
+        // May throw "invalid URL" exception.
+        get.uri(url)
+        return get.retrieve()
+    }
+
+    private fun getProxyGet(url: String, useProxy: Boolean = false) =
+        if (url.startsWith(openseaUrl)) {
             val proxyGet = proxyClient.get()
             if (openseaApiKey.isNotBlank()) {
                 proxyGet.header(X_API_KEY, openseaApiKey)
@@ -56,10 +63,6 @@ class ExternalHttpClient(
         } else {
             defaultClient.get()
         }
-        // May throw "invalid URL" exception.
-        get.uri(url)
-        return get.retrieve()
-    }
 }
 
 private const val X_API_KEY = "X-API-KEY"

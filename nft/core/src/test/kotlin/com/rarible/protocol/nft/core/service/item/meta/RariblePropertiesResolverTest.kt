@@ -59,7 +59,7 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = name,
-                image = "${ipfsService.publicGateway}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
+                image = "${publicGatewayProvider.getGateway()}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,

@@ -28,9 +28,14 @@ class StonerCatsPropertiesResolver(
         logMetaLoading(itemId, "Resolving $name Nft properties")
         val properties = raribleResolver.resolve(itemId) ?: return null
         val imageUrl = properties.image ?: return properties
-        val etag = getEtag(itemId, imageUrl)
+        val etag = propertiesHttpLoader.getEtag(
+            itemId = itemId,
+            httpUrl = imageUrl
+        )
+
+
         return etag?.let {
-            properties.copy(image = "${ipfsService.publicGateway}/ipfs/$etag")
+            properties.copy(image = ipfsService.resolvePublicHttpUrl(etag))
         } ?: properties
     }
 

@@ -1,6 +1,27 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.core.meta.resource.ArweaveUrl
+import com.rarible.core.meta.resource.ConstantGatewayProvider
+import com.rarible.core.meta.resource.GatewayProvider
+import com.rarible.core.meta.resource.LegacyIpfsGatewaySubstitutor
+import com.rarible.core.meta.resource.RandomGatewayProvider
+import com.rarible.core.meta.resource.cid.CidV1Validator
+import com.rarible.core.meta.resource.detector.embedded.DefaultEmbeddedContentDecoderProvider
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedBase64Decoder
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedSvgDecoder
+import com.rarible.core.meta.resource.parser.ArweaveUrlResourceParser
+import com.rarible.core.meta.resource.parser.CidUrlResourceParser
+import com.rarible.core.meta.resource.parser.DefaultUrlResourceParserProvider
+import com.rarible.core.meta.resource.parser.HttpUrlResourceParser
+import com.rarible.core.meta.resource.parser.UrlResourceParsingProcessor
+import com.rarible.core.meta.resource.parser.ipfs.AbstractIpfsUrlResourceParser
+import com.rarible.core.meta.resource.parser.ipfs.ForeignIpfsUrlResourceParser
+import com.rarible.core.meta.resource.resolver.ArweaveGatewayResolver
+import com.rarible.core.meta.resource.resolver.IpfsCidGatewayResolver
+import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
+import com.rarible.core.meta.resource.resolver.SimpleHttpGatewayResolver
+import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
@@ -57,11 +78,23 @@ abstract class BasePropertiesResolverTest {
         proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
     )
 
-    protected val ipfsService = IpfsService(
-        NftIndexerProperties.IpfsProperties(
-            IPFS_PUBLIC_GATEWAY,
-            IPFS_PUBLIC_GATEWAY
+    protected val publicGatewayProvider = ConstantGatewayProvider(IPFS_PUBLIC_GATEWAY.trimEnd('/'))
+    private val innerGatewaysProvider = RandomGatewayProvider(IPFS_PUBLIC_GATEWAY.split(",").map { it.trimEnd('/') })
+
+    private val urlResourceProcessor = getUrlResourceProcessor()
+    private val urlResolver = getUrlResolver(publicGatewayProvider, innerGatewaysProvider)
+
+    private val embeddedContentDetectProcessor = EmbeddedContentDetectProcessor(
+        provider = DefaultEmbeddedContentDecoderProvider(
+            embeddedBase64Decoder = EmbeddedBase64Decoder,
+            embeddedSvgDecoder = EmbeddedSvgDecoder
         )
+    )
+
+    protected val ipfsService = IpfsService(
+        parsingProcessor = urlResourceProcessor,
+        urlResolver = urlResolver,
+        embeddedContentDetectProcessor = embeddedContentDetectProcessor
     )
 
     protected val tokenUriResolver = BlockchainTokenUriResolver(
@@ -91,8 +124,58 @@ abstract class BasePropertiesResolverTest {
         )
     }
 
+    private fun getUrlResolver(
+        publicGatewayProvider: GatewayProvider,
+        innerGatewaysProvider: GatewayProvider
+    ): UrlResolver {
+        val customGatewaysResolver = LegacyIpfsGatewaySubstitutor(emptyList())
+        val arweaveGatewayProvider = ConstantGatewayProvider(ArweaveUrl.ARWEAVE_GATEWAY)
+
+        val ipfsGatewayResolver = IpfsGatewayResolver(
+            publicGatewayProvider = publicGatewayProvider,
+            innerGatewaysProvider = innerGatewaysProvider,
+            customGatewaysResolver = customGatewaysResolver
+        )
+
+        val ipfsCidGatewayResolver = IpfsCidGatewayResolver(
+            publicGatewayProvider = publicGatewayProvider,
+            innerGatewaysProvider = innerGatewaysProvider,
+        )
+
+        val arweaveGatewayResolver = ArweaveGatewayResolver(
+            arweaveGatewayProvider = arweaveGatewayProvider
+        )
+
+        return UrlResolver(
+            ipfsGatewayResolver = ipfsGatewayResolver,
+            ipfsCidGatewayResolver = ipfsCidGatewayResolver,
+            arweaveGatewayResolver = arweaveGatewayResolver,
+            simpleHttpGatewayResolver = SimpleHttpGatewayResolver()
+        )
+    }
+
+    fun getUrlResourceProcessor(): UrlResourceParsingProcessor {
+        val cidOneValidator = CidV1Validator()
+        val foreignIpfsUrlResourceParser = ForeignIpfsUrlResourceParser(
+            cidOneValidator = cidOneValidator
+        )
+
+        val defaultUrlResourceParserProvider = DefaultUrlResourceParserProvider(
+            arweaveUrlParser = ArweaveUrlResourceParser(),
+            foreignIpfsUrlResourceParser = foreignIpfsUrlResourceParser,
+            abstractIpfsUrlResourceParser = AbstractIpfsUrlResourceParser(),
+            cidUrlResourceParser = CidUrlResourceParser(cidOneValidator),
+            httpUrlParser = HttpUrlResourceParser()
+        )
+
+        return UrlResourceParsingProcessor(
+            provider = defaultUrlResourceParserProvider
+        )
+    }
+
     protected companion object {
         const val REQUEST_TIMEOUT: Long = 20000
         const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
+        const val CID = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"
     }
 }

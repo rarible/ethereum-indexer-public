@@ -89,6 +89,10 @@
             <artifactId>rarible-core-entity-reducer</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-meta-resource</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.protocol.ethereum</groupId>
             <artifactId>protocol-client-common</artifactId>
         </dependency>

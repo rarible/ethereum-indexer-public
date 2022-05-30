@@ -16,6 +16,7 @@ object SvgSanitizer {
 
     // Sanitize data if it is SVG, return 'as is' otherwise
     fun sanitize(itemId: ItemId, svgCandidate: String?): String? {
+        // TODO Add here?
         val trimmed = svgCandidate?.trim() ?: return null
         return when {
             trimmed.startsWith(SVG_START) -> trimmed
@@ -53,6 +54,7 @@ object SvgSanitizer {
         val svg = svgCandidate.removePrefix(UTF8_SVG_PREFIX).trim()
         return checkUrlEncoded(itemId, svg)
     }
+
 
     private fun checkUrlEncoded(itemId: ItemId, encodedSvg: String): String {
         return if (encodedSvg.contains(SVG_ENCODED_START)) {

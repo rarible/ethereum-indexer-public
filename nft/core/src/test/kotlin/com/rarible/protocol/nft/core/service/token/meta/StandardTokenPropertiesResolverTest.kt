@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.rarible.core.meta.resource.GatewayProvider
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
@@ -37,6 +38,9 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
 
     @Autowired
     private lateinit var ipfsService: IpfsService
+
+    @Autowired
+    private lateinit var publicGatewayProvider: GatewayProvider
 
     private lateinit var userSender: MonoSigningTransactionSender
     private lateinit var erc721: ERC721Rarible
@@ -115,7 +119,7 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
             .clientConnector(ReactorClientHttpConnector(httpClient))
             .exchangeFunction { request ->
                 assertThat(request.url()).isEqualTo(
-                    URI("${ipfsService.publicGateway}/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T")
+                    URI("${publicGatewayProvider.getGateway()}/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T")
                 )
                 Mono.just(ClientResponse.create(HttpStatus.NOT_FOUND).build())
             }.build()
