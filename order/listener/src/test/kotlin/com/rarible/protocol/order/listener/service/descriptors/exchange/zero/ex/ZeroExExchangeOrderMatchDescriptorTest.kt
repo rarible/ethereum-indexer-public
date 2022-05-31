@@ -55,7 +55,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
             runBlocking {
                 zeroExOrderParser.parseMatchOrdersData(any(), any(), any(), any(), any(), any())
             }
-        } returns matchOrdersData
+        } returns listOf(matchOrdersData)
 
         every {
             runBlocking {

@@ -29,13 +29,14 @@ class ZeroExOrderParser(
         event: FillEvent,
         index: Int,
         totalLogs: Int
-    ): ZeroExMatchOrdersData {
+    ): List<ZeroExMatchOrdersData> {
         val calledMethodSignatureId = txInput.methodSignatureId()
         val supportedParsingMethods = listOf(
             ZeroExFeeWrapper.matchOrdersSignature().id(),
             Exchange.fillOrderSignature().id(),
             Exchange.matchOrdersSignature().id(),
-            Exchange.executeTransactionSignature().id()
+            Exchange.executeTransactionSignature().id(),
+            Exchange.batchFillOrdersSignature().id(),
         )
         if (calledMethodSignatureId !in supportedParsingMethods) {
             throw IllegalStateException("Unsupported method $calledMethodSignatureId for parsing $txHash")
@@ -64,7 +65,7 @@ class ZeroExOrderParser(
         inputs: List<Binary>,
         index: Int,
         totalLogs: Int
-    ): ZeroExMatchOrdersData = when (calledMethodSignatureId) {
+    ): List<ZeroExMatchOrdersData> = when (calledMethodSignatureId) {
         ZeroExFeeWrapper.matchOrdersSignature().id() -> {
             require(inputs.size * 2 == totalLogs) {
                 "Wrong number of inputs. Must be 'inputs.size * 2 == totalLogs' for wrapperMatchOrders. " +
@@ -89,6 +90,14 @@ class ZeroExOrderParser(
             val input = inputs[index]
             parseFillOrderInput(input, txFrom)
         }
+        Exchange.batchFillOrdersSignature().id() -> {
+            require(inputs.size == totalLogs) {
+                "Wrong number of inputs. Must be 'inputs.size == totalLogs' for batchFillOrder. " +
+                    "Tx: $txHash, inputs size: ${inputs.size}, totalLogs: $totalLogs"
+            }
+            val input = inputs[index]
+            parseBatchFillOrdersInput(input, txFrom)
+        }
         Exchange.executeTransactionSignature().id() -> {
             val input = inputs[index]
             val signature = Exchange.executeTransactionSignature()
@@ -103,7 +112,7 @@ class ZeroExOrderParser(
         else -> throw IllegalStateException("Unsupported method $calledMethodSignatureId for parsing. txHash: $txHash")
     }
 
-    private fun parseWrapperMatchOrdersInput(input: Binary): ZeroExMatchOrdersData {
+    private fun parseWrapperMatchOrdersInput(input: Binary): List<ZeroExMatchOrdersData> {
         val signature = ZeroExFeeWrapper.matchOrdersSignature()
         val decoded = signature.`in`().decode(input, 4).value()
 
@@ -114,18 +123,20 @@ class ZeroExOrderParser(
         val feeData = decoded._5().map { parseFeeData(it) }
         val paymentTokenAddress = decoded._6()
 
-        return ZeroExMatchOrdersData(
-            leftOrder = leftOrder,
-            takerAddress = null,
-            rightOrder = rightOrder,
-            leftSignature = leftSignature,
-            rightSignature = rightSignature,
-            feeData = feeData,
-            paymentTokenAddress = paymentTokenAddress,
+        return listOf(
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                takerAddress = null,
+                rightOrder = rightOrder,
+                leftSignature = leftSignature,
+                rightSignature = rightSignature,
+                feeData = feeData,
+                paymentTokenAddress = paymentTokenAddress,
+            )
         )
     }
 
-    private fun parseExchangeMatchOrdersInput(input: Binary): ZeroExMatchOrdersData {
+    private fun parseExchangeMatchOrdersInput(input: Binary): List<ZeroExMatchOrdersData> {
         val signature = Exchange.matchOrdersSignature()
         val decoded = signature.`in`().decode(input, 4).value()
 
@@ -134,34 +145,53 @@ class ZeroExOrderParser(
         val leftSignature = Binary.apply(decoded._3())
         val rightSignature = Binary.apply(decoded._4())
 
-        return ZeroExMatchOrdersData(
-            leftOrder = leftOrder,
-            takerAddress = null,
-            rightOrder = rightOrder,
-            leftSignature = leftSignature,
-            rightSignature = rightSignature,
+        return listOf(
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                takerAddress = null,
+                rightOrder = rightOrder,
+                leftSignature = leftSignature,
+                rightSignature = rightSignature,
+            )
         )
     }
 
-    private fun parseFillOrderInput(input: Binary, txFrom: Address): ZeroExMatchOrdersData {
+    private fun parseFillOrderInput(input: Binary, txFrom: Address): List<ZeroExMatchOrdersData> {
         val signature = Exchange.fillOrderSignature()
         val decoded = signature.`in`().decode(input, 4).value()
 
         val leftOrder = parseOrder(decoded._1())
         val leftSignature = Binary.apply(decoded._3())
 
-        return ZeroExMatchOrdersData(
-            leftOrder = leftOrder,
-            takerAddress = txFrom,
-            leftSignature = leftSignature
+        return listOf(
+            ZeroExMatchOrdersData(
+                leftOrder = leftOrder,
+                takerAddress = txFrom,
+                leftSignature = leftSignature
+            )
         )
     }
 
-    private fun parseExecuteTransactionData(input: Binary, txFrom: Address, txHash: Word): ZeroExMatchOrdersData =
+    private fun parseBatchFillOrdersInput(input: Binary, txFrom: Address): List<ZeroExMatchOrdersData> {
+        val signature = Exchange.batchFillOrdersSignature()
+        val decoded = signature.`in`().decode(input, 4).value()
+        val orders = decoded._1()
+        val signatures = decoded._3()
+        return orders.mapIndexed { i, orderData ->
+            ZeroExMatchOrdersData(
+                leftOrder = parseOrder(orderData),
+                takerAddress = txFrom,
+                leftSignature = Binary.apply(signatures[i])
+            )
+        }
+    }
+
+    private fun parseExecuteTransactionData(input: Binary, txFrom: Address, txHash: Word): List<ZeroExMatchOrdersData> =
         when (input.methodSignatureId()) {
             ZeroExFeeWrapper.matchOrdersSignature().id() -> parseWrapperMatchOrdersInput(input)
             Exchange.matchOrdersSignature().id() -> parseExchangeMatchOrdersInput(input)
             Exchange.fillOrderSignature().id() -> parseFillOrderInput(input, txFrom)
+            Exchange.batchFillOrdersSignature().id() -> parseBatchFillOrdersInput(input, txFrom)
             else -> throw IllegalStateException(
                 "Unsupported method ${input.methodSignatureId()} for parsing of execute transaction. txHash: $txHash"
             )

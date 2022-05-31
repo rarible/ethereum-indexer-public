@@ -59,7 +59,7 @@ class ZeroExExchangeOrderMatchDescriptor(
         totalLogs: Int
     ): List<OrderSideMatch> {
         val event = FillEvent.apply(log)
-        val matchOrdersData = zeroExOrderParser.parseMatchOrdersData(
+        val matchOrdersDataList = zeroExOrderParser.parseMatchOrdersData(
             txHash = transaction.hash(),
             txInput = transaction.input(),
             txFrom = transaction.from(),
@@ -67,15 +67,17 @@ class ZeroExExchangeOrderMatchDescriptor(
             index = index,
             totalLogs = totalLogs
         )
-        return zeroExOrderEventConverter.convert(
-            matchOrdersData = matchOrdersData,
-            from = transaction.from(),
-            date = date,
-            orderHash = Word.apply(event.orderHash()),
-            makerAddress = event.makerAddress(),
-            makerAssetFilledAmount = event.makerAssetFilledAmount(),
-            takerAssetFilledAmount = event.takerAssetFilledAmount()
-        )
+        return matchOrdersDataList.map { matchOrdersData ->
+            zeroExOrderEventConverter.convert(
+                matchOrdersData = matchOrdersData,
+                from = transaction.from(),
+                date = date,
+                orderHash = Word.apply(event.orderHash()),
+                makerAddress = event.makerAddress(),
+                makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                takerAssetFilledAmount = event.takerAssetFilledAmount()
+            )
+        }.flatten()
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
