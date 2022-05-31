@@ -16,14 +16,14 @@ class IpfsService(                                   // TODO Maybe rename to Url
 ) {
 
     // Used only for internal operations, such urls should NOT be stored anywhere
-    fun resolveInnerHttpUrl(url: String) = resolveInner(url, false)
+    fun resolveInnerHttpUrl(url: String) = resolveInternal(url, false)
 
     // Used to build url exposed to the DB cache or API responses
-    fun resolvePublicHttpUrl(url: String) = resolveInner(url, true)
+    fun resolvePublicHttpUrl(url: String) = resolveInternal(url, true)
 
-    private fun resolveInner(url: String, isPublic: Boolean): String {
-        val embeddedContent = embeddedContentDetectProcessor.decode(url)
-        if (embeddedContent != null) return embeddedContent.content.decodeToString() // TODO Move this handling outside
+    private fun resolveInternal(url: String, isPublic: Boolean): String {
+//        val embeddedContent = embeddedContentDetectProcessor.decode(url)
+//        if (embeddedContent != null) return embeddedContent.content.decodeToString() // TODO Move this handling outside
 
         val resource = parsingProcessor.parse(url) ?: return ""  // TODO Add logging here and maybe throw Exception
         return if (isPublic) {
