@@ -167,14 +167,16 @@ class ZeroExOrderParserTest {
         )
         val expPaymentTokenAddress = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = null,
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = null,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
@@ -261,14 +263,16 @@ class ZeroExOrderParserTest {
         )
         val expPaymentTokenAddress = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = null,
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = null,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
@@ -357,14 +361,16 @@ class ZeroExOrderParserTest {
         )
         val expPaymentTokenAddress = Address.apply("0x7ceb23fd6bc0add59e62ac25578270cff1b9f619")
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = null,
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = null,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
@@ -444,14 +450,16 @@ class ZeroExOrderParserTest {
         val expFeeData = listOf<ZeroExFeeData>()
         val expPaymentTokenAddress = Address.ZERO()
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = null,
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = null,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
@@ -480,7 +488,6 @@ class ZeroExOrderParserTest {
         )
 
         val expLeftOrder = ZeroExOrder(
-            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0x2369d6675a6d9dfc7c18690d3bc59b2b103be687"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0x86643337545d6ca42802c4225c5f5ab2879c2da8"),
@@ -504,14 +511,77 @@ class ZeroExOrderParserTest {
         val expFeeData = listOf<ZeroExFeeData>()
         val expPaymentTokenAddress = Address.ZERO()
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = txFrom,
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = txFrom,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
+            )
+        )
+    }
+
+    @Test
+    fun `parse input for batch fill order without using wrapper via execute transaction`() = runBlocking<Unit> {
+        // https://polygonscan.com/tx/0xe7401512c49e2c16ea053e9f6c8350c914f77f9c5df1974724da6ae28ad19e7e
+        val txInput = Binary.apply(
+            "0x9694a402" +
+                "0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000036000000000000000000000000000000000000000000000000000000000000003a0000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000008d38138310158522220499731ee17d2a36d2dda300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d056bb17ad4df5593b93a1efc29cb35ba4aa38d00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000e302875600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000005d21dba0000000000000000000000000000000000000000000000000000000000614a383d00000000000000000000000000000000000000000000000000000179aa609f3f00000000000000000000000000000000000000000000000000000000000001c00000000000000000000000000000000000000000000000000000000000000260000000000000000000000000000000000000000000000000000000000000024000000000000000000000000000000000000000000000000000000000000002600000000000000000000000000000000000000000000000000000000000000044025717920000000000000000000000009928a8ea82d86290dfd1920e126b3872890525b3000000000000000000000000000000000000000000000000000000000000f0be0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000024f47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000e3028756000000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000421ba9c51bf51a3af426c6b833e8a32affeb51929ddbcd3c28307aa25b49e8e393207430c9f73cef36845ae17f06e68eca5dcdca3b68927ebf7e83dc8335b540f07302000000000000000000000000000000000000000000000000000000000000"
+        )
+        every {
+            runBlocking {
+                traceCallService.findAllRequiredCallInputs(any(), any(), any(), any())
+            }
+        } returns listOf(txInput)
+
+        val txFrom = Address.TWO()
+        val result = zeroExParser.parseMatchOrdersData(
+            txHash = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000011"),
+            txInput = txInput,
+            txFrom = txFrom,
+            event = event(),
+            index = 0,
+            totalLogs = 1,
+        )
+
+        val expLeftOrder = ZeroExOrder(
+            makerAddress = Address.apply("0x8d38138310158522220499731ee17d2a36d2dda3"),
+            takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
+            feeRecipientAddress = Address.apply("0x0d056bb17ad4df5593b93a1efc29cb35ba4aa38d"),
+            senderAddress = Address.apply("0x0000000000000000000000000000000000000000"),
+            makerAssetAmount = 1.toBigInteger(),
+            takerAssetAmount = 975000000000.toBigInteger(),
+            makerFee = 0.toBigInteger(),
+            takerFee = 25000000000.toBigInteger(),
+            expirationTimeSeconds = 1632254013.toBigInteger(),
+            salt = 1622061129535.toBigInteger(),
+            makerAssetData = Binary.apply("0x025717920000000000000000000000009928a8ea82d86290dfd1920e126b3872890525b3000000000000000000000000000000000000000000000000000000000000f0be"),
+            takerAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619"),
+            makerFeeAssetData = Binary.apply("0x"),
+            takerFeeAssetData = Binary.apply("0xf47261b00000000000000000000000007ceb23fd6bc0add59e62ac25578270cff1b9f619")
+        )
+        val expRightOrder: ZeroExOrder? = null
+        val expLeftSignature =
+            Binary.apply("0x1ba9c51bf51a3af426c6b833e8a32affeb51929ddbcd3c28307aa25b49e8e393207430c9f73cef36845ae17f06e68eca5dcdca3b68927ebf7e83dc8335b540f07302")
+        val expRightSignature: Binary? = null
+        // only wrapper has fields for feeData and PaymentTokenAddress
+        val expFeeData = listOf<ZeroExFeeData>()
+        val expPaymentTokenAddress = Address.ZERO()
+        assertThat(result).isEqualTo(
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = txFrom,
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
@@ -539,7 +609,6 @@ class ZeroExOrderParserTest {
         )
 
         val expLeftOrder = ZeroExOrder(
-            // seller of order (he sells erc20 and buys nft), it's buyer of nft in this deal
             makerAddress = Address.apply("0xfd71dc9721d9ddcf0480a582927c3dcd42f3064c"),
             takerAddress = Address.apply("0x0000000000000000000000000000000000000000"),
             feeRecipientAddress = Address.apply("0x0000000000000000000000000000000000000000"),
@@ -563,14 +632,16 @@ class ZeroExOrderParserTest {
         val expFeeData = listOf<ZeroExFeeData>()
         val expPaymentTokenAddress = Address.ZERO()
         assertThat(result).isEqualTo(
-            ZeroExMatchOrdersData(
-                leftOrder = expLeftOrder,
-                takerAddress = Address.apply("0x28e9e72dbf7adee19b5279c23e40a1b0b35c2b90"),
-                rightOrder = expRightOrder,
-                leftSignature = expLeftSignature,
-                rightSignature = expRightSignature,
-                feeData = expFeeData,
-                paymentTokenAddress = expPaymentTokenAddress,
+            listOf(
+                ZeroExMatchOrdersData(
+                    leftOrder = expLeftOrder,
+                    takerAddress = Address.apply("0x28e9e72dbf7adee19b5279c23e40a1b0b35c2b90"),
+                    rightOrder = expRightOrder,
+                    leftSignature = expLeftSignature,
+                    rightSignature = expRightSignature,
+                    feeData = expFeeData,
+                    paymentTokenAddress = expPaymentTokenAddress,
+                )
             )
         )
     }
