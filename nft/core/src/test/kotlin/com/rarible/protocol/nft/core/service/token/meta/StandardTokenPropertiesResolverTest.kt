@@ -1,14 +1,18 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.rarible.core.meta.resource.GatewayProvider
+import com.rarible.core.meta.resource.http.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.ExternalHttpClient
+import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ProxyWebClientBuilder
 import com.rarible.protocol.contracts.erc721.rarible.ERC721Rarible
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
+import com.rarible.protocol.nft.core.service.item.meta.BasePropertiesResolverTest
+import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.netty.resolver.DefaultAddressResolverGroup
 import kotlinx.coroutines.reactive.awaitFirst
@@ -32,18 +36,25 @@ import java.net.URI
 
 @IntegrationTest
 class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
-
-    @Autowired
-    private lateinit var mapper: ObjectMapper
-
     @Autowired
     private lateinit var ipfsService: IpfsService
 
     @Autowired
     private lateinit var publicGatewayProvider: GatewayProvider
 
+    @Autowired
+    private lateinit var tokenUriResolver: BlockchainTokenUriResolver
+
     private lateinit var userSender: MonoSigningTransactionSender
     private lateinit var erc721: ERC721Rarible
+
+    val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = false)
+    val proxyWebClientBuilder = ProxyWebClientBuilder(
+        readTimeout = 60000,
+        connectTimeout = 60000,
+        proxyUrl = "",
+        followRedirect = false
+    )
 
     @BeforeEach
     fun before() = runBlocking<Unit> {
@@ -92,10 +103,27 @@ class StandardTokenPropertiesResolverTest : AbstractIntegrationTest() {
     }
 
     private fun mock(webClient: WebClient): StandardTokenPropertiesResolver {
-        val externalHttpClient = object: ExternalHttpClient("https://api.opensea.io/api/v1", "", 60000, 60000, "") {
+        val externalHttpClient = object: ExternalHttpClient(
+            openseaUrl = "https://api.opensea.io/api/v1",
+            openseaApiKey = "",
+            proxyUrl = "",
+            proxyWebClientBuilder = proxyWebClientBuilder,
+            defaultWebClientBuilder = defaultWebClientBuilder
+        ) {
             override val defaultClient get() = webClient
         }
-        return StandardTokenPropertiesResolver(userSender, ipfsService, tokenRepository, mapper, externalHttpClient, 60000)
+
+        val propertiesHttpLoader = PropertiesHttpLoader(
+            externalHttpClient = externalHttpClient,
+            defaultRequestTimeout = BasePropertiesResolverTest.REQUEST_TIMEOUT,
+            openseaRequestTimeout = BasePropertiesResolverTest.REQUEST_TIMEOUT
+        )
+
+        return StandardTokenPropertiesResolver(
+            ipfsService = ipfsService,
+            propertiesHttpLoader = propertiesHttpLoader,
+            tokenUriResolver = tokenUriResolver
+        )
     }
 
     private fun mockSuccessIpfsResponse(): WebClient {

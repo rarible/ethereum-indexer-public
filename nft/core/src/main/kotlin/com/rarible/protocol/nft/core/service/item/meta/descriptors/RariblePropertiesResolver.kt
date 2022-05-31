@@ -1,9 +1,11 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.meta.resource.http.PropertiesHttpLoader
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
@@ -71,7 +73,7 @@ class RariblePropertiesResolver(
         val httpUrl =  ipfsService.resolveInnerHttpUrl(uri)
         logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
 
-        val propertiesString = propertiesHttpLoader.getByUrl(itemId, httpUrl) ?: return null
+        val propertiesString = propertiesHttpLoader.getBody(url = httpUrl, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")

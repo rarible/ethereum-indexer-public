@@ -42,11 +42,10 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
 
     private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
-        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
+        MutantsBoredApeYachtClubPropertiesResolver(propertiesHttpLoader)
 
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
-        externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
+        propertiesHttpLoader = propertiesHttpLoader,
         properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
     )
 

@@ -23,7 +23,7 @@ class IpfsService(                                   // TODO Maybe rename to Url
 
     private fun resolveInner(url: String, isPublic: Boolean): String {
         val embeddedContent = embeddedContentDetectProcessor.decode(url)
-        if (embeddedContent != null) return embeddedContent.content.decodeToString()
+        if (embeddedContent != null) return embeddedContent.content.decodeToString() // TODO Move this handling outside
 
         val resource = parsingProcessor.parse(url) ?: return ""  // TODO Add logging here and maybe throw Exception
         return if (isPublic) {

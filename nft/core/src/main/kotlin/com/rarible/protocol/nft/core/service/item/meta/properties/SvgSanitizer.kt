@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.rarible.core.meta.resource.detector.Base64Utils.base64MimeToBytes
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.base64MimeToBytes
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets

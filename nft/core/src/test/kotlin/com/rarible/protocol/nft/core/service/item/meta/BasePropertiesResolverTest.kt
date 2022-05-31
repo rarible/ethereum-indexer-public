@@ -10,6 +10,10 @@ import com.rarible.core.meta.resource.detector.embedded.DefaultEmbeddedContentDe
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedBase64Decoder
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedSvgDecoder
+import com.rarible.core.meta.resource.http.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.ExternalHttpClient
+import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ProxyWebClientBuilder
 import com.rarible.core.meta.resource.parser.ArweaveUrlResourceParser
 import com.rarible.core.meta.resource.parser.CidUrlResourceParser
 import com.rarible.core.meta.resource.parser.DefaultUrlResourceParserProvider
@@ -26,8 +30,6 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.BlockchainTokenUriResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesHttpLoader
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -62,20 +64,30 @@ abstract class BasePropertiesResolverTest {
         Address.ZERO()
     )
 
+    val proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+
+    val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = false)
+    val proxyWebClientBuilder = ProxyWebClientBuilder(
+        readTimeout = 10000,
+        connectTimeout = 3000,
+        proxyUrl = proxyUrl,
+        followRedirect = false
+    )
+
     protected val externalHttpClient = ExternalHttpClient(
         openseaUrl = "https://api.opensea.io/api/v1",
         openseaApiKey = "",
-        readTimeout = 10000,
-        connectTimeout = 3000,
-        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+        proxyUrl = proxyUrl,
+        defaultWebClientBuilder = defaultWebClientBuilder,
+        proxyWebClientBuilder = proxyWebClientBuilder,
     )
 
     protected val polygonExternalHttpClient = ExternalHttpClient(
         openseaUrl = "https://api.opensea.io/api/v2",
         openseaApiKey = "",
-        readTimeout = 10000,
-        connectTimeout = 3000,
-        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+        proxyUrl = proxyUrl,
+        defaultWebClientBuilder = defaultWebClientBuilder,
+        proxyWebClientBuilder = proxyWebClientBuilder,
     )
 
     protected val publicGatewayProvider = ConstantGatewayProvider(IPFS_PUBLIC_GATEWAY.trimEnd('/'))
@@ -105,7 +117,8 @@ abstract class BasePropertiesResolverTest {
 
     protected val propertiesHttpLoader = PropertiesHttpLoader(
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT
+        defaultRequestTimeout = REQUEST_TIMEOUT,
+        openseaRequestTimeout = REQUEST_TIMEOUT
     )
 
     @BeforeEach
@@ -173,7 +186,7 @@ abstract class BasePropertiesResolverTest {
         )
     }
 
-    protected companion object {
+    companion object {
         const val REQUEST_TIMEOUT: Long = 20000
         const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
         const val CID = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"

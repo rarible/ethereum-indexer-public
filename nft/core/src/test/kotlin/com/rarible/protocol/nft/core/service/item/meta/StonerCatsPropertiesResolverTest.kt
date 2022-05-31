@@ -21,7 +21,7 @@ class StonerCatsPropertiesResolverTest : BasePropertiesResolverTest() {
     private val stonerCatsPropertiesResolver = StonerCatsPropertiesResolver(
         ipfsService = ipfsService,
         raribleResolver = rariblePropertiesResolver,
-        externalHttpClient = externalHttpClient
+        propertiesHttpLoader = propertiesHttpLoader
     )
 
     @Test

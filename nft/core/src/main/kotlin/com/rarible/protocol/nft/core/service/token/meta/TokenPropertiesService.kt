@@ -7,6 +7,7 @@ import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.flow.asFlow
@@ -80,14 +81,8 @@ class TokenPropertiesService(
 
     companion object {
         val logger: Logger = LoggerFactory.getLogger(TokenPropertiesService::class.java)
-        fun logProperties(id: Address, message: String, warn: Boolean = false) {
-            val logMessage = "Meta of ${id.prefixed()}: $message"
-            if (warn) {
-                logger.warn(logMessage)
-            } else {
-                logger.info(logMessage)
-            }
-        }
+        fun logProperties(id: Address, message: String, warn: Boolean = false) = logger.logMetaLoading(id.prefixed(), message, warn)
+
         const val TOKEN_METADATA_COLLECTION = "token_metadata"
     }
 }

@@ -18,13 +18,11 @@ import scalether.domain.Address
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
-        externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
+        propertiesHttpLoader = propertiesHttpLoader,
         properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
     )
     private val polygonOpenSeaPropertiesResolver = OpenSeaPropertiesResolver(
-        externalHttpClient = polygonExternalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
+        propertiesHttpLoader = propertiesHttpLoader,
         properties = mockk { every { blockchain } returns Blockchain.POLYGON }
     )
 

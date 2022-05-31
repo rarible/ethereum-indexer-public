@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.meta.resource.http.PropertiesHttpLoader
 import com.rarible.protocol.nft.core.misc.detector.Base64Detector
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -29,7 +30,7 @@ class EmblemVaultV2Resolver(
 
         if (properties.image != null) {
             val resolvedUrl = ipfsService.resolvePublicHttpUrl(properties.image)
-            val imageContent = propertiesHttpLoader.getByUrl(itemId, resolvedUrl)
+            val imageContent = propertiesHttpLoader.getBody(url = resolvedUrl, id = itemId.decimalStringValue)
 
             if (imageContent != null && Base64Detector(imageContent).canDecode()) {
                 return properties.copy(image = imageContent)
