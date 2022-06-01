@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.protocol.nft.core.model.ContentMeta
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
@@ -13,16 +13,16 @@ import org.springframework.stereotype.Component
 )
 @Component
 class MediaMetaService(
-    private val ipfsService: IpfsService,
+    private val urlService: UrlService,
     private val template: ReactiveMongoTemplate
 ) {
 
-    suspend fun getMediaMetaFromCache(url: String): ContentMeta? {
+    suspend fun getMediaMetaFromCache(url: String, id: String): ContentMeta? {
         // For cache, if we still use it, lets use mypinata urls, as previously
         if (url.isBlank()) {
             return null
         }
-        val realUrl = ipfsService.resolvePublicHttpUrl(url)
+        val realUrl = urlService.resolvePublicHttpUrl(url, id) ?: return null
         return fetchFromCache(realUrl)
     }
 

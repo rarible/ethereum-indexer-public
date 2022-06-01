@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -15,7 +15,7 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class MutantsBoredApeYachtClubPropertiesResolver(
-    private val propertiesHttpLoader: PropertiesHttpLoader
+    private val externalHttpClient: ExternalHttpClient
 ) : ItemPropertiesResolver {
 
     override val name get() = "Bored"
@@ -25,20 +25,20 @@ class MutantsBoredApeYachtClubPropertiesResolver(
 
         logMetaLoading(itemId, "Resolving MutantApeYachtClub properties")
         val url = "$MUTANTS_URL/${itemId.tokenId}"
-        val propertiesString = propertiesHttpLoader.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { map(itemId, json) }
+            json?.let { map(itemId, json, propertiesString) }
         } catch (e: Throwable) {
             logMetaLoading(itemId, "failed to parse properties by URI: $url", warn = true)
             null
         }
     }
 
-    private fun map(itemId: ItemId, json: ObjectNode) =
+    private fun map(itemId: ItemId, json: ObjectNode, propertiesString: String) =
         ItemProperties(
             name = "MutantApeYachtClub #${itemId.tokenId.value}",
             description = "The MUTANT APE YACHT CLUB is a collection of up to 20,000 Mutant Apes that can only be created by exposing an existing Bored Ape to a vial of MUTANT SERUM or by minting a Mutant Ape in the public sale.",
@@ -53,7 +53,7 @@ class MutantsBoredApeYachtClubPropertiesResolver(
                         value = attr.path("value").asText()
                     )
                 },
-            rawJsonContent = json.toString()
+            rawJsonContent = propertiesString
         )
 
     companion object {

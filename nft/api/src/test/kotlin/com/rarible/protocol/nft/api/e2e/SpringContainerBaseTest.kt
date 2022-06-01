@@ -142,7 +142,7 @@ abstract class SpringContainerBaseTest {
         clearMocks(mockItemMetaResolver)
         coEvery { mockTokenStandardPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
         coEvery { mockTokenOpenseaPropertiesResolver.resolve(any()) } returns TokenProperties.EMPTY
-        coEvery { mockMediaMetaService.getMediaMetaFromCache(any()) } returns ContentMeta("image/png")
+        coEvery { mockMediaMetaService.getMediaMetaFromCache(any(), any()) } returns ContentMeta("image/png")
     }
 
     @PostConstruct

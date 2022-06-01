@@ -16,7 +16,7 @@ import scalether.domain.Address
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class LuckyManekiNftPropertiesResolverTest : BasePropertiesResolverTest() {
     private val luckyManekiNftPropertiesResolver = LuckyManekiNftPropertiesResolver(
-        propertiesHttpLoader = propertiesHttpLoader
+        externalHttpClient = externalHttpClient
     )
 
     @Test

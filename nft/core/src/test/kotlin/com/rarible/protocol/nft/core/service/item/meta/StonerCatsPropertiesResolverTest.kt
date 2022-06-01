@@ -13,15 +13,16 @@ import org.junit.jupiter.api.Test
 class StonerCatsPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val rariblePropertiesResolver = RariblePropertiesResolver(
-        ipfsService = ipfsService,
-        propertiesHttpLoader = propertiesHttpLoader,
-        tokenUriResolver = tokenUriResolver
+        urlService = urlService,
+        externalHttpClient = externalHttpClient,
+        tokenUriResolver = tokenUriResolver,
+        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
     )
 
     private val stonerCatsPropertiesResolver = StonerCatsPropertiesResolver(
-        ipfsService = ipfsService,
+        urlService = urlService,
         raribleResolver = rariblePropertiesResolver,
-        propertiesHttpLoader = propertiesHttpLoader
+        externalHttpClient = externalHttpClient
     )
 
     @Test

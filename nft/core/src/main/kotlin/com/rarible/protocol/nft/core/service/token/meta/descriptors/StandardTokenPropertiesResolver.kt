@@ -2,9 +2,9 @@ package com.rarible.protocol.nft.core.service.token.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.TokenProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.getInt
@@ -17,8 +17,8 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
 class StandardTokenPropertiesResolver(
-    private val ipfsService: IpfsService,
-    private val propertiesHttpLoader: PropertiesHttpLoader,
+    private val urlService: UrlService,
+    private val externalHttpClient: ExternalHttpClient,
     private val tokenUriResolver: BlockchainTokenUriResolver
 ) : TokenPropertiesResolver {
 
@@ -28,7 +28,7 @@ class StandardTokenPropertiesResolver(
             return null
         }
 
-        val url = ipfsService.resolveInnerHttpUrl(uri)
+        val url = urlService.resolveInnerHttpUrl(uri, id.prefixed()) ?: return null
         logProperties(id, "$uri was resolved to: $url")
         return request(id, url)
     }
@@ -36,7 +36,7 @@ class StandardTokenPropertiesResolver(
     override val order get() = Int.MIN_VALUE
 
     private suspend fun request(id: Address, url: String): TokenProperties? {
-        val propertiesString = propertiesHttpLoader.getBody(url = url, id = id.prefixed()) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
 
         return try {
             logProperties(id, "parsing properties by URI: $url")

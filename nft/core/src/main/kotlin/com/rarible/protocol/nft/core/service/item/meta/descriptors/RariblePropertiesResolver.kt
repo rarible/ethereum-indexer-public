@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
@@ -16,9 +16,10 @@ import org.springframework.stereotype.Component
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class RariblePropertiesResolver(
-    private val ipfsService: IpfsService,
-    private val propertiesHttpLoader: PropertiesHttpLoader,
-    private val tokenUriResolver: BlockchainTokenUriResolver
+    private val urlService: UrlService,
+    private val externalHttpClient: ExternalHttpClient,
+    private val tokenUriResolver: BlockchainTokenUriResolver,
+    private val itemPropertiesUrlSanitizer: ItemPropertiesUrlSanitizer
 ) : ItemPropertiesResolver {
 
     override val name get() = "Rarible"
@@ -62,7 +63,7 @@ class RariblePropertiesResolver(
         } ?: return null
 
         val result = properties.fixEmptyName(itemId)
-        return ItemPropertiesUrlSanitizer.sanitize(itemId, result)
+        return itemPropertiesUrlSanitizer.sanitize(itemId, result)
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
@@ -70,10 +71,10 @@ class RariblePropertiesResolver(
             return null
         }
 
-        val httpUrl =  ipfsService.resolveInnerHttpUrl(uri)
+        val httpUrl =  urlService.resolveInnerHttpUrl(uri, itemId.decimalStringValue) ?: return null
         logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
 
-        val propertiesString = propertiesHttpLoader.getBody(url = httpUrl, id = itemId.decimalStringValue) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = httpUrl, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")

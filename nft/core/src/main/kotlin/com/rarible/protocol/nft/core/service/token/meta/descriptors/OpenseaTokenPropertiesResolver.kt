@@ -2,29 +2,31 @@ package com.rarible.protocol.nft.core.service.token.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.getInt
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.logProperties
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = TOKEN_META_CAPTURE_SPAN_TYPE)
 class OpenseaTokenPropertiesResolver(
-    private val propertiesHttpLoader: PropertiesHttpLoader
+    private val externalHttpClient: ExternalHttpClient,
+    @Value("\${api.opensea.url:}") private val openseaUrl: String
 ) : TokenPropertiesResolver {
 
     override suspend fun resolve(id: Address): TokenProperties? {
-        if (propertiesHttpLoader.getOpenSeaUrl().isBlank()) return null
+        if (openseaUrl.isBlank()) return null
 
-        val url = "${propertiesHttpLoader.getOpenSeaUrl()}/asset_contract/${id.prefixed()}"
+        val url = "${openseaUrl}/asset_contract/${id.prefixed()}"
         logProperties(id, "OpenSea: getting properties from $url")
 
-        val propertiesString = propertiesHttpLoader.getBody(url = url, id = id.prefixed()) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
 
         return try {
             logProperties(id, "parsing properties by URI: $url")

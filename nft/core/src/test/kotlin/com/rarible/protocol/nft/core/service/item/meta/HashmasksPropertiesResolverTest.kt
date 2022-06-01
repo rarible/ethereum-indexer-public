@@ -15,7 +15,7 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(
         sender = sender,
-        ipfsService = ipfsService
+        urlService = urlService
     )
 
     @Test

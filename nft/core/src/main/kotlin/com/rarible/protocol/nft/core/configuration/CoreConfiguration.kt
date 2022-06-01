@@ -10,10 +10,12 @@ import com.rarible.core.meta.resource.detector.embedded.DefaultEmbeddedContentDe
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedBase64Decoder
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedSvgDecoder
-import com.rarible.core.meta.resource.http.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
-import com.rarible.core.meta.resource.http.ProxyWebClientBuilder
+import com.rarible.core.meta.resource.http.OpenseaHttpClient
+import com.rarible.core.meta.resource.http.ProxyHttpClient
+import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
 import com.rarible.core.meta.resource.parser.ArweaveUrlResourceParser
 import com.rarible.core.meta.resource.parser.CidUrlResourceParser
 import com.rarible.core.meta.resource.parser.DefaultUrlResourceParserProvider
@@ -184,7 +186,7 @@ class CoreConfiguration(
         )
 
     @Bean
-    fun propertiesHttpLoader(
+    fun externalHttpClient(
         @Value("\${api.opensea.url:}") openseaUrl: String,
         @Value("\${api.opensea.api-key:}") openseaApiKey: String,
         @Value("\${api.opensea.read-timeout}") readTimeout: Int,
@@ -192,8 +194,8 @@ class CoreConfiguration(
         @Value("\${api.opensea.request-timeout}") openseaRequestTimeout: Long,
         @Value("\${api.proxy-url:}") proxyUrl: String,
         @Value("\${api.properties.request-timeout}") apiRequestTimeout: Long
-    ): PropertiesHttpLoader {
-        val followRedirect = false  // TODO Move to properties?
+    ): ExternalHttpClient {
+        val followRedirect = true  // TODO Move to properties?
 
         val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = followRedirect)
         val proxyWebClientBuilder = ProxyWebClientBuilder(
@@ -202,23 +204,26 @@ class CoreConfiguration(
             proxyUrl = proxyUrl,
             followRedirect = followRedirect
         )
-
-        val externalHttpClient = ExternalHttpClient(
+        val defaultHttpClient = DefaultHttpClient(
+            builder = defaultWebClientBuilder,
+            requestTimeout = apiRequestTimeout
+        )
+        val proxyHttpClient = ProxyHttpClient(
+            builder = proxyWebClientBuilder,
+            requestTimeout = openseaRequestTimeout
+        )
+        val openseaHttpClient = OpenseaHttpClient(
+            builder = proxyWebClientBuilder,
+            requestTimeout = openseaRequestTimeout,
             openseaUrl = openseaUrl,
             openseaApiKey = openseaApiKey,
             proxyUrl = proxyUrl,
-            defaultWebClientBuilder = defaultWebClientBuilder,
-            proxyWebClientBuilder = proxyWebClientBuilder,
         )
 
-        return PropertiesHttpLoader(
-            externalHttpClient = externalHttpClient,
-            defaultRequestTimeout = apiRequestTimeout,
-            openseaRequestTimeout = openseaRequestTimeout
+        return ExternalHttpClient(
+            defaultClient = defaultHttpClient,
+            proxyClient = proxyHttpClient,
+            customClients = listOf(openseaHttpClient)
         )
-
-
-
     }
-
 }

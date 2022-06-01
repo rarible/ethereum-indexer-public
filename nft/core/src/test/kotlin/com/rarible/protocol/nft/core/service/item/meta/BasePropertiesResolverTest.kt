@@ -8,12 +8,15 @@ import com.rarible.core.meta.resource.RandomGatewayProvider
 import com.rarible.core.meta.resource.cid.CidV1Validator
 import com.rarible.core.meta.resource.detector.embedded.DefaultEmbeddedContentDecoderProvider
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedBase64Decoder
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDecoderProvider
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedSvgDecoder
-import com.rarible.core.meta.resource.http.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
-import com.rarible.core.meta.resource.http.ProxyWebClientBuilder
+import com.rarible.core.meta.resource.http.OpenseaHttpClient
+import com.rarible.core.meta.resource.http.ProxyHttpClient
+import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
 import com.rarible.core.meta.resource.parser.ArweaveUrlResourceParser
 import com.rarible.core.meta.resource.parser.CidUrlResourceParser
 import com.rarible.core.meta.resource.parser.DefaultUrlResourceParserProvider
@@ -29,7 +32,8 @@ import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -65,29 +69,37 @@ abstract class BasePropertiesResolverTest {
     )
 
     val proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+    protected val openseaUrl = "https://api.opensea.io/api/v1"
 
-    val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = false)
+    val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = true)
     val proxyWebClientBuilder = ProxyWebClientBuilder(
         readTimeout = 10000,
         connectTimeout = 3000,
         proxyUrl = proxyUrl,
-        followRedirect = false
+        followRedirect = true
+    )
+
+    val defaultHttpClient = DefaultHttpClient(
+        builder = defaultWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+    val proxyHttpClient = ProxyHttpClient(
+        builder = proxyWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+
+    val openseaHttpClient = OpenseaHttpClient(
+        builder = proxyWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT,
+        openseaUrl = openseaUrl,
+        openseaApiKey = "",
+        proxyUrl = proxyUrl,
     )
 
     protected val externalHttpClient = ExternalHttpClient(
-        openseaUrl = "https://api.opensea.io/api/v1",
-        openseaApiKey = "",
-        proxyUrl = proxyUrl,
-        defaultWebClientBuilder = defaultWebClientBuilder,
-        proxyWebClientBuilder = proxyWebClientBuilder,
-    )
-
-    protected val polygonExternalHttpClient = ExternalHttpClient(
-        openseaUrl = "https://api.opensea.io/api/v2",
-        openseaApiKey = "",
-        proxyUrl = proxyUrl,
-        defaultWebClientBuilder = defaultWebClientBuilder,
-        proxyWebClientBuilder = proxyWebClientBuilder,
+        defaultClient = defaultHttpClient,
+        proxyClient = proxyHttpClient,
+        customClients = listOf(openseaHttpClient)
     )
 
     protected val publicGatewayProvider = ConstantGatewayProvider(IPFS_PUBLIC_GATEWAY.trimEnd('/'))
@@ -96,17 +108,9 @@ abstract class BasePropertiesResolverTest {
     private val urlResourceProcessor = getUrlResourceProcessor()
     private val urlResolver = getUrlResolver(publicGatewayProvider, innerGatewaysProvider)
 
-    private val embeddedContentDetectProcessor = EmbeddedContentDetectProcessor(
-        provider = DefaultEmbeddedContentDecoderProvider(
-            embeddedBase64Decoder = EmbeddedBase64Decoder,
-            embeddedSvgDecoder = EmbeddedSvgDecoder
-        )
-    )
-
-    protected val ipfsService = IpfsService(
+    protected val urlService = UrlService(
         parsingProcessor = urlResourceProcessor,
         urlResolver = urlResolver,
-        embeddedContentDetectProcessor = embeddedContentDetectProcessor
     )
 
     protected val tokenUriResolver = BlockchainTokenUriResolver(
@@ -115,10 +119,16 @@ abstract class BasePropertiesResolverTest {
         requestTimeout = REQUEST_TIMEOUT
     )
 
-    protected val propertiesHttpLoader = PropertiesHttpLoader(
-        externalHttpClient = externalHttpClient,
-        defaultRequestTimeout = REQUEST_TIMEOUT,
-        openseaRequestTimeout = REQUEST_TIMEOUT
+    protected val embeddedContentDetectProcessor = EmbeddedContentDetectProcessor(
+        provider = DefaultEmbeddedContentDecoderProvider(
+            embeddedBase64Decoder = EmbeddedBase64Decoder,
+            embeddedSvgDecoder = EmbeddedSvgDecoder
+        )
+    )
+
+    protected val itemPropertiesUrlSanitizer = ItemPropertiesUrlSanitizer(
+        urlService = urlService,
+        embeddedContentDetectProcessor = embeddedContentDetectProcessor
     )
 
     @BeforeEach
@@ -190,5 +200,6 @@ abstract class BasePropertiesResolverTest {
         const val REQUEST_TIMEOUT: Long = 20000
         const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
         const val CID = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"
+        const val ID = "id"
     }
 }

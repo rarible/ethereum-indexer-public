@@ -1,10 +1,10 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.springframework.stereotype.Component
@@ -13,9 +13,9 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class StonerCatsPropertiesResolver(
-    private val ipfsService: IpfsService,
+    private val urlService: UrlService,
     private val raribleResolver: RariblePropertiesResolver,
-    private val propertiesHttpLoader: PropertiesHttpLoader
+    private val externalHttpClient: ExternalHttpClient
 ) : ItemPropertiesResolver {
 
     override val name get() = "StonerCats"
@@ -27,10 +27,10 @@ class StonerCatsPropertiesResolver(
         logMetaLoading(itemId, "Resolving $name Nft properties")
         val properties = raribleResolver.resolve(itemId) ?: return null
         val imageUrl = properties.image ?: return properties
-        val etag = propertiesHttpLoader.getEtag(url = imageUrl, id = itemId.decimalStringValue)
+        val etag = externalHttpClient.getEtag(url = imageUrl, id = itemId.decimalStringValue)
 
         return etag?.let {
-            properties.copy(image = ipfsService.resolvePublicHttpUrl(etag))
+            properties.copy(image = urlService.resolvePublicHttpUrl(etag, itemId.decimalStringValue))
         } ?: properties
     }
 

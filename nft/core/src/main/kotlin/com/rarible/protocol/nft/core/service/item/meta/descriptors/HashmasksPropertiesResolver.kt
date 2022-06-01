@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.external.hashmasks.MasksRegistry
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
@@ -18,7 +18,7 @@ import scalether.transaction.MonoTransactionSender
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class HashmasksPropertiesResolver(
     sender: MonoTransactionSender,
-    private val ipfsService: IpfsService
+    private val urlService: UrlService
 ) : ItemPropertiesResolver {
 
     companion object {
@@ -54,7 +54,7 @@ class HashmasksPropertiesResolver(
             "skinColor" to skinColor,
             "item" to item
         ).map { ItemAttribute(it.key, it.value) }
-        val imageUrl = ipfsService.resolvePublicHttpUrl(ipfsHash)
+        val imageUrl = urlService.resolvePublicHttpUrl(ipfsHash, itemId.decimalStringValue)
         return ItemProperties(
             name = tokenName,
             description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",

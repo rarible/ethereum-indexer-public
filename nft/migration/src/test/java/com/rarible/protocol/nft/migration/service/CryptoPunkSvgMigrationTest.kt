@@ -5,7 +5,7 @@ import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
@@ -31,7 +31,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
     private lateinit var cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver
 
     @Autowired
-    private lateinit var ipfsService: IpfsService
+    private lateinit var urlService: UrlService
 
     @Test
     fun `should save svg image`() = runBlocking<Unit> {
@@ -50,7 +50,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         assertThat(itemProps).isEqualTo(
             ItemProperties(
                 name = "CryptoPunk #2",
-                image = ipfsService.resolvePublicHttpUrl("QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS"),
+                image = urlService.resolvePublicHttpUrl("QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS", "id"),
                 description = null,
                 imagePreview = null,
                 imageBig = null,
@@ -75,7 +75,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         )
         ChangeLog00014UploadSvgsForCryptoPunks().uploadCryptoPunksSvgs(
             cryptoPunksPropertiesResolver,
-            ipfsService,
+            urlService,
             nftIndexerProperties
         )
         assertEquals(10000, mongo.count(Query(CryptoPunksMeta::image exists true), "cryptopunks_meta").awaitSingle())

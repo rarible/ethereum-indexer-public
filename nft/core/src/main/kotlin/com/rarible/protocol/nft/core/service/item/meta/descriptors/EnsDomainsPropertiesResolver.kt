@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -39,7 +39,7 @@ class EnsDomainsPropertiesResolver(
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class EnsDomainsPropertiesProvider(
-    private val propertiesHttpLoader: PropertiesHttpLoader,
+    private val externalHttpClient: ExternalHttpClient,
     nftIndexerProperties: NftIndexerProperties,
 ) {
 
@@ -59,13 +59,13 @@ class EnsDomainsPropertiesProvider(
 
     private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
         val url = "${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}"
-        val propertiesString = propertiesHttpLoader.getBody(url = url, id = itemId.decimalStringValue) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = url, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { map(json) }
+            json?.let { map(json, propertiesString) }
         } catch (e: Throwable) {
             if (e is WebClientResponseException && e.statusCode == HttpStatus.NOT_FOUND) {
                 // For some reason Ens sporadically returns 404 for existing items
@@ -78,7 +78,7 @@ class EnsDomainsPropertiesProvider(
         }
     }
 
-    private fun map(json: ObjectNode): ItemProperties {
+    private fun map(json: ObjectNode, propertiesString: String): ItemProperties {
         return ItemProperties(
             name = json.path("name").asText(),
             description = json.path("description").asText(),
@@ -87,12 +87,11 @@ class EnsDomainsPropertiesProvider(
             imageBig = null,
             animationUrl = null,
             attributes = json.parseAttributes(milliTimestamps = true),
-            rawJsonContent = json.toString()
+            rawJsonContent = propertiesString
         )
     }
 
     companion object {
-
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
         private const val RETRIES_ON_404 = 2

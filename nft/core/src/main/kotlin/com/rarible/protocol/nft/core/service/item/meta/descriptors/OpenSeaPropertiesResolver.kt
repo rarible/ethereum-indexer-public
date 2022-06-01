@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.PropertiesHttpLoader
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
 import java.math.BigInteger
@@ -17,8 +18,9 @@ import java.math.BigInteger
 @Service
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenSeaPropertiesResolver(
-    private val propertiesHttpLoader: PropertiesHttpLoader,
-    private val properties: NftIndexerProperties
+    private val externalHttpClient: ExternalHttpClient,
+    private val properties: NftIndexerProperties,
+    @Value("\${api.opensea.url:}") private val openseaUrl: String
 ) : ItemPropertiesResolver {
 
     private val defaultImageUrlParser = DefaultOpenSeaImageUrlParser(properties.blockchain)
@@ -30,10 +32,10 @@ class OpenSeaPropertiesResolver(
     }
 
     suspend fun resolve(itemId: ItemId, imageUrlParser: OpenSeaImageUrlParser): ItemProperties? {
-        if (propertiesHttpLoader.getOpenSeaUrl().isBlank()) return null
+        if (openseaUrl.isBlank()) return null
         val url = createOpenSeaUrl(itemId)
         logMetaLoading(itemId, "OpenSea: getting properties from $url")
-        val propertiesString = propertiesHttpLoader.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
+        val propertiesString = externalHttpClient.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
@@ -68,8 +70,8 @@ class OpenSeaPropertiesResolver(
 
     private fun createOpenSeaUrl(itemId: ItemId): String {
         return when (properties.blockchain) {
-            Blockchain.ETHEREUM -> "${propertiesHttpLoader.getOpenSeaUrl()}/asset/${itemId.token}/${itemId.tokenId.value}/"
-            Blockchain.POLYGON -> "${propertiesHttpLoader.getOpenSeaUrl()}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
+            Blockchain.ETHEREUM -> "${openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
+            Blockchain.POLYGON -> "${openseaUrl}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
         }
     }
 

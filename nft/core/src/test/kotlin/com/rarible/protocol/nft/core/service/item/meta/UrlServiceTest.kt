@@ -4,12 +4,12 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 @ItemMetaTest
-class IpfsServiceTest : BasePropertiesResolverTest() {
+class UrlServiceTest : BasePropertiesResolverTest() {
 
     @Test
     fun `svg file with CID urls`() {
         val svg = "<svg url=https://ipfs.io/ipfs/QmQzqPpcBFkc9AwV4B2tscLy9dBwN7o9yEHE9aRCHeN6KW></svg>"
-        val result = ipfsService.resolvePublicHttpUrl(svg)
+        val result = urlService.resolvePublicHttpUrl(svg, ID)
         // should stay as SVG
         assertThat(result).isEqualTo(svg)
     }
@@ -68,24 +68,24 @@ class IpfsServiceTest : BasePropertiesResolverTest() {
         val https = "https://api.t-o-s.xyz/ipfs/gucci/8.gif"
         val http = "http://api.guccinfts.xyz/ipfs/8"
 
-        assertThat(ipfsService.resolvePublicHttpUrl(http)).isEqualTo(http)
-        assertThat(ipfsService.resolvePublicHttpUrl(https)).isEqualTo(https)
+        assertThat(urlService.resolvePublicHttpUrl(http, ID)).isEqualTo(http)
+        assertThat(urlService.resolvePublicHttpUrl(https, ID)).isEqualTo(https)
     }
 
     @Test
     fun `foreign ipfs urls - replaced by internal gateway`() {
-        val result = ipfsService.resolveInnerHttpUrl("https://dweb.link/ipfs/$CID/1.png")
+        val result = urlService.resolveInnerHttpUrl("https://dweb.link/ipfs/$CID/1.png", ID)
         assertThat(result).isEqualTo("${publicGatewayProvider.getGateway()}/ipfs/$CID/1.png")
     }
 
     private fun assertFixedIpfsUrl(url: String, expectedPath: String) {
-        val result = ipfsService.resolvePublicHttpUrl(url)
+        val result = urlService.resolvePublicHttpUrl(url, ID)
         assertThat(result).isEqualTo("${publicGatewayProvider.getGateway()}/ipfs/$expectedPath")
     }
 
     private fun assertOriginalIpfsUrl(url: String, expectedPath: String? = null) {
         val expected = expectedPath ?: url // in most cases we expect URL not changed
-        val result = ipfsService.resolvePublicHttpUrl(url)
+        val result = urlService.resolvePublicHttpUrl(url, ID)
         assertThat(result).isEqualTo(expected)
     }
 }

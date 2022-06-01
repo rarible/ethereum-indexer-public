@@ -30,7 +30,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
     }
     private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
-        propertiesHttpLoader = propertiesHttpLoader,
+        externalHttpClient = externalHttpClient,
         nftIndexerProperties = nftIndexerProperties
     )
     private val resolver = EnsDomainsPropertiesResolver(

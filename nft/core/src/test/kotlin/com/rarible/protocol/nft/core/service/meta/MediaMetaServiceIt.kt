@@ -66,7 +66,7 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         ).awaitFirst()
 
         assertThat(
-            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg")
+            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg", "id")
         ).isEqualTo(
             ContentMeta(
                 type = "image/jpeg",
@@ -78,7 +78,8 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
 
         assertThat(
             mediaMetaService.getMediaMetaFromCache(
-                "https://ipfs.rarible.com/ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg"
+                "https://ipfs.rarible.com/ipfs/QmUj2wgrN6mYiWfgdbp67fUYwgUxYQcHQnxDWwcBEnZTWK/image.jpeg",
+                "id"
             )
         ).isEqualTo(
             ContentMeta(
@@ -106,7 +107,7 @@ class MediaMetaServiceIt : AbstractIntegrationTest() {
         ).awaitFirst()
 
         assertThat(
-            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg")
+            mediaMetaService.getMediaMetaFromCache("https://ipfs.rarible.com/ipfs/Qme8u4pEU25CNB1qP7Ag6W9J9VnvmXNsE7nuqQBn7S3CC8/nft.jpg", "id")
         ).isNull()
     }
 
