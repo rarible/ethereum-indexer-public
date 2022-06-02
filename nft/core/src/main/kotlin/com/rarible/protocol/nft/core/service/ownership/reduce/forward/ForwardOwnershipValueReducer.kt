@@ -16,6 +16,7 @@ class ForwardOwnershipValueReducer : Reducer<OwnershipEvent, Ownership> {
                 if (entity.owner == event.to) entity.value else entity.value - event.value
             }
             is OwnershipEvent.ChangeLazyValueEvent -> entity.value
+            is OwnershipEvent.LazyBurnEvent,
             is OwnershipEvent.LazyTransferToEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }

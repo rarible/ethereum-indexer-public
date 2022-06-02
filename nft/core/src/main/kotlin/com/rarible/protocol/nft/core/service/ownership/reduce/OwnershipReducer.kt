@@ -37,6 +37,7 @@ class OwnershipReducer(
             is OwnershipEvent.ChangeLazyValueEvent -> {
                 eventStatusOwnershipReducer.reduce(entity, event)
             }
+            is OwnershipEvent.LazyBurnEvent,
             is OwnershipEvent.LazyTransferToEvent -> {
                 lazyOwnershipReducer.reduce(entity, event)
             }

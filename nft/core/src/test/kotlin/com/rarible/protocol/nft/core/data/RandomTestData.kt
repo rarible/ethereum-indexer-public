@@ -270,7 +270,22 @@ fun createRandomOwnershipLazyTransferToEvent(): OwnershipEvent.LazyTransferToEve
     )
 }
 
+fun createRandomOwnershipLazyBurnEvent(): OwnershipEvent.LazyBurnEvent {
+    return OwnershipEvent.LazyBurnEvent(
+        from = randomAddress(),
+        value = EthUInt256.of(randomInt()),
+        entityId = randomString(),
+        log = createRandomEthereumLog()
+    )
+}
+
 fun OwnershipEvent.LazyTransferToEvent.withNewValues(
+    status: EthereumLogStatus? = null,
+    createdAt: Instant? = null,
+    blockNumber: Long? = null
+) = copy(log = log.withNewValues(status, createdAt, blockNumber))
+
+fun OwnershipEvent.LazyBurnEvent.withNewValues(
     status: EthereumLogStatus? = null,
     createdAt: Instant? = null,
     blockNumber: Long? = null

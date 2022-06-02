@@ -62,9 +62,17 @@ class OwnershipEventConverter(
                 )
                 listOf(lazyTransferTo)
             }
+            is BurnItemLazyMint -> {
+                val lazyBurnEvent = OwnershipEvent.LazyBurnEvent(
+                    from = data.from,
+                    value = data.value,
+                    log = source.log,
+                    entityId = OwnershipId(data.token, data.tokenId, data.from).stringValue
+                )
+                listOf(lazyBurnEvent)
+            }
             is ItemCreators,
             is ItemRoyalty,
-            is BurnItemLazyMint,
             null -> emptyList()
         }
     }

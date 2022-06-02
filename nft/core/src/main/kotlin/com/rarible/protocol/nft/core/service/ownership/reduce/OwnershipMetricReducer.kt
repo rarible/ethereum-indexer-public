@@ -19,6 +19,7 @@ class OwnershipMetricReducer(
             is OwnershipEvent.TransferToEvent -> "transfer_to"
             is OwnershipEvent.ChangeLazyValueEvent -> "change_lazy"
             is OwnershipEvent.LazyTransferToEvent -> "lazy_transfer_to"
+            is OwnershipEvent.LazyBurnEvent -> "lazy_burn"
         }
     }
 }
