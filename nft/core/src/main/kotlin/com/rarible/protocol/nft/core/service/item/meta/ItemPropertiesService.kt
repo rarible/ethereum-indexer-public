@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
@@ -12,12 +12,12 @@ import org.springframework.stereotype.Service
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
-    private val ipfsService: IpfsService
+    private val urlService: UrlService
 ) {
 
     suspend fun resolve(itemId: ItemId): ItemProperties? {
         val resolveResult = doResolve(itemId) ?: return null
-        return resolveResult.fixIpfsUrls()
+        return resolveResult.fixIpfsUrls(itemId)
     }
 
     private suspend fun callResolvers(itemId: ItemId): ItemProperties? {
@@ -132,9 +132,9 @@ class ItemPropertiesService(
         )
     }
 
-    private fun ItemProperties.fixIpfsUrls(): ItemProperties {
+    private fun ItemProperties.fixIpfsUrls(itemId: ItemId): ItemProperties {
         // Make all URL with public IPFS gateway
-        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else ipfsService.resolvePublicHttpUrl(this)
+        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else urlService.resolvePublicHttpUrl(this, itemId.decimalStringValue)
         return copy(
             image = image.resolveHttpUrl(),
             imagePreview = imagePreview.resolveHttpUrl(),

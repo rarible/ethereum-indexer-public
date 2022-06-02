@@ -29,7 +29,7 @@ class TokenMetaService(
             TokenMeta(
                 properties = properties,
                 contentMeta = properties.image?.let {
-                    mediaMetaService.getMediaMetaFromCache(it)
+                    mediaMetaService.getMediaMetaFromCache(it, id.prefixed())
                 }
             )
         }

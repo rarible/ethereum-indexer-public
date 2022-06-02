@@ -16,8 +16,7 @@ class LootPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lootPropertiesResolver = LootPropertiesResolver(
         sender = sender,
-        mapper = jacksonObjectMapper(),
-        ipfsService = ipfsService
+        mapper = jacksonObjectMapper()
     )
 
     @Test

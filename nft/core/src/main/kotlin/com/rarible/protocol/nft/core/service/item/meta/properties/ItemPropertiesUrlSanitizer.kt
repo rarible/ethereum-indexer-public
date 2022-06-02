@@ -1,9 +1,17 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.rarible.core.meta.resource.ArweaveUrl
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.UrlService
+import org.springframework.stereotype.Component
 
-object ItemPropertiesUrlSanitizer {
+@Component
+class ItemPropertiesUrlSanitizer(
+    private val urlService: UrlService,
+    private val embeddedContentDetectProcessor: EmbeddedContentDetectProcessor
+) {
 
     fun sanitize(itemId: ItemId, properties: ItemProperties): ItemProperties {
         return properties.copy(
@@ -19,10 +27,16 @@ object ItemPropertiesUrlSanitizer {
             return null
         }
 
-        val fixedUrl = ShortUrlResolver.resolve(url)
+        val embeddedContent = embeddedContentDetectProcessor.decode(url)
+        if (embeddedContent != null) {
+            return SvgSanitizer.sanitize(itemId, embeddedContent.content.decodeToString())
+        }
 
-        val svg = SvgSanitizer.sanitize(itemId, fixedUrl)
+        val resource = urlService.parseResource(url)
+        if (resource is ArweaveUrl) {
+            return urlService.resolvePublicHttpUrl(url, itemId.decimalStringValue)
+        }
 
-        return svg ?: fixedUrl
+        return url  // TODO  Should return bad Url?
     }
 }

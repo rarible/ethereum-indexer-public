@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.rarible.core.meta.resource.detector.Base64Utils.base64MimeToBytes
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.base64MimeToBytes
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -53,6 +53,7 @@ object SvgSanitizer {
         val svg = svgCandidate.removePrefix(UTF8_SVG_PREFIX).trim()
         return checkUrlEncoded(itemId, svg)
     }
+
 
     private fun checkUrlEncoded(itemId: ItemId, encodedSvg: String): String {
         return if (encodedSvg.contains(SVG_ENCODED_START)) {

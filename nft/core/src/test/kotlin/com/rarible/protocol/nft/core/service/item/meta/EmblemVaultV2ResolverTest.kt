@@ -16,15 +16,16 @@ import org.junit.jupiter.api.Test
 class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
 
     private val rariblePropertiesResolver = RariblePropertiesResolver(
-        ipfsService = ipfsService,
-        propertiesHttpLoader = propertiesHttpLoader,
-        tokenUriResolver = tokenUriResolver
+        urlService = urlService,
+        externalHttpClient = externalHttpClient,
+        tokenUriResolver = tokenUriResolver,
+        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
     )
 
     private val emblemVaultV2Resolver = EmblemVaultV2Resolver(
-        ipfsService = ipfsService,
+        urlService = urlService,
         raribleResolver = rariblePropertiesResolver,
-        propertiesHttpLoader = propertiesHttpLoader
+        externalHttpClient = externalHttpClient
     )
 
     @BeforeEach

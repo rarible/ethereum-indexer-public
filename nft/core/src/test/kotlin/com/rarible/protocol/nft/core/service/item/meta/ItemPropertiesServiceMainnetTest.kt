@@ -35,19 +35,20 @@ import kotlin.io.path.toPath
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     private val rariblePropertiesResolver = RariblePropertiesResolver(
-        ipfsService = ipfsService,
-        propertiesHttpLoader = propertiesHttpLoader,
-        tokenUriResolver = tokenUriResolver
+        urlService = urlService,
+        externalHttpClient = externalHttpClient,
+        tokenUriResolver = tokenUriResolver,
+        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
     )
 
-    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
+    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, urlService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
-        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
+        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient = externalHttpClient)
 
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
-        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
+        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM },
+        openseaUrl = openseaUrl
     )
 
     private val service = ItemPropertiesService(
@@ -59,7 +60,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        ipfsService = ipfsService
+        urlService = urlService
     )
 
     private val jacksonObjectMapper = jacksonObjectMapper()

@@ -1,17 +1,17 @@
-package com.rarible.protocol.nft.core.service.item.meta.descriptors
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.contracts.erc1155.v1.rarible.RaribleToken
 import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.time.Duration
 
@@ -26,7 +26,7 @@ class BlockchainTokenUriResolver(
     private val timeout = Duration.ofMillis(requestTimeout)
 
     suspend fun getCollectionName(itemId: ItemId): String? {
-        val token: Token = tokenRepository.findById(itemId.token).awaitFirstOrNull() ?: return null
+        val token = tokenRepository.findById(itemId.token).awaitFirstOrNull() ?: return null
         @Suppress("ReactiveStreamsUnusedPublisher")
         return when (token.standard) {
             TokenStandard.ERC1155 -> RaribleToken(itemId.token, sender).name()
@@ -34,6 +34,19 @@ class BlockchainTokenUriResolver(
             else -> Mono.empty()
         }.onErrorResume {
             logMetaLoading(itemId, "failed to get name() from contract: ${it.message}", warn = true)
+            Mono.empty()
+        }.awaitFirstOrNull()
+    }
+
+    suspend fun getCollectionUri(id: Address): String? {
+        val token = tokenRepository.findById(id).awaitFirstOrNull() ?: return null
+        @Suppress("ReactiveStreamsUnusedPublisher")
+        return when (token.standard) {
+            TokenStandard.ERC1155 -> RaribleToken(id, sender).contractURI()
+            TokenStandard.ERC721 -> MintableToken(id, sender).contractURI()
+            else -> Mono.empty()
+        }.onErrorResume {
+            logMetaLoading(id.prefixed(), "failed to get name() from contract: ${it.message}", warn = true)
             Mono.empty()
         }.awaitFirstOrNull()
     }

@@ -2,28 +2,25 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ExternalHttpClient
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
-import kotlinx.coroutines.reactive.awaitFirstOrNull
+import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.bodyToMono
-import reactor.core.publisher.Mono
 import java.math.BigInteger
-import java.time.Duration
 
 @Service
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class OpenSeaPropertiesResolver(
     private val externalHttpClient: ExternalHttpClient,
     private val properties: NftIndexerProperties,
-    @Value("\${api.opensea.request-timeout}") private val requestTimeout: Long,
+    @Value("\${api.opensea.url:}") private val openseaUrl: String
 ) : ItemPropertiesResolver {
 
     private val defaultImageUrlParser = DefaultOpenSeaImageUrlParser(properties.blockchain)
@@ -35,48 +32,46 @@ class OpenSeaPropertiesResolver(
     }
 
     suspend fun resolve(itemId: ItemId, imageUrlParser: OpenSeaImageUrlParser): ItemProperties? {
-        if (externalHttpClient.openseaUrl.isBlank()) return null
-        val openSeaUrl = createOpenSeaUrl(itemId)
-        logMetaLoading(itemId, "OpenSea: getting properties from $openSeaUrl")
-        return externalHttpClient
-            .get(openSeaUrl)
-            .bodyToMono<ObjectNode>()
-            .map {
-                val image = imageUrlParser.parseImage(it)
-                ItemProperties(
-                    name = parseName(it, itemId.tokenId.value),
-                    description = it.getText("description"),
-                    image = image.ifNotBlank()?.replace(
-                        "{id}",
-                        itemId.tokenId.toString()
-                    ),
-                    imagePreview = it.getText("image_preview_url").ifNotBlank(),
-                    imageBig = it.getText("image_url").ifNotBlank(),
-                    animationUrl = it.getText("animation_url").ifNotBlank(),
-                    attributes = it.parseAttributes(),
-                    rawJsonContent = null
-                )
-            }
-            .timeout(Duration.ofMillis(requestTimeout))
-            .onErrorResume {
-                logMetaLoading(
-                    itemId,
-                    "OpenSea: failed to get properties" + if (it is WebClientResponseException) {
-                        " ${it.rawStatusCode}: ${it.statusText}"
-                    } else {
-                        ""
-                    },
-                    warn = true
-                )
-                Mono.empty()
-            }
-            .awaitFirstOrNull()
+        if (openseaUrl.isBlank()) return null
+        val url = createOpenSeaUrl(itemId)
+        logMetaLoading(itemId, "OpenSea: getting properties from $url")
+        val propertiesString = externalHttpClient.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
+
+        return try {
+            logMetaLoading(itemId, "parsing properties by URI: $url")
+
+            val json = JsonPropertiesParser.parse(itemId, propertiesString)
+            json?.let { map(itemId, json, imageUrlParser.parseImage(json)) }
+        } catch (e: Throwable) {
+            val errorMessage = if (e is WebClientResponseException) " ${e.rawStatusCode}: ${e.statusText}" else ""
+            logMetaLoading(itemId, "OpenSea: failed to get properties $errorMessage", warn = true)
+            null
+        }
     }
+
+    private fun map(
+        itemId: ItemId,
+        jsonBody: ObjectNode,
+        image: String?
+    ): ItemProperties =
+        ItemProperties(
+            name = parseName(jsonBody, itemId.tokenId.value),
+            description = jsonBody.getText("description"),
+            image = image.ifNotBlank()?.replace(
+                "{id}",
+                itemId.tokenId.toString()
+            ),
+            imagePreview = jsonBody.getText("image_preview_url").ifNotBlank(),
+            imageBig = jsonBody.getText("image_url").ifNotBlank(),
+            animationUrl = jsonBody.getText("animation_url").ifNotBlank(),
+            attributes = jsonBody.parseAttributes(),
+            rawJsonContent = null
+        )
 
     private fun createOpenSeaUrl(itemId: ItemId): String {
         return when (properties.blockchain) {
-            Blockchain.ETHEREUM -> "${externalHttpClient.openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
-            Blockchain.POLYGON -> "${externalHttpClient.openseaUrl}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
+            Blockchain.ETHEREUM -> "${openseaUrl}/asset/${itemId.token}/${itemId.tokenId.value}/"
+            Blockchain.POLYGON -> "${openseaUrl}/metadata/matic/${itemId.token}/${itemId.tokenId.value}"
         }
     }
 

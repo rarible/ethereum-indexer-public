@@ -19,13 +19,13 @@ import scalether.domain.Address
 class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
-        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
+        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM },
+        openseaUrl = openseaUrl
     )
     private val polygonOpenSeaPropertiesResolver = OpenSeaPropertiesResolver(
-        externalHttpClient = polygonExternalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
-        properties = mockk { every { blockchain } returns Blockchain.POLYGON }
+        externalHttpClient = externalHttpClient,
+        properties = mockk { every { blockchain } returns Blockchain.POLYGON },
+        openseaUrl = openseaUrl
     )
 
     @Test

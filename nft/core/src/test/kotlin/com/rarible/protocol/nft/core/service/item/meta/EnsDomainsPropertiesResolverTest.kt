@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -29,13 +30,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
     }
     private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
-        externalHttpClient = ExternalHttpClient(
-            openseaUrl = "",
-            openseaApiKey = "",
-            readTimeout = 10000,
-            connectTimeout = 10000,
-            proxyUrl = ""
-        ),
+        externalHttpClient = externalHttpClient,
         nftIndexerProperties = nftIndexerProperties
     )
     private val resolver = EnsDomainsPropertiesResolver(
