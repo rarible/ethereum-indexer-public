@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
@@ -33,8 +34,20 @@ class NftItemMetaDtoConverter(
             description = trimmedDescription,
             attributes = source.properties.attributes.map { convert(it) },
             image = createImageMedia(source, itemIdDecimalValue),
-            animation = createAnimationMedia(source, itemIdDecimalValue)
+            animation = createAnimationMedia(source, itemIdDecimalValue),
+            createdAt = source.properties.createdAt,
+            tags = source.properties.tags,
+            genres = source.properties.genres,
+            language = source.properties.language,
+            rights = source.properties.rights,
+            rightsUri = source.properties.rightsUri,
+            externalUri = source.properties.externalUri,
+            content = createContent(source)
         )
+    }
+
+    private fun createContent(source: ItemMeta): List<MetaContentDto>? {
+
     }
 
     private fun createImageMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
@@ -105,4 +118,5 @@ class NftItemMetaDtoConverter(
         val withoutSlash = basePublicApiUrl.trimEnd('/')
         return "$withoutSlash/items"
     }
+
 }
