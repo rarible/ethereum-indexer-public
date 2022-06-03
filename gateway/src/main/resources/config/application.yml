@@ -21,8 +21,3 @@ spring:
         pool:
           max-life-time: 800s
           max-idle-time: 90s
-rarible:
-  core:
-    nginx-expose:
-      enabled: true
-      location: /v0.1

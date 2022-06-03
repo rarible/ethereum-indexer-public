@@ -6,8 +6,8 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
 import com.rarible.protocol.erc20.core.model.Erc20ReduceEvent
 import com.rarible.protocol.erc20.core.model.Erc20TokenHistory
-import com.rarible.protocol.erc20.listener.configuration.Erc20ListenerProperties
 import com.rarible.protocol.erc20.listener.service.balance.Erc20BalanceReduceService
+import com.rarible.protocol.erc20.listener.service.owners.IgnoredOwnersResolver
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,10 +18,10 @@ import scalether.domain.Address
 @Service
 class BlockListenerImpl(
     private val balanceReduceService: Erc20BalanceReduceService,
-    properties: Erc20ListenerProperties
+    private val ignoredOwnersResolver: IgnoredOwnersResolver
 ) : LogEventsListener {
 
-    private val ignoredOwners = properties.ignoredOwners.map { Address.apply(it) }.toSet()
+    private val ignoredOwners: Set<Address> by lazy { ignoredOwnersResolver.resolve() }
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> =
         postProcessBlock(logs)
@@ -41,6 +41,6 @@ class BlockListenerImpl(
     }
 
     companion object {
-        val logger: Logger = LoggerFactory.getLogger(BlockListenerImpl::class.java)
+        private val logger: Logger = LoggerFactory.getLogger(BlockListenerImpl::class.java)
     }
 }
