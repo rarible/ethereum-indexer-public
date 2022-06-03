@@ -36,4 +36,11 @@ sealed class OwnershipEvent : EthereumEntityEvent<OwnershipEvent>() {
         override val entityId: String,
         override val log: EthereumLog
     ) : OwnershipEvent()
+
+    data class LazyBurnEvent(
+        val from: Address,
+        override val value: EthUInt256,
+        override val entityId: String,
+        override val log: EthereumLog
+    ) : OwnershipEvent()
 }

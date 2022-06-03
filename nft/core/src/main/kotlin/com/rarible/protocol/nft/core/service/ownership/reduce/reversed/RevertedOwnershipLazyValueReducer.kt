@@ -29,6 +29,7 @@ class RevertedOwnershipLazyValueReducer : Reducer<OwnershipEvent, Ownership> {
                     }
                 }
                 is OwnershipEvent.TransferFromEvent -> (entity.value to entity.lazyValue)
+                is OwnershipEvent.LazyBurnEvent,
                 is OwnershipEvent.LazyTransferToEvent ->
                     throw IllegalArgumentException("This events can't be in this reducer")
             }
