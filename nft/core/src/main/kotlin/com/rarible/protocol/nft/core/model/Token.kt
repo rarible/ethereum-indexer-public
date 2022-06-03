@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
+import java.time.Instant
 
 @Document(collection = "token")
 data class Token(
@@ -16,6 +17,8 @@ data class Token(
     val symbol: String? = null,
     val status: ContractStatus = ContractStatus.CONFIRMED,
     val features: Set<TokenFeature> = emptySet(),
+    @Indexed(background = true)
+    val dbUpdatedAt: Instant? = null, // TODO Can't be null after migration
 
     val lastEventId: String? = null,
 
@@ -32,6 +35,10 @@ data class Token(
 
     override fun withRevertableEvents(events: List<TokenEvent>): Token {
         return copy(revertableEvents = events)
+    }
+
+    fun withDbUpdatedAt(): Token {
+        return copy(dbUpdatedAt = Instant.now())
     }
 
     companion object {

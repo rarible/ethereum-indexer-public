@@ -22,7 +22,7 @@ class TokenRepository(
     private val mongo: ReactiveMongoOperations
 ) {
     fun save(token: Token): Mono<Token> {
-        return mongo.save(token)
+        return mongo.save(token.withDbUpdatedAt())
     }
 
     fun remove(token: Address): Mono<Void> {
