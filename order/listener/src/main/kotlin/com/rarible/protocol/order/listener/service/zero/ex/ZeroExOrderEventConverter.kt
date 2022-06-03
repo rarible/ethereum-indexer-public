@@ -74,7 +74,7 @@ class ZeroExOrderEventConverter(
                 take = takeAsset,
                 fill = EthUInt256(takerAssetFilledAmount),
                 maker = order.makerAddress,
-                taker = secondOrder?.makerAddress ?: from,
+                taker = matchOrdersData.takerAddress ?: secondOrder?.makerAddress ?: from,
                 makeUsd = usdValue?.makeUsd,
                 takeUsd = usdValue?.takeUsd,
                 makeValue = priceNormalizer.normalize(makeAsset),
