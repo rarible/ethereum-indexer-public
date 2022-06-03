@@ -12,6 +12,7 @@ class PendingOwnershipValueReducer : Reducer<OwnershipEvent, Ownership> {
             is OwnershipEvent.TransferToEvent,
             is OwnershipEvent.TransferFromEvent,
             is OwnershipEvent.ChangeLazyValueEvent, -> entity
+            is OwnershipEvent.LazyBurnEvent,
             is OwnershipEvent.LazyTransferToEvent ->
                 throw IllegalArgumentException("This events can't be in this reducer")
         }

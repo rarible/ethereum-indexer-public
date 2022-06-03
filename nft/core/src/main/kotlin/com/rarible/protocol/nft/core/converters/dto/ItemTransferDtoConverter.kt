@@ -81,6 +81,7 @@ object ItemTransferDtoConverter : Converter<ItemTransfer, ItemTransferDto> {
                 value = source.value.value,
             )
             is OwnershipEvent.ChangeLazyValueEvent,
+            is OwnershipEvent.LazyBurnEvent,
             is OwnershipEvent.LazyTransferToEvent -> null
         }
     }

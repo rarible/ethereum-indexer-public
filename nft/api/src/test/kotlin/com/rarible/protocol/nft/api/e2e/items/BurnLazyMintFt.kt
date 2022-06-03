@@ -21,12 +21,15 @@ import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemTransfer
+import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
@@ -73,6 +76,9 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     private lateinit var itemRepository: ItemRepository
 
     @Autowired
+    private lateinit var ownershipRepository: OwnershipRepository
+
+    @Autowired
     private lateinit var itemReduceService: ItemReduceService
 
     @Autowired
@@ -95,6 +101,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         tokenRepository.save(token).awaitFirst()
 
         val itemId = ItemId(lazyItemDto.contract, EthUInt256(lazyItemDto.tokenId))
+        val ownershipId = OwnershipId(itemId.token, itemId.tokenId, creator)
         val itemMeta = randomItemMeta()
 
         setupItemMeta(itemId, lazyItemDto.uri, itemMeta)
@@ -106,6 +113,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         assertThat(itemDto.meta).isEqualTo(null)
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
+        val lazyOwnership = ownershipRepository.findById(ownershipId).awaitFirst()
+        assertThat(lazyOwnership.deleted).isFalse
 
         // burn
         val msg = ItemController.BURN_MSG.format(tokenId)
@@ -123,6 +132,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val item = itemRepository.findById(itemId).awaitSingle()
         assertTrue(item.deleted)
+        val ownership = ownershipRepository.findById(ownershipId).awaitFirst()
+        assertThat(ownership.deleted).isTrue
     }
 
     @ParameterizedTest
