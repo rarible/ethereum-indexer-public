@@ -49,14 +49,6 @@ class NftItemMetaDtoConverter(
         )
     }
 
-    private fun createContent(source: ItemMeta): List<MetaContentDto> {
-        if (source.content.isNotEmpty()) {
-            return source.content.map { EthMetaContentConverter.convert(it) }
-        }
-
-        return convertImageMetaContent(source) + convertVideoMetaContent(source)
-    }
-
     private fun createImageMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
         return if (source.properties.imagePreview != null || source.properties.image != null) {
             val url = source.properties.toUrlMap(NftMediaSizeDto.ORIGINAL, itemIdDecimalValue, false) { it.image } +
@@ -73,15 +65,19 @@ class NftItemMetaDtoConverter(
         }
     }
 
+    private fun createContent(source: ItemMeta): List<MetaContentDto> {
+        if (source.content.isNotEmpty()) {
+            return source.content.map { EthMetaContentConverter.convert(it) }
+        }
+
+        return convertImageMetaContent(source) + convertVideoMetaContent(source)
+    }
+
     private fun convertImageMetaContent(source: ItemMeta): List<MetaContentDto> {
-        val meta = source.itemContentMeta.imageMeta
-        return if (source.properties.imagePreview != null) {
-            return createImage(source.properties.image, Representation.ORIGINAL, null) +
-                createImage(source.properties.imageBig, Representation.BIG, null) +
-                createImage(source.properties.imagePreview, Representation.PREVIEW, meta)
-        } else if (source.properties.image != null) {
-            return createImage(source.properties.image, Representation.ORIGINAL, meta) +
-                createImage(source.properties.imageBig, Representation.BIG, null)
+        return if (source.properties.imagePreview != null || source.properties.image != null) {
+            createImage(source.properties.image, Representation.ORIGINAL, source) +
+                createImage(source.properties.imageBig, Representation.BIG, source) +
+                createImage(source.properties.imagePreview, Representation.PREVIEW, source)
         } else {
             emptyList()
         }
@@ -90,9 +86,10 @@ class NftItemMetaDtoConverter(
     private fun createImage(
         url: String?,
         representation: Representation,
-        contentMeta: ContentMeta?
+        source: ItemMeta
     ): List<ImageContentDto> {
         url ?: return emptyList()
+        val contentMeta = source.getContentMeta(representation)
         return listOf(
             ImageContentDto(
                 fileName = null,
@@ -104,6 +101,16 @@ class NftItemMetaDtoConverter(
                 height = contentMeta?.height
             )
         )
+    }
+
+    private fun ItemMeta.getContentMeta(representation: Representation): ContentMeta? {
+        return if (this.properties.imagePreview != null) {
+            if (representation == Representation.PREVIEW) this.itemContentMeta.imageMeta else null
+        } else if (this.properties.image != null) {
+            if (representation == Representation.ORIGINAL) this.itemContentMeta.imageMeta else null
+        } else {
+            null
+        }
     }
 
     private fun createAnimationMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
