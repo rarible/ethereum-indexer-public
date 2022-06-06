@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.model
 
+import java.time.Instant
+
 data class ItemProperties(
     val name: String,
     val description: String?,
@@ -8,7 +10,14 @@ data class ItemProperties(
     val imageBig: String?,
     val animationUrl: String?,
     val attributes: List<ItemAttribute>,
-    val rawJsonContent: String?
+    val rawJsonContent: String?,
+    val createdAt: Instant? = null,
+    val tags: List<String> = emptyList(),
+    val genres: List<String> = emptyList(),
+    val language: String? = null,
+    val rights: String? = null,
+    val rightsUri: String? = null,
+    val externalUri: String? = null,
 )
 
 data class ItemAttribute(
