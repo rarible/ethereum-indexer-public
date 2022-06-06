@@ -11,7 +11,6 @@ data class ItemProperties(
     val animationUrl: String?,
     val attributes: List<ItemAttribute>,
     val rawJsonContent: String?,
-
     val createdAt: Instant? = null,
     val tags: List<String> = emptyList(),
     val genres: List<String> = emptyList(),

@@ -5,6 +5,8 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.contracts.collection.CreateEvent
+import com.rarible.protocol.dto.ImageContentDto
+import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
@@ -70,7 +72,16 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
                     meta = emptyMap()
                 ),
                 fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
-                seller_fee_basis_points = 250
+                seller_fee_basis_points = 250,
+                content = listOf(ImageContentDto(
+                    fileName = null,
+                    url = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
+                    representation = MetaContentDto.Representation.ORIGINAL,
+                    mimeType = null,
+                    size = null,
+                    width = null,
+                    height = null
+                ))
             )
         )
     }

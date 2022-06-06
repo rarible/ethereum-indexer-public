@@ -80,7 +80,6 @@ class ItemController(
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
         val availableMeta = getItemMeta(itemId, "get meta by ID")
         return ResponseEntity.ok(nftItemMetaDtoConverter.convert(availableMeta, itemId))
-
     }
 
     @GetMapping(value = ["/v0.1/items/{itemId}/image"])
