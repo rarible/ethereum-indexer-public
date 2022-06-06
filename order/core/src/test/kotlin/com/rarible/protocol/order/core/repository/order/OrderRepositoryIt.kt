@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.repository.order
 
-import com.rarible.core.common.nowMillis
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
@@ -42,18 +41,6 @@ internal class OrderRepositoryIt {
     fun beforeEach() = runBlocking<Unit> {
         delegate = MongoOrderRepository(mongo)
         delegate.createIndexes()
-    }
-
-    @Test
-    fun `test dbUpdatedAt field update`() = runBlocking<Unit> {
-        val dbUpdatedAt = nowMillis()
-        val order = createOrder().copy(dbUpdatedAt = null)
-        orderRepository.saveWithoutDbUpdated(order)
-
-        orderRepository.setDbUpdatedAtField(order.hash, dbUpdatedAt)
-
-        val savedOrder = orderRepository.findById(order.hash)
-        assertThat(savedOrder).isEqualTo(order.copy(dbUpdatedAt = dbUpdatedAt))
     }
 
     @Test
