@@ -145,7 +145,7 @@ class NftItemMetaDtoConverterTest {
                     ),
                     ImageContentDto(
                         fileName = null,
-                        url = generatedImageUrl,
+                        url = embeddedImage,
                         representation = Representation.BIG,
                         mimeType = null,
                         size = null,
@@ -154,7 +154,7 @@ class NftItemMetaDtoConverterTest {
                     ),
                     VideoContentDto(
                         fileName = null,
-                        url = generatedAnimationUrl,
+                        url = embeddedAnimation,
                         representation = Representation.ORIGINAL,
                         mimeType = "mp4",
                         size = 300,
@@ -184,7 +184,7 @@ class NftItemMetaDtoConverterTest {
                 content = listOf(
                     VideoContentDto(
                         fileName = null,
-                        url = generatedAnimationUrl,
+                        url = embeddedAnimation,
                         representation = Representation.ORIGINAL,
                         mimeType = "mp4",
                         size = 300,
@@ -314,7 +314,7 @@ class NftItemMetaDtoConverterTest {
                 ),
                 ImageContentDto(
                     fileName = null,
-                    url = generatedImageUrl,
+                    url = embeddedImage,
                     representation = Representation.BIG,
                     mimeType = null,
                     size = null,
@@ -332,7 +332,7 @@ class NftItemMetaDtoConverterTest {
                 ),
                 VideoContentDto(
                     fileName = null,
-                    url = generatedAnimationUrl,
+                    url = embeddedAnimation,
                     representation = Representation.ORIGINAL,
                     mimeType = "mp4",
                     size = 300,

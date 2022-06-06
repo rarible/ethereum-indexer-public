@@ -73,6 +73,8 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
                 ),
                 fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                 seller_fee_basis_points = 250,
+                genres = emptyList(),
+                tags = emptyList(),
                 content = listOf(ImageContentDto(
                     fileName = null,
                     url = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
