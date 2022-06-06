@@ -138,10 +138,10 @@ class NftItemMetaDtoConverterTest {
                         fileName = null,
                         url = "http://test.com/abc_original",
                         representation = Representation.ORIGINAL,
-                        mimeType = "jpeg",
-                        size = 300,
-                        width = 100,
-                        height = 200
+                        mimeType = null,
+                        size = null,
+                        width = null,
+                        height = null
                     ),
                     ImageContentDto(
                         fileName = null,
@@ -156,10 +156,10 @@ class NftItemMetaDtoConverterTest {
                         fileName = null,
                         url = embeddedAnimation,
                         representation = Representation.ORIGINAL,
-                        mimeType = "mp4",
-                        size = 300,
-                        width = 200,
-                        height = 400
+                        mimeType = null,
+                        size = null,
+                        width = null,
+                        height = null
                     )
                 )
             )
@@ -186,10 +186,10 @@ class NftItemMetaDtoConverterTest {
                         fileName = null,
                         url = embeddedAnimation,
                         representation = Representation.ORIGINAL,
-                        mimeType = "mp4",
-                        size = 300,
-                        width = 200,
-                        height = 400
+                        mimeType = null,
+                        size = null,
+                        width = null,
+                        height = null
                     )
                 )
             )
@@ -325,19 +325,19 @@ class NftItemMetaDtoConverterTest {
                     fileName = null,
                     url = "imagePreview",
                     representation = Representation.PREVIEW,
-                    mimeType = "jpeg",
-                    size = 300,
-                    width = 100,
-                    height = 200
+                    mimeType = null,
+                    size = null,
+                    width = null,
+                    height = null
                 ),
                 VideoContentDto(
                     fileName = null,
                     url = embeddedAnimation,
                     representation = Representation.ORIGINAL,
-                    mimeType = "mp4",
-                    size = 300,
-                    width = 200,
-                    height = 400
+                    mimeType = null,
+                    size = null,
+                    width = null,
+                    height = null
                 )
             ),
         )
