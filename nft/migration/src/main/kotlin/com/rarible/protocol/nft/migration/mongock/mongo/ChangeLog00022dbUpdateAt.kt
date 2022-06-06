@@ -10,6 +10,10 @@ import org.springframework.data.mongodb.core.aggregation.AggregationUpdate
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import com.rarible.protocol.nft.core.model.Token
+import kotlinx.coroutines.flow.count
+import kotlinx.coroutines.reactive.asFlow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.time.Instant
 
 @ChangeLog(order = "00022")
@@ -20,9 +24,23 @@ class ChangeLog00022dbUpdateAt {
         author = "protocol"
     )
     fun updateToken(@NonLockGuarded template: ReactiveMongoTemplate) = runBlocking<Unit> {
-        val queryMulti = Query(Criteria.where(Token::dbUpdatedAt.name).exists(false))
-        val multiUpdate = AggregationUpdate.update()
-            .set(Token::dbUpdatedAt.name).toValue(Instant.EPOCH)
-        template.updateMulti(queryMulti, multiUpdate, "token").awaitFirst()
+        val collectionName = "token"
+        val infoAmount = 1000
+
+        val selectQuery = Query(Criteria.where(Token::dbUpdatedAt.name).exists(false))
+        val updateAmount = template.find(selectQuery, Token::class.java, collectionName).asFlow().count()
+
+        repeat(updateAmount) {
+            val update = AggregationUpdate.update().set(Token::dbUpdatedAt.name).toValue(Instant.now())
+            template.updateFirst(selectQuery, update, collectionName).awaitFirst()
+            if (it % infoAmount == 0 && it != 0) {
+                logger.info("$it tokens has been updated!")
+            }
+        }
+        logger.info("All tokens has been updated!")
+    }
+
+    companion object {
+        val logger: Logger = LoggerFactory.getLogger(ChangeLog00022dbUpdateAt::class.java)
     }
 }
