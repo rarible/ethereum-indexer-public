@@ -33,8 +33,8 @@ class ChangeLog00022dbUpdateAt {
         repeat(updateAmount) {
             val update = AggregationUpdate.update().set(Token::dbUpdatedAt.name).toValue(Instant.now())
             template.updateFirst(selectQuery, update, collectionName).awaitFirst()
-            if (it % infoAmount == 0 && it != 0) {
-                logger.info("$it tokens has been updated!")
+            if ((it+1) % infoAmount == 0) {
+                logger.info("${it+1} tokens has been updated!")
             }
         }
         logger.info("All tokens has been updated!")
