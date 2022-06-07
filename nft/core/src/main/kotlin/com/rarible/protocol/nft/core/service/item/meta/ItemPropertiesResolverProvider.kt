@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.AavegotchiPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.AlchemistCruciblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver
@@ -11,6 +12,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPrope
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
@@ -33,7 +35,9 @@ class ItemPropertiesResolverProvider(
     lazyItemPropertiesResolver: LazyItemPropertiesResolver,
     stonerCatsPropertiesResolver: StonerCatsPropertiesResolver,
     emblemVaultV2Resolver: EmblemVaultV2Resolver,
-    aavegotchiPropertiesResolver: AavegotchiPropertiesResolver
+    aavegotchiPropertiesResolver: AavegotchiPropertiesResolver,
+    alchemistCruciblePropertiesResolver: AlchemistCruciblePropertiesResolver,
+    pegaxyPropertiesResolver: PegaxyPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -55,6 +59,8 @@ class ItemPropertiesResolverProvider(
         stonerCatsPropertiesResolver,
         emblemVaultV2Resolver,
         aavegotchiPropertiesResolver,
+        alchemistCruciblePropertiesResolver,
+        pegaxyPropertiesResolver,
         // Default resolvers, should be last in the list
         lazyItemPropertiesResolver,
         raribleResolver

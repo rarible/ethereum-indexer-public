@@ -1,0 +1,11 @@
+common:
+  chain-id: 4
+  node-type: GETH
+  open-sea-nonce-increment: 1
+
+rarible:
+  opensea:
+    endpoint: https://rinkeby-api.opensea.io
+
+listener:
+  openSeaEndpoint: ${rarible.opensea.endpoint}

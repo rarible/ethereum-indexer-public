@@ -124,9 +124,8 @@ class OrderListenerConfiguration(
     @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["load-open-sea-orders"],
-        havingValue="true",
-        matchIfMissing = true
+        name=["open-sea-orders-load-worker.enabled"],
+        havingValue="true"
     )
     fun openSeaOrderLoadWorker(
         openSeaOrderService: OpenSeaOrderService,
@@ -162,9 +161,8 @@ class OrderListenerConfiguration(
     @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["load-open-sea-orders-with-delay"],
-        havingValue="true",
-        matchIfMissing = true
+        name=["open-sea-orders-load-delay-worker.enabled"],
+        havingValue="true"
     )
     fun openSeaOrderLoadWithDelayWorker(
         openSeaOrderService: OpenSeaOrderService,
@@ -200,9 +198,8 @@ class OrderListenerConfiguration(
     @Bean
     @ConditionalOnProperty(
         prefix = RARIBLE_PROTOCOL_LISTENER,
-        name=["load-open-sea-orders-period"],
-        havingValue="true",
-        matchIfMissing = true
+        name=["open-sea-orders-load-period-worker"],
+        havingValue="true"
     )
     fun openSeaOrderPeriodLoadWorker(
         openSeaOrderService: OpenSeaOrderService,
