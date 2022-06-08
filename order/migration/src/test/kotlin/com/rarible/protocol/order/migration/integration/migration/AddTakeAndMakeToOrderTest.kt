@@ -77,13 +77,14 @@ class AddTakeAndMakeToOrderTest : AbstractMigrationTest() {
 
     @Test
     fun `should set dbUpdatedAt field for orders`() = runBlocking {
-        repeat(30) {
-            orderRepository.saveWithoutDbUpdated(createOrder().copy(dbUpdatedAt = null))
+        val orderQuantity = 25
+        repeat(orderQuantity) {
+            template.save(createOrder().copy(dbUpdatedAt = null)).awaitFirst()
         }
 
         ChangeLog00019AddDbUpdatedToOrder().addDbUpdatedFieldToOrder(template)
         val orderList = orderRepository.findAll().toList()
-        assertThat(orderList).hasSize(30)
+        assertThat(orderList).hasSize(orderQuantity)
 
         orderList.forEach {
             assertThat(it.dbUpdatedAt).isNotNull()

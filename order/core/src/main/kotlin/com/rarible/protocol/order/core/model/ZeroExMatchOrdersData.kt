@@ -5,6 +5,7 @@ import scalether.domain.Address
 
 data class ZeroExMatchOrdersData(
     val leftOrder: ZeroExOrder,
+    val takerAddress: Address?,
     val rightOrder: ZeroExOrder? = null,
     val leftSignature: Binary,
     val rightSignature: Binary? = null,

@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.ownership.reduce.lazy
 
 import com.rarible.core.entity.reducer.service.Reducer
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import org.springframework.stereotype.Component
@@ -11,8 +12,14 @@ class LazyOwnershipReducer : Reducer<OwnershipEvent, Ownership> {
         return if (entity.lastLazyEventTimestamp != null && entity.lastLazyEventTimestamp >= event.timestamp) {
             entity
         } else {
-            val lazyValue = when (event) {
-                is OwnershipEvent.LazyTransferToEvent -> entity.lazyValue + event.value
+            val (lazyValue, value) = when (event) {
+                is OwnershipEvent.LazyTransferToEvent -> {
+                    val lazyValue = entity.lazyValue + event.value
+                    lazyValue to lazyValue
+                }
+                is OwnershipEvent.LazyBurnEvent -> {
+                    EthUInt256.ZERO to entity.value - entity.lazyValue
+                }
                 is OwnershipEvent.TransferToEvent,
                 is OwnershipEvent.ChangeLazyValueEvent,
                 is OwnershipEvent.TransferFromEvent -> {
@@ -21,7 +28,7 @@ class LazyOwnershipReducer : Reducer<OwnershipEvent, Ownership> {
             }
             entity.copy(
                 lazyValue = lazyValue,
-                value = lazyValue,
+                value = value,
                 lastLazyEventTimestamp = event.timestamp
             )
         }

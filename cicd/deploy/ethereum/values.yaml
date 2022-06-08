@@ -53,7 +53,7 @@ ethereum-gateway:
   environments:
     APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
     CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
-    SPRING_PROFILES_ACTIVE: ',consul,{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }}'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},consul'
   nodeSelector:
     node.labels.rarible.service: true
   resources:
