@@ -14,7 +14,6 @@ sharedEnvironments: &sharedEnvironments
   RARIBLE_CORE_CLIENT_K8S: true
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
   APPLICATION_ENVIRONMENT: "infura"
-  API_CHAINID: 1
   # this secrets must be assign
   # RARIBLE_CORE_AGENT_SERVER:
   # SPRING_DATA_MONGODB_URI:
@@ -49,6 +48,7 @@ ethereum-nft-api:
     ETHEREUMBLOCKPROCESSINGDELAY: 5000
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
+    API_CHAINID: 1
 
 ethereum-nft-listener:
   tolerations:
