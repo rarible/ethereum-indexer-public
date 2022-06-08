@@ -69,7 +69,7 @@ object EthMetaContentConverter {
                 mimeType = null,
                 size = null
             )
-            null -> UnknownContentDto(
+            else -> UnknownContentDto(
                 url = content.url,
                 representation = MetaContentDto.Representation.ORIGINAL,
                 fileName = null,

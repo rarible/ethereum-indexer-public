@@ -1,11 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.meta.resource.detector.embedded.Base64Decoder
 import com.rarible.core.meta.resource.http.ExternalHttpClient
-import com.rarible.protocol.nft.core.misc.detector.Base64Detector
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.springframework.stereotype.Component
@@ -32,7 +33,7 @@ class EmblemVaultV2Resolver(
             val resolvedUrl = urlService.resolvePublicHttpUrl(properties.image, itemId.decimalStringValue) ?: return null
             val imageContent = externalHttpClient.getBody(url = resolvedUrl, id = itemId.decimalStringValue)
 
-            if (imageContent != null && Base64Detector(imageContent).canDecode()) {
+            if (imageContent != null && Base64Decoder.decode(imageContent) != null) {
                 return properties.copy(image = imageContent)
             }
         }

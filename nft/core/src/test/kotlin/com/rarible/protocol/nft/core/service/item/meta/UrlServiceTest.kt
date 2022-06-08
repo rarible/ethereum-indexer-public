@@ -7,14 +7,6 @@ import org.junit.jupiter.api.Test
 class UrlServiceTest : BasePropertiesResolverTest() {
 
     @Test
-    fun `svg file with CID urls`() {
-        val svg = "<svg url=https://ipfs.io/ipfs/QmQzqPpcBFkc9AwV4B2tscLy9dBwN7o9yEHE9aRCHeN6KW></svg>"
-        val result = urlService.resolvePublicHttpUrl(svg, ID)
-        // should stay as SVG
-        assertThat(result).isEqualTo(svg)
-    }
-
-    @Test
     fun `foreign ipfs urls - replaced by public gateway`() {
         // Broken IPFS URL
         assertFixedIpfsUrl("htt://mypinata.com/ipfs/$CID", CID)

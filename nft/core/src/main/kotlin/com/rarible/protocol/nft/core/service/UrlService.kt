@@ -1,17 +1,17 @@
 package com.rarible.protocol.nft.core.service
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.MetaLogger
-import com.rarible.core.meta.resource.UrlResource
-import com.rarible.core.meta.resource.parser.UrlResourceParsingProcessor
+import com.rarible.core.meta.resource.model.UrlResource
+import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.core.meta.resource.resolver.UrlResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.IPFS_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.IPFS_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.springframework.stereotype.Component
 
 @Component
 @CaptureSpan(type = IPFS_CAPTURE_SPAN_TYPE)
 class UrlService(
-    private val parsingProcessor : UrlResourceParsingProcessor,
+    private val urlParser : UrlParser,
     private val urlResolver: UrlResolver
 ) {
 
@@ -22,18 +22,18 @@ class UrlService(
     fun resolvePublicHttpUrl(url: String, id: String): String? = resolveInternal(url, true, id)
 
     private fun resolveInternal(url: String, isPublic: Boolean, id: String): String? {
-        val resource = parsingProcessor.parse(url)
+        val resource = urlParser.parse(url)
         if (resource == null) {
-            MetaLogger.logMetaLoading(id = id, message = "UrlService: Cannot parse and resolve url: $url", warn = true)
+            logMetaLoading(id = id, message = "UrlService: Cannot parse and resolve url: $url", warn = true)
             return ""
         }
         return if (isPublic) {
-            urlResolver.resolvePublicLink(resource)
+            urlResolver.resolvePublicUrl(resource)
         } else {
-            urlResolver.resolveInnerLink(resource)
+            urlResolver.resolveInternalUrl(resource)
         }
     }
 
-    fun parseResource(url: String): UrlResource? = parsingProcessor.parse(url)
+    fun parseUrl(url: String): UrlResource? = urlParser.parse(url)
 
 }
