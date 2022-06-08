@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.configuration
 
+import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
 import com.rarible.ethereum.listener.log.EnableLogListeners
 import com.rarible.ethereum.listener.log.LogListenService
@@ -24,6 +25,7 @@ class BlockchainScannerV1Configuration(
     private val nftIndexerProperties: NftIndexerProperties,
     private val nftListenerProperties: NftListenerProperties,
     private val meterRegistry: MeterRegistry,
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockRepository: BlockRepository
 ) {
     // TODO: this bean is apparently configured in the ethereum-core (BlockchainMonitoringConfiguration), no need to configure here.
@@ -43,7 +45,7 @@ class BlockchainScannerV1Configuration(
         logListenService: LogListenService,
         tokenRegistrationService: TokenRegistrationService,
         ethereum: MonoEthereum
-    ) : ReindexTokenItemsTaskHandler {
+    ) : TaskHandler<Long> {
         return ReindexTokenItemsTaskHandler(
             taskRepository = taskRepository,
             logListenService = logListenService,
@@ -58,7 +60,7 @@ class BlockchainScannerV1Configuration(
         tokenRegistrationService: TokenRegistrationService,
         ethereum: MonoEthereum,
         nftListenerProperties: NftListenerProperties,
-    ) : ReindexTokenTaskHandler {
+    ) : TaskHandler<Long> {
         return ReindexTokenTaskHandler(
             logListenService = logListenService,
             tokenRegistrationService = tokenRegistrationService,
@@ -73,7 +75,7 @@ class BlockchainScannerV1Configuration(
         tokenRegistrationService: TokenRegistrationService,
         ethereum: MonoEthereum,
         nftListenerProperties: NftListenerProperties,
-    ) : ReindexCryptoPunksTaskHandler {
+    ) : TaskHandler<Long> {
         return ReindexCryptoPunksTaskHandler(
             logListenService = logListenService,
             tokenRegistrationService = tokenRegistrationService,
