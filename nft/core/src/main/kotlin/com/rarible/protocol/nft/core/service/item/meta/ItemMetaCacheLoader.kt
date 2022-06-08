@@ -6,7 +6,6 @@ import com.rarible.loader.cache.CacheType
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader.Companion.TYPE
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.ITEM_META_CAPTURE_SPAN_TYPE
 import org.springframework.stereotype.Component
 
 /**

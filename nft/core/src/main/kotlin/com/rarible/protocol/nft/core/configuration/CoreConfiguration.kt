@@ -1,32 +1,20 @@
 package com.rarible.protocol.nft.core.configuration
 
-import com.rarible.core.meta.resource.ArweaveUrl
-import com.rarible.core.meta.resource.ConstantGatewayProvider
-import com.rarible.core.meta.resource.GatewayProvider
-import com.rarible.core.meta.resource.LegacyIpfsGatewaySubstitutor
-import com.rarible.core.meta.resource.RandomGatewayProvider
-import com.rarible.core.meta.resource.cid.CidV1Validator
-import com.rarible.core.meta.resource.detector.embedded.DefaultEmbeddedContentDecoderProvider
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedBase64Decoder
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetectProcessor
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedSvgDecoder
+import com.rarible.core.common.safeSplit
+import com.rarible.core.meta.resource.detector.ContentDetector
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.core.meta.resource.http.OpenseaHttpClient
 import com.rarible.core.meta.resource.http.ProxyHttpClient
 import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
 import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
-import com.rarible.core.meta.resource.parser.ArweaveUrlResourceParser
-import com.rarible.core.meta.resource.parser.CidUrlResourceParser
-import com.rarible.core.meta.resource.parser.DefaultUrlResourceParserProvider
-import com.rarible.core.meta.resource.parser.HttpUrlResourceParser
-import com.rarible.core.meta.resource.parser.UrlResourceParsingProcessor
-import com.rarible.core.meta.resource.parser.ipfs.AbstractIpfsUrlResourceParser
-import com.rarible.core.meta.resource.parser.ipfs.ForeignIpfsUrlResourceParser
-import com.rarible.core.meta.resource.resolver.ArweaveGatewayResolver
-import com.rarible.core.meta.resource.resolver.IpfsCidGatewayResolver
+import com.rarible.core.meta.resource.parser.UrlParser
+import com.rarible.core.meta.resource.resolver.ConstantGatewayProvider
+import com.rarible.core.meta.resource.resolver.GatewayProvider
 import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
-import com.rarible.core.meta.resource.resolver.SimpleHttpGatewayResolver
+import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
+import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.loader.cache.CacheLoaderService
@@ -112,78 +100,39 @@ class CoreConfiguration(
     }
 
     @Bean
-    fun urlResourceProcessor(): UrlResourceParsingProcessor {
-        val cidOneValidator = CidV1Validator()
-        val foreignIpfsUrlResourceParser = ForeignIpfsUrlResourceParser(
-            cidOneValidator = cidOneValidator
-        )
-
-        val defaultUrlResourceParserProvider = DefaultUrlResourceParserProvider(
-            arweaveUrlParser = ArweaveUrlResourceParser(),
-            foreignIpfsUrlResourceParser = foreignIpfsUrlResourceParser,
-            abstractIpfsUrlResourceParser = AbstractIpfsUrlResourceParser(),
-            cidUrlResourceParser = CidUrlResourceParser(cidOneValidator),
-            httpUrlParser = HttpUrlResourceParser()
-        )
-
-        return UrlResourceParsingProcessor(
-            provider = defaultUrlResourceParserProvider
-        )
-    }
+    fun contentDetector() = ContentDetector()
 
     @Bean
-    fun publicGatewayProvider(): GatewayProvider {
-        return ConstantGatewayProvider(
-            properties.ipfs.ipfsPublicGateway.trimEnd('/')
-        )
-    }
+    fun embeddedContentDetector(contentDetector: ContentDetector) = EmbeddedContentDetector(contentDetector)
 
     @Bean
-    fun innerGatewaysProvider(): GatewayProvider {
+    fun urlParser() = UrlParser()
+
+    @Bean
+    fun internalGatewayProvider(): GatewayProvider {
         return RandomGatewayProvider(
-            properties.ipfs.ipfsGateway.split(",").map { it.trimEnd('/') }
+            properties.ipfs.ipfsGateway.safeSplit().map { it.trimEnd('/') }
         )
     }
 
     @Bean
     fun urlResolver(
-        publicGatewayProvider: GatewayProvider,
-        innerGatewaysProvider: GatewayProvider
+        internalGatewayProvider: GatewayProvider
     ): UrlResolver {
+        val publicGatewayProvider = ConstantGatewayProvider(
+            properties.ipfs.ipfsPublicGateway.trimEnd('/')
+        )
+
         val customGatewaysResolver = LegacyIpfsGatewaySubstitutor(emptyList()) // For handle Legacy gateways
-        val arweaveGatewayProvider = ConstantGatewayProvider(ArweaveUrl.ARWEAVE_GATEWAY)     // TODO Move to properties
-
-        val ipfsGatewayResolver = IpfsGatewayResolver(
-            publicGatewayProvider = publicGatewayProvider,
-            innerGatewaysProvider = innerGatewaysProvider,
-            customGatewaysResolver = customGatewaysResolver
-        )
-
-        val ipfsCidGatewayResolver = IpfsCidGatewayResolver(
-            publicGatewayProvider = publicGatewayProvider,
-            innerGatewaysProvider = innerGatewaysProvider,
-        )
-
-        val arweaveGatewayResolver = ArweaveGatewayResolver(
-            arweaveGatewayProvider = arweaveGatewayProvider
-        )
 
         return UrlResolver(
-            ipfsGatewayResolver = ipfsGatewayResolver,
-            ipfsCidGatewayResolver = ipfsCidGatewayResolver,
-            arweaveGatewayResolver = arweaveGatewayResolver,
-            simpleHttpGatewayResolver = SimpleHttpGatewayResolver()
-        )
-    }
-
-    @Bean
-    fun embeddedContentDetectProcessor(): EmbeddedContentDetectProcessor =
-        EmbeddedContentDetectProcessor(
-            provider = DefaultEmbeddedContentDecoderProvider(
-                embeddedBase64Decoder = EmbeddedBase64Decoder,
-                embeddedSvgDecoder = EmbeddedSvgDecoder
+            ipfsGatewayResolver = IpfsGatewayResolver(
+                publicGatewayProvider = publicGatewayProvider,
+                internalGatewayProvider = internalGatewayProvider,
+                customGatewaysResolver = customGatewaysResolver
             )
         )
+    }
 
     @Bean
     fun externalHttpClient(

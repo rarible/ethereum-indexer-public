@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.core.service.item.meta.properties
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import com.rarible.core.meta.resource.detector.Base64Utils.base64MimeToBytes
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.service.item.meta.base64MimeToBytes
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 
 object JsonPropertiesParser {

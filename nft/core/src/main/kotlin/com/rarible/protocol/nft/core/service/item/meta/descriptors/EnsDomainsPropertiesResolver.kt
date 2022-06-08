@@ -7,9 +7,11 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
@@ -46,7 +48,7 @@ class EnsDomainsPropertiesProvider(
     private val contractAddress: Address = Address.apply(nftIndexerProperties.ensDomainsContractAddress)
 
     suspend fun get(itemId: ItemId): ItemProperties? {
-        logMetaLoading(itemId, "get EnsDomains properties")
+        logMetaLoading(itemId.toString(), "get EnsDomains properties")
 
         // Let's try one more time in case of ENS API's 404 response
         for (i in 1..RETRIES_ON_404) {
@@ -62,17 +64,17 @@ class EnsDomainsPropertiesProvider(
         val propertiesString = externalHttpClient.getBody(url = url, id = itemId.decimalStringValue) ?: return null
 
         return try {
-            logMetaLoading(itemId, "parsing properties by URI: $url")
+            logMetaLoading(itemId.toString(), "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(itemId, propertiesString)
             json?.let { map(json, propertiesString) }
         } catch (e: Throwable) {
             if (e is WebClientResponseException && e.statusCode == HttpStatus.NOT_FOUND) {
                 // For some reason Ens sporadically returns 404 for existing items
-                logMetaLoading(itemId, "failed to get EnsDomains properties by $url due to 404 response code", true)
+                logMetaLoading(itemId.toString(), "failed to get EnsDomains properties by $url due to 404 response code", true)
                 null
             } else {
-                logMetaLoading(itemId, "failed to get EnsDomains properties by $url due to ${e.message}}", true)
+                logMetaLoading(itemId.toString(), "failed to get EnsDomains properties by $url due to ${e.message}}", true)
                 throw ItemResolutionAbortedException()
             }
         }

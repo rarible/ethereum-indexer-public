@@ -3,8 +3,8 @@ package com.rarible.protocol.nft.core.service.item.meta.properties
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.parseAttributes
+import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
 
 /**
  * Default mapper from JSON to ItemProperties. Can be used for most of the items.

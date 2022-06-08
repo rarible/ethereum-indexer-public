@@ -1,5 +1,7 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.meta.resource.detector.ContentDetector
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.core.test.data.randomString
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto.Representation
@@ -31,7 +33,10 @@ class NftItemMetaDtoConverterTest {
     fun beforeEach() {
         every { properties.basePublicApiUrl } returns basePublicApiUrl
         every { properties.itemMeta } returns itemMetaProperties
-        converter = NftItemMetaDtoConverter(properties)
+        converter = NftItemMetaDtoConverter(
+            nftIndexerProperties = properties,
+            embeddedContentDetector = EmbeddedContentDetector(ContentDetector())
+        )
     }
 
     @Test

@@ -1,15 +1,9 @@
-package com.rarible.protocol.nft.core.service.item.meta.descriptors
+package com.rarible.protocol.nft.core.service.item.meta
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import java.time.Instant
-
-const val ITEM_META_CAPTURE_SPAN_TYPE = "item_meta"
-const val TOKEN_META_CAPTURE_SPAN_TYPE = "token_meta"
-const val IPFS_CAPTURE_SPAN_TYPE = "ipfs"
-
-fun String?.ifNotBlank() = this?.takeIf { it.isNotBlank() }
 
 fun JsonNode.getText(vararg paths: String): String? {
     for (path in paths) {
@@ -60,4 +54,3 @@ private fun JsonNode.toAttribute(milliTimestamps: Boolean): ItemAttribute? {
         }
     }
 }
-

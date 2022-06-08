@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.dto.MetaContentDto.Representation
@@ -10,7 +11,6 @@ import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.dto.VideoContentDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -20,7 +20,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class NftItemMetaDtoConverter(
-    nftIndexerProperties: NftIndexerProperties
+    nftIndexerProperties: NftIndexerProperties,
+    private val embeddedContentDetector: EmbeddedContentDetector
 ) {
 
     val baseImageUrl = getBaseImageUrl(nftIndexerProperties.basePublicApiUrl)
@@ -149,7 +150,7 @@ class NftItemMetaDtoConverter(
         itemIdDecimalValue: String,
         isAnimation: Boolean
     ): String {
-        EmbeddedImageDetector.getDetector(url) ?: return url
+        embeddedContentDetector.detect(url) ?: return url
         return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&animation=${isAnimation}&hash=${url.hashCode()}"
     }
 

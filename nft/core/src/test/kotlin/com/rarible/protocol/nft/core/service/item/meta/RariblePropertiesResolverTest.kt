@@ -425,7 +425,7 @@ Token ID: 51561
             ItemProperties(
                 name = "Cozy Penguin #9003",
                 description = null,
-                image = "https://arweave.net/veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
+                image = "ar://veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,
@@ -451,7 +451,7 @@ Token ID: 51561
             ItemProperties(
                 name = "Axolotl Gold #8200",
                 description = "Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.",
-                image = "https://arweave.net/ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
+                image = "ar://ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,

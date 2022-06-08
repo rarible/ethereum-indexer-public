@@ -6,9 +6,8 @@ import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.TokenProperties
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
-import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.TokenPropertiesResolver
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.firstOrNull

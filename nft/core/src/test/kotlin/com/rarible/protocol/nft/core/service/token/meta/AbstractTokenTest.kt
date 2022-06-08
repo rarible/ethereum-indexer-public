@@ -1,19 +1,10 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
-import com.rarible.core.meta.resource.GatewayProvider
-import com.rarible.core.meta.resource.http.DefaultHttpClient
-import com.rarible.core.meta.resource.http.ExternalHttpClient
-import com.rarible.core.meta.resource.http.OpenseaHttpClient
-import com.rarible.core.meta.resource.http.ProxyHttpClient
-import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
-import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
+import com.rarible.core.meta.resource.resolver.GatewayProvider
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.service.UrlService
-import com.rarible.protocol.nft.core.service.item.meta.BasePropertiesResolverTest
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import io.mockk.InternalPlatformDsl.toStr
-import io.mockk.coEvery
-import io.mockk.mockk
 import io.netty.resolver.DefaultAddressResolverGroup
 import org.assertj.core.api.Assertions
 import org.springframework.beans.factory.annotation.Autowired
@@ -34,7 +25,7 @@ abstract class AbstractTokenTest : AbstractIntegrationTest() {
     protected lateinit var tokenUriResolver: BlockchainTokenUriResolver
 
     @Autowired
-    private lateinit var innerGatewaysProvider: GatewayProvider
+    private lateinit var internalGatewaysProvider: GatewayProvider
 
     protected fun mockOpenSeaResponse(resourceName: String): WebClient {
         return WebClient.builder()
@@ -71,7 +62,7 @@ abstract class AbstractTokenTest : AbstractIntegrationTest() {
             .clientConnector(ReactorClientHttpConnector(httpClient))
             .exchangeFunction { request ->
                 Assertions.assertThat(request.url()).isEqualTo(
-                    URI("${innerGatewaysProvider.getGateway()}/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T")
+                    URI("${internalGatewaysProvider.getGateway()}/ipfs/QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T")
                 )
                 Mono.just(ClientResponse.create(HttpStatus.NOT_FOUND).build())
             }.build()
