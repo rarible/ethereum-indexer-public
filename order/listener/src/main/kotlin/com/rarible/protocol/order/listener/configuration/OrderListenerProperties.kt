@@ -35,6 +35,8 @@ data class OrderListenerProperties(
     }
 }
 
+
+
 sealed class BaseOpenSeaOrderLoadWorkerProperties {
     abstract val enabled: Boolean
     abstract val delay: Duration

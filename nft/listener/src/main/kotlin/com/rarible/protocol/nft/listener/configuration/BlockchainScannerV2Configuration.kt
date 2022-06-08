@@ -12,13 +12,12 @@ import com.rarible.protocol.nft.listener.consumer.KafkaEntityEventConsumer
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import scalether.domain.Address
 
 @Configuration
-@ConditionalOnProperty(name = ["common.feature-flags.scanner-version"], havingValue = "V2")
+@EnableOnScannerV2
 @EnableEthereumScanner
 class BlockchainScannerV2Configuration(
     private val nftIndexerProperties: NftIndexerProperties,
