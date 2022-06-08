@@ -14,6 +14,8 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Profile
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
@@ -27,6 +29,10 @@ class AdminTaskHandlersInitializer(
     private val taskService: TaskService,
     private val taskRepository: TempTaskRepository
 ) {
+    init {
+        logger.info("Configured task handlers: ${taskService.handlersMap.keys}")
+    }
+
     @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
     fun init() = runBlocking<Unit> {
         listOf(
@@ -44,5 +50,9 @@ class AdminTaskHandlersInitializer(
             .findByType(type)
             .filter { it.lastStatus != TaskStatus.COMPLETED }
             .collect { taskService.runTask(type, it.param) }
+    }
+
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(AdminTaskHandlersInitializer::class.java)
     }
 }
