@@ -9,6 +9,8 @@ import com.rarible.protocol.nft.core.model.ReindexTokenItemsTaskParams.Companion
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams.Companion.ADMIN_REINDEX_TOKEN
 import com.rarible.protocol.nft.core.model.ReindexCryptoPunksTaskParam.Companion.ADMIN_REINDEX_CRYPTO_PUNKS
 import com.rarible.protocol.nft.core.repository.TempTaskRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
@@ -17,12 +19,14 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
 @Component
+@FlowPreview
+@ExperimentalCoroutinesApi
 @Profile("!integration")
 class AdminTaskHandlersInitializer(
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val taskService: TaskService,
     private val taskRepository: TempTaskRepository
 ) {
-
     @Scheduled(initialDelay = 60000, fixedDelay = Long.MAX_VALUE)
     fun init() = runBlocking<Unit> {
         listOf(
