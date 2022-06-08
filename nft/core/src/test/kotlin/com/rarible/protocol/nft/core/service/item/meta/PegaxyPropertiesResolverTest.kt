@@ -13,7 +13,7 @@ import java.math.BigInteger
 @ItemMetaTest
 class PegaxyPropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val resolver = PegaxyPropertiesResolver(propertiesHttpLoader)
+    private val resolver = PegaxyPropertiesResolver(externalHttpClient)
 
     @Test
     fun `get properties`() = runBlocking<Unit> {
