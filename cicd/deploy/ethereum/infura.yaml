@@ -1,53 +1,166 @@
 global:
   newtwork: 'mainnet'
 
+sharedTolerations: &sharedTolerations
+  effect: NoSchedule
+  key: env
+  operator: Equal
+  value: infura
+
 sharedEnvironments: &sharedEnvironments
   SPRING_CLOUD_CONSUL_ENABLED: false
-  # this secrets assigns automatically
+  SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
+  RARIBLE_CORE_APM_AGENT_ENABLED: false
+  RARIBLE_CORE_CLIENT_K8S: true
+  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
+  APPLICATION_ENVIRONMENT: "infura"
+  API_CHAINID: 1
+  # this secrets must be assign
   # RARIBLE_CORE_AGENT_SERVER:
-  # KAFKA_HOSTS:
-  # SPRING_DATA_MONGODB_PASSWORD:
-  # SPRING_DATA_MONGODB_USER:
   # SPRING_DATA_MONGODB_URI:
-  # ETH_NODE_HTTP_URL:
-  # ETH_NODE_WS_URL:
+  # COMMON_KAFKAREPLICASET:
+  # COMMON_BASEPUBLICAPIURL:
+  # BLOCKCHAIN_SCANNER_KAFKA_BROKERREPLICASET:
+  # RARIBLE_LOADER_BROKERREPLICASET:
+  # RARIBLE_ETHEREUM_HTTPURL:
+  # RARIBLE_ETHEREUM_WEBSOCKETURL:
 
-ethereum-erc20-api:
-  environments:
-    <<: *sharedEnvironments
 
-ethereum-erc20-listener:
-  environments:
-    <<: *sharedEnvironments
+######## NFT-Indexer ########
 
-ethereum-gateway:
-  environments:
-    <<: *sharedEnvironments
+nftEnvironment: &nftEnvironment
+  <<: *sharedEnvironments
+  COMMON_CRYPTOPUNKSCONTRACTADDRESS: "0x6ba6f2207e343923ba692e5cae646fb0f566db8d"
+  COMMON_OPENSEALAZYMINTADDRESS: "0x495f947276749ce646f68ac8c248420045cb7b5e"
+  COMMON_ROYALTYREGISTRYADDRESS: "0xea90cfad1b8e030b8fd3e63d22074e0aeb8e0dcd"
+  COMMON_FACTORY_ERC721RARIBLE: "0x6e42262978de5233c8d5b05b128c121fba110da4"
+  COMMON_FACTORY_ERC721RARIBLEUSER: "0x6e42262978de5233c8d5b05b128c121fba110da4"
+  COMMON_FACTORY_ERC1155RARIBLE: "0x0000000000000000000000000000000000000000"
+  COMMON_FACTORY_ERC1155RARIBLEUSER: "0x0000000000000000000000000000000000000000"
+  SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
 
-ethereum-order-api: 
+ethereum-nft-api:
+  tolerations:
+    - *sharedTolerations
   environments:
-    <<: *sharedEnvironments
-
-ethereum-order-listener:
-  environments:
-    <<: *sharedEnvironments
-
-ethereum-order-migration:
-  environments:
-    <<: *sharedEnvironments
-
-ethereum-unlockable-api:
-  environments:
-    <<: *sharedEnvironments
-
-ethereum-nft-api: 
-  environments:
-    <<: *sharedEnvironments
+    <<: *nftEnvironment
+    RARIBLE_LOADER_LOADTASKSBATCHSIZE: 50
+    RARIBLE_LOADER_WORKERS: 32
+    ETHEREUMBLOCKPROCESSINGDELAY: 5000
+    ETHEREUMMAXPROCESSTIME: 1200000
+    USENEWMONGOINDEX: true
 
 ethereum-nft-listener:
+  tolerations:
+    - *sharedTolerations
   environments:
-    <<: *sharedEnvironments
+    <<: *nftEnvironment
+    COMMON_FEATUREFLAGS_SCANNERVERSION: V2
+    COMMON_FEATUREFLAGS_REDUCEVERSION: V2
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 100
 
 ethereum-nft-migration:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *nftEnvironment
+
+######## Order-Indexer ########
+
+orderEnvironment: &orderEnvironment
+  <<: *sharedEnvironments
+  COMMON_AUCTIONCONTRACTADDRESSES_V1: "0x0000000000000000000000000000000000000000"
+  COMMON_EXCHANGECONTRACTADDRESSES_CRYPTOPUNKS: "0x0000000000000000000000000000000000000000"
+  COMMON_EXCHANGECONTRACTADDRESSES_HOLDERV1: "0x0000000000000000000000000000000000000000"
+  COMMON_EXCHANGECONTRACTADDRESSES_OPENSEAV1: "0x7be8076f4ea4a4ad08075c2508e481d6c946d12b"
+  COMMON_EXCHANGECONTRACTADDRESSES_OPENSEAV2: "0x7f268357A8c2552623316e2562D90e642bB538E5"
+  COMMON_EXCHANGECONTRACTADDRESSES_V1: "0x09eab21c40743b2364b94345419138ef80f39e30"
+  COMMON_EXCHANGECONTRACTADDRESSES_V2: "0x9757f2d2b135150bbeb65308d4a91804107cd8d6"
+  COMMON_EXCHANGECONTRACTADDRESSES_ZEROEX: "0x0000000000000000000000000000000000000000"
+  COMMON_FEATUREFLAGS_SHOWALLORDERSBYDEFAULT: true
+  COMMON_FEATUREFLAGS_SHOWOPENSEAORDERSWITHOTHERPLATFORMS: true
+  COMMON_FEATUREFLAGS_USECOMMONTRANSACTIONTRACEPROVIDER: true
+  COMMON_PUBLISH_PUBLISHOPENSEAORDERSTOCOMMONTOPIC: true
+  COMMON_TRANSFERPROXYADDRESSES_CRYPTOPUNKSTRANSFERPROXY: "0x0000000000000000000000000000000000000000"
+  COMMON_TRANSFERPROXYADDRESSES_ERC1155LAZYTRANSFERPROXY: "0x75a8B7c0B22D973E0B46CfBD3e2f6566905AA79f"
+  COMMON_TRANSFERPROXYADDRESSES_ERC20TRANSFERPROXY: "0xb8e4526e0da700e9ef1f879af713d691f81507d8"
+  COMMON_TRANSFERPROXYADDRESSES_ERC721LAZYTRANSFERPROXY: "0xbb7829BFdD4b557EB944349b2E2c965446052497"
+  COMMON_TRANSFERPROXYADDRESSES_TRANSFERPROXY: "0x4fee7b061c97c9c496b01dbce9cdb10c02f0a0be"
+  COMMON_PROTOCOLCOMMISSION: 0
+  COMMON_CHAINID: 1
+  SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-order
+
+ethereum-order-api:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *orderEnvironment
+
+ethereum-order-listener:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *orderEnvironment
+    LISTENER_LOADOLDOPENSEAORDERS: false
+    LISTENER_LOADOPENSEADELAY: "180s"
+    LISTENER_LOADOPENSEAORDERS: false
+    LISTENER_OPENSEANONCEINCREMENT: 1
+    LISTENER_OPENSEAORDERSIDE: "SELL"
+    LISTENER_UPDATESTATUSBYSTARTENDENABLED: true
+    LISTENER_UPDATESTATUSBYSTARTENDRATE: "PT1M"
+    RARIBLE_ETHEREUM_MAXFRAMESIZE: 209715200
+    SPRING_TASK_SCHEDULING_POOL_SIZE: 60
+    ETHEREUMBLOCKPROCESSINGDELAY: 10000
+    ETHEREUMCHECKWRONGHASHDELAY: 20000
+    REVERTEDLOGSCHECKJOBBLOCKENABLE: false
+    USENEWMONGOINDEX: true
+
+ethereum-order-migration:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *orderEnvironment
+
+
+######## Erc20-Indexer ########
+
+erc20Environment: &erc20Environment
+  <<: *sharedEnvironments
+  SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-erc20
+
+ethereum-erc20-api:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *erc20Environment
+
+ethereum-erc20-listener:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *erc20Environment
+    SPRING_TASK_SCHEDULING_POOL_SIZE: 30
+    RARIBLE_ETHEREUM_MAXFRAMESIZE: 10485760
+    ETHEREUMBLOCKPROCESSINGDELAY: 5000
+    ETHEREUMMAXPROCESSTIME: 1200000
+    USENEWMONGOINDEX: true
+    REVERTEDLOGSCHECKJOBBLOCKENABLE: true
+
+
+######## Gateway ########
+
+ethereum-gateway:
+  tolerations:
+    - *sharedTolerations
   environments:
     <<: *sharedEnvironments
+    RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
+
+######## Unlockable ########
+
+ethereum-unlockable-api:
+  tolerations:
+    - *sharedTolerations
+  environments:
+    <<: *sharedEnvironments
+    SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-unlockable
