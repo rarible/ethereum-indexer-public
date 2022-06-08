@@ -17,7 +17,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
-import java.time.Duration
+import java.time.Instant
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -32,9 +32,6 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.util.Hash
-import java.time.Instant
-import java.util.UUID
-import org.springframework.beans.factory.annotation.Value
 
 @Component
 @CaptureSpan(type = SpanType.APP)
@@ -48,8 +45,7 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService,
     private val openSeaNonceService: OpenSeaNonceService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    @Value("\${listener.raribleBidExpirePeriod}")
-    private val raribleBidExpiredDuration: Duration
+    private val expiredBidWorker: OrderIndexerProperties.ExpiredBidWorker
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -57,6 +53,7 @@ class OrderReduceService(
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
     fun update(orderHash: Word? = null, fromOrderHash: Word? = null, platforms: List<Platform>? = null): Flux<Order> {
         logger.info("Update hash=$orderHash fromHash=$fromOrderHash")
+        @Suppress("DEPRECATION")
         return Flux.mergeOrdered(
             orderUpdateComparator,
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
@@ -146,6 +143,7 @@ class OrderReduceService(
         if (orderExchangeHistory is OnChainOrder) {
             return updateWithOnChainOrder(logEvent, orderExchangeHistory, eventId)
         }
+        @Suppress("KotlinConstantConditions")
         return when (logEvent.status) {
             LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
@@ -322,7 +320,7 @@ class OrderReduceService(
             lastUpdateAt = Instant.now(),
             dbUpdatedAt = Instant.now(),
             cancelled = true,
-            lastEventId = accumulateEventId(this.lastEventId, UUID.randomUUID().toString())
+            lastEventId = accumulateEventId(this.lastEventId, "$expiredDate")
         )
     }
 
@@ -332,7 +330,7 @@ class OrderReduceService(
             .withNewPrice()
             .withUpdatedNonce()
             .withCancelOpenSea()
-            .withBidExpire(Instant.now() - raribleBidExpiredDuration)
+            .withBidExpire(Instant.now() - expiredBidWorker.raribleBidExpirePeriod)
 
         val saved = orderRepository.save(order)
         logger.info(buildString {

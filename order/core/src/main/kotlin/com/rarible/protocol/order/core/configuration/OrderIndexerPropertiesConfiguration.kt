@@ -25,6 +25,9 @@ class OrderIndexerPropertiesConfiguration(
     fun transferProxyAddresses() = indexerProperties.transferProxyAddresses
 
     @Bean
+    fun expiredBidWorker() = indexerProperties.expiredBidWorker
+
+    @Bean
     @Qualifier("raribleExchangeV2")
     fun raribleEip712Domain(): EIP712Domain {
         logger.info("Order-Api was started with chainId=${indexerProperties.chainId}")

@@ -12,6 +12,9 @@ common:
   protocol-commission: 0
   metric-root-path: "protocol.order.indexer"
   kafka-replica-set: ${kafka.hosts}
+  expired-bid-worker:
+    polling-period: PT10M # 10 minutes period
+    rarible-bid-expire-period: P60D #2 months period
 
   exchange-contract-addresses:
     v1: "0000000000000000000000000000000000000000"
@@ -36,9 +39,6 @@ listener:
   load-open-sea-orders: false
   metricJobStartEnd: "protocol.order.indexer.job-start-end"
   zero-ex-exchange-domain-hash: 0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67
-  raribleBidExpirePeriod: P60D #2 months period
-  expireBidWorker:
-    polling-period: PT10M
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false

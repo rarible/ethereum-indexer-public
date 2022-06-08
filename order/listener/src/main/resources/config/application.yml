@@ -54,6 +54,9 @@ common:
   opensea-eip712-domain-name: Wyvern Exchange Contract
   opensea-eip712-domain-version: 2.3
   metric-root-path: "protocol.order.indexer"
+  expired-bid-worker:
+    polling-period: PT10M # 10 minutes period
+    raribleBidExpirePeriod: P60D #2 months period
 
 listener:
   updateStatusByStartEndRate: PT10M # 10 minutes period
@@ -77,8 +80,5 @@ listener:
     delay: PT60M
     load-period: 30s
     polling-period: 30s
-  raribleBidExpirePeriod: P60D #2 months period
-  expireBidWorker:
-    polling-period: PT10M # 10 minutes period
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50

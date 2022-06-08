@@ -250,11 +250,11 @@ class MongoOrderRepository(
 
     override fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word> {
         val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
-            .and(Order::lastUpdateAt).lte(before)
             .and(Order::platform).isEqualTo(Platform.RARIBLE)
             .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
+            .and(Order::lastUpdateAt).lte(before)
 
-        val query = Query.query(criteria)
+        val query = Query.query(criteria).withHint(OrderRepositoryIndexes.BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT.indexKeys)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION)
             .map { Word.apply(it.getString("_id")) }

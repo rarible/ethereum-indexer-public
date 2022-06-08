@@ -27,7 +27,6 @@ data class OrderListenerProperties(
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),
     val openSeaOrdersLoadWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
     val openSeaOrdersLoadDelayWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
-    val expireBidWorker: DaemonWorkerProperties = DaemonWorkerProperties()
 ) {
     enum class OrderSide {
         ALL,

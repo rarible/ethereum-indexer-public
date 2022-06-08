@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.listener.job
 
 import com.rarible.core.test.ext.KafkaTest
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.order.OrderRepositoryIndexes
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.listener.data.createOrderBid
 import com.rarible.protocol.order.listener.integration.IntegrationTest
@@ -47,7 +49,8 @@ class MakeBidCanceledAfterExpiredJobTest {
                 orderRepository.save(it)
             }
         }
-
+        mongoTemplate.indexOps(Order::class.java)
+            .ensureIndex(OrderRepositoryIndexes.BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT).block()
     }
 
     @Test
