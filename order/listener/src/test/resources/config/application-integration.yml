@@ -11,6 +11,7 @@ common:
   operator-private-key: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocol-commission: 0
   metric-root-path: "protocol.order.indexer"
+  kafka-replica-set: ${kafka.hosts}
 
   exchange-contract-addresses:
     v1: "0000000000000000000000000000000000000000"
@@ -35,6 +36,9 @@ listener:
   load-open-sea-orders: false
   metricJobStartEnd: "protocol.order.indexer.job-start-end"
   zero-ex-exchange-domain-hash: 0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67
+  raribleBidExpirePeriod: P60D #2 months period
+  expireBidWorker:
+    polling-period: PT10M
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
@@ -42,3 +46,14 @@ reindexBlocksJobEnabled: false
 
 logging:
   level.org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+
+protocol:
+  erc20:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  nft:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}

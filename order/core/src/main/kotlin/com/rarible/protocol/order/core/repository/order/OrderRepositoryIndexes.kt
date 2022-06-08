@@ -249,6 +249,14 @@ object OrderRepositoryIndexes {
 
     // --------------------- Other ---------------------//
 
+    val BY_BID_PLATFORM_LAST_UPDATED_AT_STATUS = Index()
+        .on("take.type.nft", Sort.Direction.ASC)
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
+        .background()
+
     val ALL_INDEXES = listOf(
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
@@ -277,6 +285,8 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
-        BY_PLATFORM_MAKER_AND_NONCE
+        BY_PLATFORM_MAKER_AND_NONCE,
+
+        BY_BID_PLATFORM_LAST_UPDATED_AT_STATUS
     )
 }

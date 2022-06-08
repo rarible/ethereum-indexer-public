@@ -77,6 +77,8 @@ listener:
     delay: PT60M
     load-period: 30s
     polling-period: 30s
-
+  raribleBidExpirePeriod: P60D #2 months period
+  expireBidWorker:
+    polling-period: PT10M # 10 minutes period
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50

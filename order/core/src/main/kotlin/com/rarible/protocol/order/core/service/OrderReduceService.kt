@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import io.daonomic.rpc.domain.Word
+import java.time.Duration
 import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -32,6 +33,8 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.util.Hash
 import java.time.Instant
+import java.util.UUID
+import org.springframework.beans.factory.annotation.Value
 
 @Component
 @CaptureSpan(type = SpanType.APP)
@@ -45,6 +48,8 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService,
     private val openSeaNonceService: OpenSeaNonceService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
+    @Value("\${listener.raribleBidExpirePeriod}")
+    private val raribleBidExpiredDuration: Duration
 ) {
 
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
@@ -305,12 +310,29 @@ class OrderReduceService(
         }
     }
 
+    private fun Order.withBidExpire(expiredDate: Instant): Order {
+        if (this.isBid().not()) return this
+        if (this.platform != Platform.RARIBLE) return this
+        if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
+        if (this.lastUpdateAt > expiredDate) return this
+
+        logger.info("Cancel rarible BID $hash cause it expired after $expiredDate")
+        return this.copy(
+            status = OrderStatus.CANCELLED,
+            lastUpdateAt = Instant.now(),
+            dbUpdatedAt = Instant.now(),
+            cancelled = true,
+            lastEventId = accumulateEventId(this.lastEventId, UUID.randomUUID().toString())
+        )
+    }
+
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedNonce()
             .withCancelOpenSea()
+            .withBidExpire(Instant.now() - raribleBidExpiredDuration)
 
         val saved = orderRepository.save(order)
         logger.info(buildString {

@@ -67,7 +67,7 @@ class MongoOrderRepository(
             OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexName,
             OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexName,
             OrderRepositoryIndexes.BY_LAST_UPDATE_DEFINITION.indexName,
-            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName
+            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName,
         )
     }
 
@@ -246,6 +246,19 @@ class MongoOrderRepository(
 
         queue.with(Sort.by(Sort.Direction.DESC, Order::lastUpdateAt.name))
         return template.query<Order>().matching(queue).all().asFlow()
+    }
+
+    override fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word> {
+        val criteria = (Order::take / Asset::type / AssetType::nft isEqualTo true)
+            .and(Order::lastUpdateAt).lte(before)
+            .and(Order::platform).isEqualTo(Platform.RARIBLE)
+            .and(Order::status).`in`(OrderStatus.ACTIVE, OrderStatus.INACTIVE)
+
+        val query = Query.query(criteria)
+        query.fields().include("_id")
+        return template.find(query, Document::class.java, COLLECTION)
+            .map { Word.apply(it.getString("_id")) }
+            .asFlow()
     }
 
     fun findExpiredOrders(now: Instant): Flow<Order> {
