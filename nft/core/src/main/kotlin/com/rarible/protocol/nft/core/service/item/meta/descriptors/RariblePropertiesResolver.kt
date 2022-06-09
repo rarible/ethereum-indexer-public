@@ -13,14 +13,14 @@ import com.rarible.protocol.nft.core.service.item.meta.properties.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.PropertiesStringProvider
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class RariblePropertiesResolver(
     private val urlService: UrlService,
-    private val propertiesStringProvider: PropertiesStringProvider,
+    private val rawPropertiesProvider: RawPropertiesProvider,
     private val tokenUriResolver: BlockchainTokenUriResolver,
     private val itemPropertiesUrlSanitizer: ItemPropertiesUrlSanitizer
 ) : ItemPropertiesResolver {
@@ -72,12 +72,12 @@ class RariblePropertiesResolver(
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         uri.ifNotBlank() ?: return null
         val resource = urlService.parseUrl(uri, itemId.toString()) ?: return null
-        val propertiesString = propertiesStringProvider.getContent(itemId, resource) ?: return null
+        val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
         return ItemPropertiesProvider.provide(
             itemId = itemId,
             httpUrl = urlService.resolveInternalHttpUrl(resource),
-            propertiesString = propertiesString
+            rawProperties = rawProperties
         )
     }
 

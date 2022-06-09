@@ -26,12 +26,12 @@ class OpenseaTokenPropertiesResolver(
         val url = "${openseaUrl}/asset_contract/${id.prefixed()}"
         logProperties(id, "OpenSea: getting properties from $url")
 
-        val propertiesString = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
 
         return try {
             logProperties(id, "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(id.prefixed(), propertiesString)
+            val json = JsonPropertiesParser.parse(id.prefixed(), rawProperties)
             json?.let { map(json) }
         } catch (e: Error) {
             logProperties(id, "failed to parse properties by URI: $url", true)

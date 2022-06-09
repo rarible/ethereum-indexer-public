@@ -8,18 +8,18 @@ import org.springframework.stereotype.Component
 
 @Component
 class IpfsContentCache(
-    private val storage: ContentCacheStorage<ImmutableMetaCacheEntry>
+    private val storage: ContentCacheStorage<MetaRawPropertiesEntry>
 ) : ContentCache {
 
-    override suspend fun get(urlResource: UrlResource): ImmutableMetaCacheEntry? {
+    override suspend fun get(urlResource: UrlResource): MetaRawPropertiesEntry? {
         val urlKey = getUrlKey(urlResource)
         return storage.get(urlKey)
     }
 
-    override suspend fun save(urlResource: UrlResource, content: String): ImmutableMetaCacheEntry {
+    override suspend fun save(urlResource: UrlResource, content: String): MetaRawPropertiesEntry {
         content.ifNotBlank() ?: throw ContentCacheException("Can't save content to cache - content is empty. $urlResource")
 
-        val entry = ImmutableMetaCacheEntry(
+        val entry = MetaRawPropertiesEntry(
             url = getUrlKey(urlResource),
             updatedAt = nowMillis(),
             content = content

@@ -24,11 +24,11 @@ class PegaxyPropertiesResolver(
             return null
         }
         val httpUrl = "https://api-apollo.pegaxy.io/v1/game-api/pega/${itemId.tokenId.value}"
-        val propertiesString = externalHttpClient.getBody(url = httpUrl, id = itemId.toString()) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = httpUrl, id = itemId.toString()) ?: return null
 
         val result = try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
             json?.get("pega")?.let { node ->
                 return ItemProperties(
                     name = node.getText("name") ?: "",

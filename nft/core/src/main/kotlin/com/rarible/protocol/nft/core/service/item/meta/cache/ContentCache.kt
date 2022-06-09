@@ -6,7 +6,7 @@ interface ContentCache {
 
     fun isSupported(urlResource: UrlResource): Boolean
 
-    suspend fun get(urlResource: UrlResource): ImmutableMetaCacheEntry?
+    suspend fun get(urlResource: UrlResource): MetaRawPropertiesEntry?
 
-    suspend fun save(urlResource: UrlResource, content: String): ImmutableMetaCacheEntry
+    suspend fun save(urlResource: UrlResource, content: String): MetaRawPropertiesEntry
 }

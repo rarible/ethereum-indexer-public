@@ -4,7 +4,7 @@ import com.rarible.core.meta.resource.model.UrlResource
 import org.springframework.stereotype.Component
 
 @Component
-class PropertiesStringCacheService(
+class RawPropertiesCacheService(
     private val caches: List<ContentCache>
 ) {
 

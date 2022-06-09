@@ -12,15 +12,15 @@ import org.springframework.stereotype.Component
 @Component
 class MongoContentCacheStorage(
     private val template: ReactiveMongoTemplate
-) : ContentCacheStorage<ImmutableMetaCacheEntry> {
+) : ContentCacheStorage<MetaRawPropertiesEntry> {
 
-    val collection: String = template.getCollectionName(ImmutableMetaCacheEntry::class.java)
+    val collection: String = template.getCollectionName(MetaRawPropertiesEntry::class.java)
 
-    override suspend fun get(url: String): ImmutableMetaCacheEntry? {
-        return template.findById<ImmutableMetaCacheEntry>(url).awaitFirstOrNull()
+    override suspend fun get(url: String): MetaRawPropertiesEntry? {
+        return template.findById<MetaRawPropertiesEntry>(url).awaitFirstOrNull()
     }
 
-    override suspend fun save(content: ImmutableMetaCacheEntry) {
+    override suspend fun save(content: MetaRawPropertiesEntry) {
         template.save(content).awaitFirst()
     }
 

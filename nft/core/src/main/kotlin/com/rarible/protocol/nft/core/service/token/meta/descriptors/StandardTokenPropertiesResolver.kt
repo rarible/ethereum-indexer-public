@@ -36,12 +36,12 @@ class StandardTokenPropertiesResolver(
     override val order get() = Int.MIN_VALUE
 
     private suspend fun request(id: Address, url: String): TokenProperties? {
-        val propertiesString = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url, id = id.prefixed()) ?: return null
 
         return try {
             logProperties(id, "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(id.prefixed(), propertiesString)
+            val json = JsonPropertiesParser.parse(id.prefixed(), rawProperties)
             json?.let { map(json) }
         } catch (e: Throwable) {
             logProperties(id, "failed to parse properties by URI: $url", warn = true)

@@ -4,8 +4,8 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.Instant
 
-@Document("immutable_meta_content_url")
-data class ImmutableMetaCacheEntry(
+@Document("meta_raw_properties_cache")
+data class MetaRawPropertiesEntry(
     @Id
     val url: String,
     val updatedAt: Instant,

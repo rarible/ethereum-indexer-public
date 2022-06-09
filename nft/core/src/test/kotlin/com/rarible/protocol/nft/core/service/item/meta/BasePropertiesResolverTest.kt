@@ -20,10 +20,10 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.cache.IpfsContentCache
-import com.rarible.protocol.nft.core.service.item.meta.cache.PropertiesStringCacheService
+import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
-import com.rarible.protocol.nft.core.service.item.meta.properties.PropertiesStringProvider
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -122,8 +122,8 @@ abstract class BasePropertiesResolverTest {
 
     protected val featureFlags: FeatureFlags = FeatureFlags()
 
-    private val propertiesStringProvider = PropertiesStringProvider(
-        propertiesStringCacheService = PropertiesStringCacheService(
+    protected val rawPropertiesProvider = RawPropertiesProvider(
+        rawPropertiesCacheService = RawPropertiesCacheService(
             caches = listOf(
                 ipfsContentCache
             )
@@ -135,7 +135,7 @@ abstract class BasePropertiesResolverTest {
 
     protected val rariblePropertiesResolver = RariblePropertiesResolver(
         urlService = urlService,
-        propertiesStringProvider = propertiesStringProvider,
+        rawPropertiesProvider = rawPropertiesProvider,
         tokenUriResolver = tokenUriResolver,
         itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
     )

@@ -39,12 +39,12 @@ class OpenSeaPropertiesResolver(
         if (openseaUrl.isBlank()) return null
         val url = createOpenSeaUrl(itemId)
         logMetaLoading(itemId, "OpenSea: getting properties from $url")
-        val propertiesString = externalHttpClient.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
             json?.let { map(itemId, json, imageUrlParser.parseImage(json)) }
         } catch (e: Throwable) {
             val errorMessage = if (e is WebClientResponseException) " ${e.rawStatusCode}: ${e.statusText}" else ""

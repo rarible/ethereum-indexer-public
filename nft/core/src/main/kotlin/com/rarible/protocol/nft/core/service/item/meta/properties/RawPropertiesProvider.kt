@@ -6,15 +6,15 @@ import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.cache.ContentCache
-import com.rarible.protocol.nft.core.service.item.meta.cache.PropertiesStringCacheService
+import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.net.URL
 
 @Component
-class PropertiesStringProvider(
-    private val propertiesStringCacheService: PropertiesStringCacheService,
+class RawPropertiesProvider(
+    private val rawPropertiesCacheService: RawPropertiesCacheService,
     private val urlService: UrlService,
     private val externalHttpClient: ExternalHttpClient,
     private var featureFlags: FeatureFlags
@@ -33,8 +33,8 @@ class PropertiesStringProvider(
     }
 
     private fun getCache(resource: UrlResource): ContentCache? {
-        return if (featureFlags.enablePropertiesStringCache) {
-            propertiesStringCacheService.getCache(resource)
+        return if (featureFlags.enableMetaRawPropertiesCache) {
+            rawPropertiesCacheService.getCache(resource)
         } else {
             null
         }
@@ -72,8 +72,8 @@ class PropertiesStringProvider(
         }
 
         return try {
-            val propertiesString = externalHttpClient.getBody(url = internalUrl, id = itemId.decimalStringValue) ?: return null
-            propertiesString
+            val rawProperties = externalHttpClient.getBody(url = internalUrl, id = itemId.toString()) ?: return null
+            rawProperties
         } catch (e: Exception) {
             logMetaLoading(itemId, "Failed to receive property string via URL $internalUrl $e")
             null

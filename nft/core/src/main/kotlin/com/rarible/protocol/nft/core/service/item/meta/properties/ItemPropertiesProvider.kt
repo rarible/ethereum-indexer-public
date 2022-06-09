@@ -10,16 +10,16 @@ object ItemPropertiesProvider {
     fun provide(
         itemId: ItemId,
         httpUrl: String,
-        propertiesString: String,
+        rawProperties: String,
         parser: (ItemId, String) -> ObjectNode? = JsonPropertiesParser::parse,
         mapper: (ItemId, ObjectNode) -> ItemProperties? = JsonPropertiesMapper::map
     ): ItemProperties? {
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
-            if (propertiesString.length > 1_000_000) {
-                logMetaLoading(itemId, "suspiciously big item properties ${propertiesString.length} for $httpUrl", warn = true)
+            if (rawProperties.length > 1_000_000) {
+                logMetaLoading(itemId, "suspiciously big item properties ${rawProperties.length} for $httpUrl", warn = true)
             }
-            val json = parser(itemId, propertiesString)
+            val json = parser(itemId, rawProperties)
             json?.let { mapper(itemId, json) }
         } catch (e: Error) {
             logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
