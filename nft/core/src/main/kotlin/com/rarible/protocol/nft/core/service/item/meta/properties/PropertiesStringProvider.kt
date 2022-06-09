@@ -59,9 +59,9 @@ class PropertiesStringProvider(
         val internalUrl = urlService.resolveInternalHttpUrl(resource)
 
         if (internalUrl == resource.original) {
-            logMetaLoading(itemId, "Fetching content meta by URL $internalUrl")
+            logMetaLoading(itemId, "Fetching property string by URL $internalUrl")
         } else {
-            logMetaLoading(itemId, "Fetching content meta by URL $internalUrl (original URL is ${resource.original})")
+            logMetaLoading(itemId, "Fetching property string by URL $internalUrl (original URL is ${resource.original})")
         }
 
         try {
@@ -73,10 +73,9 @@ class PropertiesStringProvider(
 
         return try {
             val propertiesString = externalHttpClient.getBody(url = internalUrl, id = itemId.decimalStringValue) ?: return null
-
             propertiesString
         } catch (e: Exception) {
-            logMetaLoading(itemId, "Failed to receive content meta via URL $internalUrl $e")
+            logMetaLoading(itemId, "Failed to receive property string via URL $internalUrl $e")
             null
         }
     }
