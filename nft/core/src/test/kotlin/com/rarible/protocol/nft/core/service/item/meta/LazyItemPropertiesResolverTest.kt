@@ -23,9 +23,9 @@ import reactor.kotlin.core.publisher.toFlux
 class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
-    private val rariblePropertiesResolver = mockk<RariblePropertiesResolver>()
+    private val rariblePropertiesResolverMock = mockk<RariblePropertiesResolver>()
     private val lazyItemPropertiesResolver = LazyItemPropertiesResolver(
-        rariblePropertiesResolver = rariblePropertiesResolver,
+        rariblePropertiesResolver = rariblePropertiesResolverMock,
         lazyNftItemHistoryRepository = lazyNftItemHistoryRepository
     )
 
@@ -52,7 +52,7 @@ class LazyItemPropertiesResolverTest : BasePropertiesResolverTest() {
 
         val itemProperties = randomItemProperties()
         val itemId = ItemId(token, tokenId)
-        coEvery { rariblePropertiesResolver.resolveByTokenUri(itemId, tokenUri) } returns itemProperties
+        coEvery { rariblePropertiesResolverMock.resolveByTokenUri(itemId, tokenUri) } returns itemProperties
         val properties = lazyItemPropertiesResolver.resolve(itemId)
         assertThat(properties).isEqualTo(itemProperties)
     }

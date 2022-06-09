@@ -6,7 +6,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EmblemVaultV2Resolver.Companion.EMBLEM_VAULT_V2_ADDRESS
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -14,13 +13,6 @@ import org.junit.jupiter.api.Test
 
 @ItemMetaTest
 class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
-
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        urlService = urlService,
-        externalHttpClient = externalHttpClient,
-        tokenUriResolver = tokenUriResolver,
-        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
-    )
 
     private val emblemVaultV2Resolver = EmblemVaultV2Resolver(
         urlService = urlService,

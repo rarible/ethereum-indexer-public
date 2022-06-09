@@ -3,7 +3,6 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -11,13 +10,6 @@ import org.junit.jupiter.api.Test
 
 @ItemMetaTest
 class StonerCatsPropertiesResolverTest : BasePropertiesResolverTest() {
-
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        urlService = urlService,
-        externalHttpClient = externalHttpClient,
-        tokenUriResolver = tokenUriResolver,
-        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
-    )
 
     private val stonerCatsPropertiesResolver = StonerCatsPropertiesResolver(
         urlService = urlService,

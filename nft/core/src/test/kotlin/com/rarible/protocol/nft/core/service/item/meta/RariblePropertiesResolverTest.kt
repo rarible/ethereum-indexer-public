@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -26,13 +25,6 @@ import scalether.domain.Address
 class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
-
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        urlService = urlService,
-        externalHttpClient = externalHttpClient,
-        tokenUriResolver = tokenUriResolver,
-        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
-    )
 
     @BeforeEach
     @Suppress("ReactiveStreamsUnusedPublisher")

@@ -16,24 +16,27 @@ class UrlService(
 ) {
 
     // Used only for internal operations, such urls should NOT be stored anywhere
-    fun resolveInnerHttpUrl(url: String, id: String): String? = resolveInternal(url, false, id)
+    fun resolveInternalHttpUrl(url: String, id: String): String? =
+        urlParser.parse(url)
+            ?.let { resolveInternalHttpUrl(it) }
 
     // Used to build url exposed to the DB cache or API responses
-    fun resolvePublicHttpUrl(url: String, id: String): String? = resolveInternal(url, true, id)
+    fun resolvePublicHttpUrl(url: String, id: String): String? =
+        urlParser.parse(url)
+            ?.let { resolvePublicHttpUrl(it) }
 
-    private fun resolveInternal(url: String, isPublic: Boolean, id: String): String? {
+    fun parseUrl(url: String, id: String): UrlResource? {
         val resource = urlParser.parse(url)
         if (resource == null) {
             logMetaLoading(id = id, message = "UrlService: Cannot parse and resolve url: $url", warn = true)
-            return ""
         }
-        return if (isPublic) {
-            urlResolver.resolvePublicUrl(resource)
-        } else {
-            urlResolver.resolveInternalUrl(resource)
-        }
+        return resource
     }
 
-    fun parseUrl(url: String): UrlResource? = urlParser.parse(url)
+    // Used only for internal operations, such urls should NOT be stored anywhere
+    fun resolveInternalHttpUrl(resource: UrlResource): String = urlResolver.resolveInternalUrl(resource)
+
+    // Used to build url exposed to the DB cache or API responses
+    fun resolvePublicHttpUrl(resource: UrlResource): String = urlResolver.resolvePublicUrl(resource)
 
 }

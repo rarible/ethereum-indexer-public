@@ -28,7 +28,7 @@ class StandardTokenPropertiesResolver(
             return null
         }
 
-        val url = urlService.resolveInnerHttpUrl(uri, id.prefixed()) ?: return null
+        val url = urlService.resolveInternalHttpUrl(uri, id.prefixed()) ?: return null
         logProperties(id, "$uri was resolved to: $url")
         return request(id, url)
     }
