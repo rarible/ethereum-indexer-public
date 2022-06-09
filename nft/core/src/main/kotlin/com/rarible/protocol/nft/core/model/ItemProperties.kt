@@ -18,6 +18,7 @@ data class ItemProperties(
     val rights: String? = null,
     val rightsUri: String? = null,
     val externalUri: String? = null,
+    val tokenUri: String? = null
 )
 
 data class ItemAttribute(

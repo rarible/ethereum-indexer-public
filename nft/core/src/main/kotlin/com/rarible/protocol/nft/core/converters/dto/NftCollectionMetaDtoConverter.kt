@@ -28,7 +28,8 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
             rights = source.properties.rights,
             rightsUri = source.properties.rightsUri,
             externalUri = source.properties.externalUri,
-            content = createContent(source)
+            content = createContent(source),
+            originalMetaUri = source.properties.tokenUri
         )
     }
 

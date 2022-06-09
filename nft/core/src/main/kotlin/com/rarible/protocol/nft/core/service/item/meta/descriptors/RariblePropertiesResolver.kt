@@ -62,7 +62,7 @@ class RariblePropertiesResolver(
         val json = JsonPropertiesParser.parse(itemId, tokenUri)
         val properties = when {
             (json != null) -> JsonPropertiesMapper.map(itemId, json)
-            else -> getByUri(itemId, tokenUri)
+            else -> getByUri(itemId, tokenUri)?.copy(tokenUri = tokenUri)
         } ?: return null
 
         val result = properties.fixEmptyName(itemId)
