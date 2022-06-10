@@ -26,20 +26,20 @@ class LuckyManekiNftPropertiesResolver(
 
         logMetaLoading(itemId, "Resolving $name properties")
         val url = "$LUCKY_MANEKI_NFT_URL/${itemId.tokenId.value}"
-        val propertiesString = externalHttpClient.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { map(itemId, json, propertiesString) }
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
+            json?.let { map(itemId, json, rawProperties) }
         } catch (e: Throwable) {
             logMetaLoading(itemId, "failed to parse properties by URI: $url", warn = true)
             null
         }
     }
 
-    private fun map(itemId: ItemId, json: ObjectNode, propertiesString: String) =
+    private fun map(itemId: ItemId, json: ObjectNode, rawProperties: String) =
         ItemProperties(
             name = "Lucky Maneki #${itemId.tokenId.value}",
             image = json.path("image").asText(),
@@ -54,7 +54,7 @@ class LuckyManekiNftPropertiesResolver(
                         value = attr.path("value").asText()
                     )
                 },
-            rawJsonContent = propertiesString
+            rawJsonContent = rawProperties
         )
 
     companion object {

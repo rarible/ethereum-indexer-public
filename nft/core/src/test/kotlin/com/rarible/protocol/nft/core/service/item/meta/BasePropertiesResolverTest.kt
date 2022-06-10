@@ -14,11 +14,16 @@ import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
 import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
 import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
 import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.cache.IpfsContentCache
+import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -111,7 +116,29 @@ abstract class BasePropertiesResolverTest {
 
     private val embeddedContentDetector = EmbeddedContentDetector(contentDetector)
 
-    val itemPropertiesUrlSanitizer = ItemPropertiesUrlSanitizer(embeddedContentDetector)
+    protected val itemPropertiesUrlSanitizer = ItemPropertiesUrlSanitizer(embeddedContentDetector)
+
+    protected val ipfsContentCache: IpfsContentCache = mockk()
+
+    protected val featureFlags: FeatureFlags = FeatureFlags()
+
+    protected val rawPropertiesProvider = RawPropertiesProvider(
+        rawPropertiesCacheService = RawPropertiesCacheService(
+            caches = listOf(
+                ipfsContentCache
+            )
+        ),
+        urlService = urlService,
+        externalHttpClient = externalHttpClient,
+        featureFlags = featureFlags
+    )
+
+    protected val rariblePropertiesResolver = RariblePropertiesResolver(
+        urlService = urlService,
+        rawPropertiesProvider = rawPropertiesProvider,
+        tokenUriResolver = tokenUriResolver,
+        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
+    )
 
     @BeforeEach
     fun clear() {

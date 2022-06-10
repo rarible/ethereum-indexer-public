@@ -66,7 +66,7 @@ class UrlServiceTest : BasePropertiesResolverTest() {
 
     @Test
     fun `foreign ipfs urls - replaced by internal gateway`() {
-        val result = urlService.resolveInnerHttpUrl("https://dweb.link/ipfs/$CID/1.png", ID)
+        val result = urlService.resolveInternalHttpUrl("https://dweb.link/ipfs/$CID/1.png", ID)
         assertThat(result).isEqualTo("${publicGatewayProvider.getGateway()}/ipfs/$CID/1.png")
     }
 

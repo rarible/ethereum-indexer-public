@@ -50,6 +50,7 @@ class NftItemMetaDtoConverterTest {
                 imagePreview = null,
                 imageBig = "https://test.com//data:image/png;base64,aaa_base64",
                 animationUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>",
+                tokenUri = "tokenUri",
                 attributes = listOf(
                     ItemAttribute(
                         key = randomString(),
@@ -70,6 +71,7 @@ class NftItemMetaDtoConverterTest {
 
         assertThat(result.name).isEqualTo(meta.properties.name)
         assertThat(result.description).isEqualTo(meta.properties.description)
+        assertThat(result.originalMetaUri).isEqualTo(meta.properties.tokenUri)
 
         assertThat(result.attributes!![0].key).isEqualTo(meta.properties.attributes[0].key)
         assertThat(result.attributes!![0].value).isEqualTo(meta.properties.attributes[0].value)
@@ -229,6 +231,7 @@ class NftItemMetaDtoConverterTest {
                 rights = "rights",
                 rightsUri = "rightsUri",
                 externalUri = "externalUri",
+                tokenUri = "tokenUri",
                 image = "http://test.com/abc_original",
                 imagePreview = "imagePreview",
                 imageBig = embeddedImage,
@@ -275,6 +278,7 @@ class NftItemMetaDtoConverterTest {
             rights = "rights",
             rightsUri = "rightsUri",
             externalUri = "externalUri",
+            originalMetaUri = "tokenUri",
             attributes = listOf(
                 NftItemAttributeDto(
                     key = "key1",

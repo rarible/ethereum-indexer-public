@@ -26,20 +26,20 @@ class MutantsBoredApeYachtClubPropertiesResolver(
 
         logMetaLoading(itemId, "Resolving MutantApeYachtClub properties")
         val url = "$MUTANTS_URL/${itemId.tokenId}"
-        val propertiesString = externalHttpClient.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url, useProxy = true, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { map(itemId, json, propertiesString) }
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
+            json?.let { map(itemId, json, rawProperties) }
         } catch (e: Throwable) {
             logMetaLoading(itemId, "failed to parse properties by URI: $url", warn = true)
             null
         }
     }
 
-    private fun map(itemId: ItemId, json: ObjectNode, propertiesString: String) =
+    private fun map(itemId: ItemId, json: ObjectNode, rawProperties: String) =
         ItemProperties(
             name = "MutantApeYachtClub #${itemId.tokenId.value}",
             description = "The MUTANT APE YACHT CLUB is a collection of up to 20,000 Mutant Apes that can only be created by exposing an existing Bored Ape to a vial of MUTANT SERUM or by minting a Mutant Ape in the public sale.",
@@ -54,7 +54,7 @@ class MutantsBoredApeYachtClubPropertiesResolver(
                         value = attr.path("value").asText()
                     )
                 },
-            rawJsonContent = propertiesString
+            rawJsonContent = rawProperties
         )
 
     companion object {

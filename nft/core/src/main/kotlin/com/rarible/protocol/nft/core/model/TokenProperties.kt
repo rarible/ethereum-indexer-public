@@ -18,6 +18,7 @@ data class TokenProperties(
     val rights: String? = null,
     val rightsUri: String? = null,
     val externalUri: String? = null,
+    val tokenUri: String? = null
 ) {
     companion object {
         val EMPTY = TokenProperties(

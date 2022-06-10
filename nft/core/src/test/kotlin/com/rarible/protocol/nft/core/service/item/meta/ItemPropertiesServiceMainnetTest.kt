@@ -15,7 +15,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -34,13 +33,6 @@ import kotlin.io.path.toPath
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        urlService = urlService,
-        externalHttpClient = externalHttpClient,
-        tokenUriResolver = tokenUriResolver,
-        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
-    )
-
     private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, urlService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
         MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient = externalHttpClient)
@@ -62,8 +54,6 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         },
         urlService = urlService
     )
-
-    private val jacksonObjectMapper = jacksonObjectMapper()
 
     @BeforeEach
     fun mockStandard() {
@@ -131,8 +121,9 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         copy(attributes = attributes.sortedBy { it.key })
 
     private fun parseExpectedProperties(path: Path): ItemProperties {
-        val jsonNode = jacksonObjectMapper.readTree(path.readText())
-        val expectedMetaDto = jacksonObjectMapper.treeToValue<NftItemMetaDto>(jsonNode)!!
+        val mapper = jacksonObjectMapper()
+        val jsonNode = mapper.readTree(path.readText())
+        val expectedMetaDto = mapper.treeToValue<NftItemMetaDto>(jsonNode)!!
         return expectedMetaDto.itemProperties()
     }
 

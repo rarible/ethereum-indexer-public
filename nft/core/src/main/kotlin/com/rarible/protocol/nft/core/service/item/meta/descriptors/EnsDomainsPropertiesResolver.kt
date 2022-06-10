@@ -2,17 +2,18 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClientResponseException
@@ -41,7 +42,8 @@ class EnsDomainsPropertiesResolver(
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class EnsDomainsPropertiesProvider(
-    private val externalHttpClient: ExternalHttpClient,
+    private val urlService: UrlService,
+    private val rawPropertiesProvider: RawPropertiesProvider,
     nftIndexerProperties: NftIndexerProperties,
 ) {
 
@@ -61,13 +63,15 @@ class EnsDomainsPropertiesProvider(
 
     private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
         val url = "${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}"
-        val propertiesString = externalHttpClient.getBody(url = url, id = itemId.decimalStringValue) ?: return null
+
+        val resource = urlService.parseUrl(url, itemId.toString()) ?: return null
+        val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
         return try {
             logMetaLoading(itemId.toString(), "parsing properties by URI: $url")
 
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { map(json, propertiesString) }
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
+            json?.let { map(json, rawProperties) }
         } catch (e: Throwable) {
             if (e is WebClientResponseException && e.statusCode == HttpStatus.NOT_FOUND) {
                 // For some reason Ens sporadically returns 404 for existing items
@@ -80,7 +84,7 @@ class EnsDomainsPropertiesProvider(
         }
     }
 
-    private fun map(json: ObjectNode, propertiesString: String): ItemProperties {
+    private fun map(json: ObjectNode, rawProperties: String): ItemProperties {
         return ItemProperties(
             name = json.path("name").asText(),
             description = json.path("description").asText(),
@@ -89,7 +93,7 @@ class EnsDomainsPropertiesProvider(
             imageBig = null,
             animationUrl = null,
             attributes = json.parseAttributes(milliTimestamps = true),
-            rawJsonContent = propertiesString
+            rawJsonContent = rawProperties
         )
     }
 

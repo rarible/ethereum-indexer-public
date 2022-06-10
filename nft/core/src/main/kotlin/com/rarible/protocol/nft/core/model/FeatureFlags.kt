@@ -6,5 +6,6 @@ data class FeatureFlags(
     var isRoyaltyServiceEnabled: Boolean = true,
     var validateCreatorByTransactionSender: Boolean = false,
     val internalMetaTopicBatchHandle: Boolean = false,
-    val internalMetaTopicBatchSize: Int = 100
+    val internalMetaTopicBatchSize: Int = 100,
+    var enableMetaRawPropertiesCache: Boolean = false,
 )
