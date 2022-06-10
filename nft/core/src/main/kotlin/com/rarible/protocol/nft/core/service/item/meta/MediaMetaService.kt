@@ -22,7 +22,7 @@ class MediaMetaService(
         if (url.isBlank()) {
             return null
         }
-        val realUrl = urlService.resolvePublicHttpUrl(url, id) ?: return null
+        val realUrl = urlService.resolvePublicHttpUrl(url) ?: return null
         return fetchFromCache(realUrl)
     }
 

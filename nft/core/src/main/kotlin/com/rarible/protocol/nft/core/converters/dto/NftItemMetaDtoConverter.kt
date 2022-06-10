@@ -1,15 +1,11 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
-import com.rarible.protocol.dto.ImageContentDto
-import com.rarible.protocol.dto.MetaContentDto
-import com.rarible.protocol.dto.MetaContentDto.Representation
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
-import com.rarible.protocol.dto.VideoContentDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ContentMeta
@@ -46,7 +42,7 @@ class NftItemMetaDtoConverter(
             rights = source.properties.rights,
             rightsUri = source.properties.rightsUri,
             externalUri = source.properties.externalUri,
-            content = createContent(source),
+            content = source.properties.content.map { EthMetaContentConverter.convert(it) },
             originalMetaUri = source.properties.tokenUri
         )
     }
@@ -59,45 +55,16 @@ class NftItemMetaDtoConverter(
 
             val meta = source.itemContentMeta.imageMeta
                 ?.let { convert(it) }
-                ?.let { mapOf((if (source.properties.imagePreview != null) NftMediaSizeDto.PREVIEW.name else NftMediaSizeDto.ORIGINAL.name) to it) }
+                ?.let {
+                    mapOf(
+                        (if (source.properties.imagePreview != null) NftMediaSizeDto.PREVIEW.name else NftMediaSizeDto.ORIGINAL.name) to it
+                    )
+                }
                 ?: emptyMap()
             NftMediaDto(url, meta)
         } else {
             null
         }
-    }
-
-    private fun createContent(source: ItemMeta): List<MetaContentDto> {
-        if (source.content.isNotEmpty()) {
-            return source.content.map { EthMetaContentConverter.convert(it) }
-        }
-
-        return convertImageMetaContent(source) + convertVideoMetaContent(source)
-    }
-
-    private fun convertImageMetaContent(source: ItemMeta): List<MetaContentDto> {
-        return if (source.properties.imagePreview != null || source.properties.image != null) {
-            createImage(source.properties.image, Representation.ORIGINAL) +
-                createImage(source.properties.imageBig, Representation.BIG) +
-                createImage(source.properties.imagePreview, Representation.PREVIEW)
-        } else {
-            emptyList()
-        }
-    }
-
-    private fun createImage(url: String?, representation: Representation): List<ImageContentDto> {
-        url ?: return emptyList()
-        return listOf(
-            ImageContentDto(
-                fileName = null,
-                url = url,
-                representation = representation,
-                mimeType = null,
-                size = null,
-                width = null,
-                height = null
-            )
-        )
     }
 
     private fun createAnimationMedia(source: ItemMeta, itemIdDecimalValue: String): NftMediaDto? {
@@ -111,25 +78,6 @@ class NftItemMetaDtoConverter(
             NftMediaDto(url, meta)
         } else {
             null
-        }
-    }
-
-    private fun convertVideoMetaContent(source: ItemMeta): List<MetaContentDto> {
-        return if (source.properties.animationUrl != null) {
-            val url = source.properties.animationUrl
-            listOf(
-                VideoContentDto(
-                    fileName = null,
-                    url = url,
-                    representation = Representation.ORIGINAL,
-                    mimeType = null,
-                    size = null,
-                    width = null,
-                    height = null
-                )
-            )
-        } else {
-            emptyList()
         }
     }
 

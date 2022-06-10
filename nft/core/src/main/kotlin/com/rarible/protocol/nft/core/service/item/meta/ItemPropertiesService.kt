@@ -1,8 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.meta.EthImageProperties
+import com.rarible.protocol.nft.core.model.meta.EthMetaContent
+import com.rarible.protocol.nft.core.model.meta.EthVideoProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
@@ -133,12 +137,38 @@ class ItemPropertiesService(
 
     private fun ItemProperties.fixIpfsUrls(itemId: ItemId): ItemProperties {
         // Make all URL with public IPFS gateway
-        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else urlService.resolvePublicHttpUrl(this, itemId.decimalStringValue)
+        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else urlService.resolvePublicHttpUrl(this)
+        val content = ArrayList<EthMetaContent>(4)
+
+        // TODO originally, it should be done in property resolvers
+        this.image?.let { content.add(toImage(it, MetaContentDto.Representation.ORIGINAL)) }
+        this.imageBig?.let { content.add(toImage(it, MetaContentDto.Representation.BIG)) }
+        this.imagePreview?.let { content.add(toImage(it, MetaContentDto.Representation.PREVIEW)) }
+        this.animationUrl?.let { content.add(toVideo(it, MetaContentDto.Representation.ORIGINAL)) }
+
         return copy(
             image = image.resolveHttpUrl(),
             imagePreview = imagePreview.resolveHttpUrl(),
             imageBig = imageBig.resolveHttpUrl(),
-            animationUrl = animationUrl.resolveHttpUrl()
+            animationUrl = animationUrl.resolveHttpUrl(),
+            content = content
         )
     }
+
+    private fun toVideo(url: String, representation: MetaContentDto.Representation): EthMetaContent {
+        return EthMetaContent(
+            url = url,
+            representation = representation,
+            properties = EthVideoProperties()
+        )
+    }
+
+    private fun toImage(url: String, representation: MetaContentDto.Representation): EthMetaContent {
+        return EthMetaContent(
+            url = url,
+            representation = representation,
+            properties = EthImageProperties()
+        )
+    }
+
 }

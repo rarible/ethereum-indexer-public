@@ -111,7 +111,10 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                         image = null,
                         external_link = null,
                         seller_fee_basis_points = null,
-                        fee_recipient = null
+                        fee_recipient = null,
+                        content = emptyList(),
+                        tags = emptyList(),
+                        genres = emptyList()
                     )
                 )
             }
@@ -157,7 +160,10 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                         image = null,
                         external_link = null,
                         seller_fee_basis_points = null,
-                        fee_recipient = null
+                        fee_recipient = null,
+                        content = emptyList(),
+                        tags = emptyList(),
+                        genres = emptyList()
                     )
                 )
             }

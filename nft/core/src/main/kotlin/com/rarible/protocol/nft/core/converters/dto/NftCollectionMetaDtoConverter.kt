@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.protocol.dto.ImageContentDto
-import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.dto.NftCollectionMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
@@ -18,9 +16,6 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
             name = source.properties.name,
             description = source.properties.description,
             image = createImage(source),
-            external_link = source.properties.externalLink,
-            seller_fee_basis_points = source.properties.sellerFeeBasisPoints,
-            fee_recipient = source.properties.feeRecipient,
             createdAt = source.properties.createdAt,
             tags = source.properties.tags,
             genres = source.properties.genres,
@@ -28,8 +23,16 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
             rights = source.properties.rights,
             rightsUri = source.properties.rightsUri,
             externalUri = source.properties.externalUri,
-            content = createContent(source),
-            originalMetaUri = source.properties.tokenUri
+            originalMetaUri = source.properties.tokenUri,
+            sellerFeeBasisPoints = source.properties.sellerFeeBasisPoints,
+            feeRecipient = source.properties.feeRecipient,
+
+            content = source.properties.content.map { EthMetaContentConverter.convert(it) },
+
+            // TODO legacy fields, remove
+            external_link = source.properties.externalUri,
+            seller_fee_basis_points = source.properties.sellerFeeBasisPoints,
+            fee_recipient = source.properties.feeRecipient
         )
     }
 
@@ -46,26 +49,6 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
         } else {
             null
         }
-    }
-
-    private fun createContent(source: TokenMeta): List<MetaContentDto>? {
-        if (source.content.isNotEmpty()) {
-            return source.content.map { EthMetaContentConverter.convert(it) }
-        }
-        if (source.properties.image == null) {
-            return null
-        }
-        return listOf(
-            ImageContentDto(
-                fileName = null,
-                url = source.properties.image,
-                representation = MetaContentDto.Representation.ORIGINAL,
-                mimeType = source.contentMeta?.type,
-                width = source.contentMeta?.width,
-                height = source.contentMeta?.height,
-                size = source.contentMeta?.size
-            )
-        )
     }
 
     private fun convert(source: ContentMeta): NftMediaMetaDto {

@@ -30,7 +30,7 @@ class EmblemVaultV2Resolver(
         val properties = raribleResolver.resolve(itemId) ?: return null
 
         if (properties.image != null) {
-            val resolvedUrl = urlService.resolvePublicHttpUrl(properties.image, itemId.decimalStringValue) ?: return null
+            val resolvedUrl = urlService.resolvePublicHttpUrl(properties.image) ?: return null
             val imageContent = externalHttpClient.getBody(url = resolvedUrl, id = itemId.decimalStringValue)
 
             if (imageContent != null && Base64Decoder.decode(imageContent) != null) {

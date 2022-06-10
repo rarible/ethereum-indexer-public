@@ -28,7 +28,7 @@ class StandardTokenPropertiesResolver(
             return null
         }
 
-        val url = urlService.resolveInternalHttpUrl(uri, id.prefixed()) ?: return null
+        val url = urlService.resolveInternalHttpUrl(uri) ?: return null
         logProperties(id, "$uri was resolved to: $url")
         return request(id, url)?.copy(tokenUri = uri)
     }
@@ -54,7 +54,7 @@ class StandardTokenPropertiesResolver(
             name = json.getText("name") ?: "Untitled",
             description = json.getText("description"),
             image = json.getText("image"),
-            externalLink = json.getText("external_link"),
+            externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("seller_fee_basis_points"),
             feeRecipient = json.getText("fee_recipient")?.let { Address.apply(it) },
         )

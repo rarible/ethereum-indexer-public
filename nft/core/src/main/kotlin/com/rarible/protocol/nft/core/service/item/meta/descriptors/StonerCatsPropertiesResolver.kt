@@ -31,7 +31,7 @@ class StonerCatsPropertiesResolver(
         val etag = externalHttpClient.getEtag(url = imageUrl, id = itemId.decimalStringValue)
 
         return etag?.let {
-            properties.copy(image = urlService.resolvePublicHttpUrl(etag, itemId.decimalStringValue))
+            properties.copy(image = urlService.resolvePublicHttpUrl(etag))
         } ?: properties
     }
 

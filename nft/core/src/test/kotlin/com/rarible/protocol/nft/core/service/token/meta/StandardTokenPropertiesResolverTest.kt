@@ -56,9 +56,10 @@ class StandardTokenPropertiesResolverTest : AbstractTokenTest() {
         assertThat(props).isEqualTo(TokenProperties(
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
-            externalLink = "https://feudalz.io",
+            externalUri = "https://feudalz.io",
             image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
+            tokenUri = "ipfs://QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T",
             sellerFeeBasisPoints = 250
         ))
     }

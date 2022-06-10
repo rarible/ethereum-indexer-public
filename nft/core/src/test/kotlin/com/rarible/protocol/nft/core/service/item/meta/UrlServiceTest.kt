@@ -60,24 +60,24 @@ class UrlServiceTest : BasePropertiesResolverTest() {
         val https = "https://api.t-o-s.xyz/ipfs/gucci/8.gif"
         val http = "http://api.guccinfts.xyz/ipfs/8"
 
-        assertThat(urlService.resolvePublicHttpUrl(http, ID)).isEqualTo(http)
-        assertThat(urlService.resolvePublicHttpUrl(https, ID)).isEqualTo(https)
+        assertThat(urlService.resolvePublicHttpUrl(http)).isEqualTo(http)
+        assertThat(urlService.resolvePublicHttpUrl(https)).isEqualTo(https)
     }
 
     @Test
     fun `foreign ipfs urls - replaced by internal gateway`() {
-        val result = urlService.resolveInternalHttpUrl("https://dweb.link/ipfs/$CID/1.png", ID)
+        val result = urlService.resolveInternalHttpUrl("https://dweb.link/ipfs/$CID/1.png")
         assertThat(result).isEqualTo("${publicGatewayProvider.getGateway()}/ipfs/$CID/1.png")
     }
 
     private fun assertFixedIpfsUrl(url: String, expectedPath: String) {
-        val result = urlService.resolvePublicHttpUrl(url, ID)
+        val result = urlService.resolvePublicHttpUrl(url)
         assertThat(result).isEqualTo("${publicGatewayProvider.getGateway()}/ipfs/$expectedPath")
     }
 
     private fun assertOriginalIpfsUrl(url: String, expectedPath: String? = null) {
         val expected = expectedPath ?: url // in most cases we expect URL not changed
-        val result = urlService.resolvePublicHttpUrl(url, ID)
+        val result = urlService.resolvePublicHttpUrl(url)
         assertThat(result).isEqualTo(expected)
     }
 }

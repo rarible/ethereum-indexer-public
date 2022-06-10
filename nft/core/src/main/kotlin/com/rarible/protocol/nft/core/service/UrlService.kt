@@ -16,12 +16,12 @@ class UrlService(
 ) {
 
     // Used only for internal operations, such urls should NOT be stored anywhere
-    fun resolveInternalHttpUrl(url: String, id: String): String? =
+    fun resolveInternalHttpUrl(url: String): String? =
         urlParser.parse(url)
             ?.let { resolveInternalHttpUrl(it) }
 
     // Used to build url exposed to the DB cache or API responses
-    fun resolvePublicHttpUrl(url: String, id: String): String? =
+    fun resolvePublicHttpUrl(url: String): String? =
         urlParser.parse(url)
             ?.let { resolvePublicHttpUrl(it) }
 

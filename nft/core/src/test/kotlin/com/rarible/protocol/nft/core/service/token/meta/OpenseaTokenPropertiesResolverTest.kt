@@ -48,7 +48,7 @@ class OpenseaTokenPropertiesResolverTest : AbstractTokenTest() {
             TokenProperties(
                 name = "Feudalz",
                 description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
-                externalLink = "https://feudalz.io",
+                externalUri = "https://feudalz.io",
                 image = "https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120",
                 feeRecipient = Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"),
                 sellerFeeBasisPoints = 250
@@ -66,7 +66,7 @@ class OpenseaTokenPropertiesResolverTest : AbstractTokenTest() {
             TokenProperties(
                 name = "My contract",
                 description = null,
-                externalLink = null,
+                externalUri = null,
                 image = null,
                 feeRecipient = null,
                 sellerFeeBasisPoints = null

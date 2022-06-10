@@ -34,7 +34,8 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
     ) = runBlocking<Unit> {
         val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         if (address == Address.ZERO()) return@runBlocking
-        val url = urlService.resolvePublicHttpUrl("QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD", address.prefixed()) ?: return@runBlocking
+        val url = urlService.resolvePublicHttpUrl("QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD")
+            ?: return@runBlocking
         val zipResponse = downloadArchive(url).awaitSingle()
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->
