@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import io.micrometer.core.instrument.MeterRegistry
 import java.time.Instant
+import javax.annotation.PostConstruct
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
@@ -24,6 +25,11 @@ class MakeBidCanceledAfterExpiredJob(
 
     private val expirePeriod = properties.raribleBidExpirePeriod
 
+    @PostConstruct
+    fun postConstruct() {
+        start()
+    }
+
     override suspend fun handle() {
         try {
 
@@ -39,6 +45,5 @@ class MakeBidCanceledAfterExpiredJob(
             throw e
         }
     }
-
 
 }
