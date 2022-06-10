@@ -25,7 +25,8 @@ object JsonPropertiesMapper {
         "image",
         "image_url",
         "image_content",
-        "image_data"
+        "image_data",
+        "imageUrl"
     ).toTypedArray()
 
     private val FIELD_IMAGE_PREVIEW = listOf(

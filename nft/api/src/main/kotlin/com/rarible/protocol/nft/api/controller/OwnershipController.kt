@@ -2,14 +2,16 @@ package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipIdsDto
 import com.rarible.protocol.dto.NftOwnershipsDto
-import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipFilterAll
 import com.rarible.protocol.nft.core.model.OwnershipFilterByItem
 import com.rarible.protocol.nft.core.model.OwnershipFilterByOwner
+import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.ResponseEntity
@@ -42,6 +44,13 @@ class OwnershipController(
         val safeShowDeleted = showDeleted ?: false
         val result = ownershipApiService.get(conversionService.convert(ownershipId), safeShowDeleted)
         return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getNftOwnershipsByIds(nftOwnershipIdsDto: NftOwnershipIdsDto): ResponseEntity<NftOwnershipsDto> {
+        val result = ownershipApiService.get(nftOwnershipIdsDto.ids.map(OwnershipId::parseId))
+        return ResponseEntity.ok(
+            NftOwnershipsDto(total = result.size.toLong(), continuation = null, ownerships = result)
+        )
     }
 
     override suspend fun getNftOwnershipsByItem(

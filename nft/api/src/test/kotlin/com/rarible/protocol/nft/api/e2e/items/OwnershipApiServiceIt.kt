@@ -114,6 +114,25 @@ class OwnershipApiServiceIt : SpringContainerBaseTest() {
         Assertions.assertThat(ownerships).hasSize(2)
     }
 
+    @Test
+    fun `should find by ids`() = runBlocking<Unit> {
+        val expected = listOf(createOwnership(), createOwnership(), createOwnership())
+            .onEach { ownershipRepository.save(it).awaitFirst() }
+        val ids = expected.map { it.id }
+
+        ownershipApiService.get(emptyList()).let { actual ->
+            assertThat(actual).isEmpty()
+        }
+
+        ownershipApiService.get(listOf(ids.first())).let { actual ->
+            assertThat(actual).hasSize(1)
+        }
+
+        ownershipApiService.get(ids).let { actual ->
+            assertThat(actual).hasSize(3)
+        }
+    }
+
     @AfterEach
     fun afterEach() = runBlocking<Unit> {
         mongo.remove<Ownership>().all().awaitFirst()
