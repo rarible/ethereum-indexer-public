@@ -27,6 +27,7 @@ data class OrderListenerProperties(
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),
     val openSeaOrdersLoadWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
     val openSeaOrdersLoadDelayWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
+    val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties()
 ) {
     enum class OrderSide {
         ALL,
@@ -34,8 +35,6 @@ data class OrderListenerProperties(
         BID
     }
 }
-
-
 
 sealed class BaseOpenSeaOrderLoadWorkerProperties {
     abstract val enabled: Boolean
@@ -74,3 +73,8 @@ data class OpenSeaOrdersLoadPeriodWorkerProperties(
     override val workerName: String = "",
     override val stateId: String = ""
 ) : BaseOpenSeaOrderLoadWorkerProperties()
+
+data class RaribleExpiredBidWorkerProperties(
+    val enabled: Boolean = true,
+    val pollingPeriod: Duration = Duration.ofMinutes(10)
+)

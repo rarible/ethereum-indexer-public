@@ -45,9 +45,8 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService,
     private val openSeaNonceService: OpenSeaNonceService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val expiredBidWorker: OrderIndexerProperties.ExpiredBidWorker
+    private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties
 ) {
-
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
     // TODO: current reduce implementation does not guarantee we will save the latest Order, see RPN-921.
@@ -308,7 +307,9 @@ class OrderReduceService(
         }
     }
 
-    private fun Order.withBidExpire(expiredDate: Instant): Order {
+    private suspend fun Order.withBidExpire(): Order {
+        val expiredDate = Instant.now() - raribleOrderExpiration.bidExpirePeriod
+
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
         if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
@@ -330,7 +331,7 @@ class OrderReduceService(
             .withNewPrice()
             .withUpdatedNonce()
             .withCancelOpenSea()
-            .withBidExpire(Instant.now() - expiredBidWorker.raribleBidExpirePeriod)
+            .withBidExpire()
 
         val saved = orderRepository.save(order)
         logger.info(buildString {

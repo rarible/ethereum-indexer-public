@@ -38,7 +38,7 @@ data class OrderIndexerProperties(
     val blockCountBeforeSnapshot: Int = 12,
     val nodeType: NodeType?,
     @NestedConfigurationProperty
-    val expiredBidWorker: ExpiredBidWorker
+    val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties()
 ) {
     data class ExchangeContractAddresses(
         var v1: Address,
@@ -76,8 +76,7 @@ data class OrderIndexerProperties(
         val skipGetTrace: Boolean = false
     )
 
-    data class ExpiredBidWorker(
-        val pollingPeriod: Duration = Duration.ofMinutes(10L),
-        val raribleBidExpirePeriod: Duration = Duration.ofDays(60L)
+    data class RaribleOrderExpirationProperties(
+        val bidExpirePeriod: Duration = Duration.ofDays(60L)
     )
 }

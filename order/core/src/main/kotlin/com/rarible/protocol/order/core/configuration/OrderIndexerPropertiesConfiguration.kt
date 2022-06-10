@@ -25,7 +25,7 @@ class OrderIndexerPropertiesConfiguration(
     fun transferProxyAddresses() = indexerProperties.transferProxyAddresses
 
     @Bean
-    fun expiredBidWorker() = indexerProperties.expiredBidWorker
+    fun raribleOrderExpiration() = indexerProperties.raribleOrderExpiration
 
     @Bean
     @Qualifier("raribleExchangeV2")
