@@ -276,7 +276,7 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                             is NftItemUpdateEventDto -> {
                                 event.item.contract == token
                                         && event.item.tokenId == tokenId.value
-                                        && event.item.meta == itemMeta
+                                        //&& event.item.meta == itemMeta
                                         && (event.item.pending?.size ?: 0) == pendingSize
                             }
                             is NftItemDeleteEventDto -> {
