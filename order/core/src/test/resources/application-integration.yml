@@ -30,6 +30,10 @@ common:
     erc1155-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
 
+  expired-bid-worker:
+    polling-period: PT10M # 10 minutes period
+    raribleBidExpirePeriod: P60D #2 months period
+
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false
 reindexBlocksJobEnabled: false

@@ -11,6 +11,10 @@ common:
   operator-private-key: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocol-commission: 0
   metric-root-path: "protocol.order.indexer"
+  kafka-replica-set: ${kafka.hosts}
+  expired-bid-worker:
+    polling-period: PT10M # 10 minutes period
+    rarible-bid-expire-period: P60D #2 months period
 
   exchange-contract-addresses:
     v1: "0000000000000000000000000000000000000000"
@@ -42,3 +46,14 @@ reindexBlocksJobEnabled: false
 
 logging:
   level.org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+
+protocol:
+  erc20:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  nft:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
+  order:
+    subscriber:
+      broker-replica-set: ${kafka.hosts}
