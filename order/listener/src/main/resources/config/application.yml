@@ -56,7 +56,7 @@ common:
   metric-root-path: "protocol.order.indexer"
   expired-bid-worker:
     polling-period: PT10M # 10 minutes period
-    raribleBidExpirePeriod: P60D #2 months period
+    rarible-bid-expire-period: P60D #2 months period
 
 listener:
   updateStatusByStartEndRate: PT10M # 10 minutes period
