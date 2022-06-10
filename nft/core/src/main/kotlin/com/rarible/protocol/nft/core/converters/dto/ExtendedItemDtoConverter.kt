@@ -35,7 +35,8 @@ class ExtendedItemDtoConverter(
             mintedAt = item.mintedAt,
             pending = convertPending(item),
             deleted = item.deleted,
-            meta = meta?.let { nftItemMetaDtoConverter.convert(meta, itemIdDecimalValue) }
+            // TODO cleanup all things related to meta later
+            //meta = meta?.let { nftItemMetaDtoConverter.convert(meta, itemIdDecimalValue) }
         )
     }
 
