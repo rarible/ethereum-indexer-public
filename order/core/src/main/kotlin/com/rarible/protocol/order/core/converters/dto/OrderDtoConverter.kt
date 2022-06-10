@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
+import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.orEmpty
@@ -17,8 +18,8 @@ import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.isMakeFillOrder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Binary
-import org.springframework.stereotype.Component
 import java.math.BigInteger
+import org.springframework.stereotype.Component
 
 @Component
 class OrderDtoConverter(
@@ -29,6 +30,7 @@ class OrderDtoConverter(
 ) {
 
     suspend fun convert(source: Order): OrderDto {
+        val orderStatus = OrderStatusDtoConverter.convert(source.status)
         return when (source.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderDto(
                 maker = source.maker,
@@ -41,7 +43,10 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature.orEmpty(),
+                signature = when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -53,7 +58,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
-                status = OrderStatusDtoConverter.convert(source.status),
+                status = orderStatus,
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
@@ -73,7 +78,10 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = source.signature.orEmpty(),
+                signature = when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -85,7 +93,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 makeBalance = BigInteger.ZERO,
-                status = OrderStatusDtoConverter.convert(source.status),
+                status = orderStatus,
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
@@ -101,7 +109,10 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else source.signature.orEmpty(),
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -131,7 +142,10 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 salt = source.salt.value.toWord(),
-                signature = source.signature.orEmpty(),
+                signature = when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
@@ -143,7 +157,7 @@ class OrderDtoConverter(
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
-                status = OrderStatusDtoConverter.convert(source.status),
+                status = orderStatus,
                 data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
             )
         }

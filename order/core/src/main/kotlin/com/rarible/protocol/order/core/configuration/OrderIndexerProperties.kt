@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.configuration
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.order.core.model.NodeType
 import io.daonomic.rpc.domain.Binary
+import java.time.Duration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
@@ -35,7 +36,9 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val featureFlags: FeatureFlags = FeatureFlags(),
     val blockCountBeforeSnapshot: Int = 12,
-    val nodeType: NodeType?
+    val nodeType: NodeType?,
+    @NestedConfigurationProperty
+    val expiredBidWorker: ExpiredBidWorker
 ) {
     data class ExchangeContractAddresses(
         var v1: Address,
@@ -71,5 +74,10 @@ data class OrderIndexerProperties(
         val hideInactiveOrders: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
         val skipGetTrace: Boolean = false
+    )
+
+    data class ExpiredBidWorker(
+        val pollingPeriod: Duration = Duration.ofMinutes(10L),
+        val raribleBidExpirePeriod: Duration = Duration.ofDays(60L)
     )
 }

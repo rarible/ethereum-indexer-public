@@ -7,8 +7,10 @@ import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
+import org.springframework.data.mongodb.core.index.IndexFilter
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
@@ -249,6 +251,17 @@ object OrderRepositoryIndexes {
 
     // --------------------- Other ---------------------//
 
+    val BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT = Index()
+        .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(
+            Criteria.where("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
+                .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
+        ))
+        .background()
+
     val ALL_INDEXES = listOf(
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
@@ -277,6 +290,8 @@ object OrderRepositoryIndexes {
         BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION,
 
         BY_STATUS_AND_END_START,
-        BY_PLATFORM_MAKER_AND_NONCE
+        BY_PLATFORM_MAKER_AND_NONCE,
+
+        BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT
     )
 }
