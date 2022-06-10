@@ -35,11 +35,6 @@ rarible:
     contract:
       enabled: true
 
-common:
-  expired-bid-worker:
-    polling-period: PT10M # 10 minutes period
-    rarible-bid-expire-period: P60D #2 months period
-
 springdoc:
   swagger-ui:
     path: /v0.1/swagger/swagger-ui.html
