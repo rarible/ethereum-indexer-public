@@ -26,7 +26,7 @@ data class OrderListenerProperties(
     val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),
     val openSeaOrdersLoadWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
-    val openSeaOrdersLoadDelayWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties()
+    val openSeaOrdersLoadDelayWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
 ) {
     enum class OrderSide {
         ALL,

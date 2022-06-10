@@ -60,4 +60,6 @@ interface OrderRepository {
     suspend fun createIndexes()
 
     suspend fun dropIndexes()
+
+    fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word>
 }
