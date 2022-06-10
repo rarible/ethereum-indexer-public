@@ -14,19 +14,8 @@ sharedEnvironments: &sharedEnvironments
   RARIBLE_CORE_CLIENT_K8S: true
   LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
   APPLICATION_ENVIRONMENT: "infura"
-  # this secrets must be assign
-  # RARIBLE_CORE_AGENT_SERVER:
-  # SPRING_DATA_MONGODB_URI:
-  # COMMON_KAFKAREPLICASET:
-  # COMMON_BASEPUBLICAPIURL:
-  # BLOCKCHAIN_SCANNER_KAFKA_BROKERREPLICASET:
-  # RARIBLE_LOADER_BROKERREPLICASET:
-  # RARIBLE_ETHEREUM_HTTPURL:
-  # RARIBLE_ETHEREUM_WEBSOCKETURL:
-
 
 ######## NFT-Indexer ########
-
 nftEnvironment: &nftEnvironment
   <<: *sharedEnvironments
   COMMON_CRYPTOPUNKSCONTRACTADDRESS: "0x6ba6f2207e343923ba692e5cae646fb0f566db8d"
@@ -36,6 +25,8 @@ nftEnvironment: &nftEnvironment
   COMMON_FACTORY_ERC721RARIBLEUSER: "0x6e42262978de5233c8d5b05b128c121fba110da4"
   COMMON_FACTORY_ERC1155RARIBLE: "0x0000000000000000000000000000000000000000"
   COMMON_FACTORY_ERC1155RARIBLEUSER: "0x0000000000000000000000000000000000000000"
+  COMMON_FEATUREFLAGS_SCANNERVERSION: V2
+  COMMON_FEATUREFLAGS_REDUCEVERSION: V2
   SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
 
 ethereum-nft-api:
@@ -55,8 +46,6 @@ ethereum-nft-listener:
     - *sharedTolerations
   environments:
     <<: *nftEnvironment
-    COMMON_FEATUREFLAGS_SCANNERVERSION: V2
-    COMMON_FEATUREFLAGS_REDUCEVERSION: V2
     BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 1
 
 ethereum-nft-migration:
@@ -66,7 +55,6 @@ ethereum-nft-migration:
     <<: *nftEnvironment
 
 ######## Order-Indexer ########
-
 orderEnvironment: &orderEnvironment
   <<: *sharedEnvironments
   COMMON_AUCTIONCONTRACTADDRESSES_V1: "0x0000000000000000000000000000000000000000"
@@ -123,7 +111,6 @@ ethereum-order-migration:
 
 
 ######## Erc20-Indexer ########
-
 erc20Environment: &erc20Environment
   <<: *sharedEnvironments
   SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-erc20
@@ -148,7 +135,6 @@ ethereum-erc20-listener:
 
 
 ######## Gateway ########
-
 ethereum-gateway:
   tolerations:
     - *sharedTolerations
@@ -157,7 +143,6 @@ ethereum-gateway:
     RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
 
 ######## Unlockable ########
-
 ethereum-unlockable-api:
   tolerations:
     - *sharedTolerations
