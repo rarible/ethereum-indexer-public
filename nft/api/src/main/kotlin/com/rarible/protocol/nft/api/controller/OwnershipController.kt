@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.api.controller
 
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
+import com.rarible.protocol.dto.NftOwnershipIdsDto
 import com.rarible.protocol.dto.NftOwnershipsDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
@@ -45,8 +46,8 @@ class OwnershipController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun getNftOwnershipsByIds(ids: List<String>): ResponseEntity<NftOwnershipsDto> {
-        val result = ownershipApiService.get(ids.map(OwnershipId::parseId))
+    override suspend fun getNftOwnershipsByIds(nftOwnershipIdsDto: NftOwnershipIdsDto): ResponseEntity<NftOwnershipsDto> {
+        val result = ownershipApiService.get(nftOwnershipIdsDto.ids.map(OwnershipId::parseId))
         return ResponseEntity.ok(
             NftOwnershipsDto(total = result.size.toLong(), continuation = null, ownerships = result)
         )
