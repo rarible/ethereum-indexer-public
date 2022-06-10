@@ -8,6 +8,7 @@ import com.rarible.protocol.dto.LazyNftDto
 import com.rarible.protocol.dto.NftItemDto
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
+import com.rarible.protocol.nft.api.controller.NftItemControllerApi
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.service.descriptor.RoyaltyCacheDescriptor
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
@@ -29,6 +30,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -44,6 +46,9 @@ class ItemService(
     private val ownershipApiService: OwnershipApiService,
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository
 ) {
+    companion object {
+        private val logger = LoggerFactory.getLogger(NftItemControllerApi::class.java)
+    }
     suspend fun getWithAvailableMeta(
         itemId: ItemId,
         timeout: Duration,
@@ -72,6 +77,7 @@ class ItemService(
         val parts = cacheService
             .get(itemId.toString(), royaltyCacheDescriptor, true)
             .awaitSingle()
+        logger.debug("Got royalty from cache:$parts")
         NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
     }
 
