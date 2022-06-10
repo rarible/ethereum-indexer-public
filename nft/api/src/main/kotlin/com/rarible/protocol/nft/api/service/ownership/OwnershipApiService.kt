@@ -2,12 +2,12 @@ package com.rarible.protocol.nft.api.service.ownership
 
 import com.rarible.core.common.convert
 import com.rarible.protocol.dto.NftOwnershipDto
-import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
-import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.model.Ownership
+import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
 import com.rarible.protocol.nft.core.model.OwnershipId
+import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.core.convert.ConversionService
@@ -25,6 +25,10 @@ class OwnershipApiService(
             ?.let { conversionService.convert<NftOwnershipDto>(it) }
             ?: throw EntityNotFoundApiException("Ownership", ownershipId)
     }
+
+    suspend fun get(ids: List<OwnershipId>): List<NftOwnershipDto> =
+        ownershipRepository.findAll(ids)
+            .map { conversionService.convert(it) }
 
     suspend fun search(
         filter: OwnershipFilter,
