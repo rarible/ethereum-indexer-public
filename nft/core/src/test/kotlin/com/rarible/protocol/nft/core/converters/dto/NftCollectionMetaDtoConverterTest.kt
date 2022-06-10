@@ -100,7 +100,8 @@ class NftCollectionMetaDtoConverterTest {
                 language = "lang",
                 rights = "rights",
                 rightsUri = "rightsUri",
-                externalUri = "externalUri"
+                externalUri = "externalUri",
+                tokenUri = "tokenUri"
             ),
             contentMeta = ContentMeta(
                 type = "jpeg",
@@ -142,7 +143,8 @@ class NftCollectionMetaDtoConverterTest {
                     width = 100,
                     height = 200
                 )
-            )
+            ),
+            originalMetaUri = "tokenUri"
         )
     }
 }

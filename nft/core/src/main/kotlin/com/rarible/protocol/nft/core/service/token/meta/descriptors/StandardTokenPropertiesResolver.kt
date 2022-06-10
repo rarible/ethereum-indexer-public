@@ -30,7 +30,7 @@ class StandardTokenPropertiesResolver(
 
         val url = urlService.resolveInternalHttpUrl(uri, id.prefixed()) ?: return null
         logProperties(id, "$uri was resolved to: $url")
-        return request(id, url)
+        return request(id, url)?.copy(tokenUri = uri)
     }
 
     override val order get() = Int.MIN_VALUE
