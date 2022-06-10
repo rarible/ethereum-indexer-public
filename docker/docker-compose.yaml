@@ -241,7 +241,7 @@ services:
       - "protocol-zookeeper-1"
 
   protocol-mongodb:
-    image: mongo:4.0.21
+    image: mongo:4.2.0
     command: --port 27017 --wiredTigerCacheSizeGB 1
     volumes:
       - protocol-mongodb:/data/db
