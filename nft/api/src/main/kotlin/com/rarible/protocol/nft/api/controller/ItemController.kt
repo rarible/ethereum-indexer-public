@@ -36,6 +36,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -118,7 +119,10 @@ class ItemController(
     }
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
-        val result = itemService.getRoyalty(conversionService.convert(itemId))
+        logger.debug("Got request to get nft item royalty by id, parameter: $itemId")
+        val convertedItemId: ItemId = conversionService.convert(itemId)
+        logger.debug("ItemId: $itemId was converted to: $convertedItemId")
+        val result = itemService.getRoyalty(convertedItemId)
         return ResponseEntity.ok(result)
     }
 
@@ -267,5 +271,6 @@ class ItemController(
     companion object {
 
         const val BURN_MSG = "I would like to burn my %s item."
+        private val logger = LoggerFactory.getLogger(ItemController::class.java)
     }
 }
