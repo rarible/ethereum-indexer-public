@@ -46,6 +46,7 @@ ethereum-nft-listener:
     - *sharedTolerations
   environments:
     <<: *nftEnvironment
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_ENABLED: false
     BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 20
     BLOCKCHAIN_SCANNER_ETHEREUM_MAXBATCHES: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef:1,0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62:1"
   resources:
