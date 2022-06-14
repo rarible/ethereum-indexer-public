@@ -36,11 +36,6 @@ import kotlin.experimental.and
 import kotlin.experimental.or
 import kotlin.experimental.xor
 
-val IGNORE_LIST = listOf(
-    WyvernAtomicizer.atomicizeSignature().id(),
-    Binary.apply("0x6d5cb2f5") //TODO: need support ALPHA-339
-)
-
 @Component
 class OpenSeaOrderEventConverter(
     private val priceUpdateService: PriceUpdateService,
@@ -272,5 +267,13 @@ class OpenSeaOrderEventConverter(
             OrderSide.LEFT -> OrderSide.RIGHT
             OrderSide.RIGHT -> OrderSide.LEFT
         }
+    }
+
+    private companion object {
+        val IGNORE_LIST = listOf(
+            WyvernAtomicizer.atomicizeSignature().id(),
+            Binary.apply("0x6d5cb2f5"), //TODO: need support ALPHA-339,
+            Binary.apply("0x1c14edea") //TODO: need support ALPHA-339,
+        )
     }
 }
