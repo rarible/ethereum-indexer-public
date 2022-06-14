@@ -27,6 +27,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -140,6 +141,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     lateinit var blockRepository: BlockRepository
+
+    @Autowired
+    lateinit var approvalHistoryRepository: ApprovalHistoryRepository
 
     protected lateinit var parity: MonoParity
 

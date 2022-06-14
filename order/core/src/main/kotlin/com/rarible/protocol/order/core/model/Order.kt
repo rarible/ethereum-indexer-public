@@ -77,10 +77,15 @@ data class Order(
      *  This is needed to not corrupt production database completely if we need to revert the above commit.
      *  That commit removes the field, and the old production release will not be able to start.
      */
-    val version: Long? = 1
+    val version: Long? = 1,
+
+    /**
+     * Has been ApproveForAll or Approve event applied for sale/bid token
+     */
+    val approved: Boolean = true
 ) {
     init {
-        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data)
+        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved)
     }
 
     fun forV1Tx() = run {
@@ -144,7 +149,7 @@ data class Order(
 
     fun withUpdatedStatus(updateTime: Instant = nowMillis()): Order {
         return copy(
-            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data),
+            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved),
             lastUpdateAt = updateTime
         )
     }
@@ -212,12 +217,14 @@ data class Order(
             cancelled: Boolean,
             start: Long?,
             end: Long?,
-            data: OrderData
+            data: OrderData,
+            approved: Boolean
         ): OrderStatus {
             return when {
                 data.isMakeFillOrder && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
+                approved.not() -> OrderStatus.INACTIVE
                 makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
