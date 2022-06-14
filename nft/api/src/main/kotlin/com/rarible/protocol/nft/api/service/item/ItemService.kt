@@ -29,6 +29,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -72,6 +73,7 @@ class ItemService(
         val parts = cacheService
             .get(itemId.toString(), royaltyCacheDescriptor, true)
             .awaitSingle()
+        logger.debug("Got royalty for item - $ItemId from cache: $parts")
         NftItemRoyaltyListDto(parts.map { NftItemRoyaltyDto(it.account, it.value) })
     }
 
@@ -130,5 +132,9 @@ class ItemService(
             useMetaCache = true,
             scheduleIfNeeded = false
         )
+    }
+
+    companion object {
+        private val logger = LoggerFactory.getLogger(ItemService::class.java)
     }
 }
