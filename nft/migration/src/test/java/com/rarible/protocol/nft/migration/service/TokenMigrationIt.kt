@@ -40,6 +40,6 @@ class TokenMigrationIt  : AbstractIntegrationTest() {
         ChangeLog00022dbUpdateAt().updateToken(template)
 
         val updatedTokens = tokenRepository.findAll().asFlow().toList()
-        assertThat(updatedTokens).isSortedAccordingTo { o1, o2 -> compareValues(o1.dbUpdatedAt, o2.dbUpdatedAt) }
+        updatedTokens.forEach { assertThat(it.dbUpdatedAt).isNotNull() }
     }
 }
