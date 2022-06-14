@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter.Companion.IGNORE_LIST
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
