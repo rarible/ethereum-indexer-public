@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
 import com.rarible.protocol.nft.core.data.createRandomItemId
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.getText
+import com.rarible.protocol.nft.core.service.item.meta.getText
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 

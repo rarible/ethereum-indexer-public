@@ -93,10 +93,9 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
     private fun createItemMeta(): NftItemMetaDto {
         return NftItemMetaDto(
             name = "Test",
-            description = null,
-            attributes = null,
-            image = null,
-            animation = null
+            tags = emptyList(),
+            genres = emptyList(),
+            content = emptyList()
         )
     }
 

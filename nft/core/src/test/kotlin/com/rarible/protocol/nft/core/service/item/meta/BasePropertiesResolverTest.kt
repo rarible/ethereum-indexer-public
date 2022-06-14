@@ -1,12 +1,29 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.core.meta.resource.detector.ContentDetector
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
+import com.rarible.core.meta.resource.http.DefaultHttpClient
+import com.rarible.core.meta.resource.http.ExternalHttpClient
+import com.rarible.core.meta.resource.http.OpenseaHttpClient
+import com.rarible.core.meta.resource.http.ProxyHttpClient
+import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.builder.ProxyWebClientBuilder
+import com.rarible.core.meta.resource.parser.UrlParser
+import com.rarible.core.meta.resource.resolver.ConstantGatewayProvider
+import com.rarible.core.meta.resource.resolver.IpfsGatewayResolver
+import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
+import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
+import com.rarible.core.meta.resource.resolver.UrlResolver
+import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.TokenRepository
-import com.rarible.protocol.nft.core.service.IpfsService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.BlockchainTokenUriResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesHttpLoader
+import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.cache.IpfsContentCache
+import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -41,27 +58,52 @@ abstract class BasePropertiesResolverTest {
         Address.ZERO()
     )
 
+    private val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = true)
+    private val proxyWebClientBuilder = ProxyWebClientBuilder(
+        readTimeout = 10000,
+        connectTimeout = 3000,
+        proxyUrl = proxyUrl,
+        followRedirect = true
+    )
+
+    private val defaultHttpClient = DefaultHttpClient(
+        builder = defaultWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+    private val proxyHttpClient = ProxyHttpClient(
+        builder = proxyWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT
+    )
+
+    private val openseaHttpClient = OpenseaHttpClient(
+        builder = proxyWebClientBuilder,
+        requestTimeout = REQUEST_TIMEOUT,
+        openseaUrl = openseaUrl,
+        openseaApiKey = openseaApiKey,
+        proxyUrl = proxyUrl,
+    )
+
     protected val externalHttpClient = ExternalHttpClient(
-        openseaUrl = "https://api.opensea.io/api/v1",
-        openseaApiKey = "",
-        readTimeout = 10000,
-        connectTimeout = 3000,
-        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
+        defaultClient = defaultHttpClient,
+        proxyClient = proxyHttpClient,
+        customClients = listOf(openseaHttpClient)
     )
 
-    protected val polygonExternalHttpClient = ExternalHttpClient(
-        openseaUrl = "https://api.opensea.io/api/v2",
-        openseaApiKey = "",
-        readTimeout = 10000,
-        connectTimeout = 3000,
-        proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
-    )
+    private val urlParser = UrlParser()
 
-    protected val ipfsService = IpfsService(
-        NftIndexerProperties.IpfsProperties(
-            IPFS_PUBLIC_GATEWAY,
-            IPFS_PUBLIC_GATEWAY
+    protected val publicGatewayProvider = ConstantGatewayProvider(IPFS_PUBLIC_GATEWAY.trimEnd('/'))
+    private val internalGatewaysProvider = RandomGatewayProvider(IPFS_PUBLIC_GATEWAY.split(",").map { it.trimEnd('/') })
+    private val urlResolver = UrlResolver(
+        ipfsGatewayResolver = IpfsGatewayResolver(
+            publicGatewayProvider = publicGatewayProvider,
+            internalGatewayProvider = internalGatewaysProvider,
+            customGatewaysResolver = LegacyIpfsGatewaySubstitutor(emptyList()) // For handle Legacy gateways
         )
+    )
+
+    protected val urlService = UrlService(
+        urlParser = urlParser,
+        urlResolver = urlResolver,
     )
 
     protected val tokenUriResolver = BlockchainTokenUriResolver(
@@ -70,9 +112,32 @@ abstract class BasePropertiesResolverTest {
         requestTimeout = REQUEST_TIMEOUT
     )
 
-    protected val propertiesHttpLoader = PropertiesHttpLoader(
+    private val contentDetector = ContentDetector()
+
+    private val embeddedContentDetector = EmbeddedContentDetector(contentDetector)
+
+    protected val itemPropertiesUrlSanitizer = ItemPropertiesUrlSanitizer(embeddedContentDetector)
+
+    protected val ipfsContentCache: IpfsContentCache = mockk()
+
+    protected val featureFlags: FeatureFlags = FeatureFlags()
+
+    protected val rawPropertiesProvider = RawPropertiesProvider(
+        rawPropertiesCacheService = RawPropertiesCacheService(
+            caches = listOf(
+                ipfsContentCache
+            )
+        ),
+        urlService = urlService,
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT
+        featureFlags = featureFlags
+    )
+
+    protected val rariblePropertiesResolver = RariblePropertiesResolver(
+        urlService = urlService,
+        rawPropertiesProvider = rawPropertiesProvider,
+        tokenUriResolver = tokenUriResolver,
+        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
     )
 
     @BeforeEach
@@ -91,8 +156,13 @@ abstract class BasePropertiesResolverTest {
         )
     }
 
-    protected companion object {
+    companion object {
         const val REQUEST_TIMEOUT: Long = 20000
         const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
+        const val CID = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"
+        const val ID = "id"
+        const val openseaUrl = "https://api.opensea.io/api/v1"
+        const val openseaApiKey = ""
+        val proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""
     }
 }

@@ -7,7 +7,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
@@ -26,12 +25,6 @@ import scalether.domain.Address
 class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
 
     private val lazyNftItemHistoryRepository = mockk<LazyNftItemHistoryRepository>()
-
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        ipfsService = ipfsService,
-        propertiesHttpLoader = propertiesHttpLoader,
-        tokenUriResolver = tokenUriResolver
-    )
 
     @BeforeEach
     @Suppress("ReactiveStreamsUnusedPublisher")
@@ -59,7 +52,7 @@ class RariblePropertiesResolverTest : BasePropertiesResolverTest() {
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = name,
-                image = "${ipfsService.publicGateway}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
+                image = "${publicGatewayProvider.getGateway()}/ipfs/Qmf6we8fwu8KEou5s2iswb1q6bxscbNRmgw5vpmZj18evK",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,
@@ -417,13 +410,14 @@ Token ID: 51561
     fun `arweave net penguin`() = runBlocking<Unit> {
         val penguin = Address.apply("0x63d48ed3f50aba950c17e37ca03356ccd6b6a280")
         mockTokenStandard(penguin, TokenStandard.ERC721)
-        val properties = rariblePropertiesResolver.resolve(ItemId(penguin, EthUInt256.of(9003)))!!
+        val properties = rariblePropertiesResolver.resolve(ItemId(penguin, EthUInt256.of(9003)))
 
+        assertThat(properties).isNotNull
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = "Cozy Penguin #9003",
                 description = null,
-                image = "https://arweave.net/veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
+                image = "ar://veLMprs2c--Rl6nXCeakR5FG9K8y4WXt62iLxayrflo/4574.png",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,
@@ -442,13 +436,14 @@ Token ID: 51561
     fun `arweave net metacraft`() = runBlocking<Unit> {
         val metacraft = Address.apply("0x0b1d6565d88f9bf6473e21c2ab58d28a495d7bb5")
         mockTokenStandard(metacraft, TokenStandard.ERC721)
-        val properties = rariblePropertiesResolver.resolve(ItemId(metacraft, EthUInt256.of(8200)))!!
+        val properties = rariblePropertiesResolver.resolve(ItemId(metacraft, EthUInt256.of(8200)))
 
+        assertThat(properties).isNotNull
         assertThat(properties).isEqualTo(
             ItemProperties(
                 name = "Axolotl Gold #8200",
                 description = "Minecraft biome medals hatched from on-chain transactions. Also available as Metacraft's 2022 Season Pass.",
-                image = "https://arweave.net/ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
+                image = "ar://ZVMqJEThT2vs_cYL7CMd4ijLvUqC9Koz2D6sdI1WvGc",
                 imagePreview = null,
                 imageBig = null,
                 animationUrl = null,

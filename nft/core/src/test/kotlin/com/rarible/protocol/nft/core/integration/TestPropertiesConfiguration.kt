@@ -2,6 +2,7 @@ package com.rarible.protocol.nft.core.integration
 
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.dto.NftCollectionEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ReduceSkipTokens
@@ -71,6 +72,11 @@ class TestPropertiesConfiguration {
     @Primary
     @Qualifier("mockItemMetaResolver")
     fun mockItemMetaResolver(): ItemMetaResolver = mockk()
+
+    @Bean
+    @Primary
+    @Qualifier("mockExternalHttpClient")
+    fun mockExternalHttpClient(): ExternalHttpClient = mockk()
 
     @Bean
     @Primary

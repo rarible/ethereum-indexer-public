@@ -29,13 +29,8 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
     }
     private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
-        externalHttpClient = ExternalHttpClient(
-            openseaUrl = "",
-            openseaApiKey = "",
-            readTimeout = 10000,
-            connectTimeout = 10000,
-            proxyUrl = ""
-        ),
+        urlService = urlService,
+        rawPropertiesProvider = rawPropertiesProvider,
         nftIndexerProperties = nftIndexerProperties
     )
     private val resolver = EnsDomainsPropertiesResolver(
@@ -60,13 +55,14 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         assertThat(properties.imageBig).isNull()
         assertThat(properties.animationUrl).isNull()
         assertThat(properties.attributes).containsExactlyInAnyOrder(
-            ItemAttribute("Created Date", null),
+            ItemAttribute("Created Date", "2019-11-12T20:14:29Z", "string", "date-time"),
             ItemAttribute("Length", "7"),
             ItemAttribute("Registration Date", "2020-02-05T21:32:36Z", "string", "date-time"),
             ItemAttribute("Expiration Date", "2030-11-12T12:15:41Z", "string", "date-time"),
             ItemAttribute("Character Set", "letter", null, null),
+            ItemAttribute("Segment Length", "7")
         )
-        assertThat(properties.rawJsonContent).isEqualTo("{\"is_normalized\":true,\"name\":\"rarible.eth\",\"description\":\"rarible.eth, an ENS name.\",\"attributes\":[{\"trait_type\":\"Created Date\",\"display_type\":\"date\",\"value\":null},{\"trait_type\":\"Length\",\"display_type\":\"number\",\"value\":7},{\"trait_type\":\"Character Set\",\"display_type\":\"string\",\"value\":\"letter\"},{\"trait_type\":\"Registration Date\",\"display_type\":\"date\",\"value\":1580938356000},{\"trait_type\":\"Expiration Date\",\"display_type\":\"date\",\"value\":1920716141000}],\"name_length\":7,\"url\":\"https://app.ens.domains/name/rarible.eth\",\"version\":0,\"background_image\":\"https://metadata.ens.domains/mainnet/avatar/rarible.eth\",\"image\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\",\"image_url\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\"}")
+        assertThat(properties.rawJsonContent).isEqualTo("{\"is_normalized\":true,\"name\":\"rarible.eth\",\"description\":\"rarible.eth, an ENS name.\",\"attributes\":[{\"trait_type\":\"Created Date\",\"display_type\":\"date\",\"value\":1573589669000},{\"trait_type\":\"Length\",\"display_type\":\"number\",\"value\":7},{\"trait_type\":\"Segment Length\",\"display_type\":\"number\",\"value\":7},{\"trait_type\":\"Character Set\",\"display_type\":\"string\",\"value\":\"letter\"},{\"trait_type\":\"Registration Date\",\"display_type\":\"date\",\"value\":1580938356000},{\"trait_type\":\"Expiration Date\",\"display_type\":\"date\",\"value\":1920716141000}],\"name_length\":7,\"segment_length\":7,\"url\":\"https://app.ens.domains/name/rarible.eth\",\"version\":0,\"background_image\":\"https://metadata.ens.domains/mainnet/avatar/rarible.eth\",\"image\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\",\"image_url\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\"}")
         coVerify(exactly = 1) {
             ensDomainService.onGetProperties(
                 withArg {

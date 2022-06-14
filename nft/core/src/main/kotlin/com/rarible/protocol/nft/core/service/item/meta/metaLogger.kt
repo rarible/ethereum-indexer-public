@@ -6,11 +6,20 @@ import org.slf4j.LoggerFactory
 
 private val logger: Logger = LoggerFactory.getLogger("item-meta-loading")
 
-internal fun logMetaLoading(itemId: ItemId, message: String, warn: Boolean = false) {
-    val logMessage = "Meta of ${itemId.decimalStringValue}: $message"
+fun logMetaLoading(itemId: ItemId, message: String, warn: Boolean = false) {
+    logMetaLoading(itemId.decimalStringValue, message, warn)
+}
+
+fun <T> logMetaLoading(id: T, message: String, warn: Boolean = false) =
+    logger.logMetaLoading(id.toString(), message, warn)
+
+fun logMetaLoading(id: String, message: String, warn: Boolean = false) = logger.logMetaLoading(id, message, warn)
+
+fun Logger.logMetaLoading(id: String, message: String, warn: Boolean = false) {
+    val logMessage = "Meta of $id: $message"
     if (warn) {
-        logger.warn(logMessage)
+        this.warn(logMessage)
     } else {
-        logger.info(logMessage)
+        this.info(logMessage)
     }
 }

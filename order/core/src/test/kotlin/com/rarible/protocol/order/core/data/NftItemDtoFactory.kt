@@ -40,7 +40,7 @@ fun createNftItemDto(token: Address = AddressFactory.create(), tokenId: BigInteg
         deleted = false,
         lastUpdatedAt = nowMillis(),
         pending = emptyList(),
-        meta = NftItemMetaDto("Test", null, null, null, null)
+        meta = NftItemMetaDto(name = "Test", genres = emptyList(), tags = emptyList(), content = emptyList())
     )
 }
 

@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.migration.mongock.mongo
 import com.github.cloudyrock.mongock.ChangeLog
 import com.github.cloudyrock.mongock.ChangeSet
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import io.changock.migration.api.annotations.NonLockGuarded
 import kotlinx.coroutines.Deferred
@@ -29,12 +29,13 @@ class ChangeLog00014UploadSvgsForCryptoPunks {
     @ChangeSet(id = "ChangeLog00014UploadSvgsForCryptoPunks.create", order = "1", author = "protocol")
     fun uploadCryptoPunksSvgs(
         @NonLockGuarded cryptoPunksPropertiesResolver: CryptoPunksPropertiesResolver,
-        @NonLockGuarded ipfsService: IpfsService,
+        @NonLockGuarded urlService: UrlService,
         @NonLockGuarded nftIndexerProperties: NftIndexerProperties
     ) = runBlocking<Unit> {
         val address = Address.apply(nftIndexerProperties.cryptoPunksContractAddress)
         if (address == Address.ZERO()) return@runBlocking
-        val url = "${ipfsService.publicGateway}/ipfs/QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD"
+        val url = urlService.resolvePublicHttpUrl("QmVRJcGax4AavhGCJp4oxGC7264qPNdWHwQCsdSN8bs2YD")
+            ?: return@runBlocking
         val zipResponse = downloadArchive(url).awaitSingle()
         zipResponse.use { zipStream ->
             ZipInputStream(zipStream).use { unzipStream ->

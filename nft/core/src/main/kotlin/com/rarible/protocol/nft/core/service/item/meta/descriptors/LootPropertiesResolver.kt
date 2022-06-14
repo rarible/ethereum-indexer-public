@@ -6,8 +6,9 @@ import com.rarible.protocol.contracts.external.loot.LootMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.SvgSanitizer
@@ -24,8 +25,7 @@ import scalether.transaction.MonoTransactionSender
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class LootPropertiesResolver(
     sender: MonoTransactionSender,
-    val mapper: ObjectMapper,
-    val ipfsService: IpfsService
+    val mapper: ObjectMapper
 ) : ItemPropertiesResolver {
 
     private val contract = LootMeta(LOOT_ADDRESS, sender)

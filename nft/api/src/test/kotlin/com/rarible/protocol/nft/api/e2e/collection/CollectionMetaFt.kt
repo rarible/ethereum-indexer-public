@@ -52,11 +52,11 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
             image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
-            externalLink = "https://feudalz.io",
+            externalUri = "https://feudalz.io",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d", any()) } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256
@@ -86,11 +86,11 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
             image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
-            externalLink = "https://feudalz.io",
+            externalUri = "https://feudalz.io",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d", any()) } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256
@@ -111,7 +111,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                     properties = TokenProperties(
                         name = "Feudalz",
                         description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
-                        externalLink = "https://feudalz.io",
+                        externalUri = "https://feudalz.io",
                         image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
                         feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                         sellerFeeBasisPoints = 250
@@ -121,7 +121,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                 updateDate = Date.from(Instant.now())
             ), TOKEN_METADATA_COLLECTION
         ).awaitSingle()
-        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d", any()) } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256
@@ -154,7 +154,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                     properties = TokenProperties(
                         name = "Feudalz",
                         description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
-                        externalLink = "https://feudalz.io",
+                        externalUri = "https://feudalz.io",
                         image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
                         feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                         sellerFeeBasisPoints = 250
@@ -164,7 +164,7 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                 updateDate = Date.from(Instant.now())
             ), TOKEN_METADATA_COLLECTION
         ).awaitSingle()
-        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d") } returns ContentMeta(
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d", any()) } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256
@@ -183,11 +183,11 @@ class CollectionMetaFt : SpringContainerBaseTest() {
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
             image = "https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120",
-            externalLink = "https://feudalz.io",
+            externalUri = "https://feudalz.io",
             feeRecipient = Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"),
             sellerFeeBasisPoints = 250
         )
-        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120") } returns ContentMeta(
+        coEvery { mockMediaMetaService.getMediaMetaFromCache("https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120", any()) } returns ContentMeta(
             type = "image/png",
             width = 256,
             height = 256

@@ -8,6 +8,7 @@ import com.rarible.core.logging.LoggingUtils
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory

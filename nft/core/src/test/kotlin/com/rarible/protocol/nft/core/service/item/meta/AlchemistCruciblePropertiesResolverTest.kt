@@ -13,7 +13,7 @@ import java.math.BigInteger
 @ItemMetaTest
 class AlchemistCruciblePropertiesResolverTest : BasePropertiesResolverTest() {
 
-    private val resolver = AlchemistCruciblePropertiesResolver(propertiesHttpLoader)
+    private val resolver = AlchemistCruciblePropertiesResolver(urlService, rawPropertiesProvider)
 
     @Test
     fun `get properties`() = runBlocking<Unit> {

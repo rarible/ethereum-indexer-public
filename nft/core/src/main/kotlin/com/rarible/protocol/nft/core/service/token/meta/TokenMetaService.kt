@@ -1,11 +1,14 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.nft.core.model.TokenMeta
+import com.rarible.protocol.nft.core.model.meta.EthImageProperties
+import com.rarible.protocol.nft.core.model.meta.EthMetaContent
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -25,11 +28,21 @@ class TokenMetaService(
 
     suspend fun get(id: Address): TokenMeta {
         val properties = tokenPropertiesService.resolve(id)
-        return if (properties == null) TokenMeta.EMPTY else {
+
+        // TODO originally, it should be done in resolve procedure
+        val withContent = properties?.image?.let {
+            properties.copy(
+                content = listOf(
+                    EthMetaContent(it, MetaContentDto.Representation.ORIGINAL, null, EthImageProperties())
+                )
+            )
+        } ?: properties
+
+        return if (withContent == null) TokenMeta.EMPTY else {
             TokenMeta(
-                properties = properties,
-                contentMeta = properties.image?.let {
-                    mediaMetaService.getMediaMetaFromCache(it)
+                properties = withContent,
+                contentMeta = withContent.image?.let {
+                    mediaMetaService.getMediaMetaFromCache(it, id.prefixed())
                 }
             )
         }

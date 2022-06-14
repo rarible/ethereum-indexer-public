@@ -1,23 +1,28 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.core.common.ifNotBlank
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.IpfsService
+import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesProvider
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.ShortUrlResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class RariblePropertiesResolver(
-    private val ipfsService: IpfsService,
-    private val propertiesHttpLoader: PropertiesHttpLoader,
-    private val tokenUriResolver: BlockchainTokenUriResolver
+    private val urlService: UrlService,
+    private val rawPropertiesProvider: RawPropertiesProvider,
+    private val tokenUriResolver: BlockchainTokenUriResolver,
+    private val itemPropertiesUrlSanitizer: ItemPropertiesUrlSanitizer
 ) : ItemPropertiesResolver {
 
     override val name get() = "Rarible"
@@ -57,36 +62,23 @@ class RariblePropertiesResolver(
         val json = JsonPropertiesParser.parse(itemId, tokenUri)
         val properties = when {
             (json != null) -> JsonPropertiesMapper.map(itemId, json)
-            else -> getByUri(itemId, tokenUri)
+            else -> getByUri(itemId, tokenUri)?.copy(tokenUri = tokenUri)
         } ?: return null
 
         val result = properties.fixEmptyName(itemId)
-        return ItemPropertiesUrlSanitizer.sanitize(itemId, result)
+        return itemPropertiesUrlSanitizer.sanitize(itemId, result)
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
-        if (uri.isBlank()) {
-            return null
-        }
+        uri.ifNotBlank() ?: return null
+        val resource = urlService.parseUrl(uri, itemId.toString()) ?: return null
+        val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
-        val httpUrl = ipfsService.resolveInnerHttpUrl(
-            ShortUrlResolver.resolve(uri)
+        return ItemPropertiesProvider.provide(
+            itemId = itemId,
+            httpUrl = urlService.resolveInternalHttpUrl(resource),
+            rawProperties = rawProperties
         )
-        logMetaLoading(itemId, "getting properties by URI: $uri resolved as HTTP $httpUrl")
-
-        val propertiesString = propertiesHttpLoader.getByUrl(itemId, httpUrl) ?: return null
-
-        return try {
-            logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
-            if (propertiesString.length > 1_000_000) {
-                logMetaLoading(itemId, "suspiciously big item properties ${propertiesString.length} for $httpUrl", warn = true)
-            }
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { JsonPropertiesMapper.map(itemId, json) }
-        } catch (e: Error) {
-            logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
-            null
-        }
     }
 
     private suspend fun ItemProperties.fixEmptyName(itemId: ItemId): ItemProperties {

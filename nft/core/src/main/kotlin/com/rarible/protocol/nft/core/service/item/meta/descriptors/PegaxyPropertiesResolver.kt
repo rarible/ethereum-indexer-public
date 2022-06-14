@@ -1,10 +1,12 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
+import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.stereotype.Component
@@ -12,7 +14,7 @@ import scalether.domain.Address
 
 @Component
 class PegaxyPropertiesResolver(
-    private val propertiesHttpLoader: PropertiesHttpLoader
+    private val externalHttpClient: ExternalHttpClient
 ) : ItemPropertiesResolver {
 
     override val name = "Pegaxy"
@@ -22,11 +24,11 @@ class PegaxyPropertiesResolver(
             return null
         }
         val httpUrl = "https://api-apollo.pegaxy.io/v1/game-api/pega/${itemId.tokenId.value}"
-        val propertiesString = propertiesHttpLoader.getByUrl(itemId, httpUrl) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = httpUrl, id = itemId.toString()) ?: return null
 
         val result = try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
+            val json = JsonPropertiesParser.parse(itemId, rawProperties)
             json?.get("pega")?.let { node ->
                 return ItemProperties(
                     name = node.getText("name") ?: "",
