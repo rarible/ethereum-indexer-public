@@ -13,6 +13,7 @@ common:
   operator-private-key: "0x0000000000000000000000000000000000000000000000000000000000000000"
   protocol-commission: 100
   metric-root-path: "protocol.order.indexer"
+  kafka-replica-set: ${kafka.hosts}
 
   exchange-contract-addresses:
     v1: "0000000000000000000000000000000000000000"

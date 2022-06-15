@@ -7,6 +7,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.ext.MongoCleanup
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.model.Asset
@@ -33,12 +34,14 @@ import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
+import org.springframework.test.context.ActiveProfiles
 
 @MongoTest
 @DataMongoTest
 @MongoCleanup
 @EnableAutoConfiguration
-@ContextConfiguration(classes = [RepositoryConfiguration::class])
+@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
+@ActiveProfiles("integration")
 internal class OrderVersionRepositoryTest {
 
     @Autowired

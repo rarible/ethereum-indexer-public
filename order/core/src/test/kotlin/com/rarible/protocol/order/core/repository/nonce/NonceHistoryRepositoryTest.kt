@@ -8,6 +8,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import io.daonomic.rpc.domain.Word
@@ -18,12 +19,14 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 
 @MongoTest
 @DataMongoTest
-@ContextConfiguration(classes = [RepositoryConfiguration::class])
+@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
 @EnableAutoConfiguration
+@ActiveProfiles("integration")
 internal class NonceHistoryRepositoryTest {
 
     @Autowired

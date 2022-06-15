@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.ext.MongoTest
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
@@ -19,13 +20,15 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
 import scalether.domain.Address
 
 @MongoTest
 @DataMongoTest
 @EnableAutoConfiguration
-@ContextConfiguration(classes = [RepositoryConfiguration::class])
+@ContextConfiguration(classes = [RepositoryConfiguration::class, TestPropertiesConfiguration::class])
+@ActiveProfiles("integration")
 internal class OrderRepositoryIt {
 
     @Autowired

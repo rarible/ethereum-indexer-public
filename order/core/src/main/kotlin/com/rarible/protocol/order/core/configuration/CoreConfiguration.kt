@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.configuration
 
+import com.rarible.contracts.erc721.ApprovalForAllEvent
 import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
 import com.rarible.core.reduce.service.ReduceService
 import com.rarible.ethereum.contract.EnableContractService
@@ -13,6 +14,7 @@ import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.producer.ProducerPackage
+import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
@@ -65,7 +67,10 @@ class CoreConfiguration {
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService = LogEventService(
         ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION } +
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
-        mapOf(NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION),
+        mapOf(
+            NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
+            ApprovalForAllEvent.id() to ApprovalHistoryRepository.COLLECTION
+        ),
         mongo
     )
 
