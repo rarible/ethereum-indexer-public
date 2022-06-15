@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.ItemTransferDto
+import com.rarible.protocol.dto.NftOwnershipIdsDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
@@ -111,5 +112,18 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         assertThat(ownershipDto.ownerships).hasSize(1)
         assertThat(ownershipDto.ownerships[0].id).isEqualTo(ownership.id.decimalStringValue)
         assertThat(ownershipDto.continuation).isNull()
+    }
+
+    @Test
+    fun `should get ownerships by ids`() = runBlocking<Unit> {
+        val ownerships = (1..5).map { createOwnership() }
+            .sortedBy { it.id.stringValue }
+            .onEach { ownershipRepository.save(it).awaitFirst() }
+
+        val idsDto = NftOwnershipIdsDto(ownerships.map { it.id.stringValue })
+        val result = nftOwnershipApiClient.getNftOwnershipsByIds(idsDto).awaitFirst()
+
+        assertThat(result.ownerships).hasSize(idsDto.ids.size)
+        assertThat(result.ownerships.map { it.id }).isEqualTo(idsDto.ids.map { OwnershipId.parseId(it).decimalStringValue })
     }
 }

@@ -43,6 +43,9 @@ common:
   opensea-eip712-domain-name: Wyvern Exchange Contract
   opensea-eip712-domain-version: 2.3
   metric-root-path: "protocol.order.indexer"
+  expired-bid-worker:
+    polling-period: PT10M # 10 minutes period
+    rarible-bid-expire-period: P60D #2 months period
 
 springdoc:
   swagger-ui:

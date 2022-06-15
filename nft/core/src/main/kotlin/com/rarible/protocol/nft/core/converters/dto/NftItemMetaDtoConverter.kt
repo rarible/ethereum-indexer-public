@@ -1,12 +1,12 @@
 package com.rarible.protocol.nft.core.converters.dto
 
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.protocol.dto.NftItemAttributeDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.dto.NftMediaMetaDto
 import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
 import com.rarible.protocol.nft.core.misc.trimToLength
 import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.ItemAttribute
@@ -16,7 +16,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class NftItemMetaDtoConverter(
-    nftIndexerProperties: NftIndexerProperties
+    nftIndexerProperties: NftIndexerProperties,
+    private val embeddedContentDetector: EmbeddedContentDetector
 ) {
 
     val baseImageUrl = getBaseImageUrl(nftIndexerProperties.basePublicApiUrl)
@@ -33,7 +34,16 @@ class NftItemMetaDtoConverter(
             description = trimmedDescription,
             attributes = source.properties.attributes.map { convert(it) },
             image = createImageMedia(source, itemIdDecimalValue),
-            animation = createAnimationMedia(source, itemIdDecimalValue)
+            animation = createAnimationMedia(source, itemIdDecimalValue),
+            createdAt = source.properties.createdAt,
+            tags = source.properties.tags,
+            genres = source.properties.genres,
+            language = source.properties.language,
+            rights = source.properties.rights,
+            rightsUri = source.properties.rightsUri,
+            externalUri = source.properties.externalUri,
+            content = source.properties.content.map { EthMetaContentConverter.convert(it) },
+            originalMetaUri = source.properties.tokenUri
         )
     }
 
@@ -45,7 +55,11 @@ class NftItemMetaDtoConverter(
 
             val meta = source.itemContentMeta.imageMeta
                 ?.let { convert(it) }
-                ?.let { mapOf((if (source.properties.imagePreview != null) NftMediaSizeDto.PREVIEW.name else NftMediaSizeDto.ORIGINAL.name) to it) }
+                ?.let {
+                    mapOf(
+                        (if (source.properties.imagePreview != null) NftMediaSizeDto.PREVIEW.name else NftMediaSizeDto.ORIGINAL.name) to it
+                    )
+                }
                 ?: emptyMap()
             NftMediaDto(url, meta)
         } else {
@@ -79,8 +93,13 @@ class NftItemMetaDtoConverter(
         } ?: emptyMap()
     }
 
-    private fun sanitizeNestedImage(url: String, size: String, itemIdDecimalValue: String, isAnimation: Boolean): String {
-        EmbeddedImageDetector.getDetector(url) ?: return url
+    private fun sanitizeNestedImage(
+        url: String,
+        size: String,
+        itemIdDecimalValue: String,
+        isAnimation: Boolean
+    ): String {
+        embeddedContentDetector.detect(url) ?: return url
         return "$baseImageUrl/$itemIdDecimalValue/image?size=$size&animation=${isAnimation}&hash=${url.hashCode()}"
     }
 

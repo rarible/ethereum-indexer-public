@@ -22,7 +22,7 @@ object NftItemDtoFactory {
         pending = emptyList(),
         lastUpdatedAt = nowMillis(),
         deleted = false,
-        meta = NftItemMetaDto("Test", null, null, null, null)
+        meta = NftItemMetaDto(name = "Test", genres = emptyList(), tags = emptyList(), content = emptyList())
     )
 
 }

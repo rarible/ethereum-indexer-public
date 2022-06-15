@@ -32,5 +32,6 @@ fun randomItemProperties() = ItemProperties(
     imageBig = randomString(),
     animationUrl = randomString(),
     attributes = listOf(ItemAttribute(randomString(), randomString(), randomString(), randomString())),
-    rawJsonContent = """{"name": "value"}"""
+    rawJsonContent = """{"name": "value"}""",
+    content = emptyList()
 )

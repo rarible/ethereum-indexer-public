@@ -3,18 +3,20 @@ package com.rarible.protocol.nft.core.service.item.meta.descriptors
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.service.UrlService
+import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
-import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
-import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
-import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesProvider
+import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class AlchemistCruciblePropertiesResolver(
-    private val propertiesHttpLoader: PropertiesHttpLoader
+    private val urlService: UrlService,
+    private val rawPropertiesProvider: RawPropertiesProvider
 ) : ItemPropertiesResolver {
 
     override val name = "AlchemistCrucibleV1"
@@ -24,22 +26,18 @@ class AlchemistCruciblePropertiesResolver(
             return null
         }
         val httpUrl = "https://crucible.wtf/nft-meta/${itemId.tokenId.value}?network=1"
-        val propertiesString = propertiesHttpLoader.getByUrl(itemId, httpUrl) ?: return null
 
-        val result = try {
-            logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
-            val json = JsonPropertiesParser.parse(itemId, propertiesString)
-            json?.let { JsonPropertiesMapper.map(itemId, json) }
-        } catch (e: Error) {
-            logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
-            null
-        }
+        val resource = urlService.parseUrl(httpUrl, itemId.toString()) ?: return null
+        val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
-        return result ?: throw ItemResolutionAbortedException()
+        return ItemPropertiesProvider.provide(
+            itemId = itemId,
+            httpUrl = urlService.resolveInternalHttpUrl(resource),
+            rawProperties = rawProperties
+        ) ?: throw ItemResolutionAbortedException()
     }
 
     companion object {
-
         val ALCHEMIST_CRUCIBLE_V1_ADDRESS = Address.apply("0x54e0395cfb4f39bef66dbcd5bd93cca4e9273d56")
     }
 

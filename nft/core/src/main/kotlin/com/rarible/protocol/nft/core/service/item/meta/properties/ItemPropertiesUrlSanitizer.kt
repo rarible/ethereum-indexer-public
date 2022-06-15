@@ -1,9 +1,14 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
+import org.springframework.stereotype.Component
 
-object ItemPropertiesUrlSanitizer {
+@Component
+class ItemPropertiesUrlSanitizer(
+    private val embeddedContentDetector: EmbeddedContentDetector
+) {
 
     fun sanitize(itemId: ItemId, properties: ItemProperties): ItemProperties {
         return properties.copy(
@@ -19,10 +24,8 @@ object ItemPropertiesUrlSanitizer {
             return null
         }
 
-        val fixedUrl = ShortUrlResolver.resolve(url)
+        val svg = SvgSanitizer.sanitize(itemId, url)
 
-        val svg = SvgSanitizer.sanitize(itemId, fixedUrl)
-
-        return svg ?: fixedUrl
+        return svg ?: url
     }
 }

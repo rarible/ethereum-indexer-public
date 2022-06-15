@@ -15,7 +15,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -34,20 +33,14 @@ import kotlin.io.path.toPath
 @ItemMetaTest
 @EnabledIfSystemProperty(named = "RARIBLE_TESTS_OPENSEA_PROXY_URL", matches = ".+")
 class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
-    private val rariblePropertiesResolver = RariblePropertiesResolver(
-        ipfsService = ipfsService,
-        propertiesHttpLoader = propertiesHttpLoader,
-        tokenUriResolver = tokenUriResolver
-    )
-
-    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, ipfsService)
+    private val hashmasksPropertiesResolver = HashmasksPropertiesResolver(sender, urlService)
     private val mutantsBoredApeYachtClubPropertiesResolver =
-        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient)
+        MutantsBoredApeYachtClubPropertiesResolver(externalHttpClient = externalHttpClient)
 
     private val openSeaPropertiesResolver = OpenSeaPropertiesResolver(
         externalHttpClient = externalHttpClient,
-        requestTimeout = REQUEST_TIMEOUT,
-        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM }
+        properties = mockk { every { blockchain } returns Blockchain.ETHEREUM },
+        openseaUrl = openseaUrl
     )
 
     private val service = ItemPropertiesService(
@@ -59,10 +52,8 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        ipfsService = ipfsService
+        urlService = urlService
     )
-
-    private val jacksonObjectMapper = jacksonObjectMapper()
 
     @BeforeEach
     fun mockStandard() {
@@ -130,8 +121,9 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         copy(attributes = attributes.sortedBy { it.key })
 
     private fun parseExpectedProperties(path: Path): ItemProperties {
-        val jsonNode = jacksonObjectMapper.readTree(path.readText())
-        val expectedMetaDto = jacksonObjectMapper.treeToValue<NftItemMetaDto>(jsonNode)!!
+        val mapper = jacksonObjectMapper()
+        val jsonNode = mapper.readTree(path.readText())
+        val expectedMetaDto = mapper.treeToValue<NftItemMetaDto>(jsonNode)!!
         return expectedMetaDto.itemProperties()
     }
 

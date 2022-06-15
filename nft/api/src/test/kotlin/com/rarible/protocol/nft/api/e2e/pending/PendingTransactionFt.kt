@@ -136,17 +136,16 @@ class PendingTransactionFt : EventAwareBaseTest() {
             }
         }
 
-        val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
         Wait.waitAssert {
             val pendingItemDto = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(pendingItemDto?.pending).hasSize(1)
-            assertThat(pendingItemDto?.meta).isEqualTo(expectedMeta)
+            assertThat(pendingItemDto?.meta).isNull()
         }
 
         Wait.waitAssert {
             assertThat(itemEvents).anySatisfy { event ->
                 assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
-                    assertThat(it.item.meta).isEqualTo(expectedMeta)
+                    assertThat(it.item.id).isEqualTo(itemId.decimalStringValue)
                 }
             }
         }

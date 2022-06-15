@@ -24,6 +24,7 @@ import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipEvent
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
 import io.daonomic.rpc.domain.Word
@@ -380,5 +381,24 @@ fun createRandomBurnItemAction(): BurnItemAction {
         createdAt = Instant.now(),
         state = ActionState.values().random(),
         version = randomLong()
+    )
+}
+
+fun randomTokenProperties(): TokenProperties {
+    return TokenProperties(
+        name = randomString(),
+        description = randomString(),
+        image = "http://test.com/${randomString()}",
+        feeRecipient = randomAddress(),
+        sellerFeeBasisPoints = randomInt(10000),
+        createdAt = nowMillis(),
+        tags = listOf(randomString(), randomString()),
+        genres = listOf(randomString(), randomString()),
+        language = randomString(2),
+        rights = randomString(),
+        rightsUri = randomString(),
+        externalUri = randomString(),
+        tokenUri = "http://localhost:8080/${randomString()}",
+        content = emptyList()
     )
 }

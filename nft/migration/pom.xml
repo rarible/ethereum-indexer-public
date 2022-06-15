@@ -41,6 +41,10 @@
             <artifactId>rarible-core-starter</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-meta-resource</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-converters</artifactId>
         </dependency>
