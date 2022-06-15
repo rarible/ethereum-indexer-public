@@ -39,7 +39,6 @@ class TokenMigrationIt  : AbstractIntegrationTest() {
         ChangeLog00022dbUpdateAt().updateToken(template)
 
         val updatedTokens = tokenRepository.findAll().asFlow().toList()
-        updatedTokens.forEach { println(it) }
         updatedTokens.forEach { assertThat(it.dbUpdatedAt).isNotNull() }
     }
 }
