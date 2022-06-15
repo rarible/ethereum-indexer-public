@@ -6,7 +6,7 @@ import com.rarible.protocol.contracts.erc721.v4.rarible.MintableToken
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value

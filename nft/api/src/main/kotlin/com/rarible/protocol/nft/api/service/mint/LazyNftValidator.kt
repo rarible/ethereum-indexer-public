@@ -13,7 +13,7 @@ import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
 import com.rarible.protocol.nft.api.exceptions.ValidationApiException
 import com.rarible.protocol.nft.core.converters.model.LazyNftDtoToDaonomicLazyNftConverter
 import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scala.Tuple2

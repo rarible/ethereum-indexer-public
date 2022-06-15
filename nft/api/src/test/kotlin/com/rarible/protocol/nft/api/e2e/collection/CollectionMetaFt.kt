@@ -10,7 +10,7 @@ import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.TOKEN_METADATA_COLLECTION
 import io.mockk.coEvery

@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.time.Instant
 
-@Document(collection = "token")
+@Document(collection = Token.COLLECTION)
 data class Token(
     @Id
     override val id: Address,
@@ -17,7 +17,6 @@ data class Token(
     val symbol: String? = null,
     val status: ContractStatus = ContractStatus.CONFIRMED,
     val features: Set<TokenFeature> = emptySet(),
-    @Indexed(background = true)
     val dbUpdatedAt: Instant? = null, // TODO Can't be null after migration
 
     val lastEventId: String? = null,
@@ -48,5 +47,6 @@ data class Token(
             standard = TokenStandard.NONE,
             status = ContractStatus.PENDING
         )
+        const val COLLECTION = "token"
     }
 }

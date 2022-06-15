@@ -26,7 +26,6 @@ class TokenMigrationIt  : AbstractIntegrationTest() {
     @Test
     fun `update dbUpdateField if null`() = runBlocking<Unit> {
         val tokensQuantities = 60
-        val collectionName = "token"
 
         repeat(tokensQuantities) {
             tokenRepository.save(Token.empty().copy(id = randomAddress())).awaitFirst()
@@ -35,11 +34,12 @@ class TokenMigrationIt  : AbstractIntegrationTest() {
 
         val queryMulti = Query(Criteria.where(Token::dbUpdatedAt.name).exists(true))
         val multiUpdate = AggregationUpdate.update().unset(Token::dbUpdatedAt.name)
-        template.updateMulti(queryMulti, multiUpdate, collectionName).awaitFirst()
+        template.updateMulti(queryMulti, multiUpdate, Token.COLLECTION).awaitFirst()
 
         ChangeLog00022dbUpdateAt().updateToken(template)
 
         val updatedTokens = tokenRepository.findAll().asFlow().toList()
+        updatedTokens.forEach { println(it) }
         updatedTokens.forEach { assertThat(it.dbUpdatedAt).isNotNull() }
     }
 }

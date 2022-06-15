@@ -30,7 +30,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.HistoryTopics
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.EntityEventListener
 import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import io.daonomic.rpc.domain.Binary
