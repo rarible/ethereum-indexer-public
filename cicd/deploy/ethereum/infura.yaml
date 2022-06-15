@@ -12,21 +12,11 @@ sharedEnvironments: &sharedEnvironments
   SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   RARIBLE_CORE_CLIENT_K8S: true
-  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
+  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
+  LOGGING_LOGFMT_ENABLED: true
   APPLICATION_ENVIRONMENT: "infura"
-  # this secrets must be assign
-  # RARIBLE_CORE_AGENT_SERVER:
-  # SPRING_DATA_MONGODB_URI:
-  # COMMON_KAFKAREPLICASET:
-  # COMMON_BASEPUBLICAPIURL:
-  # BLOCKCHAIN_SCANNER_KAFKA_BROKERREPLICASET:
-  # RARIBLE_LOADER_BROKERREPLICASET:
-  # RARIBLE_ETHEREUM_HTTPURL:
-  # RARIBLE_ETHEREUM_WEBSOCKETURL:
-
 
 ######## NFT-Indexer ########
-
 nftEnvironment: &nftEnvironment
   <<: *sharedEnvironments
   COMMON_CRYPTOPUNKSCONTRACTADDRESS: "0x6ba6f2207e343923ba692e5cae646fb0f566db8d"
@@ -36,6 +26,8 @@ nftEnvironment: &nftEnvironment
   COMMON_FACTORY_ERC721RARIBLEUSER: "0x6e42262978de5233c8d5b05b128c121fba110da4"
   COMMON_FACTORY_ERC1155RARIBLE: "0x0000000000000000000000000000000000000000"
   COMMON_FACTORY_ERC1155RARIBLEUSER: "0x0000000000000000000000000000000000000000"
+  COMMON_FEATUREFLAGS_SCANNERVERSION: V2
+  COMMON_FEATUREFLAGS_REDUCEVERSION: V2
   SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-nft
 
 ethereum-nft-api:
@@ -49,15 +41,24 @@ ethereum-nft-api:
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
     API_CHAINID: 1
+  resources:
+    jvm:
+      xmx_megabytes: 1536
+      max_direct_memory_megabytes: 512
 
 ethereum-nft-listener:
   tolerations:
     - *sharedTolerations
   environments:
     <<: *nftEnvironment
-    COMMON_FEATUREFLAGS_SCANNERVERSION: V2
-    COMMON_FEATUREFLAGS_REDUCEVERSION: V2
-    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 1
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_ENABLED: true
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 20
+    BLOCKCHAIN_SCANNER_ETHEREUM_MAXBATCHES: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef:1,0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62:1"
+    LISTENER_LOGCONSUMEWORKERCOUNT: 32
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
 
 ethereum-nft-migration:
   tolerations:
@@ -66,7 +67,6 @@ ethereum-nft-migration:
     <<: *nftEnvironment
 
 ######## Order-Indexer ########
-
 orderEnvironment: &orderEnvironment
   <<: *sharedEnvironments
   COMMON_AUCTIONCONTRACTADDRESSES_V1: "0x0000000000000000000000000000000000000000"
@@ -95,6 +95,10 @@ ethereum-order-api:
     - *sharedTolerations
   environments:
     <<: *orderEnvironment
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ethereum-order-listener:
   tolerations:
@@ -114,6 +118,10 @@ ethereum-order-listener:
     ETHEREUMCHECKWRONGHASHDELAY: 20000
     REVERTEDLOGSCHECKJOBBLOCKENABLE: false
     USENEWMONGOINDEX: true
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
 
 ethereum-order-migration:
   tolerations:
@@ -123,7 +131,6 @@ ethereum-order-migration:
 
 
 ######## Erc20-Indexer ########
-
 erc20Environment: &erc20Environment
   <<: *sharedEnvironments
   SPRING_DATA_MONGODB_DATABASE: protocol-ethereum-erc20
@@ -133,6 +140,10 @@ ethereum-erc20-api:
     - *sharedTolerations
   environments:
     <<: *erc20Environment
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ethereum-erc20-listener:
   tolerations:
@@ -145,19 +156,24 @@ ethereum-erc20-listener:
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
     REVERTEDLOGSCHECKJOBBLOCKENABLE: true
-
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ######## Gateway ########
-
 ethereum-gateway:
   tolerations:
     - *sharedTolerations
   environments:
     <<: *sharedEnvironments
     RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ######## Unlockable ########
-
 ethereum-unlockable-api:
   tolerations:
     - *sharedTolerations

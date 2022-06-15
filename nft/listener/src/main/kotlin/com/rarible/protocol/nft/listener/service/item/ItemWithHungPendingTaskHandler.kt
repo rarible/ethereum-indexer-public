@@ -40,7 +40,8 @@ class ItemWithHungPendingTaskHandler(
         return itemRepository.search(query).map { item ->
             val itemId = item.id.stringValue
             val mintedAt = item.mintedAt?.epochSecond
-            if (mintedAt != null && now - mintedAt > checkDistance) {
+            val updatedAt = item.date.epochSecond
+            if ((mintedAt != null && now - mintedAt > checkDistance) || (now - updatedAt > checkDistance)) {
                 logger.info("Found hung item $itemId, mintedAt=${item.mintedAt}. (item=$item)")
             }
             itemId

@@ -23,7 +23,10 @@ class DepositLogDescriptor(
     properties: Erc20ListenerProperties
 ) : Erc20LogEventDescriptor<Erc20TokenHistory> {
 
-    private val addresses = properties.tokens.map { Address.apply(it) }
+    private val addresses = properties.tokens
+        .map { Address.apply(it) }
+        .also { logger.info("Tokens to observe: ${it.joinToString()}") }
+
     override val topic: Word = DepositEvent.id()
 
     override suspend fun convert(log: Log, date: Date): List<Erc20TokenHistory> {
