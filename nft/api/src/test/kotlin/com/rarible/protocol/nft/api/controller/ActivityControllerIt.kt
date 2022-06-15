@@ -11,6 +11,7 @@ import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.api.e2e.End2EndTest
 import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
+import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createItemTransfer
 import com.rarible.protocol.nft.api.e2e.data.createLogEvent
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -49,6 +50,25 @@ class ActivityControllerIt : SpringContainerBaseTest() {
         val result = activityController.getNftActivitiesSync(null, 20, SyncSortDto.DB_UPDATE_ASC)
 
         assertThat(result.body!!.items).hasSize(20)
+        assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
+            compareValues(
+                o1.lastUpdatedAt,
+                o2.lastUpdatedAt
+            )
+        }
+    }
+
+    @Test
+    fun `activity controller test - not only transfer`() = runBlocking<Unit> {
+        val amountNft = 40
+        val size = 20
+        repeat(amountNft / 2) {
+            historyRepository.save(createItemTransfer().copy(data = createItemLazyMint())).awaitFirst()
+            historyRepository.save(createItemTransfer()).awaitFirst()
+        }
+        val result = activityController.getNftActivitiesSync(null, size, SyncSortDto.DB_UPDATE_ASC)
+
+        assertThat(result.body!!.items).hasSize(size)
         assertThat(result.body!!.items).isSortedAccordingTo { o1, o2 ->
             compareValues(
                 o1.lastUpdatedAt,

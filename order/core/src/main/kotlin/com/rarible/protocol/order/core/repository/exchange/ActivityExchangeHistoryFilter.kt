@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.exists
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -27,6 +28,9 @@ sealed class ActivityExchangeHistoryFilter {
     protected companion object {
         val makeNftKey = LogEvent::data / OrderExchangeHistory::make / Asset::type / AssetType::nft
         val takeNftKey = LogEvent::data / OrderExchangeHistory::take / Asset::type / AssetType::nft
+        val takeOrderExchange = LogEvent::data / OrderExchangeHistory::take
+        val makeOrderExchange = LogEvent::data / OrderExchangeHistory::make
+        val makerOrderExchange = LogEvent::data / OrderExchangeHistory::maker
     }
 
     internal abstract fun getCriteria(): Criteria
@@ -44,12 +48,13 @@ sealed class ActivityExchangeHistoryFilter {
 
     class AllSync(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
         override val hint: Document = ExchangeHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
-
         override fun getCriteria(): Criteria {
-            return Criteria()
-                .scrollTo(sort, continuation)
+            return Criteria().andOperator(
+                takeOrderExchange exists true,
+                makeOrderExchange exists true,
+                makerOrderExchange exists true
+            ).scrollTo(sort, continuation)
         }
-
     }
 
     class AllCanceledBid(override val sort: ActivitySort, private val continuation: Continuation?) : ActivityExchangeHistoryFilter() {
