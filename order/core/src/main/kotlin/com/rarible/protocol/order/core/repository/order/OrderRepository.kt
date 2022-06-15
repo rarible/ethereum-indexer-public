@@ -54,4 +54,6 @@ interface OrderRepository {
     suspend fun dropIndexes()
 
     fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word>
+
+    fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word>
 }

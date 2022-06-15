@@ -43,7 +43,8 @@ import scalether.transaction.MonoTransactionSender
     RepositoryConfiguration::class,
     ProducerConfiguration::class,
     ApiClientConfiguration::class,
-    OrderIndexerPropertiesConfiguration::class
+    OrderIndexerPropertiesConfiguration::class,
+    MetricsConfiguration::class
 )
 class CoreConfiguration {
 

@@ -41,6 +41,7 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.time.Instant
 import java.util.*
+import org.springframework.data.mongodb.core.query.where
 
 @CaptureSpan(type = SpanType.DB)
 @Component
@@ -270,6 +271,15 @@ class MongoOrderRepository(
             )
         )
         return template.query<Order>().matching(query).all().asFlow()
+    }
+
+    override fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word> {
+        val criteria = where(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
+            .and(Order::maker).isEqualTo(maker)
+            .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
+        val query = Query(criteria)
+        query.fields().include("_id")
+        return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
     }
 
     private suspend fun dropIndexes(vararg names: String) {

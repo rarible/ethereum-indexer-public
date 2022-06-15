@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceC
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.provider.ProtocolCommissionProvider
+import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
@@ -45,7 +46,8 @@ class OrderReduceService(
     private val priceUpdateService: PriceUpdateService,
     private val openSeaNonceService: OpenSeaNonceService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties
+    private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
+    private val approvalHistoryRepository: ApprovalHistoryRepository
 ) {
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
@@ -325,12 +327,42 @@ class OrderReduceService(
         )
     }
 
+    private suspend fun Order.withApproval(): Order {
+        if (this.status != OrderStatus.ACTIVE) return this
+        return if (this.isBid()) withBidApproval() else withSellApproval()
+    }
+
+    private suspend fun Order.withSellApproval(): Order {
+        val collection = when(val assetType = this.make.type) {
+            is Erc721AssetType -> assetType.token
+            is CollectionAssetType -> assetType.token
+            is GenerativeArtAssetType -> assetType.token
+            is CryptoPunksAssetType -> assetType.token
+            is Erc1155AssetType -> assetType.token
+            is Erc1155LazyAssetType -> assetType.token
+            is Erc721LazyAssetType -> assetType.token
+            else -> return this
+        }
+        val lastApprovalEvent = approvalHistoryRepository.lastApprovalLogEvent(collection, this.maker) ?: return this
+        val approveInfo = lastApprovalEvent.data as ApprovalHistory
+        return if(approveInfo.approved != this.approved) {
+            logger.info("Change order $hash approval to ${approveInfo.approved}!")
+            this.copy(
+                approved = approveInfo.approved,
+                lastEventId = accumulateEventId(this.lastEventId, lastApprovalEvent.id.toHexString())
+            )
+        } else this
+    }
+
+    private suspend fun Order.withBidApproval(): Order = this //todo support ERC20 Approve
+
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedNonce()
             .withCancelOpenSea()
+            .withApproval()
             .withBidExpire()
 
         val saved = orderRepository.save(order)

@@ -262,6 +262,12 @@ object OrderRepositoryIndexes {
         ))
         .background()
 
+    val BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS = Index()
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
+        .background()
+
     val ALL_INDEXES = listOf(
         SELL_ORDERS_DEFINITION,
         SELL_ORDERS_PLATFORM_DEFINITION,
@@ -291,6 +297,8 @@ object OrderRepositoryIndexes {
 
         BY_STATUS_AND_END_START,
         BY_PLATFORM_MAKER_AND_NONCE,
+
+        BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT
     )
