@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.repository.approval
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findOne
@@ -24,8 +26,11 @@ import scalether.domain.Address
 @Component
 @CaptureSpan(type = SpanType.DB)
 class ApprovalHistoryRepository(
-    private val template: ReactiveMongoTemplate
+    private val template: ReactiveMongoTemplate,
+    private val approvalNotFoundCounter: RegisteredCounter
 ) {
+
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     suspend fun save(logEvent: LogEvent): LogEvent {
         return template.save(logEvent, COLLECTION).awaitSingle()
@@ -47,7 +52,12 @@ class ApprovalHistoryRepository(
             LogEvent::logIndex.name,
             LogEvent::minorLogIndex.name
         ))
-        return template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
+        val result = template.findOne<LogEvent>(query, COLLECTION).awaitFirstOrNull()
+        if (result == null) {
+            logger.warn("Not found approval for collection: $collection and owner: $owner!")
+            approvalNotFoundCounter.increment()
+        }
+        return result
     }
 
     companion object {

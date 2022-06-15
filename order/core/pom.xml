@@ -106,6 +106,10 @@
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-listener-log</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-metrics</artifactId>
+        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>
@@ -162,5 +166,6 @@
             <artifactId>jna</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 </project>

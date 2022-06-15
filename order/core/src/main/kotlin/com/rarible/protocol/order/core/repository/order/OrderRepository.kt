@@ -51,4 +51,6 @@ interface OrderRepository {
     suspend fun createIndexes()
 
     suspend fun dropIndexes()
+
+    fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word>
 }
