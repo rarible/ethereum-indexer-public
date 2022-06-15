@@ -57,8 +57,8 @@ ethereum-nft-listener:
     LISTENER_LOGCONSUMEWORKERCOUNT: 32
   resources:
     jvm:
-      xmx_megabytes: 2048
-      max_direct_memory_megabytes: 1024
+      xmx_megabytes: 4084
+      max_direct_memory_megabytes: 2048
 
 ethereum-nft-migration:
   tolerations:
