@@ -11,9 +11,9 @@ object TokenRepositoryIndexes {
         .background()
 
     private val INDEX_BY_OWNER = Index()
-    .on(Token::owner.name, Sort.Direction.ASC)
-    .on(Token::standard.name, Sort.Direction.ASC)
-    .on("_id", Sort.Direction.ASC)
+        .on(Token::owner.name, Sort.Direction.ASC)
+        .on(Token::standard.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
 
     val ALL_INDEXES = listOf(
         INDEX_BY_DB_UPDATE,
