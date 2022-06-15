@@ -12,7 +12,8 @@ sharedEnvironments: &sharedEnvironments
   SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
   RARIBLE_CORE_APM_AGENT_ENABLED: false
   RARIBLE_CORE_CLIENT_K8S: true
-  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: true
+  LOGGING_LOGSTASH_TCPSOCKET_ENABLED: false
+  LOGGING_LOGFMT_ENABLED: true
   APPLICATION_ENVIRONMENT: "infura"
 
 ######## NFT-Indexer ########
@@ -40,13 +41,24 @@ ethereum-nft-api:
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
     API_CHAINID: 1
+  resources:
+    jvm:
+      xmx_megabytes: 1536
+      max_direct_memory_megabytes: 512
 
 ethereum-nft-listener:
   tolerations:
     - *sharedTolerations
   environments:
     <<: *nftEnvironment
-    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 1
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_ENABLED: true
+    BLOCKCHAIN_SCANNER_ETHEREUM_SCAN_BATCHLOAD_BATCHSIZE: 20
+    BLOCKCHAIN_SCANNER_ETHEREUM_MAXBATCHES: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef:1,0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62:1"
+    LISTENER_LOGCONSUMEWORKERCOUNT: 32
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
 
 ethereum-nft-migration:
   tolerations:
@@ -83,6 +95,10 @@ ethereum-order-api:
     - *sharedTolerations
   environments:
     <<: *orderEnvironment
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ethereum-order-listener:
   tolerations:
@@ -102,6 +118,10 @@ ethereum-order-listener:
     ETHEREUMCHECKWRONGHASHDELAY: 20000
     REVERTEDLOGSCHECKJOBBLOCKENABLE: false
     USENEWMONGOINDEX: true
+  resources:
+    jvm:
+      xmx_megabytes: 2048
+      max_direct_memory_megabytes: 1024
 
 ethereum-order-migration:
   tolerations:
@@ -120,6 +140,10 @@ ethereum-erc20-api:
     - *sharedTolerations
   environments:
     <<: *erc20Environment
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ethereum-erc20-listener:
   tolerations:
@@ -132,7 +156,10 @@ ethereum-erc20-listener:
     ETHEREUMMAXPROCESSTIME: 1200000
     USENEWMONGOINDEX: true
     REVERTEDLOGSCHECKJOBBLOCKENABLE: true
-
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ######## Gateway ########
 ethereum-gateway:
@@ -141,6 +168,10 @@ ethereum-gateway:
   environments:
     <<: *sharedEnvironments
     RARIBLE_CORE_NGINXEXPOSE_ENABLED: false
+  resources:
+    jvm:
+      xmx_megabytes: 1024
+      max_direct_memory_megabytes: 256
 
 ######## Unlockable ########
 ethereum-unlockable-api:
