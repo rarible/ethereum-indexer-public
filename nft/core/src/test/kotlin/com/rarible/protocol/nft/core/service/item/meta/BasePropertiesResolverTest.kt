@@ -3,7 +3,7 @@ package com.rarible.protocol.nft.core.service.item.meta
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.IpfsService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PropertiesHttpLoader

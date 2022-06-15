@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.core.service.token
 
 import com.rarible.protocol.nft.core.model.TokenStandard
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitFirst
