@@ -7,5 +7,5 @@ data class FeatureFlags(
     var validateCreatorByTransactionSender: Boolean = false,
     val internalMetaTopicBatchHandle: Boolean = false,
     val internalMetaTopicBatchSize: Int = 100,
-    var enableMetaRawPropertiesCache: Boolean = false,
+    var enableMetaRawPropertiesCache: Boolean = true,
 )
