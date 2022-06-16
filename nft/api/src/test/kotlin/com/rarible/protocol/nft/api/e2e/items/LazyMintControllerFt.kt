@@ -50,6 +50,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
+import org.slf4j.LoggerFactory
 
 @End2EndTest
 class LazyMintControllerFt : EventAwareBaseTest() {
@@ -67,6 +68,8 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
     private lateinit var creatorSender: MonoTransactionSender
 
+    private val logger = LoggerFactory.getLogger(javaClass)
+
     @BeforeEach
     fun before() = runBlocking<Unit> {
         coEvery { lazyNftValidator.validate(any()) } returns ValidationResult.Valid
@@ -74,9 +77,8 @@ class LazyMintControllerFt : EventAwareBaseTest() {
             ethereum,
             MonoSimpleNonceProvider(ethereum),
             privateKey,
-            BigInteger.valueOf(8000000),
-            { Mono.just(BigInteger.ZERO) }
-        )
+            BigInteger.valueOf(8000000)
+        ) { Mono.just(BigInteger.ZERO) }
 
         coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns null
     }
@@ -105,9 +107,11 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
         val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
         assertThat(itemDto.meta).isEqualTo(null)
+        logger.info("Item events: $itemEvents")
+
         assertThat(itemEvents).anySatisfy { event ->
             assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
-                assertThat(it.item.meta).isEqualTo(null)
+                assertThat(it.item.meta).isNull()
             }
         }
     }
