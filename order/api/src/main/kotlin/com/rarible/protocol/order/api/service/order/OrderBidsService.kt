@@ -7,10 +7,10 @@ import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import com.rarible.protocol.order.core.repository.order.InternalContinuation
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
-import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -23,9 +23,10 @@ class OrderBidsService(
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository
 ) {
+
     suspend fun findOrderBids(
         filter: BidsOrderVersionFilter,
-        statuses: List<BidStatus>
+        statuses: Set<BidStatus>
     ): List<CompositeBid> {
         val totalResult = mutableListOf<CompositeBid>()
         var versions = emptyList<OrderVersion>()
@@ -42,7 +43,12 @@ class OrderBidsService(
             val orderHashes = versions.map { it.hash }.toHashSet()
             val orders = orderRepository.findAll(orderHashes).toList().associateBy { it.hash }
 
-            val result = convert(versions, orders, foundOrders).filter { it.status in statuses }.toList()
+            val converted = convert(versions, orders, foundOrders)
+            val result = if (statuses.isNotEmpty()) {
+                converted.filter { it.status in statuses }.toList()
+            } else {
+                converted.toList()
+            }
             totalResult.addAll(result)
         } while (versions.isNotEmpty() && totalResult.size < filter.limit)
 

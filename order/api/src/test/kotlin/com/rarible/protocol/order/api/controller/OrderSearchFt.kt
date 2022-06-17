@@ -8,7 +8,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
-import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.order.api.data.createErc20Asset
 import com.rarible.protocol.order.api.data.createErc721Asset
 import com.rarible.protocol.order.api.data.createErc721BidOrderVersion
@@ -309,11 +308,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
             listOf(order1V.maker, order2V.maker),
             null,
             null,
-            null, 1, currencyToken.hex(), null, null
+            null,
+            1,
+            OrderStatusDto.values().toList(),
+            currencyToken.hex(),
+            null,
+            null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].make.value).isEqualTo(2)
@@ -321,11 +324,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result2 = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
             listOf(order1V.maker, order2V.maker),
             null,
             null,
-            result.continuation, 2, currencyToken.hex(), null, null
+            result.continuation,
+            2,
+            OrderStatusDto.values().toList(),
+            currencyToken.hex(),
+            null,
+            null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].make.value).isEqualTo(1)
@@ -361,11 +368,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
+            null,
+            null,
+            null,
+            null,
+            1,
             OrderStatusDto.values().toList(),
+            currencyToken.hex(),
             null,
-            null,
-            null,
-            null, 1, currencyToken.hex(), null, null
+            null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].taker).isEqualTo(order2V.taker)
@@ -374,11 +385,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result2 = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
+            null,
+            null,
+            null,
+            null,
+            1,
             listOf(OrderStatusDto.ACTIVE),
+            currencyToken.hex(),
             null,
-            null,
-            null,
-            null, 1, currencyToken.hex(), null, null
+            null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].taker).isEqualTo(order1V.taker)
@@ -407,11 +422,11 @@ class OrderSearchFt : AbstractIntegrationTest() {
 
         val result = orderClient.getOrderBidsByMakerAndByStatus(
             maker.prefixed(),
-            OrderStatusDto.values().toList(),
             null,
             null,
             null,
             1,
+            OrderStatusDto.values().toList(),
             null,
             null
         ).awaitFirst()
@@ -422,11 +437,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result2 = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
             listOf(order1V.maker, order2V.maker),
             null,
             null,
-            result.continuation, 2, currencyToken.hex(), null, null
+            result.continuation,
+            2,
+            OrderStatusDto.values().toList(),
+            currencyToken.hex(),
+            null,
+            null
         ).awaitFirst()
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].make.value).isEqualTo(1)
@@ -470,11 +489,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
             listOf(order1V.maker),
             null,
             null,
-            null, 1, currencyToken.hex(), null, null
+            null,
+            1,
+            OrderStatusDto.values().toList(),
+            currencyToken.hex(),
+            null,
+            null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].make.value).isEqualTo(123)
@@ -501,11 +524,15 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
             order1V.take.type.tokenId?.value.toString(),
-            OrderStatusDto.values().toList(),
             listOf(order1V.maker),
             null,
             null,
-            null, 2, currencyToken.hex(), null, null
+            null,
+            2,
+            OrderStatusDto.values().toList(),
+            currencyToken.hex(),
+            null,
+            null
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].make.value).isEqualTo(123)
@@ -556,12 +583,12 @@ class OrderSearchFt : AbstractIntegrationTest() {
         val bids = orderClient.getOrderBidsByItemAndByStatus(
             contract.prefixed(),
             take.type.tokenId?.value.toString(),
-            listOf(OrderStatusDto.ACTIVE),
             listOf(maker),
             null,
             null,
             null,
             null,
+            listOf(OrderStatusDto.ACTIVE),
             null,
             null,
             null

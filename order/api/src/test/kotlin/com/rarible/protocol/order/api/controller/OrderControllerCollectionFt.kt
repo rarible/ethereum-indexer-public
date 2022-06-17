@@ -54,7 +54,31 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
         val dto = controller.getOrderBidsByItemAndByStatus(
             token.hex(),
             tokenId.toString(),
+            null,
+            null,
+            null,
+            null,
+            null,
             listOf(OrderStatusDto.ACTIVE),
+            null,
+            null,
+            null
+        )
+        assertEquals(1, dto.body.orders.size)
+    }
+
+    @Test
+    fun `should return bid order by item - without status filter`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val make = Asset(EthAssetType, EthUInt256.ONE)
+        val take = Asset(CollectionAssetType(token), EthUInt256.ONE)
+        val orderV1 = createOrderVersion(make, take).copy(maker = maker)
+        saveOrderVersions(orderV1)
+
+        val dto = controller.getOrderBidsByItemAndByStatus(
+            token.hex(),
+            tokenId.toString(),
+            null,
             null,
             null,
             null,
