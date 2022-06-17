@@ -56,7 +56,7 @@ class OrderBidController(
             requestSize,
             priceContinuation
         )
-        val statuses = status.map { OrderBidStatusConverter.convert(it) }
+        val statuses = status.map { OrderBidStatusConverter.convert(it) }.toSet()
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)

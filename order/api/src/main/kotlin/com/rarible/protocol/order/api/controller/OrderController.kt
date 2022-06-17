@@ -9,12 +9,12 @@ import com.rarible.protocol.dto.OrderFormDto
 import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.OrderSortDto
 import com.rarible.protocol.dto.OrderStatusDto
-import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.dto.OrdersPaginationDto
 import com.rarible.protocol.dto.PlatformDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
+import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -43,8 +43,8 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByCollection
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.BidsOrderVersionFilter
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
@@ -374,12 +374,12 @@ class OrderController(
     override suspend fun getOrderBidsByItemAndByStatus(
         contract: String,
         tokenId: String,
-        status: List<OrderStatusDto>,
         maker: List<Address>?,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
+        status: List<OrderStatusDto>?,
         currencyId: String?,
         startDate: Long?,
         endDate: Long?
@@ -404,11 +404,11 @@ class OrderController(
 
     override suspend fun getOrderBidsByMakerAndByStatus(
         maker: String,
-        status: List<OrderStatusDto>,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
         size: Int?,
+        status: List<OrderStatusDto>?,
         startDate: Long?,
         endDate: Long?
     ): ResponseEntity<OrdersPaginationDto> {
@@ -429,11 +429,11 @@ class OrderController(
     }
 
     suspend fun searchBids(
-        status: List<OrderStatusDto>,
+        status: List<OrderStatusDto>?,
         filter: BidsOrderVersionFilter,
         requestSize: Int
     ): ResponseEntity<OrdersPaginationDto> {
-        val statuses = status.map { BidStatusReverseConverter.convert(it) }
+        val statuses = status?.map { BidStatusReverseConverter.convert(it) }?.toSet() ?: emptySet()
         val orderVersions = orderBidsService.findOrderBids(filter, statuses)
         val nextContinuation =
             if (orderVersions.isEmpty() || orderVersions.size < requestSize) null else toContinuation(orderVersions.last().version)

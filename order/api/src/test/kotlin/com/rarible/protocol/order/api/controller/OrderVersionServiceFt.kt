@@ -152,12 +152,12 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 params.token.hex(),
                 params.tokenId.value.toString(),
-                params.status,
                 params.maker?.let { listOf(it) },
                 params.origin?.hex(),
                 params.platform,
                 null,
                 null,
+                params.status,
                 null,
                 params.startDate?.epochSecond,
                 params.endDate?.epochSecond
@@ -183,12 +183,12 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
         val paginationDto = orderClient.getOrderBidsByItemAndByStatus(
             (bidVersion.take.type as Erc721AssetType).token.hex(),
             (bidVersion.take.type as Erc721AssetType).tokenId.value.toString(),
-            OrderStatusDto.values().toList(),
             null,
             null,
             PlatformDto.RARIBLE,
             null,
             null,
+            OrderStatusDto.values().toList(),
             null,
             null,
             null
@@ -211,12 +211,12 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderStatusDto.ACTIVE),
                 null,
                 null,
                 null,
                 null,
                 3,
+                listOf(OrderStatusDto.ACTIVE),
                 null,
                 null,
                 null
@@ -234,12 +234,12 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderStatusDto.CANCELLED),
                 null,
                 null,
                 null,
                 null,
                 2,
+                listOf(OrderStatusDto.CANCELLED),
                 null,
                 null,
                 null
@@ -257,12 +257,12 @@ class OrderVersionControllerFt : AbstractIntegrationTest() {
             val versions = orderClient.getOrderBidsByItemAndByStatus(
                 token.hex(),
                 tokenId.value.toString(),
-                listOf(OrderStatusDto.INACTIVE),
                 null,
                 null,
                 null,
                 null,
                 3,
+                listOf(OrderStatusDto.INACTIVE),
                 null,
                 null,
                 null
