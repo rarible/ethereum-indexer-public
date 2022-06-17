@@ -11,7 +11,7 @@ import org.springframework.core.Ordered
 import org.springframework.stereotype.Component
 import org.springframework.web.server.ServerWebExchange
 import reactor.core.publisher.Mono
-import java.util.*
+import java.util.UUID
 
 @Component
 class TracingGlobalFilter : GlobalFilter, Ordered {
@@ -47,6 +47,6 @@ class TracingGlobalFilter : GlobalFilter, Ordered {
     }
 
     private companion object {
-       const val X_RARIBLE_TRACE_ID = "trace-id"
+       const val X_RARIBLE_TRACE_ID = "trace.id"
     }
 }
