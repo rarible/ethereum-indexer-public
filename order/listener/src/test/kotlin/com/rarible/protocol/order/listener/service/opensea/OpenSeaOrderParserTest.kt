@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.mongodb.internal.connection.tlschannel.util.Util.assertTrue
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.toBinary
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
@@ -24,7 +25,8 @@ import java.math.BigInteger
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
         traceCallService = TraceCallService(NoopTransactionTraceProvider()),
-        callDataEncoder = CallDataEncoder()
+        callDataEncoder = CallDataEncoder(),
+        featureFlags = OrderIndexerProperties.FeatureFlags()
     )
 
     private val callDataEncoder = CallDataEncoder()

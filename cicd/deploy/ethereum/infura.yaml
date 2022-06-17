@@ -105,6 +105,7 @@ ethereum-order-listener:
     - *sharedTolerations
   environments:
     <<: *orderEnvironment
+    COMMON_FEATUREFLAGS_SKIPGETTRACE: true
     LISTENER_LOADOLDOPENSEAORDERS: false
     LISTENER_LOADOPENSEADELAY: "180s"
     LISTENER_LOADOPENSEAORDERS: false
