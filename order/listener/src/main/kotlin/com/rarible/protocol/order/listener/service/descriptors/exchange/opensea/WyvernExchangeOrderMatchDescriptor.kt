@@ -42,7 +42,7 @@ class WyvernExchangeOrderMatchDescriptor(
         val event = OrdersMatchedEvent.apply(log)
         val eip712 = log.address() == exchangeContractAddresses.openSeaV2
 
-        val orders: OpenSeaMatchedOrders = openSeaOrderParser.parseMatchedOrders(
+        val orders= openSeaOrderParser.parseMatchedOrders(
             txHash = transaction.hash(),
             txInput = transaction.input(),
             event = event,
@@ -50,12 +50,16 @@ class WyvernExchangeOrderMatchDescriptor(
             totalLogs = totalLogs,
             eip712 = eip712
         )
-        return openSeaOrdersSideMatcher.convert(
-            openSeaOrders = orders,
-            from = transaction.from(),
-            price = event.price(),
-            date = date
-        )
+        return if (orders != null) {
+            openSeaOrdersSideMatcher.convert(
+                openSeaOrders = orders,
+                from = transaction.from(),
+                price = event.price(),
+                date = date
+            )
+        } else {
+            emptyList()
+        }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
