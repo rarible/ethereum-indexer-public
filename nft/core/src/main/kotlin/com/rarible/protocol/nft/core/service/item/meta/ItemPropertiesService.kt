@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
@@ -10,13 +11,18 @@ import com.rarible.protocol.nft.core.model.meta.EthVideoProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import kotlinx.coroutines.TimeoutCancellationException
 import org.springframework.stereotype.Service
+import scalether.domain.Address
 
 @Service
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class ItemPropertiesService(
     private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider,
-    private val urlService: UrlService
+    private val urlService: UrlService,
+    nftIndexerProperties: NftIndexerProperties
 ) {
+    private val excludedFromOpenseaResolver = setOf(
+        Address.apply(nftIndexerProperties.ensDomainsContractAddress)
+    )
 
     suspend fun resolve(itemId: ItemId): ItemProperties? {
         val resolveResult = doResolve(itemId) ?: return null
@@ -64,6 +70,10 @@ class ItemPropertiesService(
             && itemProperties.attributes.isNotEmpty()
         ) {
             logMetaLoading(itemId, "fetched item meta solely with Rarible algorithm")
+            return itemProperties
+        }
+        // Workaround for preventing receiving dummy data from Opensea PT-422
+        if (itemId.token in excludedFromOpenseaResolver) {
             return itemProperties
         }
         return extendWithOpenSea(itemId, itemProperties)
@@ -170,5 +180,4 @@ class ItemPropertiesService(
             properties = EthImageProperties()
         )
     }
-
 }
