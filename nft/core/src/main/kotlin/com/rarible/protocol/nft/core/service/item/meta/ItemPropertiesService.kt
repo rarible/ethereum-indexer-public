@@ -17,7 +17,7 @@ class ItemPropertiesService(
     private val ipfsService: IpfsService,
     nftIndexerProperties: NftIndexerProperties
 ) {
-    private val excludedCollectionsForEnrichment = listOf(
+    private val excludedFromOpenseaResolver = setOf(
         Address.apply(nftIndexerProperties.ensDomainsContractAddress)
     )
 
@@ -70,8 +70,7 @@ class ItemPropertiesService(
             return itemProperties
         }
         // Workaround for preventing receiving dummy data from Opensea PT-422
-        if (itemId.token in excludedCollectionsForEnrichment) {
-            logMetaLoading(itemId, "fetched item meta solely with Rarible algorithm and not extend by data from OpenSea")
+        if (itemId.token in excludedFromOpenseaResolver) {
             return itemProperties
         }
         return extendWithOpenSea(itemId, itemProperties)
