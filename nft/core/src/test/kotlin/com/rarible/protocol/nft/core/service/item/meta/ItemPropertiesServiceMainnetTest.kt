@@ -7,14 +7,19 @@ import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesProvider
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
+import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -43,16 +48,38 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         openseaUrl = openseaUrl
     )
 
+    private val nftIndexerProperties = mockk<NftIndexerProperties> {
+        every { ensDomainsContractAddress } returns "0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85"
+    }
+
+    private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
+        urlService = urlService,
+        rawPropertiesProvider = rawPropertiesProvider,
+        nftIndexerProperties = nftIndexerProperties
+    )
+
+    private val ensDomainService = mockk<EnsDomainService> {
+        coEvery { onGetProperties(any(), any()) } returns Unit
+    }
+
+    private val ensResolver = EnsDomainsPropertiesResolver(
+        ensDomainService = ensDomainService,
+        ensDomainsPropertiesProvider = ensDomainsPropertiesProvider,
+        nftIndexerProperties = nftIndexerProperties
+    )
+
     private val service = ItemPropertiesService(
         itemPropertiesResolverProvider = mockk {
             every { orderedResolvers } returns listOf(
+                ensResolver,
                 hashmasksPropertiesResolver,
                 mutantsBoredApeYachtClubPropertiesResolver,
                 rariblePropertiesResolver
             )
             every { openSeaResolver } returns openSeaPropertiesResolver
         },
-        urlService = urlService
+        urlService = urlService,
+        nftIndexerProperties = nftIndexerProperties
     )
 
     @BeforeEach
@@ -67,6 +94,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
                 )
             )
         }
+        featureFlags.enableMetaRawPropertiesCache = false
     }
 
     @Test
@@ -92,6 +120,43 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
             val resolved = service.resolve(itemId)
             println("  Resolved: $resolved")
         }
+    }
+
+    @Test
+    fun `exclude date enrichment for ENS domaind`() = runBlocking<Unit> {
+        val mockOpenSeaPropertiesResolver = mockk<OpenSeaPropertiesResolver>()
+
+        val service = ItemPropertiesService(
+            itemPropertiesResolverProvider = mockk {
+                every { orderedResolvers } returns listOf(
+                    ensResolver,
+                    hashmasksPropertiesResolver,
+                    mutantsBoredApeYachtClubPropertiesResolver,
+                    rariblePropertiesResolver
+                )
+                every { openSeaResolver } returns mockOpenSeaPropertiesResolver
+            },
+            urlService = urlService,
+            nftIndexerProperties = nftIndexerProperties
+        )
+
+        val itemId = ItemId(
+            Address.apply("0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85"),
+            EthUInt256.of("107194931414944644333352398451058490772408784024402694127610911420919327942444")
+        )
+        mockTokenStandard(itemId.token, TokenStandard.ERC721)
+        val ensProperties = ensDomainsPropertiesProvider.get(itemId)
+        assertThat(ensProperties).isNotNull
+
+        coEvery { mockOpenSeaPropertiesResolver.resolve(any()) } returns ensProperties?.copy(
+            name = "Bad",
+            description = "Bad"
+        )
+
+        val resolved = service.resolve(itemId)
+
+        assertThat(resolved!!.name).isEqualTo("coffeebags.eth")
+        assertThat(resolved.description).isEqualTo("coffeebags.eth, an ENS name.")
     }
 
     @Test
