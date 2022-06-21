@@ -4,6 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.wrapper.ExchangeWrapper
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.WyvernExchange
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
@@ -24,7 +25,8 @@ import java.math.BigInteger
 @Component
 class OpenSeaOrderParser(
     private val traceCallService: TraceCallService,
-    private var callDataEncoder: CallDataEncoder
+    private var callDataEncoder: CallDataEncoder,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
     suspend fun parseMatchedOrders(
         txHash: Word,
@@ -33,10 +35,11 @@ class OpenSeaOrderParser(
         index: Int,
         totalLogs: Int,
         eip712: Boolean
-    ): OpenSeaMatchedOrders {
+    ): OpenSeaMatchedOrders? {
         val inputs = if (ExchangeWrapper.singlePurchaseSignature().id() == txInput.methodSignatureId()) {
             listOf(txInput)
         } else {
+            if (featureFlags.skipGetTrace) return null
             val signatureId = WyvernExchange.atomicMatch_Signature().id()
             traceCallService.findAllRequiredCallInputs(
                 txHash = txHash,

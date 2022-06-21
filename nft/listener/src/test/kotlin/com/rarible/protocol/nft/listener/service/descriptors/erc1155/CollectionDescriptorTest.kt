@@ -67,7 +67,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
                     version = savedToken?.version,
                     isRaribleContract = true
                 ),
-                Token::revertableEvents.name
+                Token::revertableEvents.name,
+                Token::dbUpdatedAt.name
             )
         }
     }
@@ -112,7 +113,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
                     version = savedToken?.version,
                     isRaribleContract = true
                 ),
-                Token::revertableEvents.name
+                Token::revertableEvents.name,
+                Token::dbUpdatedAt.name
             )
         }
     }

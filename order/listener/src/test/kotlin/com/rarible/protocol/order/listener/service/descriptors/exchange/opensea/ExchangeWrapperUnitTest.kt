@@ -35,7 +35,8 @@ class ExchangeWrapperUnitTest {
 
     private val openSeaOrderParser = OpenSeaOrderParser(
         traceCallService = traceCallService,
-        callDataEncoder = CallDataEncoder()
+        callDataEncoder = CallDataEncoder(),
+        featureFlags = OrderIndexerProperties.FeatureFlags()
     )
 
     private val descriptor = WyvernExchangeOrderMatchDescriptor(

@@ -46,7 +46,8 @@ internal class TokenRegistrationServiceTest : AbstractIntegrationTest() {
         assertThat(token).isEqualToIgnoringGivenFields(
             expectedToken,
             Token::lastEventId.name,
-            Token::version.name
+            Token::version.name,
+            Token::dbUpdatedAt.name
         )
     }
 }

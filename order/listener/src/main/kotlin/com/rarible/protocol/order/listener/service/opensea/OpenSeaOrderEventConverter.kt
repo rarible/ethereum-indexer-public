@@ -273,7 +273,8 @@ class OpenSeaOrderEventConverter(
         val IGNORE_LIST = listOf(
             WyvernAtomicizer.atomicizeSignature().id(),
             Binary.apply("0x6d5cb2f5"), //TODO: need support ALPHA-339,
-            Binary.apply("0x1c14edea") //TODO: need support ALPHA-339,
+            Binary.apply("0x1c14edea"), //TODO: need support ALPHA-339,
+            Binary.apply("0x45710074") //TODO: need support ALPHA-339,
         )
     }
 }

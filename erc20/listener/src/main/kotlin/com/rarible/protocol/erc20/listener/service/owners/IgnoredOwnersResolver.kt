@@ -12,14 +12,17 @@ class IgnoredOwnersResolver(
     private val properties: Erc20ListenerProperties,
     private val appEnv: ApplicationEnvironmentInfo,
 ) {
-
     fun resolve(): Set<Address> {
-        return ClassPathResource("ignored-owners/${appEnv.name}-${properties.blockchain.name.lowercase()}.json")
-            .inputStream.use { stream ->
+        val resource =  ClassPathResource("ignored-owners/${appEnv.name}-${properties.blockchain.name.lowercase()}.json")
+        return if (resource.exists()) {
+            resource.inputStream.use { stream ->
                 jacksonObjectMapper().readValue(stream, Owners::class.java).ignored.map {
                     Address.apply(it)
                 }.toSet()
             }
+        } else {
+            emptySet()
+        }
     }
 
     internal data class Owners(val ignored: List<String>)
