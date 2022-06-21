@@ -2,8 +2,8 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.opensea.client.model.AssetSchema
-import com.rarible.opensea.client.model.OpenSeaOrder
+import com.rarible.opensea.client.model.v1.AssetSchema
+import com.rarible.opensea.client.model.v1.OpenSeaOrder
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
-import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
-import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
-import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
-import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
+import com.rarible.opensea.client.model.v1.FeeMethod as ClientOpenSeaFeeMethod
+import com.rarible.opensea.client.model.v1.HowToCall as ClientOpenSeaHowToCall
+import com.rarible.opensea.client.model.v1.OrderSide as ClientOpenSeaOrderSide
+import com.rarible.opensea.client.model.v1.SaleKind as ClientOpenSeaSaleKind
 
 @Component
 class OpenSeaOrderConverter(
