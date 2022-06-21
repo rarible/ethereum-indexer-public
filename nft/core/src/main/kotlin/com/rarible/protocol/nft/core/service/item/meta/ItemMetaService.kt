@@ -77,18 +77,6 @@ class ItemMetaService(
         return null
     }
 
-    suspend fun getAvailableMeta(
-        itemId: ItemId,
-        demander: String
-    ): ItemMeta? {
-        return getAvailableMetaOrLoadSynchronously(
-            itemId = itemId,
-            useMetaCache = true,
-            synchronous = false,
-            demander = demander
-        )
-    }
-
     suspend fun getAvailableMetaOrLoadSynchronouslyWithTimeout(
         itemId: ItemId,
         timeout: Duration,

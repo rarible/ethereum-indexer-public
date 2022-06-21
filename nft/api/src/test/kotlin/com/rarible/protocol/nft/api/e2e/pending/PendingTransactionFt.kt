@@ -66,9 +66,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
     private lateinit var nftItemHistoryRepository: NftItemHistoryRepository
 
     @Autowired
-    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
-
-    @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
     @ParameterizedTest
@@ -139,7 +136,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
         Wait.waitAssert {
             val pendingItemDto = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(pendingItemDto?.pending).hasSize(1)
-            assertThat(pendingItemDto?.meta).isNull()
         }
 
         Wait.waitAssert {

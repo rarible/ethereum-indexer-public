@@ -79,9 +79,9 @@ class ItemServiceIt : SpringContainerBaseTest() {
             10
         )
         assertThat(result).hasSize(3)
-        assertThat(result.any { it.item.id == item2.id }).isTrue()
-        assertThat(result.any { it.item.id == item3.id }).isTrue()
-        assertThat(result.any { it.item.id == item4.id }).isTrue()
+        assertThat(result.any { it.id == item2.id }).isTrue()
+        assertThat(result.any { it.id == item3.id }).isTrue()
+        assertThat(result.any { it.id == item4.id }).isTrue()
     }
 
     @Test

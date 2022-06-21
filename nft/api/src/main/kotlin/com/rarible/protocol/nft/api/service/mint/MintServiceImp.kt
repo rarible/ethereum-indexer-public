@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
 import com.rarible.protocol.nft.core.misc.wrapWithEthereumLogRecord
 import com.rarible.protocol.nft.core.model.BurnItemLazyMint
-import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
@@ -18,6 +18,7 @@ import com.rarible.protocol.nft.core.service.item.reduce.ItemEventReduceService
 import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipEventReduceService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.stereotype.Component
 
 @Component
@@ -32,16 +33,15 @@ class MintServiceImp(
     private val itemEventConverter: ItemEventConverter
 ) : MintService {
 
-    override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): ExtendedItem {
-        val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItemHistory).awaitFirst()
+    override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): Item {
+        val savedItemHistory = lazyNftItemHistoryRepository.save(lazyItemHistory).awaitSingle()
         val itemId = ItemId(savedItemHistory.token, savedItemHistory.tokenId)
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
         val itemEvent = itemEventConverter.convert(logRecord)
         val ownershipEvents = ownershipEventConverter.convert(logRecord)
         ownershipReduceService.reduce(ownershipEvents)
         itemReduceService.reduce(listOf(requireNotNull(itemEvent)))
-        val item = itemRepository.findById(itemId).awaitFirst()
-        return ExtendedItem(item, null)
+        return itemRepository.findById(itemId).awaitSingle()
     }
 
     override suspend fun burnLazyMint(itemId: ItemId) {

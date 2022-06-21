@@ -6,7 +6,6 @@ import com.rarible.loader.cache.CacheEntry
 import com.rarible.loader.cache.CacheLoaderEvent
 import com.rarible.loader.cache.CacheLoaderEventListener
 import com.rarible.protocol.dto.NftItemEventDto
-import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.producer.ProtocolNftEventPublisher
@@ -84,7 +83,7 @@ class ItemMetaCacheLoaderEventListener(
                 return
             }
         }
-        val itemEventDto = conversionService.convert<NftItemEventDto>(ExtendedItem(item, meta))
+        val itemEventDto = conversionService.convert<NftItemEventDto>(item)
         protocolNftEventPublisher.publish(itemEventDto)
     }
 }

@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 class ItemMetaResolver(
     private val itemPropertiesService: ItemPropertiesService,
     private val rariblePropertiesResolver: RariblePropertiesResolver,
-    private val mediaMetaService: MediaMetaService
+    private val mediaMetaService: MediaMetaService // TODO Remove
 ) {
 
     suspend fun resolveItemMeta(itemId: ItemId): ItemMeta? {

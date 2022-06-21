@@ -2,11 +2,10 @@ package com.rarible.protocol.unlockable.test
 
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.PartDto
 import scalether.domain.Address
 import scalether.domain.AddressFactory
-import java.util.*
+import java.util.Random
 
 object NftItemDtoFactory {
 
@@ -21,8 +20,7 @@ object NftItemDtoFactory {
         royalties = emptyList(),
         pending = emptyList(),
         lastUpdatedAt = nowMillis(),
-        deleted = false,
-        meta = NftItemMetaDto(name = "Test", genres = emptyList(), tags = emptyList(), content = emptyList())
+        deleted = false
     )
 
 }

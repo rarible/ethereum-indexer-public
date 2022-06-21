@@ -21,7 +21,6 @@ import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemTransfer
-import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
@@ -81,9 +80,6 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var itemReduceService: ItemReduceService
 
-    @Autowired
-    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
-
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun `should burn mint lazy item`(version: ReduceVersion) = withReducer(version) {
@@ -110,7 +106,6 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
-        assertThat(itemDto.meta).isEqualTo(null)
         val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
         val lazyOwnership = ownershipRepository.findById(ownershipId).awaitFirst()

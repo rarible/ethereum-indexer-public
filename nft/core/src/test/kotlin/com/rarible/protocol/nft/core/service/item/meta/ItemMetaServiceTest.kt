@@ -30,7 +30,14 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
 
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
-        Assertions.assertThat(itemMetaService.getAvailableMeta(itemId, "test")).isEqualTo(itemMeta)
+        Assertions.assertThat(
+            itemMetaService.getAvailableMetaOrLoadSynchronously(
+                itemId = itemId,
+                useMetaCache = true,
+                synchronous = false,
+                demander = "test"
+            )
+        ).isEqualTo(itemMeta)
     }
 
     @Test

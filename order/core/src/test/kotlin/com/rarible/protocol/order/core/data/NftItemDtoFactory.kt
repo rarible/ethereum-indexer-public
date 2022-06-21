@@ -5,7 +5,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftOwnershipDto
 import scalether.domain.Address
 import scalether.domain.AddressFactory
@@ -39,8 +38,7 @@ fun createNftItemDto(token: Address = AddressFactory.create(), tokenId: BigInteg
         supply = BigInteger.ONE,
         deleted = false,
         lastUpdatedAt = nowMillis(),
-        pending = emptyList(),
-        meta = NftItemMetaDto(name = "Test", genres = emptyList(), tags = emptyList(), content = emptyList())
+        pending = emptyList()
     )
 }
 
