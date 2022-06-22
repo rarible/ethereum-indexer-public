@@ -9,3 +9,11 @@ rarible:
 
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}
+
+logging:
+  logstash:
+    tcp-socket:
+      enabled: true
+      destinations: logstash:4560
+  logfmt:
+    enabled: false

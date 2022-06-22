@@ -12,11 +12,3 @@ ethereum-nft-listener:
 ethereum-gateway:
   service:
     nodePort: 30216
-
-logging:
-  logstash:
-    tcp-socket:
-      enabled: true
-      destinations: logstash:4560
-  logfmt:
-    enabled: false
