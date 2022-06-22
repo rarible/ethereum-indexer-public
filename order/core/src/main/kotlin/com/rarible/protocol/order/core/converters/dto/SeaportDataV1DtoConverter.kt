@@ -15,7 +15,7 @@ object SeaportDataV1DtoConverter {
                 consideration = source.consideration.map { SeaportConsiderationDtoConverter.convert(it) },
                 zone = source.zone,
                 zoneHash = source.zoneHash,
-                conduitKey = source.zoneHash,
+                conduitKey = source.conduitKey,
                 counter = source.counter
             )
         }
