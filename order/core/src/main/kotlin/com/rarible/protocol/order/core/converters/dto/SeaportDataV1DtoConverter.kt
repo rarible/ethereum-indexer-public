@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
-import com.rarible.protocol.dto.BasicOrderSeaportDataV1Dto
+import com.rarible.protocol.dto.OrderBasicSeaportDataV1Dto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
@@ -8,7 +8,7 @@ import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 object SeaportDataV1DtoConverter {
     fun convert(source: OrderSeaportDataV1): OrderSeaportDataV1Dto {
         return when (source) {
-            is OrderBasicSeaportDataV1 -> BasicOrderSeaportDataV1Dto(
+            is OrderBasicSeaportDataV1 -> OrderBasicSeaportDataV1Dto(
                 protocol = source.protocol,
                 orderType = SeaportOrderTypeDtoConverter.convert(source.orderType),
                 offer = source.offer.map { SeaportOfferDtoConverter.convert(it) },

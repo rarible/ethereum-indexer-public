@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.converters.model
 
-import com.rarible.protocol.dto.BasicOrderSeaportDataV1Dto
+import com.rarible.protocol.dto.OrderBasicSeaportDataV1Dto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
@@ -58,7 +58,7 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 nonce = null
             )
             is OrderCryptoPunksDataDto,
-            is BasicOrderSeaportDataV1Dto -> throw IllegalArgumentException("Not supported converting  order data")
+            is OrderBasicSeaportDataV1Dto -> throw IllegalArgumentException("Not supported converting  order data")
         }
     }
 
