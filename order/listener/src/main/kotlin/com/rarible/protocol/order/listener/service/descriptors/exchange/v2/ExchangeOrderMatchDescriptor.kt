@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -142,7 +143,7 @@ internal fun getOriginMaker(maker: Address, data: OrderData?): Address {
     return when (data) {
         is OrderRaribleV2DataV1 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
         is OrderRaribleV2DataV2 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
-        is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderCryptoPunksData -> maker
+        is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderBasicSeaportDataV1, is OrderCryptoPunksData -> maker
         null -> maker
     }
 }
