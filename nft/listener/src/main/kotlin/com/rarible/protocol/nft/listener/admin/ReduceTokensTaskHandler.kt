@@ -1,7 +1,7 @@
 package com.rarible.protocol.nft.listener.admin
 
 import com.rarible.core.task.TaskHandler
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map

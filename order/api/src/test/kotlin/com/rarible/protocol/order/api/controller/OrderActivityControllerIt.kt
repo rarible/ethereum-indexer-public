@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.SyncSortDto
 import com.rarible.protocol.order.api.data.createLogEvent
+import com.rarible.protocol.order.api.data.orderErc1155SellCancel
 import com.rarible.protocol.order.api.data.orderErc1155SellSideMatch
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
@@ -18,6 +19,26 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
 
     @Autowired
     private lateinit var controller: OrderActivityController
+
+    @Test
+    fun `should get history activities - asc`() = runBlocking<Unit> {
+        val ordersQuantity = 20 //must be even
+        val size = 20
+
+        repeat(ordersQuantity) {
+            exchangeHistoryRepository.save(createLogEvent(orderErc1155SellSideMatch())).awaitFirst()
+            exchangeHistoryRepository.save(createLogEvent(orderErc1155SellCancel().copy(maker = null))).awaitFirst()
+            exchangeHistoryRepository.save(createLogEvent(orderErc1155SellCancel().copy(make = null))).awaitFirst()
+            exchangeHistoryRepository.save(createLogEvent(orderErc1155SellCancel().copy(take = null))).awaitFirst()
+        }
+
+        val dto = controller.getOrderActivitiesSync(null, size, SyncSortDto.DB_UPDATE_ASC)
+        val orderList = dto.body?.items
+
+        Assertions.assertThat(orderList).hasSize(size)
+        Assertions.assertThat(orderList)
+            .isSortedAccordingTo { o1, o2 -> compareValues(o2.lastUpdatedAt, o1.lastUpdatedAt) }
+    }
 
     @Test
     fun `should get all order activities using pagination desc`() = runBlocking<Unit> {

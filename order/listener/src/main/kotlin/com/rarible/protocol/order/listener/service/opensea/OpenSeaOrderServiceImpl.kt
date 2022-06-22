@@ -3,7 +3,9 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.opensea.client.OpenSeaClient
-import com.rarible.opensea.client.model.*
+import com.rarible.opensea.client.model.OpenSeaError
+import com.rarible.opensea.client.model.OperationResult
+import com.rarible.opensea.client.model.v1.*
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

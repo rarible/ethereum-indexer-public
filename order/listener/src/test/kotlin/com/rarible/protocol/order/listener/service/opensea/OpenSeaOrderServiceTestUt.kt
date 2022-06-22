@@ -1,9 +1,9 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.opensea.client.OpenSeaClient
-import com.rarible.opensea.client.model.OpenSeaOrderItems
+import com.rarible.opensea.client.model.v1.OpenSeaOrderItems
 import com.rarible.opensea.client.model.OperationResult
-import com.rarible.opensea.client.model.OrdersRequest
+import com.rarible.opensea.client.model.v1.OrdersRequest
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.mockk.coEvery
 import io.mockk.coVerify

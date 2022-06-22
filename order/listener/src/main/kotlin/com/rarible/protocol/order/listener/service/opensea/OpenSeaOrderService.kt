@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
-import com.rarible.opensea.client.model.OpenSeaOrder
+import com.rarible.opensea.client.model.v1.OpenSeaOrder
 import java.time.Duration
 
 interface OpenSeaOrderService {

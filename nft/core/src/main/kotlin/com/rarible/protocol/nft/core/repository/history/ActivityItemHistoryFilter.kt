@@ -48,7 +48,7 @@ sealed class ActivityItemHistoryFilter {
         override val hint: Document = NftItemHistoryRepositoryIndexes.BY_UPDATED_AT_FIELD.indexKeys
 
         override fun getCriteria(): Criteria {
-            return Criteria()
+            return (typeKey isEqualTo ItemType.TRANSFER)
                 .scrollTo(sort, continuation)
         }
     }

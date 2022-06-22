@@ -2,3 +2,11 @@ rarible:
   core:
     nginx-expose:
       server: api-staging.rarible.com
+
+logging:
+  logstash:
+    tcp-socket:
+      enabled: true
+      destinations: logstash:4560
+  logfmt:
+    enabled: false

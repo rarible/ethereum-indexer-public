@@ -90,7 +90,7 @@ class ItemController(
         @RequestParam(value = "animation", required = false) animation: Boolean?
     ): ResponseEntity<Any> {
         // We need to use raw meta here, because converted contains converted base64 url
-        val itemMeta = getItemMeta(itemId, "get image by ID")
+        val itemMeta = getCachedItemMeta(itemId, "get image by ID")
         val url = if (animation == true) {
             itemMeta.properties.animationUrl
         } else {
@@ -258,6 +258,13 @@ class ItemController(
         val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
         val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
+    }
+
+    private suspend fun getCachedItemMeta(itemId: String, demander: String): ItemMeta {
+        return itemMetaService.getAvailableMeta(
+            itemId = conversionService.convert(itemId),
+            demander = demander
+        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
     }
 
     private suspend fun getItemMeta(itemId: String, demander: String): ItemMeta {

@@ -3,13 +3,12 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.opensea.client.model.OpenSeaOrder
+import com.rarible.opensea.client.model.v1.OpenSeaOrder
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
 import java.time.Duration
 import javax.annotation.PostConstruct
-
 
 @Component
 class MeasurableOpenSeaOrderWrapper(
