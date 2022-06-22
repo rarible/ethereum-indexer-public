@@ -61,7 +61,6 @@ class CollectionService(
     suspend fun resetMeta(collectionId: Address) {
         logger.info("Refreshing collection meta by $collectionId")
         tokenMetaService.reset(collectionId)
-        tokenMetaService.refreshMetadataForCollectionItems(collectionId)
     }
 
     suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {

@@ -17,20 +17,16 @@ import com.rarible.core.meta.resource.resolver.LegacyIpfsGatewaySubstitutor
 import com.rarible.core.meta.resource.resolver.RandomGatewayProvider
 import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.ethereum.log.service.LogEventService
-import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.loader.cache.configuration.EnableRaribleCacheLoader
 import com.rarible.protocol.nft.core.converters.ConvertersPackage
 import com.rarible.protocol.nft.core.event.EventListenerPackage
 import com.rarible.protocol.nft.core.model.CollectionEventType
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.HistoryTopics
-import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.service.Package
-import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -68,15 +64,6 @@ class CoreConfiguration(
     fun ipfsProperties(): NftIndexerProperties.IpfsProperties {
         return properties.ipfs
     }
-
-    @Bean
-    @Qualifier("meta.cache.loader.service")
-    fun metaCacheLoaderService(
-        cacheLoaderServices: List<CacheLoaderService<*>>
-    ): CacheLoaderService<ItemMeta> =
-        @Suppress(
-            "UNCHECKED_CAST"
-        ) (cacheLoaderServices.find { it.type == ItemMetaCacheLoader.TYPE } as CacheLoaderService<ItemMeta>)
 
     @Bean
     fun historyTopics(): HistoryTopics {

@@ -69,7 +69,7 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
+        val availableMeta = itemMetaService.getAvailableMetaWithTimeout(
             itemId = conversionService.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
             demander = "get meta by ID"
@@ -86,7 +86,8 @@ class ItemController(
     }
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
-        itemMetaService.removeMeta(conversionService.convert(itemId), "reset meta by ID")
+        // TODO Remove in PT-568
+
         return ResponseEntity.noContent().build()
     }
 

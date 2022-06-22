@@ -12,7 +12,6 @@ import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
@@ -23,8 +22,7 @@ import org.springframework.stereotype.Component
 class LegacyMintService(
     private val lazyNftItemHistoryRepository: LazyNftItemHistoryRepository,
     private val itemRepository: ItemRepository,
-    private val itemReduceService: ItemReduceService,
-    private val itemMetaService: ItemMetaService
+    private val itemReduceService: ItemReduceService
 ) : MintService {
 
     override suspend fun createLazyNft(lazyItemHistory: ItemLazyMint): Item = optimisticLock {
@@ -48,7 +46,6 @@ class LegacyMintService(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId, "burn lazy mint")
         optimisticLock {
             itemReduceService.update(token = itemId.token, tokenId = itemId.tokenId).awaitFirst()
         }

@@ -20,7 +20,6 @@ import com.rarible.protocol.dto.NftCollectionUpdateEventDto
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemEventDto
 import com.rarible.protocol.dto.NftItemEventTopicProvider
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
@@ -79,7 +78,7 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.math.BigInteger
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -263,7 +262,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
     protected suspend fun checkItemEventWasPublished(
         token: Address,
         tokenId: EthUInt256,
-        itemMeta: NftItemMetaDto?,
         pendingSize: Int,
         eventType: Class<out NftItemEventDto>
     ) = coroutineScope {
@@ -276,7 +274,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
                             is NftItemUpdateEventDto -> {
                                 event.item.contract == token
                                         && event.item.tokenId == tokenId.value
-                                        //&& event.item.meta == itemMeta
                                         && (event.item.pending?.size ?: 0) == pendingSize
                             }
                             is NftItemDeleteEventDto -> {

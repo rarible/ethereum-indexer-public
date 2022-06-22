@@ -13,7 +13,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
-import com.rarible.protocol.nft.core.service.item.meta.ItemMetaService
 import com.rarible.protocol.nft.core.service.item.reduce.ItemEventReduceService
 import com.rarible.protocol.nft.core.service.ownership.reduce.OwnershipEventReduceService
 import kotlinx.coroutines.reactive.awaitFirst
@@ -28,7 +27,6 @@ class MintServiceImp(
     private val itemRepository: ItemRepository,
     private val itemReduceService: ItemEventReduceService,
     private val ownershipReduceService: OwnershipEventReduceService,
-    private val itemMetaService: ItemMetaService,
     private val ownershipEventConverter: OwnershipEventConverter,
     private val itemEventConverter: ItemEventConverter
 ) : MintService {
@@ -56,7 +54,6 @@ class MintServiceImp(
                 date = nowMillis()
             )
         ).awaitFirst()
-        itemMetaService.removeMeta(itemId,"burn lazy mint")
         val logRecord = savedItemHistory.wrapWithEthereumLogRecord()
         val itemEvent = itemEventConverter.convert(logRecord)
         val ownershipEvents = ownershipEventConverter.convert(logRecord)
