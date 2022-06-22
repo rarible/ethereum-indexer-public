@@ -163,7 +163,8 @@ data class Order(
                 is OrderCryptoPunksData,
                 is OrderDataLegacy,
                 is OrderRaribleV2DataV1,
-                is OrderRaribleV2DataV2 -> false
+                is OrderRaribleV2DataV2,
+                is OrderBasicSeaportDataV1 -> false
             }
         } else {
             false
@@ -271,6 +272,7 @@ data class Order(
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
                 is OrderCryptoPunksData -> EthUInt256.ZERO
+                is OrderBasicSeaportDataV1 -> EthUInt256.ZERO
             }
         }
 
