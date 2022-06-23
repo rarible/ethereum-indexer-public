@@ -24,6 +24,8 @@ ethereum-erc20-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-erc20-listener:
   image:
@@ -43,6 +45,8 @@ ethereum-erc20-listener:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-gateway:
   image:
@@ -67,6 +71,8 @@ ethereum-gateway:
     - '{{ include "service.appEnv" $ }}-backend'
     additional:
     - 'proxy-staging'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-order-api: 
   image:
@@ -93,6 +99,8 @@ ethereum-order-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-order-listener: 
   image:
@@ -114,6 +122,8 @@ ethereum-order-listener:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-order-migration:
   image:
@@ -139,6 +149,8 @@ ethereum-order-migration:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-unlockable-api:
   image:
@@ -161,6 +173,8 @@ ethereum-unlockable-api:
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-nft-api: 
   image:
@@ -186,6 +200,8 @@ ethereum-nft-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-nft-listener:
   image:
@@ -207,6 +223,8 @@ ethereum-nft-listener:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 ethereum-nft-migration:
   image:
@@ -232,3 +250,5 @@ ethereum-nft-migration:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
