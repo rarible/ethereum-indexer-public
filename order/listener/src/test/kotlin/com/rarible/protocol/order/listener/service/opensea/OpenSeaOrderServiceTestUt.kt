@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.opensea.client.OpenSeaClient
+import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.v1.OpenSeaOrderItems
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v1.OrdersRequest
@@ -18,8 +19,9 @@ import java.util.stream.Stream
 
 internal class OpenSeaOrderServiceTestUt {
     private val openSeaClient: OpenSeaClient = mockk()
+    private val seaportProtocolClient: SeaportProtocolClient = mockk()
     private val properties =  OrderListenerProperties()
-    private val openSeaOrderService = OpenSeaOrderServiceImpl(openSeaClient, properties)
+    private val openSeaOrderService = OpenSeaOrderServiceImpl(openSeaClient, seaportProtocolClient, properties)
 
     private companion object {
         @JvmStatic
