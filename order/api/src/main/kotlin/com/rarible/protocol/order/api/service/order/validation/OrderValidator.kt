@@ -20,7 +20,7 @@ class OrderValidator(
         val isValidOrderDataType = when (orderVersion.type) {
             OrderType.RARIBLE_V1 -> orderVersion.data is OrderDataLegacy
             OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2Data
-            OrderType.OPEN_SEA_V1 -> false
+            OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> false
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
         }
         if (isValidOrderDataType.not()) {

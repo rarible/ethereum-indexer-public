@@ -206,7 +206,7 @@ data class Order(
 
             return when(orderType) {
                 OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> calculatedMakeStock
-                OrderType.OPEN_SEA_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
+                OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
             }
         }
 
@@ -308,6 +308,7 @@ data class Order(
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
+                OrderType.SEAPORT_V1 -> throw UnsupportedOperationException("Can't calculate seaport order hash")
                 OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("On-chain CryptoPunks orders are not hashable")
             }
         }
