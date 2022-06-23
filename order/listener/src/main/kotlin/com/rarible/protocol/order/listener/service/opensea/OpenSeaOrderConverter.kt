@@ -67,7 +67,7 @@ class OpenSeaOrderConverter(
                 }
                 val offererConsiderationItemType = consideration.first().itemType
 
-                val make = convertToAssert(offer.single())
+                val make = convertToAsset(offer.single())
                 val take = convertToAsset(consideration.filter { it.itemType == offererConsiderationItemType })
 
                 require(take.value == currentPrice) {
@@ -96,7 +96,7 @@ class OpenSeaOrderConverter(
             taker = null,
             make = make,
             take = take,
-            type = OrderType.OPEN_SEA_V1,
+            type = OrderType.OPEN_SEA_V1, //TODO: Fix to SEAPORT_V1
             salt = EthUInt256.of(salt),
             start = startTime.toLong(),
             end = endTime.toLong(),
@@ -171,7 +171,7 @@ class OpenSeaOrderConverter(
         }
     }
 
-    fun convertToAssert(seaportItem: SeaportItem): Asset {
+    fun convertToAsset(seaportItem: SeaportItem): Asset {
         require(seaportItem.startAmount == seaportItem.endAmount) {
             "'startAmount' and 'endAmount' must be the same"
         }
