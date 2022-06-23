@@ -36,7 +36,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.service.item.meta.ItemMetaCacheLoader
 import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -174,7 +173,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
         val itemMeta = randomItemMeta().copy(properties = itemProperties)
 
-        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
+        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
 
         val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
 
@@ -223,7 +222,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
             rawJsonContent = null
         )
         val itemMeta = randomItemMeta().copy(properties = itemProperties)
-        coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns itemMeta
+        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
 
         val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
 
