@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.dto.MetaContentDto
+import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.meta.EthImageProperties
@@ -147,7 +147,7 @@ class ItemPropertiesService(
 
     private fun ItemProperties.fixIpfsUrls(itemId: ItemId): ItemProperties {
         // Make all URL with public IPFS gateway
-        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else urlService.resolvePublicHttpUrl(this)
+        fun String?.resolveHttpUrl() = if (this.isNullOrBlank()) null else urlService.resolvePublicHttpUrl(this) ?: this
         val content = ArrayList<EthMetaContent>(4)
 
         // TODO originally, it should be done in property resolvers
