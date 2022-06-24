@@ -1,2 +1,0 @@
-listener:
-  logConsumeWorkerCount: 2 #todo delete after debug
