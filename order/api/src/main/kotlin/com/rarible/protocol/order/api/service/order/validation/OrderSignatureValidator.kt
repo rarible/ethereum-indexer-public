@@ -54,6 +54,7 @@ class OrderSignatureValidator(
                 Unit
             }
             OrderType.OPEN_SEA_V1 -> Unit
+            OrderType.SEAPORT_V1 -> Unit
             OrderType.CRYPTO_PUNKS -> Unit
         }
     }

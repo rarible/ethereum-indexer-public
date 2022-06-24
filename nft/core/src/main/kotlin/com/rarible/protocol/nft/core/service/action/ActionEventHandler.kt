@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.BurnItemActionEvent
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import kotlinx.coroutines.reactive.awaitFirst
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,7 +22,8 @@ import java.time.Clock
 class ActionEventHandler(
     private val nftItemActionEventRepository: NftItemActionEventRepository,
     private val clock: Clock,
-    private val incomeBurnActionMetric: RegisteredCounter
+    private val incomeBurnActionMetric: RegisteredCounter,
+    private val itemReduceService: ItemReduceService
 ) : ConsumerEventHandler<ActionEvent> {
 
     override suspend fun handle(event: ActionEvent) = when(event) {
@@ -57,6 +59,7 @@ class ActionEventHandler(
         }
         if (needSave) {
             nftItemActionEventRepository.save(burnAction).awaitFirst()
+            itemReduceService.update(burnAction.token, burnAction.tokenId).awaitFirst()
             incomeBurnActionMetric.increment()
             logger.info("Save action for item ${event.itemId().decimalStringValue}: $burnAction")
         }
