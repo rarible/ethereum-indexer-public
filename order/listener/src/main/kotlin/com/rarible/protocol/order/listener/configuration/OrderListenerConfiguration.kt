@@ -199,8 +199,7 @@ class OrderListenerConfiguration(
         orderVersionListener: OrderVersionListener,
         meterRegistry: MeterRegistry,
         properties: OrderListenerProperties,
-        openSeaOrderSaveRegisteredCounter: RegisteredCounter,
-        openSeaOrderLoadRegisteredCounter: RegisteredCounter,
+        openSeaSaveCounter: RegisteredCounter
     ): OpenSeaOrdersFetcherWorker {
         return OpenSeaOrdersFetcherWorker(
             properties = properties.openSeaOrdersLoadWorker,
@@ -211,7 +210,7 @@ class OrderListenerConfiguration(
             orderRepository = orderRepository,
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
-            saveCounter = openSeaOrderSaveRegisteredCounter,
+            saveCounter = openSeaSaveCounter,
         ).apply { start() }
     }
 
@@ -268,7 +267,6 @@ class OrderListenerConfiguration(
         properties: OrderListenerProperties,
         meterRegistry: MeterRegistry,
         openSeaSaveCounter: RegisteredCounter,
-        openSeaLoadCounter: RegisteredCounter,
     ): OpenSeaOrdersPeriodFetcherWorker {
         return OpenSeaOrdersPeriodFetcherWorker(
             properties = properties.openSeaOrdersLoadPeriodWorker,
