@@ -2,7 +2,7 @@ package com.rarible.protocol.nft.core.service.token.reduce
 
 import com.rarible.core.entity.reducer.service.EntityService
 import com.rarible.protocol.nft.core.model.Token
-import com.rarible.protocol.nft.core.repository.TokenRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.token.TokenEventListener
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull

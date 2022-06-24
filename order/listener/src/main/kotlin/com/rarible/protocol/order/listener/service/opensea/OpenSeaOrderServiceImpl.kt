@@ -3,12 +3,17 @@ package com.rarible.protocol.order.listener.service.opensea
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.opensea.client.OpenSeaClient
-import com.rarible.opensea.client.model.*
+import com.rarible.opensea.client.SeaportProtocolClient
+import com.rarible.opensea.client.model.OpenSeaError
+import com.rarible.opensea.client.model.OperationResult
+import com.rarible.opensea.client.model.v1.*
+import com.rarible.opensea.client.model.v2.SeaportOrders
+import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.delay
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
@@ -19,10 +24,31 @@ import kotlin.math.ceil
 @CaptureSpan(type = SpanType.EXT)
 class OpenSeaOrderServiceImpl(
     private val openSeaClient: OpenSeaClient,
+    private val seaportProtocolClient: SeaportProtocolClient,
     properties: OrderListenerProperties
 ) : OpenSeaOrderService {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val loadOpenSeaOrderSide = convert(properties.openSeaOrderSide)
+    private val seaportLoad = properties.seaportLoad
+
+    override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
+        val request = SeaportOrdersRequest(
+            next = nextCursor,
+            previous = null,
+            limit = MAX_SIZE
+        )
+        var lastError: OpenSeaError? = null
+        var retries = 0
+
+        while (retries++ < seaportLoad.retry) {
+            when (val result = seaportProtocolClient.getListOrders(request)) {
+                is OperationResult.Success -> return result.result
+                is OperationResult.Fail -> lastError = result.error
+            }
+            delay(seaportLoad.retryDelay)
+        }
+        throw IllegalStateException("Can't fetch Seaport orders, number of attempts exceeded, last error: $lastError")
+    }
 
     override suspend fun getNextOrdersBatch(
         listedAfter: Long,
@@ -79,7 +105,7 @@ class OpenSeaOrderServiceImpl(
                 is OperationResult.Success -> return result.result.orders
                 is OperationResult.Fail -> lastError = result.error
             }
-            delay(retries * 300L)
+            delay(Duration.ofMillis(300).multipliedBy(retries.toLong()))
         }
         throw IllegalStateException("Can't fetch OpenSea orders, number of attempts exceeded, last error: $lastError")
     }

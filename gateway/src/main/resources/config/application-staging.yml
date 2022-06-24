@@ -2,3 +2,11 @@ rarible:
   core:
     nginx-expose:
       server: ${gateway.blockchain}-api-staging.rarible.org
+
+logging:
+  logstash:
+    tcp-socket:
+      enabled: true
+      destinations: logstash:4560
+  logfmt:
+    enabled: false

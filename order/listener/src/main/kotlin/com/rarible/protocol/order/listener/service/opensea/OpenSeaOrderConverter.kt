@@ -2,10 +2,17 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.opensea.client.model.AssetSchema
-import com.rarible.opensea.client.model.OpenSeaOrder
+import com.rarible.opensea.client.model.v1.AssetSchema
+import com.rarible.opensea.client.model.v1.OpenSeaOrder
+import com.rarible.opensea.client.model.v2.Consideration
+import com.rarible.opensea.client.model.v2.ItemType
+import com.rarible.opensea.client.model.v2.Offer
+import com.rarible.opensea.client.model.v2.SeaportItem
+import com.rarible.opensea.client.model.v2.SeaportOrder
+import com.rarible.opensea.client.model.v2.SeaportOrderType as ClientSeaportOrderType
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.SeaportItemType.*
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
@@ -14,21 +21,101 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import java.math.BigInteger
-import com.rarible.opensea.client.model.FeeMethod as ClientOpenSeaFeeMethod
-import com.rarible.opensea.client.model.HowToCall as ClientOpenSeaHowToCall
-import com.rarible.opensea.client.model.OrderSide as ClientOpenSeaOrderSide
-import com.rarible.opensea.client.model.SaleKind as ClientOpenSeaSaleKind
+import com.rarible.opensea.client.model.v1.FeeMethod as ClientOpenSeaFeeMethod
+import com.rarible.opensea.client.model.v1.HowToCall as ClientOpenSeaHowToCall
+import com.rarible.opensea.client.model.v1.OrderSide as ClientOpenSeaOrderSide
+import com.rarible.opensea.client.model.v1.SaleKind as ClientOpenSeaSaleKind
+import com.rarible.opensea.client.model.v2.OrderType as ClientOrderType
 
 @Component
 class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter,
+    private val openSeaErrorCounter: RegisteredCounter,
+    private val seaportErrorCounter: RegisteredCounter,
     properties: OrderListenerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val openSeaExchangeDomainHashV2 = Word.apply(properties.openSeaExchangeDomainHashV2)
+
+    suspend fun convert(clientSeaportOrder: SeaportOrder): OrderVersion? {
+        if (clientSeaportOrder.taker != null) return null
+        val orderHash = clientSeaportOrder.orderHash
+        val maker = clientSeaportOrder.protocolData.parameters.offerer
+        val offer = clientSeaportOrder.protocolData.parameters.offer
+        val consideration = clientSeaportOrder.protocolData.parameters.consideration
+        val protocolAddress = clientSeaportOrder.protocolAddress
+        val currentPrice = EthUInt256.of(clientSeaportOrder.currentPrice)
+        val salt = clientSeaportOrder.protocolData.parameters.salt
+        val startTime = clientSeaportOrder.protocolData.parameters.startTime
+        val endTime = clientSeaportOrder.protocolData.parameters.endTime
+        val createdAt = clientSeaportOrder.createdAt
+        val signature = clientSeaportOrder.protocolData.signature
+        val zone = clientSeaportOrder.protocolData.parameters.zone
+        val zoneHash = clientSeaportOrder.protocolData.parameters.zoneHash
+        val conduitKey = clientSeaportOrder.protocolData.parameters.conduitKey
+        val counter = clientSeaportOrder.protocolData.parameters.counter
+        val orderType = clientSeaportOrder.protocolData.parameters.orderType
+
+        val (make, take, data) = when (clientSeaportOrder.orderType) {
+            ClientSeaportOrderType.BASIC -> {
+                require(offer.size == 1) {
+                    "unexpected seaport offer size (${offer.size}), for basic orders"
+                }
+                require(consideration.isNotEmpty()) {
+                    "must contain at least one consideration"
+                }
+                val offererConsiderationItemType = consideration.first().itemType
+
+                val make = convertToAsset(offer.single())
+                val take = convertToAsset(consideration.filter { it.itemType == offererConsiderationItemType })
+
+                require(take.value == currentPrice) {
+                    "protocol total amount must be equal currentPrice"
+                }
+                val data = OrderBasicSeaportDataV1(
+                    protocol = protocolAddress,
+                    orderType = convert(orderType),
+                    offer = offer.map { convert(it) } ,
+                    consideration = consideration.map { convert(it) },
+                    zone = zone,
+                    zoneHash = zoneHash,
+                    conduitKey = conduitKey,
+                    counter = counter.toLong()
+                )
+                Triple(make, take, data)
+            }
+            ClientSeaportOrderType.ENGLISH_AUCTION -> {
+                logger.info("Unsupported seaport order type ${clientSeaportOrder.orderType}")
+                seaportErrorCounter.increment()
+                return null
+            }
+        }
+        return OrderVersion(
+            hash = orderHash,
+            maker = maker,
+            taker = null,
+            make = make,
+            take = take,
+            type = OrderType.OPEN_SEA_V1, //TODO: Fix to SEAPORT_V1
+            salt = EthUInt256.of(salt),
+            start = startTime.toLong(),
+            end = endTime.toLong(),
+            data = data,
+            createdAt = createdAt,
+            signature = signature,
+            makePriceUsd = null,
+            takePriceUsd = null,
+            makePrice = null,
+            takePrice = null,
+            makeUsd = null,
+            takeUsd = null,
+            platform = Platform.OPEN_SEA
+        ).let {
+            priceUpdateService.withUpdatedPrices(it)
+        }
+    }
 
     suspend fun convert(clientOpenSeaOrder: OpenSeaOrder): OrderVersion? {
         val (make, take) = createAssets(clientOpenSeaOrder) ?: return null
@@ -86,6 +173,78 @@ class OpenSeaOrderConverter(
         }
     }
 
+    fun convertToAsset(seaportItem: SeaportItem): Asset {
+        require(seaportItem.startAmount == seaportItem.endAmount) {
+            "'startAmount' and 'endAmount' must be the same"
+        }
+        return Asset(convertToAssetType(seaportItem), EthUInt256.of(seaportItem.startAmount))
+    }
+
+    fun convertToAssetType(seaportItem: SeaportItem): AssetType {
+        return when (seaportItem.itemType) {
+            ItemType.NATIVE -> EthAssetType
+            ItemType.ERC20 -> Erc20AssetType(seaportItem.token)
+            ItemType.ERC721 -> Erc721AssetType(seaportItem.token, EthUInt256.of(seaportItem.identifierOrCriteria))
+            ItemType.ERC1155 -> Erc1155AssetType(seaportItem.token, EthUInt256.of(seaportItem.identifierOrCriteria))
+            ItemType.ERC721_WITH_CRITERIA,
+            ItemType.ERC1155_WITH_CRITERIA -> throw UnsupportedOperationException("Unsupported seaport item type ${seaportItem.itemType}")
+        }
+    }
+
+    fun convertToAsset(seaportItems: List<SeaportItem>): Asset {
+        val assetType = seaportItems.map { convertToAssetType(it) }
+        val amount = seaportItems.sumOf { it.startAmount }
+
+        require(assetType.toSet().size == 1) {
+            "all seaport items must be the same type"
+        }
+        require(seaportItems.all { it.startAmount == it.endAmount }) {
+            "'startAmount' and 'endAmount' must be the same"
+        }
+        return Asset(assetType.first(), EthUInt256.of(amount))
+    }
+
+    fun convert(offer: Offer): SeaportOffer {
+        return SeaportOffer(
+            itemType = convert(offer.itemType),
+            token = offer.token,
+            identifierOrCriteria = offer.identifierOrCriteria,
+            startAmount = offer.startAmount,
+            endAmount = offer.endAmount
+        )
+    }
+
+    fun convert(consideration: Consideration): SeaportConsideration {
+        return SeaportConsideration(
+            itemType = convert(consideration.itemType),
+            token = consideration.token,
+            identifierOrCriteria = consideration.identifierOrCriteria,
+            startAmount = consideration.startAmount,
+            endAmount = consideration.endAmount,
+            recipient = consideration.recipient
+        )
+    }
+
+    fun convert(itemType: ItemType): SeaportItemType {
+        return when (itemType) {
+            ItemType.NATIVE -> NATIVE
+            ItemType.ERC20 -> ERC20
+            ItemType.ERC721 -> ERC721
+            ItemType.ERC1155 -> ERC1155
+            ItemType.ERC721_WITH_CRITERIA -> ERC721_WITH_CRITERIA
+            ItemType.ERC1155_WITH_CRITERIA -> ERC1155_WITH_CRITERIA
+        }
+    }
+
+    fun convert(orderType: ClientOrderType): SeaportOrderType {
+        return when (orderType) {
+            ClientOrderType.FULL_OPEN -> SeaportOrderType.FULL_OPEN
+            ClientOrderType.PARTIAL_OPEN -> SeaportOrderType.PARTIAL_OPEN
+            ClientOrderType.FULL_RESTRICTED -> SeaportOrderType.FULL_RESTRICTED
+            ClientOrderType.PARTIAL_RESTRICTED -> SeaportOrderType.PARTIAL_RESTRICTED
+        }
+    }
+
     private fun joinSignaturePart(r: Word, s: Word, v: Byte): Binary {
         return r.add(s).add(byteArrayOf(v))
     }
@@ -111,7 +270,6 @@ class OpenSeaOrderConverter(
             nonce = null,
         )
     }
-
 
     private fun convert(source: ClientOpenSeaHowToCall): OpenSeaOrderHowToCall {
         return when (source) {
@@ -205,7 +363,7 @@ class OpenSeaOrderConverter(
                 return nonce
             }
         }
-        openSeaOrderErrorRegisteredCounter.increment()
+        openSeaErrorCounter.increment()
         return null
     }
 

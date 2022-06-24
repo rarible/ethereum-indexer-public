@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.OrderDataDto
+import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -18,8 +19,8 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderRaribleV2DataV2 -> RaribleV2DataV2DtoConverter.convert(source)
             is OrderDataLegacy -> RaribleLegacyDataDtoConverter.convert(source)
             is OrderOpenSeaV1DataV1 -> OpenSeaV1DataV1DtoConverter.convert(source)
+            is OrderBasicSeaportDataV1 -> SeaportDataV1DtoConverter.convert(source)
             is OrderCryptoPunksData -> OrderCryptoPunksDataDtoConverter.convert(source)
         }
     }
 }
-

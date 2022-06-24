@@ -78,6 +78,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             Token::lastEventId.name,
             Token::version.name,
             Token::revertableEvents.name,
+            Token::dbUpdatedAt.name
         )
     }
 
@@ -120,7 +121,7 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
             }
         }
         val sameToken = tokenReduceService.updateToken(collectionId)
-        assertEquals(token.copy(version = 0), sameToken?.copy(version = 0))
+        assertEquals(token.copy(version = 0), sameToken?.copy(version = 0, dbUpdatedAt = token.dbUpdatedAt))
     }
 
     @ParameterizedTest

@@ -25,6 +25,7 @@ import io.daonomic.rpc.domain.WordFactory
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.Duration
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -32,9 +33,14 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
+import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.where
 import scalether.domain.Address
-import java.time.Duration
 
 const val OWNERS_NUMBER = 4
 
@@ -42,7 +48,7 @@ const val OWNERS_NUMBER = 4
 @FlowPreview
 internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     @BeforeEach
-    fun setupDbIndexes() = runBlocking<Unit> {
+    fun setupDbIndexes() = runBlocking {
         itemRepository.createIndexes()
         nftItemHistoryRepository.createIndexes()
     }
@@ -85,8 +91,7 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
             invalidOwnership
         ).flatten().forEach { ownershipRepository.save(it).awaitFirst() }
         listOf(
-            createValidLog(fixableItem, fixableOwnership),
-            createInvalidValidLog(invalidItem, invalidOwnership)
+            createValidLog(fixableItem, fixableOwnership)
         ).flatten().forEach { nftItemHistoryRepository.save(it).awaitFirst() }
 
         val continuations = itemDataQualityService.checkItems(from = null).toList()
@@ -103,6 +108,39 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
     }
 
+    @ParameterizedTest
+    @EnumSource(ReduceVersion::class)
+    internal fun `should fix item`(version: ReduceVersion) = withReducer(version) {
+        val item = createRandomItem().copy(supply = EthUInt256.ONE)
+        itemRepository.save(item).awaitFirst()
+        val ownerships = listOf(
+            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.ONE),
+            createRandomOwnership().copy(token = item.token, tokenId = item.tokenId, value = EthUInt256.ONE)
+        )
+        ownerships.forEach { ownershipRepository.save(it).awaitFirst() }
+        createValidLog(item, listOf(ownerships.first())).forEach {
+            nftItemHistoryRepository.save(it).awaitFirst()
+        }
+
+        val itemDataQualityService = ItemDataQualityService(
+            itemRepository = itemRepository,
+            ownershipRepository = ownershipRepository,
+            itemDataQualityErrorRegisteredCounter = mockk {
+                every { increment() } returns Unit
+            },
+            nftListenerProperties = NftListenerProperties().copy(elementsFetchJobSize = 2),
+            itemReduceService = itemReduceService,
+            inconsistentItemRepository = inconsistentItemRepository
+        )
+
+        itemDataQualityService.checkItems(from = null).toList()
+        val result = itemDataQualityService.checkItem(item)
+
+        val owners = ownershipRepository.search(Query(where(Ownership::token).isEqualTo(item.token).and(Ownership::tokenId).isEqualTo(item.tokenId)))
+        assertThat(owners).hasSize(1)
+        assertThat(result).isEqualTo(ItemDataQualityService.CheckResult.Success)
+    }
+
     private fun createValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
         return ownerships.map { ownership ->
             createLog(
@@ -111,18 +149,6 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
                 value = EthUInt256.ONE,
                 from = Address.ZERO(),
                 owner = ownership.owner
-            )
-        }
-    }
-
-    private fun createInvalidValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
-        return ownerships.map { ownership ->
-            createLog(
-                token = item.token,
-                tokenId = item.tokenId,
-                value = EthUInt256.ONE,
-                from = randomAddress(),
-                owner = randomAddress()
             )
         }
     }

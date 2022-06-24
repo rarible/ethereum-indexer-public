@@ -40,6 +40,7 @@ class OrderToFormDtoConverter {
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataDto
             )
             OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be created or updated")
+            OrderType.SEAPORT_V1 -> throw IllegalArgumentException("Seaport order can't be created or updated")
             OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks order are created on-chain")
         }
     }

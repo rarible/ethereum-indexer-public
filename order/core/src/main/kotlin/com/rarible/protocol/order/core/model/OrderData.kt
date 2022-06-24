@@ -2,6 +2,7 @@ package com.rarible.protocol.order.core.model
 
 import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Transient
 import scala.Tuple2
 import scala.Tuple3
@@ -100,6 +101,33 @@ data class OrderOpenSeaV1DataV1(
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
+sealed class OrderSeaportDataV1 : OrderData() {
+    abstract val protocol: Address
+    abstract val orderType: SeaportOrderType
+    abstract val offer: List<SeaportOffer>
+    abstract val consideration: List<SeaportConsideration>
+    abstract val zone: Address
+    abstract val zoneHash: Word
+    abstract val conduitKey: Word
+    abstract val counter: Long
+}
+
+data class OrderBasicSeaportDataV1(
+    override val protocol: Address,
+    override val orderType: SeaportOrderType,
+    override val offer: List<SeaportOffer>,
+    override val consideration: List<SeaportConsideration>,
+    override val zone: Address,
+    override val zoneHash: Word,
+    override val conduitKey: Word,
+    override val counter: Long
+) : OrderSeaportDataV1() {
+    @get:Transient
+    override val version = OrderDataVersion.BASIC_SEAPORT_DATA_V1
+
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+}
+
 object OrderCryptoPunksData : OrderData() {
     @get:Transient
     override val version get() = OrderDataVersion.CRYPTO_PUNKS
@@ -115,6 +143,7 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     RARIBLE_V2_DATA_V1(id("V1")),
     RARIBLE_V2_DATA_V2(id("V2")),
     OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
+    BASIC_SEAPORT_DATA_V1(id("BASIC_SEAPORT_DATA_V1")),
     CRYPTO_PUNKS
 }
 

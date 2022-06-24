@@ -8,8 +8,10 @@ import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
+import com.rarible.protocol.dto.OrderSeaportDataV1Dto
 import com.rarible.protocol.dto.OrderStatusDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
+import com.rarible.protocol.dto.SeaportV1OrderDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
@@ -119,6 +121,37 @@ class OrderDtoConverter(
                 pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto,
+                makePrice = source.makePrice,
+                takePrice = source.takePrice,
+                makePriceUsd = source.makePriceUsd,
+                takePriceUsd = source.takePriceUsd,
+                makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
+                start = source.start,
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+            )
+            OrderType.SEAPORT_V1 -> SeaportV1OrderDto(
+                maker = source.maker,
+                make = assetDtoConverter.convert(source.make),
+                taker = source.taker,
+                take = assetDtoConverter.convert(source.take),
+                fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
+                makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
+                cancelled = source.cancelled,
+                salt = source.salt.value.toWord(),
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
+                createdAt = source.createdAt,
+                lastUpdateAt = source.lastUpdateAt,
+                dbUpdatedAt = source.dbUpdatedAt,
+                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
+                hash = source.hash,
+                data = OrderDataDtoConverter.convert(source.data) as OrderSeaportDataV1Dto,
                 makePrice = source.makePrice,
                 takePrice = source.takePrice,
                 makePriceUsd = source.makePriceUsd,

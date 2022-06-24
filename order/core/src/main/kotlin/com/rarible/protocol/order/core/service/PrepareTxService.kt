@@ -80,6 +80,9 @@ class PrepareTxService(
             OrderType.CRYPTO_PUNKS -> {
                 prepareTxForCryptoPunk(order, form)
             }
+            OrderType.SEAPORT_V1 -> {
+                throw UnsupportedOperationException("Can't prepare tx for order type ${order.type}")
+            }
         }
     }
 
@@ -96,6 +99,9 @@ class PrepareTxService(
             }
             OrderType.CRYPTO_PUNKS -> {
                 prepareCancelTxForCryptoPunk(order)
+            }
+            OrderType.SEAPORT_V1 -> {
+                throw UnsupportedOperationException("Can't prepare tx for order type ${order.type}")
             }
         }
     }

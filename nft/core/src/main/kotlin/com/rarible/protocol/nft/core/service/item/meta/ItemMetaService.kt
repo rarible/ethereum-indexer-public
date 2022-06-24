@@ -12,7 +12,8 @@ import java.time.Duration
  */
 @Component
 class ItemMetaService(
-    private val itemMetaResolver: ItemMetaResolver
+    private val itemMetaResolver: ItemMetaResolver,
+    private val pendingItemTokenUriResolver: PendingItemTokenUriResolver
 ) {
     suspend fun getMeta(
         itemId: ItemId,
@@ -65,6 +66,7 @@ class ItemMetaService(
         logMetaLoading(itemId, "resolving meta for a pending item by $tokenUri")
         val itemMeta = itemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) ?: return
         // TODO in PT-566
+        pendingItemTokenUriResolver.save(itemId, tokenUri)
         logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
     }
 }

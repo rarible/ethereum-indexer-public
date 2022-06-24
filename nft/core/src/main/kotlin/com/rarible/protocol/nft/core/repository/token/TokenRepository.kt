@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.repository
+package com.rarible.protocol.nft.core.repository.token
 
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.Token
@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.TokenFilter
 import com.rarible.protocol.nft.core.model.TokenStandard
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.*
 import org.springframework.data.mongodb.core.query.Criteria
@@ -21,8 +22,15 @@ import scalether.domain.Address
 class TokenRepository(
     private val mongo: ReactiveMongoOperations
 ) {
+
+    suspend fun createIndexes() {
+        TokenRepositoryIndexes.ALL_INDEXES.forEach { index ->
+            mongo.indexOps(Token.COLLECTION).ensureIndex(index).awaitFirst()
+        }
+    }
+
     fun save(token: Token): Mono<Token> {
-        return mongo.save(token)
+        return mongo.save(token.withDbUpdatedAt())
     }
 
     fun remove(token: Address): Mono<Void> {

@@ -1,7 +1,11 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
+import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
+import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
+import com.rarible.protocol.order.core.model.OpenSeaOrderSide
+import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 

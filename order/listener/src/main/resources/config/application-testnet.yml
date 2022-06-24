@@ -5,7 +5,11 @@ common:
 
 rarible:
   opensea:
-    endpoint: https://rinkeby-api.opensea.io
+    testnet: true
+  seaport:
+    testnet: true
 
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}
+  seaport-load:
+    enabled: false
