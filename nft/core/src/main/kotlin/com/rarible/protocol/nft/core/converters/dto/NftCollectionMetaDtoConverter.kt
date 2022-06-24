@@ -21,13 +21,7 @@ object NftCollectionMetaDtoConverter : Converter<TokenMeta, NftCollectionMetaDto
             originalMetaUri = source.properties.tokenUri,
             sellerFeeBasisPoints = source.properties.sellerFeeBasisPoints,
             feeRecipient = source.properties.feeRecipient,
-
             content = source.properties.content.asList().map { EthMetaContentConverter.convert(it) },
-
-            // TODO legacy fields, remove
-            external_link = source.properties.externalUri,
-            seller_fee_basis_points = source.properties.sellerFeeBasisPoints,
-            fee_recipient = source.properties.feeRecipient
         )
     }
 

@@ -69,7 +69,7 @@ class ItemController(
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = itemMetaService.getAvailableMetaWithTimeout(
+        val availableMeta = itemMetaService.getMetaWithTimeout(
             itemId = conversionService.convert(itemId),
             timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
             demander = "get meta by ID"
@@ -180,7 +180,7 @@ class ItemController(
     override fun getNftItemsByIds(nftItemIdsDto: NftItemIdsDto): ResponseEntity<Flow<NftItemDto>> {
         val ids = nftItemIdsDto.ids.map { ItemId.parseId(it) }.toSet()
         val items = flow<NftItemDto> {
-            itemService.search(ids = ids)
+            itemService.getAll(ids = ids)
                 .forEach { emit(conversionService.convert(it)) }
         }.flowOn(RaribleMDCContext())
         return ResponseEntity.ok(items)

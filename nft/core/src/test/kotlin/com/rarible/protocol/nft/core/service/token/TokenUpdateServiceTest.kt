@@ -68,11 +68,8 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             NftCollectionMetaDto(
                 name = "Feudalz",
                 description = "Feudalz emerged to protect their Peasants.",
-                external_link = "https://feudalz.io",
                 externalUri = "https://feudalz.io",
-                fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                 feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
-                seller_fee_basis_points = 250,
                 sellerFeeBasisPoints = 250,
                 genres = emptyList(),
                 tags = emptyList(),

@@ -11,7 +11,6 @@ import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.SvgSanitizer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -57,9 +56,7 @@ class LootPropertiesResolver(
         @Suppress("BlockingMethodInNonBlockingContext")
         val node = JsonPropertiesParser.parse(itemId, tokenUri)
         check(node != null)
-        val imageUrl = node.getText("image")?.let {
-            SvgSanitizer.sanitize(itemId, it)
-        }
+        val imageUrl = node.getText("image")
         val name = node.getText("name") ?: return null
         return ItemProperties(
             name = name,

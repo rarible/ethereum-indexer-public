@@ -20,6 +20,6 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
         val resolvedItemMeta = randomItemMeta()
 
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns resolvedItemMeta
-        assertThat(itemMetaService.getAvailableMetaWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(resolvedItemMeta)
+        assertThat(itemMetaService.getMetaWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(resolvedItemMeta)
     }
 }

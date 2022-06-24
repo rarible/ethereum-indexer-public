@@ -31,9 +31,5 @@ class NftCollectionMetaDtoConverterTest {
         assertThat(meta.externalUri).isEqualTo(properties.externalUri)
         assertThat(meta.originalMetaUri).isEqualTo(properties.tokenUri)
         assertThat(meta.content).hasSize(properties.content.asList().size)
-
-        assertThat(meta.seller_fee_basis_points).isEqualTo(properties.sellerFeeBasisPoints)
-        assertThat(meta.external_link).isEqualTo(properties.externalUri)
-        assertThat(meta.fee_recipient).isEqualTo(properties.feeRecipient)
     }
 }

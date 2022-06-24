@@ -82,9 +82,9 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                 width = 256
             )
         )
-        assertThat(metaDto.external_link).isEqualTo("https://feudalz.io")
-        assertThat(metaDto.seller_fee_basis_points).isEqualTo(250)
-        assertThat(metaDto.fee_recipient).isEqualTo(Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"))
+        assertThat(metaDto.externalUri).isEqualTo("https://feudalz.io")
+        assertThat(metaDto.sellerFeeBasisPoints).isEqualTo(250)
+        assertThat(metaDto.feeRecipient).isEqualTo(Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"))
     }
 
     @Test
@@ -156,9 +156,9 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                 size = null
             )
         )
-        assertThat(metaDto.external_link).isEqualTo("https://feudalz.io")
-        assertThat(metaDto.seller_fee_basis_points).isEqualTo(250)
-        assertThat(metaDto.fee_recipient).isEqualTo(Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"))
+        assertThat(metaDto.externalUri).isEqualTo("https://feudalz.io")
+        assertThat(metaDto.sellerFeeBasisPoints).isEqualTo(250)
+        assertThat(metaDto.feeRecipient).isEqualTo(Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"))
     }
 
     @Test
@@ -231,9 +231,9 @@ class CollectionMetaFt : SpringContainerBaseTest() {
                 size = null
             )
         )
-        assertThat(metaDto.external_link).isEqualTo("https://feudalz.io")
-        assertThat(metaDto.seller_fee_basis_points).isEqualTo(250)
-        assertThat(metaDto.fee_recipient).isEqualTo(Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"))
+        assertThat(metaDto.externalUri).isEqualTo("https://feudalz.io")
+        assertThat(metaDto.sellerFeeBasisPoints).isEqualTo(250)
+        assertThat(metaDto.feeRecipient).isEqualTo(Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"))
     }
 
     @Test

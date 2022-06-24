@@ -4,7 +4,6 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.time.withTimeout
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.time.Duration
 
@@ -15,7 +14,7 @@ import java.time.Duration
 class ItemMetaService(
     private val itemMetaResolver: ItemMetaResolver
 ) {
-    suspend fun getAvailableMeta(
+    suspend fun getMeta(
         itemId: ItemId,
         demander: String
     ): ItemMeta? {
@@ -35,23 +34,25 @@ class ItemMetaService(
         return itemMeta
     }
 
-    suspend fun getAvailableMetaWithTimeout(
+    suspend fun getMetaWithTimeout(
         itemId: ItemId,
         timeout: Duration,
         demander: String
     ): ItemMeta? {
         return try {
             withTimeout(timeout) {
-                getAvailableMeta(
+                getMeta(
                     itemId = itemId,
                     demander = demander
                 )
             }
         } catch (e: CancellationException) {
-            logger.warn("Timeout synchronously load meta by $itemId for '$demander' with timeout ${timeout.toMillis()} ms", e)
+            val message = "Timeout synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            logMetaLoading(itemId, message, warn = true)
             null
         } catch (e: Exception) {
-            logger.error("Cannot synchronously load meta by $itemId for '$demander' with timeout ${timeout.toMillis()} ms", e)
+            val message = "Cannot synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            logMetaLoading(itemId, message, warn = true)
             null
         }
     }
@@ -65,9 +66,5 @@ class ItemMetaService(
         val itemMeta = itemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) ?: return
         // TODO in PT-566
         logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
-    }
-
-    companion object {
-        private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
     }
 }

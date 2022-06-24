@@ -2,7 +2,6 @@ package com.rarible.protocol.nft.api.service.item
 
 import com.rarible.core.cache.CacheService
 import com.rarible.core.cache.get
-import com.rarible.core.common.mapAsync
 import com.rarible.protocol.dto.NftItemRoyaltyDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -68,13 +67,13 @@ class ItemService(
         owner: Address,
         continuation: OwnershipContinuation?,
         size: Int
-    ): List<Item> = coroutineScope {
+    ): List<Item> {
         val ownershipFilter = OwnershipFilterByOwner(OwnershipFilter.Sort.LAST_UPDATE, owner)
         val ownerships = ownershipApiService.search(ownershipFilter, continuation, size)
             .associate { ItemId(it.token, it.tokenId) to it.date }
 
-        itemRepository.searchByIds(ownerships.keys)
-            .mapAsync { item ->
+        return itemRepository.searchByIds(ownerships.keys)
+            .map { item ->
                 item.copy(
                     // We need to replace item's date with ownership's date due to correct ordering
                     date = ownerships[item.id] ?: item.date
@@ -84,7 +83,7 @@ class ItemService(
             .reversed()
     }
 
-    suspend fun search(ids: Set<ItemId>): List<Item> = itemRepository.searchByIds(ids)
+    suspend fun getAll(ids: Set<ItemId>): List<Item> = itemRepository.searchByIds(ids)
 
     companion object {
         private val logger = LoggerFactory.getLogger(ItemService::class.java)

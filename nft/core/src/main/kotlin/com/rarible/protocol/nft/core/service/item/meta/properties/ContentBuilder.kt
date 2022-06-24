@@ -1,8 +1,8 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
-import com.rarible.protocol.dto.MetaContentDto
+import com.rarible.core.common.ifNotBlank
+import com.rarible.protocol.dto.MetaContentDto.Representation
 import com.rarible.protocol.nft.core.model.ContentMeta
-import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.TokenMetaContent
 import com.rarible.protocol.nft.core.model.meta.EthImageProperties
@@ -18,10 +18,10 @@ object ContentBuilder {
         videoOriginal: String? = null
     ): ItemMetaContent {
         return ItemMetaContent(
-            imageOriginal = imageOriginal?.let { toImage(it, MetaContentDto.Representation.ORIGINAL) },
-            imageBig = imageBig?.let { toImage(it, MetaContentDto.Representation.BIG) },
-            imagePreview = imagePreview?.let { toImage(it, MetaContentDto.Representation.PREVIEW) },
-            videoOriginal = videoOriginal?.let { toVideo(it, MetaContentDto.Representation.ORIGINAL) }
+            imageOriginal = imageOriginal?.cleanUrl()?.let { toImage(it, Representation.ORIGINAL) },
+            imageBig = imageBig?.cleanUrl()?.let { toImage(it, Representation.BIG) },
+            imagePreview = imagePreview?.cleanUrl()?.let { toImage(it, Representation.PREVIEW) },
+            videoOriginal = videoOriginal?.cleanUrl()?.let { toVideo(it, Representation.ORIGINAL) }
         )
     }
 
@@ -29,10 +29,13 @@ object ContentBuilder {
         imageOriginal: String? = null
     ): TokenMetaContent {
         return TokenMetaContent(
-            imageOriginal = imageOriginal?.let { toImage(it, MetaContentDto.Representation.ORIGINAL) },
+            imageOriginal = imageOriginal?.cleanUrl()?.let { toImage(it, Representation.ORIGINAL) },
         )
     }
 
+    fun String?.cleanUrl() = this?.trim()?.ifNotBlank()
+
+    // TODO Remove after moving calculation Token content meta to Union
     fun populateContent(ethMetaContent: EthMetaContent?, data: ContentMeta?): EthMetaContent? {
         return ethMetaContent?.copy(
             properties = EthImageProperties(
@@ -44,17 +47,7 @@ object ContentBuilder {
         )
     }
 
-    private fun sanitize(itemId: ItemId, url: String?): String? { // TODO Suppose not need
-        if (url == null) {
-            return null
-        }
-
-        val svg = SvgSanitizer.sanitize(itemId, url)
-
-        return svg ?: url
-    }
-
-    private fun toVideo(url: String, representation: MetaContentDto.Representation): EthMetaContent {
+    private fun toVideo(url: String, representation: Representation): EthMetaContent {
         return EthMetaContent(
             url = url,
             representation = representation,
@@ -62,7 +55,7 @@ object ContentBuilder {
         )
     }
 
-    private fun toImage(url: String, representation: MetaContentDto.Representation): EthMetaContent {
+    private fun toImage(url: String, representation: Representation): EthMetaContent {
         return EthMetaContent(
             url = url,
             representation = representation,
