@@ -2,6 +2,8 @@ global:
   network: rinkeby
 
 polygon-nft-listener:
+  environments:
+    DEBUG: true
   livenessProbe:
     initialDelaySeconds: 360s
   resources:
