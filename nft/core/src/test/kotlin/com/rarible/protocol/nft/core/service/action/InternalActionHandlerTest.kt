@@ -10,7 +10,10 @@ import com.rarible.protocol.nft.core.model.Action
 import com.rarible.protocol.nft.core.model.ActionState
 import com.rarible.protocol.nft.core.model.ActionType
 import com.rarible.protocol.nft.core.model.BurnItemAction
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
+import com.rarible.protocol.nft.core.service.item.FeaturedItemReduceService
+import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -22,12 +25,15 @@ import reactor.core.publisher.Mono
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import reactor.core.publisher.Flux
+import reactor.kotlin.core.publisher.toFlux
 
 internal class InternalActionHandlerTest {
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
     private val clock = mockk<Clock>()
     private val registeredCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock, registeredCounter)
+    private val itemReduceService = mockk<FeaturedItemReduceService> { every { update(any(), any()) } returns listOf(ItemId.MAX_ID).toFlux() }
+    private val internalActionHandler = ActionEventHandler(nftItemActionEventRepository, clock, registeredCounter, itemReduceService)
 
     @Test
     fun `should save a new burn action`() = runBlocking {
@@ -50,6 +56,7 @@ internal class InternalActionHandlerTest {
                 assertThat(it.createdAt).isEqualTo(now)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
             })
+            itemReduceService.update(event.token, event.tokenId)
         }
     }
 
@@ -86,6 +93,7 @@ internal class InternalActionHandlerTest {
                 assertThat(it.createdAt).isEqualTo(action.createdAt)
                 assertThat(it.state).isEqualTo(ActionState.PENDING)
             })
+            itemReduceService.update(event.token, event.tokenId)
         }
     }
 
@@ -109,6 +117,7 @@ internal class InternalActionHandlerTest {
         internalActionHandler.handle(event)
         verify(exactly = 0) {
             nftItemActionEventRepository.save(any())
+            itemReduceService.update(event.token, event.tokenId)
         }
     }
 }
