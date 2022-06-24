@@ -20,7 +20,8 @@ class ItemMetaService(
     @Qualifier("meta.cache.loader.service")
     private val itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>,
     private val itemMetaCacheLoader: ItemMetaCacheLoader,
-    private val itemMetaResolver: ItemMetaResolver
+    private val itemMetaResolver: ItemMetaResolver,
+    private val pendingItemTokenUriResolver: PendingItemTokenUriResolver
 ) {
     private val logger = LoggerFactory.getLogger(ItemMetaService::class.java)
 
@@ -137,6 +138,7 @@ class ItemMetaService(
         logMetaLoading(itemId, "resolving meta for a pending item by $tokenUri")
         val itemMeta = itemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) ?: return
         itemMetaCacheLoaderService.save(itemId.toCacheKey(), itemMeta)
+        pendingItemTokenUriResolver.save(itemId, tokenUri)
         logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
     }
 }
