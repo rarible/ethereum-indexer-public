@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.opensea.client.model.v2.SeaportOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.core.repository.order.OrderRepository
@@ -12,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
@@ -21,6 +23,7 @@ internal class SeaportOrderLoadHandlerTest {
     private val openSeaOrderValidator = mockk<OpenSeaOrderValidator>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
+    private val seaportSaveCounter = mockk<RegisteredCounter>()
 
     private val handler =  SeaportOrderLoadHandler(
         openSeaOrderService = openSeaOrderService,
@@ -28,7 +31,8 @@ internal class SeaportOrderLoadHandlerTest {
         openSeaOrderValidator = openSeaOrderValidator,
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
-        properties = SeaportLoadProperties()
+        properties = SeaportLoadProperties(),
+        seaportSaveCounter = seaportSaveCounter
     )
 
     @Test
@@ -62,6 +66,7 @@ internal class SeaportOrderLoadHandlerTest {
         coEvery { orderRepository.findById(validOrderVersion2.hash) } returns createOrder()
 
         coEvery { orderUpdateService.save(validOrderVersion1) } returns createOrder()
+        every { seaportSaveCounter.increment() } returns Unit
 
         handler.handle()
 
@@ -75,5 +80,6 @@ internal class SeaportOrderLoadHandlerTest {
 
         coVerify(exactly = 1) { orderUpdateService.save(any()) }
         coVerify(exactly = 1) { orderUpdateService.save(validOrderVersion1) }
+        verify(exactly = 1) { seaportSaveCounter.increment() }
     }
 }

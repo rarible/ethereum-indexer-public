@@ -36,7 +36,8 @@ import java.math.BigInteger
 internal class OpenSeaOrderConverterTest {
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
     private val exchangeContracts = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
-    private val openSeaOrderErrorRegisteredCounter = mockk<RegisteredCounter>()
+    private val openSeaErrorCounter = mockk<RegisteredCounter>()
+    private val seaportErrorCounter = mockk<RegisteredCounter>()
     private val properties = mockk<OrderListenerProperties> {
         every { openSeaExchangeDomainHashV2 } returns randomWord()
     }
@@ -47,7 +48,8 @@ internal class OpenSeaOrderConverterTest {
         priceUpdateService = priceUpdateService,
         exchangeContracts = exchangeContracts,
         featureFlags = featureFlags,
-        openSeaOrderErrorRegisteredCounter = openSeaOrderErrorRegisteredCounter,
+        openSeaErrorCounter = openSeaErrorCounter,
+        seaportErrorCounter = seaportErrorCounter,
         properties = properties
     )
 

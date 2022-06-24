@@ -32,7 +32,8 @@ class OpenSeaOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val exchangeContracts: OrderIndexerProperties.ExchangeContractAddresses,
     private val featureFlags: OrderIndexerProperties.FeatureFlags,
-    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter,
+    private val openSeaErrorCounter: RegisteredCounter,
+    private val seaportErrorCounter: RegisteredCounter,
     properties: OrderListenerProperties
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -87,6 +88,7 @@ class OpenSeaOrderConverter(
             }
             ClientSeaportOrderType.ENGLISH_AUCTION -> {
                 logger.info("Unsupported seaport order type ${clientSeaportOrder.orderType}")
+                seaportErrorCounter.increment()
                 return null
             }
         }
@@ -361,7 +363,7 @@ class OpenSeaOrderConverter(
                 return nonce
             }
         }
-        openSeaOrderErrorRegisteredCounter.increment()
+        openSeaErrorCounter.increment()
         return null
     }
 

@@ -17,22 +17,27 @@ class OpenSeaOrderValidatorImp(
     private val openSeaSigner: OpenSeaSigner,
     private val commonSigner: CommonSigner,
     private val callDataEncoder: CallDataEncoder,
-    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter,
+    private val openSeaErrorCounter: RegisteredCounter,
+    private val seaportErrorCounter: RegisteredCounter,
     properties: OrderIndexerProperties
 ) : OpenSeaOrderValidator {
 
     private val chainId = BigInteger.valueOf(properties.chainId.toLong())
 
     override fun validate(order: OrderVersion): Boolean {
-        val result = when (order.type) {
-            OrderType.OPEN_SEA_V1 -> innerOpenSeaValidate(order)
-            OrderType.SEAPORT_V1 -> innerSeaportValidate(order)
+        return when (order.type) {
+            OrderType.OPEN_SEA_V1 -> {
+                val result = innerOpenSeaValidate(order)
+                if (result.not()) openSeaErrorCounter.increment()
+                result
+            }
+            OrderType.SEAPORT_V1 -> {
+                val result = innerSeaportValidate(order)
+                if (result.not()) seaportErrorCounter.increment()
+                result
+            }
             OrderType.RARIBLE_V1, OrderType.RARIBLE_V2, OrderType.CRYPTO_PUNKS -> false
         }
-        if (!result) {
-            openSeaOrderErrorRegisteredCounter.increment()
-        }
-        return result
     }
 
     private fun innerSeaportValidate(order: OrderVersion): Boolean {

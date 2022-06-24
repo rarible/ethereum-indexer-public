@@ -7,35 +7,14 @@ import com.rarible.opensea.client.model.v1.OpenSeaOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
-import org.springframework.stereotype.Component
 import java.time.Duration
-import javax.annotation.PostConstruct
-
-@Component
-class MeasurableOpenSeaOrderWrapper(
-    private val micrometer: MeterRegistry,
-    private val blockchain: Blockchain
-) {
-    fun wrap(
-        delegate: OpenSeaOrderService,
-        loadCounter: RegisteredCounter,
-        measureDelay: Boolean
-    ): OpenSeaOrderService {
-        return MeasurableOpenSeaOrderService(
-            delegate = delegate,
-            micrometer = micrometer,
-            blockchain = blockchain,
-            loadCounter = loadCounter,
-            measureDelay = measureDelay
-        )
-    }
-}
 
 class MeasurableOpenSeaOrderService(
     private val delegate: OpenSeaOrderService,
     private val micrometer: MeterRegistry,
     private val blockchain: Blockchain,
-    private val loadCounter: RegisteredCounter,
+    private val openSeaLoadCounter: RegisteredCounter,
+    private val seaportLoadCounter: RegisteredCounter,
     private val measureDelay: Boolean
 ) : OpenSeaOrderService {
     @Volatile private var latestSeanOpenSeaOrderTimestamp: Long? = null
@@ -45,7 +24,9 @@ class MeasurableOpenSeaOrderService(
     }
 
     override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
-        return delegate.getNextSellOrders(nextCursor)
+        val orders = delegate.getNextSellOrders(nextCursor)
+        seaportLoadCounter.increment(orders.orders.size)
+        return orders
     }
 
     override suspend fun getNextOrdersBatch(
@@ -61,7 +42,7 @@ class MeasurableOpenSeaOrderService(
                     latestSeanOpenSeaOrderTimestamp = it
                 }
 
-            loadCounter.increment(orders.size.toDouble())
+            openSeaLoadCounter.increment(orders.size.toDouble())
         }
     }
 
@@ -71,8 +52,7 @@ class MeasurableOpenSeaOrderService(
         return (now - last).toDouble()
     }
 
-    @PostConstruct
-    fun initMetrics() {
+    private fun initMetrics() {
         if (measureDelay) {
             Gauge.builder("protocol.opensea.order.delay", this::getLoadOpenSeaDelay)
                 .tag("blockchain", blockchain.value)
