@@ -186,3 +186,36 @@ fun randomErc721LazyAssetType() =
         royalties = emptyList(),
         signatures = emptyList()
     )
+
+fun randomSeaportOffer(): SeaportOffer {
+    return SeaportOffer(
+        itemType = SeaportItemType.values().random(),
+        token = randomAddress(),
+        identifierOrCriteria = randomBigInt(),
+        startAmount = randomBigInt(),
+        endAmount = randomBigInt()
+    )
+}
+
+fun randomSeaportConsideration(): SeaportConsideration {
+    return SeaportConsideration(
+        itemType = SeaportItemType.values().random(),
+        token = randomAddress(),
+        identifierOrCriteria = randomBigInt(),
+        startAmount = randomBigInt(),
+        endAmount = randomBigInt(),
+        recipient = randomAddress()
+    )
+}
+fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
+    return OrderBasicSeaportDataV1(
+        protocol = randomAddress(),
+        orderType = SeaportOrderType.values().random(),
+        offer = listOf(randomSeaportOffer(), randomSeaportOffer()),
+        consideration = listOf(randomSeaportConsideration(), randomSeaportConsideration()),
+        zone = randomAddress(),
+        zoneHash = Word.apply(randomWord()),
+        conduitKey = Word.apply(randomWord()),
+        counter = randomLong()
+    )
+}

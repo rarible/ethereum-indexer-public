@@ -24,6 +24,8 @@ polygon-erc20-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-erc20-listener:
   image:
@@ -43,6 +45,8 @@ polygon-erc20-listener:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
     - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-gateway:
   image:
@@ -67,6 +71,8 @@ polygon-gateway:
     - '{{ include "service.appEnv" $ }}-backend'
     additional:
     - 'proxy-staging'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-order-api:
   image:
@@ -93,6 +99,8 @@ polygon-order-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 
 polygon-order-listener:
@@ -115,6 +123,8 @@ polygon-order-listener:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 
 polygon-order-migration:
@@ -141,6 +151,8 @@ polygon-order-migration:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 
 polygon-unlockable-api:
@@ -164,6 +176,8 @@ polygon-unlockable-api:
   networks:
     common:
     - '{{ include "service.appEnv" $ }}-backend'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-nft-api:
   image:
@@ -189,6 +203,8 @@ polygon-nft-api:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-nft-listener:
   image:
@@ -210,6 +226,8 @@ polygon-nft-listener:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt
 
 polygon-nft-migration:
   image:
@@ -235,3 +253,5 @@ polygon-nft-migration:
     common:
       - '{{ include "service.appEnv" $ }}-backend'
       - '{{ .Values.global.network }}-ethereum'
+  podAnnotations:
+    fluentbit.io/parser: logfmt

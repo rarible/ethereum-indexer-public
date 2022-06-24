@@ -7,7 +7,9 @@ import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
+import com.rarible.protocol.dto.OrderSeaportDataV1Dto
 import com.rarible.protocol.dto.RaribleV2OrderBidDto
+import com.rarible.protocol.dto.SeaportV1OrderBidDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.OrderType
@@ -80,6 +82,26 @@ class BidDtoConverter(
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderOpenSeaV1DataV1Dto,
+                makeBalance = BigInteger.ZERO
+            )
+            OrderType.SEAPORT_V1 -> SeaportV1OrderBidDto(
+                orderHash = source.order.hash,
+                status = BidStatusDtoConverter.convert(source.status),
+
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+
+                fill = source.order.fill.value,
+                makeStock = source.order.makeStock.value,
+                cancelled = source.order.cancelled,
+                salt = Uint256Type.encode(source.order.salt.value),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderSeaportDataV1Dto,
                 makeBalance = BigInteger.ZERO
             )
             OrderType.CRYPTO_PUNKS -> CryptoPunksOrderBidDto(

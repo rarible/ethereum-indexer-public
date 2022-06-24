@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
+import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
 import kotlinx.coroutines.flow.Flow
@@ -12,9 +13,12 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
+import org.springframework.data.mongodb.core.query.where
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @Component
@@ -56,6 +60,18 @@ class OwnershipRepository(
 
     fun deleteById(id: OwnershipId): Mono<Ownership> {
         return mongo.findAndRemove(Query(Criteria("_id").isEqualTo(id)), Ownership::class.java)
+    }
+
+    /**
+     * Delete all ownerships by itemId
+     *
+     * @param itemId    Item ID
+     * @return          flux of deleted ownerships
+     */
+    fun deleteAllByItemId(itemId: ItemId): Flux<Ownership> {
+        val query =
+            Query(where(Ownership::token).isEqualTo(itemId.token).and(Ownership::tokenId).isEqualTo(itemId.tokenId))
+        return mongo.findAllAndRemove(query, Ownership::class.java, COLLECTION)
     }
 
     private suspend fun query(criteria: Criteria?, limit: Int, sort: Sort?): List<Ownership> {

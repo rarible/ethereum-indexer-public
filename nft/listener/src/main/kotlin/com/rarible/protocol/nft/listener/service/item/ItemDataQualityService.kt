@@ -21,6 +21,8 @@ import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -57,25 +59,38 @@ class ItemDataQualityService(
                         is CheckResult.Success -> {}
                         is CheckResult.Fail -> {
                             logger.info("Try fix item ${item.id.stringValue}, supply=${checkResult.supply}, ownerships=${checkResult.ownerships}")
-                            itemReduceService.update(item.token, item.tokenId).awaitSingle()
-                            val fixedItem = itemRepository.findById(item.id).awaitSingle()
+                            itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
+                            var fixedItem = itemRepository.findById(item.id).awaitSingle()
                             when (val check = checkItem(fixedItem)) {
                                 is CheckResult.Success -> {
                                     logger.info("Item ${fixedItem.id} was fixed")
                                 }
                                 is CheckResult.Fail -> {
-                                    logger.warn("Can't fix item ${item.id.stringValue}, supply=${check.supply}, ownerships=${check.ownerships}")
-                                    inconsistentItemRepository.save(
-                                        InconsistentItem(
-                                            token = item.token,
-                                            tokenId = item.tokenId,
-                                            supply = check.supply,
-                                            ownerships = check.ownerships,
-                                            supplyValue = check.supply.value.toLong(),
-                                            ownershipsValue = check.ownerships.value.toLong()
-                                        )
-                                    )
-                                    itemDataQualityErrorRegisteredCounter.increment()
+                                    logger.warn("Can't fix item by simple reduce ${item.id.stringValue}, supply=${check.supply}, ownerships=${check.ownerships}, try to reduce after delete ownerships ...")
+                                    val deleted = ownershipRepository.deleteAllByItemId(fixedItem.id).asFlow().toList()
+                                    logger.info("Deleted ${deleted.size} ownerships ...")
+                                    itemReduceService.update(item.token, item.tokenId).awaitFirstOrNull()
+                                    fixedItem = itemRepository.findById(item.id).awaitSingle()
+                                    when (val afterDeleteCheck = checkItem(fixedItem)) {
+                                        is CheckResult.Success -> {
+                                            logger.info("Item ${fixedItem.id} was fixed after ownership's deleted")
+                                        }
+
+                                        is CheckResult.Fail -> {
+                                            logger.warn("Can't fix item after deleting ownerships ${item.id.stringValue}, supply=${afterDeleteCheck.supply}, ownerships=${afterDeleteCheck.ownerships}")
+                                            inconsistentItemRepository.save(
+                                                InconsistentItem(
+                                                    token = item.token,
+                                                    tokenId = item.tokenId,
+                                                    supply = afterDeleteCheck.supply,
+                                                    ownerships = afterDeleteCheck.ownerships,
+                                                    supplyValue = afterDeleteCheck.supply.value.toLong(),
+                                                    ownershipsValue = afterDeleteCheck.ownerships.value.toLong()
+                                                )
+                                            )
+                                            itemDataQualityErrorRegisteredCounter.increment()
+                                        }
+                                    }
                                 }
                             }
                         }

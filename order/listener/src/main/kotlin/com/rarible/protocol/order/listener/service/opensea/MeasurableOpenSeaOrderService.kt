@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.model.v1.OpenSeaOrder
+import com.rarible.opensea.client.model.v2.SeaportOrders
 import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.stereotype.Component
@@ -41,6 +42,10 @@ class MeasurableOpenSeaOrderService(
 
     init {
         initMetrics()
+    }
+
+    override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
+        return delegate.getNextSellOrders(nextCursor)
     }
 
     override suspend fun getNextOrdersBatch(

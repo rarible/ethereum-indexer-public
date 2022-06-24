@@ -27,7 +27,8 @@ data class OrderListenerProperties(
     val openSeaOrdersLoadPeriodWorker: OpenSeaOrdersLoadPeriodWorkerProperties = OpenSeaOrdersLoadPeriodWorkerProperties(),
     val openSeaOrdersLoadWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
     val openSeaOrdersLoadDelayWorker: OpenSeaOrderLoadWorkerProperties = OpenSeaOrderLoadWorkerProperties(),
-    val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties()
+    val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties(),
+    val seaportLoad: SeaportLoadProperties = SeaportLoadProperties()
 ) {
     enum class OrderSide {
         ALL,
@@ -35,6 +36,11 @@ data class OrderListenerProperties(
         BID
     }
 }
+
+data class SeaportLoadProperties(
+    val retry: Int = 5,
+    val retryDelay: Duration = Duration.ofMillis(500)
+)
 
 sealed class BaseOpenSeaOrderLoadWorkerProperties {
     abstract val enabled: Boolean
