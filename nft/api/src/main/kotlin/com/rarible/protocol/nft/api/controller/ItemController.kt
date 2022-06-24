@@ -222,21 +222,6 @@ class ItemController(
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 
-    private suspend fun getCachedItemMeta(itemId: String, demander: String): ItemMeta {
-        return itemMetaService.getAvailableMeta(
-            itemId = conversionService.convert(itemId),
-            demander = demander
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
-    }
-
-    private suspend fun getItemMeta(itemId: String, demander: String): ItemMeta {
-        return itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
-            itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
-            demander = demander
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
-    }
-
     companion object {
         const val BURN_MSG = "I would like to burn my %s item."
         private val logger = LoggerFactory.getLogger(ItemController::class.java)

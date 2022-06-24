@@ -59,14 +59,11 @@ class ItemMetaService(
     }
 
     /**
-     * Resolves meta for a pending item and saves it to the cache.
+     * Save tokenUri to the cache for a pending utem.
      * It is needed to guarantee that the first sent ItemUpdateEvent goes with an existing meta.
      */
-    suspend fun loadAndSavePendingItemMeta(itemId: ItemId, tokenUri: String) {
-        logMetaLoading(itemId, "resolving meta for a pending item by $tokenUri")
-        val itemMeta = itemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) ?: return
-        // TODO in PT-566
+    suspend fun saveTokenUriForPendingItem(itemId: ItemId, tokenUri: String) {
         pendingItemTokenUriResolver.save(itemId, tokenUri)
-        logMetaLoading(itemId, "resolved and saved meta for a pending item by $tokenUri: $itemMeta")
+        logMetaLoading(itemId, "saved tokenUri for a pending item $tokenUri")
     }
 }

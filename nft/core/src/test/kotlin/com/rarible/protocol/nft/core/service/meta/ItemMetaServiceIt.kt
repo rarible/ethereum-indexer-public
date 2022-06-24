@@ -75,7 +75,7 @@ class ItemMetaServiceIt : AbstractIntegrationTest() {
         val itemId = createRandomItemId()
         val tokenUri = createRandomUrl()
         coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
-        itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+        itemMetaService.saveTokenUriForPendingItem(itemId, tokenUri)
         assertThat(itemMetaService.getMeta(itemId,  "test")).isEqualTo(itemMeta)
         coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
