@@ -40,7 +40,7 @@ class SeaportOrderLoadHandler(
                 }.filter {
                     openSeaOrderValidator.validate(it)
                 }.forEach {
-                    if (orderRepository.findById(it.hash) == null) {
+                    if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
                         orderUpdateService.save(it)
                         seaportSaveCounter.increment()
                         logger.seaportInfo("Saved new Seaport order ${it.hash}")

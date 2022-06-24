@@ -31,7 +31,7 @@ internal class SeaportOrderLoadHandlerTest {
         openSeaOrderValidator = openSeaOrderValidator,
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
-        properties = SeaportLoadProperties(),
+        properties = SeaportLoadProperties(saveEnabled = true),
         seaportSaveCounter = seaportSaveCounter
     )
 
