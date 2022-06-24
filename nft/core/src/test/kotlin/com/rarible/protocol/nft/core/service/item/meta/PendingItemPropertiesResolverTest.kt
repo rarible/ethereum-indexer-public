@@ -26,9 +26,6 @@ class PendingItemPropertiesResolverIt : AbstractIntegrationTest() {
     @Autowired
     lateinit var pendingItemTokenUriResolver: PendingItemTokenUriResolver
 
-    @Autowired
-    lateinit var ff: FeatureFlags
-
     val rariblePropertiesResolver: RariblePropertiesResolver = mockk()
 
     lateinit var pendingItemPropertiesResolver: PendingItemPropertiesResolver
@@ -40,7 +37,7 @@ class PendingItemPropertiesResolverIt : AbstractIntegrationTest() {
             rariblePropertiesResolver,
             pendingItemTokenUriResolver,
             itemRepository,
-            ff
+            FeatureFlags()
         )
     }
 
