@@ -8,8 +8,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -60,11 +60,10 @@ class HashmasksPropertiesResolver(
             name = tokenName,
             description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
             attributes = attributes,
-            image = imageUrl,
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
-            rawJsonContent = null
+            rawJsonContent = null,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = imageUrl
+            )
         )
     }
 }

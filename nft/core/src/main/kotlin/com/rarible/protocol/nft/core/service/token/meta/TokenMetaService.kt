@@ -1,12 +1,11 @@
 package com.rarible.protocol.nft.core.service.token.meta
 
 import com.rarible.core.apm.CaptureSpan
-import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.nft.core.model.TokenMeta
-import com.rarible.protocol.nft.core.model.meta.EthImageProperties
-import com.rarible.protocol.nft.core.model.meta.EthMetaContent
+import com.rarible.protocol.nft.core.model.TokenMetaContent
 import com.rarible.protocol.nft.core.service.item.meta.MediaMetaService
 import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -22,23 +21,21 @@ class TokenMetaService(
     suspend fun get(id: Address): TokenMeta {
         val properties = tokenPropertiesService.resolve(id)
 
-        // TODO originally, it should be done in resolve procedure
-        val withContent = properties?.image?.let {
-            properties.copy(
-                content = listOf(
-                    EthMetaContent(it, MetaContentDto.Representation.ORIGINAL, null, EthImageProperties())
+        if (properties == null || properties.content.imageOriginal?.url == null) return TokenMeta.EMPTY
+
+        val imageOriginal = properties.content.imageOriginal
+
+        mediaMetaService.getMediaMetaFromCache(imageOriginal.url, id.prefixed())
+        return TokenMeta(
+            properties = properties.copy(
+                content = TokenMetaContent(
+                    ContentBuilder.populateContent(
+                        ethMetaContent = imageOriginal,
+                        data = mediaMetaService.getMediaMetaFromCache(imageOriginal.url, id.prefixed())
+                    )
                 )
             )
-        } ?: properties
-
-        return if (withContent == null) TokenMeta.EMPTY else {
-            TokenMeta(
-                properties = withContent,
-                contentMeta = withContent.image?.let {
-                    mediaMetaService.getMediaMetaFromCache(it, id.prefixed())
-                }
-            )
-        }
+        )
     }
 
     suspend fun reset(id: Address) {

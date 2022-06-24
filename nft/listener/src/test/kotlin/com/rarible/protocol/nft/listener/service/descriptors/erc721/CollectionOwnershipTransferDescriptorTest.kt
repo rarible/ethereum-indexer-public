@@ -108,7 +108,6 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     meta = NftCollectionMetaDto(
                         name = "Untitled",
                         description = null,
-                        image = null,
                         external_link = null,
                         seller_fee_basis_points = null,
                         fee_recipient = null,
@@ -157,7 +156,6 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     meta = NftCollectionMetaDto(
                         name = "Untitled",
                         description = null,
-                        image = null,
                         external_link = null,
                         seller_fee_basis_points = null,
                         fee_recipient = null,

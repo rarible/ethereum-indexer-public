@@ -6,14 +6,6 @@ import java.time.Instant
 data class ItemProperties(
     val name: String,
     val description: String?,
-    @Deprecated("Should be replaced by content")
-    val image: String?,
-    @Deprecated("Should be replaced by content")
-    val imagePreview: String?,
-    @Deprecated("Should be replaced by content")
-    val imageBig: String?,
-    @Deprecated("Should be replaced by content")
-    val animationUrl: String?,
     val attributes: List<ItemAttribute>,
     val rawJsonContent: String?,
     val createdAt: Instant? = null,
@@ -24,8 +16,26 @@ data class ItemProperties(
     val rightsUri: String? = null,
     val externalUri: String? = null,
     val tokenUri: String? = null,
-    val content: List<EthMetaContent> = emptyList()
+    val content: ItemMetaContent = ItemMetaContent()
 )
+
+data class ItemMetaContent(
+    val imageOriginal: EthMetaContent? = null,
+    val imageBig: EthMetaContent? = null,
+    val imagePreview: EthMetaContent? = null,
+    val videoOriginal: EthMetaContent? = null,
+) {
+    fun asList(): List<EthMetaContent> {
+        val content = ArrayList<EthMetaContent>(4)
+
+        this.imageOriginal?.let { content.add(it) }
+        this.imageBig?.let { content.add(it) }
+        this.imagePreview?.let { content.add(it) }
+        this.videoOriginal?.let { content.add(it) }
+
+        return content
+    }
+}
 
 data class ItemAttribute(
     val key: String,

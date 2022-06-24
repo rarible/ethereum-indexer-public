@@ -1,14 +1,12 @@
 package com.rarible.protocol.nft.core.model
 
 data class TokenMeta(
-    val properties: TokenProperties,
-    val contentMeta: ContentMeta?
+    val properties: TokenProperties
 
 ) {
     companion object {
         val EMPTY = TokenMeta(
-            properties = TokenProperties.EMPTY,
-            contentMeta = null,
+            properties = TokenProperties.EMPTY
         )
     }
 }

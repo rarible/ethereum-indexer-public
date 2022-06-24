@@ -1,4 +1,4 @@
-package com.rarible.protocol.nft.core.service.item.meta
+package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties

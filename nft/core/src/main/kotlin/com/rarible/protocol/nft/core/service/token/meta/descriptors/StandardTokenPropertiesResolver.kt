@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolve
 import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.getInt
 import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.logProperties
 import org.springframework.stereotype.Component
@@ -53,10 +54,12 @@ class StandardTokenPropertiesResolver(
         return TokenProperties(
             name = json.getText("name") ?: "Untitled",
             description = json.getText("description"),
-            image = json.getText("image"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("seller_fee_basis_points"),
             feeRecipient = json.getText("fee_recipient")?.let { Address.apply(it) },
+            content = ContentBuilder.getTokenMetaContent(
+                imageOriginal = json.getText("image")
+            )
         )
     }
 }

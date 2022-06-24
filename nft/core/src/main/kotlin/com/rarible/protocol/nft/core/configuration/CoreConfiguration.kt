@@ -1,8 +1,6 @@
 package com.rarible.protocol.nft.core.configuration
 
 import com.rarible.core.common.safeSplit
-import com.rarible.core.meta.resource.detector.ContentDetector
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.core.meta.resource.http.OpenseaHttpClient
@@ -85,12 +83,6 @@ class CoreConfiguration(
     fun contractAddresses(): NftIndexerProperties.ContractAddresses {
         return properties.contractAddresses
     }
-
-    @Bean
-    fun contentDetector() = ContentDetector()
-
-    @Bean
-    fun embeddedContentDetector(contentDetector: ContentDetector) = EmbeddedContentDetector(contentDetector)
 
     @Bean
     fun urlParser() = UrlParser()

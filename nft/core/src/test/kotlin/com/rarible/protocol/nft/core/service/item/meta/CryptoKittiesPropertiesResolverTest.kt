@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoKittiesPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -27,10 +28,6 @@ class CryptoKittiesPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "TheFirst",
                 description = "Hey cutie! I'm TheFirst. In high school, I was voted most likely to work at NASA. When my owner isn't watching, I steal their oversized sweaters and use them for litter paper. I'm not sorry. I think you'll love me beclaws I have cattitude.",
-                image = "https://img.cn.cryptokitties.co/0x06012c8cf97bead5deae237070f9587f8e7a266d/1001.svg",
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("colorprimary", "shadowgrey"),
                     ItemAttribute("coloreyes", "mintgreen"),
@@ -43,7 +40,13 @@ class CryptoKittiesPropertiesResolverTest : BasePropertiesResolverTest() {
                     ItemAttribute("secret", "se4"),
                     ItemAttribute("purrstige", "pu9")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "https://img.cn.cryptokitties.co/0x06012c8cf97bead5deae237070f9587f8e7a266d/1001.svg",
+                    imageBig = null,
+                    imagePreview = null,
+                    videoOriginal = null
+                )
             )
         )
     }

@@ -4,10 +4,10 @@ import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -33,16 +33,15 @@ class PegaxyPropertiesResolver(
                 return ItemProperties(
                     name = node.getText("name") ?: "",
                     description = null,
-                    image = node.get("design")?.getText("avatar"),
-                    imagePreview = null,
-                    imageBig = null,
-                    animationUrl = null,
                     attributes = listOfNotNull(
                         node.getText("gender")?.let { ItemAttribute("Gender", it) },
                         node.getText("bloodLine")?.let { ItemAttribute("Blood Line", it) },
                         node.getText("breedType")?.let { ItemAttribute("Breed Type", it) },
                     ),
-                    rawJsonContent = node.toString()
+                    rawJsonContent = node.toString(),
+                    content = ContentBuilder.getItemMetaContent(
+                        imageOriginal = node.get("design")?.getText("avatar")
+                    )
                 )
             }
         } catch (e: Error) {
@@ -54,7 +53,6 @@ class PegaxyPropertiesResolver(
     }
 
     companion object {
-
         val PEGAXY_ADDRESS = Address.apply("0xd50d167dd35d256e19e2fb76d6b9bf9f4c571a3e")
     }
 

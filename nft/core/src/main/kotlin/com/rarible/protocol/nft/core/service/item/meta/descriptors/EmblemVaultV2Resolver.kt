@@ -7,8 +7,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -29,12 +29,17 @@ class EmblemVaultV2Resolver(
         logMetaLoading(itemId, "Resolving $name Nft properties")
         val properties = raribleResolver.resolve(itemId) ?: return null
 
-        if (properties.image != null) {
-            val resolvedUrl = urlService.resolvePublicHttpUrl(properties.image) ?: return null
+        val metaContent = properties.content
+        if (metaContent.imageOriginal != null) {
+            val resolvedUrl = urlService.resolvePublicHttpUrl(metaContent.imageOriginal.url) ?: return null
             val imageContent = externalHttpClient.getBody(url = resolvedUrl, id = itemId.decimalStringValue)
 
             if (imageContent != null && Base64Decoder.decode(imageContent) != null) {
-                return properties.copy(image = imageContent)
+                return properties.copy(
+                    content = metaContent.copy(
+                        imageOriginal = ContentBuilder.getItemMetaContent(imageOriginal = imageContent).imageOriginal
+                    )
+                )
             }
         }
 

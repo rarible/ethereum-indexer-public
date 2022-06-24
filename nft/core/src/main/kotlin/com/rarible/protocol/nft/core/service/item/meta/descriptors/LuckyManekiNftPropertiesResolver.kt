@@ -7,8 +7,8 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -42,11 +42,7 @@ class LuckyManekiNftPropertiesResolver(
     private fun map(itemId: ItemId, json: ObjectNode, rawProperties: String) =
         ItemProperties(
             name = "Lucky Maneki #${itemId.tokenId.value}",
-            image = json.path("image").asText(),
             description = null,
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
             attributes = json.withArray("attributes")
                 .map { attr ->
                     ItemAttribute(
@@ -54,7 +50,10 @@ class LuckyManekiNftPropertiesResolver(
                         value = attr.path("value").asText()
                     )
                 },
-            rawJsonContent = rawProperties
+            rawJsonContent = rawProperties,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = json.path("image").asText()
+            )
         )
 
     companion object {

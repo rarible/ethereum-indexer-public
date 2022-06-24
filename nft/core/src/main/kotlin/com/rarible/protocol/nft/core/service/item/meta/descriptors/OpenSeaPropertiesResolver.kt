@@ -9,10 +9,10 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -39,7 +39,7 @@ class OpenSeaPropertiesResolver(
         if (openseaUrl.isBlank()) return null
         val url = createOpenSeaUrl(itemId)
         logMetaLoading(itemId, "OpenSea: getting properties from $url")
-        val rawProperties = externalHttpClient.getBody(url = url,  id = itemId.decimalStringValue) ?: return null
+        val rawProperties = externalHttpClient.getBody(url = url, id = itemId.decimalStringValue) ?: return null
 
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $url")
@@ -61,15 +61,14 @@ class OpenSeaPropertiesResolver(
         ItemProperties(
             name = parseName(jsonBody, itemId.tokenId.value),
             description = jsonBody.getText("description"),
-            image = image.ifNotBlank()?.replace(
-                "{id}",
-                itemId.tokenId.toString()
-            ),
-            imagePreview = jsonBody.getText("image_preview_url").ifNotBlank(),
-            imageBig = jsonBody.getText("image_url").ifNotBlank(),
-            animationUrl = jsonBody.getText("animation_url").ifNotBlank(),
             attributes = jsonBody.parseAttributes(),
-            rawJsonContent = null
+            rawJsonContent = null,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = image.ifNotBlank()?.replace("{id}", itemId.tokenId.toString()),
+                imageBig = jsonBody.getText("image_preview_url").ifNotBlank(),
+                imagePreview = jsonBody.getText("image_url").ifNotBlank(),
+                videoOriginal = jsonBody.getText("animation_url").ifNotBlank(),
+            )
         )
 
     private fun createOpenSeaUrl(itemId: ItemId): String {

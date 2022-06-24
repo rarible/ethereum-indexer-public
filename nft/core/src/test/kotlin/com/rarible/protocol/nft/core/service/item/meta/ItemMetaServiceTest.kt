@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.Duration
 
@@ -20,6 +20,6 @@ internal class ItemMetaServiceTest : AbstractIntegrationTest() {
         val resolvedItemMeta = randomItemMeta()
 
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } returns resolvedItemMeta
-        Assertions.assertThat(itemMetaService.getAvailableMetaWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(resolvedItemMeta)
+        assertThat(itemMetaService.getAvailableMetaWithTimeout(itemId, Duration.ofHours(1), "test")).isEqualTo(resolvedItemMeta)
     }
 }

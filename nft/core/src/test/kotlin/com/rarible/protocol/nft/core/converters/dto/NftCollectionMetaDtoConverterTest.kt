@@ -1,11 +1,9 @@
 package com.rarible.protocol.nft.core.converters.dto
 
 import com.rarible.core.test.data.randomString
-import com.rarible.protocol.dto.MetaContentDto.Representation
 import com.rarible.protocol.nft.core.data.randomTokenProperties
-import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.TokenMeta
-import com.rarible.protocol.nft.core.model.meta.EthMetaContent
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
@@ -17,10 +15,9 @@ class NftCollectionMetaDtoConverterTest {
     fun `convert token`() {
         // We don't need to check content conversion here, we should have separate test for it
         val properties = randomTokenProperties().copy(
-            content = listOf(EthMetaContent(randomString(), Representation.ORIGINAL))
+            content = ContentBuilder.getTokenMetaContent(randomString())
         )
-        val contentMeta = ContentMeta("text/html", 100, 200, 300)
-        val meta = converter.convert(TokenMeta(properties, contentMeta))
+        val meta = converter.convert(TokenMeta(properties))
 
         assertThat(meta.name).isEqualTo(properties.name)
         assertThat(meta.description).isEqualTo(properties.description)
@@ -33,7 +30,7 @@ class NftCollectionMetaDtoConverterTest {
         assertThat(meta.rightsUri).isEqualTo(properties.rightsUri)
         assertThat(meta.externalUri).isEqualTo(properties.externalUri)
         assertThat(meta.originalMetaUri).isEqualTo(properties.tokenUri)
-        assertThat(meta.content).hasSize(properties.content.size)
+        assertThat(meta.content).hasSize(properties.content.asList().size)
 
         assertThat(meta.seller_fee_basis_points).isEqualTo(properties.sellerFeeBasisPoints)
         assertThat(meta.external_link).isEqualTo(properties.externalUri)

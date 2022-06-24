@@ -9,6 +9,7 @@ import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.Part
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import scalether.domain.AddressFactory
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
@@ -38,11 +39,13 @@ fun createRandomItemProperties(): ItemProperties {
     return ItemProperties(
         name = randomString(),
         description = randomString(),
-        image = randomString(),
-        imagePreview = randomString(),
-        imageBig = randomString(),
-        animationUrl = randomString(),
         attributes = emptyList(),
-        rawJsonContent = randomString()
+        rawJsonContent = randomString(),
+        content = ContentBuilder.getItemMetaContent(
+            imageOriginal = randomString(),
+            imageBig = randomString(),
+            imagePreview = randomString(),
+            videoOriginal = randomString()
+        )
     )
 }

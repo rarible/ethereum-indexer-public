@@ -32,7 +32,7 @@ class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
             )
         )!!
         assertThat(properties.name).isEqualTo("SISTNCHAPEPE 2018")
-        assertTrue(properties.image!!.startsWith("data:image/jpeg;base64,"))
+        assertTrue(properties.content.imageOriginal!!.url.startsWith("data:image/jpeg;base64,"))
 
     }
 
@@ -45,7 +45,7 @@ class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
             )
         )!!
         assertThat(properties.name).isEqualTo("GIVEKUDOS Rare Pepe Collection Series 8 Card 43")
-        assertTrue(properties.image!!.startsWith("data:image/gif;base64,"))
+        assertTrue(properties.content.imageOriginal!!.url.startsWith("data:image/gif;base64,"))
     }
 
     @Test
@@ -57,6 +57,6 @@ class EmblemVaultV2ResolverTest : BasePropertiesResolverTest() {
             )
         )!!
         assertThat(properties.name).isEqualTo("TESTNETPEPE | Series 9, Card 36 | Rare Pepe Collection | 2016 Counterparty XCP NFT Asset")
-        assertThat(properties.image).isEqualTo("https://xchain.io/img/cards/TESTNETPEPE.jpg")
+        assertThat(properties.content.imageOriginal!!.url).isEqualTo("https://xchain.io/img/cards/TESTNETPEPE.jpg")
     }
 }

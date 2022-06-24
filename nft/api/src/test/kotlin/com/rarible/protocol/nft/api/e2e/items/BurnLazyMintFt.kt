@@ -16,7 +16,6 @@ import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createPartDto
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
-import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemMeta
@@ -288,7 +287,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         )
         coEvery { mockItemMetaResolver.resolveItemMeta(itemId) } coAnswers {
             val itemProperties = lazyItemPropertiesResolver.resolve(itemId) ?: return@coAnswers null
-            ItemMeta(itemProperties, itemMeta.itemContentMeta)
+            ItemMeta(itemProperties)
         }
     }
 

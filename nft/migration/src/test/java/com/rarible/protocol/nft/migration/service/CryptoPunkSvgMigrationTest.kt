@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.migration.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.migration.integration.IntegrationTest
 import com.rarible.protocol.nft.migration.mongock.mongo.ChangeLog00013InsertAttributesForCryptoPunks
@@ -50,11 +51,7 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
         assertThat(itemProps).isEqualTo(
             ItemProperties(
                 name = "CryptoPunk #2",
-                image = urlService.resolvePublicHttpUrl("QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS"),
                 description = null,
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("type", "Human"),
                     ItemAttribute("gender", "Female"),
@@ -62,7 +59,10 @@ class CryptoPunkSvgMigrationTest : AbstractIntegrationTest() {
                     ItemAttribute("count", "1"),
                     ItemAttribute("accessory", "Wild Hair")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = urlService.resolvePublicHttpUrl("QmWMVUQ4QidzC2rg6hBEJMgihizraW29hStyVLNPfmU4WS")
+                )
             )
         )
     }

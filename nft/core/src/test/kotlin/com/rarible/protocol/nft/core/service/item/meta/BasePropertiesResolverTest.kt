@@ -1,7 +1,5 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
-import com.rarible.core.meta.resource.detector.ContentDetector
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.core.meta.resource.http.DefaultHttpClient
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.core.meta.resource.http.OpenseaHttpClient
@@ -22,7 +20,6 @@ import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.cache.IpfsContentCache
 import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
@@ -112,12 +109,6 @@ abstract class BasePropertiesResolverTest {
         requestTimeout = REQUEST_TIMEOUT
     )
 
-    private val contentDetector = ContentDetector()
-
-    private val embeddedContentDetector = EmbeddedContentDetector(contentDetector)
-
-    protected val itemPropertiesUrlSanitizer = ItemPropertiesUrlSanitizer(embeddedContentDetector)
-
     protected val ipfsContentCache: IpfsContentCache = mockk()
 
     protected val featureFlags: FeatureFlags = FeatureFlags()
@@ -136,13 +127,13 @@ abstract class BasePropertiesResolverTest {
     protected val rariblePropertiesResolver = RariblePropertiesResolver(
         urlService = urlService,
         rawPropertiesProvider = rawPropertiesProvider,
-        tokenUriResolver = tokenUriResolver,
-        itemPropertiesUrlSanitizer = itemPropertiesUrlSanitizer
+        tokenUriResolver = tokenUriResolver
     )
 
     @BeforeEach
     fun clear() {
         clearMocks(tokenRepository)
+        featureFlags.enableMetaRawPropertiesCache = false
     }
 
     protected fun mockTokenStandard(address: Address, standard: TokenStandard) {
@@ -160,7 +151,6 @@ abstract class BasePropertiesResolverTest {
         const val REQUEST_TIMEOUT: Long = 20000
         const val IPFS_PUBLIC_GATEWAY = "https://ipfs.io"
         const val CID = "QmbpJhWFiwzNu7MebvKG3hrYiyWmSiz5dTUYMQLXsjT9vw"
-        const val ID = "id"
         const val openseaUrl = "https://api.opensea.io/api/v1"
         const val openseaApiKey = ""
         val proxyUrl = System.getProperty("RARIBLE_TESTS_OPENSEA_PROXY_URL") ?: ""

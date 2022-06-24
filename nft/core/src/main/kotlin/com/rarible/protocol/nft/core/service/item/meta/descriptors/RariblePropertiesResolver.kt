@@ -7,10 +7,8 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesProvider
-import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesUrlSanitizer
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
@@ -21,8 +19,7 @@ import org.springframework.stereotype.Component
 class RariblePropertiesResolver(
     private val urlService: UrlService,
     private val rawPropertiesProvider: RawPropertiesProvider,
-    private val tokenUriResolver: BlockchainTokenUriResolver,
-    private val itemPropertiesUrlSanitizer: ItemPropertiesUrlSanitizer
+    private val tokenUriResolver: BlockchainTokenUriResolver
 ) : ItemPropertiesResolver {
 
     override val name get() = "Rarible"
@@ -65,8 +62,7 @@ class RariblePropertiesResolver(
             else -> getByUri(itemId, tokenUri)?.copy(tokenUri = tokenUri)
         } ?: return null
 
-        val result = properties.fixEmptyName(itemId)
-        return itemPropertiesUrlSanitizer.sanitize(itemId, result)
+        return properties.fixEmptyName(itemId)
     }
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
