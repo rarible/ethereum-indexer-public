@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.item.meta
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.model.ItemId
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -12,7 +13,7 @@ class PendingItemTokenUriResolver(
 ) {
 
     suspend fun save(itemId: ItemId, tokenUri: String): PendingItemTokenUri {
-        val entity = PendingItemTokenUri(itemId.decimalStringValue, tokenUri)
+        val entity = PendingItemTokenUri(itemId.decimalStringValue, tokenUri, nowMillis())
         return mongo.save(entity).awaitFirst()
     }
 
