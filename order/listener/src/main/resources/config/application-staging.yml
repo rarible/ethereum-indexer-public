@@ -6,9 +6,14 @@ common:
 rarible:
   opensea:
     testnet: true
+  seaport:
+    testnet: true
 
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}
+  seaport-load:
+    enabled: false
+
 
 logging:
   logstash:

@@ -7,7 +7,7 @@ import java.time.Duration
 
 interface OpenSeaOrderService {
 
-    suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders
+    suspend fun getNextSellOrders(nextCursor: String? = null): SeaportOrders
 
     suspend fun getNextOrdersBatch(
         listedAfter: Long,

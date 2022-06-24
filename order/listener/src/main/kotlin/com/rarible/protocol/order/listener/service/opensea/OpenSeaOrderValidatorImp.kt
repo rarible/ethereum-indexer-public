@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.sign.domain.EIP712Domain
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
@@ -16,8 +17,11 @@ class OpenSeaOrderValidatorImp(
     private val openSeaSigner: OpenSeaSigner,
     private val commonSigner: CommonSigner,
     private val callDataEncoder: CallDataEncoder,
-    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter
+    private val openSeaOrderErrorRegisteredCounter: RegisteredCounter,
+    properties: OrderIndexerProperties
 ) : OpenSeaOrderValidator {
+
+    private val chainId = BigInteger.valueOf(properties.chainId.toLong())
 
     override fun validate(order: OrderVersion): Boolean {
         val result = when (order.type) {
@@ -33,24 +37,28 @@ class OpenSeaOrderValidatorImp(
 
     private fun innerSeaportValidate(order: OrderVersion): Boolean {
         val data = order.data as? OrderSeaportDataV1 ?: run {
-            logger.info("Invalid Seaport order (data): $order")
+            logger.seaportError("Invalid order (data): $order")
             return false
         }
         val signature = order.signature ?: run {
-            logger.info("Invalid Seaport order (empty signature): $order")
+            logger.seaportError("Invalid order (empty signature): $order")
             return false
         }
         val domain = EIP712Domain(
             name = "Seaport",
             version = "1.1",
-            chainId = BigInteger.ONE,
+            chainId = chainId,
             verifyingContract = data.protocol
         )
         return try {
             val hashToSign = domain.hashToSign(order.hash)
-            commonSigner.recover(hashToSign, signature) == order.maker
+            val result = commonSigner.recover(hashToSign, signature) == order.maker
+            if (result.not()) {
+                logger.seaportError("Invalid order signature, maker doesn't match: $order")
+            }
+            result
         } catch (ex: Exception) {
-            logger.error("Invalid Seaport order (exception signature): $order", ex)
+            logger.seaportError("Invalid order (exception signature): $order", ex)
             false
         }
     }

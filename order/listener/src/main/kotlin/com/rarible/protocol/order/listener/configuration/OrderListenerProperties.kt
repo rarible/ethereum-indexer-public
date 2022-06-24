@@ -38,8 +38,11 @@ data class OrderListenerProperties(
 }
 
 data class SeaportLoadProperties(
+    val enabled: Boolean = false,
     val retry: Int = 5,
-    val retryDelay: Duration = Duration.ofMillis(500)
+    val retryDelay: Duration = Duration.ofMillis(500),
+    val pollingPeriod: Duration = Duration.ofSeconds(2),
+    val errorDelay: Duration = Duration.ofSeconds(5)
 )
 
 sealed class BaseOpenSeaOrderLoadWorkerProperties {

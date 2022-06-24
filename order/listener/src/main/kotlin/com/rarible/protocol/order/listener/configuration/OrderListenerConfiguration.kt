@@ -25,6 +25,7 @@ import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
+import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
@@ -32,6 +33,7 @@ import com.rarible.protocol.order.listener.service.opensea.MeasurableOpenSeaOrde
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
+import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -70,6 +72,25 @@ class OrderListenerConfiguration(
     @Bean
     fun externalUserAgentProvider(): ExternalUserAgentProvider {
         return ExternalUserAgentProvider(listenerProperties.openSeaClientUserAgents)
+    }
+
+    @Bean
+    fun seaportLoadProperties(): SeaportLoadProperties {
+        return listenerProperties.seaportLoad
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = ["listener.seaport-load.enabled"], havingValue = "true")
+    fun seaportOrdersFetchWorker(
+        handler: SeaportOrderLoadHandler,
+        properties: SeaportLoadProperties,
+        meterRegistry: MeterRegistry
+    ): SeaportOrdersFetchWorker {
+        return SeaportOrdersFetchWorker(
+            handler = handler,
+            properties = properties,
+            meterRegistry = meterRegistry
+        )
     }
 
     @Bean

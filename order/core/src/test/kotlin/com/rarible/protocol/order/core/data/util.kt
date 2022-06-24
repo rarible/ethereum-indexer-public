@@ -77,6 +77,19 @@ fun createOrderOpenSeaV1DataV1(): OrderOpenSeaV1DataV1 {
     )
 }
 
+fun createOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
+    return OrderBasicSeaportDataV1(
+        protocol = randomAddress(),
+        orderType = SeaportOrderType.values().random(),
+        offer = emptyList(),
+        consideration = emptyList(),
+        zone = randomAddress(),
+        zoneHash = Word.apply(randomWord()),
+        conduitKey = Word.apply(randomWord()),
+        counter = randomLong()
+    )
+}
+
 fun createOrderRaribleV2DataV1(): OrderRaribleV2DataV1 {
     return OrderRaribleV2DataV1(
         originFees = listOf(Part(randomAddress(), EthUInt256.TEN), Part(randomAddress(), EthUInt256.ONE)),

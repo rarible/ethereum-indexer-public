@@ -4,27 +4,52 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
+import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
+import io.mockk.every
+import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import java.math.BigInteger
 
 internal class OpenSeaOrderValidatorTest {
+    private val properties = mockk<OrderIndexerProperties> {
+        every { chainId } returns 1
+    }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
         callDataEncoder = CallDataEncoder(),
         openSeaSigner = OpenSeaSigner(CommonSigner(), EIP712Domain("Wyvern Exchange Contract", "2.3", BigInteger.valueOf(4), Address.apply("0xdd54d660178b28f6033a953b0e55073cfa7e3744"))),
         openSeaOrderErrorRegisteredCounter = OpenSeaOrderErrorMetric("", Blockchain.ETHEREUM).bind(
             SimpleMeterRegistry()
-        )
+        ),
+        properties = properties
     )
+
+    @Test
+    fun `should validate seaport order`() {
+        val seaportOrder = createOrderVersion().copy(
+            hash = Word.apply("0xded9fa37d54c894b1eed2745651100bc3612937f7adc10fcc6e00684c3fded99"),
+            maker = Address.apply("0x19317be29d9fb86af1b72594e6e09ec0208fbcf4"),
+            type = OrderType.SEAPORT_V1,
+            data = createOrderBasicSeaportDataV1().copy(
+                protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
+            ),
+            signature = Binary.apply("0x1066bf8c77b7b45f1c8d4cfeaa94eab6dc8510da6d36050e63f266f4046b7de92cf5dfc7796dbbf6a41d92f113a135e2a25cc8571e90cdef14f684b39acde85a1c")
+        )
+        assertThat(openSeaOrderValidator.validate(seaportOrder)).isTrue
+    }
 
     @Test
     fun `should validate buy order`() {
