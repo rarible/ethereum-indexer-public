@@ -175,7 +175,7 @@ internal class OpenSeaOrderConverterTest {
         assertThat(orderVersion.maker).isEqualTo(parameters.offerer)
         assertThat(orderVersion.make).isEqualTo(Asset(Erc721AssetType(offer.token, EthUInt256.of(offer.identifierOrCriteria)), EthUInt256.ONE))
         assertThat(orderVersion.take).isEqualTo(Asset(Erc20AssetType(paymentToken), EthUInt256.of(amount1 + amount2)))
-        assertThat(orderVersion.type).isEqualTo(com.rarible.protocol.order.core.model.OrderType.OPEN_SEA_V1)
+        assertThat(orderVersion.type).isEqualTo(com.rarible.protocol.order.core.model.OrderType.SEAPORT_V1)
         assertThat(orderVersion.salt.value).isEqualTo(parameters.salt)
         assertThat(orderVersion.start).isEqualTo(parameters.startTime.toLong())
         assertThat(orderVersion.end).isEqualTo(parameters.endTime.toLong())
