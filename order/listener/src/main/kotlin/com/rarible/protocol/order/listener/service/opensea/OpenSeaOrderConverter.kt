@@ -98,7 +98,7 @@ class OpenSeaOrderConverter(
             taker = null,
             make = make,
             take = take,
-            type = OrderType.OPEN_SEA_V1, //TODO: Fix to SEAPORT_V1
+            type = OrderType.SEAPORT_V1,
             salt = EthUInt256.of(salt),
             start = startTime.toLong(),
             end = endTime.toLong(),
