@@ -78,6 +78,7 @@ data class OrderIndexerProperties(
     )
 
     data class RaribleOrderExpirationProperties(
-        val bidExpirePeriod: Duration = Duration.ofDays(60L)
+        val bidExpirePeriod: Duration = Duration.ofDays(60L),
+        val delayPeriod: Duration = Duration.ofMinutes(10L)
     )
 }
