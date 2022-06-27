@@ -1,6 +1,14 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
+import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
+import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
+import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
@@ -19,7 +27,7 @@ import java.time.Instant
 
 internal class SeaportEventConverterTest {
     private val priceUpdateService = mockk<PriceUpdateService>()
-    private val prizeNormalizer = mockk<PriceNormalizer>()
+    private val prizeNormalizer = PriceNormalizer(mockk())
 
     private val converter = SeaportEventConverter(
         priceUpdateService,
@@ -28,22 +36,74 @@ internal class SeaportEventConverterTest {
 
     @Test
     fun `should convert basic sell OrderFulfilledEvent`() = runBlocking<Unit> {
+        val data = Instant.now()
+        val bidOrderUsd = randomBidOrderUsdValue()
+        val sellOrderUsd = randomSellOrderUsdValue()
         val log = log(
-            "0xef032f06329eb259260d7760927fe547ad69e32223cf67901e1782d5d63ff1420000000000000000000000003c4e47b1be41100b8fd839334fe840469c722ab900000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000001bb08f4c63e891049fbb716fe4636392e32b4f7c0000000000000000000000000000000000000000000000000000000000000302000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000019945ca2620000000000000000000000000000d0df1aa764f1650184ffd549648dd84964ba00970000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000b5e620f480000000000000000000000000008de9c5a032463c561423387a9648c5c7bcc5bc90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000221b262dd800000000000000000000000000062f5b75b11b38a008a1642e6434c91df734170be",
             listOf(
                 Word.apply("0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31"),
-                Word.apply("0x000000000000000000000000d0df1aa764f1650184ffd549648dd84964ba0097"),
-                Word.apply("0x000000000000000000000000004c00500000ad104d7dbd00e3ae0a5c00560c00")
-            )
+                Word.apply("0x0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"),
+                Word.apply("0x00000000000000000000000000000000e88fe2628ebc5da81d2b3cead633e89e")
+            ),
+            "0xb87eea32e0dc18b180b6f8cdf7af6eed7a8c4da45b2c005115b267fd40d86ba900000000000000000000000047921676a46ccfe3d80b161c7b4ddc8ed9e716b600000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000fa6a99c66085b25552930be7961d8928061a84247921676a46ccfe3d80b161c7b4ddc8ed9e716b60000000000000000000000010000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006c3f2aac800c0000000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002c68af0bb140000000000000000000000000008de9c5a032463c561423387a9648c5c7bcc5bc90"
         )
-        coEvery { priceUpdateService.getAssetsUsdValue(any(), any(), any()) } returns null
-        coEvery { prizeNormalizer.normalize(any()) } returns BigDecimal.ONE
+        val expectedNft = Asset(
+            Erc721AssetType(
+                Address.apply("0x0fa6a99c66085b25552930be7961d8928061a842"),
+                EthUInt256.of("32372326957878872325869669322028881416287194712918919938492792330334129618945")
+            ),
+            EthUInt256.ONE
+        )
+        val expectedPayment = Asset(
+            EthAssetType,
+            EthUInt256.of("500000000000000000")
+        )
+        coEvery { priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data) } returns sellOrderUsd
+        coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns bidOrderUsd
+
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, Instant.now())
+        val matches = converter.convert(event, data)
+
         assertThat(matches).hasSize(2)
+        val left = matches[0]
+        assertThat(left.hash).isEqualTo(Word.apply("0xb87eea32e0dc18b180b6f8cdf7af6eed7a8c4da45b2c005115b267fd40d86ba9"))
+        assertThat(left.side).isEqualTo(OrderSide.LEFT)
+        assertThat(left.maker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
+        assertThat(left.taker).isEqualTo(Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6"))
+        assertThat(left.make).isEqualTo(expectedNft)
+        assertThat(left.take).isEqualTo(expectedPayment)
+        assertThat(left.fill).isEqualTo(expectedPayment.value)
+        assertThat(left.date).isEqualTo(data)
+        assertThat(left.makeUsd).isEqualTo(sellOrderUsd.makeUsd)
+        assertThat(left.takeUsd).isEqualTo(sellOrderUsd.takeUsd)
+        assertThat(left.makePriceUsd).isEqualTo(sellOrderUsd.makePriceUsd)
+        assertThat(left.takePriceUsd).isEqualTo(sellOrderUsd.takePriceUsd)
+        assertThat(left.takeValue).isEqualTo(BigDecimal("0.500000000000000000"))
+        assertThat(left.makeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(left.source).isEqualTo(HistorySource.OPEN_SEA)
+        assertThat(left.adhoc).isFalse()
+        assertThat(left.counterAdhoc).isTrue()
+        val right = matches[1]
+        assertThat(right.counterHash).isEqualTo(Word.apply("0xb87eea32e0dc18b180b6f8cdf7af6eed7a8c4da45b2c005115b267fd40d86ba9"))
+        assertThat(right.side).isEqualTo(OrderSide.RIGHT)
+        assertThat(right.maker).isEqualTo(Address.apply("0x47921676A46CcFe3D80b161c7B4DDC8Ed9e716B6"))
+        assertThat(right.taker).isEqualTo(Address.apply("0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"))
+        assertThat(right.make).isEqualTo(expectedPayment)
+        assertThat(right.take).isEqualTo(expectedNft)
+        assertThat(right.fill).isEqualTo(expectedNft.value)
+        assertThat(right.date).isEqualTo(data)
+        assertThat(right.makeUsd).isEqualTo(bidOrderUsd.makeUsd)
+        assertThat(right.takeUsd).isEqualTo(bidOrderUsd.takeUsd)
+        assertThat(right.makePriceUsd).isEqualTo(bidOrderUsd.makePriceUsd)
+        assertThat(right.takePriceUsd).isEqualTo(bidOrderUsd.takePriceUsd)
+        assertThat(right.makeValue).isEqualTo(BigDecimal("0.500000000000000000"))
+        assertThat(right.takeValue).isEqualTo(BigDecimal.ONE)
+        assertThat(right.source).isEqualTo(HistorySource.OPEN_SEA)
+        assertThat(left.adhoc).isFalse()
+        assertThat(left.counterAdhoc).isTrue()
     }
 
-    private fun log(data: String, topics: kotlin.collections.List<Word>) = Log(
+    private fun log(topics: List<Word>,data: String) = Log(
         BigInteger.ONE, // logIndex
         BigInteger.TEN, // transactionIndex
         Word.apply(ByteArray(32)), // transactionHash
