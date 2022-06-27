@@ -47,7 +47,8 @@ class ExchangeWrapperUnitTest {
             openSeaV1 = Address.ZERO(),
             openSeaV2 = Address.ZERO(),
             cryptoPunks = Address.ZERO(),
-            zeroEx = Address.ZERO()
+            zeroEx = Address.ZERO(),
+            seaportV1 = Address.ZERO()
         ),
         openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(
             priceUpdateService = priceUpdateService,
