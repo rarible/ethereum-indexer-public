@@ -92,9 +92,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
         val tokenId = EthUInt256(BigInteger.valueOf(nonce.value))
         val itemId = ItemId(token.address(), tokenId)
 
-        val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
-
         val receipt = token.mint(
             tokenId.value,
             nonce.v.toEth(),
@@ -151,7 +148,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
             .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
 
-        coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
 
         assertThat(history).hasSize(1)
