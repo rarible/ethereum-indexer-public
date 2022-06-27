@@ -12,6 +12,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
+import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
 import io.daonomic.rpc.domain.Word
 
 enum class ItemType(
@@ -35,6 +36,7 @@ enum class ItemType(
             MatchEventDeprecated.id(),
             OrdersMatchedEvent.id(),
             FillEvent.id(),
+            OrderFulfilledEvent.id(),
             PunkBoughtEvent.id()
         )
     ),
