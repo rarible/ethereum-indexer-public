@@ -8,6 +8,7 @@ import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderSaveMetric
 import com.rarible.protocol.order.listener.misc.SeaportEventErrorMetric
+import com.rarible.protocol.order.listener.misc.SeaportFulfilledEventMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderSaveMetric
@@ -65,5 +66,10 @@ class MetricsCountersConfiguration(
     @Bean
     fun seaportEventErrorCounter() : RegisteredCounter {
         return SeaportEventErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun seaportFulfilledEventCounter() : RegisteredCounter {
+        return SeaportFulfilledEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }
