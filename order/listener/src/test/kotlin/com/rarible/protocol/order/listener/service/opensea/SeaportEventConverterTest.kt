@@ -270,6 +270,51 @@ internal class SeaportEventConverterTest {
         assertThat(right.makeValue).isEqualTo(BigDecimal.valueOf(2))
     }
 
+    @Test
+    fun `should convert basic erc1155 partly sell OrderFulfilledEvent`() = runBlocking<Unit> {
+        val data = Instant.now()
+        val log = log(
+            listOf(
+                Word.apply("0x9d9af8e38d66c62e2c12f0225249fd9d721c54b83f48d9352c97c6cacdcb6f31"),
+                Word.apply("0x0000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"),
+                Word.apply("0x00000000000000000000000000000000e88fe2628ebc5da81d2b3cead633e89e")
+            ),
+            "0x5ec2493878f9575f3ae7568b94b3a021dd830e46e5b0005d8e23a825dfb7323a00000000000000000000000047921676a46ccfe3d80b161c7b4ddc8ed9e716b600000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000120000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000030000000000000000000000002ebecabbbe8a8c629b99ab23ed154d74cd5d4342000000000000000000000000000000000000000000000000000000000001aea9000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000067eab853ae20000000000000000000000000006c8ba1dafb22eae61e9cd3da724cbc3d164c27b90000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002aa1efb94e0000000000000000000000000008de9c5a032463c561423387a9648c5c7bcc5bc90"
+        )
+        val expectedNft = Asset(
+            Erc1155AssetType(
+                Address.apply("0x2ebecabbbe8a8c629b99ab23ed154d74cd5d4342"),
+                EthUInt256.of("110249")
+            ),
+            EthUInt256.of(1)
+        )
+        val expectedPayment = Asset(
+            EthAssetType,
+            EthUInt256.of("30000000000000000")
+        )
+        coEvery { priceUpdateService.getAssetsUsdValue(make = expectedNft, take = expectedPayment, at = data) } returns null
+        coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns null
+
+        val event = OrderFulfilledEvent.apply(log)
+        val matches = converter.convert(event, data)
+
+        val left = matches[0]
+        assertThat(left.hash).isEqualTo(Word.apply("0x5ec2493878f9575f3ae7568b94b3a021dd830e46e5b0005d8e23a825dfb7323a"))
+        assertThat(left.side).isEqualTo(OrderSide.LEFT)
+        assertThat(left.make).isEqualTo(expectedNft)
+        assertThat(left.take).isEqualTo(expectedPayment)
+        assertThat(left.fill).isEqualTo(expectedPayment.value)
+        assertThat(left.takeValue).isEqualTo(BigDecimal("0.030000000000000000"))
+        assertThat(left.makeValue).isEqualTo(BigDecimal.valueOf(1))
+        val right = matches[1]
+        assertThat(right.side).isEqualTo(OrderSide.RIGHT)
+        assertThat(right.make).isEqualTo(expectedPayment)
+        assertThat(right.take).isEqualTo(expectedNft)
+        assertThat(right.fill).isEqualTo(expectedNft.value)
+        assertThat(right.makeValue).isEqualTo(BigDecimal("0.030000000000000000"))
+        assertThat(right.takeValue).isEqualTo(BigDecimal.valueOf(1))
+    }
+
     private fun log(topics: List<Word>,data: String) = Log(
         BigInteger.ONE, // logIndex
         BigInteger.TEN, // transactionIndex
