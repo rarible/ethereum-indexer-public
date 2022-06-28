@@ -157,8 +157,8 @@ class SeaportEventConverter(
         val offererConsideration = consideration.first()
         val totalConsiderationAmount = consideration.filter { it.itemType == offererConsideration.itemType }.sumOf { it.startAmount }
 
-        val make = offer.single().takeUnless { it.isSupportedItem() } ?: return null
-        val take = offererConsideration.withStartAmount(totalConsiderationAmount).takeUnless { it.isSupportedItem() } ?: return null
+        val make = offer.single().takeIf { it.isSupportedItem() } ?: return null
+        val take = offererConsideration.withStartAmount(totalConsiderationAmount).takeIf { it.isSupportedItem() } ?: return null
         return OrderAssets(make.toAssetWithStartAmount(), take.toAssetWithStartAmount())
     }
 
