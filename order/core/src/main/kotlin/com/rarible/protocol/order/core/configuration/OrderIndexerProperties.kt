@@ -46,6 +46,7 @@ data class OrderIndexerProperties(
         var v2: Address,
         var openSeaV1: Address,
         var openSeaV2: Address,
+        var seaportV1: Address,
         var cryptoPunks: Address,
         var zeroEx: Address,
     )
@@ -77,6 +78,7 @@ data class OrderIndexerProperties(
     )
 
     data class RaribleOrderExpirationProperties(
-        val bidExpirePeriod: Duration = Duration.ofDays(60L)
+        val bidExpirePeriod: Duration = Duration.ofDays(60L),
+        val delayPeriod: Duration = Duration.ofMinutes(10L)
     )
 }

@@ -232,3 +232,17 @@ fun randomOrderBasicSeaportDataV1(): OrderBasicSeaportDataV1 {
         counter = randomLong()
     )
 }
+
+fun randomBidOrderUsdValue(): OrderUsdValue.BidOrder {
+    return OrderUsdValue.BidOrder(
+        makeUsd = randomBigDecimal(),
+        takePriceUsd = randomBigDecimal()
+    )
+}
+
+fun randomSellOrderUsdValue(): OrderUsdValue.SellOrder {
+    return OrderUsdValue.SellOrder(
+        makePriceUsd = randomBigDecimal(),
+        takeUsd = randomBigDecimal()
+    )
+}
