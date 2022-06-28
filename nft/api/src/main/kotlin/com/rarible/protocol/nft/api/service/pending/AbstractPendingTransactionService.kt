@@ -36,7 +36,7 @@ abstract class AbstractPendingTransactionService(
             val itemTransfer = record.data as? ItemTransfer ?: continue
             val tokenUri = itemTransfer.tokenUri ?: continue
             val itemId = ItemId(itemTransfer.token, itemTransfer.tokenId)
-            itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+            itemMetaService.saveTokenUriForPendingItem(itemId, tokenUri)
         }
 
         val events = records.map { LogRecordEvent(it, reverted = false) }

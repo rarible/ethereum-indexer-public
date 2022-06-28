@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.client.WebClientHelper
 import com.rarible.core.logging.LoggingUtils
+import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -35,7 +36,8 @@ class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
         return LoggingUtils.withMarker { marker ->
             logger.info(marker, "get CryptoKitties properties ${itemId.tokenId.value}")
 
-            client.get().uri("$CK_URL/${itemId.tokenId.value}")
+            val httpUrl = "$CK_URL/${itemId.tokenId.value}"
+            client.get().uri(httpUrl)
                 .retrieve()
                 .bodyToMono<String>()
                 .map {
@@ -43,13 +45,12 @@ class CryptoKittiesPropertiesResolver : ItemPropertiesResolver {
                     ItemProperties(
                         name = node.path("name").asText(),
                         description = node.path("bio")?.asText(),
-                        image = node.path("image_url_cdn").asText(),
-                        imagePreview = null,
-                        imageBig = null,
-                        animationUrl = null,
                         attributes = node.withArray("enhanced_cattributes")
                             .map { attr -> ItemAttribute(attr.path("type").asText(), attr.path("description").asText()) },
-                        rawJsonContent = null
+                        rawJsonContent = null,
+                        content = ContentBuilder.getItemMetaContent(
+                            imageOriginal = node.path("image_url_cdn").asText()
+                        )
                     )
                 }
         }.awaitFirstOrNull()

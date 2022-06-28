@@ -7,14 +7,15 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 import scalether.transaction.MonoTransactionSender
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
@@ -138,12 +139,11 @@ class YInsurePropertiesResolver(
                         ItemProperties(
                             name = "${platform.name} | $amount $currency \uD83D\uDD12 | $validUntil",
                             description = "Covers ${platform.name} Smart Contract risks worth $amount $currency. Policy is valid until $validUntilLong",
-                            image = "$apiUrl/image/yinsure/${itemId.tokenId.value}.svg",
                             attributes = attributes,
-                            imagePreview = null,
-                            imageBig = null,
-                            animationUrl = null,
-                            rawJsonContent = null
+                            rawJsonContent = null,
+                            content = ContentBuilder.getItemMetaContent(
+                                imageOriginal = "$apiUrl/image/yinsure/${itemId.tokenId.value}.svg"
+                            )
                         )
                     }
             }.awaitFirstOrNull()

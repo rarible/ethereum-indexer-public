@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.service.item.meta.TOKEN_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.getInt
 import com.rarible.protocol.nft.core.service.item.meta.getText
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.Companion.logProperties
 import org.springframework.beans.factory.annotation.Value
@@ -45,10 +46,12 @@ class OpenseaTokenPropertiesResolver(
         return TokenProperties(
             name = getName(json) ?: "Untitled",
             description = json.getText("description"),
-            image = json.getText("image_url"),
             externalUri = json.getText("external_link"),
             sellerFeeBasisPoints = json.getInt("opensea_seller_fee_basis_points"),
             feeRecipient = json.getText("payout_address")?.let { Address.apply(it) },
+            content = ContentBuilder.getTokenMetaContent(
+                imageOriginal = json.getText("image_url")
+            )
         )
     }
 

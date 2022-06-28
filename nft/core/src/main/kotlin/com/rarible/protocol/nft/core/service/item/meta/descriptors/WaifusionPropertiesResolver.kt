@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -44,12 +44,11 @@ class WaifusionPropertiesResolver(
                         ItemProperties(
                             name = name,
                             description = "Waifusion is a digital Waifu collection. There are 16,384 guaranteed-unique Waifusion NFTs. They’re just like you; a beautiful work of art, but 2-D and therefore, superior, Anon-kun.",
-                            image = "$IPFS_URL_PREFIX/${itemId.tokenId.value}.png",
                             attributes = attributes,
-                            imagePreview = null,
-                            imageBig = null,
-                            animationUrl = null,
-                            rawJsonContent = null
+                            rawJsonContent = null,
+                            content = ContentBuilder.getItemMetaContent(
+                                imageOriginal = "$IPFS_URL_PREFIX/${itemId.tokenId.value}.png"
+                            )
                         )
                     }
             }.awaitFirstOrNull()

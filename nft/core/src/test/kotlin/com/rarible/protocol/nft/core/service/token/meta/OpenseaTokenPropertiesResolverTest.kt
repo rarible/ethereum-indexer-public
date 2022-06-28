@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.BasePropertiesResolverTest.Companion.REQUEST_TIMEOUT
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.OpenseaTokenPropertiesResolver
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -49,9 +50,11 @@ class OpenseaTokenPropertiesResolverTest : AbstractTokenTest() {
                 name = "Feudalz",
                 description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
                 externalUri = "https://feudalz.io",
-                image = "https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120",
                 feeRecipient = Address.apply("0xc00f4b8022e4dc7f086d703328247cb6adf26858"),
-                sellerFeeBasisPoints = 250
+                sellerFeeBasisPoints = 250,
+                content = ContentBuilder.getTokenMetaContent(
+                    imageOriginal = "https://lh3.googleusercontent.com/wveucmeXBJfqyGiPZDhC1jVaJcx9SH0l2fiLmp2OdLD0KYpFzUIQD_9tTOV57cCDjJ4EjZT6X-Zoyym9eXXHTDxmVfCYzhC_RgkAU0A=s120"
+                )
             )
         )
     }
@@ -67,9 +70,11 @@ class OpenseaTokenPropertiesResolverTest : AbstractTokenTest() {
                 name = "My contract",
                 description = null,
                 externalUri = null,
-                image = null,
                 feeRecipient = null,
-                sellerFeeBasisPoints = null
+                sellerFeeBasisPoints = null,
+                content = ContentBuilder.getTokenMetaContent(
+                    imageOriginal = null
+                )
             )
         )
     }

@@ -27,6 +27,7 @@ import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.repository.data.createAddress
 import com.rarible.protocol.nft.core.repository.data.createItemHistory
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.daonomic.rpc.domain.Word
 import org.apache.commons.lang3.RandomUtils
 import scalether.domain.Address
@@ -355,12 +356,14 @@ fun createRandomItemProperties(): ItemProperties {
     return ItemProperties(
         name = randomString(),
         description = randomString(),
-        image = randomString(),
-        imagePreview = randomString(),
-        imageBig = randomString(),
-        animationUrl = randomString(),
         attributes = emptyList(),
-        rawJsonContent = randomString()
+        rawJsonContent = randomString(),
+        content = ContentBuilder.getItemMetaContent(
+            imageOriginal = randomString(),
+            imageBig = randomString(),
+            imagePreview = randomString(),
+            videoOriginal = randomString()
+        )
     )
 }
 
@@ -388,7 +391,6 @@ fun randomTokenProperties(): TokenProperties {
     return TokenProperties(
         name = randomString(),
         description = randomString(),
-        image = "http://test.com/${randomString()}",
         feeRecipient = randomAddress(),
         sellerFeeBasisPoints = randomInt(10000),
         createdAt = nowMillis(),
@@ -399,6 +401,8 @@ fun randomTokenProperties(): TokenProperties {
         rightsUri = randomString(),
         externalUri = randomString(),
         tokenUri = "http://localhost:8080/${randomString()}",
-        content = emptyList()
+        content = ContentBuilder.getTokenMetaContent(
+            imageOriginal = "http://test.com/${randomString()}"
+        )
     )
 }

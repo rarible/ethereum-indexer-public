@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HashmasksPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,10 +31,6 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "African Warrior",
                 description = "Hashmasks is a living digital art collectible created by over 70 artists globally. It is a collection of 16,384 unique digital portraits. Brought to you by Suum Cuique Labs from Zug, Switzerland.",
-                image = "${publicGatewayProvider.getGateway()}/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
-                imageBig = null,
-                imagePreview = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("character", "Male"),
                     ItemAttribute("mask", "Doodle"),
@@ -41,13 +38,16 @@ class HashmasksPropertiesResolverTest : BasePropertiesResolverTest() {
                     ItemAttribute("skinColor", "Dark"),
                     ItemAttribute("item", "No Item")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "${publicGatewayProvider.getGateway()}/ipfs/QmZ4mhghewEViUEDgYk4pHjQwUByfaBh45eqbYKmwxHJBh",
+                )
             )
         )
     }
 
     @Test
-    fun `returns null for other address`() = runBlocking<Unit> {
+    fun `returns null for other address`() = runBlocking {
         val properties = hashmasksPropertiesResolver.resolve(
             ItemId(
                 randomAddress(),

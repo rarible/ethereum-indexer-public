@@ -6,8 +6,8 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import org.springframework.stereotype.Component
 import scalether.domain.Address
 
@@ -27,11 +27,17 @@ class StonerCatsPropertiesResolver(
         }
         logMetaLoading(itemId, "Resolving $name Nft properties")
         val properties = raribleResolver.resolve(itemId) ?: return null
-        val imageUrl = properties.image ?: return properties
-        val etag = externalHttpClient.getEtag(url = imageUrl, id = itemId.decimalStringValue)
+        val imageUrl = properties.content.imageOriginal ?: return properties
+        val etag = externalHttpClient.getEtag(url = imageUrl.url, id = itemId.decimalStringValue)
 
         return etag?.let {
-            properties.copy(image = urlService.resolvePublicHttpUrl(etag))
+            properties.copy(
+                content = properties.content.copy(
+                    imageOriginal = ContentBuilder.getItemMetaContent(
+                        imageOriginal = urlService.resolvePublicHttpUrl(etag)
+                    ).imageOriginal
+                )
+            )
         } ?: properties
     }
 

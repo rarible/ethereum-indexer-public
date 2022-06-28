@@ -6,7 +6,6 @@ import com.rarible.ethereum.common.toBinary
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.LockFormDto
 import com.rarible.protocol.dto.NftItemDto
-import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.unlockable.api.exception.LockAlreadyExistsException
 import com.rarible.protocol.unlockable.api.exception.LockOwnershipException
@@ -176,7 +175,6 @@ class LockServiceTest {
         royalties = emptyList(),
         pending = emptyList(),
         lastUpdatedAt = nowMillis(),
-        deleted = false,
-        meta = NftItemMetaDto(name = "Test", genres = emptyList(), tags = emptyList(), content = emptyList())
+        deleted = false
     )
 }

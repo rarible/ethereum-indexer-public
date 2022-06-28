@@ -112,7 +112,7 @@ class LegacyPendingTransactionService(
             .forEach {
                 val itemId = ItemId(it.token, it.tokenId)
                 val tokenUri = it.tokenUri ?: return@forEach
-                itemMetaService.loadAndSavePendingItemMeta(itemId, tokenUri)
+                itemMetaService.saveTokenUriForPendingItem(itemId, tokenUri)
             }
 
         return pendingLogs

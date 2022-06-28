@@ -5,6 +5,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
@@ -27,16 +28,15 @@ class PegaxyPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "Reloaded | XLR",
                 description = null,
-                image = "https://cdn.pegaxy.io/data/pega/1648350168034",
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("Gender", "Male"),
                     ItemAttribute("Blood Line", "Hoz"),
                     ItemAttribute("Breed Type", "Pacer"),
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "https://cdn.pegaxy.io/data/pega/1648350168034"
+                )
             )
         )
     }

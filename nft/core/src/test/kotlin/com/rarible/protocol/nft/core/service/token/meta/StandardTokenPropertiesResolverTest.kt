@@ -11,6 +11,7 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.TokenProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.BasePropertiesResolverTest
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardTokenPropertiesResolver
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -57,10 +58,12 @@ class StandardTokenPropertiesResolverTest : AbstractTokenTest() {
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants. When the system run smoothly, it lead to peace and prosperity for everyone.",
             externalUri = "https://feudalz.io",
-            image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
             tokenUri = "ipfs://QmeRwHVnYHthtPezLFNMLamC21b7BMm6Er18bG3DzTVE3T",
-            sellerFeeBasisPoints = 250
+            sellerFeeBasisPoints = 250,
+            content = ContentBuilder.getTokenMetaContent(
+                imageOriginal = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d"
+            )
         ))
     }
 

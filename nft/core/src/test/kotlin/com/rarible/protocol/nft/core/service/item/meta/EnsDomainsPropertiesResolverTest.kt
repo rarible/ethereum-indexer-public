@@ -50,10 +50,10 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         properties as ItemProperties
         assertThat(properties.name).isEqualTo("rarible.eth")
         assertThat(properties.description).isEqualTo("rarible.eth, an ENS name.")
-        assertThat(properties.image).isEqualTo("https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image")
-        assertThat(properties.imagePreview).isNull()
-        assertThat(properties.imageBig).isNull()
-        assertThat(properties.animationUrl).isNull()
+        assertThat(properties.content.imageOriginal!!.url).isEqualTo("https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image")
+        assertThat(properties.content.imagePreview).isNull()
+        assertThat(properties.content.imageBig).isNull()
+        assertThat(properties.content.videoOriginal).isNull()
         assertThat(properties.attributes).containsExactlyInAnyOrder(
             ItemAttribute("Created Date", "2019-11-12T20:14:29Z", "string", "date-time"),
             ItemAttribute("Length", "7"),

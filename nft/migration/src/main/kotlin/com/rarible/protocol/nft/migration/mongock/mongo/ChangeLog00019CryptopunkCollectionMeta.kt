@@ -6,6 +6,7 @@ import com.rarible.core.cache.Cache
 import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.TokenProperties
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService
 import com.rarible.protocol.nft.core.service.token.meta.TokenPropertiesService.CachedTokenProperties
 import io.changock.migration.api.annotations.NonLockGuarded
@@ -15,7 +16,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import scalether.domain.Address
-import java.util.*
+import java.util.Date
 
 @ChangeLog(order = "00018")
 class ChangeLog00019CryptopunkCollectionMeta {
@@ -34,10 +35,12 @@ class ChangeLog00019CryptopunkCollectionMeta {
         val properties = TokenProperties(
             name = "CryptoPunks",
             description = "CryptoPunks launched as a fixed set of 10,000 items in mid-2017 and became one of the inspirations for the ERC-721 standard. They have been featured in places like The New York Times, Christie’s of London, Art|Basel Miami, and The PBS NewsHour.",
-            image = "https://ipfs.io/ipfs/QmPnbisaFugMs6LP9usYvepoUAuqUqhBmTseYCyEVsoWsL",
             externalUri = "https://www.larvalabs.com/cryptopunks",
             feeRecipient = null,
-            sellerFeeBasisPoints = null
+            sellerFeeBasisPoints = null,
+            content = ContentBuilder.getTokenMetaContent(
+                imageOriginal = "https://ipfs.io/ipfs/QmPnbisaFugMs6LP9usYvepoUAuqUqhBmTseYCyEVsoWsL"
+            )
         )
         val entity = Cache(
             id = nftIndexerProperties.cryptoPunksContractAddress,

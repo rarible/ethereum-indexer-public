@@ -19,7 +19,6 @@ import com.rarible.protocol.nft.api.e2e.EventAwareBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createAddress
 import com.rarible.protocol.nft.api.e2e.data.createToken
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
-import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
@@ -39,6 +38,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
@@ -50,7 +50,6 @@ import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 import java.util.concurrent.ThreadLocalRandom
-import org.slf4j.LoggerFactory
 
 @End2EndTest
 class LazyMintControllerFt : EventAwareBaseTest() {
@@ -60,9 +59,6 @@ class LazyMintControllerFt : EventAwareBaseTest() {
 
     @Autowired
     private lateinit var tokenRepository: TokenRepository
-
-    @Autowired
-    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
 
     private val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
@@ -105,14 +101,10 @@ class LazyMintControllerFt : EventAwareBaseTest() {
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         checkItemDto(lazyItemDto, itemDto)
 
-        val expectedMeta = nftItemMetaDtoConverter.convert(itemMeta, itemId.decimalStringValue)
-        assertThat(itemDto.meta).isEqualTo(null)
         logger.info("Item events: $itemEvents")
 
         assertThat(itemEvents).anySatisfy { event ->
-            assertThat(event).isInstanceOfSatisfying(NftItemUpdateEventDto::class.java) {
-                assertThat(it.item.meta).isNull()
-            }
+            assertThat(event).isInstanceOf(NftItemUpdateEventDto::class.java)
         }
     }
 

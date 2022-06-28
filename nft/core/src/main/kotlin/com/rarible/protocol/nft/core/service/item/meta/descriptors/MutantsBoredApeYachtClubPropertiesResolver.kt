@@ -7,8 +7,8 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -43,10 +43,6 @@ class MutantsBoredApeYachtClubPropertiesResolver(
         ItemProperties(
             name = "MutantApeYachtClub #${itemId.tokenId.value}",
             description = "The MUTANT APE YACHT CLUB is a collection of up to 20,000 Mutant Apes that can only be created by exposing an existing Bored Ape to a vial of MUTANT SERUM or by minting a Mutant Ape in the public sale.",
-            image = json.path("image").asText(),
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
             attributes = json.withArray("attributes")
                 .map { attr ->
                     ItemAttribute(
@@ -54,7 +50,10 @@ class MutantsBoredApeYachtClubPropertiesResolver(
                         value = attr.path("value").asText()
                     )
                 },
-            rawJsonContent = rawProperties
+            rawJsonContent = rawProperties,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = json.path("image").asText(),
+            )
         )
 
     companion object {

@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.CryptoPunksRepository
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -42,13 +43,15 @@ class CryptoPunksPropertiesResolverTest : BasePropertiesResolverTest() {
         assertThat(props).isEqualTo(
             ItemProperties(
                 name = "CryptoPunk #33",
-                image = image,
                 attributes = attributes,
                 description = null,
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = image,
+                    imageBig = null,
+                    imagePreview = null,
+                    videoOriginal = null
+                )
             )
         )
     }

@@ -7,11 +7,10 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.getText
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
-import com.rarible.protocol.nft.core.service.item.meta.properties.SvgSanitizer
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -57,19 +56,17 @@ class LootPropertiesResolver(
         @Suppress("BlockingMethodInNonBlockingContext")
         val node = JsonPropertiesParser.parse(itemId, tokenUri)
         check(node != null)
-        val imageUrl = node.getText("image")?.let {
-            SvgSanitizer.sanitize(itemId, it)
-        }
+        val imageUrl = node.getText("image")
         val name = node.getText("name") ?: return null
         return ItemProperties(
             name = name,
             description = node.getText("description"),
-            image = imageUrl,
-            imagePreview = null,
-            animationUrl = imageUrl,
-            imageBig = null,
             attributes = attrs,
-            rawJsonContent = null
+            rawJsonContent = null,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = imageUrl,
+                videoOriginal = imageUrl
+            )
         )
     }
 

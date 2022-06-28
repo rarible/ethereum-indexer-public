@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -40,10 +41,6 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "Gather Full Masternode - Tier 1 - 250000 GTH",
                 description = "This NFT represents the ownership of Gather Network's Full Masternode, \$GTH masternode collateral is linked to the NFT. It is used as an access key to run masternode servers for Gather Cloud.",
-                image = "https://ipfs.io/ipfs/QmWVcXnhhf9yo4q9C4QeADy5LL8UFBiCEqcjSfNMS9ugKj",
-                imagePreview = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4",
-                imageBig = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4",
-                animationUrl = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4",
                 attributes = listOf(
                     ItemAttribute("Batch Number", "1"),
                     ItemAttribute("GTH amount", "250000"),
@@ -52,7 +49,13 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
                     ItemAttribute("Rewards", "Cloud Profits"),
                     ItemAttribute("Masternode Number", "12")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "https://ipfs.io/ipfs/QmWVcXnhhf9yo4q9C4QeADy5LL8UFBiCEqcjSfNMS9ugKj",
+                    imageBig = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4",
+                    imagePreview = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4",
+                    videoOriginal = "https://openseauserdata.com/files/f225c638e5f5b8621f844e81425c3c74.mp4"
+                )
             )
         )
     }
@@ -81,15 +84,14 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
                         "Collect all of the LOTTs (all of the tokens) for this thing (that aren't \"lost\" in an inactive wallet*) and you can choose to have a 1-of-1 NFT made to signify your unified ownership or you may choose to burn the LOTTs and remove the physical card from the LOT :(  Choose Wisely.\n" +
                         "\n" +
                         "An \"inactive wallet\" is any wallet that hasn't had an \"outbound\" token transfer (NFTs or coins/currency) in the past 5 years.  Outbound transfers only are used to specifically exclude potential \"air drops\" going into a wallet from causing an inactive wallet to otherwise appear active.",
-                image = "https://lh3.googleusercontent.com/ZhYAE4l86Xx3kNHzBLvervNxocK_QD0yr-MXcMGeWCN53_jdYF9Gsgu-j58q8bPEbdF-hTtud7C1GsRO8G4Y1Bvd9WaWeEpk9vQPRmQ",
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("Collectible Type", "Trading Card"),
                     ItemAttribute("Category", "Entertainment"),
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "https://lh3.googleusercontent.com/ZhYAE4l86Xx3kNHzBLvervNxocK_QD0yr-MXcMGeWCN53_jdYF9Gsgu-j58q8bPEbdF-hTtud7C1GsRO8G4Y1Bvd9WaWeEpk9vQPRmQ"
+                )
             )
         )
     }

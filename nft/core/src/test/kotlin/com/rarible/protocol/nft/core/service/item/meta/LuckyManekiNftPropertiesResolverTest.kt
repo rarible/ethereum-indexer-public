@@ -6,6 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LuckyManekiNftPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -32,10 +33,6 @@ class LuckyManekiNftPropertiesResolverTest : BasePropertiesResolverTest() {
         val expectedProperties = ItemProperties(
             name = "Lucky Maneki #9163",
             description = null,
-            image = "https://lucky-maneki.s3.amazonaws.com/originals/ee1aa0505c2fdd4f.png",
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
             attributes = listOf(
                 ItemAttribute("Environment", "Regional"),
                 ItemAttribute("Environment Subtype", "Latin American"),
@@ -47,6 +44,9 @@ class LuckyManekiNftPropertiesResolverTest : BasePropertiesResolverTest() {
                 ItemAttribute("Head Implicit", "Alien"),
                 ItemAttribute("Lower Paw Type", "Empty"),
                 ItemAttribute("Upper Paw Type", "Empty")
+            ),
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = "https://lucky-maneki.s3.amazonaws.com/originals/ee1aa0505c2fdd4f.png"
             ),
             rawJsonContent = """{
   "name": "Lucky Maneki #9163",

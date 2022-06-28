@@ -6,13 +6,22 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.treeToValue
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.ImageContentDto
+import com.rarible.protocol.dto.MetaContentDto
+import com.rarible.protocol.dto.MetaContentDto.Representation
 import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.VideoContentDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
+import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverterTest.Companion.itemProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.model.meta.EthImageProperties
+import com.rarible.protocol.nft.core.model.meta.EthMetaContent
+import com.rarible.protocol.nft.core.model.meta.EthVideoProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesProvider
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
@@ -68,18 +77,24 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         nftIndexerProperties = nftIndexerProperties
     )
 
-    private val service = ItemPropertiesService(
-        itemPropertiesResolverProvider = mockk {
-            every { orderedResolvers } returns listOf(
-                ensResolver,
-                hashmasksPropertiesResolver,
-                mutantsBoredApeYachtClubPropertiesResolver,
-                rariblePropertiesResolver
-            )
-            every { openSeaResolver } returns openSeaPropertiesResolver
-        },
-        urlService = urlService,
+    private val itemPropertiesResolverProvider: ItemPropertiesResolverProvider = mockk {
+        every { orderedResolvers } returns listOf(
+            ensResolver,
+            hashmasksPropertiesResolver,
+            mutantsBoredApeYachtClubPropertiesResolver,
+            rariblePropertiesResolver
+        )
+        every { openSeaResolver } returns openSeaPropertiesResolver
+    }
+
+    private val openseaItemPropertiesService = OpenseaItemPropertiesService(
+        itemPropertiesResolverProvider = itemPropertiesResolverProvider,
         nftIndexerProperties = nftIndexerProperties
+    )
+
+    private val service = ItemPropertiesService(
+        itemPropertiesResolverProvider = itemPropertiesResolverProvider,
+        openseaItemPropertiesService = openseaItemPropertiesService
     )
 
     @BeforeEach
@@ -94,7 +109,6 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
                 )
             )
         }
-        featureFlags.enableMetaRawPropertiesCache = false
     }
 
     @Test
@@ -126,18 +140,24 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     fun `exclude date enrichment for ENS domaind`() = runBlocking<Unit> {
         val mockOpenSeaPropertiesResolver = mockk<OpenSeaPropertiesResolver>()
 
-        val service = ItemPropertiesService(
-            itemPropertiesResolverProvider = mockk {
-                every { orderedResolvers } returns listOf(
-                    ensResolver,
-                    hashmasksPropertiesResolver,
-                    mutantsBoredApeYachtClubPropertiesResolver,
-                    rariblePropertiesResolver
-                )
-                every { openSeaResolver } returns mockOpenSeaPropertiesResolver
-            },
-            urlService = urlService,
+        val itemPropertiesResolverProvider: ItemPropertiesResolverProvider = mockk {
+            every { orderedResolvers } returns listOf(
+                ensResolver,
+                hashmasksPropertiesResolver,
+                mutantsBoredApeYachtClubPropertiesResolver,
+                rariblePropertiesResolver
+            )
+            every { openSeaResolver } returns mockOpenSeaPropertiesResolver
+        }
+
+        val openseaItemPropertiesService = OpenseaItemPropertiesService(
+            itemPropertiesResolverProvider = itemPropertiesResolverProvider,
             nftIndexerProperties = nftIndexerProperties
+        )
+
+        val service = ItemPropertiesService(
+            itemPropertiesResolverProvider = itemPropertiesResolverProvider,
+            openseaItemPropertiesService = openseaItemPropertiesService
         )
 
         val itemId = ItemId(
@@ -191,22 +211,4 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
         val expectedMetaDto = mapper.treeToValue<NftItemMetaDto>(jsonNode)!!
         return expectedMetaDto.itemProperties()
     }
-
-    private fun NftItemMetaDto.itemProperties() = ItemProperties(
-        name = name,
-        description = description,
-        image = image?.url?.get("ORIGINAL"),
-        imagePreview = image?.url?.get("PREVIEW"),
-        imageBig = image?.url?.get("BIG"),
-        animationUrl = animation?.url?.get("ORIGINAL"),
-        attributes = attributes.orEmpty().map {
-            ItemAttribute(
-                key = it.key,
-                value = it.value,
-                type = it.type,
-                format = it.format
-            )
-        },
-        rawJsonContent = null
-    )
 }

@@ -7,8 +7,6 @@ import java.time.Instant
 data class TokenProperties(
     val name: String,
     val description: String?,
-    @Deprecated("Should be replaced by content")
-    val image: String?,
     val externalUri: String?,
     val feeRecipient: Address?,
     val sellerFeeBasisPoints: Int?,
@@ -20,16 +18,25 @@ data class TokenProperties(
     val rights: String? = null,
     val rightsUri: String? = null,
     val tokenUri: String? = null,
-    val content: List<EthMetaContent> = emptyList()
+    val content: TokenMetaContent = TokenMetaContent()
 ) {
     companion object {
         val EMPTY = TokenProperties(
             name = "Untitled",
             description = null,
-            image = null,
             externalUri = null,
             feeRecipient = null,
             sellerFeeBasisPoints = null
         )
+    }
+}
+
+data class TokenMetaContent(
+    val imageOriginal: EthMetaContent? = null
+) {
+    fun asList(): List<EthMetaContent> {
+        val content = ArrayList<EthMetaContent>(1)
+        this.imageOriginal?.let { content.add(it) }
+        return content
     }
 }

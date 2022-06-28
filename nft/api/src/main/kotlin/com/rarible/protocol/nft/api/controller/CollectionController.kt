@@ -64,6 +64,7 @@ class CollectionController(
     }
 
     override suspend fun resetNftCollectionMetaById(collection: String): ResponseEntity<Unit> {
+        // TODO Remove in PT-568
         collectionService.resetMeta(AddressParser.parse(collection))
         return ResponseEntity.noContent().build()
     }

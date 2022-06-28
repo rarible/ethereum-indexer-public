@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.HegicPropertiesResolver.Companion.HEGIC_ADDRESS
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assumptions
@@ -34,21 +35,20 @@ class HegicPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "Kurisu Makise",
                 description = "Waifusion is a digital Waifu collection. There are 16,384 guaranteed-unique Waifusion NFTs. They’re just like you; a beautiful work of art, but 2-D and therefore, superior, Anon-kun.",
-                image = "https://ipfs.io/ipfs/QmQuzMGqHxSXugCUvWQjDCDHWhiGB75usKbrZk6Ec6pFvw/1.png",
-                imageBig = null,
-                imagePreview = null,
-                animationUrl = null,
                 attributes = listOf(
                     ItemAttribute("token", "waifusion"),
                     ItemAttribute("owner", "0x574a782a00dd152d98ff85104f723575d870698e")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "https://ipfs.io/ipfs/QmQuzMGqHxSXugCUvWQjDCDHWhiGB75usKbrZk6Ec6pFvw/1.png",
+                )
             )
         )
     }
 
     @Test
-    fun `returns null for other address`() = runBlocking<Unit> {
+    fun `returns null for other address`() = runBlocking {
         val properties = hegicPropertiesResolver.resolve(
             ItemId(
                 randomAddress(),

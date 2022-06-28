@@ -7,7 +7,7 @@ import com.rarible.protocol.nft.core.model.CryptoPunksMeta
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
 import org.springframework.data.mongodb.core.findById
@@ -41,12 +41,11 @@ class CryptoPunksPropertiesResolver(
             ItemProperties(
                 name = "CryptoPunk #${it.id}",
                 description = null,
-                image = it.image,
-                imagePreview = null,
-                imageBig = null,
-                animationUrl = null,
                 attributes = it.attributes,
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = it.image
+                )
             )
         }.awaitFirstOrNull()
     }

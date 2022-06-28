@@ -66,9 +66,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
     private lateinit var nftItemHistoryRepository: NftItemHistoryRepository
 
     @Autowired
-    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
-
-    @Autowired
     private lateinit var blockProcessor: BlockProcessor
 
     @ParameterizedTest
@@ -94,9 +91,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
 
         val tokenId = EthUInt256(BigInteger.valueOf(nonce.value))
         val itemId = ItemId(token.address(), tokenId)
-
-        val itemMeta = randomItemMeta()
-        coEvery { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) } returns itemMeta
 
         val receipt = token.mint(
             tokenId.value,
@@ -139,7 +133,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
         Wait.waitAssert {
             val pendingItemDto = nftItemApiClient.getNftItemById(itemId.decimalStringValue).awaitFirstOrNull()
             assertThat(pendingItemDto?.pending).hasSize(1)
-            assertThat(pendingItemDto?.meta).isNull()
         }
 
         Wait.waitAssert {
@@ -155,7 +148,6 @@ class PendingTransactionFt : EventAwareBaseTest() {
             .findItemsHistory(token = token.address(), tokenId = tokenId)
             .collectList().awaitFirst()
 
-        coVerify(exactly = 1) { mockItemMetaResolver.resolvePendingItemMeta(itemId, tokenUri) }
         coVerify(exactly = 0) { mockItemMetaResolver.resolveItemMeta(itemId) }
 
         assertThat(history).hasSize(1)

@@ -32,10 +32,6 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
     @Qualifier("mockNftServerClient")
     private lateinit var mockNftServerClient: MockServerClient
 
-    @Autowired
-    @Qualifier("mockNftOrderServerClient")
-    private lateinit var mockNftOrderServerClient: MockServerClient
-
     @Test
     fun `should go to nft service for token generation`() = runBlocking<Unit> {
         val collection = Address.FOUR()
@@ -150,8 +146,7 @@ internal class ProtocolRouteLocatorTest : AbstractIntegrationTest() {
             royalties = emptyList(),
             deleted = false,
             pending = emptyList(),
-            lastUpdatedAt = null,
-            meta = createItemMeta()
+            lastUpdatedAt = null
         )
         mockNftServerClient
             .`when`(

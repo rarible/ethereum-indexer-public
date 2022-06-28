@@ -8,10 +8,10 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.parseAttributes
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.http.HttpStatus
@@ -88,12 +88,11 @@ class EnsDomainsPropertiesProvider(
         return ItemProperties(
             name = json.path("name").asText(),
             description = json.path("description").asText(),
-            image = json.path("image_url").asText(),
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
             attributes = json.parseAttributes(milliTimestamps = true),
-            rawJsonContent = rawProperties
+            rawJsonContent = rawProperties,
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = json.path("image_url").asText()
+            )
         )
     }
 

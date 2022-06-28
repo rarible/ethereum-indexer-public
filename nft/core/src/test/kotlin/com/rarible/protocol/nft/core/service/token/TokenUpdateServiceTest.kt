@@ -8,11 +8,11 @@ import com.rarible.protocol.contracts.collection.CreateEvent
 import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto
 import com.rarible.protocol.dto.NftCollectionMetaDto
-import com.rarible.protocol.dto.NftMediaDto
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CreateCollection
 import com.rarible.protocol.nft.core.model.TokenProperties
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
@@ -34,9 +34,11 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             name = "Feudalz",
             description = "Feudalz emerged to protect their Peasants.",
             externalUri = "https://feudalz.io",
-            image = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d",
             feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
-            sellerFeeBasisPoints = 250
+            sellerFeeBasisPoints = 250,
+            content = ContentBuilder.getTokenMetaContent(
+                imageOriginal = "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d"
+            )
         )
 
         val id = randomAddress()
@@ -66,15 +68,8 @@ class TokenUpdateServiceTest : AbstractIntegrationTest() {
             NftCollectionMetaDto(
                 name = "Feudalz",
                 description = "Feudalz emerged to protect their Peasants.",
-                external_link = "https://feudalz.io",
                 externalUri = "https://feudalz.io",
-                image = NftMediaDto(
-                    url = mapOf("ORIGINAL" to "https://ipfs.io/ipfs/QmTGtDqnPi8TiQrSHqg44Lm7DNvvye6Tw4Z6eMMuMqkS6d"),
-                    meta = emptyMap()
-                ),
-                fee_recipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
                 feeRecipient = Address.apply("0x6EF5129faca91E410fa27188495753a33c36E305"),
-                seller_fee_basis_points = 250,
                 sellerFeeBasisPoints = 250,
                 genres = emptyList(),
                 tags = emptyList(),

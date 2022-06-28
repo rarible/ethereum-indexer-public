@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -31,10 +32,6 @@ class LootPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemProperties(
                 name = "Bag #10",
                 description = "Loot is randomized adventurer gear generated and stored on chain. Stats, images, and other functionality are intentionally omitted for others to interpret. Feel free to use Loot in any way you want.",
-                image = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\">Maul</text><text x=\"10\" y=\"40\" class=\"base\">Robe</text><text x=\"10\" y=\"60\" class=\"base\">Divine Hood</text><text x=\"10\" y=\"80\" class=\"base\">Studded Leather Belt</text><text x=\"10\" y=\"100\" class=\"base\">Holy Greaves</text><text x=\"10\" y=\"120\" class=\"base\">Wool Gloves</text><text x=\"10\" y=\"140\" class=\"base\">\"Havoc Sun\" Amulet of Reflection</text><text x=\"10\" y=\"160\" class=\"base\">Platinum Ring</text></svg>",
-                animationUrl = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\">Maul</text><text x=\"10\" y=\"40\" class=\"base\">Robe</text><text x=\"10\" y=\"60\" class=\"base\">Divine Hood</text><text x=\"10\" y=\"80\" class=\"base\">Studded Leather Belt</text><text x=\"10\" y=\"100\" class=\"base\">Holy Greaves</text><text x=\"10\" y=\"120\" class=\"base\">Wool Gloves</text><text x=\"10\" y=\"140\" class=\"base\">\"Havoc Sun\" Amulet of Reflection</text><text x=\"10\" y=\"160\" class=\"base\">Platinum Ring</text></svg>",
-                imageBig = null,
-                imagePreview = null,
                 attributes = listOf(
                     ItemAttribute("chest", "Robe"),
                     ItemAttribute("foot", "Holy Greaves"),
@@ -45,7 +42,11 @@ class LootPropertiesResolverTest : BasePropertiesResolverTest() {
                     ItemAttribute("waist", "Studded Leather Belt"),
                     ItemAttribute("weapon", "Maul")
                 ),
-                rawJsonContent = null
+                rawJsonContent = null,
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\">Maul</text><text x=\"10\" y=\"40\" class=\"base\">Robe</text><text x=\"10\" y=\"60\" class=\"base\">Divine Hood</text><text x=\"10\" y=\"80\" class=\"base\">Studded Leather Belt</text><text x=\"10\" y=\"100\" class=\"base\">Holy Greaves</text><text x=\"10\" y=\"120\" class=\"base\">Wool Gloves</text><text x=\"10\" y=\"140\" class=\"base\">\"Havoc Sun\" Amulet of Reflection</text><text x=\"10\" y=\"160\" class=\"base\">Platinum Ring</text></svg>",
+                    videoOriginal = "<svg xmlns=\"http://www.w3.org/2000/svg\" preserveAspectRatio=\"xMinYMin meet\" viewBox=\"0 0 350 350\"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width=\"100%\" height=\"100%\" fill=\"black\" /><text x=\"10\" y=\"20\" class=\"base\">Maul</text><text x=\"10\" y=\"40\" class=\"base\">Robe</text><text x=\"10\" y=\"60\" class=\"base\">Divine Hood</text><text x=\"10\" y=\"80\" class=\"base\">Studded Leather Belt</text><text x=\"10\" y=\"100\" class=\"base\">Holy Greaves</text><text x=\"10\" y=\"120\" class=\"base\">Wool Gloves</text><text x=\"10\" y=\"140\" class=\"base\">\"Havoc Sun\" Amulet of Reflection</text><text x=\"10\" y=\"160\" class=\"base\">Platinum Ring</text></svg>",
+                )
             )
         )
     }

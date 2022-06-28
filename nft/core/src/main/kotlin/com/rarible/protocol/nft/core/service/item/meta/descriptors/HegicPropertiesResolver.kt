@@ -6,8 +6,8 @@ import com.rarible.protocol.nft.core.model.ItemAttribute
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
-import com.rarible.protocol.nft.core.service.item.meta.ItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -90,12 +90,11 @@ class HegicPropertiesResolver(
                                     "Holding this NFT gives the holder the right to $optionTypeText 1 ETH at \$$ethCost anytime before the maturity date ($expirationDateUTCText).\n" +
                                     "Hegic options are cash-settled so you will receive the difference between ETH's price at exercise and strike price. This is, you will not need to buy the underlying asset when you exercise. \n" +
                                     "Options provider is Hegic Protocol. To exercise, please visit www.hegic.co.",
-                            image = "$apiUrl/image/$token/${itemId.tokenId.value}.svg",
                             attributes = attributes,
-                            imagePreview = null,
-                            imageBig = null,
-                            animationUrl = null,
-                            rawJsonContent = null
+                            rawJsonContent = null,
+                            content = ContentBuilder.getItemMetaContent(
+                                imageOriginal = "$apiUrl/image/$token/${itemId.tokenId.value}.svg"
+                            )
                         )
                     }
             }

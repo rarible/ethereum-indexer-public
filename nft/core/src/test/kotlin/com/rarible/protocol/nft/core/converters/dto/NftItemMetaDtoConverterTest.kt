@@ -1,19 +1,21 @@
 package com.rarible.protocol.nft.core.converters.dto
 
-import com.rarible.core.meta.resource.detector.ContentDetector
-import com.rarible.core.meta.resource.detector.embedded.EmbeddedContentDetector
 import com.rarible.core.test.data.randomString
+import com.rarible.protocol.dto.ImageContentDto
 import com.rarible.protocol.dto.MetaContentDto.Representation
+import com.rarible.protocol.dto.NftItemMetaDto
+import com.rarible.protocol.dto.VideoContentDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.data.createRandomItemId
 import com.rarible.protocol.nft.core.data.randomItemProperties
 import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.ItemProperties
+import com.rarible.protocol.nft.core.model.ItemMetaContent
 import com.rarible.protocol.nft.core.model.meta.EthImageProperties
 import com.rarible.protocol.nft.core.model.meta.EthMetaContent
 import com.rarible.protocol.nft.core.model.meta.EthVideoProperties
+import com.rarible.protocol.nft.core.service.item.meta.properties.ContentBuilder
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
@@ -29,19 +31,16 @@ class NftItemMetaDtoConverterTest {
     fun beforeEach() {
         every { properties.basePublicApiUrl } returns basePublicApiUrl
         every { properties.itemMeta } returns itemMetaProperties
-        converter = NftItemMetaDtoConverter(
-            nftIndexerProperties = properties,
-            embeddedContentDetector = EmbeddedContentDetector(ContentDetector())
-        )
+        converter = NftItemMetaDtoConverter(properties)
     }
 
     @Test
     fun convert() {
         val itemId = createRandomItemId().decimalStringValue
 
-        val animationUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>"
-        val imageUrl = "http://test.com/abc_original"
+        val imageOriginalUrl = "http://test.com/abc_original"
         val imageBigUrl = "https://test.com//data:image/png;base64,aaa_base64"
+        val videoOriginalUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>"
 
         val attribute = ItemAttribute(
             key = randomString(),
@@ -54,52 +53,50 @@ class NftItemMetaDtoConverterTest {
             properties = ItemProperties(
                 name = "name",
                 description = "description",
-                image = imageUrl,
-                imagePreview = null,
-                imageBig = imageBigUrl,
-                animationUrl = animationUrl,
                 tokenUri = "tokenUri",
                 attributes = listOf(attribute),
                 rawJsonContent = randomString(),
-                content = listOf()
-            ),
-            itemContentMeta = ItemContentMeta(null, null)
+                content = ContentBuilder.getItemMetaContent(
+                    imageOriginal = imageOriginalUrl,
+                    imageBig = imageBigUrl,
+                    imagePreview = null,
+                    videoOriginal = videoOriginalUrl
+                )
+            )
         )
 
-        val result = converter.convert(meta, itemId)
+        val nftItemMetaDto = converter.convert(meta, itemId)
+        val parsedMetaDto = nftItemMetaDto.itemProperties()
 
-        val convertedImage = result.image!!
-        val convertedAnimation = result.animation!!
+        val convertedImageOriginal = parsedMetaDto.content.imageOriginal
+        val convertedImageBig = parsedMetaDto.content.imageBig
+        val convertedImagePreview = parsedMetaDto.content.imagePreview
+        val convertedVideoOriginal = parsedMetaDto.content.videoOriginal
 
-        assertThat(result.name).isEqualTo(meta.properties.name)
-        assertThat(result.description).isEqualTo(meta.properties.description)
-        assertThat(result.originalMetaUri).isEqualTo(meta.properties.tokenUri)
+        assertThat(nftItemMetaDto.name).isEqualTo(meta.properties.name)
+        assertThat(nftItemMetaDto.description).isEqualTo(meta.properties.description)
+        assertThat(nftItemMetaDto.originalMetaUri).isEqualTo(meta.properties.tokenUri)
 
-        val convertedAttribute = result.attributes!![0]
+        val convertedAttribute = nftItemMetaDto.attributes!![0]
         assertThat(convertedAttribute.key).isEqualTo(attribute.key)
         assertThat(convertedAttribute.value).isEqualTo(attribute.value)
         assertThat(convertedAttribute.format).isEqualTo(attribute.format)
         assertThat(convertedAttribute.type).isEqualTo(attribute.type)
 
-        assertThat(convertedImage.url["ORIGINAL"]).isEqualTo(meta.properties.image)
-        assertThat(convertedImage.url["PREVIEW"]).isNull()
-        assertThat(convertedImage.url["BIG"]).isEqualTo(
-            "${basePublicApiUrl}items/$itemId/image?size=BIG&animation=false&hash=${meta.properties.imageBig!!.hashCode()}"
-        )
-
-        assertThat(convertedAnimation.url["ORIGINAL"]).isEqualTo(
-            "${basePublicApiUrl}items/$itemId/image?size=ORIGINAL&animation=true&hash=${meta.properties.animationUrl!!.hashCode()}"
-        )
+        assertThat(convertedImageOriginal).isEqualTo(meta.properties.content.imageOriginal)
+        assertThat(convertedImageBig).isEqualTo(meta.properties.content.imageBig)
+        assertThat(convertedImagePreview).isEqualTo(meta.properties.content.imagePreview)
+        assertThat(convertedVideoOriginal).isEqualTo(meta.properties.content.videoOriginal)
     }
 
     @Test
     fun `convert - with new content`() {
-        val animationUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>"
-        val imageUrl = "http://test.com/abc_original"
+        val imageOriginalUrl = "http://test.com/abc_original"
         val imageBigUrl = "https://test.com//data:image/png;base64,aaa_base64"
+        val videoOriginalUrl = "http://test.com/abc_anim;data:svg/<svg test></svg>"
 
         val image = EthMetaContent(
-            url = imageUrl,
+            url = imageOriginalUrl,
             representation = Representation.ORIGINAL,
             fileName = randomString(),
             properties = EthImageProperties()
@@ -113,15 +110,21 @@ class NftItemMetaDtoConverterTest {
         )
 
         val video = EthMetaContent(
-            url = animationUrl,
+            url = videoOriginalUrl,
             representation = Representation.ORIGINAL,
             fileName = randomString(),
             properties = EthVideoProperties()
         )
 
         val meta = ItemMeta(
-            properties = randomItemProperties().copy(content = listOf(image, imageBig, video)),
-            itemContentMeta = ItemContentMeta(null, null)
+            properties = randomItemProperties().copy(
+                content = ItemMetaContent(
+                    imageOriginal = image,
+                    imageBig = imageBig,
+                    imagePreview = null,
+                    videoOriginal = video
+                )
+            )
         )
 
         val result = converter.convert(meta, itemId)
@@ -131,9 +134,9 @@ class NftItemMetaDtoConverterTest {
         val convertedVideo = result.content[2]
 
         // In modern content URLs should stay the same, without embedding
-        assertThat(convertedImage.url).isEqualTo(imageUrl)
+        assertThat(convertedImage.url).isEqualTo(imageOriginalUrl)
         assertThat(convertedImageBig.url).isEqualTo(imageBigUrl)
-        assertThat(convertedVideo.url).isEqualTo(animationUrl)
+        assertThat(convertedVideo.url).isEqualTo(videoOriginalUrl)
     }
 
     @Test
@@ -144,8 +147,7 @@ class NftItemMetaDtoConverterTest {
             properties = randomItemProperties().copy(
                 name = "1234567890",
                 description = "123456789_123456789"
-            ),
-            itemContentMeta = ItemContentMeta(null, null)
+            )
         )
 
         val result = converter.convert(meta, itemId)
@@ -164,5 +166,67 @@ class NftItemMetaDtoConverterTest {
             maxDescriptionLength = 16
         )
         val itemId = createRandomItemId().decimalStringValue
+
+        fun NftItemMetaDto.itemProperties(): ItemProperties {
+
+            var imageOriginal: EthMetaContent? = null
+            var imageBig: EthMetaContent? = null
+            var imagePreview: EthMetaContent? = null
+            var videoOriginal: EthMetaContent? = null
+
+            this.content.forEach {
+
+                val metaContent = EthMetaContent(
+                    url = it.url,
+                    representation = it.representation,
+                    fileName = it.fileName,
+                    properties = if (it is ImageContentDto) {
+                        EthImageProperties(
+                            mimeType = it.mimeType,
+                            size = it.size,
+                            width = it.width,
+                            height = it.height
+                        )
+                    } else if (it is VideoContentDto) {
+                        EthVideoProperties(
+                            mimeType = it.mimeType,
+                            size = it.size,
+                            width = it.width,
+                            height = it.height
+                        )
+                    } else {
+                        null
+                    }
+                )
+
+                when {
+                    it is VideoContentDto && it.representation == Representation.ORIGINAL -> videoOriginal = metaContent
+                    it is ImageContentDto && it.representation == Representation.ORIGINAL -> imageOriginal = metaContent
+                    it is ImageContentDto && it.representation == Representation.PREVIEW -> imagePreview = metaContent
+                    it is ImageContentDto && it.representation == Representation.BIG -> imageBig = metaContent
+                }
+
+            }
+
+            return ItemProperties(
+                name = name,
+                description = description,
+                attributes = attributes.orEmpty().map {
+                    ItemAttribute(
+                        key = it.key,
+                        value = it.value,
+                        type = it.type,
+                        format = it.format
+                    )
+                },
+                rawJsonContent = null,
+                content = ItemMetaContent(
+                    imageOriginal = imageOriginal,
+                    imageBig = imageBig,
+                    imagePreview = imagePreview,
+                    videoOriginal = videoOriginal
+                )
+            )
+        }
     }
 }

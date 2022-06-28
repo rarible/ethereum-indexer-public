@@ -1,28 +1,20 @@
 package com.rarible.protocol.nft.core.service.item
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.dto.NftItemDeleteEventDto
 import com.rarible.protocol.dto.NftItemUpdateEventDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
-import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
 import com.rarible.protocol.nft.core.data.createRandomBurnAction
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
-import com.rarible.protocol.nft.core.model.ContentMeta
 import com.rarible.protocol.nft.core.model.Item
-import com.rarible.protocol.nft.core.model.ItemAttribute
-import com.rarible.protocol.nft.core.model.ItemContentMeta
 import com.rarible.protocol.nft.core.model.ItemCreators
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.ItemRoyalty
 import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.Ownership
@@ -37,13 +29,10 @@ import com.rarible.protocol.nft.core.repository.action.NftItemActionEventReposit
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository.Companion.COLLECTION
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipFilterCriteria.toCriteria
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.daonomic.rpc.domain.WordFactory
-import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -51,7 +40,6 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -73,19 +61,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     private lateinit var ownershipRepository: OwnershipRepository
 
     @Autowired
-    private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
-
-    @Autowired
     private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
-
-    @Autowired
-    @Qualifier("meta.cache.loader.service")
-    private lateinit var itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
-
-    @BeforeEach
-    fun setUpMeta() {
-        coEvery { mockItemMetaResolver.resolveItemMeta(any()) } returns itemMeta
-    }
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
@@ -123,7 +99,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -164,7 +139,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            null,
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -180,7 +154,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         saveToken(
             Token(token, name = "TEST", standard = TokenStandard.ERC721)
         )
-        itemMetaCacheLoaderService.save(ItemId(token, tokenId).toCacheKey(), itemMeta)
         saveItemHistory(
             ItemTransfer(
                 owner = owner,
@@ -205,7 +178,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 1,
             NftItemUpdateEventDto::class.java
         )
@@ -242,7 +214,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemUpdateEventDto::class.java
         )
@@ -308,7 +279,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemDeleteEventDto::class.java
         )
@@ -443,7 +413,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItemEventWasPublished(
             token,
             tokenId,
-            nftItemMetaDtoConverter.convert(itemMeta, ItemId(token, tokenId).decimalStringValue),
             pendingSize = 0,
             NftItemDeleteEventDto::class.java
         )
@@ -1043,23 +1012,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
         assertThat(item.deleted).isFalse
     }
-
-    private val itemMeta = ItemMeta(
-        properties = ItemProperties(
-            name = "Test Item",
-            description = "Test Description",
-            image = "imageUrl",
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = null,
-            attributes = listOf(ItemAttribute(randomString(), randomString())),
-            rawJsonContent = null
-        ),
-        itemContentMeta = ItemContentMeta(
-            imageMeta = ContentMeta("imageUrl", 123, 456),
-            animationMeta = null
-        )
-    )
 
     private suspend fun saveToken(token: Token) {
         tokenRepository.save(token).awaitFirst()

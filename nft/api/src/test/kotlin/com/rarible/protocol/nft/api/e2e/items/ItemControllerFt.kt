@@ -3,9 +3,7 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
-import com.rarible.core.test.data.randomString
 import com.rarible.core.test.wait.Wait
-import com.rarible.loader.cache.CacheLoaderService
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.LazyErc1155Dto
@@ -22,26 +20,21 @@ import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.converters.dto.ExtendedItemDtoConverter
+import com.rarible.protocol.nft.core.converters.dto.ItemDtoConverter
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.model.ExtendedItem
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
-import com.rarible.protocol.nft.core.model.ItemMeta
-import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
-import com.rarible.protocol.nft.core.service.item.meta.toCacheKey
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.codec.binary.Base64
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -53,12 +46,6 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.web.server.LocalServerPort
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
-import org.springframework.web.client.HttpClientErrorException
-import org.springframework.web.client.RestTemplate
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
 import scala.Tuple2
@@ -67,14 +54,11 @@ import scalether.transaction.MonoGasPriceProvider
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
-import java.util.*
+import java.util.Date
 import java.util.stream.Stream
 
 @End2EndTest
 class ItemControllerFt : SpringContainerBaseTest() {
-
-    private val svgUrl = "https://some.test.com/data:image/svg+xml;utf8,<svg%20class='nft'><rect%20class='c217'%20x='10'%20y='12'%20width='2'%20height='1'/></svg>"
-    private val decodedSvg = "<svg class='nft'><rect class='c217' x='10' y='12' width='2' height='1'/></svg>"
 
     @Autowired
     private lateinit var itemRepository: ItemRepository
@@ -94,25 +78,11 @@ class ItemControllerFt : SpringContainerBaseTest() {
     @Autowired
     private lateinit var nftItemMetaDtoConverter: NftItemMetaDtoConverter
 
-    @Autowired
-    @Qualifier("meta.cache.loader.service")
-    private lateinit var itemMetaCacheLoaderService: CacheLoaderService<ItemMeta>
-
-    private lateinit var extendedItemDtoConverter: ExtendedItemDtoConverter
-
-    @LocalServerPort
-    var port: Int = 0
-
-    @Autowired
-    lateinit var testTemplate: RestTemplate
+    private lateinit var itemDtoConverter: ItemDtoConverter
 
     @BeforeEach
     fun beforeEach() {
-        extendedItemDtoConverter = ExtendedItemDtoConverter(1, FeatureFlags(), nftItemMetaDtoConverter)
-    }
-
-    private fun baseUrl(): String {
-        return "http://localhost:${port}/v0.1"
+        itemDtoConverter = ItemDtoConverter(1, FeatureFlags())
     }
 
     companion object {
@@ -154,93 +124,12 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `get item image`() = runBlocking<Unit> {
-        val item = createItem()
-        itemRepository.save(item).awaitFirst()
-
-        val base64str = randomString()
-
-        val itemProperties = ItemProperties(
-            name = "name",
-            description = "description",
-            image = "http://test.com/abc_original",
-            imagePreview = null,
-            imageBig = "https://test.com//data:image/png;base64," + Base64.encodeBase64String(base64str.toByteArray()),
-            animationUrl = null,
-            attributes = emptyList(),
-            rawJsonContent = null
-        )
-
-        val itemMeta = randomItemMeta().copy(properties = itemProperties)
-
-        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
-
-        val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
-
-        val original = testTemplate.getForEntity("${url}ORIGINAL", ByteArray::class.java)
-
-        // Regular URL specified, redirected
-        assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
-        assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
-
-        // Found Base64 value for url, returned as byteArray with specified content-type
-        val big = testTemplate.getForEntity("${url}BIG&hash=2384723984", ByteArray::class.java)
-        assertThat(big.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(big.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/png")
-        assertThat(String(big.body!!)).isEqualTo(base64str)
-
-        // Not found since this link is not specified in meta
-        assertThrows<HttpClientErrorException.NotFound> {
-            testTemplate.getForEntity("${url}PREVIEW", ByteArray::class.java)
-        }
-    }
-
-    @Test
     fun `should get item meta - return 404 if meta cannot be loaded`() = runBlocking<Unit> {
         val item = createItem()
         itemRepository.save(item).awaitFirst()
-        val itemMeta = randomItemMeta()
         coEvery { mockItemMetaResolver.resolveItemMeta(item.id) } returns null
         assertThrows<NftItemControllerApi.ErrorGetNftItemMetaById> {
             nftItemApiClient.getNftItemMetaById(item.id.decimalStringValue).awaitFirst()
-        }
-    }
-
-    @Test
-    fun `get svg item video`() = runBlocking<Unit> {
-        val item = createItem()
-        itemRepository.save(item).awaitFirst()
-
-        val itemProperties = ItemProperties(
-            name = "name",
-            description = "description",
-            image = "http://test.com/abc_original",
-            imagePreview = null,
-            imageBig = null,
-            animationUrl = svgUrl,
-            attributes = emptyList(),
-            rawJsonContent = null
-        )
-        val itemMeta = randomItemMeta().copy(properties = itemProperties)
-        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
-
-        val url = "${baseUrl()}/items/${item.id.decimalStringValue}/image?size="
-
-        val original = testTemplate.getForEntity("${url}ORIGINAL&animation=false", ByteArray::class.java)
-
-        // Regular URL specified, redirected
-        assertThat(original.statusCode).isEqualTo(HttpStatus.FOUND)
-        assertThat(original.headers.getFirst(HttpHeaders.LOCATION)).isEqualTo(itemProperties.image)
-
-        // Found svg value for url, returned as byteArray with specified content-type
-        val animation = testTemplate.getForEntity("${url}ORIGINAL&hash=23847&animation=true", ByteArray::class.java)
-        assertThat(animation.statusCode).isEqualTo(HttpStatus.OK)
-        assertThat(animation.headers.getFirst(HttpHeaders.CONTENT_TYPE)).isEqualTo("image/svg+xml")
-        assertThat(String(animation.body!!)).isEqualTo(decodedSvg)
-
-        // Not found since this link is not specified in meta
-        assertThrows<HttpClientErrorException.NotFound> {
-            testTemplate.getForEntity("${url}PREVIEW", ByteArray::class.java)
         }
     }
 
@@ -259,22 +148,20 @@ class ItemControllerFt : SpringContainerBaseTest() {
     fun `should get item by id`() = runBlocking<Unit> {
         val owner = AddressFactory.create()
         val item = createItem().copy(owners = listOf(owner))
-        val itemMeta = randomItemMeta()
-        itemMetaCacheLoaderService.save(item.id.toCacheKey(), itemMeta)
         itemRepository.save(item).awaitFirst()
         val ownership = createOwnership(item.token, item.tokenId, null, owner)
         ownershipRepository.save(ownership).awaitFirst()
 
         // On the first request, item meta is null (because it was not loaded before). Loading gets scheduled.
-        assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst().copy(meta = null))
-            .isEqualTo(extendedItemDtoConverter.convert(ExtendedItem(item, itemMeta = null)))
+        assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle())
+            .isEqualTo(itemDtoConverter.convert(item))
 
         // Then the meta gets loaded. Wait for it.
         Wait.waitAssert {
-            assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst())
-                .isEqualTo(extendedItemDtoConverter.convert(ExtendedItem(item, itemMeta = itemMeta)))
+            assertThat(nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle())
+                .isEqualTo(itemDtoConverter.convert(item))
         }
-        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitFirst()
+        val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle()
 
         when (featureFlags.reduceVersion) {
             ReduceVersion.V1 -> {
@@ -502,9 +389,8 @@ class ItemControllerFt : SpringContainerBaseTest() {
                 NftItemIdsDto(listOf(itemId.decimalStringValue))
             ).collectList().awaitFirst()
 
-        // Firstly, meta of all items are null because they were not loaded yet.
         assertThat(fetchItems(item.id))
-            .isEqualTo(listOf(extendedItemDtoConverter.convert(ExtendedItem(item, null))))
+            .isEqualTo(listOf(itemDtoConverter.convert(item)))
     }
 
     @ParameterizedTest

@@ -10,7 +10,6 @@ import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.NftItemMetaDto
 import com.rarible.protocol.dto.NftItemRoyaltyListDto
 import com.rarible.protocol.dto.NftItemsDto
-import com.rarible.protocol.dto.NftMediaSizeDto
 import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.nft.api.configuration.NftIndexerApiProperties
 import com.rarible.protocol.nft.api.exceptions.EntityNotFoundApiException
@@ -18,16 +17,13 @@ import com.rarible.protocol.nft.api.service.item.ItemService
 import com.rarible.protocol.nft.api.service.mint.BurnLazyNftValidator
 import com.rarible.protocol.nft.api.service.mint.MintService
 import com.rarible.protocol.nft.core.converters.dto.NftItemMetaDtoConverter
-import com.rarible.protocol.nft.core.misc.detector.EmbeddedImageDetector
-import com.rarible.protocol.nft.core.misc.detector.SVGDetector
-import com.rarible.protocol.nft.core.model.ExtendedItem
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.ItemContinuation
 import com.rarible.protocol.nft.core.model.ItemFilter
 import com.rarible.protocol.nft.core.model.ItemFilterAll
 import com.rarible.protocol.nft.core.model.ItemFilterByCollection
 import com.rarible.protocol.nft.core.model.ItemFilterByCreator
 import com.rarible.protocol.nft.core.model.ItemId
-import com.rarible.protocol.nft.core.model.ItemMeta
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.page.PageSize
@@ -38,14 +34,10 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionService
-import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
 import java.time.Instant
@@ -62,60 +54,27 @@ class ItemController(
     private val nftItemMetaDtoConverter: NftItemMetaDtoConverter
 ) : NftItemControllerApi {
 
-    private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
-
     override suspend fun getNftItemById(itemId: String): ResponseEntity<NftItemDto> {
-        val result = itemService.getWithAvailableMeta(
-            itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
-            demander = "get item by ID"
-        )
+        val result = itemService
+            .getById(conversionService.convert(itemId))
+            .let { conversionService.convert<NftItemDto>(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftLazyItemById(itemId: String): ResponseEntity<LazyNftDto> {
-        val result = itemService.getLazy(conversionService.convert(itemId))
+        val result = itemService
+            .getLazyById(conversionService.convert(itemId))
+            .let { conversionService.convert<LazyNftDto>(it) }
         return ResponseEntity.ok(result)
     }
 
     override suspend fun getNftItemMetaById(itemId: String): ResponseEntity<NftItemMetaDto> {
-        val availableMeta = getItemMeta(itemId, "get meta by ID")
+        val availableMeta = itemMetaService.getMetaWithTimeout(
+            itemId = conversionService.convert(itemId),
+            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
+            demander = "get meta by ID"
+        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
         return ResponseEntity.ok(nftItemMetaDtoConverter.convert(availableMeta, itemId))
-    }
-
-    @GetMapping(value = ["/v0.1/items/{itemId}/image"])
-    suspend fun getNftItemImageById(
-        @PathVariable("itemId") itemId: String,
-        @RequestParam(value = "size", required = true) size: NftMediaSizeDto,
-        @RequestParam(value = "animation", required = false) animation: Boolean?
-    ): ResponseEntity<Any> {
-        // We need to use raw meta here, because converted contains converted base64 url
-        val itemMeta = getCachedItemMeta(itemId, "get image by ID")
-        val url = if (animation == true) {
-            itemMeta.properties.animationUrl
-        } else {
-            when (size) {
-                NftMediaSizeDto.ORIGINAL -> itemMeta.properties.image
-                NftMediaSizeDto.PREVIEW -> itemMeta.properties.imagePreview
-                NftMediaSizeDto.BIG -> itemMeta.properties.imageBig
-            }
-        } ?: return ResponseEntity.notFound().build()
-
-        val detector = EmbeddedImageDetector.getDetector(url)
-        if (detector != null) {
-            //TODO Workaround for BRAVO-1872.
-            if(detector is SVGDetector && SVGDetector.spaceCode in url) {
-                itemMetaService.scheduleMetaUpdate(conversionService.convert(itemId), "get-nft-item-image-by-id")
-            }
-            return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_TYPE, detector.getMimeType())
-                .body(detector.getDecodedData())
-        }
-
-        return ResponseEntity
-            .status(HttpStatus.FOUND)
-            .header(HttpHeaders.LOCATION, url)
-            .build()
     }
 
     override suspend fun getNftItemRoyaltyById(itemId: String): ResponseEntity<NftItemRoyaltyListDto> {
@@ -127,7 +86,8 @@ class ItemController(
     }
 
     override suspend fun resetNftItemMetaById(itemId: String): ResponseEntity<Unit> {
-        itemMetaService.removeMeta(conversionService.convert(itemId), "reset meta by ID")
+        // TODO Remove in PT-568
+
         return ResponseEntity.noContent().build()
     }
 
@@ -196,7 +156,11 @@ class ItemController(
             }
         }
         val requestSize = PageSize.ITEM.limit(size)
-        val result = itemService.searchByOwner(ownerAddress, ownershipContinuation, requestSize)
+        val result = itemService.searchByOwner(
+            owner = ownerAddress,
+            continuation = ownershipContinuation,
+            size = requestSize
+        )
         return ResponseEntity.ok(result2Dto(result, requestSize))
     }
 
@@ -216,10 +180,8 @@ class ItemController(
     override fun getNftItemsByIds(nftItemIdsDto: NftItemIdsDto): ResponseEntity<Flow<NftItemDto>> {
         val ids = nftItemIdsDto.ids.map { ItemId.parseId(it) }.toSet()
         val items = flow<NftItemDto> {
-            itemService.search(
-                list = ids,
-                metaLoadingDemander = "items by IDs"
-            ).forEach { emit(conversionService.convert(it)) }
+            itemService.getAll(ids = ids)
+                .forEach { emit(conversionService.convert(it)) }
         }.flowOn(RaribleMDCContext())
         return ResponseEntity.ok(items)
     }
@@ -231,9 +193,9 @@ class ItemController(
         size: Int?
     ): ResponseEntity<NftItemsDto> {
         val filter = ItemFilterByCollection(
-            defaultSorting,
-            AddressParser.parse(collection),
-            owner?.let { AddressParser.parse(it) }
+            sort = defaultSorting,
+            collection = AddressParser.parse(collection),
+            owner = owner?.let { AddressParser.parse(it) }
         )
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
@@ -253,31 +215,16 @@ class ItemController(
         return result2Dto(result, requestSize)
     }
 
-    private fun result2Dto(result: List<ExtendedItem>, requestSize: Int): NftItemsDto {
+    private fun result2Dto(result: List<Item>, requestSize: Int): NftItemsDto {
         val last = if (result.isEmpty() || result.size < requestSize) null else result.last()
-        val cont = last?.let { ItemContinuation(it.item.date, it.item.id) }?.toString()
+        val cont = last?.let { ItemContinuation(it.date, it.id) }?.toString()
         val itemsDto = result.map { conversionService.convert<NftItemDto>(it) }
         return NftItemsDto(itemsDto.size.toLong(), cont, itemsDto)
     }
 
-    private suspend fun getCachedItemMeta(itemId: String, demander: String): ItemMeta {
-        return itemMetaService.getAvailableMeta(
-            itemId = conversionService.convert(itemId),
-            demander = demander
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
-    }
-
-    private suspend fun getItemMeta(itemId: String, demander: String): ItemMeta {
-        return itemMetaService.getAvailableMetaOrLoadSynchronouslyWithTimeout(
-            itemId = conversionService.convert(itemId),
-            timeout = Duration.ofMillis(nftIndexerApiProperties.metaSyncLoadingTimeout),
-            demander = demander
-        ) ?: throw EntityNotFoundApiException("Item meta", itemId)
-    }
-
     companion object {
-
         const val BURN_MSG = "I would like to burn my %s item."
         private val logger = LoggerFactory.getLogger(ItemController::class.java)
+        private val defaultSorting = ItemFilter.Sort.LAST_UPDATE_DESC
     }
 }

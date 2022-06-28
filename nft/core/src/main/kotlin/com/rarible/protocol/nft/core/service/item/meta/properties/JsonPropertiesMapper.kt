@@ -21,7 +21,7 @@ object JsonPropertiesMapper {
         "description"
     ).toTypedArray()
 
-    private val FIELD_IMAGE = listOf(
+    private val FIELD_IMAGE_ORIGINAL = listOf(
         "image",
         "image_url",
         "image_content",
@@ -40,7 +40,7 @@ object JsonPropertiesMapper {
         "image_big_url"
     ).toTypedArray()
 
-    private val FIELD_ANIMATION = listOf(
+    private val FIELD_VIDEO_ORIGINAL = listOf(
         "animation",
         "animation_url",
         "animationUrl"
@@ -50,15 +50,14 @@ object JsonPropertiesMapper {
         return ItemProperties(
             name = node.getText(*FIELD_NAME) ?: "",
             description = node.getText(*FIELD_DESCRIPTION),
-
-            image = node.getText(*FIELD_IMAGE),
-            imagePreview = node.getText(*FIELD_IMAGE_PREVIEW),
-            imageBig = node.getText(*FIELD_IMAGE_BIG),
-
-            animationUrl = node.getText(*FIELD_ANIMATION),
-
             attributes = node.parseAttributes(),
-            rawJsonContent = node.toString()
+            rawJsonContent = node.toString(),
+            content = ContentBuilder.getItemMetaContent(
+                imageOriginal = node.getText(*FIELD_IMAGE_ORIGINAL),
+                imageBig = node.getText(*FIELD_IMAGE_PREVIEW),
+                imagePreview = node.getText(*FIELD_IMAGE_BIG),
+                videoOriginal = node.getText(*FIELD_VIDEO_ORIGINAL)
+            )
         )
     }
 }
