@@ -204,7 +204,7 @@ fun randomSeaportOffer(): SeaportOffer {
     return SeaportOffer(
         itemType = SeaportItemType.values().random(),
         token = randomAddress(),
-        identifierOrCriteria = randomBigInt(),
+        identifier = randomBigInt(),
         startAmount = randomBigInt(),
         endAmount = randomBigInt()
     )
@@ -214,7 +214,7 @@ fun randomSeaportConsideration(): SeaportConsideration {
     return SeaportConsideration(
         itemType = SeaportItemType.values().random(),
         token = randomAddress(),
-        identifierOrCriteria = randomBigInt(),
+        identifier = randomBigInt(),
         startAmount = randomBigInt(),
         endAmount = randomBigInt(),
         recipient = randomAddress()

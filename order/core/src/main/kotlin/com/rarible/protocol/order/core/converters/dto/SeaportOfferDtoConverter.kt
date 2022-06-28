@@ -8,7 +8,7 @@ object SeaportOfferDtoConverter {
         return SeaportOfferDto(
             itemType = SeaportItemTypeDtoConverter.convert(source.itemType),
             token = source.token,
-            identifierOrCriteria = source.identifierOrCriteria,
+            identifierOrCriteria = source.identifier,
             startAmount = source.startAmount,
             endAmount = source.endAmount
         )
