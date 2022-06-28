@@ -55,7 +55,7 @@ common:
   opensea-eip712-domain-version: 2.3
   metric-root-path: "protocol.order.indexer"
   exchange-contract-addresses:
-    seaport-v1: "0x00000000006c3852cbef3e08e8df289169ede581"
+    seaport-v1: "0x0000000000000000000000000000000000000000"
 
 listener:
   updateStatusByStartEndRate: PT10M # 10 minutes period

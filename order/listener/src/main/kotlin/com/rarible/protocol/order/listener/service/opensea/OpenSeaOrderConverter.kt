@@ -208,7 +208,7 @@ class OpenSeaOrderConverter(
         return SeaportOffer(
             itemType = convert(offer.itemType),
             token = offer.token,
-            identifierOrCriteria = offer.identifierOrCriteria,
+            identifier = offer.identifierOrCriteria,
             startAmount = offer.startAmount,
             endAmount = offer.endAmount
         )
@@ -218,7 +218,7 @@ class OpenSeaOrderConverter(
         return SeaportConsideration(
             itemType = convert(consideration.itemType),
             token = consideration.token,
-            identifierOrCriteria = consideration.identifierOrCriteria,
+            identifier = consideration.identifierOrCriteria,
             startAmount = consideration.startAmount,
             endAmount = consideration.endAmount,
             recipient = consideration.recipient

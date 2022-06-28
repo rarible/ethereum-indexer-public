@@ -81,7 +81,7 @@ internal class OpenSeaOrderConverterTest {
         val seaportOffer = converter.convert(offer)
         assertThat(seaportOffer.token).isEqualTo(offer.token)
         assertThat(seaportOffer.itemType).isEqualTo(SeaportItemType.ERC721)
-        assertThat(seaportOffer.identifierOrCriteria).isEqualTo(offer.identifierOrCriteria)
+        assertThat(seaportOffer.identifier).isEqualTo(offer.identifierOrCriteria)
         assertThat(seaportOffer.startAmount).isEqualTo(offer.startAmount)
         assertThat(seaportOffer.endAmount).isEqualTo(offer.endAmount)
     }
@@ -92,7 +92,7 @@ internal class OpenSeaOrderConverterTest {
         val seaportConsideration = converter.convert(consideration)
         assertThat(seaportConsideration.token).isEqualTo(consideration.token)
         assertThat(seaportConsideration.itemType).isEqualTo(SeaportItemType.ERC1155)
-        assertThat(seaportConsideration.identifierOrCriteria).isEqualTo(consideration.identifierOrCriteria)
+        assertThat(seaportConsideration.identifier).isEqualTo(consideration.identifierOrCriteria)
         assertThat(seaportConsideration.startAmount).isEqualTo(consideration.startAmount)
         assertThat(seaportConsideration.endAmount).isEqualTo(consideration.endAmount)
         assertThat(seaportConsideration.recipient).isEqualTo(consideration.recipient)

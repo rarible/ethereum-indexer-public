@@ -10,6 +10,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
+import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent as SeaportOrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
@@ -48,7 +49,8 @@ enum class ItemType(
             OrderCancelledEvent.id(),
             PunkNoLongerForSaleEvent.id(),
             PunkBidWithdrawnEvent.id(),
-            PunkTransferEvent.id()
+            PunkTransferEvent.id(),
+            SeaportOrderCancelledEvent.id()
         )
     ),
 }

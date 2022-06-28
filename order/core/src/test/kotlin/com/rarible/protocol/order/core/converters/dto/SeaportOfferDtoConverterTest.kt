@@ -13,7 +13,7 @@ internal class SeaportOfferDtoConverterTest {
         val dto = SeaportOfferDtoConverter.convert(source)
         assertThat(dto.itemType).isEqualTo(SeaportItemTypeDto.ERC721)
         assertThat(dto.token).isEqualTo(source.token)
-        assertThat(dto.identifierOrCriteria).isEqualTo(source.identifierOrCriteria)
+        assertThat(dto.identifierOrCriteria).isEqualTo(source.identifier)
         assertThat(dto.startAmount).isEqualTo(source.startAmount)
         assertThat(dto.endAmount).isEqualTo(source.endAmount)
     }

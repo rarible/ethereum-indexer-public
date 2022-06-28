@@ -26,7 +26,8 @@ import java.time.Instant
 class SeaportV1ExchangeDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val seaportEventConverter: SeaportEventConverter,
-    private val seaportEventErrorCounter: RegisteredCounter
+    private val seaportEventErrorCounter: RegisteredCounter,
+    private val seaportFulfilledEventCounter: RegisteredCounter
 ) : LogEventDescriptor<OrderSideMatch> {
 
     override val collection: String
@@ -35,22 +36,29 @@ class SeaportV1ExchangeDescriptor(
     override val topic: Word = OrderFulfilledEvent.id()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderSideMatch> {
-        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp), index, totalLogs) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, date: Instant, index: Int, totalLogs: Int): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
         val event = OrderFulfilledEvent.apply(log)
         val orderSideMatches = seaportEventConverter.convert(event, date)
-        if (orderSideMatches.isEmpty()) {
-            logger.warn("Can't convert event $log to order side matches")
-            seaportEventErrorCounter.increment()
-        }
+        recordMetric(orderSideMatches, log)
         return orderSideMatches
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
         listOf(exchangeContractAddresses.seaportV1)
     )
+
+    private fun recordMetric(sideMatches: List<OrderSideMatch>, log: Log) {
+        if (sideMatches.isEmpty()) {
+            logger.warn("Can't convert event $log to order side matches")
+            seaportEventErrorCounter.increment()
+        } else {
+            seaportFulfilledEventCounter.increment()
+        }
+    }
+
 
     private companion object {
         private val logger = LoggerFactory.getLogger(SeaportV1ExchangeDescriptor::class.java)

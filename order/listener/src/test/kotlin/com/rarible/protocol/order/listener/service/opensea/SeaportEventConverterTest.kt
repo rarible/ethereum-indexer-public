@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.seaport.v1.events.OrderFulfilledEvent
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomBidOrderUsdValue
 import com.rarible.protocol.order.core.data.randomSellOrderUsdValue
 import com.rarible.protocol.order.core.model.Asset
@@ -16,6 +17,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -34,10 +36,14 @@ internal class SeaportEventConverterTest {
     private val priceUpdateService = mockk<PriceUpdateService>()
     private val contractService = mockk<ContractService>()
     private val prizeNormalizer = PriceNormalizer(contractService)
+    private val traceCallService = mockk<TraceCallService>()
+    private val featureFlags = OrderIndexerProperties.FeatureFlags()
 
     private val converter = SeaportEventConverter(
         priceUpdateService,
-        prizeNormalizer
+        prizeNormalizer,
+        traceCallService,
+        featureFlags
     )
 
     @Test
