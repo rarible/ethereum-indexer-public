@@ -39,11 +39,12 @@ class OpenSeaOrderServiceImpl(
         var lastError: OpenSeaError? = null
         var retries = 0
 
-        while (retries++ < seaportLoad.retry) {
+        while (retries < seaportLoad.retry) {
             when (val result = seaportProtocolClient.getListOrders(request)) {
                 is OperationResult.Success -> return result.result
                 is OperationResult.Fail -> lastError = result.error
             }
+            retries += 1
             delay(seaportLoad.retryDelay)
         }
         throw IllegalStateException("Can't fetch Seaport orders, number of attempts exceeded, last error: $lastError")
