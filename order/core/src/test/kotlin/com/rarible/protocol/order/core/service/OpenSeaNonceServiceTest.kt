@@ -46,7 +46,7 @@ internal class OpenSeaNonceServiceTest : AbstractIntegrationTest() {
         val logEvent2 = saveLog(nonce2, blockNumber = 11, logIndex = 2, minorLogIndex = 1)
 
         Wait.waitAssert {
-            val makerNonce = openSeaNonceService.getLatestMakerNonce(maker)
+            val makerNonce = openSeaNonceService.getLatestMakerNonce(maker, logEvent2.address)
             assertThat(makerNonce.nonce).isEqualTo(nonce2.newNonce)
             assertThat(makerNonce.timestamp).isEqualTo(nonce2.date)
             assertThat(makerNonce.historyId).isEqualTo(logEvent2.id.toHexString())

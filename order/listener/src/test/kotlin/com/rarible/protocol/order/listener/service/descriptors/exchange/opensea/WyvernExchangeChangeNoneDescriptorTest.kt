@@ -91,14 +91,14 @@ internal class WyvernExchangeChangeNoneDescriptorTest : AbstractOpenSeaV1Test() 
             maker = userSender.from(),
             type = OrderType.OPEN_SEA_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 0, exchange = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion2 = createOrderVersion().copy(
             maker = userSender.from(),
             type = OrderType.OPEN_SEA_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            data = createOrderOpenSeaV1DataV1().copy(nonce = 0, exchange = exchangeV2.address()),
             createdAt = before
         )
         listOf(orderVersion1, orderVersion2).forEach {

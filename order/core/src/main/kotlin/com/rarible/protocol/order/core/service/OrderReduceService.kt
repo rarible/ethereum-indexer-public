@@ -278,14 +278,31 @@ class OrderReduceService(
 
     private suspend fun Order.withUpdatedNonce(): Order {
         if (this.type != OrderType.OPEN_SEA_V1) return this
-        val nonce = (this.data as? OrderOpenSeaV1DataV1)?.nonce ?: return this
-        val makerNonce = openSeaNonceService.getLatestMakerNonce(this.maker)
+        val data = this.data as? OrderOpenSeaV1DataV1 ?: return this
+        val nonce = data.nonce ?: return this
+        val makerNonce = openSeaNonceService.getLatestMakerNonce(this.maker, data.exchange)
         return if (nonce != makerNonce.nonce.value.toLong()) {
             logger.info("Cancel order $hash as order nonce $nonce is not match current maker nonce $makerNonce")
             this.copy(
                 cancelled = true,
                 lastUpdateAt = maxOf(this.lastUpdateAt, makerNonce.timestamp),
                 lastEventId = accumulateEventId(this.lastEventId, makerNonce.historyId)
+            )
+        } else {
+            this
+        }
+    }
+
+    private suspend fun Order.withUpdatedCounter(): Order {
+        if (this.type != OrderType.SEAPORT_V1) return this
+        val data = this.data as? OrderSeaportDataV1 ?: return this
+        val makerCounter = openSeaNonceService.getLatestMakerNonce(this.maker, data.protocol)
+        return if (data.counter != makerCounter.nonce.value.toLong()) {
+            logger.info("Cancel order $hash as order counter ${data.counter} is not match current maker counter ${makerCounter.nonce}")
+            this.copy(
+                cancelled = true,
+                lastUpdateAt = maxOf(this.lastUpdateAt, makerCounter.timestamp),
+                lastEventId = accumulateEventId(this.lastEventId, makerCounter.historyId)
             )
         } else {
             this
@@ -361,6 +378,7 @@ class OrderReduceService(
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedNonce()
+            .withUpdatedCounter()
             .withCancelOpenSea()
             .withApproval()
             .withBidExpire()

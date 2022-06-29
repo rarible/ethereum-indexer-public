@@ -17,7 +17,7 @@ import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
-internal class SeaportOrderLoadHandlerTest {
+internal class SeaportOrderLoaderTest {
     private val openSeaOrderService = mockk<OpenSeaOrderService>()
     private val openSeaOrderConverter = mockk<OpenSeaOrderConverter>()
     private val openSeaOrderValidator = mockk<OpenSeaOrderValidator>()
@@ -25,7 +25,7 @@ internal class SeaportOrderLoadHandlerTest {
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val seaportSaveCounter = mockk<RegisteredCounter>()
 
-    private val handler =  SeaportOrderLoadHandler(
+    private val handler =  SeaportOrderLoader(
         openSeaOrderService = openSeaOrderService,
         openSeaOrderConverter = openSeaOrderConverter,
         openSeaOrderValidator = openSeaOrderValidator,
@@ -47,11 +47,11 @@ internal class SeaportOrderLoadHandlerTest {
         val invalidClientOrder2 = randomSeaportOrder()
         val invalidOrderVersion2 = createOrderVersion()
         val seaportOrders = SeaportOrders(
-            next = null,
+            next = "",
             previous = null,
             orders = listOf(validClientOrder1, validClientOrder2, invalidClientOrder1, invalidClientOrder2)
         )
-        coEvery { openSeaOrderService.getNextSellOrders() } returns seaportOrders
+        coEvery { openSeaOrderService.getNextSellOrders(any()) } returns seaportOrders
 
         coEvery { openSeaOrderConverter.convert(validClientOrder1) } returns validOrderVersion1
         coEvery { openSeaOrderConverter.convert(validClientOrder2) } returns validOrderVersion2
@@ -68,9 +68,9 @@ internal class SeaportOrderLoadHandlerTest {
         coEvery { orderUpdateService.save(validOrderVersion1) } returns createOrder()
         every { seaportSaveCounter.increment() } returns Unit
 
-        handler.handle()
+        handler.load(null)
 
-        coVerify(exactly = 1) { openSeaOrderService.getNextSellOrders() }
+        coVerify(exactly = 1) { openSeaOrderService.getNextSellOrders(any()) }
         coVerify(exactly = 4) { openSeaOrderConverter.convert(any<SeaportOrder>()) }
         coVerify(exactly = 3) { openSeaOrderValidator.validate(any()) }
 

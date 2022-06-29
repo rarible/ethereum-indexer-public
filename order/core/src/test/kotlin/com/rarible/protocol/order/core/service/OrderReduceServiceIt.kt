@@ -193,9 +193,10 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     internal fun `should cancel OpenSea order if nonces are not matched`() = runBlocking<Unit> {
         val now = nowMillis()
+        val data = createOrderOpenSeaV1DataV1().copy(nonce = 0)
         val orderVersion = createOrderVersion().copy(
             type = OrderType.OPEN_SEA_V1,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0),
+            data = data,
             createdAt = now
         )
         val hash = orderVersion.hash
@@ -209,7 +210,44 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         nonceHistoryRepository.save(
             LogEvent(
                 data = nonce,
-                address = AddressFactory.create(),
+                address = data.exchange,
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        val updated = orderReduceService.updateOrder(hash)!!
+        assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.lastUpdateAt).isEqualTo(nonce.date)
+    }
+
+    @Test
+    internal fun `should cancel Seaport order if counters are not matched`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val data = createOrderBasicSeaportDataV1().copy(counter = 0)
+        val orderVersion = createOrderVersion().copy(
+            type = OrderType.SEAPORT_V1,
+            data = data,
+            createdAt = now
+        )
+        val hash = orderVersion.hash
+        orderUpdateService.save(orderVersion)
+
+        val nonce = ChangeNonceHistory(
+            maker = orderVersion.maker,
+            newNonce = EthUInt256.ONE,
+            date = now + Duration.ofMinutes(10)
+        )
+        nonceHistoryRepository.save(
+            LogEvent(
+                data = nonce,
+                address = data.protocol,
                 topic = Word.apply(randomWord()),
                 transactionHash = Word.apply(randomWord()),
                 status = LogEventStatus.CONFIRMED,
@@ -229,9 +267,10 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     @Test
     internal fun `should not cancel OpenSea order if nonces are matched`() = runBlocking<Unit> {
         val now = nowMillis()
+        val data = createOrderOpenSeaV1DataV1().copy(nonce = 1)
         val orderVersion = createOrderVersion().copy(
             type = OrderType.OPEN_SEA_V1,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 1),
+            data = data,
             createdAt = now
         )
         val hash = orderVersion.hash
@@ -245,7 +284,44 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         nonceHistoryRepository.save(
             LogEvent(
                 data = nonce,
-                address = AddressFactory.create(),
+                address = data.exchange,
+                topic = Word.apply(randomWord()),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 0,
+                minorLogIndex = 0,
+                index = 0,
+                createdAt = now,
+                updatedAt = now
+            )
+        )
+        val updated = orderReduceService.updateOrder(hash)!!
+        assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
+    }
+
+    @Test
+    internal fun `should not cancel Seaport order if counter are matched`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val data = createOrderBasicSeaportDataV1().copy(counter = 1)
+        val orderVersion = createOrderVersion().copy(
+            type = OrderType.SEAPORT_V1,
+            data = data,
+            createdAt = now
+        )
+        val hash = orderVersion.hash
+        orderUpdateService.save(orderVersion)
+
+        val nonce = ChangeNonceHistory(
+            maker = orderVersion.maker,
+            newNonce = EthUInt256.ONE,
+            date = now + Duration.ofMinutes(10)
+        )
+        nonceHistoryRepository.save(
+            LogEvent(
+                data = nonce,
+                address = data.protocol,
                 topic = Word.apply(randomWord()),
                 transactionHash = Word.apply(randomWord()),
                 status = LogEventStatus.CONFIRMED,

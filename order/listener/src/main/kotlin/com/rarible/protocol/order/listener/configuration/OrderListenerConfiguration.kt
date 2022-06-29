@@ -34,6 +34,7 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
+import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -160,6 +161,7 @@ class OrderListenerConfiguration(
     @ConditionalOnProperty(name = ["listener.seaport-load.enabled"], havingValue = "true")
     fun seaportOrdersFetchWorker(
         openSeaOrderService: OpenSeaOrderService,
+        openSeaFetchStateRepository: OpenSeaFetchStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
@@ -167,7 +169,7 @@ class OrderListenerConfiguration(
         properties: SeaportLoadProperties,
         seaportSaveCounter: RegisteredCounter,
     ): SeaportOrdersFetchWorker {
-        val handler = SeaportOrderLoadHandler(
+        val loader = SeaportOrderLoader(
             openSeaOrderService = measurableOpenSeaOrderService(openSeaOrderService),
             openSeaOrderConverter = openSeaOrderConverter,
             openSeaOrderValidator = openSeaOrderValidator,
@@ -175,6 +177,11 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             properties = properties,
             seaportSaveCounter = seaportSaveCounter
+        )
+        val handler = SeaportOrderLoadHandler(
+            seaportOrderLoader = loader,
+            openSeaFetchStateRepository = openSeaFetchStateRepository,
+            properties = properties
         )
         return SeaportOrdersFetchWorker(
             handler = handler,

@@ -39,8 +39,9 @@ class NonceHistoryRepository(
         return template.save(logEvent, COLLECTION).awaitFirst()
     }
 
-    suspend fun findLatestNonceHistoryByMaker(maker: Address): LogEvent? {
+    suspend fun findLatestNonceHistoryByMaker(maker: Address, address: Address): LogEvent? {
         val criteria = (LogEvent::data / ChangeNonceHistory::maker isEqualTo  maker)
+            .and(LogEvent::address).isEqualTo(address)
             .and(LogEvent::status).isEqualTo(LogEventStatus.CONFIRMED)
 
         val query = Query(criteria).with(LOG_SORT_DESC)

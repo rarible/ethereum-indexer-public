@@ -1,72 +1,45 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.daemon.job.JobHandler
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.service.OrderUpdateService
+import com.rarible.protocol.order.core.model.OpenSeaFetchState
+import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Instant
 
 class SeaportOrderLoadHandler(
-    private val openSeaOrderService: OpenSeaOrderService,
-    private val openSeaOrderConverter: OpenSeaOrderConverter,
-    private val openSeaOrderValidator: OpenSeaOrderValidator,
-    private val orderRepository: OrderRepository,
-    private val orderUpdateService: OrderUpdateService,
+    private val seaportOrderLoader: SeaportOrderLoader,
+    private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
     private val properties: SeaportLoadProperties,
-    private val seaportSaveCounter: RegisteredCounter
 ) : JobHandler {
+    private val stateId = STATE_ID_PREFIX
 
     override suspend fun handle() {
-        val orders = openSeaOrderService.getNextSellOrders().orders
-        if (orders.isNotEmpty()) {
-            val createdAts = orders.map { it.createdAt }
-            val minCreatedAt = createdAts.minOrNull()
-            val maxCreatedAt = createdAts.maxOrNull()
+        val state = openSeaFetchStateRepository.get(stateId) ?: getDefaultFetchState()
+        val cursor = state.cursor
+        val result = seaportOrderLoader.load(cursor)
 
-            logger.seaportInfo(
-                buildString {
-                    append("Fetched ${orders.size}, ")
-                    append("minCreatedAt=$minCreatedAt, ")
-                    append("maxCreatedAt=$maxCreatedAt, ")
-                    append("new orders: ${orders.joinToString { it.orderHash.toString() }}")
-                }
-            )
-            coroutineScope {
-                @Suppress("ConvertCallChainIntoSequence")
-                orders
-                    .mapNotNull {
-                        openSeaOrderConverter.convert(it)
-                    }.filter {
-                        openSeaOrderValidator.validate(it)
-                    }
-                    .chunked(properties.saveBatchSize)
-                    .map { chunk ->
-                        chunk.map {
-                            async {
-                                if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    orderUpdateService.save(it)
-                                    seaportSaveCounter.increment()
-                                    logger.seaportInfo("Saved new order ${it.hash}")
-                                }
-                            }
-                        }.awaitAll()
-                    }
-                    .flatten()
-                    .lastOrNull()
-            }
+        val (nextCursor, needDelay) = if (result.previous == null && cursor != null) {
+            loader.seaportInfo("Previous cursor ($cursor) is not finalized, reuse it")
+            cursor to true
         } else {
-            logger.seaportInfo("No new orders was fetched")
-            delay(properties.pollingPeriod)
+            val next = result.previous ?: result.next
+            loader.seaportInfo("Use next cursor $next")
+            next to false
         }
+        openSeaFetchStateRepository.save(state.withCursor(nextCursor))
+        if (result.orders.isEmpty() || needDelay) delay(properties.pollingPeriod)
+    }
+
+    private fun getDefaultFetchState(): OpenSeaFetchState {
+        return OpenSeaFetchState(id = stateId, cursor = null, listedAfter = Instant.EPOCH.epochSecond)
     }
 
     private companion object {
-        val logger: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
+        val loader: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
+        const val STATE_ID_PREFIX = "seaport_order_fetch"
     }
 }
+

@@ -12,8 +12,8 @@ import java.time.Instant
 class OpenSeaNonceService(
     private val nonceHistoryRepository: NonceHistoryRepository
 ) {
-    suspend fun getLatestMakerNonce(maker: Address): MakerNonce {
-        return nonceHistoryRepository.findLatestNonceHistoryByMaker(maker)
+    suspend fun getLatestMakerNonce(maker: Address, protocol: Address): MakerNonce {
+        return nonceHistoryRepository.findLatestNonceHistoryByMaker(maker, protocol)
             ?.let { logEvent ->
                 val data = logEvent.data as ChangeNonceHistory
                 MakerNonce(
