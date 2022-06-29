@@ -12,8 +12,8 @@ rarible:
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}
   seaport-load:
-    enabled: false
-
+    enabled: true
+    save-enabled: true
 
 logging:
   logstash:

@@ -86,7 +86,7 @@ class OpenSeaOrderConverter(
                 )
                 Triple(make, take, data)
             }
-            ClientSeaportOrderType.ENGLISH_AUCTION -> {
+            ClientSeaportOrderType.ENGLISH_AUCTION, ClientSeaportOrderType.DUTCH_AUCTION -> {
                 logger.info("Unsupported seaport order type ${clientSeaportOrder.orderType}")
                 seaportErrorCounter.increment()
                 return null

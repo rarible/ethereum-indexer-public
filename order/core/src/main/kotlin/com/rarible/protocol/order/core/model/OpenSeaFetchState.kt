@@ -6,11 +6,16 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document("open_sea_state")
 data class OpenSeaFetchState(
     val listedAfter: Long,
+    val cursor: String? = null,
     @Id
     val id: String = ID
 ) {
     fun withListedAfter(listedAfter: Long): OpenSeaFetchState {
         return copy(listedAfter = listedAfter)
+    }
+
+    fun withCursor(cursor: String): OpenSeaFetchState {
+        return copy(cursor = cursor)
     }
 
     companion object {

@@ -33,8 +33,7 @@ class OpenSeaOrderServiceImpl(
 
     override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
         val request = SeaportOrdersRequest(
-            next = nextCursor,
-            previous = null,
+            cursor = nextCursor,
             limit = MAX_SIZE
         )
         var lastError: OpenSeaError? = null

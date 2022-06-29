@@ -34,7 +34,7 @@ internal class OpenSeaOrderServiceImplTest {
     @Test
     fun `should load seaport orders`() = runBlocking<Unit> {
         val next = randomString()
-        val expectedResult = SeaportOrders(next = null, previous = null, orders = emptyList())
+        val expectedResult = SeaportOrders(next = "", previous = null, orders = emptyList())
 
         coEvery { seaportProtocolClient.getListOrders(any()) } returns OperationResult.success(expectedResult)
 
@@ -42,15 +42,14 @@ internal class OpenSeaOrderServiceImplTest {
 
         assertThat(result).isEqualTo(expectedResult)
         coVerify(exactly = 1) { seaportProtocolClient.getListOrders(withArg {
-            assertThat(it.next).isEqualTo(next)
-            assertThat(it.previous).isNull()
+            assertThat(it.cursor).isEqualTo(next)
         })}
     }
 
     @Test
     fun `should retry load after fail`() = runBlocking<Unit> {
         val next = randomString()
-        val expectedResult = SeaportOrders(next = null, previous = null, orders = emptyList())
+        val expectedResult = SeaportOrders(next = "", previous = null, orders = emptyList())
 
         coEvery { seaportProtocolClient.getListOrders(any()) }
             .returns(OperationResult.fail(OpenSeaError(500, OpenSeaErrorCode.SERVER_ERROR, "")))
@@ -60,8 +59,7 @@ internal class OpenSeaOrderServiceImplTest {
 
         assertThat(result).isEqualTo(expectedResult)
         coVerify(exactly = 2) { seaportProtocolClient.getListOrders(withArg {
-            assertThat(it.next).isEqualTo(next)
-            assertThat(it.previous).isNull()
+            assertThat(it.cursor).isEqualTo(next)
         })}
     }
 }
