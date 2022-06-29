@@ -18,5 +18,7 @@ class SeaportOrdersFetchWorker(
     ),
     workerName = "seaport-orders-load-job"
 ) {
-    override suspend fun handle() = handler.handle()
+    override suspend fun handle() {
+        handler.handle()
+    }
 }
