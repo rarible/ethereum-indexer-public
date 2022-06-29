@@ -16,6 +16,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Duration
 
 internal class OpenSeaOrderServiceImplTest {
@@ -61,5 +62,19 @@ internal class OpenSeaOrderServiceImplTest {
         coVerify(exactly = 2) { seaportProtocolClient.getListOrders(withArg {
             assertThat(it.cursor).isEqualTo(next)
         })}
+    }
+
+    @Test
+    fun `should fail load after all retries fails`() = runBlocking<Unit> {
+        val next = randomString()
+
+        coEvery { seaportProtocolClient.getListOrders(any()) }
+            .returns(OperationResult.fail(OpenSeaError(500, OpenSeaErrorCode.SERVER_ERROR, "error")))
+
+        assertThrows<IllegalStateException> {
+            runBlocking {
+                openSeaOrderService.getNextSellOrders(next)
+            }
+        }
     }
 }
