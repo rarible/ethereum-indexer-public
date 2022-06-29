@@ -21,6 +21,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import scalether.domain.Address
 
 @MongoTest
 @DataMongoTest
@@ -39,7 +40,9 @@ internal class NonceHistoryRepositoryTest {
 
     @Test
     fun `should get latest nonce history by user`() = runBlocking<Unit> {
+        val address1 = randomAddress()
         val maker1 = randomAddress()
+        val address2 = randomAddress()
         val maker2 = randomAddress()
 
         val nonce0 = ChangeNonceHistory(
@@ -77,25 +80,26 @@ internal class NonceHistoryRepositoryTest {
             newNonce = EthUInt256.of(11),
             date = nowMillis()
         )
-        saveLog(nonce0, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = LogEventStatus.REVERTED)
-        saveLog(nonce1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)
-        saveLog(nonce2, blockNumber = 10, logIndex = 2, minorLogIndex = 1)
-        saveLog(nonce3, blockNumber = 10, logIndex = 1, minorLogIndex = 2)
-        saveLog(nonce4, blockNumber = 9, logIndex = 3, minorLogIndex = 3)
-        saveLog(nonce5, blockNumber = 10, logIndex = 10, minorLogIndex = 10)
-        saveLog(nonce6, blockNumber = 11, logIndex = 10, minorLogIndex = 10)
+        saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = LogEventStatus.REVERTED)
+        saveLog(nonce1, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)
+        saveLog(nonce2, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 1)
+        saveLog(nonce3, address1, blockNumber = 10, logIndex = 1, minorLogIndex = 2)
+        saveLog(nonce4, address1, blockNumber = 9, logIndex = 3, minorLogIndex = 3)
+        saveLog(nonce5, address2, blockNumber = 10, logIndex = 10, minorLogIndex = 10)
+        saveLog(nonce6, address2, blockNumber = 11, logIndex = 10, minorLogIndex = 10)
 
         Wait.waitAssert {
-            val latestMaker1NonceLog = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker1)
+            val latestMaker1NonceLog = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker1, address1)
             assertThat(latestMaker1NonceLog?.data as ChangeNonceHistory).isEqualTo(nonce1)
 
-            val latestMaker2NonceLog = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker2)
+            val latestMaker2NonceLog = nonceHistoryRepository.findLatestNonceHistoryByMaker(maker2, address2)
             assertThat(latestMaker2NonceLog?.data as ChangeNonceHistory).isEqualTo(nonce6)
         }
     }
 
     private suspend fun saveLog(
         history: ChangeNonceHistory,
+        address: Address,
         blockNumber: Long,
         logIndex: Int,
         minorLogIndex: Int,
@@ -104,7 +108,7 @@ internal class NonceHistoryRepositoryTest {
         nonceHistoryRepository.save(
             LogEvent(
                 data = history,
-                address = randomAddress(),
+                address = address,
                 topic = Word.apply(ByteArray(32)),
                 transactionHash = Word.apply(randomWord()),
                 status = status,

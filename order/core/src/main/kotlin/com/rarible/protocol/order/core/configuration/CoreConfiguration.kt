@@ -8,6 +8,7 @@ import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.contracts.exchange.seaport.v1.CounterIncrementedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
@@ -69,6 +70,7 @@ class CoreConfiguration {
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
         mapOf(
             NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
+            CounterIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             ApprovalForAllEvent.id() to ApprovalHistoryRepository.COLLECTION
         ),
         mongo
