@@ -8,6 +8,7 @@ import com.rarible.protocol.order.api.data.orderErc1155SellSideMatch
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.core.data.createOrderVersion
+import com.rarible.protocol.order.core.model.OrderSide
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
@@ -19,6 +20,24 @@ class OrderActivityControllerIt: AbstractIntegrationTest()  {
 
     @Autowired
     private lateinit var controller: OrderActivityController
+
+    @Test
+    fun `should get all needed history activities - asc`() = runBlocking<Unit> {
+        val size = 10
+        val activity1 = createLogEvent(orderErc1155SellSideMatch().copy(side = OrderSide.LEFT))
+        val activity2 = createLogEvent(orderErc1155SellSideMatch().copy(side = OrderSide.RIGHT))
+        val activity3 = createLogEvent(orderErc1155SellCancel())
+        listOf(activity1, activity2, activity3).forEach {
+            exchangeHistoryRepository.save(it).awaitFirst()
+        }
+        val dto = controller.getOrderActivitiesSync(null, size, SyncSortDto.DB_UPDATE_ASC)
+        val orderList = dto.body?.items
+
+        Assertions.assertThat(orderList).hasSize(2)
+
+        Assertions.assertThat(orderList?.map { it.id })
+            .containsExactlyInAnyOrder(activity1.id.toHexString(), activity3.id.toHexString())
+    }
 
     @Test
     fun `should get history activities - asc`() = runBlocking<Unit> {
