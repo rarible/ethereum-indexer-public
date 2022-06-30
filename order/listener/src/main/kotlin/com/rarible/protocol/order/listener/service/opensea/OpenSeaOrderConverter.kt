@@ -60,8 +60,10 @@ class OpenSeaOrderConverter(
 
         val (make, take, data) = when (clientSeaportOrder.orderType) {
             ClientSeaportOrderType.BASIC -> {
-                require(offer.size == 1) {
-                    "unexpected seaport offer size (${offer.size}), for basic orders"
+                if (offer.size != 1) {
+                    logger.seaportInfo("Unexpected seaport offer size (${offer.size}), for basic orders $clientSeaportOrder")
+                    seaportErrorCounter.increment()
+                    return null
                 }
                 require(consideration.isNotEmpty()) {
                     "must contain at least one consideration"
