@@ -5,6 +5,7 @@ import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.contract.EnableContractService
 import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
@@ -59,7 +60,8 @@ class OrderListenerConfiguration(
     private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
     private val openSeaLoadCounter: RegisteredCounter,
-    private val seaportLoadCounter: RegisteredCounter
+    private val seaportLoadCounter: RegisteredCounter,
+    private val seaportOrderDelayGauge : RegisteredGauge<Long>
 ) {
     private val erc20BalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.erc20-balance"
     private val ownershipBalanceConsumerGroup = "${environmentInfo.name}.protocol.${commonProperties.blockchain.value}.order.indexer.ownership"
@@ -296,7 +298,7 @@ class OrderListenerConfiguration(
         openSeaOrderService: OpenSeaOrderService,
         measureDelay: Boolean = true,
         openSeaCounter: RegisteredCounter = openSeaLoadCounter,
-        seaportCounter: RegisteredCounter = seaportLoadCounter,
+        seaportCounter: RegisteredCounter = seaportLoadCounter
     ): MeasurableOpenSeaOrderService {
         return MeasurableOpenSeaOrderService(
             delegate = openSeaOrderService,
@@ -304,6 +306,7 @@ class OrderListenerConfiguration(
             blockchain = blockchain(),
             openSeaLoadCounter = openSeaCounter,
             seaportLoadCounter = seaportCounter,
+            seaportDelayGauge = seaportOrderDelayGauge,
             measureDelay = measureDelay
         )
     }

@@ -45,6 +45,8 @@ interface OrderRepository {
 
     suspend fun findOpenSeaHashesByMakerAndByNonce(maker: Address, fromIncluding: Long, toExcluding: Long): Flow<Word>
 
+    suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word>
+
     suspend fun findByTake(token: Address, tokenId: EthUInt256): Order?
 
     fun findTakeTypesOfSellOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>

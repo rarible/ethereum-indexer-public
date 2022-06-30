@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -27,9 +28,7 @@ import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
-import scalether.domain.response.Log
 import scalether.domain.response.Transaction
-import scalether.java.Lists
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
@@ -396,23 +395,6 @@ internal class SeaportEventConverterTest {
         assertThat(cancel.make).isEqualTo(expectedPayment)
         assertThat(cancel.take).isEqualTo(expectedNft)
     }
-
-    private fun log(topics: List<Word>,data: String) = Log(
-        BigInteger.ONE, // logIndex
-        BigInteger.TEN, // transactionIndex
-        Word.apply(ByteArray(32)), // transactionHash
-        Word.apply(ByteArray(32)), // blockHash
-        BigInteger.ZERO, // blockNumber
-        Address.ZERO(), // address
-        Binary.apply( // data
-            data
-        ),
-        false, // removed
-        Lists.toScala( // topics
-            topics
-        ),
-        "" // type
-    )
 
     private fun transaction(data: String) = Transaction(
         Word.apply(ByteArray(32)), // transactionHash
