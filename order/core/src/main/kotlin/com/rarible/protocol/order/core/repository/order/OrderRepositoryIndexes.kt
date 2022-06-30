@@ -11,7 +11,6 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.index.Index
-import org.springframework.data.mongodb.core.index.IndexFilter
 import org.springframework.data.mongodb.core.index.PartialIndexFilter
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.and
@@ -267,13 +266,20 @@ object OrderRepositoryIndexes {
         .partial(PartialIndexFilter.of(
             Criteria.where("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}").isEqualTo(true)
                 .and(Order::platform.name).isEqualTo(Platform.RARIBLE)
-        ))
+        )
+        )
         .background()
 
     val BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS = Index()
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
         .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
+        .background()
+
+    // Required for analytics/DWH PT-611
+    val BY_CREATED_AT_AND_ID = Index()
+        .on(Order::createdAt.name, Sort.Direction.ASC)
+        .on("_id", Sort.Direction.ASC)
         .background()
 
     val ALL_INDEXES = listOf(
@@ -307,8 +313,8 @@ object OrderRepositoryIndexes {
         BY_PLATFORM_MAKER_AND_NONCE,
         BY_STATUS_MAKER_AND_COUNTER,
 
+        BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
-
-        BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT
+        BY_CREATED_AT_AND_ID
     )
 }
