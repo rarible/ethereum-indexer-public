@@ -174,9 +174,6 @@ class OpenSeaOrderConverter(
     }
 
     fun convertToAsset(seaportItem: SeaportItem): Asset {
-        require(seaportItem.startAmount == seaportItem.endAmount) {
-            "'startAmount' and 'endAmount' must be the same"
-        }
         return Asset(convertToAssetType(seaportItem), EthUInt256.of(seaportItem.startAmount))
     }
 
@@ -197,9 +194,6 @@ class OpenSeaOrderConverter(
 
         require(assetType.toSet().size == 1) {
             "all seaport items must be the same type"
-        }
-        require(seaportItems.all { it.startAmount == it.endAmount }) {
-            "'startAmount' and 'endAmount' must be the same"
         }
         return Asset(assetType.first(), EthUInt256.of(amount))
     }
