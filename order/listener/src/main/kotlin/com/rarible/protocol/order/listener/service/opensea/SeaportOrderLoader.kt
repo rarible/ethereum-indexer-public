@@ -33,6 +33,7 @@ class SeaportOrderLoader(
                     append("Fetched ${orders.size}, ")
                     append("minCreatedAt=$minCreatedAt, ")
                     append("maxCreatedAt=$maxCreatedAt, ")
+                    append("cursor=$cursor, ")
                     append("new orders: ${orders.joinToString { it.orderHash.toString() }}")
                 }
             )
