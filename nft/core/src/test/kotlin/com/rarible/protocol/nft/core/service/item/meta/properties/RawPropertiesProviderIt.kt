@@ -1,6 +1,11 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
+import com.github.michaelbull.retry.retryResult
 import com.rarible.core.common.nowMillis
+import com.rarible.core.meta.resource.http.DefaultHttpClient
+import com.rarible.core.meta.resource.http.ExternalHttpClient
+import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
+import com.rarible.core.meta.resource.http.builder.WebClientBuilder
 import com.rarible.core.meta.resource.parser.UrlParser
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomString
@@ -11,12 +16,23 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.service.item.meta.cache.ContentCacheStorage
 import com.rarible.protocol.nft.core.service.item.meta.cache.MetaRawPropertiesEntry
 import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
 import kotlinx.coroutines.runBlocking
+import org.apache.http.HttpStatus
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.mock.http.client.reactive.MockClientHttpResponse
+import org.springframework.web.reactive.function.client.ClientResponse
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.reactive.function.client.bodyToMono
+import reactor.core.publisher.Mono
 
 @IntegrationTest
 class RawPropertiesProviderIt : AbstractIntegrationTest() {
