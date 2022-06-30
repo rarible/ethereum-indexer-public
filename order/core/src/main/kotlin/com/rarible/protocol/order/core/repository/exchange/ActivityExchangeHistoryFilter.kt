@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.Continuation
 import com.rarible.protocol.order.core.model.ItemType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import org.bson.Document
 import org.springframework.data.mongodb.core.query.Criteria
@@ -21,6 +22,7 @@ import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
 import org.springframework.data.mongodb.core.query.lt
+import org.springframework.data.mongodb.core.query.ne
 import scalether.domain.Address
 import java.time.Instant
 
@@ -31,6 +33,7 @@ sealed class ActivityExchangeHistoryFilter {
         val takeOrderExchange = LogEvent::data / OrderExchangeHistory::take
         val makeOrderExchange = LogEvent::data / OrderExchangeHistory::make
         val makerOrderExchange = LogEvent::data / OrderExchangeHistory::maker
+        val orderSideMatchSide = LogEvent::data /  OrderSideMatch::side
     }
 
     internal abstract fun getCriteria(): Criteria
@@ -52,7 +55,8 @@ sealed class ActivityExchangeHistoryFilter {
             return Criteria().andOperator(
                 takeOrderExchange exists true,
                 makeOrderExchange exists true,
-                makerOrderExchange exists true
+                makerOrderExchange exists true,
+                orderSideMatchSide ne OrderSide.RIGHT
             ).scrollTo(sort, continuation)
         }
     }
