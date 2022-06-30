@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.opensea.client.model.v1.OpenSeaOrder
 import com.rarible.opensea.client.model.v2.SeaportOrders
@@ -15,6 +16,7 @@ class MeasurableOpenSeaOrderService(
     private val blockchain: Blockchain,
     private val openSeaLoadCounter: RegisteredCounter,
     private val seaportLoadCounter: RegisteredCounter,
+    private val seaportDelayGauge : RegisteredGauge<Long>,
     private val measureDelay: Boolean
 ) : OpenSeaOrderService {
     @Volatile private var latestSeanOpenSeaOrderTimestamp: Long? = null
@@ -26,6 +28,11 @@ class MeasurableOpenSeaOrderService(
     override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
         val orders = delegate.getNextSellOrders(nextCursor)
         seaportLoadCounter.increment(orders.orders.size)
+        if (measureDelay) {
+            orders.orders.maxOfOrNull { it.createdAt }?.let {
+                seaportDelayGauge.set(nowMillis().epochSecond - it.epochSecond)
+            }
+        }
         return orders
     }
 
