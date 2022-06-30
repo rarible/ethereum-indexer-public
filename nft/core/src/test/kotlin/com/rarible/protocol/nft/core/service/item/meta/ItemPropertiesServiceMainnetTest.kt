@@ -53,8 +53,7 @@ class ItemPropertiesServiceMainnetTest : BasePropertiesResolverTest() {
     }
 
     private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
-        urlService = urlService,
-        rawPropertiesProvider = rawPropertiesProvider,
+        externalHttpClient = externalHttpClient,
         nftIndexerProperties = nftIndexerProperties
     )
 
