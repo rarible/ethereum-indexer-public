@@ -7,7 +7,6 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
-import io.mockk.excludeRecords
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.reactor.awaitSingle

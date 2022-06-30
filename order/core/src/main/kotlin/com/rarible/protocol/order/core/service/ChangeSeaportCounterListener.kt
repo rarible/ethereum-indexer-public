@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.block.ChangeNonceListener
 import kotlinx.coroutines.flow.collect
@@ -10,21 +9,18 @@ import org.springframework.stereotype.Component
 import scalether.domain.Address
 
 @Component
-class ChangeOpenSeaNonceListener(
+class ChangeSeaportCounterListener(
     private val orderRepository: OrderRepository,
-    private val orderUpdateService: OrderUpdateService,
-    private val properties: OrderIndexerProperties
+    private val orderUpdateService: OrderUpdateService
 ) : ChangeNonceListener {
 
     override suspend fun onNewMakerNonce(maker: Address, newNonce: Long) {
-        val fixedMewNonce = newNonce + properties.openSeaNonceIncrement
-
-        require(fixedMewNonce > 0) {
-            "Maker $maker nonce is less then zero $fixedMewNonce"
+        require(newNonce > 0) {
+            "Maker $maker nonce is less then zero $newNonce"
         }
-        logger.info("New OpenSea nonce $fixedMewNonce detected for maker $maker")
+        logger.info("New Seaport counter $newNonce detected for maker $maker")
         orderRepository
-            .findOpenSeaHashesByMakerAndByNonce(maker, fromIncluding = fixedMewNonce - 1,  toExcluding = fixedMewNonce)
+            .findNotCanceledByMakerAndByCounter(maker = maker,  counter = newNonce - 1)
             .collect { hash ->
                 orderUpdateService.update(hash)
             }
@@ -34,4 +30,3 @@ class ChangeOpenSeaNonceListener(
         val logger: Logger = LoggerFactory.getLogger(ChangeOpenSeaNonceListener::class.java)
     }
 }
-

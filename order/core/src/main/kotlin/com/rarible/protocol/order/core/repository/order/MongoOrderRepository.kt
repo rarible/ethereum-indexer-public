@@ -11,7 +11,9 @@ import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -187,6 +189,23 @@ class MongoOrderRepository(
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_AND_NONCE.indexKeys)
+        query.fields().include(idFiled)
+        return template
+            .find(query, Document::class.java, COLLECTION)
+            .map { Word.apply(it.getString(idFiled)) }
+            .asFlow()
+    }
+
+    override suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word> {
+        val idFiled = "_id"
+        val query = Query(
+            Criteria().andOperator(
+                Order::status ne OrderStatus.CANCELLED,
+                Order::maker isEqualTo maker,
+                Order::data / OrderSeaportDataV1::counter isEqualTo counter,
+            )
+        )
+        query.withHint(OrderRepositoryIndexes.BY_STATUS_MAKER_AND_COUNTER.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
