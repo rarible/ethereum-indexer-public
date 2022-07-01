@@ -15,6 +15,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Component
@@ -26,7 +27,7 @@ class CreatorsLogDescriptor(
 
     override val topic: Word = CreatorsEvent.id()
 
-    override fun convert(log: Log, date: Instant): Mono<ItemCreators> {
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemCreators> {
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
