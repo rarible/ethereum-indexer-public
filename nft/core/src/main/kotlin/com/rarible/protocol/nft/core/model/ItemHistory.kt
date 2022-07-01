@@ -55,8 +55,18 @@ data class ItemTransfer(
     /**
      * URI of the token metadata. Currently, available only for pending logs.
      */
-    val tokenUri: String? = null
-) : ItemHistory(ItemType.TRANSFER)
+    val tokenUri: String? = null,
+    private val isMint: Boolean? = null
+) : ItemHistory(ItemType.TRANSFER) {
+
+    fun isMintTransfer(): Boolean {
+        return from == Address.ZERO() || (isMint != null && isMint == true)
+    }
+
+    fun isBurnTransfer(): Boolean {
+        return owner == Address.ZERO()
+    }
+}
 
 data class ItemRoyalty(
     override val token: Address,

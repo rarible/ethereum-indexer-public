@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
@@ -20,7 +21,7 @@ import java.time.Instant
 class RoyaltyV2LogDescriptor: ItemHistoryLogEventDescriptor<ItemRoyalty> {
     override val topic: Word = RoyaltiesSetEvent.id()
 
-    override fun convert(log: Log, date: Instant): Mono<ItemRoyalty> {
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemRoyalty> {
         val event = RoyaltiesSetEvent.apply(log)
         val royalties = mutableListOf<Part>()
 

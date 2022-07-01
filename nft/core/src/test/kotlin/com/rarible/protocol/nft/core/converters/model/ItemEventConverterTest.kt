@@ -7,12 +7,16 @@ import com.rarible.protocol.nft.core.data.createRandomItemTransfer
 import com.rarible.protocol.nft.core.data.createRandomReversedEthereumLogRecord
 import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.ItemId
+import com.rarible.protocol.nft.core.model.ItemTransfer
 import io.mockk.every
 import io.mockk.mockk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import scalether.domain.Address
 import java.math.BigInteger
+import java.util.stream.Stream
 
 internal class ItemEventConverterTest {
     private val openSeaLazy = randomAddress()
@@ -23,11 +27,23 @@ internal class ItemEventConverterTest {
         }
     )
 
-    @Test
-    fun `should convert mint event`() {
-        val transfer = createRandomItemTransfer().copy(
-            from = Address.ZERO()
+    private companion object {
+        @JvmStatic
+        fun mint(): Stream<ItemTransfer> = Stream.of(
+            createRandomItemTransfer().copy(
+                from = Address.ZERO()
+            ),
+            createRandomItemTransfer().copy(
+                owner = Address.ONE(),
+                from = Address.ONE(),
+                isMint = true
+            )
         )
+    }
+
+    @ParameterizedTest
+    @MethodSource("mint")
+    fun `should convert mint event`(transfer: ItemTransfer) {
         val logRecord = createRandomReversedEthereumLogRecord(transfer)
         val mintEvent = converter.convert(logRecord)
         assertThat(mintEvent).isInstanceOf(ItemEvent.ItemMintEvent::class.java)

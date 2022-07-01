@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.math.BigInteger
 import java.time.Instant
 
@@ -35,11 +36,10 @@ class ERC1155TransferBatchLogDescriptor(
         logger.info("Creating ERC1155TransferBatchLogDescriptor with config: $properties")
     }
 
-    override fun convert(log: Log, date: Instant): Publisher<ItemTransfer> {
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Publisher<ItemTransfer> {
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
-
         return tokenRegistrationService.getTokenStandard(log.address())
             .flatMapMany { standard ->
                 if (standard == TokenStandard.ERC1155) {
@@ -74,7 +74,7 @@ class ERC1155TransferBatchLogDescriptor(
                             .toFlux()
                     }
                 } else {
-                    Mono.empty<ItemTransfer>()
+                    Mono.empty()
                 }
             }
     }

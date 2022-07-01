@@ -29,8 +29,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         every { ensDomainsContractAddress } returns ensDomainsAddress.prefixed()
     }
     private val ensDomainsPropertiesProvider = EnsDomainsPropertiesProvider(
-        urlService = urlService,
-        rawPropertiesProvider = rawPropertiesProvider,
+        externalHttpClient = externalHttpClient,
         nftIndexerProperties = nftIndexerProperties
     )
     private val resolver = EnsDomainsPropertiesResolver(
@@ -39,14 +38,15 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         nftIndexerProperties = nftIndexerProperties
     )
 
+    @Suppress("DEPRECATION")
     @Test
-    fun `ensDomains resolver - happy path`() = runBlocking<Unit> {
+    fun `ensDomains resolver - happy path`() = runBlocking {
         val itemId = ItemId(
             ensDomainsAddress,
             EthUInt256.of("70978452926855298230627852209706669601671060584535678453189230628746785569329")
         )
         val properties = resolver.resolve(itemId)
-        assertThat(properties).isNotNull()
+        assertThat(properties).isNotNull
         properties as ItemProperties
         assertThat(properties.name).isEqualTo("rarible.eth")
         assertThat(properties.description).isEqualTo("rarible.eth, an ENS name.")
@@ -84,6 +84,33 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
                     EthUInt256.of("42")
                 )
             )
+        }
+    }
+
+    @Test
+    fun `ensDomain resolver happy path with 410 code`() {
+        runBlocking {
+            val itemId = ItemId(
+                ensDomainsAddress,
+                EthUInt256.of("55961161529594402122232949896472389206629650232556787123110068019425038245080")
+            )
+
+            val properties = resolver.resolve(itemId)
+            assertThat(properties).isNotNull
+            assertThat(properties!!.name).isEmpty()
+            assertThat(properties.description).isEmpty()
+            assertThat(properties.attributes).isEmpty()
+
+            coVerify(exactly = 1) {
+                ensDomainService.onGetProperties(
+                    withArg {
+                        assertThat(it).isEqualTo(itemId)
+                    },
+                    withArg {
+                        assertThat(it).isEqualTo(properties)
+                    }
+                )
+            }
         }
     }
 }
