@@ -37,7 +37,7 @@ class ItemEventConverter(
                 when {
                     data.from == Address.ZERO() && data.owner == Address.ZERO() -> null
 
-                    data.from == Address.ZERO() ->
+                    data.isMintTransfer() ->
                         ItemEvent.ItemMintEvent(
                             supply = data.value,
                             owner = data.owner,
@@ -46,7 +46,7 @@ class ItemEventConverter(
                             tokenUri = data.tokenUri
                         )
 
-                    data.owner == Address.ZERO() ->
+                    data.isBurnTransfer() ->
                         ItemEvent.ItemBurnEvent(
                             supply = data.value,
                             owner = data.from,
