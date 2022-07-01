@@ -13,6 +13,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEventDescriptor
+import com.rarible.protocol.nft.listener.service.item.CustomMintDetector
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -20,12 +21,14 @@ import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class ERC1155TransferLogDescriptor(
     private val tokenRegistrationService: TokenRegistrationService,
+    private val customMintDetector: CustomMintDetector,
     properties: NftListenerProperties,
     indexerProperties: NftIndexerProperties
 ) : ItemHistoryLogEventDescriptor<ItemTransfer> {
@@ -38,7 +41,7 @@ class ERC1155TransferLogDescriptor(
         logger.info("Creating ERC1155TransferLogDescriptor with config: $properties")
     }
 
-    override fun convert(log: Log, date: Instant): Mono<ItemTransfer> {
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemTransfer> {
         if (log.address() in skipContracts) {
             return Mono.empty()
         }
@@ -61,7 +64,8 @@ class ERC1155TransferLogDescriptor(
                             token = log.address(),
                             tokenId = EthUInt256.of(e._id()),
                             date = date,
-                            value = EthUInt256.of(e._value())
+                            value = EthUInt256.of(e._value()),
+                            isMint = customMintDetector.isMint(e, transaction).takeIf { it }
                         ).toMono()
                     }
                 } else {

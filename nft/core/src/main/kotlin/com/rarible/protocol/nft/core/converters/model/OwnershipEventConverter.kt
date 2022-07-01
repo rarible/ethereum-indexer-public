@@ -24,7 +24,7 @@ class OwnershipEventConverter(
     suspend fun convert(source: ReversedEthereumLogRecord): List<OwnershipEvent> {
         return when (val data = source.data as? ItemHistory) {
             is ItemTransfer -> {
-                val transferTo = data.owner.takeUnless { data.owner == Address.ZERO() }?.let { owner ->
+                val transferTo = data.owner.takeUnless { data.isBurnTransfer() }?.let { owner ->
                     OwnershipEvent.TransferToEvent(
                         from = data.from,
                         value = data.value,
@@ -32,7 +32,7 @@ class OwnershipEventConverter(
                         entityId = OwnershipId(data.token, data.tokenId, owner).stringValue
                     )
                 }
-                val transferFrom = data.from.takeUnless { data.from == Address.ZERO() }?.let { from ->
+                val transferFrom = data.from.takeUnless { data.isMintTransfer() }?.let { from ->
                     OwnershipEvent.TransferFromEvent(
                         to = data.owner,
                         value = data.value,
@@ -41,8 +41,8 @@ class OwnershipEventConverter(
                     )
                 }
                 //Revertable event for lazy ownership to change value and lazyValue
-                //Normally it is minting event, so 'from' must be ZERO address
-                val changeLazyOwnership = data.from.takeIf { data.from == Address.ZERO() }?.let {
+                //Normally it is minting event
+                val changeLazyOwnership = data.from.takeIf { data.isMintTransfer() }?.let {
                     //Get lazy owner from item, but we should skip it if minter is lazy item owner
                     getItem(data.token, data.tokenId)?.getLazyOwner().takeUnless { it == data.owner }
                 }?.let { lazyOwner ->

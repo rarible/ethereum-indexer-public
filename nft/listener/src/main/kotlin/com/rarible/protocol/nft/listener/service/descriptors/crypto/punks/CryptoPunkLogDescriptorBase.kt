@@ -10,6 +10,7 @@ import com.rarible.protocol.nft.listener.service.descriptors.ItemHistoryLogEvent
 import reactor.core.publisher.Mono
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 import java.time.Instant
 
 @CaptureSpan(type = SpanType.EVENT)
@@ -20,7 +21,7 @@ abstract class CryptoPunkLogDescriptorBase(
 
     abstract fun convertItemTransfer(log: Log, date: Instant): Mono<ItemTransfer>
 
-    override fun convert(log: Log, date: Instant): Mono<ItemTransfer> =
+    override fun convert(log: Log, transaction: Transaction, date: Instant): Mono<ItemTransfer> =
         tokenRegistrationService.getTokenStandard(log.address())
             .flatMap { standard ->
                 if (standard == TokenStandard.CRYPTO_PUNKS) {
