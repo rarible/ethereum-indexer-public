@@ -60,7 +60,7 @@ class ItemReduceServiceV1(
 ) : ItemReduceService {
 
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
-    private val scamTokens = scannerProperties.scamTokens.map(Address::apply).toHashSet()
+    private val senderCreatedTokens = scannerProperties.senderCreatedTokens.map(Address::apply).toHashSet()
 
     override fun onItemHistories(logs: List<LogEvent>): Mono<Void> {
         return LoggingUtils.withMarker { marker ->
@@ -271,11 +271,12 @@ class ItemReduceServiceV1(
             && creators.isEmpty()
             && !creatorsFinal
         ) {
-            if ((featureFlags.validateCreatorByTransactionSender || token in scamTokens)
+            val isSenderCreatedTokens = token in senderCreatedTokens
+            if ((featureFlags.validateCreatorByTransactionSender || isSenderCreatedTokens)
                 && transactionSender != null
                 && itemTransfer.owner != transactionSender
             ) {
-                this.creators
+                if (isSenderCreatedTokens) listOf(Part.fullPart(transactionSender)) else this.creators
             } else {
                 listOf(Part.fullPart(itemTransfer.owner))
             }
