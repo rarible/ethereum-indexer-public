@@ -49,6 +49,7 @@ sealed class ActivityItemHistoryFilter {
 
         override fun getCriteria(): Criteria {
             return (typeKey isEqualTo ItemType.TRANSFER)
+                .and(statusKey).isEqualTo(LogEventStatus.CONFIRMED)
                 .scrollTo(sort, continuation)
         }
     }

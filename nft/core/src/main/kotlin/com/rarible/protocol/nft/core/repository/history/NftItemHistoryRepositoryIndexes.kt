@@ -23,7 +23,7 @@ internal object NftItemHistoryRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    val TRANSFER_MULTI_USERS_DEFINITION: Index = Index()
+    private val TRANSFER_MULTI_USERS_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${ItemHistory::type.name}", Sort.Direction.ASC)
         .on(LogEvent::status.name, Sort.Direction.ASC)
         .on("${LogEvent::data.name}.${ItemTransfer::date.name}", Sort.Direction.ASC)
@@ -78,7 +78,7 @@ internal object NftItemHistoryRepositoryIndexes {
         .on(LogEvent::logIndex.name, Sort.Direction.ASC)
         .background()
 
-    val BY_ITEM_AND_OWNER_DEFINITION: Index = Index()
+    private val BY_ITEM_AND_OWNER_DEFINITION: Index = Index()
         .on("${LogEvent::data.name}.${ItemHistory::type.name}", Sort.Direction.DESC)
         .on(LogEvent::status.name, Sort.Direction.DESC)
         .on("${LogEvent::data.name}.${ItemTransfer::token.name}", Sort.Direction.DESC)
