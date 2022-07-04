@@ -19,9 +19,6 @@ polygon-gateway:
   resources:
     jvm:
       xmx_megabytes: 1024
-  networks:
-    additional:
-    - 'proxy'
 
 polygon-order-api:
   replicas: 2

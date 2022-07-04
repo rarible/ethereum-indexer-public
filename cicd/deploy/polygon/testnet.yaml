@@ -8,7 +8,7 @@ polygon-erc20-listener:
 
 polygon-nft-listener:
   livenessProbe:
-    initialDelaySeconds: 360s
+    initialDelaySeconds: 360
   resources:
     jvm:
       xmx_megabytes: 1536
