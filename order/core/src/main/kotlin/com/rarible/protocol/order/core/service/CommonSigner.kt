@@ -9,6 +9,7 @@ import org.web3j.crypto.Keys
 import org.web3j.crypto.Sign
 import scalether.domain.Address
 import java.nio.charset.StandardCharsets
+import kotlin.experimental.and
 
 @Component
 class CommonSigner {
@@ -28,11 +29,19 @@ class CommonSigner {
     }
 
     fun recover(hash: Word, signature: Binary): Address {
-        val v = fixV(signature.bytes()[64])
         val r = ByteArray(32)
         val s = ByteArray(32)
         System.arraycopy(signature.bytes(), 0, r, 0, 32)
         System.arraycopy(signature.bytes(), 32, s, 0, 32)
+
+        val v = if (signature.length() == 64) {
+            val extractedV = getV(s)
+            clearV(s)
+            extractedV
+        } else {
+            signature.bytes()[64]
+        }.let { fixV(it) }
+
         val publicKey = Sign.signedMessageHashToKey(hash.bytes(), Sign.SignatureData(v, r, s))
         return Address.apply(Keys.getAddress(publicKey))
     }
@@ -53,6 +62,15 @@ class CommonSigner {
 
     companion object {
         private const val START = "\u0019Ethereum Signed Message:\n"
+        private const val V_BIT_POSITION = 0
+
+        private fun getV(s: ByteArray): Byte {
+            return if (s[V_BIT_POSITION].and(0x80.toByte()) == 0.toByte()) 0 else 1
+        }
+
+        private fun clearV(s: ByteArray): ByteArray {
+             return s.apply { this[V_BIT_POSITION] = this[V_BIT_POSITION].and(0x7f.toByte()) }
+        }
 
         private fun fixV(v: Byte): Byte {
             return if (v < 27) (27 + v).toByte() else v

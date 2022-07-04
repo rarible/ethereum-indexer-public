@@ -6,7 +6,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
-import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
@@ -25,7 +24,7 @@ import java.math.BigInteger
 
 internal class OpenSeaOrderValidatorTest {
     private val properties = mockk<OrderIndexerProperties> {
-        every { chainId } returns 1
+        every { chainId } returns 4
     }
     private val openSeaOrderValidator = OpenSeaOrderValidatorImp(
         commonSigner = CommonSigner(),
@@ -43,13 +42,41 @@ internal class OpenSeaOrderValidatorTest {
     @Test
     fun `should validate seaport order`() {
         val seaportOrder = createOrderVersion().copy(
-            hash = Word.apply("0xded9fa37d54c894b1eed2745651100bc3612937f7adc10fcc6e00684c3fded99"),
-            maker = Address.apply("0x19317be29d9fb86af1b72594e6e09ec0208fbcf4"),
+            hash = Word.apply("0xc3c0b20b40fde2ae91cd324dca5c95f2227e0825b6eef8e298ff5b5352313727"),
+            maker = Address.apply("0x54b126961a8f2ba34654a4cb7c89ce3a9421e6a9"),
             type = OrderType.SEAPORT_V1,
             data = createOrderBasicSeaportDataV1().copy(
                 protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
             ),
-            signature = Binary.apply("0x1066bf8c77b7b45f1c8d4cfeaa94eab6dc8510da6d36050e63f266f4046b7de92cf5dfc7796dbbf6a41d92f113a135e2a25cc8571e90cdef14f684b39acde85a1c")
+            signature = Binary.apply("0x038e202fa2f1a7ac7944cd404057f4f9d945c9e2a1d4e8dd251592aa9f55587c11b2710f56474dbcd285035c4be1d61516e4c69e2ad9512baa0f699b43637fee1c")
+        )
+        assertThat(openSeaOrderValidator.validate(seaportOrder)).isTrue
+    }
+
+    @Test
+    fun `should validate seaport order with compact signature and v = 28`() {
+        val seaportOrder = createOrderVersion().copy(
+            hash = Word.apply("0x2502ba826f537d2b43747a78b1e74d8eaa115e6840b531b893a144e08d16520f"),
+            maker = Address.apply("0x22d491bde2303f2f43325b2108d26f1eaba1e32b"),
+            type = OrderType.SEAPORT_V1,
+            data = createOrderBasicSeaportDataV1().copy(
+                protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
+            ),
+            signature = Binary.apply("0x0433bd90606f054ce6575b0afff9fc83b143e150c2214065c53205d83bfc9c14cb6acdaa5754a54d9c6a77924f777e1bfd3158e8324c833d0339e6fe73962df6")
+        )
+        assertThat(openSeaOrderValidator.validate(seaportOrder)).isTrue
+    }
+
+    @Test
+    fun `should validate seaport order with compact signature and v = 27`() {
+        val seaportOrder = createOrderVersion().copy(
+            hash = Word.apply("0x36c136ce4db81f5b04f9b7fdabdba241720382b6f4366b1459bde9f3698f21d9"),
+            maker = Address.apply("0x162e5a9f5da4aca243ee397c8389eeaf1231d301"),
+            type = OrderType.SEAPORT_V1,
+            data = createOrderBasicSeaportDataV1().copy(
+                protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581")
+            ),
+            signature = Binary.apply("0x6fdcf0e849e23451848d709f3c48d25108c0bf3ad8f256642d4aaa9b57f957585e1c77f8f87e35256bec2699b37cb9a000ed1d565ef5229f70f5201a2adb1b85")
         )
         assertThat(openSeaOrderValidator.validate(seaportOrder)).isTrue
     }
