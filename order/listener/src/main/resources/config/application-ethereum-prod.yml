@@ -1,2 +1,4 @@
 listener:
   open-sea-exchange-domain-hash-v2: "0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68"
+  transfer-proxy-addresses:
+    sea-port-transfer-proxy: "0x1e0049783f008a0085193e00003d00cd54003c71"

@@ -3,11 +3,11 @@ package com.rarible.protocol.order.core.configuration
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.order.core.model.NodeType
 import io.daonomic.rpc.domain.Binary
-import java.time.Duration
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
 import org.springframework.boot.context.properties.NestedConfigurationProperty
 import scalether.domain.Address
+import java.time.Duration
 
 const val RARIBLE_PROTOCOL_ORDER_INDEXER = "common"
 
@@ -60,7 +60,8 @@ data class OrderIndexerProperties(
         val erc20TransferProxy: Address,
         val erc721LazyTransferProxy: Address,
         val erc1155LazyTransferProxy: Address,
-        var cryptoPunksTransferProxy: Address
+        var cryptoPunksTransferProxy: Address,
+        val seaPortTransferProxy: Address? = null
     )
 
     data class PublishProperties(
