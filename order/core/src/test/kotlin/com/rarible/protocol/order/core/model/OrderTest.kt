@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
@@ -18,7 +19,7 @@ import java.math.BigInteger
 class OrderTest {
 
     @Test
-    fun `opensea eip712 hash is calculated correctly`() {
+    fun `openSea order hash is calculated correctly`() {
         val hash = Order.openSeaV1EIP712Hash(
             maker = Address.apply("0xe4b5439c6f3f3f38c4bea769dffb5fc53966410b"),
             taker = Address.ZERO(),
@@ -48,6 +49,52 @@ class OrderTest {
             )
         )
         assertThat(hash).isEqualTo(Binary.apply("0x1879973b20431b35d0bc0ba145b95fd2f2f3b5676a232fd2c78aa2f87b3703d8"))
+    }
+
+    @Test
+    fun `seaport order hash is calculated correctly`() {
+        val hash = Order.seaportV1Hash(
+            maker = Address.apply("0x20f183f8f82042bb9acbd580e2d78c40f62a22a2"),
+            salt = BigInteger("44291393813356285"),
+            start = 1656991717L,
+            end = 1659670117L,
+            OrderBasicSeaportDataV1(
+                protocol = Address.apply("0x00000000006c3852cbef3e08e8df289169ede581"),
+                orderType = SeaportOrderType.FULL_RESTRICTED,
+                offer = listOf(
+                    SeaportOffer(
+                        itemType = SeaportItemType.ERC721,
+                        token = Address.apply("0x2ebda63bb8564abb40d7204ff0f2913d13119f34"),
+                        identifier = BigInteger.ONE,
+                        startAmount = BigInteger.ONE,
+                        endAmount = BigInteger.ONE
+                    )
+                ),
+                consideration = listOf(
+                    SeaportConsideration(
+                        itemType = SeaportItemType.NATIVE,
+                        token = Address.ZERO(),
+                        identifier = BigInteger.ZERO,
+                        startAmount = BigInteger("975000000000000000"),
+                        endAmount = BigInteger("975000000000000000"),
+                        recipient = Address.apply("0x20f183f8f82042bb9acbd580e2d78c40f62a22a2")
+                    ),
+                    SeaportConsideration(
+                        itemType = SeaportItemType.NATIVE,
+                        token = Address.ZERO(),
+                        identifier = BigInteger.ZERO,
+                        startAmount = BigInteger("25000000000000000"),
+                        endAmount = BigInteger("25000000000000000"),
+                        recipient = Address.apply("0x8de9c5a032463c561423387a9648c5c7bcc5bc90")
+                    )
+                ),
+                zone = Address.apply("0x00000000e88fe2628ebc5da81d2b3cead633e89e"),
+                zoneHash = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000"),
+                conduitKey = Word.apply("0x0000007b02230091a7ed01230072f7006a004d60a8d4e71d599b8104250f0000"),
+                counter = 0
+            )
+        )
+        assertThat(hash).isEqualTo(Binary.apply("0x52fc97e8de246fc3fbbc14082aac00d9b80561c5e2cce2914c71ec2fa873341a"))
     }
 
     @Test

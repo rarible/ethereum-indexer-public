@@ -35,13 +35,13 @@ class SeaportV1ExchangeCancelDescriptor(
     override val topic: Word = OrderCancelledEvent.id()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderCancel> {
-        return mono { convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): List<OrderCancel> {
+    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val event = OrderCancelledEvent.apply(log)
         seaportCancelEventCounter.increment()
-        return seaportEventConverter.convert(event, transaction, index, totalLogs, date)
+        return seaportEventConverter.convert(event, transaction, date)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

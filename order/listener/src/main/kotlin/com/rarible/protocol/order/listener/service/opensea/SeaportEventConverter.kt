@@ -8,12 +8,15 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.SeaportConsideration
 import com.rarible.protocol.order.core.model.SeaportItemType
 import com.rarible.protocol.order.core.model.SeaportOffer
+import com.rarible.protocol.order.core.model.SeaportOrderComponents
+import com.rarible.protocol.order.core.model.SeaportOrderType
 import com.rarible.protocol.order.core.model.SeaportReceivedItem
 import com.rarible.protocol.order.core.model.SeaportSpentItem
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -108,8 +111,6 @@ class SeaportEventConverter(
     suspend fun convert(
         event: OrderCancelledEvent,
         transaction: Transaction,
-        index: Int,
-        totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
         val input = if (CANCEL_SIGNATURE_ID == transaction.input().methodSignatureId()) {
@@ -126,18 +127,24 @@ class SeaportEventConverter(
                 ).firstOrNull()
             }
         }
+        val orderHash = Word.apply(
+            event.orderHash()
+        )
         val assets = if (input != null) {
-            val components = CANCEL_SIGNATURE.`in`().decode(input, 4)
-            require(components.value().size == totalLogs) {
-                "Cancel orders count and totalLogs must be the same, txHash ${transaction.hash()}"
+            val components = CANCEL_SIGNATURE.`in`().decode(input, 4).value().map(::convert)
+            val targetIndex = components.indexOfFirst {
+                Order.seaportV1Hash(it) == orderHash
             }
-            convert(components.value()[index])
+            require(targetIndex != -1) {
+                "Can't find order hash $orderHash in components list (tx=${transaction.hash()})"
+            }
+            convertToAsserts(components[targetIndex])
         } else {
             null
         }
         return listOf(
             OrderCancel(
-                hash = Word.apply(event.orderHash()),
+                hash = orderHash,
                 maker = event.offerer(),
                 make = assets?.make,
                 take = assets?.take,
@@ -147,9 +154,25 @@ class SeaportEventConverter(
         )
     }
 
-    private fun convert(component: Tuple11<Address, Address, Array<Tuple5<BigInteger, Address, BigInteger, BigInteger, BigInteger>>, Array<Tuple6<BigInteger, Address, BigInteger, BigInteger, BigInteger, Address>>, BigInteger, BigInteger, BigInteger, ByteArray, BigInteger, ByteArray, BigInteger>): OrderAssets? {
-        val offer = convertOrderOffer(component._3())
-        val consideration = convertOrderConsideration(component._4())
+    private fun convert(component: Tuple11<Address, Address, Array<Tuple5<BigInteger, Address, BigInteger, BigInteger, BigInteger>>, Array<Tuple6<BigInteger, Address, BigInteger, BigInteger, BigInteger, Address>>, BigInteger, BigInteger, BigInteger, ByteArray, BigInteger, ByteArray, BigInteger>): SeaportOrderComponents {
+        return SeaportOrderComponents(
+            offerer = component._1(),
+            zone = component._2(),
+            offer = convertOrderOffer(component._3()),
+            consideration = convertOrderConsideration(component._4()),
+            orderType = SeaportOrderType.fromValue(component._5().intValueExact()) ,
+            startTime = component._6().toLong(),
+            endTime = component._7().toLong(),
+            zoneHash = Word.apply(component._8()),
+            salt = component._9(),
+            conduitKey = Word.apply(component._10()),
+            counter = component._11().toLong()
+        )
+    }
+
+    private fun convertToAsserts(components: SeaportOrderComponents): OrderAssets? {
+        val offer = components.offer
+        val consideration = components.consideration
 
         if (offer.size != 1) return null
         if (consideration.isEmpty()) return null
