@@ -19,7 +19,7 @@ import java.math.BigInteger
 class OrderTest {
 
     @Test
-    fun `opensea eip712 hash is calculated correctly`() {
+    fun `openSea order hash is calculated correctly`() {
         val hash = Order.openSeaV1EIP712Hash(
             maker = Address.apply("0xe4b5439c6f3f3f38c4bea769dffb5fc53966410b"),
             taker = Address.ZERO(),
@@ -53,7 +53,7 @@ class OrderTest {
 
     @Test
     fun `seaport order hash is calculated correctly`() {
-        val hash = Order.seaportV1EIP712Hash(
+        val hash = Order.seaportV1Hash(
             maker = Address.apply("0x20f183f8f82042bb9acbd580e2d78c40f62a22a2"),
             salt = BigInteger("44291393813356285"),
             start = 1656991717L,

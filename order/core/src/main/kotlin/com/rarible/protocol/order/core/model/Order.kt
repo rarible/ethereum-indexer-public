@@ -535,14 +535,10 @@ data class Order(
             return keccak256(p1 + p2)
         }
 
-        fun seaportV1EIP712Hash(
-            maker: Address,
-            salt: BigInteger,
-            start: Long?,
-            end: Long?,
-            data: OrderSeaportDataV1
+        fun seaportV1Hash(
+            components: SeaportOrderComponents
         ): Word {
-            val offerHash = data.offer.map { offer ->
+            val offerHash = components.offer.map { offer ->
                 keccak256(
                     OFFER_ITEM_TYPE_HASH
                         .add(Uint256Type.encode(offer.itemType.value.toBigInteger()))
@@ -553,7 +549,7 @@ data class Order(
                 )
             }.fold(Binary.empty()) { acc, next -> acc.add(next) }.let { keccak256(it) }
 
-            val considerationHash = data.consideration.map { consideration ->
+            val considerationHash = components.consideration.map { consideration ->
                 keccak256(
                     CONSIDERATION_ITEM_TYPE_HASH
                         .add(Uint256Type.encode(consideration.itemType.value.toBigInteger()))
@@ -567,17 +563,41 @@ data class Order(
 
             return keccak256(
                 ORDER_TYPE_HASH
-                    .add(AddressType.encode(maker))
-                    .add(AddressType.encode(data.zone))
+                    .add(AddressType.encode(components.offerer))
+                    .add(AddressType.encode(components.zone))
                     .add(offerHash)
                     .add(considerationHash)
-                    .add(Uint256Type.encode(data.orderType.value.toBigInteger()))
-                    .add(Uint256Type.encode((start ?: 0).toBigInteger()))
-                    .add(Uint256Type.encode((end ?: 0).toBigInteger()))
-                    .add(data.zoneHash)
-                    .add(Uint256Type.encode(salt))
-                    .add(data.conduitKey)
-                    .add(Uint256Type.encode(data.counter.toBigInteger()))
+                    .add(Uint256Type.encode(components.orderType.value.toBigInteger()))
+                    .add(Uint256Type.encode((components.startTime.toBigInteger())))
+                    .add(Uint256Type.encode((components.endTime.toBigInteger())))
+                    .add(components.zoneHash)
+                    .add(Uint256Type.encode(components.salt))
+                    .add(components.conduitKey)
+                    .add(Uint256Type.encode(components.counter.toBigInteger()))
+            )
+        }
+
+        fun seaportV1Hash(
+            maker: Address,
+            salt: BigInteger,
+            start: Long?,
+            end: Long?,
+            data: OrderSeaportDataV1
+        ): Word {
+            return seaportV1Hash(
+                SeaportOrderComponents(
+                    offerer = maker,
+                    zone = data.zone,
+                    offer = data.offer,
+                    consideration = data.consideration,
+                    orderType = data.orderType,
+                    startTime = start ?: 0,
+                    endTime = end ?: 0,
+                    zoneHash = data.zoneHash,
+                    salt = salt,
+                    conduitKey = data.conduitKey,
+                    counter = data.counter
+                )
             )
         }
 

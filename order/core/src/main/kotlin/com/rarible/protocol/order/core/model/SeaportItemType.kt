@@ -10,7 +10,7 @@ enum class SeaportItemType(val value: Int) {
     ;
 
     companion object {
-        private val VALUES = SeaportItemType.values().associateBy { it.value }
+        private val VALUES = values().associateBy { it.value }
 
         fun fromValue(value: Int): SeaportItemType {
             return VALUES[value] ?: throw IllegalArgumentException("Unsupported value $value")

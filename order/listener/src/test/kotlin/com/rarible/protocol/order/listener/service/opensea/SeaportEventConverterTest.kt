@@ -348,7 +348,7 @@ internal class SeaportEventConverterTest {
             EthUInt256.of("120000000000000000")
         )
         val event = OrderCancelledEvent.apply(log)
-        val cancels = converter.convert(event, transaction, 0, 1, data)
+        val cancels = converter.convert(event, transaction, data)
 
         assertThat(cancels).hasSize(1)
         val cancel = cancels.single()
@@ -385,7 +385,7 @@ internal class SeaportEventConverterTest {
             EthUInt256.of("181000000000000000")
         )
         val event = OrderCancelledEvent.apply(log)
-        val cancels = converter.convert(event, transaction, 0, 1, data)
+        val cancels = converter.convert(event, transaction, data)
 
         assertThat(cancels).hasSize(1)
         val cancel = cancels.single()
