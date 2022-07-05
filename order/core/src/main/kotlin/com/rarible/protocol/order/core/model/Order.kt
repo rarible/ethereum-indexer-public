@@ -12,6 +12,7 @@ import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.*
+import scalether.abi.AddressType
 import scalether.abi.Uint256Type
 import scalether.abi.Uint8Type
 import scalether.domain.Address
@@ -19,6 +20,7 @@ import scalether.util.Hash
 import scalether.util.Hex
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 
 @Document(MongoOrderRepository.COLLECTION)
@@ -533,6 +535,52 @@ data class Order(
             return keccak256(p1 + p2)
         }
 
+        fun seaportV1EIP712Hash(
+            maker: Address,
+            salt: BigInteger,
+            start: Long?,
+            end: Long?,
+            data: OrderSeaportDataV1
+        ): Word {
+            val offerHash = data.offer.map { offer ->
+                keccak256(
+                    OFFER_ITEM_TYPE_HASH
+                        .add(Uint256Type.encode(offer.itemType.value.toBigInteger()))
+                        .add(AddressType.encode(offer.token))
+                        .add(Uint256Type.encode(offer.identifier))
+                        .add(Uint256Type.encode(offer.startAmount))
+                        .add(Uint256Type.encode(offer.endAmount))
+                )
+            }.fold(Binary.empty()) { acc, next -> acc.add(next) }.let { keccak256(it) }
+
+            val considerationHash = data.consideration.map { consideration ->
+                keccak256(
+                    CONSIDERATION_ITEM_TYPE_HASH
+                        .add(Uint256Type.encode(consideration.itemType.value.toBigInteger()))
+                        .add(AddressType.encode(consideration.token))
+                        .add(Uint256Type.encode(consideration.identifier))
+                        .add(Uint256Type.encode(consideration.startAmount))
+                        .add(Uint256Type.encode(consideration.endAmount))
+                        .add(AddressType.encode(consideration.recipient))
+                )
+            }.fold(Binary.empty()) { acc, next -> acc.add(next) }.let { keccak256(it) }
+
+            return keccak256(
+                ORDER_TYPE_HASH
+                    .add(AddressType.encode(maker))
+                    .add(AddressType.encode(data.zone))
+                    .add(offerHash)
+                    .add(considerationHash)
+                    .add(Uint256Type.encode(data.orderType.value.toBigInteger()))
+                    .add(Uint256Type.encode((start ?: 0).toBigInteger()))
+                    .add(Uint256Type.encode((end ?: 0).toBigInteger()))
+                    .add(data.zoneHash)
+                    .add(Uint256Type.encode(salt))
+                    .add(data.conduitKey)
+                    .add(Uint256Type.encode(data.counter.toBigInteger()))
+            )
+        }
+
         fun hashKey(
             maker: Address,
             makeAssetType: AssetType,
@@ -673,3 +721,12 @@ val Order.takeNftItemId: ItemId?
  * an `OnChainOrder` event is met.
  */
 val CRYPTO_PUNKS_SALT: EthUInt256 = EthUInt256.ZERO
+
+internal const val OFFER_ITEM_TYPE_STRING = "OfferItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount)";
+internal const val CONSIDERATION_ITEM_TYPE_STRING = "ConsiderationItem(uint8 itemType,address token,uint256 identifierOrCriteria,uint256 startAmount,uint256 endAmount,address recipient)";
+internal const val ORDER_COMPONENTS_PARTIAL_TYPE_STRING = "OrderComponents(address offerer,address zone,OfferItem[] offer,ConsiderationItem[] consideration,uint8 orderType,uint256 startTime,uint256 endTime,bytes32 zoneHash,uint256 salt,bytes32 conduitKey,uint256 counter)";
+internal const val ORDER_TYPE_STRING = "${ORDER_COMPONENTS_PARTIAL_TYPE_STRING}${CONSIDERATION_ITEM_TYPE_STRING}${OFFER_ITEM_TYPE_STRING}"
+
+internal val OFFER_ITEM_TYPE_HASH = keccak256(OFFER_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+internal val CONSIDERATION_ITEM_TYPE_HASH = keccak256(CONSIDERATION_ITEM_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
+internal val ORDER_TYPE_HASH = keccak256(ORDER_TYPE_STRING.toByteArray(StandardCharsets.UTF_8))
