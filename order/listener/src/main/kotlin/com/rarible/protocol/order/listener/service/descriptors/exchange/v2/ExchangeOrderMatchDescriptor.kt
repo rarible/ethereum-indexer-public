@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.isMakeFillOrder
@@ -143,6 +144,7 @@ internal fun getOriginMaker(maker: Address, data: OrderData?): Address {
     return when (data) {
         is OrderRaribleV2DataV1 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
         is OrderRaribleV2DataV2 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
+        is OrderRaribleV2DataV3 -> data.payout?.account ?: maker
         is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderBasicSeaportDataV1, is OrderCryptoPunksData -> maker
         null -> maker
     }

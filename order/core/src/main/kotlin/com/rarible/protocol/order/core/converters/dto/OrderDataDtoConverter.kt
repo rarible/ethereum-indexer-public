@@ -8,6 +8,8 @@ import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -21,6 +23,8 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderOpenSeaV1DataV1 -> OpenSeaV1DataV1DtoConverter.convert(source)
             is OrderBasicSeaportDataV1 -> SeaportDataV1DtoConverter.convert(source)
             is OrderCryptoPunksData -> OrderCryptoPunksDataDtoConverter.convert(source)
+            is OrderRaribleV2DataV3Buy -> RaribleV2DataV3DtoConverter.convert(source)
+            is OrderRaribleV2DataV3Sell -> RaribleV2DataV3DtoConverter.convert(source)
         }
     }
 }

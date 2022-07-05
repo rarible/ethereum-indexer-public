@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.model
 
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -76,6 +77,46 @@ data class OrderRaribleV2DataV2(
     }
 }
 
+sealed class OrderRaribleV2DataV3 : OrderData() {
+    abstract val payout: Part?
+    abstract val originFeeFirst: Part?
+    abstract val originFeeSecond: Part?
+    abstract val marketplaceMarker: Word?
+}
+
+data class OrderRaribleV2DataV3Sell(
+    override val payout: Part?,
+    override val originFeeFirst: Part?,
+    override val originFeeSecond: Part?,
+    val maxFeesBasePoint: EthUInt256,
+    override val marketplaceMarker: Word?
+) : OrderRaribleV2DataV3() {
+
+    @get:Transient
+    override val version: OrderDataVersion
+        get() = OrderDataVersion.RARIBLE_V2_DATA_V3_SELL
+
+    override fun toEthereum(wrongEncode: Boolean): Binary {
+        TODO()
+    }
+}
+
+data class OrderRaribleV2DataV3Buy(
+    override val payout: Part?,
+    override val originFeeFirst: Part?,
+    override val originFeeSecond: Part?,
+    override val marketplaceMarker: Word?
+) : OrderRaribleV2DataV3() {
+
+    @get:Transient
+    override val version: OrderDataVersion
+        get() = OrderDataVersion.RARIBLE_V2_DATA_V3_BUY
+
+    override fun toEthereum(wrongEncode: Boolean): Binary {
+        TODO()
+    }
+}
+
 data class OrderOpenSeaV1DataV1(
     val exchange: Address,
     val makerRelayerFee: BigInteger,
@@ -142,6 +183,8 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
     RARIBLE_V2_DATA_V2(id("V2")),
+    RARIBLE_V2_DATA_V3_SELL(id("V3_SELL")),
+    RARIBLE_V2_DATA_V3_BUY(id("V3_BUY")),
     OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
     BASIC_SEAPORT_DATA_V1(id("BASIC_SEAPORT_DATA_V1")),
     CRYPTO_PUNKS

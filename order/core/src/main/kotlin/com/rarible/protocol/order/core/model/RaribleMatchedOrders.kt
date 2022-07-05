@@ -17,6 +17,7 @@ data class RaribleMatchedOrders(
                 return when (data) {
                     is OrderRaribleV2DataV1 -> data.originFees
                     is OrderRaribleV2DataV2 -> data.originFees
+                    is OrderRaribleV2DataV3 -> listOfNotNull(data.originFeeFirst, data.originFeeSecond)
                     is OrderOpenSeaV1DataV1,
                     is OrderBasicSeaportDataV1,
                     is OrderCryptoPunksData,

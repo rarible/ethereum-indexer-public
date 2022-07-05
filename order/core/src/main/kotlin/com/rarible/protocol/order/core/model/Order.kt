@@ -166,6 +166,8 @@ data class Order(
                 is OrderDataLegacy,
                 is OrderRaribleV2DataV1,
                 is OrderRaribleV2DataV2,
+                is OrderRaribleV2DataV3Buy,
+                is OrderRaribleV2DataV3Sell,
                 is OrderBasicSeaportDataV1 -> false
             }
         } else {
@@ -268,9 +270,13 @@ data class Order(
         }
 
         private fun calculateFee(data: OrderData, protocolCommission: EthUInt256): EthUInt256 {
+            fun calculate(fees: List<Part>): EthUInt256 {
+                return fees.fold(protocolCommission) { acc, part -> acc + part.value  }
+            }
             return when (data) {
-                is OrderRaribleV2DataV1 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
-                is OrderRaribleV2DataV2 -> data.originFees.fold(protocolCommission) { acc, part -> acc + part.value  }
+                is OrderRaribleV2DataV1 -> calculate(data.originFees)
+                is OrderRaribleV2DataV2 -> calculate(data.originFees)
+                is OrderRaribleV2DataV3 -> calculate(listOfNotNull(data.originFeeFirst, data.originFeeSecond))
                 is OrderDataLegacy -> EthUInt256.of(data.fee.toLong())
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
                 is OrderCryptoPunksData -> EthUInt256.ZERO
