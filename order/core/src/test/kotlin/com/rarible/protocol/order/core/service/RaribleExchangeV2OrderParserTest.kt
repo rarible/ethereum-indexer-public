@@ -171,6 +171,33 @@ internal class RaribleExchangeV2OrderParserTest : AbstractIntegrationTest() {
         assertThat(parsedOrders.right.takeAssetType).isEqualTo(order.make.type)
     }
 
+    @Test
+    fun `should parse order data v3 sell`() {
+        val expected = createOrderRaribleV1DataV3Sell()
+        val model = raribleExchangeV2OrderParser.convertOrderData(expected.version.ethDataType!!, expected.toEthereum())
+        assertThat(model).isInstanceOf(OrderRaribleV2DataV3Sell::class.java)
+        with(model as OrderRaribleV2DataV3Sell) {
+            assertThat(payout!!).isEqualTo(expected.payout)
+            assertThat(originFeeFirst!!).isEqualTo(expected.originFeeFirst)
+            assertThat(originFeeSecond!!).isEqualTo(expected.originFeeSecond)
+            assertThat(maxFeesBasePoint).isEqualTo(expected.maxFeesBasePoint)
+            assertThat(marketplaceMarker!!).isEqualTo(expected.marketplaceMarker)
+        }
+    }
+
+    @Test
+    fun `should parse order data v3 buy`() {
+        val expected = createOrderRaribleV1DataV3Buy()
+        val model = raribleExchangeV2OrderParser.convertOrderData(expected.version.ethDataType!!, expected.toEthereum())
+        assertThat(model).isInstanceOf(OrderRaribleV2DataV3Buy::class.java)
+        with(model as OrderRaribleV2DataV3Buy) {
+            assertThat(payout!!).isEqualTo(expected.payout)
+            assertThat(originFeeFirst!!).isEqualTo(expected.originFeeFirst)
+            assertThat(originFeeSecond!!).isEqualTo(expected.originFeeSecond)
+            assertThat(marketplaceMarker!!).isEqualTo(expected.marketplaceMarker)
+        }
+    }
+
     protected fun generateNewKeys(): NewKeys {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val publicKey = Sign.publicKeyFromPrivate(privateKey)

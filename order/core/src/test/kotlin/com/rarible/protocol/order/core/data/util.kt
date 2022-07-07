@@ -97,12 +97,58 @@ fun createOrderRaribleV2DataV1(): OrderRaribleV2DataV1 {
     )
 }
 
+fun createOrderRaribleV1DataV3Sell(): OrderRaribleV2DataV3Sell {
+    return OrderRaribleV2DataV3Sell(
+        payout = cratePart(),
+        originFeeFirst = cratePart(),
+        originFeeSecond = cratePart(),
+        maxFeesBasePoint = EthUInt256.of(randomInt()),
+        marketplaceMarker = Word.apply(randomWord())
+    )
+}
+
+fun createOrderRaribleV1DataV3SellDto(): OrderRaribleV2DataV3SellDto {
+    return OrderRaribleV2DataV3SellDto(
+        payout = cratePartDto(),
+        originFeeFirst = cratePartDto(),
+        originFeeSecond = cratePartDto(),
+        maxFeesBasePoint = randomInt(),
+        marketplaceMarker = Word.apply(randomWord())
+    )
+}
+
+fun createOrderRaribleV1DataV3Buy(): OrderRaribleV2DataV3Buy {
+    return OrderRaribleV2DataV3Buy(
+        payout = cratePart(),
+        originFeeFirst = cratePart(),
+        originFeeSecond = cratePart(),
+        marketplaceMarker = Word.apply(randomWord())
+    )
+}
+
+fun createOrderRaribleV1DataV3BuyDto(): OrderRaribleV2DataV3BuyDto {
+    return OrderRaribleV2DataV3BuyDto(
+        payout = cratePartDto(),
+        originFeeFirst = cratePartDto(),
+        originFeeSecond = cratePartDto(),
+        marketplaceMarker = Word.apply(randomWord())
+    )
+}
+
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
     return copy(
         data = newData,
         hash = Order.hashKey(maker, make.type, take.type, salt.value, newData)
     )
+}
+
+fun cratePart(): Part {
+    return Part(randomAddress(), EthUInt256.of(randomInt()))
+}
+
+fun cratePartDto(): PartDto {
+    return PartDto(randomAddress(), randomInt())
 }
 
 fun OrderData.withMakeFill(isMakeFill: Boolean = true): OrderData = when (this) {

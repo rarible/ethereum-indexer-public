@@ -614,8 +614,8 @@ data class Order(
             salt: BigInteger,
             data: OrderData? = null
         ): Word = when (data) {
-            is OrderRaribleV2DataV2 -> {
-                // For RaribleV2 DataV2 hash contains the data bytes.
+            is OrderRaribleV2DataV2, is OrderRaribleV2DataV3 -> {
+                // For RaribleV2 DataV2/DataV3 hash contains the data bytes.
                 keccak256(
                     Tuples.orderKeyHashTypeDataV2().encode(
                         Tuple5(

@@ -8,6 +8,7 @@ import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
 import com.rarible.protocol.contracts.exchange.metatx.EIP712MetaTransaction
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
+import com.rarible.protocol.order.core.misc.zeroWord
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -172,8 +173,44 @@ class RaribleExchangeV2OrderParser(
                     isMakeFill = isMakeFill
                 )
             }
+            OrderDataVersion.RARIBLE_V2_DATA_V3_SELL.ethDataType -> {
+                val decoded = Tuples.orderDataV3SellType().decode(data, 0).value()
+                val payout = decoded._1().toPart()
+                val originFeeFirst = decoded._2().toPart()
+                val originFeeSecond = decoded._3().toPart()
+                val maxFeesBasePoint = EthUInt256.of(decoded._4())
+                val marketplaceMarker = decoded._5().toMarketplaceMarker()
+                OrderRaribleV2DataV3Sell(
+                    payout = payout,
+                    originFeeFirst = originFeeFirst,
+                    originFeeSecond = originFeeSecond,
+                    maxFeesBasePoint = maxFeesBasePoint,
+                    marketplaceMarker = marketplaceMarker
+                )
+            }
+            OrderDataVersion.RARIBLE_V2_DATA_V3_BUY.ethDataType -> {
+                val decoded = Tuples.orderDataV3BuyType().decode(data, 0).value()
+                val payout = decoded._1().toPart()
+                val originFeeFirst = decoded._2().toPart()
+                val originFeeSecond = decoded._3().toPart()
+                val marketplaceMarker = decoded._4().toMarketplaceMarker()
+                OrderRaribleV2DataV3Buy(
+                    payout = payout,
+                    originFeeFirst = originFeeFirst,
+                    originFeeSecond = originFeeSecond,
+                    marketplaceMarker = marketplaceMarker
+                )
+            }
             else -> throw IllegalArgumentException("Unsupported order data version $version")
         }
+    }
+
+    private fun BigInteger.toPart(): Part? {
+       return takeUnless { it == BigInteger.ZERO }?.let { Part.from(it) }
+    }
+
+    private fun ByteArray.toMarketplaceMarker(): Word? {
+        return Word.apply(this).takeUnless { it == zeroWord() }
     }
 
     private fun AssetType.tryToConvertInCollection(): AssetType {

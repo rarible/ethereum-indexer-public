@@ -1,12 +1,14 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
+import com.rarible.protocol.order.core.converters.model.PartConverter
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -22,6 +24,7 @@ import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.getOriginFees
 import com.rarible.protocol.order.core.model.toOrderExactFields
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import com.rarible.protocol.order.listener.misc.sign
@@ -59,7 +62,11 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             salt = EthUInt256.TEN,
             start = null,
             end = null,
-            data = OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = true),
+            data = OrderRaribleV2DataV2(
+                originFees = listOf(Part(randomAddress(), EthUInt256.of(250)), Part(randomAddress(), EthUInt256.of(250))),
+                payouts = emptyList(),
+                isMakeFill = true
+            ),
             signature = null,
             createdAt = nowMillis(),
             makePriceUsd = null,
@@ -83,16 +90,15 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
         val signature = eip712Domain.hashToSign(Order.hash(sellOrder)).sign(privateKey1)
 
-        val prepared = prepareTxService.prepareTransaction(
-            sellOrder.copy(signature = signature).toOrderExactFields(),
-            PrepareOrderTxFormDto(
-                maker = userSender2.from(),
-                amount = BigInteger.valueOf(4),
-                payouts = emptyList(),
-                originFees = emptyList()
-            )
+        val formData = PrepareOrderTxFormDto(
+            maker = userSender2.from(),
+            amount = BigInteger.valueOf(4),
+            payouts = emptyList(),
+            originFees = listOf(PartDto(randomAddress(), 250), PartDto(randomAddress(), 250))
         )
-
+        val prepared = prepareTxService.prepareTransaction(
+            sellOrder.copy(signature = signature).toOrderExactFields(), formData
+        )
         // Imitate the balance of the seller: 6 ERC1155
         coEvery { assetBalanceProvider.getAssetStock(any(), any()) } returns MakeBalanceState(EthUInt256.of(6))
 
@@ -107,8 +113,17 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 null
             )
         ).verifySuccess()
-        val rightOrderHash = Order.hashKey(userSender2.from(), sellOrder.take.type, sellOrder.make.type, BigInteger.ZERO, sellOrder.data)
-
+        val rightOrderHash = Order.hashKey(
+            userSender2.from(),
+            sellOrder.take.type,
+            sellOrder.make.type,
+            BigInteger.ZERO,
+            OrderRaribleV2DataV2(
+                originFees = formData.originFees.map { PartConverter.convert(it) },
+                payouts = emptyList(),
+                isMakeFill = true
+            )
+        )
         assertThat(exchange.fills(sellOrder.hash.bytes()).call().awaitFirst()).isEqualTo(BigInteger.valueOf(4))
 
         Wait.waitAssert {
@@ -124,9 +139,9 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(left.hash).isEqualTo(sellOrder.hash)
             assertThat(left.fill).isEqualTo(EthUInt256.of(4))
-            assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
-            assertThat(left.adhoc).isFalse()
-            assertThat(left.counterAdhoc).isTrue()
+            assertThat(left.originFees).isEqualTo(sellOrder.data.getOriginFees())
+            assertThat(left.adhoc).isFalse
+            assertThat(left.counterAdhoc).isTrue
             verify {
                 @Suppress("ReactiveStreamsUnusedPublisher")
                 currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
@@ -134,7 +149,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.fill).isEqualTo(EthUInt256.of(40))
-            assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
+            assertThat(left.originFees).isEqualTo(sellOrder.data.getOriginFees())
             assertThat(right.adhoc).isTrue()
             assertThat(right.counterAdhoc).isFalse()
             verify {
@@ -142,7 +157,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())
             }
         }
-
         Wait.waitAssert {
             val filledOrder = orderRepository.findById(sellOrder.hash)
             assertThat(filledOrder).isNotNull; filledOrder!!
@@ -150,7 +164,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(filledOrder.makeStock).isEqualTo(EthUInt256.of(6))
             assertThat(filledOrder.status).isEqualTo(OrderStatus.ACTIVE)
         }
-
         checkActivityWasPublished {
             assertThat(this).isInstanceOfSatisfying(OrderActivityMatchDto::class.java) {
                 assertThat(it.left.hash).isEqualTo(sellOrder.hash)
@@ -240,7 +253,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(left.hash).isEqualTo(sellOrder.hash)
             assertThat(left.fill).isEqualTo(EthUInt256.TEN)
-            assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(left.adhoc).isFalse
             assertThat(left.counterAdhoc).isTrue
             verify {
@@ -250,7 +262,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.hash).isEqualTo(rightOrderHash)
             assertThat(right.fill).isEqualTo(EthUInt256.of(100))
-            assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), true))
             assertThat(right.adhoc).isTrue
             assertThat(right.counterAdhoc).isFalse()
             verify {
@@ -361,7 +372,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(left.hash).isEqualTo(bidOrder.hash)
             assertThat(left.fill).isEqualTo(EthUInt256.of(4))
-            assertThat(left.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false))
             assertThat(left.adhoc).isFalse()
             assertThat(left.counterAdhoc).isTrue()
             verify {
@@ -371,7 +381,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.hash).isEqualTo(Order.hashKey(userSender2.from(), bidOrder.take.type, bidOrder.make.type, BigInteger.ZERO, bidOrder.data))
             assertThat(right.fill).isEqualTo(EthUInt256.of(40))
-            assertThat(right.data).isEqualTo(OrderRaribleV2DataV2(emptyList(), emptyList(), isMakeFill = false))
             assertThat(right.adhoc).isTrue()
             assertThat(right.counterAdhoc).isFalse()
             verify {
@@ -461,7 +470,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(right).isNotNull; right!!
 
             assertThat(left.fill).isEqualTo(EthUInt256.ONE)
-            assertThat(left.data).isEqualTo(bidOrder.data)
             assertThat(left.make).isEqualTo(bidOrder.make.copy(value = EthUInt256.TEN))
             assertThat(left.take).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
             assertThat(left.makeValue).isEqualTo(BigDecimal("0.000000000000000010"))
@@ -472,7 +480,6 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             }
 
             assertThat(right.fill).isEqualTo(EthUInt256.TEN)
-            assertThat(right.data).isEqualTo(OrderRaribleV2DataV1(emptyList(), emptyList()))
             assertThat(right.make).isEqualTo(bidOrder.take.copy(value = EthUInt256.ONE))
             assertThat(right.take).isEqualTo(bidOrder.make.copy(value = EthUInt256.TEN))
             verify {
@@ -511,8 +518,9 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
     @Test
     fun `fully match take-fill bid order with payout - data V1`() = runBlocking<Unit> {
         val leftPayout = AddressFactory.create()
+        val leftOriginFees = AddressFactory.create()
         val rightPayout = AddressFactory.create()
-
+        val rightOriginFees = AddressFactory.create()
         /*
         Bid order: 10 ERC20 -> 1 NFT
          */
@@ -526,8 +534,8 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             start = null,
             end = null,
             data = OrderRaribleV2DataV1(
-                payouts = listOf(Part(leftPayout, EthUInt256.of(10000))),
-                originFees = emptyList()
+                originFees = listOf(Part(leftOriginFees, EthUInt256.of(250))),
+                payouts = listOf(Part(leftPayout, EthUInt256.of(10000)))
             ),
             signature = null,
             createdAt = nowMillis(),
@@ -552,7 +560,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
                 maker = userSender2.from(),
                 amount = BigInteger.ONE,
                 payouts = listOf(PartDto(rightPayout, 10000)),
-                originFees = emptyList()
+                originFees = listOf(PartDto(rightOriginFees, 250))
             )
         )
         userSender2.sendTransaction(
@@ -582,14 +590,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
             assertThat(left).isNotNull; left!!
             assertThat(right).isNotNull; right!!
 
-            assertThat(left.data).isEqualTo(bidOrder.data)
-            assertThat(right.data).isEqualTo(
-                OrderRaribleV2DataV1(
-                    payouts = listOf(Part(rightPayout, EthUInt256.of(10000))),
-                    originFees = emptyList()
-                )
-            )
-
+            assertThat(left.originFees).isEqualTo(listOf(Part(leftOriginFees, EthUInt256.of(250))))
             assertThat(left.maker).isEqualTo(leftPayout)
             assertThat(left.taker).isEqualTo(rightPayout)
             verify {
@@ -599,6 +600,7 @@ class ExchangeV2MatchDescriptorTest : AbstractExchangeV2Test() {
 
             assertThat(right.maker).isEqualTo(rightPayout)
             assertThat(right.taker).isEqualTo(leftPayout)
+            assertThat(right.originFees).isEqualTo(listOf(Part(rightOriginFees, EthUInt256.of(250))))
             verify {
                 @Suppress("ReactiveStreamsUnusedPublisher")
                 currencyApi.getCurrencyRate(any(), any(), right.date.toEpochMilli())

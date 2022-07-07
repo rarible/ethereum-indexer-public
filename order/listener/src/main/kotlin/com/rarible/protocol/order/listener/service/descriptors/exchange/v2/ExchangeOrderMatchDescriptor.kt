@@ -80,7 +80,6 @@ class ExchangeOrderMatchDescriptor(
         } else {
             EthUInt256(event.newLeftFill())
         }
-
         val rightFill = if (transactionOrders?.right?.data?.isMakeFillOrder == true) {
             EthUInt256(event.newLeftFill())
         } else {
@@ -105,10 +104,10 @@ class ExchangeOrderMatchDescriptor(
                 takePriceUsd = leftUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.left?.data,
                 adhoc = leftAdhoc,
                 counterAdhoc = rightAdhoc,
-                originFees = transactionOrders?.left?.originFees
+                originFees = transactionOrders?.left?.originFees,
+                marketplaceMarker = transactionOrders?.left?.marketplaceMarker
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -127,10 +126,10 @@ class ExchangeOrderMatchDescriptor(
                 takePriceUsd = rightUsdValue?.takePriceUsd,
                 source = HistorySource.RARIBLE,
                 date = date,
-                data = transactionOrders?.right?.data,
                 adhoc = rightAdhoc,
                 counterAdhoc = leftAdhoc,
-                originFees = transactionOrders?.right?.originFees
+                originFees = transactionOrders?.right?.originFees,
+                marketplaceMarker = transactionOrders?.right?.marketplaceMarker
             )
         )
     }

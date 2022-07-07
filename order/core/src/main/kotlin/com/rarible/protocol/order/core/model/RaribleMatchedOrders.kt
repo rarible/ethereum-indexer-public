@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
+import io.daonomic.rpc.domain.Word
 
 data class RaribleMatchedOrders(
     val left: SimpleOrder,
@@ -12,17 +13,10 @@ data class RaribleMatchedOrders(
         val data: OrderData,
         val salt: EthUInt256
     ) {
+        val marketplaceMarker: Word?
+            get() = data.getMarketplaceMarker()
+
         val originFees: List<Part>?
-            get() {
-                return when (data) {
-                    is OrderRaribleV2DataV1 -> data.originFees
-                    is OrderRaribleV2DataV2 -> data.originFees
-                    is OrderRaribleV2DataV3 -> listOfNotNull(data.originFeeFirst, data.originFeeSecond)
-                    is OrderOpenSeaV1DataV1,
-                    is OrderBasicSeaportDataV1,
-                    is OrderCryptoPunksData,
-                    is OrderDataLegacy -> null
-                }
-            }
+            get() = data.getOriginFees()
     }
 }

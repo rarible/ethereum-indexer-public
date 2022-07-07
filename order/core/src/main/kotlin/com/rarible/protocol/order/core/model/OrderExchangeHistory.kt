@@ -49,6 +49,7 @@ data class OrderSideMatch(
     val counterAdhoc: Boolean? = null,
     // Fees which were got above price
     val originFees: List<Part>? = emptyList(),
+    val marketplaceMarker: Word? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
 
 data class OrderCancel(

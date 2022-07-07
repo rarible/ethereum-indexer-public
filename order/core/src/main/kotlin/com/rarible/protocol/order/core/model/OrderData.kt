@@ -2,11 +2,14 @@ package com.rarible.protocol.order.core.model
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
+import com.rarible.protocol.order.core.misc.zeroWord
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Transient
 import scala.Tuple2
 import scala.Tuple3
+import scala.Tuple4
+import scala.Tuple5
 import scalether.domain.Address
 import java.math.BigInteger
 
@@ -97,7 +100,14 @@ data class OrderRaribleV2DataV3Sell(
         get() = OrderDataVersion.RARIBLE_V2_DATA_V3_SELL
 
     override fun toEthereum(wrongEncode: Boolean): Binary {
-        TODO()
+        val tuple5 = Tuple5(
+            payout?.toBigInteger() ?: BigInteger.ZERO,
+            originFeeFirst?.toBigInteger() ?: BigInteger.ZERO,
+            originFeeSecond?.toBigInteger() ?: BigInteger.ZERO,
+            maxFeesBasePoint.value,
+            (marketplaceMarker ?: zeroWord()).bytes()
+        )
+        return Tuples.orderDataV3SellType().encode(tuple5)
     }
 }
 
@@ -113,7 +123,13 @@ data class OrderRaribleV2DataV3Buy(
         get() = OrderDataVersion.RARIBLE_V2_DATA_V3_BUY
 
     override fun toEthereum(wrongEncode: Boolean): Binary {
-        TODO()
+        val tuple4 = Tuple4(
+            payout?.toBigInteger() ?: BigInteger.ZERO,
+            originFeeFirst?.toBigInteger() ?: BigInteger.ZERO,
+            originFeeSecond?.toBigInteger() ?: BigInteger.ZERO,
+            (marketplaceMarker ?: zeroWord()).bytes()
+        )
+        return Tuples.orderDataV3BuyType().encode(tuple4)
     }
 }
 
@@ -197,3 +213,17 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
  * Later DataV2 was introduced with "isMakeFill" flag to support the fill by make.
  */
 val OrderData.isMakeFillOrder: Boolean get() = this is OrderRaribleV2DataV2 && this.isMakeFill
+
+fun OrderData.getMarketplaceMarker() = if (this is OrderRaribleV2DataV3) this.marketplaceMarker else null
+
+fun OrderData.getOriginFees(): List<Part>? {
+    return when (this) {
+        is OrderRaribleV2DataV1 -> this.originFees
+        is OrderRaribleV2DataV2 -> this.originFees
+        is OrderRaribleV2DataV3 -> listOfNotNull(this.originFeeFirst, this.originFeeSecond)
+        is OrderOpenSeaV1DataV1,
+        is OrderBasicSeaportDataV1,
+        is OrderCryptoPunksData,
+        is OrderDataLegacy -> null
+    }
+}
