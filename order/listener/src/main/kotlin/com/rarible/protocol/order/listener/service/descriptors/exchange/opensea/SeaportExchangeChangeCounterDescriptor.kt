@@ -37,12 +37,11 @@ class SeaportExchangeChangeCounterDescriptor(
 
     private suspend fun convert(log: Log, date: Instant): ChangeNonceHistory {
         val event = CounterIncrementedEvent.apply(log)
-        seaportCounterEventCounter.increment()
         return ChangeNonceHistory(
             maker = event.offerer(),
             newNonce = EthUInt256.of(event.newCounter()),
             date = date,
-        )
+        ).also { seaportCounterEventCounter.increment() }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(listOf(exchangeContractAddresses.seaportV1))

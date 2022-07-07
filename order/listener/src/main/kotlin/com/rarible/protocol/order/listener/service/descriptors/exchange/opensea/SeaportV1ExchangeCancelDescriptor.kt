@@ -12,8 +12,6 @@ import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -42,16 +40,12 @@ class SeaportV1ExchangeCancelDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): List<OrderCancel> {
         val event = OrderCancelledEvent.apply(log)
-        seaportCancelEventCounter.increment()
-        logger.info("Seaport cancel log: index=$index, totalLogs=$totalLogs, tx=${transaction.hash()}")
-        return seaportEventConverter.convert(event, transaction, date)
+        return seaportEventConverter
+            .convert(event, transaction, index, totalLogs, date)
+            .also { seaportCancelEventCounter.increment() }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
         listOf(exchangeContractAddresses.seaportV1)
     )
-
-    private companion object {
-        val logger: Logger = LoggerFactory.getLogger(SeaportV1ExchangeCancelDescriptor::class.java)
-    }
 }
