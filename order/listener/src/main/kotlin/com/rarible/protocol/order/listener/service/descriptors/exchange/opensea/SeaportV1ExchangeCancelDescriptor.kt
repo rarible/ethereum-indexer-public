@@ -29,7 +29,6 @@ class SeaportV1ExchangeCancelDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val seaportEventConverter: SeaportEventConverter,
     private val seaportCancelEventCounter: RegisteredCounter,
-
 ) : LogEventDescriptor<OrderCancel> {
 
     override val collection: String
@@ -45,10 +44,7 @@ class SeaportV1ExchangeCancelDescriptor(
         val event = OrderCancelledEvent.apply(log)
         return seaportEventConverter
             .convert(event, transaction, index, totalLogs, date)
-            .also {
-                logger.seaportInfo("Cancel event (tx=${transaction.hash()})")
-                seaportCancelEventCounter.increment()
-            }
+            .also { seaportCancelEventCounter.increment() }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
