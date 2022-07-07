@@ -26,7 +26,7 @@ class ApprovalForAllDescriptor(
         properties.transferProxyAddresses.transferProxy,
         properties.transferProxyAddresses.erc1155LazyTransferProxy,
         properties.transferProxyAddresses.erc721LazyTransferProxy,
-        properties.transferProxyAddresses.seaPortTransferProxy
+        properties.transferProxyAddresses.seaportTransferProxy
     )
 
     override val collection: String = ApprovalHistoryRepository.COLLECTION
