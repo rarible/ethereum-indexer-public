@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.ZeroExMatchOrdersData
 import com.rarible.protocol.order.core.model.ZeroExOrder
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -49,9 +50,8 @@ class ZeroExOrderEventConverter(
         require(secondOrder == null || order.takerAssetData == secondOrder.makerAssetData) {
             "take and make assets must be equal"
         }
-
-        val makeAsset = createAsset(assetData = order.makerAssetData, amount = makerAssetFilledAmount)
-        val takeAsset = createAsset(assetData = order.takerAssetData, amount = takerAssetFilledAmount)
+        val makeAsset = createAsset(assetData = order.makerAssetData, amount = makerAssetFilledAmount) ?: return emptyList()
+        val takeAsset = createAsset(assetData = order.takerAssetData, amount = takerAssetFilledAmount) ?: return emptyList()
 
         val leftOrderSide = getOrderSide(makeAsset, secondOrder)
 
@@ -93,7 +93,7 @@ class ZeroExOrderEventConverter(
     private fun createAsset(
         assetData: Binary,
         amount: BigInteger,
-    ): Asset {
+    ): Asset? {
         val type = assetData.slice(0, 4).toString()
         val token = Address.apply(assetData.slice(16, 36))
         val value = EthUInt256.of(amount)
@@ -123,6 +123,10 @@ class ZeroExOrderEventConverter(
                     ),
                     value = value
                 )
+            }
+            BUNDLE_ASSET_TYPE -> {
+                logger.warn("Unsupported asset type $type of zero ex asset, skip it")
+                null
             }
             else -> {
                 throw IllegalStateException("Unknown asset type $type of zero ex asset")
@@ -213,5 +217,6 @@ class ZeroExOrderEventConverter(
         private const val ERC20_ASSET_TYPE = "0xf47261b0"
         private const val ERC721_ASSET_TYPE = "0x02571792"
         private const val ERC1155_ASSET_TYPE = "0xa7cb5fb7"
+        private const val BUNDLE_ASSET_TYPE = "0x94cfcdd7"
     }
 }

@@ -22,10 +22,11 @@ class ApprovalForAllDescriptor(
     properties: OrderIndexerProperties
 ) : LogEventDescriptor<ApprovalHistory> {
 
-    private val trackedOperators = listOf(
+    private val trackedOperators = listOfNotNull(
         properties.transferProxyAddresses.transferProxy,
         properties.transferProxyAddresses.erc1155LazyTransferProxy,
-        properties.transferProxyAddresses.erc721LazyTransferProxy
+        properties.transferProxyAddresses.erc721LazyTransferProxy,
+        properties.transferProxyAddresses.seaportTransferProxy
     )
 
     override val collection: String = ApprovalHistoryRepository.COLLECTION
@@ -56,5 +57,4 @@ class ApprovalForAllDescriptor(
             approved = event.approved()
         )
     }
-
 }

@@ -21,7 +21,7 @@ class SeaportOrderLoader(
     private val seaportSaveCounter: RegisteredCounter
 ) {
     suspend fun load(cursor: String?): SeaportOrders {
-        val result = openSeaOrderService.getNextSellOrders(cursor)
+        val result = safeGetNextSellOrders(cursor)
         val orders = result.orders
         if (orders.isNotEmpty()) {
             val createdAts = orders.map { it.createdAt }
@@ -64,6 +64,15 @@ class SeaportOrderLoader(
             logger.seaportInfo("No new orders was fetched")
         }
         return result
+    }
+
+    private suspend fun safeGetNextSellOrders(cursor: String?): SeaportOrders {
+        return try {
+            openSeaOrderService.getNextSellOrders(cursor)
+        } catch (ex: Throwable) {
+            logger.seaportError("Can't get next orders with cursor $cursor", ex)
+            throw ex
+        }
     }
 
     private companion object {

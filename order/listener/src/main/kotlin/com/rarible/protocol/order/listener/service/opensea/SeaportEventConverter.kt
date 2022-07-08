@@ -111,34 +111,38 @@ class SeaportEventConverter(
     suspend fun convert(
         event: OrderCancelledEvent,
         transaction: Transaction,
+        index: Int,
+        totalLogs: Int,
         date: Instant
     ): List<OrderCancel> {
-        val input = if (CANCEL_SIGNATURE_ID == transaction.input().methodSignatureId()) {
-            transaction.input()
+        val inputs = if (CANCEL_SIGNATURE_ID == transaction.input().methodSignatureId()) {
+            listOf(transaction.input())
         } else {
             if (featureFlags.skipGetTrace) {
-                null
+               emptyList()
             } else {
                 traceCallService.findAllRequiredCallInputs(
                     txHash = transaction.hash(),
                     txInput = transaction.input(),
                     to = event.log().address(),
                     id = CANCEL_SIGNATURE_ID
-                ).firstOrNull()
+                )
             }
         }
         val orderHash = Word.apply(
             event.orderHash()
         )
-        val assets = if (input != null) {
-            val components = CANCEL_SIGNATURE.`in`().decode(input, 4).value().map(::convert)
-            val targetIndex = components.indexOfFirst {
-                Order.seaportV1Hash(it) == orderHash
+        val assets = if (inputs.isNotEmpty()) {
+            val components = inputs.map { CANCEL_SIGNATURE.`in`().decode(it, 4).value().toList() }.flatten()
+            require(components.size == totalLogs) {
+                "Order components size (${components.size}) is net equals totalLogs=${totalLogs} (tx=${transaction.hash()})"
             }
-            require(targetIndex != -1) {
-                "Can't find order hash $orderHash in components list (tx=${transaction.hash()})"
+
+            val targetComponent = convert(components[index])
+            require(Order.seaportV1Hash(targetComponent) == orderHash) {
+                "Components hash needn't match order hash $orderHash in  (tx=${transaction.hash()})"
             }
-            convertToAsserts(components[targetIndex])
+            convertToAsserts(targetComponent)
         } else {
             null
         }

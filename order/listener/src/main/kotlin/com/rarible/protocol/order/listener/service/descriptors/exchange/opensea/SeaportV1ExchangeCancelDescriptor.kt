@@ -9,9 +9,12 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.opensea.SeaportEventConverter
+import com.rarible.protocol.order.listener.service.opensea.seaportInfo
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -26,7 +29,6 @@ class SeaportV1ExchangeCancelDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val seaportEventConverter: SeaportEventConverter,
     private val seaportCancelEventCounter: RegisteredCounter,
-
 ) : LogEventDescriptor<OrderCancel> {
 
     override val collection: String
@@ -35,16 +37,21 @@ class SeaportV1ExchangeCancelDescriptor(
     override val topic: Word = OrderCancelledEvent.id()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderCancel> {
-        return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
+    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): List<OrderCancel> {
         val event = OrderCancelledEvent.apply(log)
-        seaportCancelEventCounter.increment()
-        return seaportEventConverter.convert(event, transaction, date)
+        return seaportEventConverter
+            .convert(event, transaction, index, totalLogs, date)
+            .also { seaportCancelEventCounter.increment() }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(
         listOf(exchangeContractAddresses.seaportV1)
     )
+
+    private companion object {
+        val logger: Logger = LoggerFactory.getLogger(SeaportV1ExchangeCancelDescriptor::class.java)
+    }
 }
