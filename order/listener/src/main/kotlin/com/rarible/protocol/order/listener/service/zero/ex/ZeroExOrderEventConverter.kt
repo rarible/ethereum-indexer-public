@@ -125,7 +125,7 @@ class ZeroExOrderEventConverter(
                 )
             }
             BUNDLE_ASSET_TYPE -> {
-                logger.warn("Unknown asset type $type of zero ex asset, skip it")
+                logger.warn("Unsupported asset type $type of zero ex asset, skip it")
                 null
             }
             else -> {
