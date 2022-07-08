@@ -9,12 +9,16 @@ import scalether.domain.response.Transaction
 @Component
 class CustomMintDetector {
     fun isMint(event: TransferSingleEvent, transaction: Transaction): Boolean {
-        return event._from() == event._to() && transaction.input().methodSignatureId() in MINT_METHODS
+        return (isMethodCalled(transaction, MINT_METHOD_ID_SIGNATURE) && event._from() == event._to()) ||
+               (isMethodCalled(transaction, AIRDROP_METHOD_ID_SIGNATURE) && transaction.from() == event._from())
+    }
+
+    private fun isMethodCalled(transaction: Transaction, method: Binary): Boolean {
+        return transaction.input().methodSignatureId() == method
     }
 
     companion object {
         internal val MINT_METHOD_ID_SIGNATURE: Binary = Binary.apply("0x731133e9")
         internal val AIRDROP_METHOD_ID_SIGNATURE: Binary = Binary.apply("0xc204642c")
-        internal val MINT_METHODS: List<Binary> = listOf(MINT_METHOD_ID_SIGNATURE, AIRDROP_METHOD_ID_SIGNATURE)
     }
 }
