@@ -4,6 +4,7 @@ import com.rarible.contracts.erc721.ApprovalForAllEvent
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
+import com.rarible.protocol.contracts.ApprovalForAllByTopicsEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ApprovalHistory
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
@@ -49,7 +50,10 @@ class ApprovalForAllDescriptor(
     }
 
     private fun convert(log: Log): ApprovalHistory {
-        val event = ApprovalForAllEvent.apply(log)
+        val event = when(log.topics().size()) {
+            4 -> ApprovalForAllByTopicsEvent.apply(log)
+            else -> ApprovalForAllEvent.apply(log)
+        }
         return ApprovalHistory(
             collection = log.address(),
             owner = event.owner(),

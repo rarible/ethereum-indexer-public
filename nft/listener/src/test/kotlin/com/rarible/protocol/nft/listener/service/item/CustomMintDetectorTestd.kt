@@ -22,4 +22,16 @@ internal class CustomMintDetectorTest {
         }
         assertThat(customMintDetector.isMint(event, transaction)).isTrue
     }
+
+    @Test
+    fun `should detect mint by airdrop method id`() {
+        val event = mockk<TransferSingleEvent> {
+            every { _from() } returns Address.ONE()
+        }
+        val transaction = mockk<Transaction> {
+            every { from() } returns Address.ONE()
+            every { input() } returns CustomMintDetector.AIRDROP_METHOD_ID_SIGNATURE
+        }
+        assertThat(customMintDetector.isMint(event, transaction)).isTrue
+    }
 }
