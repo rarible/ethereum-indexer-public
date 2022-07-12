@@ -144,9 +144,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun mintItemViaPending(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun mintItemViaPending() = withReducer(ReduceVersion.V2) {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -419,9 +418,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun pendingItemTransfer(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun pendingItemTransfer() = withReducer(ReduceVersion.V2) {
         val from = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -635,9 +633,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should set pending log only for target ownerships`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should set pending log only for target ownerships`() = withReducer(ReduceVersion.V2) {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner1 = AddressFactory.create()
@@ -687,19 +684,9 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         val ownership3 = ownershipRepository.findById(OwnershipId(token, tokenId, owner3)).awaitFirst()
         assertThat(ownership3.value).isEqualTo(EthUInt256.ZERO)
 
-
-        when (version) {
-            ReduceVersion.V1 -> {
-                assertThat(ownership1.pending).isEmpty()
-                assertThat(ownership2.pending).hasSize(1)
-                assertThat(ownership3.pending).hasSize(1)
-            }
-            ReduceVersion.V2 -> {
-                assertThat(ownership1.getPendingEvents()).isEmpty()
-                assertThat(ownership2.getPendingEvents()).hasSize(1)
-                assertThat(ownership3.getPendingEvents()).hasSize(1)
-            }
-        }
+        assertThat(ownership1.getPendingEvents()).isEmpty()
+        assertThat(ownership2.getPendingEvents()).hasSize(1)
+        assertThat(ownership3.getPendingEvents()).hasSize(1)
     }
 
     @ParameterizedTest
@@ -1086,8 +1073,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     companion object {
         @JvmStatic
         fun invalidLogEventStatus(): Stream<Arguments> = Stream.of(
-            Arguments.of(LogEventStatus.DROPPED, ReduceVersion.V1),
-            Arguments.of(LogEventStatus.INACTIVE, ReduceVersion.V1),
             Arguments.of(LogEventStatus.DROPPED, ReduceVersion.V2),
             Arguments.of(LogEventStatus.INACTIVE, ReduceVersion.V2),
         )

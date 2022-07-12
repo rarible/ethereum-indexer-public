@@ -30,8 +30,6 @@ data class Item(
     val owners: List<Address> = emptyList(),
     val date: Instant, // == lastUpdatedAt
     val mintedAt: Instant? = null,
-    @Deprecated("Should use getPendingEvents()")
-    val pending: List<ItemTransfer> = emptyList(),
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
     override val revertableEvents: List<ItemEvent> = emptyList()

@@ -39,7 +39,7 @@ class ItemDtoConverter(
 
     private fun convertPending(item: Item): List<ItemTransferDto> {
         return if (featureFlags.reduceVersion == ReduceVersion.V1) {
-            item.pending.map { ItemTransferDtoConverter.convert(it) }
+            emptyList()
         } else {
             item.getPendingEvents().mapNotNull { ItemTransferDtoConverter.convert(it) }
         }

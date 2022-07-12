@@ -14,7 +14,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.LootPropertie
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredApeYachtClubPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
-import com.rarible.protocol.nft.core.service.item.meta.descriptors.PendingItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
@@ -35,7 +34,6 @@ class ItemPropertiesResolverProvider(
     ensDomainsPropertiesResolver: EnsDomainsPropertiesResolver,
     hashmasksPropertiesResolver: HashmasksPropertiesResolver,
     lazyItemPropertiesResolver: LazyItemPropertiesResolver,
-    pendingItemPropertiesResolver: PendingItemPropertiesResolver,
     stonerCatsPropertiesResolver: StonerCatsPropertiesResolver,
     emblemVaultV2Resolver: EmblemVaultV2Resolver,
     aavegotchiPropertiesResolver: AavegotchiPropertiesResolver,
@@ -66,7 +64,6 @@ class ItemPropertiesResolverProvider(
         pegaxyPropertiesResolver,
         // Default resolvers, should be last in the list
         lazyItemPropertiesResolver,
-        pendingItemPropertiesResolver,
         raribleResolver
     )
 }

@@ -56,7 +56,7 @@ class ItemReduceServiceV1(
     private val skipTokens: ReduceSkipTokens,
     private val royaltyService: RoyaltyService,
     private val featureFlags: FeatureFlags,
-    private val scannerProperties: NftIndexerProperties.ScannerProperties
+    scannerProperties: NftIndexerProperties.ScannerProperties
 ) : ItemReduceService {
 
     private val logger = LoggerFactory.getLogger(ItemReduceService::class.java)
@@ -117,7 +117,7 @@ class ItemReduceServiceV1(
                     val fixed = fixOwnerships(ownerships.values)
                     val supply = fixed.map { it.value }.fold(EthUInt256.of(0), EthUInt256::plus)
                     val lazySupply = fixed.map { it.lazyValue }.fold(EthUInt256.ZERO, EthUInt256::plus)
-                    val deleted = supply == EthUInt256.ZERO && item.pending.isEmpty()
+                    val deleted = supply == EthUInt256.ZERO
 
                     updateItem(item.copy(supply = supply, lazySupply = lazySupply, deleted = deleted))
                         .flatMap { updatedItem ->
@@ -249,15 +249,6 @@ class ItemReduceServiceV1(
                     }
                 }.copy(date = event.date)
             }
-            LogEventStatus.PENDING -> {
-                when (event) {
-                    is ItemTransfer -> {
-                        val pending = item.pending + event
-                        item.safeProcessTransfer(event, logEvent.from).copy(pending = pending)
-                    }
-                    else -> item
-                }
-            }
             else -> item
         }
     }
@@ -327,12 +318,6 @@ class ItemReduceServiceV1(
     private fun ownershipReducer(ownership: Ownership, log: HistoryLog): Ownership {
         val (event, status) = log
         return when (status.status) {
-            LogEventStatus.PENDING ->
-                if (event is ItemTransfer) {
-                    ownership.copy(pending = ownership.pending + event)
-                } else {
-                    ownership
-                }
             LogEventStatus.CONFIRMED ->
                 when (event) {
                     is ItemTransfer -> {
@@ -390,10 +375,7 @@ class ItemReduceServiceV1(
         }
     }
 
-    private fun Ownership.needRemove(): Boolean = value <= EthUInt256.of(0) && pending.isEmpty()
-
     companion object {
-
         const val MAX_OWNERSHIPS_TO_LOG = 1000
         val WORD_ZERO: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
 
