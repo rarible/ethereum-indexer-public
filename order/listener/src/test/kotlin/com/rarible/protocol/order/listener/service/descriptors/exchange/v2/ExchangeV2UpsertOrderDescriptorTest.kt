@@ -238,62 +238,6 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
     }
 
     @Test
-    fun `create pending on-chain order`() = runBlocking<Unit> {
-        val makeValue = EthUInt256.TEN
-        val make = Asset(EthAssetType, makeValue)
-        val take = Asset(Erc721AssetType(token721.address(), EthUInt256.ONE), EthUInt256.ONE)
-        val maker = userSender1.from()
-        val salt = EthUInt256.TEN
-        val orderHash = Order.hashKey(maker, make.type, take.type, salt.value)
-        val onChainOrder = OnChainOrder(
-            maker = maker,
-            taker = null,
-            make = make,
-            take = take,
-            orderType = OrderType.RARIBLE_V2,
-            salt = salt,
-            start = null,
-            end = null,
-            data = OrderRaribleV2DataV1(emptyList(), emptyList()),
-            signature = null,
-            createdAt = nowMillis(),
-            platform = Platform.RARIBLE,
-            priceUsd = null,
-            hash = orderHash
-        )
-        val remainingEth = BigInteger.valueOf(2)
-        val initialEthBalance = makeValue.value.plus(remainingEth)
-        depositInitialBalance(userSender1.from(), initialEthBalance)
-        `test insert order`(onChainOrder, makeValue)
-        assertThat(getEthBalance(userSender1.from())).isEqualTo(remainingEth)
-
-        // Make OnChainOrder log event as PENDING.
-        exchangeHistoryRepository.findLogEvents(orderHash, null).asFlow().collect { logEvent ->
-            exchangeHistoryRepository.save(logEvent.copy(
-                status = LogEventStatus.PENDING,
-                blockHash = null,
-                blockNumber = null,
-                logIndex = 0
-            )).awaitFirst()
-        }
-
-        val order = orderRepository.findById(orderHash)
-        assertThat(order).isNotNull; order!!
-        orderRepository.remove(orderHash)
-        orderUpdateService.update(orderHash)
-        Wait.waitAssert {
-            val pendingOrder = orderRepository.findById(orderHash)
-            assertThat(pendingOrder).isNotNull; pendingOrder!!
-            assertThat(pendingOrder.copy(version = 0)).isEqualTo(order.copy(
-                pending = listOf(onChainOrder.copy(createdAt = order.createdAt, date = order.createdAt)),
-                version = 0,
-                createdAt = pendingOrder.createdAt,
-                dbUpdatedAt = pendingOrder.dbUpdatedAt
-            ))
-        }
-    }
-
-    @Test
     fun `cancel on-chain order`() = runBlocking<Unit> {
         val makeValue = EthUInt256.TEN
         val make = Asset(EthAssetType, makeValue)

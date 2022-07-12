@@ -49,6 +49,7 @@ data class Order(
     //TODO after migration ALPHA-405 can't be null
     val dbUpdatedAt: Instant? = null,
 
+    @Deprecated("Should be removed in the latest releases")
     val pending: List<OrderExchangeHistory> = emptyList(),
 
     @Deprecated("Please don't use. Will be removed in future releases.")

@@ -99,10 +99,7 @@ class OrderReduceService(
                 }
                 is OrderUpdate.ByLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
-                    if (exchangeHistory is OnChainOrder
-                        && update.logEvent.status != LogEventStatus.CONFIRMED
-                        && update.logEvent.status != LogEventStatus.PENDING
-                    ) {
+                    if (exchangeHistory is OnChainOrder && update.logEvent.status != LogEventStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
                     order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
@@ -146,7 +143,6 @@ class OrderReduceService(
         }
         @Suppress("KotlinConstantConditions")
         return when (logEvent.status) {
-            LogEventStatus.PENDING -> copy(pending = pending + orderExchangeHistory)
             LogEventStatus.CONFIRMED -> when (orderExchangeHistory) {
                 is OrderSideMatch -> {
                     if (orderExchangeHistory.adhoc == true && type == OrderType.CRYPTO_PUNKS) {
@@ -188,7 +184,7 @@ class OrderReduceService(
         eventId: String
     ): Order {
         val onChainOrderKey = logEvent.toLogEventKey()
-        return if (logEvent.status == LogEventStatus.CONFIRMED || logEvent.status == LogEventStatus.PENDING) {
+        return if (logEvent.status == LogEventStatus.CONFIRMED) {
             val orderVersion = onChainOrder.toOrderVersion()
                 .copy(onChainOrderKey = onChainOrderKey)
                 .let { priceUpdateService.withUpdatedAllPrices(it) }
@@ -200,7 +196,6 @@ class OrderReduceService(
             }
             // On-chain orders can be re-opened, so we start from the empty state.
             emptyOrder.updateWith(orderVersion, eventId)
-                .copy(pending = if (logEvent.status == LogEventStatus.PENDING) listOf(onChainOrder) else emptyList())
         } else {
             orderVersionRepository.deleteByOnChainOrderKey(onChainOrderKey).awaitFirstOrNull()
             // Skip this reverted log.
@@ -239,8 +234,7 @@ class OrderReduceService(
         priceHistory = getUpdatedPriceHistoryRecords(this, version),
         fill = fill,
         cancelled = cancelled,
-        makeStock = makeStock,
-        pending = pending
+        makeStock = makeStock
     )
 
     private suspend fun getUpdatedPriceHistoryRecords(
@@ -391,7 +385,6 @@ class OrderReduceService(
             append("fill=${saved.fill}, ")
             append("cancelled=${saved.cancelled}, ")
             append("signature=${saved.signature}, ")
-            append("pendingSize=${saved.pending.size},")
             append("status=${saved.status}")
         })
         return saved
@@ -416,7 +409,6 @@ class OrderReduceService(
             signature = null,
             createdAt = Instant.EPOCH,
             lastUpdateAt = Instant.EPOCH,
-            pending = emptyList(),
             makePriceUsd = null,
             takePriceUsd = null,
             makeUsd = null,
