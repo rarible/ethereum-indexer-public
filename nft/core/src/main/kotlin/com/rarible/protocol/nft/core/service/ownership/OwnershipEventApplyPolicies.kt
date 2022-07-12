@@ -12,11 +12,3 @@ class OwnershipConfirmEventApplyPolicy(properties: NftIndexerProperties) :
 @Component
 class OwnershipRevertEventApplyPolicy :
     RevertEventApplyPolicy<OwnershipEvent>()
-
-@Component
-class OwnershipPendingEventApplyPolicy :
-    PendingEventApplyPolicy<OwnershipEvent>()
-
-@Component
-class OwnershipInactiveEventApplyPolicy :
-    InactiveEventApplyPolicy<OwnershipEvent>()

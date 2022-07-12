@@ -62,20 +62,6 @@ internal class ItemCalculatedFieledsReducerTest {
     }
 
     @Test
-    fun `should not mark item as deleted as it has pending log`() = runBlocking<Unit> {
-        val item = createRandomItem().copy(
-            deleted = false,
-            supply = EthUInt256.ZERO,
-            lazySupply = EthUInt256.ZERO,
-            revertableEvents = listOf(
-                createRandomBurnItemEvent().withNewValues(status = EthereumLogStatus.PENDING)
-            )
-        )
-        val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
-        assertThat(reducedItem.deleted).isFalse()
-    }
-
-    @Test
     fun `should not mark item as deleted as it has supply`() = runBlocking<Unit> {
         val item = createRandomItem().copy(
             deleted = false,

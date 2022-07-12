@@ -22,11 +22,6 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
                         current == lastNotRevertableEvent ||
                         isReverted(incomeEvent = event, current = current)
             }
-            .filter { current ->
-                // try to remove PENDING logs related to this income CONFIRMED event
-                current.log.status == EthereumLogStatus.CONFIRMED ||
-                        isNotRelatedPendingLog(incomeEvent = event, pending = current)
-            }
     }
 
     override fun wasApplied(events: List<T>, event: T): Boolean {
@@ -47,9 +42,5 @@ open class ConfirmEventApplyPolicy<T : EthereumEntityEvent<T>>(
             "Block diff between income=$incomeEvent and current=$current can't be negative"
         }
         return blockDiff >= confirmationBlocks
-    }
-
-    private fun isNotRelatedPendingLog(incomeEvent: T, pending: T): Boolean {
-        return pending.log.status == EthereumLogStatus.PENDING && pending.compareTo(incomeEvent) != 0
     }
 }

@@ -8,12 +8,12 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 
 /**
  * This reducer make a final decision about item delete status
- * We mark item was deleted if it supply and lazySupply is zero and also it has no pending logs
+ * We mark item was deleted if it supply and lazySupply is zero
  * Also it calculates updatedAt filed
  */
 class ItemCalculatedFieldsReducer : Reducer<ItemEvent, Item> {
     override suspend fun reduce(entity: Item, event: ItemEvent): Item {
-        val deleted = entity.supply == EthUInt256.ZERO && entity.lazySupply == EthUInt256.ZERO && entity.getPendingEvents().isEmpty()
+        val deleted = entity.supply == EthUInt256.ZERO && entity.lazySupply == EthUInt256.ZERO
         val value = if (deleted) EthUInt256.ZERO else entity.supply
 
         val updatedAt =

@@ -4,8 +4,6 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.protocol.nft.core.data.createRandomItem
 import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
 import com.rarible.protocol.nft.core.service.item.reduce.forward.ForwardChainItemReducer
-import com.rarible.protocol.nft.core.service.item.reduce.inactive.InactiveChainItemReducer
-import com.rarible.protocol.nft.core.service.item.reduce.pending.PendingChainItemReducer
 import com.rarible.protocol.nft.core.service.item.reduce.reversed.ReversedChainItemReducer
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -17,14 +15,10 @@ import org.junit.jupiter.api.Test
 internal class EventStatusItemReducerTest {
     private val forwardChainItemReducer = mockk<ForwardChainItemReducer>()
     private val reversedChainItemReducer = mockk<ReversedChainItemReducer>()
-    private val pendingChainItemReducer = mockk<PendingChainItemReducer>()
-    private val inactiveChainItemReducer = mockk<InactiveChainItemReducer>()
 
     private val eventStatusItemReducer = EventStatusItemReducer(
         forwardChainItemReducer = forwardChainItemReducer,
-        reversedChainItemReducer = reversedChainItemReducer,
-        pendingChainItemReducer = pendingChainItemReducer,
-        inactiveChainItemReducer = inactiveChainItemReducer
+        reversedChainItemReducer = reversedChainItemReducer
     )
 
     @Test
@@ -39,8 +33,6 @@ internal class EventStatusItemReducerTest {
 
         coVerify { forwardChainItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { reversedChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { pendingChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { inactiveChainItemReducer.reduce(any(), any()) }
     }
 
     @Test
@@ -55,24 +47,18 @@ internal class EventStatusItemReducerTest {
 
         coVerify { reversedChainItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { forwardChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { pendingChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { inactiveChainItemReducer.reduce(any(), any()) }
     }
 
     @Test
     fun `should handle pending event`() = runBlocking<Unit> {
-        val event = createRandomMintItemEvent()
-            .let { it.copy(log = it.log.copy(status = EthereumLogStatus.PENDING)) }
+        val event = createRandomMintItemEvent().let { it.copy(log = it.log.copy(status = EthereumLogStatus.PENDING)) }
         val item = createRandomItem()
 
-        coEvery { pendingChainItemReducer.reduce(item, event) } returns item
         val reducedItem = eventStatusItemReducer.reduce(item, event)
         assertThat(reducedItem).isEqualTo(item)
 
-        coVerify { pendingChainItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { forwardChainItemReducer.reduce(any(), any()) }
         coVerify(exactly = 0) { reversedChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { inactiveChainItemReducer.reduce(any(), any()) }
     }
 
     @Test
@@ -81,14 +67,11 @@ internal class EventStatusItemReducerTest {
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.INACTIVE)) }
         val item = createRandomItem()
 
-        coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
         val reducedItem = eventStatusItemReducer.reduce(item, event)
         assertThat(reducedItem).isEqualTo(item)
 
-        coVerify { inactiveChainItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { forwardChainItemReducer.reduce(any(), any()) }
         coVerify(exactly = 0) { reversedChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { pendingChainItemReducer.reduce(any(), any()) }
     }
 
     @Test
@@ -97,13 +80,10 @@ internal class EventStatusItemReducerTest {
             .let { it.copy(log = it.log.copy(status = EthereumLogStatus.DROPPED)) }
         val item = createRandomItem()
 
-        coEvery { inactiveChainItemReducer.reduce(item, event) } returns item
         val reducedItem = eventStatusItemReducer.reduce(item, event)
         assertThat(reducedItem).isEqualTo(item)
 
-        coVerify { inactiveChainItemReducer.reduce(item, event) }
         coVerify(exactly = 0) { forwardChainItemReducer.reduce(any(), any()) }
         coVerify(exactly = 0) { reversedChainItemReducer.reduce(any(), any()) }
-        coVerify(exactly = 0) { pendingChainItemReducer.reduce(any(), any()) }
     }
 }

@@ -82,7 +82,7 @@ class ItemControllerFt : SpringContainerBaseTest() {
 
     @BeforeEach
     fun beforeEach() {
-        itemDtoConverter = ItemDtoConverter(1, FeatureFlags())
+        itemDtoConverter = ItemDtoConverter()
     }
 
     companion object {
@@ -162,14 +162,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
                 .isEqualTo(itemDtoConverter.convert(item))
         }
         val itemDto = nftItemApiClient.getNftItemById(item.id.decimalStringValue).awaitSingle()
-
-        when (featureFlags.reduceVersion) {
-            ReduceVersion.V1 -> {
-                assertThat(itemDto.owners).isEqualTo(item.owners)
-            }
-            ReduceVersion.V2 -> {
-            }
-        }
 
         assertThat(itemDto.creators.size).isEqualTo(item.creators.size)
         itemDto.creators.forEachIndexed { index, partDto ->

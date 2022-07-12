@@ -144,81 +144,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
     }
 
-    @Test
-    fun mintItemViaPending() = withReducer(ReduceVersion.V2) {
-        val token = AddressFactory.create()
-        val owner = AddressFactory.create()
-        val tokenId = EthUInt256.ONE
-
-        saveToken(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        )
-        saveItemHistory(
-            ItemTransfer(
-                owner = owner,
-                token = token,
-                tokenId = tokenId,
-                date = nowMillis(),
-                from = Address.ZERO(),
-                value = EthUInt256.ONE
-            ),
-            status = LogEventStatus.PENDING
-        )
-
-        historyService.update(token, tokenId).awaitFirstOrNull()
-        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ZERO)
-        checkOwnership(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            expValue = EthUInt256.ZERO,
-            expLazyValue = EthUInt256.ZERO
-        )
-        checkItemEventWasPublished(
-            token,
-            tokenId,
-            pendingSize = 1,
-            NftItemUpdateEventDto::class.java
-        )
-        checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
-
-        val pendingMint = nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst().single()
-        mongo.remove(Query(Criteria("_id").isEqualTo(pendingMint.log.id)), LogEvent::class.java, COLLECTION)
-            .awaitFirst()
-        assertThat(nftItemHistoryRepository.findAllItemsHistory().collectList().awaitFirst()).isEmpty()
-
-        saveItemHistory(
-            ItemTransfer(
-                owner = owner,
-                token = token,
-                tokenId = tokenId,
-                date = nowMillis(),
-                from = Address.ZERO(),
-                value = EthUInt256.ONE
-            ),
-            status = LogEventStatus.CONFIRMED,
-            logIndex = 1
-        )
-
-        historyService.update(token, tokenId).then().awaitFirstOrNull()
-        checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.ONE)
-        checkOwnership(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            expValue = EthUInt256.ONE,
-            expLazyValue = EthUInt256.ZERO
-        )
-
-        checkItemEventWasPublished(
-            token,
-            tokenId,
-            pendingSize = 0,
-            NftItemUpdateEventDto::class.java
-        )
-        checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipUpdateEventDto::class.java)
-    }
-
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun deleteErrorEntities(version: ReduceVersion) = withReducer(version) {
@@ -320,50 +245,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidLogEventStatus")
-    fun deleteItemAfterLogEventChangeStatusFromPendingToInvalidStatus(
-        invalidStatus: LogEventStatus,
-        version: ReduceVersion
-    ) = withReducer(version) {
-        val token = AddressFactory.create()
-        val owner = AddressFactory.create()
-        val tokenId = EthUInt256.ONE
-
-        saveToken(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        )
-
-        val transfer = ItemTransfer(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.ONE
-        )
-        val logEvent = LogEvent(
-            data = transfer,
-            address = AddressFactory.create(),
-            topic = WordFactory.create(),
-            transactionHash = WordFactory.create(),
-            status = LogEventStatus.PENDING,
-            index = 0,
-            minorLogIndex = 0
-        )
-        val savedLogEvent = nftItemHistoryRepository.save(logEvent).awaitFirst()
-        historyService.update(token, tokenId).awaitFirstOrNull()
-
-        val newItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(newItem.deleted).isFalse()
-
-        nftItemHistoryRepository.save(savedLogEvent.copy(status = invalidStatus)).awaitFirst()
-        historyService.update(token, tokenId).awaitFirstOrNull()
-
-        val updatedItem = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(updatedItem.deleted).isTrue()
-    }
-
-    @ParameterizedTest
     @EnumSource(ReduceVersion::class)
     fun burnItem(version: ReduceVersion) = withReducer(version) {
         val token = AddressFactory.create()
@@ -416,49 +297,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
             NftItemDeleteEventDto::class.java
         )
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
-    }
-
-    @Test
-    fun pendingItemTransfer() = withReducer(ReduceVersion.V2) {
-        val from = AddressFactory.create()
-        val token = AddressFactory.create()
-        val tokenId = EthUInt256.ONE
-        val owner = AddressFactory.create()
-
-        saveToken(
-            Token(token, name = "TEST", standard = TokenStandard.ERC721)
-        )
-        val mint = ItemTransfer(
-            owner = from,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.ONE
-        )
-        val transfer = ItemTransfer(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = AddressFactory.create(),
-            value = EthUInt256.ZERO
-        )
-        saveItemHistory(mint, token = token, status = LogEventStatus.CONFIRMED, logIndex = 0, from = from)
-        saveItemHistory(transfer, token = token, status = LogEventStatus.PENDING, logIndex = 1)
-
-        historyService.update(token, tokenId).then().awaitFirstOrNull()
-
-        val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-        assertThat(item.creators).isEqualTo(listOf(Part.fullPart(from)))
-        assertThat(item.supply).isEqualTo(EthUInt256.ONE)
-        checkOwnership(
-            owner = owner,
-            token = token,
-            tokenId = tokenId,
-            expValue = EthUInt256.ZERO,
-            expLazyValue = EthUInt256.ZERO
-        )
     }
 
     @ParameterizedTest
@@ -633,61 +471,6 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @Test
-    fun `should set pending log only for target ownerships`() = withReducer(ReduceVersion.V2) {
-        val token = AddressFactory.create()
-        val tokenId = EthUInt256.ONE
-        val owner1 = AddressFactory.create()
-        val owner2 = AddressFactory.create()
-        val owner3 = AddressFactory.create()
-        saveToken(
-            Token(token, name = "TEST", standard = TokenStandard.ERC1155)
-        )
-
-        val transfer1 = ItemTransfer(
-            owner = owner1,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.TEN
-        )
-        val transfer2 = ItemTransfer(
-            owner = owner2,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = Address.ZERO(),
-            value = EthUInt256.TEN
-        )
-        val transfer3 = ItemTransfer(
-            owner = owner3,
-            token = token,
-            tokenId = tokenId,
-            date = nowMillis(),
-            from = owner2,
-            value = EthUInt256.of(2)
-        )
-
-        saveItemHistory(transfer1, token)
-        saveItemHistory(transfer2, token)
-        saveItemHistory(transfer3, token, status = LogEventStatus.PENDING)
-
-        historyService.update(token, tokenId).awaitFirstOrNull()
-
-        val ownership1 = ownershipRepository.findById(OwnershipId(token, tokenId, owner1)).awaitFirst()
-        assertThat(ownership1.value).isEqualTo(EthUInt256.TEN)
-
-        val ownership2 = ownershipRepository.findById(OwnershipId(token, tokenId, owner2)).awaitFirst()
-        assertThat(ownership2.value).isEqualTo(EthUInt256.TEN)
-
-        val ownership3 = ownershipRepository.findById(OwnershipId(token, tokenId, owner3)).awaitFirst()
-        assertThat(ownership3.value).isEqualTo(EthUInt256.ZERO)
-
-        assertThat(ownership1.getPendingEvents()).isEmpty()
-        assertThat(ownership2.getPendingEvents()).hasSize(1)
-        assertThat(ownership3.getPendingEvents()).hasSize(1)
-    }
 
     @ParameterizedTest
     @EnumSource(ReduceVersion::class)
