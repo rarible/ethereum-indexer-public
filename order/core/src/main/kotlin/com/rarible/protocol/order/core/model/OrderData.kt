@@ -80,7 +80,7 @@ data class OrderRaribleV2DataV2(
     }
 }
 
-sealed class OrderRaribleV2DataV3 : OrderData() {
+sealed class OrderRaribleV2DataV3 : OrderRaribleV2Data() {
     abstract val payout: Part?
     abstract val originFeeFirst: Part?
     abstract val originFeeSecond: Part?

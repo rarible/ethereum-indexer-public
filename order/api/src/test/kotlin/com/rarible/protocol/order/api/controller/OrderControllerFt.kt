@@ -9,16 +9,22 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderFormDto
+import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
+import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.order.api.data.toForm
 import com.rarible.protocol.order.api.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.api.integration.IntegrationTest
 import com.rarible.protocol.order.api.service.order.OrderService
+import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Buy
+import com.rarible.protocol.order.core.data.createOrderRaribleV1DataV3Sell
+import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderType
@@ -99,12 +105,37 @@ class OrderControllerFt : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `should create order with data v3 sell using PUT request`() = runBlocking {
+        val salt = EthUInt256.TEN
+        val data = createOrderRaribleV1DataV3Sell()
+
+        testCreateOrderUsingPutRequest(salt, data) { orderForm ->
+            val orderDto = orderClient.upsertOrder(orderForm).awaitFirst() as RaribleV2OrderDto
+            assertThat(orderDto.data).isInstanceOf(OrderRaribleV2DataV3SellDto::class.java)
+            orderDto
+        }
+    }
+
+    @Test
+    fun `should create order with data v3 buy using PUT request`() = runBlocking {
+        val salt = EthUInt256.TEN
+        val data = createOrderRaribleV1DataV3Buy()
+
+        testCreateOrderUsingPutRequest(salt, data) { orderForm ->
+            val orderDto = orderClient.upsertOrder(orderForm).awaitFirst() as RaribleV2OrderDto
+            assertThat(orderDto.data).isInstanceOf(OrderRaribleV2DataV3BuyDto::class.java)
+            orderDto
+        }
+    }
+
     private suspend fun testCreateOrderUsingPutRequest(
         salt: EthUInt256,
+        data: OrderData = createOrderRaribleV2DataV1(),
         upsert: suspend (OrderFormDto) -> OrderDto
     ) {
         val (privateKey, _, signer) = generateNewKeys()
-        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), salt)
+        val order = createOrder(signer, Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN), salt, data)
 
         coEvery { orderService.put(any()) } returns order
 
@@ -172,7 +203,12 @@ class OrderControllerFt : AbstractIntegrationTest() {
         clearMocks(orderService)
     }
 
-    private fun createOrder(maker: Address, make: Asset, salt: EthUInt256) = Order(
+    private fun createOrder(
+        maker: Address,
+        make: Asset,
+        salt: EthUInt256,
+        data: OrderData = OrderRaribleV2DataV1(emptyList(), emptyList())
+    ) = Order(
         maker = maker,
         taker = null,
         make = make,
@@ -184,7 +220,7 @@ class OrderControllerFt : AbstractIntegrationTest() {
         salt = salt,
         start = null,
         end = null,
-        data = OrderRaribleV2DataV1(emptyList(), emptyList()),
+        data = data,
         signature = null,
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis()
