@@ -27,7 +27,7 @@ class CompositeEntityEventListener(
 
     override val subscriberGroup: SubscriberGroup = SubscriberGroups.ITEM_HISTORY
 
-    override suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
+    override suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         withTransaction("onEntityEvents", labels = listOf("size" to events.size)) {
             coroutineScope {
                 listOf(

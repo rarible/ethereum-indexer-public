@@ -8,6 +8,7 @@ import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.converters.model.OwnershipEventConverter
+import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
 import com.rarible.protocol.nft.core.model.*
 import org.springframework.stereotype.Component
 
@@ -29,13 +30,13 @@ class OwnershipEventReduceService(
         delegate.reduceAll(events)
     }
 
-    suspend fun onEntityEvents(events: List<LogRecordEvent<ReversedEthereumLogRecord>>) {
+    suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         withSpan(
             name = "onOwnershipEvents",
-            labels = listOf("ownershipId" to (events.firstOrNull()?.let { itemEventConverter.convertToOwnershipId(it.record) }?.stringValue ?: ""))
+            labels = listOf("ownershipId" to (events.firstOrNull()?.let { itemEventConverter.convertToOwnershipId(it.record.asEthereumLogRecord()) }?.stringValue ?: ""))
         ) {
             events
-                .flatMap { eventConverter.convert(it.record) }
+                .flatMap { eventConverter.convert(it.record.asEthereumLogRecord()) }
                 .filter { event -> OwnershipId.parseId(event.entityId).let { ItemId(it.token, it.tokenId) } !in skipTransferContractTokens }
                 .let { delegate.reduceAll(it) }
         }

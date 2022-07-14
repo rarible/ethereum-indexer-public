@@ -51,6 +51,10 @@ class TestEthereumBlockchainClient(
         return delegate.getBlockLogs(descriptor, blocks, stable)
     }
 
+    override suspend fun getBlocks(numbers: List<Long>): List<EthereumBlockchainBlock> {
+        return delegate.getBlocks(numbers)
+    }
+
     override suspend fun getFirstAvailableBlock(): EthereumBlockchainBlock {
         return delegate.getFirstAvailableBlock()
     }
