@@ -43,6 +43,40 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should reduce mint event and revert event with exist item`() = runBlocking<Unit> {
+        val item = initial().copy(
+            supply = EthUInt256.ONE,
+            revertableEvents = emptyList()
+        )
+        val mint = createRandomMintItemEvent()
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+        val revertedMint = mint
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(item, mint, revertedMint)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.deleted).isFalse
+        assertThat(reducedItem.revertableEvents).isEmpty()
+    }
+
+    @Test
+    fun `should reduce burn event and revert event with exist item`() = runBlocking<Unit> {
+        val item = initial().copy(
+            supply = EthUInt256.ONE,
+            revertableEvents = emptyList()
+        )
+        val burn = createRandomBurnItemEvent() .copy(supply = EthUInt256.ONE)
+            .withNewValues(EthereumLogStatus.CONFIRMED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+        val revertedBurn = burn
+            .withNewValues(EthereumLogStatus.REVERTED, blockNumber = 1, logIndex = 1, minorLogIndex = 1)
+
+        val reducedItem = reduce(item, burn, revertedBurn)
+        assertThat(reducedItem.supply).isEqualTo(EthUInt256.ONE)
+        assertThat(reducedItem.deleted).isFalse
+        assertThat(reducedItem.revertableEvents).isEmpty()
+    }
+
+    @Test
     fun `should reduce simple mint event with pending and revert it`() = runBlocking<Unit> {
         val minter = randomAddress()
         val item = initial()

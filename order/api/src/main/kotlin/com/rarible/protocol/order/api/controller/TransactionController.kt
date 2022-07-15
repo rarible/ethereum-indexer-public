@@ -4,6 +4,7 @@ import com.rarible.core.logging.RaribleMDCContext
 import com.rarible.protocol.dto.CreateTransactionRequestDto
 import com.rarible.protocol.dto.LogEventDto
 import com.rarible.protocol.order.api.service.pending.PendingTransactionService
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.dto.TransactionDtoConverter
 import com.rarible.protocol.order.core.converters.model.ListenerTransactionConverter
 import kotlinx.coroutines.flow.Flow
@@ -14,11 +15,12 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class TransactionController(
-    private val pendingTransactionService: PendingTransactionService
+    private val pendingTransactionService: PendingTransactionService,
+    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) : OrderTransactionControllerApi {
 
     override fun createOrderPendingTransaction(request: CreateTransactionRequestDto): ResponseEntity<Flow<LogEventDto>> {
-
+        if (featureFlags.pendingDisabled) return ResponseEntity.ok(flow {  })
         val transaction = ListenerTransactionConverter.convert(request)
 
         val result = flow {
