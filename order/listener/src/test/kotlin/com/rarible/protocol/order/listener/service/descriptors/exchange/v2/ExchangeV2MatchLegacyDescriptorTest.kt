@@ -12,35 +12,15 @@ import java.math.BigInteger
 
 @FlowPreview
 @IntegrationTest
-class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
-    override fun hashToSign(structHash: Word): Word = eip712Domain.hashToSign(structHash)
-    override fun fills(hash: ByteArray): Mono<BigInteger> = exchange.fills(hash)
-    override fun exchangeAddress(): Address = exchange.address()
+class ExchangeV2MatchLegacyDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
+    override fun hashToSign(structHash: Word): Word = legacyEip712Domain.hashToSign(structHash)
+    override fun fills(hash: ByteArray): Mono<BigInteger> = legacyExchange.fills(hash).call()
+    override fun exchangeAddress(): Address = legacyExchange.address()
 
     @BeforeEach
     fun setupAddresses() {
-        orderIndexerProperties.exchangeContractAddresses.v2 = exchange.address()
-        prepareTxService.eip712Domain = eip712Domain
-    }
-
-    @Test
-    fun `partially match order - data V3 sell`() = runBlocking<Unit> {
-        `test partially match order - data V3 sell`()
-    }
-
-    @Test
-    fun `fully match order sell order - data V3`() = runBlocking<Unit> {
-        `test fully match order sell order - data V3`()
-    }
-
-    @Test
-    fun `partially match bid order - data V3`() = runBlocking<Unit> {
-        `test partially match bid order - data V3`()
-    }
-
-    @Test
-    fun `fully match bid order - data V3`() = runBlocking<Unit> {
-        `test fully match bid order - data V3`()
+        orderIndexerProperties.exchangeContractAddresses.v2 = legacyExchange.address()
+        prepareTxService.eip712Domain = legacyEip712Domain
     }
 
     @Test
@@ -68,3 +48,4 @@ class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
         `test fully match take-fill bid order with payout - data V1`()
     }
 }
+

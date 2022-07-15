@@ -29,6 +29,8 @@ common:
     erc1155RaribleUser: "0x0000000000000000000000000000000000000000"
   reduceProperties:
     skipOwnerships: true
+  feature-flags:
+    pending-disabled: false
 
 ethereumBlockReindexEnabled: false
 pendingLogsProcessingEnabled: false

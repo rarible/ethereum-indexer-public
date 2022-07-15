@@ -23,8 +23,9 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "rarible.common.jms-eventTopic = protocol",
         "rarible.core.contract.enabled = true",
         "spring.cloud.consul.config.enabled = false",
-        "logging.logstash.tcp-socket.enabled = false"
-    ]
+        "logging.logstash.tcp-socket.enabled = false",
+        "logging.logfmt.enabled = false",
+]
 )
 @EthereumTest
 @ActiveProfiles("integration")

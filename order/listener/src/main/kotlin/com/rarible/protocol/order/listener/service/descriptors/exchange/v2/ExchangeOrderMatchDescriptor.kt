@@ -4,27 +4,17 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
+import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
-import com.rarible.protocol.order.core.model.OrderCryptoPunksData
-import com.rarible.protocol.order.core.model.OrderData
-import com.rarible.protocol.order.core.model.OrderDataLegacy
-import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
-import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.isMakeFillOrder
-import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.RaribleExchangeV2OrderParser
+import com.rarible.protocol.order.listener.service.descriptors.getOriginMaker
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -56,10 +46,14 @@ class ExchangeOrderMatchDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = MatchEvent.apply(log)
+        val transactionOrders = raribleOrderParser
+            .parseMatchedOrders(transaction.hash(), transaction.input(), event)
+            ?: throw IllegalStateException("Can't find transaction ${transaction.hash()} callData")
+
         val leftHash = Word.apply(event.leftHash())
         val rightHash = Word.apply(event.rightHash())
-        val leftAssetType = event.leftAsset().toAssetType()
-        val rightAssetType = event.rightAsset().toAssetType()
+        val leftAssetType = transactionOrders.left.makeAssetType
+        val rightAssetType = transactionOrders.right.makeAssetType
 
         val leftMake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
         val leftTake = Asset(rightAssetType, EthUInt256(event.newLeftFill()))
@@ -69,23 +63,21 @@ class ExchangeOrderMatchDescriptor(
         val rightTake = Asset(leftAssetType, EthUInt256(event.newRightFill()))
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(rightMake, rightTake, date)
 
-        val transactionOrders = raribleOrderParser.parseMatchedOrders(transaction.hash(), transaction.input(), event)
-        val leftMaker = getOriginMaker(event.leftMaker(), transactionOrders?.left?.data)
-        val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
-        val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
-        val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
+        val leftMaker = getOriginMaker(transactionOrders.left.maker, transactionOrders.left.data)
+        val rightMaker = getOriginMaker(transactionOrders.right.maker, transactionOrders.right.data)
+        val leftAdhoc = transactionOrders.left.salt == EthUInt256.ZERO
+        val rightAdhoc = transactionOrders.right.salt == EthUInt256.ZERO
 
-        val leftFill = if (transactionOrders?.left?.data?.isMakeFillOrder == true) {
+        val leftFill = if (transactionOrders.left.isMakeFillOrder) {
             EthUInt256(event.newRightFill())
         } else {
             EthUInt256(event.newLeftFill())
         }
-        val rightFill = if (transactionOrders?.right?.data?.isMakeFillOrder == true) {
+        val rightFill = if (transactionOrders.right.isMakeFillOrder) {
             EthUInt256(event.newLeftFill())
         } else {
             EthUInt256(event.newRightFill())
         }
-
         return listOf(
             OrderSideMatch(
                 hash = leftHash,
@@ -106,8 +98,8 @@ class ExchangeOrderMatchDescriptor(
                 date = date,
                 adhoc = leftAdhoc,
                 counterAdhoc = rightAdhoc,
-                originFees = transactionOrders?.left?.originFees,
-                marketplaceMarker = transactionOrders?.left?.marketplaceMarker
+                originFees = transactionOrders.left.originFees,
+                marketplaceMarker = transactionOrders.left.marketplaceMarker
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -128,23 +120,13 @@ class ExchangeOrderMatchDescriptor(
                 date = date,
                 adhoc = rightAdhoc,
                 counterAdhoc = leftAdhoc,
-                originFees = transactionOrders?.right?.originFees,
-                marketplaceMarker = transactionOrders?.right?.marketplaceMarker
+                originFees = transactionOrders.right.originFees,
+                marketplaceMarker = transactionOrders.right.marketplaceMarker
             )
         )
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {
         return Mono.just(listOf(exchangeContractAddresses.v2))
-    }
-}
-
-internal fun getOriginMaker(maker: Address, data: OrderData?): Address {
-    return when (data) {
-        is OrderRaribleV2DataV1 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
-        is OrderRaribleV2DataV2 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
-        is OrderRaribleV2DataV3 -> data.payout?.account ?: maker
-        is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderBasicSeaportDataV1, is OrderCryptoPunksData -> maker
-        null -> maker
     }
 }

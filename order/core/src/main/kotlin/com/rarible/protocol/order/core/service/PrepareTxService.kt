@@ -27,6 +27,9 @@ import com.rarible.protocol.order.core.model.OrderData
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
@@ -162,6 +165,19 @@ class PrepareTxService(
     private fun OrderData.withNewPayoutsAndOriginFees(newPayouts: List<Part>, newOriginFees: List<Part>) = when (this) {
         is OrderRaribleV2DataV1 -> copy(payouts = newPayouts, originFees = newOriginFees)
         is OrderRaribleV2DataV2 -> copy(payouts = newPayouts, originFees = newOriginFees)
+        is OrderRaribleV2DataV3Sell -> OrderRaribleV2DataV3Buy(
+            payout = newPayouts.firstOrNull(),
+            originFeeFirst = newOriginFees.firstOrNull(),
+            originFeeSecond = if (newOriginFees.size >= 2) newOriginFees[1] else null,
+            marketplaceMarker = this.marketplaceMarker
+        )
+        is OrderRaribleV2DataV3Buy -> OrderRaribleV2DataV3Sell(
+            payout = newPayouts.firstOrNull(),
+            originFeeFirst = newOriginFees.firstOrNull(),
+            originFeeSecond = if (newOriginFees.size >= 2) newOriginFees[1] else null,
+            maxFeesBasePoint = EthUInt256.of(1000),
+            marketplaceMarker = this.marketplaceMarker
+        )
         else -> this
     }
 
@@ -364,6 +380,7 @@ class PrepareTxService(
         val originFees = when (orderRight.data) {
             is OrderRaribleV2DataV1 -> orderRight.data.originFees
             is OrderRaribleV2DataV2 -> orderRight.data.originFees
+            is OrderRaribleV2DataV3 -> listOfNotNull(orderRight.data.originFeeFirst, orderRight.data.originFeeSecond)
             else -> error("Unsupported data for the right order: ${orderRight.data}")
         }
         val fee = originFees.map { it.value.value.toInt() }.sum() + protocolCommission

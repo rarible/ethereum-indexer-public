@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 class TransactionController : NftTransactionControllerApi {
-
     override fun createNftPendingTransaction(request: CreateTransactionRequestDto): ResponseEntity<Flow<LogEventDto>> {
         val empty = flow<LogEventDto> {  }
         return ResponseEntity.ok(empty)
