@@ -11,8 +11,6 @@ import com.rarible.protocol.contracts.exchange.v2.ExchangeV2 as LegacyExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.rev3.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
-import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.service.PrepareTxService
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Word
@@ -20,12 +18,10 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import kotlinx.coroutines.FlowPreview
 import org.apache.commons.lang3.RandomUtils
-import org.bson.types.ObjectId
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
-import scalether.domain.Address
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
@@ -130,10 +126,3 @@ abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     }
 }
 
-fun OrderVersion.invert(maker: Address) = this.copy(
-    id = ObjectId(), // recreate ID.
-    maker = maker,
-    make = take,
-    take = make,
-    hash = Order.hashKey(maker, take.type, make.type, salt.value, data)
-)
