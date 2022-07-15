@@ -5,6 +5,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
 import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
+import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent as MatchEventRev3
 import com.rarible.protocol.contracts.exchange.metatx.EIP712MetaTransaction
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -24,6 +25,12 @@ class RaribleExchangeV2OrderParser(
     private val traceCallService: TraceCallService,
     private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
+    suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEventRev3): RaribleMatchedOrders? {
+        val inputs = getInputs(txHash, txInput)
+        return inputs.map { parseOrders(it) }.firstOrNull {
+            Word.apply(event.leftHash()) == it.left.hash && Word.apply(event.rightHash()) == it.right.hash
+        }
+    }
 
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEvent): RaribleMatchedOrders? {
         val inputs = getInputs(txHash, txInput)
@@ -80,6 +87,7 @@ class RaribleExchangeV2OrderParser(
         val decoded = signature.`in`().decode(input, 4)
         return RaribleMatchedOrders(
             left = SimpleOrder(
+                maker = decoded.value()._1()._1(),
                 makeAssetType = decoded.value()._1()._2()._1().toAssetType(),
                 takeAssetType = decoded.value()._1()._4()._1().toAssetType(),
                 data = convertOrderData(
@@ -89,6 +97,7 @@ class RaribleExchangeV2OrderParser(
                 salt = EthUInt256.of(decoded.value()._1()._5())
             ),
             right = SimpleOrder(
+                maker = decoded.value()._3()._1(),
                 makeAssetType = decoded.value()._3()._2()._1().toAssetType(),
                 takeAssetType = decoded.value()._3()._4()._1().toAssetType(),
                 data = convertOrderData(

@@ -212,7 +212,8 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
  * Historically, all Rarible V2 orders were by take side.
  * Later DataV2 was introduced with "isMakeFill" flag to support the fill by make.
  */
-val OrderData.isMakeFillOrder: Boolean get() = this is OrderRaribleV2DataV2 && this.isMakeFill
+val OrderData.isMakeFillOrder: Boolean
+    get() = (this is OrderRaribleV2DataV3Sell) || (this is OrderRaribleV2DataV2 && this.isMakeFill)
 
 fun OrderData.getMarketplaceMarker() = if (this is OrderRaribleV2DataV3) this.marketplaceMarker else null
 

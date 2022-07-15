@@ -34,6 +34,7 @@ import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.count
 import kotlinx.coroutines.flow.toList
@@ -51,8 +52,14 @@ import java.math.BigInteger
 /**
  * ExchangeV2 on-chain order upsert test.
  */
+@FlowPreview
 @IntegrationTest
 class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
+    @BeforeEach
+    fun setupAddresses() {
+        orderIndexerProperties.exchangeContractAddresses.v2 = legacyExchange.address()
+        prepareTxService.eip712Domain = legacyEip712Domain
+    }
 
     @BeforeEach
     fun setUpBalances() {
@@ -323,7 +330,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         `test insert order`(onChainOrder, makeValue)
         assertThat(getEthBalance(userSender1.from())).isEqualTo(remainingEth)
 
-        exchange
+        legacyExchange
             .cancel(onChainOrder.toOrderVersion().toOrderExactFields().forTx())
             .withSender(userSender1)
             .execute()
@@ -347,7 +354,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
         expectedSize: Int = 1
     ) {
         val orderVersion = onChainOrder.toOrderVersion()
-        val upsertTimestamp = exchange.upsertOrder(orderVersion.toOrderExactFields().forTx())
+        val upsertTimestamp = legacyExchange.upsertOrder(orderVersion.toOrderExactFields().forTx())
             .withSender(userSender1)
             .let {
                 if (withSentEthValue != null) {

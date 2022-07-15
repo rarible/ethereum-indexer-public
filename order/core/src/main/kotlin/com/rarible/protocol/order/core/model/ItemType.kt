@@ -6,7 +6,8 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
-import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
+import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
+import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
 import com.rarible.protocol.contracts.exchange.v2.events.UpsertOrderEvent
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
@@ -34,6 +35,7 @@ enum class ItemType(
     ORDER_SIDE_MATCH(
         topic = setOf(
             MatchEvent.id(),
+            MatchEventLegacy.id(),
             MatchEventDeprecated.id(),
             OrdersMatchedEvent.id(),
             FillEvent.id(),

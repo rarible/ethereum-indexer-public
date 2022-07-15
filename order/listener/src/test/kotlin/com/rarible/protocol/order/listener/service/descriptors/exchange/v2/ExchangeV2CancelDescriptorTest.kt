@@ -6,16 +6,34 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.OrderActivityCancelListDto
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.listener.integration.IntegrationTest
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import scalether.contract.MonoPreparedTransaction
 
 @IntegrationTest
+@FlowPreview
 class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
 
     @Test
-    fun convert() = runBlocking {
+    fun convertLegacyV2() = runBlocking {
+        orderIndexerProperties.exchangeContractAddresses.v2 = legacyExchange.address()
+        testCancelOrder {
+            legacyExchange.cancel(it.forTx())
+        }
+    }
+
+    @Test
+    fun convertRev2() = runBlocking {
+        orderIndexerProperties.exchangeContractAddresses.v2 = exchange.address()
+        testCancelOrder {
+            exchange.cancel(it.forTx())
+        }
+    }
+
+    private suspend fun testCancelOrder(cancel: (Order) -> MonoPreparedTransaction<*>) {
         val orderVersion = OrderVersion(
             maker = userSender1.from(),
             taker = null,
@@ -38,7 +56,7 @@ class ExchangeV2CancelDescriptorTest : AbstractExchangeV2Test() {
         orderUpdateService.save(orderVersion)
         val order = orderVersion.toOrderExactFields()
 
-        exchange.cancel(order.forTx()).withSender(userSender1).execute().verifySuccess()
+        cancel(order).withSender(userSender1).execute().verifySuccess()
 
         Wait.waitAssert {
             val items = exchangeHistoryRepository.findByItemType(ItemType.CANCEL).collectList().awaitFirst()
