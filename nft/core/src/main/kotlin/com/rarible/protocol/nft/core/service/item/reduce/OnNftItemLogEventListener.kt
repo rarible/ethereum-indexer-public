@@ -21,7 +21,7 @@ class OnNftItemLogEventListener(
         if (logEvent.record.status == EthereumLogStatus.CONFIRMED &&
             logEvent.record.log.topic in topics
         ) {
-            val activity = nftActivityConverter.convert(logEvent.record)
+            val activity = nftActivityConverter.convert(logEvent.record, logEvent.reverted)
             if (activity != null) eventPublisher.publish(activity)
         }
     }
