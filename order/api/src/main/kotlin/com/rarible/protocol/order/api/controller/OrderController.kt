@@ -311,7 +311,7 @@ class OrderController(
     }
 
     override suspend fun getSellOrdersByMakerAndByStatus(
-        maker: String,
+        maker: List<Address>,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
@@ -320,7 +320,7 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         return filterInactive(status) { statuses ->
             val filter = OrderFilterSellByMaker(
-                maker = Address.apply(maker),
+                makers = maker,
                 origin = safeAddress(origin),
                 platforms = safePlatforms(platform),
                 sort = OrderFilterSort.LAST_UPDATE_DESC,
@@ -403,7 +403,7 @@ class OrderController(
     }
 
     override suspend fun getOrderBidsByMakerAndByStatus(
-        maker: String,
+        maker: List<Address>,
         origin: String?,
         platform: PlatformDto?,
         continuation: String?,
@@ -414,10 +414,9 @@ class OrderController(
     ): ResponseEntity<OrdersPaginationDto> {
         val requestSize = limit(size)
         val dateContinuation = Continuation.parse<Continuation.LastDate>(continuation)
-        val makerAddress = Address.apply(maker)
         val originAddress = if (origin == null) null else Address.apply(origin)
         val filter = BidsOrderVersionFilter.ByMaker(
-            makerAddress,
+            maker,
             originAddress,
             safePlatforms(platform).mapNotNull { PlatformConverter.convert(it) },
             startDate?.let { Instant.ofEpochSecond(it) },

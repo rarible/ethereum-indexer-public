@@ -13,14 +13,14 @@ data class OrderFilterSellByMaker(
     override val platforms: List<PlatformDto>,
     override val sort: OrderFilterSort,
     override val status: List<OrderStatusDto>? = null,
-    val maker: Address
+    val makers: List<Address> = emptyList()
 ) : OrderFilter() {
 
     override fun toQuery(continuation: String?, limit: Int): Query {
         return Query(
             Criteria()
                 .sell()
-                .forMaker(maker)
+                .forMakers(makers)
                 .forPlatform(platforms.mapNotNull { convert(it) })
                 .fromOrigin(origin)
                 .forStatus(status)

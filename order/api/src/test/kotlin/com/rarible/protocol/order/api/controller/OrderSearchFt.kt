@@ -402,6 +402,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
     @Test
     fun `should find bid-orders by maker and sorted desc`() = runBlocking<Unit> {
         val maker = AddressFactory.create()
+        val maker2 = AddressFactory.create()
         val makeAddress = AddressFactory.create()
         val currencyToken = AddressFactory.create()
         val order1V = createErc721BidOrderVersion().copy(
@@ -418,10 +419,17 @@ class OrderSearchFt : AbstractIntegrationTest() {
             takePrice = BigDecimal.valueOf(2L),
             createdAt = Instant.now()
         )
-        saveOrderVersions(order1V, order2V)
+        val order3V = createErc721BidOrderVersion().copy(
+            make = Asset(Erc20AssetType(currencyToken), EthUInt256.of(2)),
+            maker = maker2,
+            take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
+            takePrice = BigDecimal.valueOf(2L),
+            createdAt = Instant.now()
+        )
+        saveOrderVersions(order1V, order2V, order3V)
 
         val result = orderClient.getOrderBidsByMakerAndByStatus(
-            maker.prefixed(),
+            listOf(maker),
             null,
             null,
             null,
@@ -432,6 +440,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
         ).awaitFirst()
         assertThat(result.orders.size).isEqualTo(1)
         assertThat(result.orders[0].make.value).isEqualTo(2)
+        assertThat(result.orders[0].maker).isEqualTo(maker)
         assertThat(result.continuation).isNotNull
 
         val result2 = orderClient.getOrderBidsByItemAndByStatus(
@@ -450,6 +459,32 @@ class OrderSearchFt : AbstractIntegrationTest() {
         assertThat(result2.orders.size).isEqualTo(1)
         assertThat(result2.orders[0].make.value).isEqualTo(1)
         assertThat(result2.continuation).isNull()
+
+        val result3 = orderClient.getOrderBidsByMakerAndByStatus(
+            listOf(maker, maker2),
+            null,
+            null,
+            null,
+            10,
+            OrderStatusDto.values().toList(),
+            null,
+            null
+        ).awaitFirst()
+        assertThat(result3.orders.size).isEqualTo(3)
+        assertThat(result3.orders.map { it.maker }.toSet()).containsExactlyInAnyOrder(maker, maker2)
+
+        val result4 = orderClient.getOrderBidsByMakerAndByStatus(
+            emptyList(),
+            null,
+            null,
+            null,
+            10,
+            OrderStatusDto.values().toList(),
+            null,
+            null
+        ).awaitFirst()
+
+        assertThat(result4.orders).isEmpty()
     }
 
     @Test
