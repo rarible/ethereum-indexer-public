@@ -19,7 +19,7 @@ class NftActivityConverter(
 
     private val marketAddresses = addresses.marketAddresses
 
-    fun convert(logEvent: ReversedEthereumLogRecord, reverted: Boolean = false): NftActivityDto? {
+    fun convert(logEvent: ReversedEthereumLogRecord, reverted: Boolean): NftActivityDto? {
         val transactionHash = logEvent.transactionHash
         val blockHash = logEvent.blockHash ?: DEFAULT_BLOCK_HASH
         val blockNumber = logEvent.blockNumber ?: DEFAULT_BLOCK_NUMBER
