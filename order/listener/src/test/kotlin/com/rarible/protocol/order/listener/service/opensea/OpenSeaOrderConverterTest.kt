@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigInteger
 
 internal class OpenSeaOrderConverterTest {
+
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
     private val exchangeContracts = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
     private val openSeaErrorCounter = mockk<RegisteredCounter>()
@@ -131,7 +132,9 @@ internal class OpenSeaOrderConverterTest {
         val amount = randomBigInt()
         val item = randomOffer().copy(itemType = ItemType.ERC1155, startAmount = amount, endAmount = amount)
         val assert = converter.convertToAsset(item)
-        val expectedAsset = Asset(Erc1155AssetType(item.token, EthUInt256.of(item.identifierOrCriteria)), EthUInt256.of(amount))
+        val expectedAsset = Asset(
+            Erc1155AssetType(item.token, EthUInt256.of(item.identifierOrCriteria)), EthUInt256.of(amount)
+        )
         assertThat(assert).isEqualTo(expectedAsset)
     }
 
@@ -145,22 +148,33 @@ internal class OpenSeaOrderConverterTest {
         val item2 = randomOffer().copy(itemType = ItemType.NATIVE, startAmount = amount2, endAmount = amount2)
         val item3 = randomOffer().copy(itemType = ItemType.NATIVE, startAmount = amount3, endAmount = amount3)
         val assert = converter.convertToAsset(listOf(item1, item2, item3))
-        val expectedAsset = Asset(EthAssetType, EthUInt256.of(amount1) + EthUInt256.of(amount2) + EthUInt256.of(amount3))
+        val expectedAsset = Asset(
+            EthAssetType, EthUInt256.of(amount1) + EthUInt256.of(amount2) + EthUInt256.of(amount3)
+        )
         assertThat(assert).isEqualTo(expectedAsset)
     }
 
     @Test
     fun `convert seaport order`() = runBlocking<Unit> {
-        val offer = randomOffer().copy(itemType = ItemType.ERC721, startAmount = BigInteger.ONE, endAmount = BigInteger.ONE)
+        val offer = randomOffer().copy(
+            itemType = ItemType.ERC721, startAmount = BigInteger.ONE, endAmount = BigInteger.ONE
+        )
 
         val paymentToken = randomAddress()
         val amount1 = randomBigInt()
-        val consideration1 = randomConsideration().copy(itemType = ItemType.ERC20, token = paymentToken, startAmount = amount1, endAmount = amount1)
+        val consideration1 = randomConsideration().copy(
+            itemType = ItemType.ERC20, token = paymentToken, startAmount = amount1, endAmount = amount1
+        )
 
         val amount2 = randomBigInt()
-        val consideration2 = randomConsideration().copy(itemType = ItemType.ERC20, token = paymentToken, startAmount = amount2, endAmount = amount2)
+        val consideration2 = randomConsideration().copy(
+            itemType = ItemType.ERC20, token = paymentToken, startAmount = amount2, endAmount = amount2
+        )
 
-        val parameters = randomOrderParameters().copy(offer = listOf(offer), consideration = listOf(consideration1, consideration2), orderType = OrderType.PARTIAL_RESTRICTED)
+        val parameters = randomOrderParameters().copy(
+            offer = listOf(offer), consideration = listOf(consideration1, consideration2),
+            orderType = OrderType.PARTIAL_RESTRICTED
+        )
         val protocolData = randomProtocolData().copy(parameters = parameters)
 
         val seaportOrder = randomSeaportOrder()
@@ -173,7 +187,9 @@ internal class OpenSeaOrderConverterTest {
         val orderVersion = converter.convert(seaportOrder)
         assertThat(orderVersion!!.hash).isEqualTo(seaportOrder.orderHash)
         assertThat(orderVersion.maker).isEqualTo(parameters.offerer)
-        assertThat(orderVersion.make).isEqualTo(Asset(Erc721AssetType(offer.token, EthUInt256.of(offer.identifierOrCriteria)), EthUInt256.ONE))
+        assertThat(orderVersion.make).isEqualTo(
+            Asset(Erc721AssetType(offer.token, EthUInt256.of(offer.identifierOrCriteria)), EthUInt256.ONE)
+        )
         assertThat(orderVersion.take).isEqualTo(Asset(Erc20AssetType(paymentToken), EthUInt256.of(amount1 + amount2)))
         assertThat(orderVersion.type).isEqualTo(com.rarible.protocol.order.core.model.OrderType.SEAPORT_V1)
         assertThat(orderVersion.salt.value).isEqualTo(parameters.salt)
@@ -198,10 +214,18 @@ internal class OpenSeaOrderConverterTest {
 
     @Test
     fun `convert seaport order - total amount != current price`() = runBlocking<Unit> {
+        val consideration = randomConsideration().copy(itemType = ItemType.ERC20)
+        val offer = randomOffer().copy(itemType = ItemType.ERC721)
+
         val seaportOrder = randomSeaportOrder()
             .copy(
                 taker = null,
-                protocolData = randomProtocolData(),
+                protocolData = randomProtocolData().copy(
+                    parameters = randomOrderParameters().copy(
+                        consideration = listOf(consideration),
+                        offer = listOf(offer)
+                    )
+                ),
                 currentPrice = randomBigInt(),
                 orderType = com.rarible.opensea.client.model.v2.SeaportOrderType.BASIC
             )
