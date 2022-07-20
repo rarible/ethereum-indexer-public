@@ -9,10 +9,14 @@ import com.rarible.opensea.client.model.v2.ItemType
 import com.rarible.opensea.client.model.v2.Offer
 import com.rarible.opensea.client.model.v2.SeaportItem
 import com.rarible.opensea.client.model.v2.SeaportOrder
-import com.rarible.opensea.client.model.v2.SeaportOrderType as ClientSeaportOrderType
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.*
-import com.rarible.protocol.order.core.model.SeaportItemType.*
+import com.rarible.protocol.order.core.model.SeaportItemType.ERC1155
+import com.rarible.protocol.order.core.model.SeaportItemType.ERC1155_WITH_CRITERIA
+import com.rarible.protocol.order.core.model.SeaportItemType.ERC20
+import com.rarible.protocol.order.core.model.SeaportItemType.ERC721
+import com.rarible.protocol.order.core.model.SeaportItemType.ERC721_WITH_CRITERIA
+import com.rarible.protocol.order.core.model.SeaportItemType.NATIVE
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
@@ -26,6 +30,7 @@ import com.rarible.opensea.client.model.v1.HowToCall as ClientOpenSeaHowToCall
 import com.rarible.opensea.client.model.v1.OrderSide as ClientOpenSeaOrderSide
 import com.rarible.opensea.client.model.v1.SaleKind as ClientOpenSeaSaleKind
 import com.rarible.opensea.client.model.v2.OrderType as ClientOrderType
+import com.rarible.opensea.client.model.v2.SeaportOrderType as ClientSeaportOrderType
 
 @Component
 class OpenSeaOrderConverter(
@@ -75,13 +80,14 @@ class OpenSeaOrderConverter(
                 val make = convertToAsset(offer.single())
                 val take = convertToAsset(consideration.filter { it.itemType == offererConsiderationItemType })
 
-                require(take.value == currentPrice) {
-                    "protocol total amount must be equal currentPrice"
+                if (take.value != currentPrice) {
+                    logger.seaportInfo("protocol total amount must be equal currentPrice: $clientSeaportOrder")
+                    return null
                 }
                 val data = OrderBasicSeaportDataV1(
                     protocol = protocolAddress,
                     orderType = convert(orderType),
-                    offer = offer.map { convert(it) } ,
+                    offer = offer.map { convert(it) },
                     consideration = consideration.map { convert(it) },
                     zone = zone,
                     zoneHash = zoneHash,
