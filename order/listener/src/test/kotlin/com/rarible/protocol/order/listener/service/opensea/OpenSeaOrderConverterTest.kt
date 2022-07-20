@@ -195,4 +195,19 @@ internal class OpenSeaOrderConverterTest {
             assertThat(this.consideration[1].token).isEqualTo(consideration1.token)
         }
     }
+
+    @Test
+    fun `convert seaport order - total amount != current price`() = runBlocking<Unit> {
+        val seaportOrder = randomSeaportOrder()
+            .copy(
+                taker = null,
+                protocolData = randomProtocolData(),
+                currentPrice = randomBigInt(),
+                orderType = com.rarible.opensea.client.model.v2.SeaportOrderType.BASIC
+            )
+
+        val orderVersion = converter.convert(seaportOrder)
+
+        assertThat(orderVersion).isNull()
+    }
 }
