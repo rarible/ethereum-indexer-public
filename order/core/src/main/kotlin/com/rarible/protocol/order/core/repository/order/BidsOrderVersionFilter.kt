@@ -117,7 +117,7 @@ sealed class BidsOrderVersionFilter : OrderVersionFilter() {
     }
 
     data class ByMaker(
-        private val maker: Address?,
+        private val makers: List<Address> = emptyList(),
         private val origin: Address?,
         private val platforms: List<Platform>,
         private val startDate: Instant?,
@@ -132,7 +132,7 @@ sealed class BidsOrderVersionFilter : OrderVersionFilter() {
         override fun getCriteria(): Criteria {
             val criteria = listOfNotNull(
                 takeNftKey isEqualTo true,
-                maker?.let { OrderVersion::maker isEqualTo it },
+                if (makers.isNotEmpty()) { OrderVersion::maker inValues makers } else null,
                 origin?.let { (OrderVersion::data / OrderRaribleV2DataV1::originFees).elemMatch(Part::account isEqualTo origin) },
                 if (platforms.isNotEmpty()) platforms.let { OrderVersion::platform inValues it } else null,
                 startDate?.let { OrderVersion::createdAt gte it },

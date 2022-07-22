@@ -721,18 +721,31 @@ class OrderServiceIt : AbstractOrderIt() {
         orderService.put(erc721Order1.toForm(privateKey1))
         orderService.put(erc721Order2.toForm(privateKey2))
 
-        val orders =
+        var orders =
             orderService.findOrders(
                 OrderFilterSellByMaker(
                     null,
                     emptyList(),
                     OrderFilterSort.LAST_UPDATE_DESC,
                     null,
-                    signer2
+                    listOf(signer2)
                 ), 10, null
             )
 
         assertThat(orders).hasSize(1)
+
+        orders =
+            orderService.findOrders(
+                OrderFilterSellByMaker(
+                    null,
+                    emptyList(),
+                    OrderFilterSort.LAST_UPDATE_DESC,
+                    null,
+                    listOf(signer1, signer2)
+                ), 10, null
+            )
+
+        assertThat(orders).hasSize(2)
     }
 
     @Test
@@ -758,7 +771,7 @@ class OrderServiceIt : AbstractOrderIt() {
 
         Wait.waitAssert {
             val orders = orderService.findOrders(
-                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null,  signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null, listOf(signer2)),
                 10, null
             )
 
@@ -768,7 +781,7 @@ class OrderServiceIt : AbstractOrderIt() {
             val continuation = Continuation.LastDate(midOrder.lastUpdateAt, midOrder.hash)
 
             val ordersPaged = orderService.findOrders(
-                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null, signer2),
+                OrderFilterSellByMaker(null, emptyList(), OrderFilterSort.LAST_UPDATE_DESC, null, listOf(signer2)),
                 10,
                 continuation.toString()
             )

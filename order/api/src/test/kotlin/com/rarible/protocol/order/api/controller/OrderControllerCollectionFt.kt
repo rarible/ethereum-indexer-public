@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderVersion
 import io.mockk.coEvery
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -129,14 +130,19 @@ class OrderControllerCollectionFt : AbstractIntegrationTest() {
     @Test
     fun `should return sell order by maker`() = runBlocking<Unit> {
         val maker = randomAddress()
+        val maker2 = randomAddress()
+        val maker3 = randomAddress()
         val make = Asset(CollectionAssetType(token), EthUInt256.ONE)
         val take = Asset(EthAssetType, EthUInt256.ONE)
         val orderV1 = createOrderVersion(make, take).copy(maker = maker)
-        saveOrderVersions(orderV1)
+        val orderV2 = createOrderVersion(make, take).copy(maker = maker2)
+        val orderV3 = createOrderVersion(make, take).copy(maker = maker3)
+        saveOrderVersions(orderV1, orderV2, orderV3)
 
         val dto = controller.getSellOrdersByMakerAndByStatus(
-            maker.hex(), null, null, null, null, listOf(OrderStatusDto.ACTIVE))
-        assertEquals(1, dto.body.orders.size)
+            listOf(maker, maker2), null, null, null, null, listOf(OrderStatusDto.ACTIVE))
+        assertEquals(2, dto.body.orders.size)
+        assertThat(dto.body.orders.map { it.maker }).containsExactlyInAnyOrder(maker, maker2)
     }
 
     private suspend fun saveOrderVersions(vararg order: OrderVersion) {
