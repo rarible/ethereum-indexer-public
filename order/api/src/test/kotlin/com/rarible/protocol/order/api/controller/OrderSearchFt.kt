@@ -472,19 +472,6 @@ class OrderSearchFt : AbstractIntegrationTest() {
         ).awaitFirst()
         assertThat(result3.orders.size).isEqualTo(3)
         assertThat(result3.orders.map { it.maker }.toSet()).containsExactlyInAnyOrder(maker, maker2)
-
-        val result4 = orderClient.getOrderBidsByMakerAndByStatus(
-            emptyList(),
-            null,
-            null,
-            null,
-            10,
-            OrderStatusDto.values().toList(),
-            null,
-            null
-        ).awaitFirst()
-
-        assertThat(result4.orders).isEmpty()
     }
 
     @Test

@@ -5,7 +5,10 @@ import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.core.kafka.json.JsonSerializer
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.dto.*
+import com.rarible.protocol.dto.Erc20BalanceDto
+import com.rarible.protocol.dto.Erc20BalanceEventDto
+import com.rarible.protocol.dto.Erc20BalanceEventTopicProvider
+import com.rarible.protocol.dto.Erc20BalanceUpdateEventDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -16,6 +19,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 import java.time.Duration
@@ -23,13 +27,18 @@ import java.util.*
 
 @IntegrationTest
 internal class Erc20BalanceConsumerEventHandlerTest : AbstractIntegrationTest() {
+
+    // TODO PT-798
+    @Disabled
     @Test
     fun handleErc20Event() = runBlocking {
         val producer = RaribleKafkaProducer(
             clientId = "erc20",
             valueSerializerClass = JsonSerializer::class.java,
             valueClass = Erc20BalanceEventDto::class.java,
-            defaultTopic = Erc20BalanceEventTopicProvider.getTopic(application.name, orderIndexerProperties.blockchain.value),
+            defaultTopic = Erc20BalanceEventTopicProvider.getTopic(
+                application.name, orderIndexerProperties.blockchain.value
+            ),
             bootstrapServers = orderIndexerProperties.kafkaReplicaSet
         )
 

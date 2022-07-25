@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.service.action.executor
 
+import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.protocol.nft.core.data.createRandomBurnItemAction
 import com.rarible.protocol.nft.core.data.randomItemProperties
@@ -42,21 +43,25 @@ internal class EnsDomainBurnActionExecutorTest {
     )
 
     private companion object {
+
         @JvmStatic
-        fun actionProperties(): Stream<Arguments> = Stream.of(
-            Arguments.of(
-                //actionAt, expirationAt
-                Instant.now(), Instant.now(),
-            ),
-            Arguments.of(
-                //actionAt, expirationAt
-                Instant.now(), Instant.now() - Duration.ofHours(1)
-            ),
-            Arguments.of(
-                //actionAt, expirationAt
-                Instant.now(), null
+        fun actionProperties(): Stream<Arguments> {
+            val now = nowMillis()
+            return Stream.of(
+                Arguments.of(
+                    //actionAt, expirationAt
+                    now, now,
+                ),
+                Arguments.of(
+                    //actionAt, expirationAt
+                    now, now - Duration.ofHours(1)
+                ),
+                Arguments.of(
+                    //actionAt, expirationAt
+                    now, null
+                )
             )
-        )
+        }
     }
 
     @ParameterizedTest

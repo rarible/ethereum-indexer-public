@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository
 
+import com.rarible.core.common.nowMillis
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Token
@@ -18,19 +19,23 @@ class TokenRepositoryIntegrationTest : AbstractIntegrationTest() {
     @Test
     fun `should search with continuation in id asc order`() = runBlocking<Unit> {
         // given
-        val three = tokenRepository.save(buildToken(Address.THREE())).awaitFirst()
-        val two = tokenRepository.save(buildToken(Address.TWO())).awaitFirst()
-        val four = tokenRepository.save(buildToken(Address.FOUR())).awaitFirst()
-        val one = tokenRepository.save(buildToken(Address.ONE())).awaitFirst()
-        val zero = tokenRepository.save(buildToken(Address.ZERO())).awaitFirst()
+        val now = nowMillis()
+        val three = tokenRepository.save(buildToken(Address.THREE())).awaitFirst().copy(dbUpdatedAt = now)
+        val two = tokenRepository.save(buildToken(Address.TWO())).awaitFirst().copy(dbUpdatedAt = now)
+        val four = tokenRepository.save(buildToken(Address.FOUR())).awaitFirst().copy(dbUpdatedAt = now)
+        val one = tokenRepository.save(buildToken(Address.ONE())).awaitFirst().copy(dbUpdatedAt = now)
+        val zero = tokenRepository.save(buildToken(Address.ZERO())).awaitFirst().copy(dbUpdatedAt = now)
         var filter = TokenFilter.All(null, 2)
 
         // when
         val batch1 = tokenRepository.search(filter).collectList().awaitFirst()
+            .map { it.copy(dbUpdatedAt = now) }
         filter = filter.copy(batch1.last().id.toString())
         val batch2 = tokenRepository.search(filter).collectList().awaitFirst()
+            .map { it.copy(dbUpdatedAt = now) }
         filter = filter.copy(batch2.last().id.toString())
         val batch3 = tokenRepository.search(filter).collectList().awaitFirst()
+            .map { it.copy(dbUpdatedAt = now) }
 
         // then
         assertThat(batch1).containsExactly(zero, one)
