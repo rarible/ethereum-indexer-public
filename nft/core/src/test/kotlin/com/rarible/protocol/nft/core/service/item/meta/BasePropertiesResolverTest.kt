@@ -15,12 +15,12 @@ import com.rarible.core.meta.resource.resolver.UrlResolver
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.cache.IpfsContentCache
 import com.rarible.protocol.nft.core.service.item.meta.cache.RawPropertiesCacheService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.clearMocks
 import io.mockk.every
@@ -86,7 +86,7 @@ abstract class BasePropertiesResolverTest {
         customClients = listOf(openseaHttpClient)
     )
 
-    private val urlParser = UrlParser()
+    protected val urlParser = UrlParser()
 
     protected val publicGatewayProvider = ConstantGatewayProvider(IPFS_PUBLIC_GATEWAY.trimEnd('/'))
     private val internalGatewaysProvider = RandomGatewayProvider(IPFS_PUBLIC_GATEWAY.split(",").map { it.trimEnd('/') })
