@@ -21,6 +21,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriter
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
@@ -43,7 +44,7 @@ class ItemService(
     suspend fun getLazyById(itemId: ItemId): ItemLazyMint =
         lazyNftItemHistoryRepository
             .findLazyMintById(itemId)
-            .awaitSingleOrNull() ?: throw EntityNotFoundApiException("Lazy Item", itemId)
+            .awaitFirstOrNull() ?: throw EntityNotFoundApiException("Lazy Item", itemId)
 
     suspend fun getRoyalty(itemId: ItemId): NftItemRoyaltyListDto = coroutineScope {
         val parts = cacheService
