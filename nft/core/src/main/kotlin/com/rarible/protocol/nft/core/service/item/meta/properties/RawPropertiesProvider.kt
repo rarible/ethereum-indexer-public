@@ -52,12 +52,10 @@ class RawPropertiesProvider(
     }
 
     private suspend fun updateCache(cache: ContentCache?, resource: UrlResource, result: String?, itemId: ItemId) {
-        cache ?: return
-        when {
-            result == null -> logger.warn("Can't save content to cache - content not found. $itemId $resource")
-            result.isBlank() -> logger.warn("Can't save content to cache - content is empty. $itemId $resource")
-            else -> cache.save(resource, result)
+        if (result.isNullOrBlank() || cache == null) {
+            return
         }
+        cache.save(resource, result)
     }
 
     private suspend fun fetch(resource: UrlResource, itemId: ItemId, useProxy: Boolean = false): String? {

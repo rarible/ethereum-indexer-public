@@ -111,7 +111,7 @@ abstract class BasePropertiesResolverTest {
 
     protected val ipfsContentCache: IpfsContentCache = mockk()
 
-    protected val featureFlags: FeatureFlags = FeatureFlags()
+    protected val featureFlags: FeatureFlags = FeatureFlags(enableMetaRawPropertiesCache = false)
 
     protected val rawPropertiesProvider = RawPropertiesProvider(
         rawPropertiesCacheService = RawPropertiesCacheService(
@@ -133,7 +133,6 @@ abstract class BasePropertiesResolverTest {
     @BeforeEach
     fun clear() {
         clearMocks(tokenRepository)
-        featureFlags.enableMetaRawPropertiesCache = false
     }
 
     protected fun mockTokenStandard(address: Address, standard: TokenStandard) {
