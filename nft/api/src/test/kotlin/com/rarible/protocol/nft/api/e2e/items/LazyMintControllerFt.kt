@@ -24,12 +24,11 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.Part
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
@@ -288,7 +287,7 @@ class LazyMintControllerFt : EventAwareBaseTest() {
             assertThat(creatorDto.value).isEqualTo(lazyItemDto.creators[index].value)
         }
 
-        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertThat(lazyMint.token).isEqualTo(lazyItemDto.contract)
         assertThat(lazyMint.tokenId.value).isEqualTo(lazyItemDto.tokenId)
         assertThat(lazyMint.uri).isEqualTo(lazyItemDto.uri)
