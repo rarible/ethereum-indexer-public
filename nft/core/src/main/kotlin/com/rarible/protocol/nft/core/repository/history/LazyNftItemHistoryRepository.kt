@@ -33,7 +33,7 @@ class LazyNftItemHistoryRepository(
         return find(
             token = itemId.token,
             tokenId = itemId.tokenId
-        ).filterIsInstance<ItemLazyMint>().singleOrEmpty()
+        ).filterIsInstance<ItemLazyMint>().last()
     }
 
     fun find(
