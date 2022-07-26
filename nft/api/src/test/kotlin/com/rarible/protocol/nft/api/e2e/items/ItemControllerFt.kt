@@ -3,7 +3,9 @@ package com.rarible.protocol.nft.api.e2e.items
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.databind.node.TextNode
 import com.rarible.core.cache.Cache
+import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.royalties.RoyaltiesRegistry
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.LazyErc1155Dto
@@ -18,6 +20,7 @@ import com.rarible.protocol.nft.api.e2e.SpringContainerBaseTest
 import com.rarible.protocol.nft.api.e2e.data.createItem
 import com.rarible.protocol.nft.api.e2e.data.createItemLazyMint
 import com.rarible.protocol.nft.api.e2e.data.createOwnership
+import com.rarible.protocol.nft.api.e2e.data.createPart
 import com.rarible.protocol.nft.api.e2e.data.randomItemMeta
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.dto.ItemDtoConverter
@@ -26,11 +29,11 @@ import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import io.daonomic.rpc.domain.Binary
 import io.mockk.coEvery
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactor.awaitSingle
@@ -55,6 +58,8 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
 import java.util.Date
+import java.util.UUID
+import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Stream
 
 @End2EndTest
@@ -364,6 +369,51 @@ class ItemControllerFt : SpringContainerBaseTest() {
         // get from api
         val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
         assertEquals(NftItemRoyaltyListDto(listOf(NftItemRoyaltyDto(royalty._1, royalty._2.intValueExact()))), dto)
+    }
+
+    @Test
+    fun `should get royalty by itemId from cache dublicate mint`() = runBlocking<Unit> {
+        val item = createItem()
+
+        val itemLazyMint1 = ItemLazyMint(
+            token = item.token,
+            tokenId = item.tokenId,
+            uri = UUID.randomUUID().toString(),
+            standard = listOf(TokenStandard.ERC1155, TokenStandard.ERC721).random(),
+            date = nowMillis(),
+            value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000)),
+            creators = listOf(Part(AddressFactory.create(), 5000), Part(AddressFactory.create(), 5000)),
+            signatures = listOf(Binary.empty(), Binary.empty()),
+            royalties = listOf(createPart())
+        )
+
+        val itemLazyMint2 = ItemLazyMint(
+            token = item.token,
+            tokenId = item.tokenId,
+            uri = UUID.randomUUID().toString(),
+            standard = listOf(TokenStandard.ERC1155, TokenStandard.ERC721).random(),
+            date = nowMillis(),
+            value = EthUInt256.of(ThreadLocalRandom.current().nextLong(1, 10000)),
+            creators = listOf(Part(AddressFactory.create(), 5000), Part(AddressFactory.create(), 5000)),
+            signatures = listOf(Binary.empty(), Binary.empty()),
+            royalties = listOf(createPart())
+        )
+
+        lazyNftItemHistoryRepository.save(itemLazyMint1).awaitFirst()
+        lazyNftItemHistoryRepository.save(itemLazyMint2).awaitFirst()
+
+        // get from api
+        val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
+        assertEquals(
+            NftItemRoyaltyListDto(
+                listOf(
+                    NftItemRoyaltyDto(
+                        itemLazyMint2.royalties[0].account,
+                        itemLazyMint2.royalties[0].value
+                    )
+                )
+            ), dto
+        )
     }
 
     @Test

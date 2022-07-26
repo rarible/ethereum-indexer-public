@@ -21,7 +21,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriter
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.toList
-import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
