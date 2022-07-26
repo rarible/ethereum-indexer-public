@@ -8,6 +8,7 @@ data class FeatureFlags(
     val internalMetaTopicBatchHandle: Boolean = false,
     val internalMetaTopicBatchSize: Int = 100,
     var enableMetaRawPropertiesCache: Boolean = true,
+    val enableProxyForMetaDownload: Boolean = false,
     @Deprecated("Need remove this flag in release 1.31")
     val pendingDisabled: Boolean = true
 )

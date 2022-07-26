@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.properties
 
 import com.rarible.core.meta.resource.http.ExternalHttpClient
+import com.rarible.core.meta.resource.model.HttpUrl
 import com.rarible.core.meta.resource.model.UrlResource
 import com.rarible.protocol.nft.core.model.FeatureFlags
 import com.rarible.protocol.nft.core.model.ItemId
@@ -26,7 +27,11 @@ class RawPropertiesProvider(
         val cache = getCache(resource)
         getFromCache(cache, resource)?.let { return it }
 
-        val fetched = fetch(resource, itemId)
+        // We want to use proxy only for regular HTTP urls, IPFS URLs should not be proxied
+        // because we want to use our own IPFS nodes in nearest future
+        val useProxy = (resource is HttpUrl) && featureFlags.enableProxyForMetaDownload
+
+        val fetched = fetch(resource, itemId, useProxy)
         updateCache(cache, resource, fetched, itemId)
 
         return fetched
@@ -55,13 +60,15 @@ class RawPropertiesProvider(
         }
     }
 
-    private suspend fun fetch(resource: UrlResource, itemId: ItemId): String? {
+    private suspend fun fetch(resource: UrlResource, itemId: ItemId, useProxy: Boolean = false): String? {
         val internalUrl = urlService.resolveInternalHttpUrl(resource)
 
         if (internalUrl == resource.original) {
             logMetaLoading(itemId, "Fetching property string by URL $internalUrl")
         } else {
-            logMetaLoading(itemId, "Fetching property string by URL $internalUrl (original URL is ${resource.original})")
+            logMetaLoading(
+                itemId, "Fetching property string by URL $internalUrl (original URL is ${resource.original})"
+            )
         }
 
         try {
@@ -72,8 +79,11 @@ class RawPropertiesProvider(
         }
 
         return try {
-            val rawProperties = externalHttpClient.getBody(url = internalUrl, id = itemId.toString()) ?: return null
-            rawProperties
+            externalHttpClient.getBody(
+                url = internalUrl,
+                id = itemId.toString(),
+                useProxy = useProxy
+            )
         } catch (e: Exception) {
             logMetaLoading(itemId, "Failed to receive property string via URL $internalUrl $e")
             null
