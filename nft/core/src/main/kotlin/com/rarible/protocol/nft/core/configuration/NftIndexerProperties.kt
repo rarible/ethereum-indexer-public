@@ -34,6 +34,7 @@ data class NftIndexerProperties(
     val itemMeta: ItemMetaProperties = ItemMetaProperties(),
     val contractAddresses: ContractAddresses = ContractAddresses(),
     val action: ActionProperties = ActionProperties(),
+    val collection: CollectionProperties = CollectionProperties(),
     val ipfs: IpfsProperties
 ) {
     data class ActionProperties(
@@ -60,6 +61,7 @@ data class NftIndexerProperties(
     data class ContractAddresses(
         private val market: String = ""
     ) {
+
         val marketAddresses = toAddressSet(market)
     }
 
@@ -68,4 +70,7 @@ data class NftIndexerProperties(
         val ipfsPublicGateway: String
     )
 
+    data class CollectionProperties(
+        val tokenIdInitialValue: Long = 0
+    )
 }
