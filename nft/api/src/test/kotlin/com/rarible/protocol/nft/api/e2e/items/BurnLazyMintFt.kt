@@ -105,7 +105,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
-        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
         assertEquals(tokenId, lazyMint.tokenId.value)
         val lazyOwnership = ownershipRepository.findById(ownershipId).awaitFirst()
         assertThat(lazyOwnership.deleted).isFalse
@@ -151,7 +151,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         coEvery { lazyNftValidator.validate(any()) } returns ValidationResult.Valid
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
 
         // minting
         val eventMint = ItemTransfer(
