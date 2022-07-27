@@ -23,11 +23,11 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenFeature
-import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.LazyNftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
 import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
+import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
@@ -105,7 +105,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
         assertThat(itemDto.id).isEqualTo(itemId.decimalStringValue)
-        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
         assertEquals(tokenId, lazyMint.tokenId.value)
         val lazyOwnership = ownershipRepository.findById(ownershipId).awaitFirst()
         assertThat(lazyOwnership.deleted).isFalse
@@ -151,7 +151,7 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         coEvery { lazyNftValidator.validate(any()) } returns ValidationResult.Valid
 
         val itemDto = nftLazyMintApiClient.mintNftAsset(lazyItemDto).awaitFirst()
-        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirstOrNull()
+        val lazyMint = lazyNftItemHistoryRepository.findLazyMintById(itemId).awaitFirst()
 
         // minting
         val eventMint = ItemTransfer(
