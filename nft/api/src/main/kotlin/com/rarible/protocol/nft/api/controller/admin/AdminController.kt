@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.controller.admin
 
-import com.rarible.core.meta.resource.http.builder.DefaultWebClientBuilder
 import com.rarible.core.task.Task
 import com.rarible.protocol.nft.api.converter.ItemIdConverter
 import com.rarible.protocol.nft.api.dto.AdminTaskDto
@@ -12,7 +11,6 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.core.service.token.TokenUpdateService
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -23,10 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClientResponseException
-import org.springframework.web.reactive.function.client.toEntity
 import scalether.domain.Address
-import java.net.URI
 
 @ExperimentalCoroutinesApi
 @RestController
@@ -35,33 +30,6 @@ class AdminController(
     private val tokenUpdateService: TokenUpdateService,
     private val itemReduceService: ItemReduceService
 ) {
-
-    private val webClient = DefaultWebClientBuilder(followRedirect = true).build()
-
-    // TODO remove, just to test sporadic 403 for some urls
-    @GetMapping(
-        value = ["/v0.1/admin/checkUrl"],
-        produces = [MediaType.APPLICATION_JSON_VALUE]
-    )
-    suspend fun checkUrl(
-        @RequestParam(value = "url", required = true) url: String,
-    ): Map<String, Any> {
-        val response = try {
-            webClient.get()
-                .uri(URI(url))
-                .retrieve()
-                .toEntity<String>()
-                .awaitFirst()
-        } catch (e: WebClientResponseException) {
-            ResponseEntity(e.responseBodyAsString, e.headers, e.rawStatusCode)
-        }
-
-        return mapOf<String, Any>(
-            "body" to (response.body ?: ""),
-            "headers" to response.headers,
-            "status" to response.statusCodeValue
-        )
-    }
 
     @PostMapping(
         value = ["/admin/nft/items/{itemId}/reduce"],
