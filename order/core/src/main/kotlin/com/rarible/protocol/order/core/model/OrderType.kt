@@ -5,5 +5,6 @@ enum class OrderType {
     RARIBLE_V2,
     OPEN_SEA_V1,
     SEAPORT_V1,
-    CRYPTO_PUNKS
+    CRYPTO_PUNKS,
+    X2Y2
 }

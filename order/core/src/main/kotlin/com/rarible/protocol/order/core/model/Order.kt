@@ -169,7 +169,8 @@ data class Order(
                 is OrderRaribleV2DataV2,
                 is OrderRaribleV2DataV3Buy,
                 is OrderRaribleV2DataV3Sell,
-                is OrderBasicSeaportDataV1 -> false
+                is OrderBasicSeaportDataV1,
+                is OrderX2Y2DataV1 -> false
             }
         } else {
             false
@@ -210,7 +211,7 @@ data class Order(
             val calculatedMakeStock = minOf(make, roundedMakeBalance)
 
             return when(orderType) {
-                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS -> calculatedMakeStock
+                OrderType.RARIBLE_V2, OrderType.RARIBLE_V1, OrderType.CRYPTO_PUNKS, OrderType.X2Y2 -> calculatedMakeStock
                 OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
             }
         }
@@ -282,6 +283,7 @@ data class Order(
                 is OrderOpenSeaV1DataV1 -> EthUInt256.ZERO
                 is OrderCryptoPunksData -> EthUInt256.ZERO
                 is OrderBasicSeaportDataV1 -> EthUInt256.ZERO
+                is OrderX2Y2DataV1 -> EthUInt256.ZERO
             }
         }
 
@@ -319,6 +321,7 @@ data class Order(
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.SEAPORT_V1 -> throw UnsupportedOperationException("Can't calculate seaport order hash")
                 OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("On-chain CryptoPunks orders are not hashable")
+                OrderType.X2Y2 -> throw IllegalArgumentException("Can't calculate x2y2 order hash") //TODO ???
             }
         }
 

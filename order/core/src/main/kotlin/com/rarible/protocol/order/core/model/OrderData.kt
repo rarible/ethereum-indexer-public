@@ -185,6 +185,20 @@ data class OrderBasicSeaportDataV1(
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
+data class OrderX2Y2DataV1(
+    val itemHash: Word,
+    val isCollectionOffer: Boolean,
+    val isBundle: Boolean,
+    val side: Int,
+): OrderData() {
+
+    @get:Transient
+    override val version: OrderDataVersion
+        get() = OrderDataVersion.X2Y2
+
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+}
+
 object OrderCryptoPunksData : OrderData() {
     @get:Transient
     override val version get() = OrderDataVersion.CRYPTO_PUNKS
@@ -203,7 +217,8 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     RARIBLE_V2_DATA_V3_BUY(id("V3_BUY")),
     OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
     BASIC_SEAPORT_DATA_V1(id("BASIC_SEAPORT_DATA_V1")),
-    CRYPTO_PUNKS
+    CRYPTO_PUNKS,
+    X2Y2
 }
 
 /**
@@ -225,6 +240,7 @@ fun OrderData.getOriginFees(): List<Part>? {
         is OrderOpenSeaV1DataV1,
         is OrderBasicSeaportDataV1,
         is OrderCryptoPunksData,
-        is OrderDataLegacy -> null
+        is OrderDataLegacy,
+        is OrderX2Y2DataV1-> null
     }
 }

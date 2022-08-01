@@ -10,6 +10,7 @@ import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataV2Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3BuyDto
 import com.rarible.protocol.dto.OrderRaribleV2DataV3SellDto
+import com.rarible.protocol.dto.OrderX2Y2DataDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.order.core.model.OpenSeaOrderFeeMethod
 import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
@@ -76,7 +77,8 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
                 nonce = null
             )
             is OrderCryptoPunksDataDto,
-            is OrderBasicSeaportDataV1Dto -> throw IllegalArgumentException("Not supported converting  order data")
+            is OrderBasicSeaportDataV1Dto,
+            is OrderX2Y2DataDto -> throw IllegalArgumentException("Not supported converting  order data")
         }
     }
 

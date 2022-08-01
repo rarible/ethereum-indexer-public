@@ -10,6 +10,7 @@ object PlatformConverter : Converter<PlatformDto, Platform> {
             PlatformDto.RARIBLE -> Platform.RARIBLE
             PlatformDto.OPEN_SEA -> Platform.OPEN_SEA
             PlatformDto.CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
+            PlatformDto.X2Y2 -> Platform.X2Y2
             null -> null
         }
     }

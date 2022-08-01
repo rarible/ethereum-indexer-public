@@ -212,6 +212,7 @@ class OrderActivityConverter(
             Platform.RARIBLE -> OrderActivityDto.Source.RARIBLE
             Platform.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
             Platform.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+            Platform.X2Y2 -> OrderActivityDto.Source.X2Y2
         }
     }
 
@@ -220,6 +221,7 @@ class OrderActivityConverter(
             HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
             HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
             HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+            HistorySource.X2Y2 -> OrderActivityDto.Source.X2Y2
         }
     }
 

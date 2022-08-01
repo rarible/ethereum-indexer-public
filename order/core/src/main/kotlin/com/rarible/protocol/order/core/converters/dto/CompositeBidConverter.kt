@@ -167,6 +167,7 @@ class CompositeBidConverter(
                 start = order.start,
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
+            X2Y2 -> TODO("Not realized yet. Add after offer support")
         }
     }
 }

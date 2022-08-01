@@ -13,6 +13,7 @@
 
     <properties>
         <opensea-client-starter.version>2.0.12</opensea-client-starter.version>
+        <x2y2-client.version>1.0.5</x2y2-client.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
@@ -48,6 +49,11 @@
                 <groupId>com.rarible</groupId>
                 <artifactId>rarible-opensea-client-starter</artifactId>
                 <version>${opensea-client-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible.x2y2</groupId>
+                <artifactId>rarible-x2y2-client-starter</artifactId>
+                <version>${x2y2-client.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.java.dev.jna</groupId>

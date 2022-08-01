@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
@@ -27,6 +28,7 @@ import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
+import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
@@ -37,6 +39,9 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderConverter
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
+import com.rarible.x2y2.client.X2Y2ApiClient
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -56,7 +61,6 @@ class OrderListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
-    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
     private val openSeaLoadCounter: RegisteredCounter,
@@ -291,6 +295,35 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             openSeaOrderSaveCounter = openSeaSaveCounter,
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name = ["x2y2-load.enabled"],
+        havingValue = "true"
+    )
+    fun x2y2OrderFetchWorker(
+        meterRegistry: MeterRegistry,
+        x2y2FetchStateRepository: X2Y2FetchStateRepository,
+        x2y2ApiClient: X2Y2ApiClient,
+        x2Y2OrderConverter: X2Y2OrderConverter,
+        orderRepository: OrderRepository,
+        x2y2OrderSaveMetric: RegisteredCounter,
+        orderUpdateService: OrderUpdateService
+    ): X2Y2OrdersFetchWorker {
+        val handler = X2Y2OrderLoadHandler(
+            x2y2FetchStateRepository,
+            x2y2ApiClient,
+            x2Y2OrderConverter,
+            orderRepository,
+            x2y2OrderSaveMetric,
+            orderUpdateService,
+            listenerProperties.x2y2Load
+        )
+        return X2Y2OrdersFetchWorker(
+            handler, properties = listenerProperties.x2y2Load, meterRegistry
         ).apply { start() }
     }
 

@@ -42,6 +42,7 @@ class OrderToFormDtoConverter {
             OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be created or updated")
             OrderType.SEAPORT_V1 -> throw IllegalArgumentException("Seaport order can't be created or updated")
             OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks order are created on-chain")
+            OrderType.X2Y2 -> throw IllegalArgumentException("x2y2 order can't be created or updated")
         }
     }
 }
