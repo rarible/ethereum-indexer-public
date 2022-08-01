@@ -23,12 +23,14 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
+import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
+import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
 import com.rarible.protocol.order.listener.service.opensea.MeasurableOpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
@@ -291,6 +293,24 @@ class OrderListenerConfiguration(
             orderUpdateService = orderUpdateService,
             meterRegistry = meterRegistry,
             openSeaOrderSaveCounter = openSeaSaveCounter,
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["looksrare-orders-load-worker.enabled"],
+        havingValue="true"
+    )
+    fun looksrareOrderLoadWorker(
+        meterRegistry: MeterRegistry,
+        properties: OrderListenerProperties,
+        looksrareOrderLoadHandler: LooksrareOrderLoadHandler
+    ): LooksrareOrdersFetchWorker {
+        return LooksrareOrdersFetchWorker(
+            properties = properties.looksrareLoadProperties,
+            meterRegistry = meterRegistry,
+            handler = looksrareOrderLoadHandler
         ).apply { start() }
     }
 

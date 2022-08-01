@@ -3,6 +3,11 @@ package com.rarible.protocol.order.listener.configuration
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelayLoadMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelaySaveMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderErrorMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderLoadMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -90,5 +95,32 @@ class MetricsCountersConfiguration(
     @Bean
     fun seaportOrderDelayGauge() : RegisteredGauge<Long> {
         return SeaportOrderDelayMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    /** Looksrare metrics **/
+
+    @Bean
+    fun looksrareErrorCounter() : RegisteredCounter {
+        return LooksrareOrderErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareSaveCounter() : RegisteredCounter {
+        return LooksrareOrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareLoadCounter() : RegisteredCounter {
+        return LooksrareOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareDelaySaveCounter() : RegisteredCounter {
+        return LooksrareOrderDelaySaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareDelayLoadCounter() : RegisteredCounter {
+        return LooksrareOrderDelayLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 }

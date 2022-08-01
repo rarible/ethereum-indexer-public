@@ -13,6 +13,7 @@
 
     <properties>
         <opensea-client-starter.version>2.0.12</opensea-client-starter.version>
+        <looksrare-client-starter.version>1.0.1</looksrare-client-starter.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
@@ -48,6 +49,11 @@
                 <groupId>com.rarible</groupId>
                 <artifactId>rarible-opensea-client-starter</artifactId>
                 <version>${opensea-client-starter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.rarible</groupId>
+                <artifactId>rarible-looksrare-client-starter</artifactId>
+                <version>${looksrare-client-starter.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.java.dev.jna</groupId>
