@@ -29,6 +29,7 @@ import org.testcontainers.junit.jupiter.Testcontainers
         "spring.cloud.discovery.enabled = false",
         "spring.cloud.consul.config.enabled = false",
         "logging.logstash.tcp-socket.enabled = false",
+        "logging.logfmt.enabled = false",
         "logging.level.org.springframework.web=DEBUG",
         "logging.level.org.springframework.data.mongodb.core.ReactiveMongoTemplate=DEBUG"
     ]
