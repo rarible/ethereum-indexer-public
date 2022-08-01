@@ -80,7 +80,7 @@ abstract class AbstractTokenTest : AbstractIntegrationTest() {
             }.build()
     }
 
-    private fun String.asResource() = this.javaClass::class.java.getResource("/meta/response/$this").readText()
+    private fun String.asResource() = AbstractTokenTest.javaClass.getResource("/meta/response/$this").readText()
 
     companion object {
         const val OPENSEA_URL = "https://api.opensea.io/api/v1"

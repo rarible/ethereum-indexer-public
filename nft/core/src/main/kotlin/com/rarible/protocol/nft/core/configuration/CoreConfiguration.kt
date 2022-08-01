@@ -64,6 +64,11 @@ class CoreConfiguration(
     }
 
     @Bean
+    fun collectionProperties(): NftIndexerProperties.CollectionProperties {
+        return properties.collection
+    }
+
+    @Bean
     fun historyTopics(): HistoryTopics {
         val nftItemHistoryTopics = (ItemType.TRANSFER.topic + ItemType.ROYALTY.topic + ItemType.CREATORS.topic)
             .associateWith { NftItemHistoryRepository.COLLECTION }

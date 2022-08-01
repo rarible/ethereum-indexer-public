@@ -4,7 +4,14 @@ import com.rarible.blockchain.scanner.ethereum.model.EthereumLogStatus
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
-import com.rarible.protocol.nft.core.data.*
+import com.rarible.protocol.nft.core.data.createRandomBurnItemEvent
+import com.rarible.protocol.nft.core.data.createRandomCreatorsItemEvent
+import com.rarible.protocol.nft.core.data.createRandomItemId
+import com.rarible.protocol.nft.core.data.createRandomLazyMintItemEvent
+import com.rarible.protocol.nft.core.data.createRandomMintItemEvent
+import com.rarible.protocol.nft.core.data.createRandomOpenSeaLazyItemMintEvent
+import com.rarible.protocol.nft.core.data.createRandomTransferItemEvent
+import com.rarible.protocol.nft.core.data.withNewValues
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.Item
@@ -12,6 +19,7 @@ import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.model.Part
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -77,6 +85,7 @@ internal class ItemReducerFt : AbstractIntegrationTest() {
     }
 
     @Test
+    @Disabled // TODO PT-798 doesn't applicable with V2 reducer/scanner
     fun `should reduce simple mint event with pending and revert it`() = runBlocking<Unit> {
         val minter = randomAddress()
         val item = initial()

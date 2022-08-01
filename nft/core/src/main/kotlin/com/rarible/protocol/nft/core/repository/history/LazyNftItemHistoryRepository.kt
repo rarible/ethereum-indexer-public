@@ -29,11 +29,11 @@ class LazyNftItemHistoryRepository(
         return mongo.remove(lazyItemHistory, COLLECTION).map { it.wasAcknowledged() }
     }
 
-    fun findLazyMintById(itemId: ItemId): Mono<ItemLazyMint> {
+    fun findLazyMintById(itemId: ItemId): Flux<ItemLazyMint> {
         return find(
             token = itemId.token,
             tokenId = itemId.tokenId
-        ).filterIsInstance<ItemLazyMint>().singleOrEmpty()
+        ).filterIsInstance()
     }
 
     fun find(

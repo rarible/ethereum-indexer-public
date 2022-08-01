@@ -15,6 +15,7 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.MutantsBoredA
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.OpenSeaPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.PegaxyPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.RectguyCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
@@ -38,7 +39,8 @@ class ItemPropertiesResolverProvider(
     emblemVaultV2Resolver: EmblemVaultV2Resolver,
     aavegotchiPropertiesResolver: AavegotchiPropertiesResolver,
     alchemistCruciblePropertiesResolver: AlchemistCruciblePropertiesResolver,
-    pegaxyPropertiesResolver: PegaxyPropertiesResolver
+    pegaxyPropertiesResolver: PegaxyPropertiesResolver,
+    rectguyCatsPropertiesResolver: RectguyCatsPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -62,6 +64,7 @@ class ItemPropertiesResolverProvider(
         aavegotchiPropertiesResolver,
         alchemistCruciblePropertiesResolver,
         pegaxyPropertiesResolver,
+        rectguyCatsPropertiesResolver,
         // Default resolvers, should be last in the list
         lazyItemPropertiesResolver,
         raribleResolver

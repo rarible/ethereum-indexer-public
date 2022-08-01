@@ -20,6 +20,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import scalether.domain.AddressFactory
 import java.time.Duration
@@ -27,6 +28,9 @@ import java.util.*
 
 @IntegrationTest
 internal class NftOwnershipConsumerEventHandlerTest : AbstractIntegrationTest() {
+
+    // TODO PT-798
+    @Disabled
     @Test
     fun handleErc20Event() = runBlocking {
         val producer = RaribleKafkaProducer(
