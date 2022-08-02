@@ -47,9 +47,13 @@ class ERC1155TransferBatchLogDescriptor(
                         1 -> TransferBatchEventWithFullData.apply(log)
                         else -> TransferBatchEvent.apply(log)
                     }
-                    if (e._ids().isEmpty() && e._values().all { value -> value == BigInteger.ZERO }) {
-                        Mono.empty()
-                    } else if (e._ids().size != e._values().size) {
+                    val ids = e._ids()
+                    val values = if (e._values().size > ids.size) {
+                        e._values().dropLastWhile { it == BigInteger.ZERO }
+                    } else {
+                        e._values().toList()
+                    }
+                    if (ids.size != values.size) {
                         Mono.error(IllegalStateException(
                             buildString {
                                 appendLine("Invalid TransferBatchEvent for transaction ${log.transactionHash()} logIndex ${log.logIndex()}")
@@ -60,7 +64,7 @@ class ERC1155TransferBatchLogDescriptor(
                     } else if (e._from() == Address.ZERO() && e._to() == Address.ZERO()) {
                         Mono.empty()
                     } else {
-                        e._ids().zip(e._values())
+                        ids.zip(values)
                             .map {
                                 ItemTransfer(
                                     from = e._from(),
