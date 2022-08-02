@@ -138,10 +138,8 @@ class AuctionActivityConverter(
 
     private fun convert(source: HistorySource): AuctionActivityDto.Source {
         return when (source) {
-            HistorySource.RARIBLE ->
-                AuctionActivityDto.Source.RARIBLE
-            HistorySource.OPEN_SEA, HistorySource.CRYPTO_PUNKS ->
-                throw IllegalArgumentException("Not supported auction history source")
+            HistorySource.RARIBLE -> AuctionActivityDto.Source.RARIBLE
+            else -> throw IllegalArgumentException("Not supported auction history source")
         }
     }
 

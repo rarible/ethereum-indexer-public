@@ -6,5 +6,6 @@ enum class OrderType {
     OPEN_SEA_V1,
     SEAPORT_V1,
     CRYPTO_PUNKS,
-    LOOKSRARE
+    LOOKSRARE,
+    X2Y2
 }

@@ -21,6 +21,8 @@ import com.rarible.protocol.order.listener.misc.SeaportOrderDelayMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderSaveMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderSaveMetric
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -98,7 +100,6 @@ class MetricsCountersConfiguration(
     }
 
     /** Looksrare metrics **/
-
     @Bean
     fun looksrareErrorCounter() : RegisteredCounter {
         return LooksrareOrderErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
@@ -123,4 +124,13 @@ class MetricsCountersConfiguration(
     fun looksrareDelayLoadCounter() : RegisteredCounter {
         return LooksrareOrderDelayLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
+
+    /** X2Y2 */
+    @Bean
+    fun x2y2OrderSaveCounter(): RegisteredCounter =
+        X2Y2OrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun x2y2OrderLoadErrorCounter(): RegisteredCounter =
+        X2Y2OrderLoadErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 }

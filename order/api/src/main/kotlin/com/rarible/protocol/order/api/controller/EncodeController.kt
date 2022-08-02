@@ -68,8 +68,11 @@ class EncodeController(
                     types
                 )
             }
-            OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> throw ValidationApiException("Unsupported order type ${order.type}")
-            OrderType.CRYPTO_PUNKS -> throw ValidationApiException("CryptoPunks are not supported")
+            OrderType.OPEN_SEA_V1,
+            OrderType.SEAPORT_V1,
+            OrderType.X2Y2,
+            OrderType.LOOKSRARE,
+            OrderType.CRYPTO_PUNKS -> throw ValidationApiException("Unsupported order type ${order.type}")
         }
         val encodedOrder = EncodedOrderDto(transferProxyService.getTransferProxy(order.make.type), signMessage)
         return ResponseEntity.ok(encodedOrder)

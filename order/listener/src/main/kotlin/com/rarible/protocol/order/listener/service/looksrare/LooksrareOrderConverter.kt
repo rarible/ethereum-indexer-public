@@ -6,7 +6,7 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
-import com.rarible.protocol.order.core.model.LooksrareDataV1
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
@@ -33,22 +33,21 @@ class LooksrareOrderConverter(
         val signature = looksrareOrder.signature
         val currency = looksrareOrder.currencyAddress
 
-        val data = LooksrareDataV1(
-            looksrareOrder.minPercentageToAsk,
-            Binary.empty()
+        val data = OrderLooksrareDataV1(
+            minPercentageToAsk = looksrareOrder.minPercentageToAsk,
+            params = Binary.empty(),
+            nonce = looksrareOrder.nonce,
+            strategy = looksrareOrder.strategy
         )
-
         val make = Asset(
             Erc721AssetType(looksrareOrder.collectionAddress, EthUInt256(tokenId)),
             EthUInt256.of(looksrareOrder.amount)
         )
-
         val take = Asset(
             if(currency == Address.ZERO()) EthAssetType
             else Erc20AssetType(currency),
             currentPrice
         )
-
         return OrderVersion(
             hash = orderHash,
             maker = maker,

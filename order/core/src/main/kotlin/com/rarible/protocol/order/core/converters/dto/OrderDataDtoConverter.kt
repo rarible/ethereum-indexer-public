@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.OrderDataDto
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderData
@@ -10,6 +11,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
+import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import org.springframework.core.convert.converter.Converter
 import org.springframework.stereotype.Component
 
@@ -25,6 +27,9 @@ object OrderDataDtoConverter: Converter<OrderData, OrderDataDto> {
             is OrderCryptoPunksData -> OrderCryptoPunksDataDtoConverter.convert(source)
             is OrderRaribleV2DataV3Buy -> RaribleV2DataV3DtoConverter.convert(source)
             is OrderRaribleV2DataV3Sell -> RaribleV2DataV3DtoConverter.convert(source)
+            is OrderX2Y2DataV1 -> X2Y2DataDtoConverter.convert(source)
+            is OrderLooksrareDataV1 -> LooksrareDataDtoConverter.convert(source)
         }
     }
 }
+

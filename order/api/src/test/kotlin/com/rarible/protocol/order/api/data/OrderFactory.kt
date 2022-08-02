@@ -79,9 +79,11 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
             end = end,
             signature = CommonSigner().hashToSign(legacyMessage()).sign(privateKey)
         )
-        OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be created or updated")
-        OrderType.SEAPORT_V1 -> throw IllegalArgumentException("Seaport order can't be created or updated")
-        OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders are created on-chain")
+        OrderType.OPEN_SEA_V1,
+        OrderType.SEAPORT_V1,
+        OrderType.CRYPTO_PUNKS,
+        OrderType.X2Y2,
+        OrderType.LOOKSRARE -> throw IllegalArgumentException("$type order can't be created or updated")
     }
 }
 

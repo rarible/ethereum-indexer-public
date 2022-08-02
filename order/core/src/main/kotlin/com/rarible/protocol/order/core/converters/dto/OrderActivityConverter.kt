@@ -20,6 +20,7 @@ import com.rarible.protocol.order.core.model.OrderExchangeHistory
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.Platform.*
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -209,9 +210,11 @@ class OrderActivityConverter(
 
     private fun convert(source: Platform): OrderActivityDto.Source {
         return when (source) {
-            Platform.RARIBLE -> OrderActivityDto.Source.RARIBLE
-            Platform.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
-            Platform.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+            RARIBLE -> OrderActivityDto.Source.RARIBLE
+            OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
+            CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+            X2Y2 -> OrderActivityDto.Source.X2Y2
+            LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
         }
     }
 
@@ -220,6 +223,8 @@ class OrderActivityConverter(
             HistorySource.RARIBLE -> OrderActivityDto.Source.RARIBLE
             HistorySource.OPEN_SEA -> OrderActivityDto.Source.OPEN_SEA
             HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
+            HistorySource.X2Y2 -> OrderActivityDto.Source.X2Y2
+            HistorySource.LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
         }
     }
 
