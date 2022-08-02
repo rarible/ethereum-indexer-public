@@ -98,6 +98,7 @@ class ProtocolOrderPublisher(
             PlatformDto.RARIBLE -> true
             PlatformDto.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
             PlatformDto.CRYPTO_PUNKS -> true
+            PlatformDto.X2Y2 -> true //TODO ???
         }
 
     private val AssetTypeDto.itemId: String?

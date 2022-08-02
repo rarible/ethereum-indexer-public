@@ -123,6 +123,7 @@ class BidDtoConverter(
                 signature = source.order.signature.orEmpty(),
                 makeBalance = BigInteger.ZERO
             )
+            OrderType.X2Y2 -> TODO("Not realized yet. Add after offer support")
         }
     }
 }

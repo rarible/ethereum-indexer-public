@@ -3,6 +3,8 @@ rarible:
     apm:
       agent:
         enabled: false
+  x2y2:
+    api-key: "some-api-key"
 common:
   blockchain: ethereum
   eip712-domain-name: test

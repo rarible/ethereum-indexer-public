@@ -36,7 +36,7 @@ class OpenSeaOrderValidatorImp(
                 if (result.not()) seaportErrorCounter.increment()
                 result
             }
-            OrderType.RARIBLE_V1, OrderType.RARIBLE_V2, OrderType.CRYPTO_PUNKS -> false
+            else -> false
         }
     }
 

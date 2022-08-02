@@ -83,7 +83,7 @@ class PrepareTxService(
             OrderType.CRYPTO_PUNKS -> {
                 prepareTxForCryptoPunk(order, form)
             }
-            OrderType.SEAPORT_V1 -> {
+            OrderType.SEAPORT_V1, OrderType.X2Y2 -> {
                 throw UnsupportedOperationException("Can't prepare tx for order type ${order.type}")
             }
         }
@@ -103,7 +103,7 @@ class PrepareTxService(
             OrderType.CRYPTO_PUNKS -> {
                 prepareCancelTxForCryptoPunk(order)
             }
-            OrderType.SEAPORT_V1 -> {
+            OrderType.SEAPORT_V1, OrderType.X2Y2 -> {
                 throw UnsupportedOperationException("Can't prepare tx for order type ${order.type}")
             }
         }
@@ -118,7 +118,7 @@ class PrepareTxService(
         form: PrepareOrderTxFormDto,
         order: Order
     ): PrepareTxResponse {
-        val fee = form.originFees.map { it.value }.sum()
+        val fee = form.originFees.sumOf { it.value }
         val orderRight = order.invert(form.maker, form.amount)
         logger.info("inverted order: $orderRight")
         val buyerFeeSignature = prepareBuyerFeeSignature(order, fee)
@@ -383,7 +383,7 @@ class PrepareTxService(
             is OrderRaribleV2DataV3 -> listOfNotNull(orderRight.data.originFeeFirst, orderRight.data.originFeeSecond)
             else -> error("Unsupported data for the right order: ${orderRight.data}")
         }
-        val fee = originFees.map { it.value.value.toInt() }.sum() + protocolCommission
+        val fee = originFees.sumOf { it.value.value.toInt() } + protocolCommission
         logger.info("inverted order: $orderRight")
 
         val data = ExchangeV2.matchOrdersSignature().encode(

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.OrderDataLegacy
 import com.rarible.protocol.order.core.model.OrderRaribleV2Data
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,6 +23,7 @@ class OrderValidator(
             OrderType.RARIBLE_V2 -> orderVersion.data is OrderRaribleV2Data
             OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> false
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
+            OrderType.X2Y2 -> orderVersion.data is OrderX2Y2DataV1
         }
         if (isValidOrderDataType.not()) {
             throw OrderUpdateException(
