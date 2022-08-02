@@ -49,7 +49,7 @@ class PlatformFeaturedFilterTest {
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
-        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS))
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.LOOKSRARE))
     }
 
     @Test

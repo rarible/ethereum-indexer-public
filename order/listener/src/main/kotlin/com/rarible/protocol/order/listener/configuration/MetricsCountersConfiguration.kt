@@ -115,16 +115,6 @@ class MetricsCountersConfiguration(
         return LooksrareOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
-    @Bean
-    fun looksrareDelaySaveCounter() : RegisteredCounter {
-        return LooksrareOrderDelaySaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
-    }
-
-    @Bean
-    fun looksrareDelayLoadCounter() : RegisteredCounter {
-        return LooksrareOrderDelayLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
-    }
-
     /** X2Y2 */
     @Bean
     fun x2y2OrderSaveCounter(): RegisteredCounter =
