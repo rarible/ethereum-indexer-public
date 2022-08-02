@@ -2,10 +2,12 @@ package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.CryptoPunkOrderDto
 import com.rarible.protocol.dto.LegacyOrderDto
+import com.rarible.protocol.dto.LooksrareOrderDto
 import com.rarible.protocol.dto.OpenSeaV1OrderDto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
+import com.rarible.protocol.dto.OrderLooksrareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
@@ -226,6 +228,37 @@ class OrderDtoConverter(
                 pending = null,
                 status = orderStatus,
                 data = OrderDataDtoConverter.convert(source.data) as OrderX2Y2DataDto
+            )
+            OrderType.LOOKSRARE -> LooksrareOrderDto(
+                maker = source.maker,
+                make = assetDtoConverter.convert(source.make),
+                taker = source.taker,
+                take = assetDtoConverter.convert(source.take),
+                fill = source.fill.value,
+                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
+                makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
+                cancelled = source.cancelled,
+                salt = source.salt.value.toWord(),
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
+                createdAt = source.createdAt,
+                lastUpdateAt = source.lastUpdateAt,
+                dbUpdatedAt = source.dbUpdatedAt,
+                pending = null,
+                hash = source.hash,
+                data = OrderDataDtoConverter.convert(source.data) as OrderLooksrareDataV1Dto,
+                makePrice = source.makePrice,
+                takePrice = source.takePrice,
+                makePriceUsd = source.makePriceUsd,
+                takePriceUsd = source.takePriceUsd,
+                makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
+                start = source.start,
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
         }
     }

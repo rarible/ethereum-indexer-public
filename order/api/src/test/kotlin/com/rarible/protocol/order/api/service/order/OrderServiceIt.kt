@@ -328,6 +328,14 @@ class OrderServiceIt : AbstractOrderIt() {
         saveRandomCryptoPunkOrderWithMakeBalance()
         saveRandomCryptoPunkOrderWithMakeBalance()
 
+        saveRandomX2Y2OrderWithMakeBalance()
+        saveRandomX2Y2OrderWithMakeBalance()
+        saveRandomX2Y2OrderWithMakeBalance()
+
+        saveRandomLooksrareOrderWithMakeBalance()
+        saveRandomLooksrareOrderWithMakeBalance()
+        saveRandomLooksrareOrderWithMakeBalance()
+
         val page1 = orderClient.getOrdersAll(null, platformDto, null, 2).awaitFirst()
 
         assertThat(page1.continuation).isNotNull()
@@ -889,6 +897,20 @@ class OrderServiceIt : AbstractOrderIt() {
         val (_, _, signer) = generateNewKeys()
         val order =
             orderCryptoPunksData(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
+        return orderRepository.save(order)
+    }
+
+    private suspend fun saveRandomX2Y2OrderWithMakeBalance(): Order {
+        val (_, _, signer) = generateNewKeys()
+        val order =
+            orderX2Y2Data(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
+        return orderRepository.save(order)
+    }
+
+    private suspend fun saveRandomLooksrareOrderWithMakeBalance(): Order {
+        val (_, _, signer) = generateNewKeys()
+        val order =
+            orderLooksrareData(signer).copy(make = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.ONE))
         return orderRepository.save(order)
     }
 

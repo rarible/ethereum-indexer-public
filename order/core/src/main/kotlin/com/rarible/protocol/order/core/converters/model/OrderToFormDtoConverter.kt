@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component
 
 @Component
 class OrderToFormDtoConverter {
-
     suspend fun convert(source: Order): OrderFormDto {
         return when (source.type) {
             OrderType.RARIBLE_V1 -> LegacyOrderFormDto(
@@ -43,6 +42,7 @@ class OrderToFormDtoConverter {
             OrderType.SEAPORT_V1 -> throw IllegalArgumentException("Seaport order can't be created or updated")
             OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks order are created on-chain")
             OrderType.X2Y2 -> throw IllegalArgumentException("x2y2 order can't be created or updated")
+            OrderType.LOOKSRARE -> throw IllegalArgumentException("Looksrare order can't be created or updated")
         }
     }
 }

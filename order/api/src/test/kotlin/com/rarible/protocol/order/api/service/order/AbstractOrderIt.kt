@@ -1,6 +1,13 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
+import com.rarible.core.test.data.randomBinary
+import com.rarible.core.test.data.randomBoolean
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.LegacyOrderFormDto
@@ -22,12 +29,15 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -64,6 +74,16 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
     )
 
     fun orderCryptoPunksData(maker: Address) = orderCryptoPunksData(
+        maker,
+        Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    )
+
+    fun orderX2Y2Data(maker: Address) = orderX2Y2Data(
+        maker,
+        Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    )
+
+    fun orderLooksrareData(maker: Address) = orderLooksrareData(
         maker,
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
@@ -128,6 +148,55 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis(),
         platform = Platform.CRYPTO_PUNKS
+    )
+
+    fun orderX2Y2Data(maker: Address, make: Asset) = Order(
+        maker = maker,
+        taker = null,
+        make = make,
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        makeStock = make.value,
+        type = OrderType.X2Y2,
+        fill = EthUInt256.ZERO,
+        cancelled = false,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderX2Y2DataV1(
+            itemHash = Word.apply(randomWord()),
+            isCollectionOffer = randomBoolean(),
+            isBundle = randomBoolean(),
+            side = randomInt(),
+            orderId = randomBigInt()
+        ),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        platform = Platform.X2Y2
+    )
+
+    fun orderLooksrareData(maker: Address, make: Asset) = Order(
+        maker = maker,
+        taker = null,
+        make = make,
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        makeStock = make.value,
+        type = OrderType.LOOKSRARE,
+        fill = EthUInt256.ZERO,
+        cancelled = false,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderLooksrareDataV1(
+            minPercentageToAsk = randomInt(),
+            strategy = randomAddress(),
+            nonce = randomLong(),
+            params = randomBinary()
+        ),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        platform = Platform.LOOKSRARE
     )
 
     @PostConstruct

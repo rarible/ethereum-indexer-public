@@ -24,14 +24,15 @@ import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
+import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
-import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
+import com.rarible.protocol.order.listener.service.looksrare.LooksrareOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
 import com.rarible.protocol.order.listener.service.opensea.MeasurableOpenSeaOrderService
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderConverter
@@ -62,6 +63,7 @@ class OrderListenerConfiguration(
     private val meterRegistry: MeterRegistry,
     private val erc20IndexerEventsConsumerFactory: Erc20IndexerEventsConsumerFactory,
     private val nftIndexerEventsConsumerFactory: NftIndexerEventsConsumerFactory,
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val blockRepository: BlockRepository,
     private val micrometer: MeterRegistry,
     private val openSeaLoadCounter: RegisteredCounter,
@@ -327,6 +329,24 @@ class OrderListenerConfiguration(
         )
         return X2Y2OrdersFetchWorker(
             handler, properties = listenerProperties.x2y2Load, meterRegistry
+        ).apply { start() }
+    }
+
+    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["looksrare-load.enabled"],
+        havingValue="true"
+    )
+    fun looksrareOrderLoadWorker(
+        meterRegistry: MeterRegistry,
+        properties: OrderListenerProperties,
+        looksrareOrderLoadHandler: LooksrareOrderLoadHandler
+    ): LooksrareOrdersFetchWorker {
+        return LooksrareOrdersFetchWorker(
+            properties = properties.looksrareLoad,
+            meterRegistry = meterRegistry,
+            handler = looksrareOrderLoadHandler
         ).apply { start() }
     }
 

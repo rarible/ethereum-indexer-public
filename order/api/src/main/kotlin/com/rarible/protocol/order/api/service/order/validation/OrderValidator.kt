@@ -3,6 +3,7 @@ package com.rarible.protocol.order.api.service.order.validation
 import com.rarible.protocol.dto.EthereumOrderUpdateApiErrorDto
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
 import com.rarible.protocol.order.core.model.AssetType.Companion.isLazy
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -24,6 +25,7 @@ class OrderValidator(
             OrderType.OPEN_SEA_V1, OrderType.SEAPORT_V1 -> false
             OrderType.CRYPTO_PUNKS -> orderVersion.data is OrderCryptoPunksData
             OrderType.X2Y2 -> orderVersion.data is OrderX2Y2DataV1
+            OrderType.LOOKSRARE -> orderVersion.data is OrderLooksrareDataV1
         }
         if (isValidOrderDataType.not()) {
             throw OrderUpdateException(

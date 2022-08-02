@@ -9,5 +9,6 @@ val OrderDto.platform: PlatformDto
             is OpenSeaV1OrderDto, is SeaportV1OrderDto -> PlatformDto.OPEN_SEA
             is CryptoPunkOrderDto -> PlatformDto.CRYPTO_PUNKS
             is X2Y2OrderDto -> PlatformDto.X2Y2
+            is LooksrareOrderDto -> PlatformDto.LOOKSRARE
         }
     }

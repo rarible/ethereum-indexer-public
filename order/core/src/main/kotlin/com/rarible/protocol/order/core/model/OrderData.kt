@@ -210,6 +210,17 @@ object OrderCryptoPunksData : OrderData() {
     override fun hashCode() = "OrderCryptoPunksData".hashCode()
 }
 
+data class OrderLooksrareDataV1(
+    val minPercentageToAsk: Int,
+    val strategy: Address,
+    val nonce: Long,
+    val params: Binary
+): OrderData() {
+    @get:Transient
+    override val version get() = OrderDataVersion.LOOKSRARE_V1
+    override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+}
+
 enum class OrderDataVersion(val ethDataType: Binary? = null) {
     LEGACY,
     RARIBLE_V2_DATA_V1(id("V1")),
@@ -219,6 +230,7 @@ enum class OrderDataVersion(val ethDataType: Binary? = null) {
     OPEN_SEA_V1_DATA_V1(id("OPEN_SEA_V1")),
     BASIC_SEAPORT_DATA_V1(id("BASIC_SEAPORT_DATA_V1")),
     CRYPTO_PUNKS,
+    LOOKSRARE_V1,
     X2Y2
 }
 
@@ -242,6 +254,7 @@ fun OrderData.getOriginFees(): List<Part>? {
         is OrderBasicSeaportDataV1,
         is OrderCryptoPunksData,
         is OrderDataLegacy,
-        is OrderX2Y2DataV1-> null
+        is OrderX2Y2DataV1,
+        is OrderLooksrareDataV1 -> null
     }
 }
