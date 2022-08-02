@@ -4,7 +4,6 @@ import com.rarible.contracts.erc1155.IERC1155
 import com.rarible.contracts.erc721.IERC721
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.common.opensea.merkle.MerkleValidator
-import com.rarible.protocol.contracts.common.wyvern.atomicizer.WyvernAtomicizer
 import com.rarible.protocol.contracts.exchange.wyvern.OrderCancelledEvent
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.Asset
@@ -243,12 +242,9 @@ class OpenSeaOrderEventConverter(
             MerkleValidator.matchERC1155UsingCriteriaSignature().id() -> {
                 callDataEncoder.decodeTransfer(callData)
             }
-            in IGNORE_LIST -> {
+            else -> {
                 logger.info("OpenSea order call data was ignored: $callData")
                 null
-            }
-            else -> {
-                throw UnsupportedOperationException("Unsupported OpenSea order call data: $callData")
             }
         }
     }
@@ -267,14 +263,5 @@ class OpenSeaOrderEventConverter(
             OrderSide.LEFT -> OrderSide.RIGHT
             OrderSide.RIGHT -> OrderSide.LEFT
         }
-    }
-
-    companion object {
-        val IGNORE_LIST = listOf(
-            WyvernAtomicizer.atomicizeSignature().id(),
-            Binary.apply("0x6d5cb2f5"), //TODO: need support ALPHA-339,
-            Binary.apply("0x1c14edea"), //TODO: need support ALPHA-339,
-            Binary.apply("0x45710074") //TODO: need support ALPHA-339,
-        )
     }
 }

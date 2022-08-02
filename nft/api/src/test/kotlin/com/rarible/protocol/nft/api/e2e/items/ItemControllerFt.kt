@@ -373,9 +373,8 @@ class ItemControllerFt : SpringContainerBaseTest() {
     }
 
     @Test
-    fun `should get royalty by itemId from cache dublicate mint`() = runBlocking<Unit> {
+    fun `should get royalty by itemId from cache duplicate mint`() = runBlocking<Unit> {
         val item = createItem()
-
         val itemLazyMint1 = ItemLazyMint(
             token = item.token,
             tokenId = item.tokenId,
@@ -387,7 +386,6 @@ class ItemControllerFt : SpringContainerBaseTest() {
             signatures = listOf(Binary.empty(), Binary.empty()),
             royalties = listOf(createPart())
         )
-
         val itemLazyMint2 = ItemLazyMint(
             token = item.token,
             tokenId = item.tokenId,
@@ -399,10 +397,8 @@ class ItemControllerFt : SpringContainerBaseTest() {
             signatures = listOf(Binary.empty(), Binary.empty()),
             royalties = listOf(createPart())
         )
-
         lazyNftItemHistoryRepository.save(itemLazyMint1).awaitFirst()
         lazyNftItemHistoryRepository.save(itemLazyMint2).awaitFirst()
-
         // get from api
         val dto = nftItemApiClient.getNftItemRoyaltyById(item.id.toString()).awaitSingle()
         assertEquals(

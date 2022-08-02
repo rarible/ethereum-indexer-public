@@ -30,10 +30,10 @@ class LazyNftItemHistoryRepository(
     }
 
     fun findLazyMintById(itemId: ItemId): Flux<ItemLazyMint> {
-        return find(
-            token = itemId.token,
-            tokenId = itemId.tokenId
-        ).filterIsInstance()
+        val criteria = tokenCriteria(itemId.token, itemId.tokenId)
+        return mongo
+            .find(Query(criteria).with(LOG_SORT_DESC), LazyItemHistory::class.java, COLLECTION)
+            .filterIsInstance()
     }
 
     fun find(
@@ -70,6 +70,7 @@ class LazyNftItemHistoryRepository(
         val DATA_TOKEN_ID = LazyItemHistory::tokenId.name
 
         val LOG_SORT_ASC: Sort = Sort.by(DATA_TOKEN, DATA_TOKEN_ID, "_id")
+        val LOG_SORT_DESC: Sort = LOG_SORT_ASC.descending()
     }
 }
 
