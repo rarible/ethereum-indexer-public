@@ -10,7 +10,8 @@ object X2Y2DataDtoConverter {
             itemHash = source.itemHash,
             isCollectionOffer = source.isCollectionOffer,
             isBundle = source.isBundle,
-            side = source.side
+            side = source.side,
+            orderId = source.orderId
         )
     }
 }
