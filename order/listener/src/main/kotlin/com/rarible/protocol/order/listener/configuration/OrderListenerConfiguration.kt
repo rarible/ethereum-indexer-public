@@ -29,6 +29,7 @@ import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
+import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
 import com.rarible.protocol.order.listener.service.event.Erc20BalanceConsumerEventHandler
 import com.rarible.protocol.order.listener.service.event.NftOwnershipConsumerEventHandler
 import com.rarible.protocol.order.listener.service.opensea.ExternalUserAgentProvider
@@ -311,7 +312,8 @@ class OrderListenerConfiguration(
         x2Y2OrderConverter: X2Y2OrderConverter,
         orderRepository: OrderRepository,
         x2y2OrderSaveMetric: RegisteredCounter,
-        orderUpdateService: OrderUpdateService
+        orderUpdateService: OrderUpdateService,
+        x2Y2OrderLoadErrorMetric: RegisteredCounter
     ): X2Y2OrdersFetchWorker {
         val handler = X2Y2OrderLoadHandler(
             x2y2FetchStateRepository,
@@ -319,6 +321,7 @@ class OrderListenerConfiguration(
             x2Y2OrderConverter,
             orderRepository,
             x2y2OrderSaveMetric,
+            x2Y2OrderLoadErrorMetric,
             orderUpdateService,
             listenerProperties.x2y2Load
         )

@@ -190,6 +190,7 @@ data class OrderX2Y2DataV1(
     val isCollectionOffer: Boolean,
     val isBundle: Boolean,
     val side: Int,
+    val orderId: BigInteger
 ): OrderData() {
 
     @get:Transient

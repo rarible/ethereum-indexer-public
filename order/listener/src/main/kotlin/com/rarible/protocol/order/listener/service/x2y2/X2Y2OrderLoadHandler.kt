@@ -10,6 +10,9 @@ import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.X2Y2OrdersLoadWorkerProperties
 import com.rarible.x2y2.client.X2Y2ApiClient
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,6 +24,7 @@ class X2Y2OrderLoadHandler(
     private val x2Y2OrderConverter: X2Y2OrderConverter,
     private val orderRepository: OrderRepository,
     private val x2y2OrderSaveCounter: RegisteredCounter,
+    private val x2y2OrderLoadErrorCounter: RegisteredCounter,
     private val orderUpdateService: OrderUpdateService,
     private val properties: X2Y2OrdersLoadWorkerProperties
 ): JobHandler {
@@ -40,7 +44,7 @@ class X2Y2OrderLoadHandler(
                     val converted = result.data.map {
                         x2Y2OrderConverter.convertOrder(it)
                     }.filter {
-                        orderRepository.findById(it.hash) != null
+                        orderRepository.findById(it.hash) == null
                     }
 
                     saveOrders(converted)
@@ -55,6 +59,7 @@ class X2Y2OrderLoadHandler(
             }
         } catch (e: Exception) {
             logger.warn("Unable to load x2y2 orders! ${e.message}")
+            x2y2OrderLoadErrorCounter.increment()
             stateRepository.save(
                 state.copy(
                     lastError = e.stackTraceToString()
@@ -66,10 +71,14 @@ class X2Y2OrderLoadHandler(
     }
 
     private suspend fun saveOrders(converted: List<OrderVersion>) {
-        converted.forEach {
-            orderUpdateService.save(it)
-            x2y2OrderSaveCounter.increment()
-            logger.info("Saved x2y2 order: ${it.hash}")
-        }
+        converted.map {
+            coroutineScope {
+                async {
+                    orderUpdateService.save(it)
+                    x2y2OrderSaveCounter.increment()
+                    logger.info("Saved x2y2 order: ${it.hash}")
+                }
+            }
+        }.awaitAll()
     }
 }

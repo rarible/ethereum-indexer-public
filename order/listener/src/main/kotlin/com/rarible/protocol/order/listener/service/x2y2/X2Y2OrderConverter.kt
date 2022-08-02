@@ -25,7 +25,8 @@ class X2Y2OrderConverter(
             itemHash = order.itemHash,
             isCollectionOffer = order.isCollectionOffer,
             isBundle = order.isBundle,
-            side = order.side
+            side = order.side,
+            orderId = order.id
         )
 
         return OrderVersion(
@@ -54,7 +55,7 @@ class X2Y2OrderConverter(
             takePrice = null,
             makeUsd = null,
             takeUsd = null,
-            salt = EthUInt256(order.id),
+            salt = EthUInt256.ZERO,
             signature = null, // TODO realize if need
             hash = order.itemHash
         ).let {
