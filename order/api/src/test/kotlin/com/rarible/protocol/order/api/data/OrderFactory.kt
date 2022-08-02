@@ -82,6 +82,7 @@ fun Order.toForm(eip712Domain: EIP712Domain, privateKey: BigInteger): OrderFormD
         OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("OpenSea order can't be created or updated")
         OrderType.SEAPORT_V1 -> throw IllegalArgumentException("Seaport order can't be created or updated")
         OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("CryptoPunks orders are created on-chain")
+        OrderType.X2Y2 -> throw IllegalArgumentException("x2y2 order can't be created or updated")
     }
 }
 
