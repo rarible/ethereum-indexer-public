@@ -20,10 +20,11 @@ import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Binary
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -34,10 +35,13 @@ import java.math.BigInteger
 
 @IntegrationTest
 class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
+    @BeforeEach
+    fun setVersion() {
+        featureFlags.reduceVersion = ReduceVersion.V2
+    }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun getPunkTest(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun getPunkTest() = runBlocking {
         val market = deployCryptoPunkMarket()
 
         val (punk33OwnerAddress, punk33Sender) = newSender()
@@ -76,21 +80,18 @@ class CryptoPunksLogDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun transferPunkTest(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun transferPunkTest() = runBlocking {
         transferOrBuyPunkTest(true)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun buyPunkTest(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun buyPunkTest() = runBlocking {
         transferOrBuyPunkTest(false)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun acceptBidForPunk(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun acceptBidForPunk() = runBlocking {
         val market = deployCryptoPunkMarket()
 
         val (ownerAddress, ownerSender) = newSender()
