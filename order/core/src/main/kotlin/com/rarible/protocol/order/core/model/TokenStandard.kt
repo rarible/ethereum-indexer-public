@@ -11,13 +11,8 @@ sealed class TokenStandard {
             get() = Binary.apply("0x80ac58cd")
     }
 
-    object ERC721Deprecated : TokenStandard() {
+    object ERC1155 : TokenStandard() {
         override val interfaceId: Bytes
-            get() = Binary.apply("0x9a20483d")
-    }
-
-    object ERC20 : TokenStandard() {
-        override val interfaceId: Bytes?
-            get() = null
+            get() = Binary.apply("0xd9b67a26")
     }
 }

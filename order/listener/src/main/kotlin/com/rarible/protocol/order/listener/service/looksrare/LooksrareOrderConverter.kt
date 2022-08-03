@@ -12,15 +12,17 @@ import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.TokenStandard
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import io.daonomic.rpc.domain.Binary
+import com.rarible.protocol.order.listener.misc.looksrareError
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.math.BigInteger
 
 @Component
 class LooksrareOrderConverter(
     private val priceUpdateService: PriceUpdateService,
+    private val tokenStandardProvider: TokenStandardProvider,
     private val currencyAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) {
     suspend fun convert(looksrareOrder: LooksrareOrder): OrderVersion? {
@@ -36,6 +38,10 @@ class LooksrareOrderConverter(
         val createdAt = looksrareOrder.startTime
         val signature = looksrareOrder.signature
         val collectionAddress = looksrareOrder.collectionAddress
+        val collectionStandard = tokenStandardProvider.getTokenStandard(collectionAddress) ?: run {
+            logger.looksrareError("Can't get collection $collectionAddress standard")
+            return null
+        }
         val currencyAddress = looksrareOrder.currencyAddress
 
         val data = OrderLooksrareDataV1(
@@ -46,10 +52,10 @@ class LooksrareOrderConverter(
         )
         val (make, take) = kotlin.run {
             val nft = Asset(
-                if (looksrareOrder.amount > BigInteger.ONE)
-                    Erc1155AssetType(collectionAddress, EthUInt256(tokenId))
-                else
-                    Erc721AssetType(collectionAddress, EthUInt256(tokenId)),
+                when (collectionStandard) {
+                    TokenStandard.ERC721 -> Erc721AssetType(collectionAddress, EthUInt256(tokenId))
+                    TokenStandard.ERC1155 -> Erc1155AssetType(collectionAddress, EthUInt256(tokenId))
+                },
                 EthUInt256.of(looksrareOrder.amount)
             )
             val currency = Asset(

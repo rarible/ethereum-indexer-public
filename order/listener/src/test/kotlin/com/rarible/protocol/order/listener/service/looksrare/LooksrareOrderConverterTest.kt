@@ -1,10 +1,8 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -12,6 +10,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
+import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
@@ -26,9 +25,11 @@ internal class LooksrareOrderConverterTest {
         coEvery { withUpdatedPrices(any<OrderVersion>()) } answers { it.invocation.args.first() as OrderVersion }
     }
     private val currencyAddresses = OrderIndexerProperties.CurrencyContractAddresses(weth = randomAddress())
+    private val tokenStandardProvider = mockk<TokenStandardProvider>()
 
     private val converter = LooksrareOrderConverter(
         priceUpdateService = priceUpdateService,
+        tokenStandardProvider = tokenStandardProvider,
         currencyAddresses = currencyAddresses
     )
 
@@ -38,6 +39,8 @@ internal class LooksrareOrderConverterTest {
             isOrderAsk = true,
             amount = BigInteger.ONE
         )
+        coEvery { tokenStandardProvider.getTokenStandard(looksrareOrder.collectionAddress) } returns TokenStandard.ERC721
+
         val orderVersion = converter.convert(looksrareOrder)
         assertThat(orderVersion).isNotNull
         assertThat(orderVersion!!.hash).isEqualTo(looksrareOrder.hash)
@@ -71,6 +74,7 @@ internal class LooksrareOrderConverterTest {
             isOrderAsk = true,
             amount = BigInteger.TEN
         )
+        coEvery { tokenStandardProvider.getTokenStandard(looksrareOrder.collectionAddress) } returns TokenStandard.ERC1155
         val orderVersion = converter.convert(looksrareOrder)
         assertThat(orderVersion!!.make.type).isInstanceOf(Erc1155AssetType::class.java)
         assertThat((orderVersion.make.type as Erc1155AssetType).token).isEqualTo(looksrareOrder.collectionAddress)
@@ -84,16 +88,18 @@ internal class LooksrareOrderConverterTest {
             isOrderAsk = true,
             amount = BigInteger.TEN
         )
+        coEvery { tokenStandardProvider.getTokenStandard(looksrareOrder.collectionAddress) } returns TokenStandard.ERC1155
         val orderVersion = converter.convert(looksrareOrder)
         assertThat(orderVersion!!.take.type).isInstanceOf(EthAssetType::class.java)
     }
 
     @Test
-    fun `should convert bid eerc721 order`() = runBlocking<Unit> {
+    fun `should convert bid erc721 order`() = runBlocking<Unit> {
         val looksrareOrder = randomLooksrareOrder().copy(
             isOrderAsk = false,
             amount = BigInteger.ONE
         )
+        coEvery { tokenStandardProvider.getTokenStandard(looksrareOrder.collectionAddress) } returns TokenStandard.ERC721
         val orderVersion = converter.convert(looksrareOrder)
 
         assertThat(orderVersion!!.make.value.value).isEqualTo(looksrareOrder.price)
@@ -103,6 +109,5 @@ internal class LooksrareOrderConverterTest {
         assertThat(orderVersion.take.type).isInstanceOf(Erc721AssetType::class.java)
         assertThat((orderVersion.take.type as Erc721AssetType).token).isEqualTo(looksrareOrder.collectionAddress)
         assertThat((orderVersion.take.type as Erc721AssetType).tokenId.value).isEqualTo(looksrareOrder.tokenId)
-
     }
 }

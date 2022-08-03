@@ -1,8 +1,11 @@
 package com.rarible.protocol.order.listener.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBoolean
 import com.rarible.core.test.data.randomString
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.NftCollectionDto
 import com.rarible.protocol.dto.NftDeletedOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipDeleteEventDto
 import com.rarible.protocol.dto.NftOwnershipDto
@@ -61,5 +64,21 @@ fun createNftOwnershipDeleteEventLegacy(ownership: NftOwnershipDto): NftOwnershi
         ownershipId = ownership.id,
         ownership = deletedOwnership,
         deletedOwnership = null
+    )
+}
+
+fun createNftCollectionDto(): NftCollectionDto {
+    return NftCollectionDto(
+        features = emptyList(),
+        id = randomAddress(),
+        isRaribleContract = randomBoolean(),
+        meta = null,
+        minters = emptyList(),
+        name = randomString(),
+        owner = null,
+        status = NftCollectionDto.Status.CONFIRMED,
+        supportsLazyMint = randomBoolean(),
+        symbol = randomString(),
+        type = NftCollectionDto.Type.values().random()
     )
 }
