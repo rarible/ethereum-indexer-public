@@ -51,7 +51,7 @@ data class SeaportLoadProperties(
 
 data class LooksrareLoadProperties(
     val enabled: Boolean = false,
-    val saveEnabled: Boolean = false,
+    var saveEnabled: Boolean = false,
     val delay: Duration = Duration.ofMinutes(1),
     val loadPeriod: Duration = Duration.ofSeconds(5),
     val loadMaxSize: Int = 150,
