@@ -7,8 +7,11 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemLazyMint
 import com.rarible.protocol.nft.core.model.LazyItemHistory
+import com.rarible.protocol.nft.core.repository.CollectionStatRepository
+import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.stereotype.Component
@@ -45,6 +48,12 @@ class LazyNftItemHistoryRepository(
         return mongo.find(Query(c).with(LOG_SORT_ASC), LazyItemHistory::class.java, COLLECTION)
     }
 
+    suspend fun createIndexes() {
+        ALL_INDEXES.forEach { index ->
+            mongo.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
+        }
+    }
+
     private fun tokenCriteria(token: Address?, tokenId: EthUInt256?, from: ItemId? = null): Criteria {
         return when {
             token != null && tokenId != null ->
@@ -71,6 +80,16 @@ class LazyNftItemHistoryRepository(
 
         val LOG_SORT_ASC: Sort = Sort.by(DATA_TOKEN, DATA_TOKEN_ID, "_id")
         val LOG_SORT_DESC: Sort = LOG_SORT_ASC.descending()
+
+        private val BY_TOKEN_TOKEN_ID_ID: Index = Index()
+            .on(DATA_TOKEN, Sort.Direction.ASC)
+            .on(DATA_TOKEN_ID, Sort.Direction.ASC)
+            .on("_id", Sort.Direction.ASC)
+            .background()
+
+        val ALL_INDEXES = listOf(
+            BY_TOKEN_TOKEN_ID_ID
+        )
     }
 }
 
