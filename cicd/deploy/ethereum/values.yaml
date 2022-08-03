@@ -9,21 +9,15 @@ ethereum-erc20-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -31,20 +25,14 @@ ethereum-erc20-listener:
   image:
     repository: ethereum-indexer-erc20-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
-  endpointMode: dnsrr
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
-  networks:
-    common:
-    - '{{ include "service.appEnv" $ }}-backend'
-    - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -55,22 +43,15 @@ ethereum-gateway:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  networks:
-    common:
-    - '{{ include "service.appEnv" $ }}-backend'
-    additional:
-    - 'proxy-staging'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -81,24 +62,17 @@ ethereum-order-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-    JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   livenessProbe:
-    initialDelaySeconds: 180s
+    initialDelaySeconds: 180
   updateConfig:
     order: start-first
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -106,22 +80,16 @@ ethereum-order-listener:
   image:
     repository: ethereum-indexer-order-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.job: true
-  endpointMode: dnsrr
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   livenessProbe:
-    initialDelaySeconds: 180s
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
+    initialDelaySeconds: 180
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -129,26 +97,18 @@ ethereum-order-migration:
   image:
     repository: ethereum-indexer-order-migration
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.job: true
-  endpointMode: dnsrr
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   livenessProbe:
-    initialDelaySeconds: 180s
+    initialDelaySeconds: 180
   restartPolicy:
     condition: on-failure
-  updateConfig:
-    failure_action: continue
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -159,20 +119,15 @@ ethereum-unlockable-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 356
       max_direct_memory_megabytes: 32
   updateConfig:
     order: start-first
-  networks:
-    common:
-    - '{{ include "service.appEnv" $ }}-backend'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -183,23 +138,17 @@ ethereum-nft-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
   resources:
     jvm:
       xmx_megabytes: 456
       max_direct_memory_megabytes: 32
   livenessProbe:
-    initialDelaySeconds: 180s
+    initialDelaySeconds: 180
   updateConfig:
     order: start-first
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -207,22 +156,16 @@ ethereum-nft-listener:
   image:
     repository: ethereum-indexer-nft-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.job: true
-  endpointMode: dnsrr
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 512
       max_direct_memory_megabytes: 32
   livenessProbe:
-    initialDelaySeconds: 180s
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
+    initialDelaySeconds: 180
   podAnnotations:
     fluentbit.io/parser: logfmt
 
@@ -230,12 +173,10 @@ ethereum-nft-migration:
   image:
     repository: ethereum-indexer-nft-migration
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.appEnv" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.appEnv" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "service.appEnv" $ }},{{ .Values.global.blockchain }}-{{ include "service.appEnv" $ }},consul'
-  nodeSelector:
-    node.labels.rarible.job: true
-  endpointMode: dnsrr
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }},consul'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
@@ -244,11 +185,5 @@ ethereum-nft-migration:
     initialDelaySeconds: 180s
   restartPolicy:
     condition: on-failure
-  updateConfig:
-    failure_action: continue
-  networks:
-    common:
-      - '{{ include "service.appEnv" $ }}-backend'
-      - '{{ .Values.global.network }}-ethereum'
   podAnnotations:
     fluentbit.io/parser: logfmt
