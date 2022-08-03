@@ -22,9 +22,8 @@ class LooksrareOrderLoadHandler(
         val result = looksrareOrderLoader.load(listedAfter = listedAfter, listedBefore = listedBefore)
         if (result.isEmpty()) {
             delay(properties.pollingPeriod)
-        } else {
-            looksrareFetchStateRepository.save(state.withListedAfter(listedBefore))
         }
+        looksrareFetchStateRepository.save(state.withListedAfter(listedBefore))
     }
 
     private fun getDefaultFetchState(): LooksrareFetchState {
@@ -34,7 +33,7 @@ class LooksrareOrderLoadHandler(
         )
     }
 
-    private companion object {
+    internal companion object {
         const val STATE_ID_PREFIX = "looksrare_order_fetch"
     }
 }
