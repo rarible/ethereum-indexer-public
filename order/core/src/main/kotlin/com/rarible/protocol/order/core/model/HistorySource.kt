@@ -5,4 +5,5 @@ enum class HistorySource {
     OPEN_SEA,
     CRYPTO_PUNKS,
     X2Y2,
+    LOOKSRARE
 }

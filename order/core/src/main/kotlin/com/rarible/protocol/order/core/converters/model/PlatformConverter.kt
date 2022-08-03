@@ -11,6 +11,7 @@ object PlatformConverter : Converter<PlatformDto, Platform> {
             PlatformDto.OPEN_SEA -> Platform.OPEN_SEA
             PlatformDto.CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
             PlatformDto.X2Y2 -> Platform.X2Y2
+            PlatformDto.LOOKSRARE -> Platform.LOOKSRARE
             null -> null
         }
     }

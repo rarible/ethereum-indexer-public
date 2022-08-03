@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.OpenSeaSigner
+import com.rarible.protocol.order.listener.misc.seaportError
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component

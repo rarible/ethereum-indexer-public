@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.model.SeaportItemType.ERC721_WITH_CRITERI
 import com.rarible.protocol.order.core.model.SeaportItemType.NATIVE
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.misc.seaportInfo
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory

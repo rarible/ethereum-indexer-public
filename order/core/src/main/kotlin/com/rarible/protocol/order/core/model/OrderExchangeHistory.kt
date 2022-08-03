@@ -82,5 +82,6 @@ data class OnChainOrder(
         Platform.OPEN_SEA -> HistorySource.OPEN_SEA
         Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
         Platform.X2Y2 -> HistorySource.X2Y2
+        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
     }
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)

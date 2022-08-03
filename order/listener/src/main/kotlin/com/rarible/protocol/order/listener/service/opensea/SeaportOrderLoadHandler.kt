@@ -4,6 +4,7 @@ import com.rarible.core.daemon.job.JobHandler
 import com.rarible.protocol.order.core.model.OpenSeaFetchState
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
+import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

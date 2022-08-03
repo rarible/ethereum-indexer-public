@@ -5,6 +5,8 @@ import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
+import com.rarible.protocol.order.listener.misc.seaportError
+import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope

@@ -32,6 +32,8 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val transferProxyAddresses: TransferProxyAddresses,
     @NestedConfigurationProperty
+    val currencyContractAddresses: CurrencyContractAddresses,
+    @NestedConfigurationProperty
     val publish: PublishProperties = PublishProperties(),
     @NestedConfigurationProperty
     val featureFlags: FeatureFlags = FeatureFlags(),
@@ -40,6 +42,10 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties()
 ) {
+    data class CurrencyContractAddresses(
+        var weth: Address
+    )
+
     data class ExchangeContractAddresses(
         var v1: Address,
         var v1Old: Address? = null,

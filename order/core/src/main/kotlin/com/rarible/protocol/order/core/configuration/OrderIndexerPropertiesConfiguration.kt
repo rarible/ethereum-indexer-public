@@ -25,6 +25,9 @@ class OrderIndexerPropertiesConfiguration(
     fun transferProxyAddresses() = indexerProperties.transferProxyAddresses
 
     @Bean
+    fun currencyContractAddresses() = indexerProperties.currencyContractAddresses
+
+    @Bean
     fun raribleOrderExpiration() = indexerProperties.raribleOrderExpiration
 
     @Bean
