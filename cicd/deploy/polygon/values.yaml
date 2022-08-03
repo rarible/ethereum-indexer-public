@@ -9,11 +9,9 @@ polygon-erc20-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -27,11 +25,10 @@ polygon-erc20-listener:
   image:
     repository: ethereum-indexer-erc20-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/erc20'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
@@ -46,11 +43,9 @@ polygon-gateway:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -67,12 +62,9 @@ polygon-order-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-    JAVA_OPTIONS: '-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -89,11 +81,10 @@ polygon-order-listener:
   image:
     repository: ethereum-indexer-order-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
@@ -108,11 +99,10 @@ polygon-order-migration:
   image:
     repository: ethereum-indexer-order-migration
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/order'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
@@ -132,11 +122,9 @@ polygon-unlockable-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/unlockable'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 356
@@ -153,11 +141,9 @@ polygon-nft-api:
   service:
     enabled: true
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.service: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
   resources:
     jvm:
       xmx_megabytes: 456
@@ -173,11 +159,10 @@ polygon-nft-listener:
   image:
     repository: ethereum-indexer-nft-listener
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 512
@@ -191,11 +176,10 @@ polygon-nft-migration:
   image:
     repository: ethereum-indexer-nft-migration
   environments:
-    APPLICATION_ENVIRONMENT: '{{ include "service.env" $ }}'
-    CONSUL_ROOT_PATH: '{{ include "service.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
-    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "service.env" $ }},{{ .Values.global.blockchain }}-{{ include "service.env" $ }}'
-  nodeSelector:
-    node.labels.rarible.job: true
+    APPLICATION_ENVIRONMENT: '{{ include "app.env" $ }}'
+    CONSUL_ROOT_PATH: '{{ include "app.env" $ }}/protocol/{{ .Values.global.blockchain }}/nft'
+    SPRING_PROFILES_ACTIVE: '{{ .Values.global.blockchain }},consul,{{ include "app.env" $ }},{{ .Values.global.blockchain }}-{{ include "app.env" $ }}'
+  priorityClassName: high
   resources:
     jvm:
       xmx_megabytes: 356
