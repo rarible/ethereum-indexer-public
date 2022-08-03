@@ -32,6 +32,7 @@ import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import org.springframework.data.mongodb.core.ReactiveMongoOperations
+import org.springframework.http.HttpHeaders
 
 @Configuration
 @EnableRaribleCacheLoader
@@ -130,12 +131,19 @@ class CoreConfiguration(
     ): ExternalHttpClient {
         val followRedirect = true  // TODO Move to properties?
 
-        val defaultWebClientBuilder = DefaultWebClientBuilder(followRedirect = followRedirect)
+        val defaultHeaders = HttpHeaders()
+        defaultHeaders.set(HttpHeaders.USER_AGENT, "rarible-protocol")
+
+        val defaultWebClientBuilder = DefaultWebClientBuilder(
+            followRedirect = followRedirect,
+            defaultHeaders = defaultHeaders
+        )
         val proxyWebClientBuilder = ProxyWebClientBuilder(
             readTimeout = readTimeout,
             connectTimeout = connectTimeout,
             proxyUrl = proxyUrl,
-            followRedirect = followRedirect
+            followRedirect = followRedirect,
+            defaultHeaders = defaultHeaders
         )
         val defaultHttpClient = DefaultHttpClient(
             builder = defaultWebClientBuilder,
