@@ -13,7 +13,7 @@
 
     <properties>
         <opensea-client-starter.version>2.0.12</opensea-client-starter.version>
-        <looksrare-client-starter.version>1.0.3</looksrare-client-starter.version>
+        <looksrare-client-starter.version>1.0.5</looksrare-client-starter.version>
         <x2y2-client.version>1.0.5</x2y2-client.version>
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>

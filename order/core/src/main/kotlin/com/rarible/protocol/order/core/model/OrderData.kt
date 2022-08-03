@@ -214,7 +214,7 @@ data class OrderLooksrareDataV1(
     val minPercentageToAsk: Int,
     val strategy: Address,
     val nonce: Long,
-    val params: Binary
+    val params: Binary?
 ): OrderData() {
     @get:Transient
     override val version get() = OrderDataVersion.LOOKSRARE_V1

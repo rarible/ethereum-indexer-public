@@ -2,7 +2,9 @@ package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
+import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
@@ -14,12 +16,14 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 
 @Component
 class LooksrareOrderConverter(
     private val priceUpdateService: PriceUpdateService,
+    private val currencyAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) {
-    suspend fun convertOrder(looksrareOrder: LooksrareOrder): OrderVersion? {
+    suspend fun convert(looksrareOrder: LooksrareOrder): OrderVersion? {
         if (looksrareOrder.tokenId == null) return null // skip collection orders
         if (looksrareOrder.signature == null) return null
 
@@ -36,17 +40,20 @@ class LooksrareOrderConverter(
 
         val data = OrderLooksrareDataV1(
             minPercentageToAsk = looksrareOrder.minPercentageToAsk,
-            params = Binary.empty(),
+            params = if (looksrareOrder.params?.length() == 0) null else looksrareOrder.params,
             nonce = looksrareOrder.nonce,
             strategy = looksrareOrder.strategy
         )
         val (make, take) = kotlin.run {
             val nft = Asset(
-                Erc721AssetType(collectionAddress, EthUInt256(tokenId)),
+                if (looksrareOrder.amount > BigInteger.ONE)
+                    Erc1155AssetType(collectionAddress, EthUInt256(tokenId))
+                else
+                    Erc721AssetType(collectionAddress, EthUInt256(tokenId)),
                 EthUInt256.of(looksrareOrder.amount)
             )
             val currency = Asset(
-                if (currencyAddress == Address.ZERO()) EthAssetType
+                if (currencyAddress == Address.ZERO() || currencyAddress == currencyAddresses.weth) EthAssetType
                 else Erc20AssetType(currencyAddress),
                 currentPrice
             )

@@ -29,7 +29,7 @@ class LooksrareOrderLoader(
         logOrderLoad(orders, listedAfter, listedBefore)
 
         orders
-            .mapNotNull{ looksrareOrderConverter.convertOrder(it) }
+            .mapNotNull{ looksrareOrderConverter.convert(it) }
             .chunked(properties.saveBatchSize)
             .flatMapAsync { chunk ->
                 chunk.map {

@@ -1,3 +1,6 @@
+common:
+  currency-contract-addresses:
+    weth: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2"
 listener:
   open-sea-exchange-domain-hash-v2: "0x72982d92449bfb3d338412ce4738761aff47fb975ceb17a1bc3712ec716a5a68"
   transfer-proxy-addresses:
