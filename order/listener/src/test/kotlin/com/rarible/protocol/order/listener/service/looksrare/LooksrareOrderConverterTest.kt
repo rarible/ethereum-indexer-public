@@ -1,8 +1,10 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
+import com.rarible.core.contract.model.Erc20Token
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
@@ -94,12 +96,13 @@ internal class LooksrareOrderConverterTest {
         )
         val orderVersion = converter.convert(looksrareOrder)
 
-        assertThat(orderVersion.make.value.value).isEqualTo(looksrareOrder.price)
+        assertThat(orderVersion!!.make.value.value).isEqualTo(looksrareOrder.price)
         assertThat(orderVersion.make.type).isInstanceOf(Erc20AssetType::class.java)
         assertThat((orderVersion.make.type as Erc20AssetType).token).isEqualTo(looksrareOrder.currencyAddress)
-        assertThat(orderVersion!!.take.value.value).isEqualTo(looksrareOrder.amount)
+        assertThat(orderVersion.take.value.value).isEqualTo(looksrareOrder.amount)
         assertThat(orderVersion.take.type).isInstanceOf(Erc721AssetType::class.java)
         assertThat((orderVersion.take.type as Erc721AssetType).token).isEqualTo(looksrareOrder.collectionAddress)
         assertThat((orderVersion.take.type as Erc721AssetType).tokenId.value).isEqualTo(looksrareOrder.tokenId)
+
     }
 }
