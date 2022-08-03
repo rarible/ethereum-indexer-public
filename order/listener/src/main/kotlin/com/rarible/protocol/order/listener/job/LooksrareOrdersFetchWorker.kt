@@ -16,7 +16,7 @@ class LooksrareOrdersFetchWorker(
         pollingPeriod = properties.pollingPeriod,
         errorDelay = properties.errorDelay
     ),
-    workerName = "seaport-orders-load-job"
+    workerName = "looksrare-orders-load-job"
 ) {
     override suspend fun handle() {
         try {
