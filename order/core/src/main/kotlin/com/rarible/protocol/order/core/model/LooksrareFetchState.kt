@@ -6,15 +6,12 @@ import java.time.Instant
 
 @Document("looksrare_state")
 data class LooksrareFetchState(
-    val cursor: String? = null,
-    val listedAfter: Instant? = null,
-
+    val listedAfter: Instant,
     @Id
     val id: String = ID
 ) {
-
-    fun withCursor(cursor: String): LooksrareFetchState {
-        return copy(cursor = cursor)
+    fun withListedAfter(listedAfter: Instant): LooksrareFetchState {
+        return copy(listedAfter = listedAfter)
     }
 
     companion object {

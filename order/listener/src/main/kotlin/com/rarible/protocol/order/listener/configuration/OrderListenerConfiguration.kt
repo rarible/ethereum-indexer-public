@@ -94,6 +94,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun looksrareLoadProperties(): LooksrareLoadProperties {
+        return listenerProperties.looksrareLoad
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<Erc20BalanceEventDto> {
         val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
             consumerGroup = erc20BalanceConsumerGroup,

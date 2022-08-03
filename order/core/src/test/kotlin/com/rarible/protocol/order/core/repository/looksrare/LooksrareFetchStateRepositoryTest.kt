@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.ContextConfiguration
+import java.time.Instant
 
 @MongoTest
 @DataMongoTest
@@ -34,13 +35,13 @@ internal class LooksrareFetchStateRepositoryTest {
         val noState = openSeaFetchStateRepository.get(LooksrareFetchState.ID)
         assertThat(noState).isNull()
 
-        val initState = LooksrareFetchState("1")
+        val initState = LooksrareFetchState(Instant.now())
         openSeaFetchStateRepository.save(initState)
 
         var currentState = openSeaFetchStateRepository.get(LooksrareFetchState.ID)
         assertThat(currentState).isEqualTo(initState)
 
-        val newState = LooksrareFetchState("2")
+        val newState = LooksrareFetchState(Instant.now())
         openSeaFetchStateRepository.save(newState)
 
         currentState = openSeaFetchStateRepository.get(LooksrareFetchState.ID)

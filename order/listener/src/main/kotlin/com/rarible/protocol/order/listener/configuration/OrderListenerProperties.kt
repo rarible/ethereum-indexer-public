@@ -52,10 +52,13 @@ data class SeaportLoadProperties(
 data class LooksrareLoadProperties(
     val enabled: Boolean = false,
     val saveEnabled: Boolean = false,
+    val delay: Duration = Duration.ofMinutes(1),
+    val loadPeriod: Duration = Duration.ofSeconds(5),
+    val loadMaxSize: Int = 150,
     val retry: Int = 5,
     val saveBatchSize: Int = 50,
     val retryDelay: Duration = Duration.ofMillis(500),
-    val pollingPeriod: Duration = Duration.ofSeconds(10),
+    val pollingPeriod: Duration = Duration.ofSeconds(5),
     val errorDelay: Duration = Duration.ofSeconds(5)
 )
 
