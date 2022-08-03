@@ -31,7 +31,7 @@ data class Item(
     val mintedAt: Instant? = null,
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
-    val isRaribleContract: Boolean,
+    val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
 ) : Entity<ItemId, ItemEvent, Item> {
 
