@@ -4,7 +4,6 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrderBasicSeaportDataV1
-import com.rarible.protocol.order.core.data.createOrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.data.createOrderVersion
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
 import com.rarible.protocol.order.core.model.MakeBalanceState
@@ -32,7 +31,7 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
     private lateinit var nonceHistoryRepository: NonceHistoryRepository
 
     @Test
-    fun `should cancel OpenSea and Seaport maker orders`() = runBlocking {
+    fun `should cancel Seaport maker orders`() = runBlocking {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
         val userSender = MonoSigningTransactionSender(
@@ -54,16 +53,16 @@ internal class CancelOrdersOnNoneChangeIt : AbstractOpenSeaV1Test() {
 
         val orderVersion1 = createOrderVersion().copy(
             maker = userSender.from(),
-            type = OrderType.OPEN_SEA_V1,
+            type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0, exchange = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion2 = createOrderVersion().copy(
             maker = userSender.from(),
-            type = OrderType.OPEN_SEA_V1,
+            type = OrderType.SEAPORT_V1,
             platform = Platform.OPEN_SEA,
-            data = createOrderOpenSeaV1DataV1().copy(nonce = 0, exchange = exchangeV2.address()),
+            data = createOrderBasicSeaportDataV1().copy(counter = 0, protocol = exchangeV2.address()),
             createdAt = before
         )
         val orderVersion3 = createOrderVersion().copy(

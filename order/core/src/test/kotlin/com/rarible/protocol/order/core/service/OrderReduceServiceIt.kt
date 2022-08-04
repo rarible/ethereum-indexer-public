@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -265,6 +266,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
+    @Deprecated("Remove with OpenSea order specific code")
     internal fun `should not cancel OpenSea order if nonces are matched`() = runBlocking<Unit> {
         val now = nowMillis()
         val data = createOrderOpenSeaV1DataV1().copy(nonce = 1)
@@ -297,7 +299,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
             )
         )
         val updated = orderReduceService.updateOrder(hash)!!
-        assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
+        assertThat(updated.status).isEqualTo(OrderStatus.CANCELLED)
         assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
     }
 
@@ -336,6 +338,37 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val updated = orderReduceService.updateOrder(hash)!!
         assertThat(updated.status).isNotEqualTo(OrderStatus.CANCELLED)
         assertThat(updated.lastUpdateAt).isEqualTo(orderVersion.createdAt)
+    }
+
+    @Test
+    internal fun `should cancel OpenSea order as it turned off on prod`() = runBlocking<Unit> {
+        val now = nowMillis()
+        val orderVersion = createOrderVersion().copy(
+            data = createOrderOpenSeaV1DataV1(),
+            type = OrderType.OPEN_SEA_V1,
+            createdAt = now
+        )
+        val savedOrder = orderUpdateService.save(orderVersion)
+        assertThat(savedOrder.status).isEqualTo(OrderStatus.CANCELLED)
+    }
+
+    @Test
+    internal fun `should not cancel order except OpenSea`() = runBlocking<Unit> {
+        OrderType.values().filter { it != OrderType.OPEN_SEA_V1 }.forEach {
+            val orderVersion = createOrderVersion().copy(
+                type = it,
+                data = when (it) {
+                    OrderType.RARIBLE_V1 -> createOrderDataLegacy()
+                    OrderType.RARIBLE_V2 -> createOrderRaribleV1DataV3Sell()
+                    OrderType.SEAPORT_V1 -> createOrderBasicSeaportDataV1().copy(counter = 0)
+                    OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData
+                    OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("Illegal order data for this test")
+                },
+                createdAt = nowMillis()
+            )
+            val savedOrder = orderUpdateService.save(orderVersion)
+            assertThat(savedOrder.status).isNotEqualTo(OrderStatus.CANCELLED)
+        }
     }
 
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {

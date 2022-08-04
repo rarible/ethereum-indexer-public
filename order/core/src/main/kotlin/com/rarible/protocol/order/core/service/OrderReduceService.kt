@@ -311,15 +311,15 @@ class OrderReduceService(
 
     private suspend fun Order.withCancelOpenSea(): Order {
         if (this.type != OrderType.OPEN_SEA_V1) return this
-        if ((this.data as? OrderOpenSeaV1DataV1)?.exchange != exchangeContractAddresses.openSeaV1) return this
-
+        val exchange = (this.data as? OrderOpenSeaV1DataV1)?.exchange ?: return this
+        val lastUpdateAt = if (exchangeContractAddresses.openSeaV1 == exchange) 1645812000L else 1659366000L
         val affectedStatuses = arrayOf(OrderStatus.NOT_STARTED, OrderStatus.INACTIVE, OrderStatus.ACTIVE)
         return if (this.status in affectedStatuses) {
-            logger.info("Cancel order $hash as OpenSea exchangeV1 contract was expired")
+            logger.info("Cancel order $hash as OpenSea exchangeV1/V2 contract was expired")
             this.copy(
                 cancelled = true,
-                lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(1645812000)),
-                lastEventId = accumulateEventId(this.lastEventId, exchangeContractAddresses.openSeaV1.toString())
+                lastUpdateAt = maxOf(this.lastUpdateAt, Instant.ofEpochSecond(lastUpdateAt)),
+                lastEventId = accumulateEventId(this.lastEventId, exchange.toString())
             )
         } else {
             this
