@@ -6,6 +6,8 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
+import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerAskEvent
+import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerBidEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
 import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
@@ -40,7 +42,9 @@ enum class ItemType(
             OrdersMatchedEvent.id(),
             FillEvent.id(),
             OrderFulfilledEvent.id(),
-            PunkBoughtEvent.id()
+            PunkBoughtEvent.id(),
+            TakerAskEvent.id(),
+            TakerBidEvent.id(),
         )
     ),
     CANCEL(
