@@ -43,7 +43,7 @@ class LooksrareV1ExchangeTakerAskDescriptor(
             tokenId = EthUInt256.of(event.tokenId()),
             amount = EthUInt256.of(event.amount()),
             price = EthUInt256.of(event.price()),
-            isAsk = true
+            isAsk = false
         )
     }
 }

@@ -9,6 +9,7 @@ import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderError
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderLoadMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeAskEventMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeBidEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -119,6 +120,11 @@ class MetricsCountersConfiguration(
     @Bean
     fun looksrareTakeAskEventMetric(): RegisteredCounter {
         return LooksrareTakeAskEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareTakeBidEventMetric(): RegisteredCounter {
+        return LooksrareTakeBidEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     /** X2Y2 */

@@ -16,14 +16,14 @@ import scalether.domain.response.Log
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class LooksrareV1ExchangeTakerBidDescriptor(
-    looksrareTakeAskEventMetric: RegisteredCounter,
+    looksrareTakeBidEventMetric: RegisteredCounter,
     tokenStandardProvider: TokenStandardProvider,
     priceUpdateService: PriceUpdateService,
     prizeNormalizer: PriceNormalizer,
     exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
-    looksrareTakeAskEventMetric,
+    looksrareTakeBidEventMetric,
     tokenStandardProvider,
     priceUpdateService,
     prizeNormalizer,
@@ -43,7 +43,7 @@ class LooksrareV1ExchangeTakerBidDescriptor(
             tokenId = EthUInt256.of(event.tokenId()),
             amount = EthUInt256.of(event.amount()),
             price = EthUInt256.of(event.price()),
-            isAsk = false
+            isAsk = true
         )
     }
 }
