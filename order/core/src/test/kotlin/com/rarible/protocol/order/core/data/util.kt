@@ -141,6 +141,21 @@ fun createOrderDataLegacy(): OrderDataLegacy {
     )
 }
 
+fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
+    itemHash = Word.apply(randomWord()),
+    isCollectionOffer = randomBoolean(),
+    isBundle = randomBoolean(),
+    side = randomInt(),
+    orderId = randomBigInt()
+)
+
+fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
+    minPercentageToAsk = randomInt(),
+    strategy = randomAddress(),
+    nonce = randomLong(),
+    params = randomBinary()
+)
+
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
     return copy(

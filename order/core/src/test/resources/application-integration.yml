@@ -31,6 +31,8 @@ common:
     erc721-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     erc1155-lazy-transfer-proxy: "0x0000000000000000000000000000000000000000"
     crypto-punks-transfer-proxy: "0x0000000000000000000000000000000000000000"
+  currency-contract-addresses:
+    weth: "0x0000000000000000000000000000000000000000"
 
   expired-bid-worker:
     polling-period: PT10M # 10 minutes period

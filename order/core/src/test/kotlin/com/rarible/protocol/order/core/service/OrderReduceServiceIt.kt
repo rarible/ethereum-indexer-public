@@ -362,6 +362,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     OrderType.RARIBLE_V2 -> createOrderRaribleV1DataV3Sell()
                     OrderType.SEAPORT_V1 -> createOrderBasicSeaportDataV1().copy(counter = 0)
                     OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData
+                    OrderType.LOOKSRARE -> createOrderLooksrareDataV1()
+                    OrderType.X2Y2 -> createOrderX2Y2DataV1()
                     OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("Illegal order data for this test")
                 },
                 createdAt = nowMillis()
