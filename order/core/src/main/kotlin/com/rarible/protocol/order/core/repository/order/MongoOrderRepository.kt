@@ -120,6 +120,21 @@ class MongoOrderRepository(
         return template.findAll<Order>().asFlow()
     }
 
+    override fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order> {
+        return template.query<Order>().matching(
+            Query(
+                Criteria().andOperator(
+                    listOfNotNull(
+                        Order::platform isEqualTo platform,
+                        Order::status isEqualTo status,
+                        if (fromHash != null) Order::hash gt fromHash else null
+                    )
+                )
+            ).withHint(OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION.indexKeys)
+                .with(Sort.by(Order::status.name, Order::lastUpdateAt.name, "_id"))
+        ).all().asFlow()
+    }
+
     override fun findByTargetNftAndNotCanceled(maker: Address, token: Address, tokenId: EthUInt256): Flow<Order> {
         val criteria =
             (Order::make / Asset::type / NftAssetType::token isEqualTo token)
