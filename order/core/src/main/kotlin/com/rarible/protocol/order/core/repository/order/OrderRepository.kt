@@ -3,6 +3,8 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import org.springframework.data.mongodb.core.query.Query
@@ -24,6 +26,8 @@ interface OrderRepository {
     suspend fun findById(hash: Word): Order?
 
     fun findAll(hashes: Collection<Word>): Flow<Order>
+
+    fun findAll(platform: Platform, status: OrderStatus, fromHash: Word?): Flow<Order>
 
     suspend fun search(query: Query): List<Order>
 
