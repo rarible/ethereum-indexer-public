@@ -135,6 +135,12 @@ fun createOrderRaribleV1DataV3BuyDto(): OrderRaribleV2DataV3BuyDto {
     )
 }
 
+fun createOrderDataLegacy(): OrderDataLegacy {
+    return OrderDataLegacy(
+        fee = randomInt()
+    )
+}
+
 fun Order.withMakeFill(isMakeFill: Boolean = true): Order {
     val newData = data.withMakeFill(isMakeFill)
     return copy(
