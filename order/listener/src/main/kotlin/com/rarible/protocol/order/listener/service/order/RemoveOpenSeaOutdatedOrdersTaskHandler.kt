@@ -3,8 +3,8 @@ package com.rarible.protocol.order.listener.service.order
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -30,12 +30,12 @@ class RemoveOpenSeaOutdatedOrdersTaskHandler(
         logger.info("Start $REMOVE_OPEN_SEA_OUTDATED_ORDERS task with $status param")
         return orderRepository
             .findAll(Platform.OPEN_SEA, status, fromHash = null)
-            .filter { isExchangeOpenSea(it) }
+            .filter { isOpenSeaOrderType(it) }
             .map { updateOrder(it) }
     }
 
-    private fun isExchangeOpenSea(order: Order): Boolean {
-        return (order.data as? OrderOpenSeaV1DataV1)?.exchange == exchangeContractAddresses.openSeaV1
+    private fun isOpenSeaOrderType(order: Order): Boolean {
+        return order.type == OrderType.OPEN_SEA_V1
     }
 
     private suspend fun updateOrder(order: Order): String  {
