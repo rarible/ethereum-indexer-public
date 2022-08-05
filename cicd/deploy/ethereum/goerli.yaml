@@ -1,0 +1,6 @@
+global:
+  network: goerli
+
+ethereum-gateway:
+  service:
+    nodePort: 30716
