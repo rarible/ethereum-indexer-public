@@ -1,0 +1,64 @@
+package com.rarible.protocol.order.listener.service.descriptors.exchange.x2y2
+
+import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.protocol.order.core.model.Erc721AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.service.PriceNormalizer
+import com.rarible.protocol.order.listener.data.log
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
+import io.daonomic.rpc.domain.Word
+import io.mockk.Runs
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
+import reactor.kotlin.core.publisher.toFlux
+import scalether.domain.Address
+
+class X2Y2OrderMatchDescriptorTest {
+
+    private val matchMetric = mockk<RegisteredCounter> { every { increment() } just Runs }
+
+    private val converter = X2Y2EventConverter(
+        mockk(),
+        mockk {
+              coEvery { getAssetsUsdValue(any(), any(), any()) } returns null
+        },
+        PriceNormalizer(mockk())
+    )
+
+    private val descriptor = X2Y2SellOrderMatchDescriptor(
+        mockk { every { x2y2 } returns Address.ZERO() },
+        converter, matchMetric
+    )
+
+    @Test
+    internal fun `should process match event`() {
+        runBlocking {
+            val log = log(
+                topics = listOf(
+                    Word.apply("0x3cbb63f144840e5b1b0a38a7c19211d2e89de4d7c5faf8b2d3c1776c302d1d33"),
+                    Word.apply("0x46b12a1ccb6d30c1db5921e684c7b1b090b88a1ed5b6837ad96d557a383c9f36")
+                ),
+                data = "000000000000000000000000e9eb275a7df0a97a8caed8611fee8b609082866400000000000000000000000083c8f28c26bf6aaca652df1dbbe0e1b56f8baba20000000000000000000000000000000061d4ba752c862030098d30242ffb11d400000000000000000000000000000000000000000000000000005c134de3f048000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000062f4bfce00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000160000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000002600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff973cafa800000000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000006110cda0fa3e327b05727af9763cec44d39b58050000000000000000000000000000000000000000000000000000000000001701000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001ff973cafa800046b12a1ccb6d30c1db5921e684c7b1b090b88a1ed5b6837ad96d557a383c9f36000000000000000000000000f849de01b080adc3a814fabe1e2087475cf2e35400000000000000000000000000000000000000000000000000000000000001600000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000180000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000001388000000000000000000000000d823c605807cc5e6bd6fc0d7e4eea50d3e2d66cd"
+            )
+            val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().collectList().awaitSingle()
+            assertThat(actual).isNotEmpty
+            assertThat(actual.size).isEqualTo(2)
+            val left = actual.first()
+            val right = actual.last()
+            assertThat(left.hash).isEqualTo(right.counterHash)
+            assertThat(left.counterHash).isEqualTo(right.hash)
+            assertThat(left.fill).isEqualTo(left.make.value)
+            assertThat(right.fill).isEqualTo(right.make.value)
+            assertThat(left.maker).isEqualTo(right.taker)
+            assertThat(left.taker).isEqualTo(right.maker)
+            assertThat(left.make.type).isExactlyInstanceOf(Erc721AssetType::class.java)
+            assertThat(right.make.type).isExactlyInstanceOf(EthAssetType::class.java)
+        }
+    }
+}
