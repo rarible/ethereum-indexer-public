@@ -10,6 +10,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
+import com.rarible.protocol.order.core.model.HistorySource
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -35,12 +36,14 @@ internal class OpenSeaNonceServiceTest : AbstractIntegrationTest() {
         val nonce1 = ChangeNonceHistory(
             maker = maker,
             newNonce = EthUInt256.ONE,
-            date = nowMillis() - Duration.ofMinutes(1)
+            date = nowMillis() - Duration.ofMinutes(1),
+            source = HistorySource.OPEN_SEA
         )
         val nonce2 = ChangeNonceHistory(
             maker = maker,
             newNonce = EthUInt256.of(2),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         saveLog(nonce1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)
         val logEvent2 = saveLog(nonce2, blockNumber = 11, logIndex = 2, minorLogIndex = 1)

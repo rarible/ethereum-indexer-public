@@ -8,6 +8,7 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelAllOrdersEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
+import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -41,6 +42,7 @@ class LooksrareV1ExchangeCancelAllDescriptor(
             maker = event.user(),
             newNonce = EthUInt256.of(event.newMinNonce()),
             date = date,
+            source = HistorySource.LOOKSRARE
         ).also { looksrareCancelAllEventMetric.increment() }
     }
 

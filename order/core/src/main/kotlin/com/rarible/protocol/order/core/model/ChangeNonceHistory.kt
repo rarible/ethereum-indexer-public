@@ -9,5 +9,5 @@ data class ChangeNonceHistory(
     val maker: Address,
     val newNonce: EthUInt256,
     val date: Instant,
-    val source: HistorySource = HistorySource.OPEN_SEA
+    val source: HistorySource
 ) : EventData

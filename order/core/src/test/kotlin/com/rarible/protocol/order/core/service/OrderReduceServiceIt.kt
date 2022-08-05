@@ -206,7 +206,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
             newNonce = EthUInt256.ONE,
-            date = now + Duration.ofMinutes(10)
+            date = now + Duration.ofMinutes(10),
+            source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
             LogEvent(
@@ -243,7 +244,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
             newNonce = EthUInt256.ONE,
-            date = now + Duration.ofMinutes(10)
+            date = now + Duration.ofMinutes(10),
+            source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
             LogEvent(
@@ -281,7 +283,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
             newNonce = EthUInt256.ONE,
-            date = now + Duration.ofMinutes(10)
+            date = now + Duration.ofMinutes(10),
+            source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
             LogEvent(
@@ -318,7 +321,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         val nonce = ChangeNonceHistory(
             maker = orderVersion.maker,
             newNonce = EthUInt256.ONE,
-            date = now + Duration.ofMinutes(10)
+            date = now + Duration.ofMinutes(10),
+            source = HistorySource.OPEN_SEA
         )
         nonceHistoryRepository.save(
             LogEvent(

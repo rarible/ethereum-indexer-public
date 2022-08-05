@@ -8,7 +8,6 @@ import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelMultipleOrders
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
