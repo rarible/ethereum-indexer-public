@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -152,7 +151,7 @@ fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
 fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
     minPercentageToAsk = randomInt(),
     strategy = randomAddress(),
-    nonce = randomLong(),
+    counter = randomLong(),
     params = randomBinary()
 )
 

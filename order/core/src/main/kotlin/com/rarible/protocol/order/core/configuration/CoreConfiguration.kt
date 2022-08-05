@@ -8,6 +8,7 @@ import com.rarible.ethereum.converters.StringToAddressConverter
 import com.rarible.ethereum.converters.StringToBinaryConverter
 import com.rarible.ethereum.log.service.LogEventService
 import com.rarible.ethereum.sign.service.ERC1271SignService
+import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelAllOrdersEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.CounterIncrementedEvent
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.converters.ConvertersPackage
@@ -60,6 +61,7 @@ class CoreConfiguration {
     fun stringToBinaryConverter() = StringToBinaryConverter()
 
     @Bean
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     fun erc1271SignService(sender: MonoTransactionSender): ERC1271SignService {
         return ERC1271SignService(sender)
     }
@@ -71,6 +73,7 @@ class CoreConfiguration {
         mapOf(
             NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             CounterIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
+            CancelAllOrdersEvent.id() to NonceHistoryRepository.COLLECTION,
             ApprovalForAllEvent.id() to ApprovalHistoryRepository.COLLECTION
         ),
         mongo

@@ -4,4 +4,4 @@ import com.rarible.core.telemetry.metrics.CountingMetric
 import com.rarible.ethereum.domain.Blockchain
 
 class LooksrareTakeBidEventMetric(root: String, blockchain: Blockchain) : CountingMetric(
-    "$root.looksrare.event.takebid", tag("blockchain", blockchain.value))
+    "$root.looksrare.event.take_bid", tag("blockchain", blockchain.value))

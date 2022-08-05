@@ -7,7 +7,7 @@ object LooksrareDataDtoConverter {
     fun convert(source: OrderLooksrareDataV1): OrderLooksrareDataV1Dto {
         return OrderLooksrareDataV1Dto(
             minPercentageToAsk = source.minPercentageToAsk,
-            nonce = source.nonce,
+            nonce = source.counter,
             params = source.params,
             strategy = source.strategy
         )

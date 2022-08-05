@@ -34,6 +34,10 @@ data class OrderDataLegacy(
 
 sealed class OrderRaribleV2Data : OrderData()
 
+interface CounterableOrderData {
+    val counter: Long
+}
+
 data class OrderRaribleV2DataV1(
     val payouts: List<Part>,
     val originFees: List<Part>
@@ -158,7 +162,7 @@ data class OrderOpenSeaV1DataV1(
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
-sealed class OrderSeaportDataV1 : OrderData() {
+sealed class OrderSeaportDataV1 : CounterableOrderData, OrderData() {
     abstract val protocol: Address
     abstract val orderType: SeaportOrderType
     abstract val offer: List<SeaportOffer>
@@ -166,7 +170,6 @@ sealed class OrderSeaportDataV1 : OrderData() {
     abstract val zone: Address
     abstract val zoneHash: Word
     abstract val conduitKey: Word
-    abstract val counter: Long
 }
 
 data class OrderBasicSeaportDataV1(
@@ -213,9 +216,10 @@ object OrderCryptoPunksData : OrderData() {
 data class OrderLooksrareDataV1(
     val minPercentageToAsk: Int,
     val strategy: Address,
-    val nonce: Long,
+    // nonce field actually, named it so to reuse index by make and counter (BY_STATUS_MAKER_AND_COUNTER)
+    override val counter: Long,
     val params: Binary?
-): OrderData() {
+): CounterableOrderData, OrderData() {
     @get:Transient
     override val version get() = OrderDataVersion.LOOKSRARE_V1
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()

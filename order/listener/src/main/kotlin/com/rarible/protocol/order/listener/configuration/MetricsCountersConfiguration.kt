@@ -3,8 +3,8 @@ package com.rarible.protocol.order.listener.configuration
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelayLoadMetric
-import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelaySaveMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelAllEventMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelOrdersEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderErrorMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderLoadMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveMetric
@@ -125,6 +125,16 @@ class MetricsCountersConfiguration(
     @Bean
     fun looksrareTakeBidEventMetric(): RegisteredCounter {
         return LooksrareTakeBidEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareCancelOrdersEventMetric(): RegisteredCounter {
+        return LooksrareCancelOrdersEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun looksrareCancelAllEventMetric(): RegisteredCounter {
+        return LooksrareCancelAllEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     /** X2Y2 */

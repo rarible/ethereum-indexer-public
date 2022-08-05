@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CounterableOrderData
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -139,15 +140,6 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    @Deprecated("Remove in release 1.27")
-    val SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION = Index()
-        .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
     val SELL_ORDERS_BY_MAKER_PLATFORM_STATUS_DEFINITION = Index()
         .on("${Order::make.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -173,42 +165,7 @@ object OrderRepositoryIndexes {
         .on("_id", Sort.Direction.ASC)
         .background()
 
-    @Deprecated("Remove in release 1.27")
-    val BIDS_BY_ITEM_PLATFORM_DEFINITION = Index()
-        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
-        .on("${Order::take.name}.${Asset::type.name}.${NftAssetType::tokenId.name}", Sort.Direction.ASC)
-        .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::takePriceUsd.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
-    // --------------------- getBidsByMaker ---------------------//
-    // TODO these indices have 0 usage in prod, need to check them
-
-    @Deprecated("Remove in release 1.27")
-    val BIDS_BY_MAKER_DEFINITION = Index()
-        .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
-    @Deprecated("Remove in release 1.27")
-    val BIDS_BY_MAKER_PLATFORM_DEFINITION = Index()
-        .on("${Order::take.name}.${Asset::type.name}.${AssetType::nft.name}", Sort.Direction.ASC)
-        .on(Order::maker.name, Sort.Direction.ASC)
-        .on(Order::platform.name, Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
     // --------------------- getAllOrders ---------------------//
-    // TODO has 0 usage in prod, functionality can be covered by BY_LAST_UPDATE_AND_ID_DEFINITION
-    @Deprecated("Remove in release 1.27")
-    val BY_LAST_UPDATE_DEFINITION = Index()
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .background()
-
     // TODO most probably should be removed - we're query all orders only with specified status (ACTIVE)
     val BY_LAST_UPDATE_AND_ID_DEFINITION = Index()
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
@@ -221,14 +178,6 @@ object OrderRepositoryIndexes {
         .background()
 
     val BY_LAST_UPDATE_AND_STATUS_AND_ID_DEFINITION = Index()
-        .on(Order::status.name, Sort.Direction.ASC)
-        .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
-        .on("_id", Sort.Direction.ASC)
-        .background()
-
-    @Deprecated("Remove in release 1.27")
-    val BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION = Index()
-        .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::lastUpdateAt.name, Sort.Direction.ASC)
         .on("_id", Sort.Direction.ASC)
@@ -252,8 +201,14 @@ object OrderRepositoryIndexes {
     val BY_STATUS_MAKER_AND_COUNTER = Index()
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${OrderSeaportDataV1::counter.name}", Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / OrderSeaportDataV1::counter exists true))
+        .on("${Order::data.name}.${CounterableOrderData::counter.name}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
+        .background()
+
+    val BY_TYPE_AND_COUNTER = Index()
+        .on(Order::type.name, Sort.Direction.ASC)
+        .on("${Order::data.name}.${CounterableOrderData::counter.name}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
         .background()
 
     // --------------------- Other ---------------------//
@@ -312,6 +267,7 @@ object OrderRepositoryIndexes {
         BY_STATUS_AND_END_START,
         BY_PLATFORM_MAKER_AND_NONCE,
         BY_STATUS_MAKER_AND_COUNTER,
+        BY_TYPE_AND_COUNTER,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,

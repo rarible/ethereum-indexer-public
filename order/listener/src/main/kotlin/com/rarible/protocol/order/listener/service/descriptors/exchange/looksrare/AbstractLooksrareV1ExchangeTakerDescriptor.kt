@@ -50,7 +50,6 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
-        looksrareTakeEventMetric.increment()
         val event = getTakeEvent(log)
         val collectionType = tokenStandardProvider.getTokenStandard(event.collection)
 
@@ -116,7 +115,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 adhoc = true,
                 counterAdhoc = false,
             )
-        )
+        ).also { looksrareTakeEventMetric.increment() }
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

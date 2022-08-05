@@ -3,13 +3,14 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.api.misc.indexName
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CounterableOrderData
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
@@ -64,12 +65,6 @@ class MongoOrderRepository(
             "makeStock_1_lastUpdateAt_1__id_1",
             "platform_1_lastUpdateAt_1__id_1",
             "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
-            OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexName,
-            OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BY_LAST_UPDATE_DEFINITION.indexName,
-            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName,
         )
     }
 
@@ -314,6 +309,14 @@ class MongoOrderRepository(
         val query = Query(criteria)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
+    }
+
+    override fun findByCounters(type: OrderType, counters: List<Long>): Flow<Order> {
+        val criteria = where(Order::type).isEqualTo(type)
+            .and(Order::data / CounterableOrderData::counter ).inValues(counters)
+
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_TYPE_AND_COUNTER.indexKeys)
+        return template.query<Order>().matching(query).all().asFlow()
     }
 
     private suspend fun dropIndexes(vararg names: String) {

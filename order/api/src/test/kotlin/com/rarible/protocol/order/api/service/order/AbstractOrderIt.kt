@@ -190,7 +190,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         data = OrderLooksrareDataV1(
             minPercentageToAsk = randomInt(),
             strategy = randomAddress(),
-            nonce = randomLong(),
+            counter = randomLong(),
             params = randomBinary()
         ),
         signature = null,
