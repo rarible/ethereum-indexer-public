@@ -55,7 +55,7 @@ data class OrderIndexerProperties(
         var seaportV1: Address,
         var cryptoPunks: Address,
         var zeroEx: Address,
-        val looksrareV1: Address,
+        var looksrareV1: Address,
         val x2y2V1: Address
     )
 

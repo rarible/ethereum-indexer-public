@@ -205,6 +205,7 @@ class MongoOrderRepository(
             .asFlow()
     }
 
+    @Deprecated("should use 'findNotCanceledByMakerAndCounterLtThen'")
     override suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word> {
         val idFiled = "_id"
         val query = Query(
@@ -215,6 +216,25 @@ class MongoOrderRepository(
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_STATUS_MAKER_AND_COUNTER.indexKeys)
+        query.fields().include(idFiled)
+        return template
+            .find(query, Document::class.java, COLLECTION)
+            .map { Word.apply(it.getString(idFiled)) }
+            .asFlow()
+    }
+
+
+    override fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word> {
+        val idFiled = "_id"
+        val query = Query(
+            Criteria().andOperator(
+                Order::platform isEqualTo platform,
+                Order::maker isEqualTo maker,
+                Order::status ne OrderStatus.CANCELLED,
+                Order::data / OrderCounterableData::counter lt counter,
+            )
+        )
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
