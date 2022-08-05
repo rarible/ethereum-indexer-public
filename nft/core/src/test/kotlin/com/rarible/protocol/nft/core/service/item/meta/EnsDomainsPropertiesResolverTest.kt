@@ -50,7 +50,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         properties as ItemProperties
         assertThat(properties.name).isEqualTo("rarible.eth")
         assertThat(properties.description).isEqualTo("rarible.eth, an ENS name.")
-        assertThat(properties.content.imageOriginal!!.url).isEqualTo("https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image")
+        assertThat(properties.content.imageOriginal!!.url).isEqualTo("https://raribleuserdata.org/ens/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image")
         assertThat(properties.content.imagePreview).isNull()
         assertThat(properties.content.imageBig).isNull()
         assertThat(properties.content.videoOriginal).isNull()
