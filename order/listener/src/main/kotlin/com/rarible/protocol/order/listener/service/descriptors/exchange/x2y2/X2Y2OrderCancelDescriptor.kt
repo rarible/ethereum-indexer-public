@@ -37,5 +37,5 @@ class X2Y2OrderCancelDescriptor(
         return listOf(converted)
     }
 
-    override fun getAddresses(): Mono<Collection<Address>> = listOf(exchangeContractAddresses.x2y2).toMono()
+    override fun getAddresses(): Mono<Collection<Address>> = listOf(exchangeContractAddresses.x2y2V1).toMono()
 }

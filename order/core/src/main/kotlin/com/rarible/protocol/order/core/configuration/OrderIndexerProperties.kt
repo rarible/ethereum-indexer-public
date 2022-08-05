@@ -56,7 +56,7 @@ data class OrderIndexerProperties(
         var cryptoPunks: Address,
         var zeroEx: Address,
         val looksrareV1: Address,
-        var x2y2: Address
+        var x2y2V1: Address
     )
 
     data class AuctionContractAddresses(

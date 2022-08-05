@@ -48,7 +48,7 @@ class X2Y2EventConverter(
         if (event.detail()._1() != BigInteger.ONE) return emptyList()
         val maker = event.maker()
         val taker = event.taker()
-        val tokenData = Tuples.addressUintType().decode(Binary(event.item()._2), 0).value()
+        val tokenData = Tuples.addressUintType().decode(Binary(event.item()._2), 64).value()
         val make = Asset(
             type = Erc721AssetType(
                 token = tokenData._1,
