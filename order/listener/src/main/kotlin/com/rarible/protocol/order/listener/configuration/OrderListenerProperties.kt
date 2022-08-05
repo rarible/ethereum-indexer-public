@@ -110,4 +110,5 @@ data class X2Y2OrdersLoadWorkerProperties(
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(10),
     val errorDelay: Duration = Duration.ofSeconds(5),
+    val saveEnabled: Boolean = false
 )
