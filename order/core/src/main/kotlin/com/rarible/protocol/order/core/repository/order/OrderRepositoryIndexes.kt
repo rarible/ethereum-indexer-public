@@ -3,11 +3,10 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.mongo.util.div
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.CounterableOrderData
+import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
-import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
 import org.springframework.data.domain.Sort
@@ -203,16 +202,16 @@ object OrderRepositoryIndexes {
     val BY_STATUS_MAKER_AND_COUNTER = Index()
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${CounterableOrderData::counter.name}", Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
+        .on("${Order::data.name}.${OrderCounterableData::counter.name}", Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::data / OrderCounterableData::counter exists true))
         .background()
 
     val BY_PLATFORM_MAKER_COUNTER_STATUS: Index = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
-        .on("${Order::data.name}.${CounterableOrderData::counter.name}", Sort.Direction.ASC)
+        .on("${Order::data.name}.${OrderCounterableData::counter.name}", Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
-        .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
+        .partial(PartialIndexFilter.of(Order::data / OrderCounterableData::counter exists true))
         .background()
 
     // --------------------- Other ---------------------//

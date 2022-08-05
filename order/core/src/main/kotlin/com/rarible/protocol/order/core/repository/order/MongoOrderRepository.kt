@@ -7,15 +7,13 @@ import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
-import com.rarible.protocol.order.core.model.CounterableOrderData
+import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -316,8 +314,8 @@ class MongoOrderRepository(
         val criteria = where(Order::platform).isEqualTo(platform)
             .and(Order::maker).isEqualTo(maker)
             .run {
-                if (counters.isSingleton) and(Order::data / CounterableOrderData::counter).isEqualTo(counters.single())
-                else and(Order::data / CounterableOrderData::counter ).inValues(counters)
+                if (counters.isSingleton) and(Order::data / OrderCounterableData::counter).isEqualTo(counters.single())
+                else and(Order::data / OrderCounterableData::counter ).inValues(counters)
             }
 
         val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
