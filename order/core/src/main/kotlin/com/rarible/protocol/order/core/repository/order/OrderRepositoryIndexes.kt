@@ -191,6 +191,7 @@ object OrderRepositoryIndexes {
         .background()
 
     // --------------------- for updating status by start/end ---------------------//
+    @Deprecated("Should be removed in release 1.33")
     val BY_PLATFORM_MAKER_AND_NONCE = Index()
         .on(Order::platform.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -198,6 +199,7 @@ object OrderRepositoryIndexes {
         .partial(PartialIndexFilter.of(Order::data / OrderOpenSeaV1DataV1::nonce exists true))
         .background()
 
+    @Deprecated("Should be removed in release 1.33")
     val BY_STATUS_MAKER_AND_COUNTER = Index()
         .on(Order::status.name, Sort.Direction.ASC)
         .on(Order::maker.name, Sort.Direction.ASC)
@@ -205,9 +207,11 @@ object OrderRepositoryIndexes {
         .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
         .background()
 
-    val BY_TYPE_AND_COUNTER = Index()
-        .on(Order::type.name, Sort.Direction.ASC)
+    val BY_PLATFORM_MAKER_COUNTER_STATUS: Index = Index()
+        .on(Order::platform.name, Sort.Direction.ASC)
+        .on(Order::maker.name, Sort.Direction.ASC)
         .on("${Order::data.name}.${CounterableOrderData::counter.name}", Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
         .partial(PartialIndexFilter.of(Order::data / CounterableOrderData::counter exists true))
         .background()
 
@@ -267,7 +271,7 @@ object OrderRepositoryIndexes {
         BY_STATUS_AND_END_START,
         BY_PLATFORM_MAKER_AND_NONCE,
         BY_STATUS_MAKER_AND_COUNTER,
-        BY_TYPE_AND_COUNTER,
+        BY_PLATFORM_MAKER_COUNTER_STATUS,
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,

@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CounterableOrderData
@@ -311,11 +312,15 @@ class MongoOrderRepository(
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
     }
 
-    override fun findByCounters(type: OrderType, counters: List<Long>): Flow<Order> {
-        val criteria = where(Order::type).isEqualTo(type)
-            .and(Order::data / CounterableOrderData::counter ).inValues(counters)
+    override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order> {
+        val criteria = where(Order::platform).isEqualTo(platform)
+            .and(Order::maker).isEqualTo(maker)
+            .run {
+                if (counters.isSingleton) and(Order::data / CounterableOrderData::counter).isEqualTo(counters.single())
+                else and(Order::data / CounterableOrderData::counter ).inValues(counters)
+            }
 
-        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_TYPE_AND_COUNTER.indexKeys)
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         return template.query<Order>().matching(query).all().asFlow()
     }
 

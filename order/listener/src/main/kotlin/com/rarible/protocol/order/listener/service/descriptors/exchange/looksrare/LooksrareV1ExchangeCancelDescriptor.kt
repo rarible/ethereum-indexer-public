@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderCancel
 import com.rarible.protocol.order.core.model.OrderType
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import io.daonomic.rpc.domain.Word
@@ -43,8 +44,9 @@ class LooksrareV1ExchangeCancelDescriptor(
     private fun convert(log: Log, date: Instant): Flow<OrderCancel> {
         val event = CancelMultipleOrdersEvent.apply(log)
         val nonces = event.orderNonces().map { it.toLong() }
+        val maker = event.user()
         looksrareCancelOrdersEventMetric.increment()
-        return orderRepository.findByCounters(OrderType.LOOKSRARE, nonces).map {
+        return orderRepository.findByMakeAndByCounters(Platform.LOOKSRARE, maker, nonces).map {
             OrderCancel(
                 hash = it.hash,
                 maker = it.maker,
