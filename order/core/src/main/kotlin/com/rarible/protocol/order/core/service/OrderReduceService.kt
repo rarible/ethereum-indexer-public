@@ -308,15 +308,14 @@ class OrderReduceService(
         if (this.isBid().not()) return this
         if (this.platform != Platform.RARIBLE) return this
         if (this.status !in listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE)) return this
-        if (this.lastUpdateAt > expiredDate) return this
+        if (this.createdAt > expiredDate) return this
 
         logger.info("Cancel rarible BID $hash cause it expired after $expiredDate")
         return this.copy(
-            status = OrderStatus.CANCELLED,
-            lastUpdateAt = Instant.now(),
+            originalStatus = this.status,
+            lastUpdateAt = this.createdAt + raribleOrderExpiration.bidExpirePeriod,
             dbUpdatedAt = Instant.now(),
-            cancelled = true,
-            lastEventId = accumulateEventId(this.lastEventId, "$expiredDate")
+            lastEventId = accumulateEventId(this.lastEventId, "${this.createdAt + raribleOrderExpiration.bidExpirePeriod}")
         )
     }
 
