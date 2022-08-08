@@ -2,12 +2,12 @@ package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.CryptoPunkOrderDto
 import com.rarible.protocol.dto.LegacyOrderDto
-import com.rarible.protocol.dto.LooksrareOrderDto
+import com.rarible.protocol.dto.LooksRareOrderDto
 import com.rarible.protocol.dto.OpenSeaV1OrderDto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
-import com.rarible.protocol.dto.OrderLooksrareDataV1Dto
+import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
@@ -229,7 +229,7 @@ class OrderDtoConverter(
                 status = orderStatus,
                 data = OrderDataDtoConverter.convert(source.data) as OrderX2Y2DataDto
             )
-            OrderType.LOOKSRARE -> LooksrareOrderDto(
+            OrderType.LOOKSRARE -> LooksRareOrderDto(
                 maker = source.maker,
                 make = assetDtoConverter.convert(source.make),
                 taker = source.taker,
@@ -249,7 +249,7 @@ class OrderDtoConverter(
                 dbUpdatedAt = source.dbUpdatedAt,
                 pending = null,
                 hash = source.hash,
-                data = OrderDataDtoConverter.convert(source.data) as OrderLooksrareDataV1Dto,
+                data = OrderDataDtoConverter.convert(source.data) as OrderLooksRareDataV1Dto,
                 makePrice = source.makePrice,
                 takePrice = source.takePrice,
                 makePriceUsd = source.makePriceUsd,
