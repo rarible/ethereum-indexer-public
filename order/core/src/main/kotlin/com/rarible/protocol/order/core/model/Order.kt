@@ -67,7 +67,6 @@ data class Order(
     // TODO: this field is 'var' and calculated in the constructor to make sure it is recalculated on any Order.copy()
     //  Is there a better way of storing "computable" fields in the Mongo, but ignoring them on deserialization?
     var status: OrderStatus = OrderStatus.ACTIVE,
-    val originalStatus: OrderStatus? = null,
 
     val platform: Platform = Platform.RARIBLE,
 
@@ -89,7 +88,7 @@ data class Order(
     val approved: Boolean = true
 ) {
     init {
-        status = calculateStatus(fill, make, take, makeStock, cancelled, originalStatus != null, start, end, data, approved)
+        status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved)
     }
 
     fun forV1Tx() = run {
@@ -153,7 +152,7 @@ data class Order(
 
     fun withUpdatedStatus(updateTime: Instant = nowMillis()): Order {
         return copy(
-            status = calculateStatus(fill, make, take, makeStock, cancelled, originalStatus != null, start, end, data, approved),
+            status = calculateStatus(fill, make, take, makeStock, cancelled, start, end, data, approved),
             lastUpdateAt = updateTime
         )
     }
@@ -229,7 +228,6 @@ data class Order(
             take: Asset,
             makeStock: EthUInt256,
             cancelled: Boolean,
-            tooOldBid: Boolean,
             start: Long?,
             end: Long?,
             data: OrderData,
@@ -238,7 +236,7 @@ data class Order(
             return when {
                 data.isMakeFillOrder && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
-                cancelled || tooOldBid -> OrderStatus.CANCELLED
+                cancelled -> OrderStatus.CANCELLED
                 approved.not() -> OrderStatus.INACTIVE
                 makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
