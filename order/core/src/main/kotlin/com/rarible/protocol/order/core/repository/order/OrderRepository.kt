@@ -4,6 +4,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -62,4 +63,8 @@ interface OrderRepository {
     fun findAllLiveBidsHashesLastUpdatedBefore(before: Instant): Flow<Word>
 
     fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word>
+
+    fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order>
+
+    fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word>
 }

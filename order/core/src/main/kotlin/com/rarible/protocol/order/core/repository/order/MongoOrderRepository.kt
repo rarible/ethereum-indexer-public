@@ -3,17 +3,17 @@ package com.rarible.protocol.order.core.repository.order
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.api.misc.indexName
 import com.rarible.protocol.order.core.misc.div
+import com.rarible.protocol.order.core.misc.isSingleton
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.OrderCounterableData
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.NftAssetType
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -64,12 +64,6 @@ class MongoOrderRepository(
             "makeStock_1_lastUpdateAt_1__id_1",
             "platform_1_lastUpdateAt_1__id_1",
             "platform_1_maker_1_data.val com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1.nonce: kotlin.Long?_1",
-            OrderRepositoryIndexes.BIDS_BY_ITEM_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BIDS_BY_MAKER_DEFINITION.indexName,
-            OrderRepositoryIndexes.SELL_ORDERS_BY_MAKER_PLATFORM_DEFINITION.indexName,
-            OrderRepositoryIndexes.BY_LAST_UPDATE_DEFINITION.indexName,
-            OrderRepositoryIndexes.BY_LAST_UPDATE_AND_STATUS_AND_PLATFORM_AND_ID_DEFINITION.indexName,
         )
     }
 
@@ -211,6 +205,7 @@ class MongoOrderRepository(
             .asFlow()
     }
 
+    @Deprecated("should use 'findNotCanceledByMakerAndCounterLtThen'")
     override suspend fun findNotCanceledByMakerAndByCounter(maker: Address, counter: Long): Flow<Word> {
         val idFiled = "_id"
         val query = Query(
@@ -221,6 +216,25 @@ class MongoOrderRepository(
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_STATUS_MAKER_AND_COUNTER.indexKeys)
+        query.fields().include(idFiled)
+        return template
+            .find(query, Document::class.java, COLLECTION)
+            .map { Word.apply(it.getString(idFiled)) }
+            .asFlow()
+    }
+
+
+    override fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word> {
+        val idFiled = "_id"
+        val query = Query(
+            Criteria().andOperator(
+                Order::platform isEqualTo platform,
+                Order::maker isEqualTo maker,
+                Order::status ne OrderStatus.CANCELLED,
+                Order::data / OrderCounterableData::counter lt counter,
+            )
+        )
+        query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
         query.fields().include(idFiled)
         return template
             .find(query, Document::class.java, COLLECTION)
@@ -314,6 +328,18 @@ class MongoOrderRepository(
         val query = Query(criteria)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
+    }
+
+    override fun findByMakeAndByCounters(platform: Platform, maker: Address, counters: List<Long>): Flow<Order> {
+        val criteria = where(Order::platform).isEqualTo(platform)
+            .and(Order::maker).isEqualTo(maker)
+            .run {
+                if (counters.isSingleton) and(Order::data / OrderCounterableData::counter).isEqualTo(counters.single())
+                else and(Order::data / OrderCounterableData::counter ).inValues(counters)
+            }
+
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
+        return template.query<Order>().matching(query).all().asFlow()
     }
 
     private suspend fun dropIndexes(vararg names: String) {

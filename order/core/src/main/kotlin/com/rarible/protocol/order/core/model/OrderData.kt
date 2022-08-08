@@ -34,6 +34,11 @@ data class OrderDataLegacy(
 
 sealed class OrderRaribleV2Data : OrderData()
 
+interface OrderCounterableData {
+    val counter: Long
+    fun isValidCounter(blockchainCounter: Long): Boolean
+}
+
 data class OrderRaribleV2DataV1(
     val payouts: List<Part>,
     val originFees: List<Part>
@@ -151,14 +156,21 @@ data class OrderOpenSeaV1DataV1(
     val extra: BigInteger,
     val target: Address?,
     val nonce: Long?
-) : OrderData() {
+) : OrderCounterableData, OrderData() {
     @get:Transient
     override val version = OrderDataVersion.OPEN_SEA_V1_DATA_V1
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    @get:Transient
+    override val counter: Long = nonce ?: 0
+
+    override fun isValidCounter(blockchainCounter: Long): Boolean {
+        return if (nonce == null) true else nonce == blockchainCounter
+    }
 }
 
-sealed class OrderSeaportDataV1 : OrderData() {
+sealed class OrderSeaportDataV1 : OrderCounterableData, OrderData() {
     abstract val protocol: Address
     abstract val orderType: SeaportOrderType
     abstract val offer: List<SeaportOffer>
@@ -166,7 +178,6 @@ sealed class OrderSeaportDataV1 : OrderData() {
     abstract val zone: Address
     abstract val zoneHash: Word
     abstract val conduitKey: Word
-    abstract val counter: Long
 }
 
 data class OrderBasicSeaportDataV1(
@@ -179,10 +190,15 @@ data class OrderBasicSeaportDataV1(
     override val conduitKey: Word,
     override val counter: Long
 ) : OrderSeaportDataV1() {
+
     @get:Transient
     override val version = OrderDataVersion.BASIC_SEAPORT_DATA_V1
 
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    override fun isValidCounter(blockchainCounter: Long): Boolean {
+        return counter == blockchainCounter
+    }
 }
 
 data class OrderX2Y2DataV1(
@@ -213,12 +229,17 @@ object OrderCryptoPunksData : OrderData() {
 data class OrderLooksrareDataV1(
     val minPercentageToAsk: Int,
     val strategy: Address,
-    val nonce: Long,
-    val params: Binary?
-): OrderData() {
+    val params: Binary?,
+    override val counter: Long
+): OrderCounterableData, OrderData() {
     @get:Transient
     override val version get() = OrderDataVersion.LOOKSRARE_V1
+
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
+
+    override fun isValidCounter(blockchainCounter: Long): Boolean {
+        return counter >= blockchainCounter
+    }
 }
 
 enum class OrderDataVersion(val ethDataType: Binary? = null) {

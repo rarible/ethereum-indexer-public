@@ -2,11 +2,11 @@ package com.rarible.protocol.order.core.converters.dto
 
 import com.rarible.protocol.dto.CryptoPunksOrderBidDto
 import com.rarible.protocol.dto.LegacyOrderBidDto
-import com.rarible.protocol.dto.LooksrareOrderBidDto
+import com.rarible.protocol.dto.LooksRareOrderBidDto
 import com.rarible.protocol.dto.OpenSeaV1OrderBidDto
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
-import com.rarible.protocol.dto.OrderLooksrareDataV1Dto
+import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
@@ -125,7 +125,7 @@ class BidDtoConverter(
                 signature = source.order.signature.orEmpty(),
                 makeBalance = BigInteger.ZERO
             )
-            OrderType.LOOKSRARE -> LooksrareOrderBidDto(
+            OrderType.LOOKSRARE -> LooksRareOrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
 
@@ -141,7 +141,7 @@ class BidDtoConverter(
                 cancelled = source.order.cancelled,
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
-                data = OrderDataDtoConverter.convert(source.order.data) as OrderLooksrareDataV1Dto,
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderLooksRareDataV1Dto,
                 makeBalance = BigInteger.ZERO
             )
             OrderType.X2Y2 -> TODO("Not realized yet. Add after offer support")

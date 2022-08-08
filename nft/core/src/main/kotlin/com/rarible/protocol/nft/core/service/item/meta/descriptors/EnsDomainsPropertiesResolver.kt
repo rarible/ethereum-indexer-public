@@ -37,7 +37,18 @@ class EnsDomainsPropertiesResolver(
         if (itemId.token != contractAddress) {
             return null
         }
-        return ensDomainsPropertiesProvider.get(itemId)?.also { ensDomainService.onGetProperties(itemId, it) }
+        val properties = ensDomainsPropertiesProvider.get(itemId)?.let {
+            val newMetaContent = it.content.imageOriginal?.copy(
+                url = "https://raribleuserdata.org/ens/mainnet/${itemId.token}/${itemId.tokenId}/image"
+            )
+            val newProperties = it.copy(content = it.content.copy(imageOriginal = newMetaContent))
+
+            ensDomainService.onGetProperties(itemId, newProperties)
+
+            newProperties
+        }
+
+        return properties
     }
 }
 

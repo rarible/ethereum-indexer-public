@@ -7,6 +7,7 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.wyvern.NonceIncrementedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
+import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -41,6 +42,7 @@ class WyvernExchangeChangeNoneDescriptor(
             maker = event.maker(),
             newNonce = EthUInt256.of(event.newNonce() + BigInteger.valueOf(properties.openSeaNonceIncrement)),
             date = date,
+            source = HistorySource.OPEN_SEA
         )
     }
 

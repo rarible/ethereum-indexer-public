@@ -11,6 +11,7 @@ import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
 import com.rarible.protocol.order.core.model.ChangeNonceHistory
+import com.rarible.protocol.order.core.model.HistorySource
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -48,37 +49,44 @@ internal class NonceHistoryRepositoryTest {
         val nonce0 = ChangeNonceHistory(
             maker = maker1,
             newNonce = EthUInt256.of(1000),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce1 = ChangeNonceHistory(
             maker = maker1,
             newNonce = EthUInt256.ONE,
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce2 = ChangeNonceHistory(
             maker = maker1,
             newNonce = EthUInt256.of(2),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce3 = ChangeNonceHistory(
             maker = maker1,
             newNonce = EthUInt256.of(3),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce4 = ChangeNonceHistory(
             maker = maker1,
             newNonce = EthUInt256.of(4),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce5 = ChangeNonceHistory(
             maker = maker2,
             newNonce = EthUInt256.of(10),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         val nonce6 = ChangeNonceHistory(
             maker = maker2,
             newNonce = EthUInt256.of(11),
-            date = nowMillis()
+            date = nowMillis(),
+            source = HistorySource.OPEN_SEA
         )
         saveLog(nonce0, address1, blockNumber = 100, logIndex = 100, minorLogIndex = 100, status = LogEventStatus.REVERTED)
         saveLog(nonce1, address1, blockNumber = 10, logIndex = 2, minorLogIndex = 2)

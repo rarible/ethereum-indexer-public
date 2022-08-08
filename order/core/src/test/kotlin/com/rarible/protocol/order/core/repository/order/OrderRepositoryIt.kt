@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.data.createOrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.model.Platform
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -176,6 +177,85 @@ internal class OrderRepositoryIt {
         }
         val hashes = delegate.findNotCanceledByMakerAndByCounter(maker, counter).toList()
         assertThat(hashes).containsExactlyInAnyOrder(order1.hash, order2.hash)
+    }
+
+    @Test
+    fun `find all maker order by counters`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val counter1 = 0L
+        val counter2 = 1L
+        val otherCounter = 2L
+        val order0 = createOrder().copy(
+            maker = maker,
+            cancelled = true,
+            platform = Platform.LOOKSRARE,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
+        )
+        val order1 = createOrder().copy(
+            maker = maker,
+            cancelled = true,
+            platform = Platform.LOOKSRARE,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter2)
+        )
+        val order2 = createOrder().copy(
+            maker = maker,
+            platform = Platform.OPEN_SEA,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
+        )
+        val order3 = createOrder().copy(
+            maker = maker,
+            platform = Platform.LOOKSRARE,
+            data = createOrderBasicSeaportDataV1().copy(counter = otherCounter)
+        )
+        val order4 = createOrder().copy(
+            maker = maker,
+            platform = Platform.RARIBLE,
+            data = createOrderRaribleV2DataV1()
+        )
+        val order5 = createOrder().copy(
+            maker = randomAddress(),
+            platform = Platform.OPEN_SEA,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
+        )
+        val order6 = createOrder().copy(
+            maker = randomAddress(),
+            platform = Platform.OPEN_SEA,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter1)
+        )
+        listOf(order0, order1, order2, order3, order4, order5, order6).forEach {
+            delegate.save(it)
+        }
+        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter1, counter2)).map { it.hash }.toList()
+        assertThat(hashes).containsExactlyInAnyOrder(order0.hash, order1.hash)
+    }
+
+    @Test
+    fun `find maker order by counter`() = runBlocking<Unit> {
+        val maker = randomAddress()
+        val counter = 100L
+        val otherCounter = 2L
+        val order0 = createOrder().copy(
+            maker = maker,
+            cancelled = true,
+            platform = Platform.LOOKSRARE,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
+        )
+        val order1 = createOrder().copy(
+            maker = maker,
+            cancelled = true,
+            platform = Platform.LOOKSRARE,
+            data = createOrderBasicSeaportDataV1().copy(counter = otherCounter)
+        )
+        val order2 = createOrder().copy(
+            maker = maker,
+            platform = Platform.OPEN_SEA,
+            data = createOrderBasicSeaportDataV1().copy(counter = counter)
+        )
+        listOf(order0, order1, order2).forEach {
+            delegate.save(it)
+        }
+        val hashes = delegate.findByMakeAndByCounters(Platform.LOOKSRARE, maker, listOf(counter)).map { it.hash }.toList()
+        assertThat(hashes).containsExactlyInAnyOrder(order0.hash)
     }
 }
 

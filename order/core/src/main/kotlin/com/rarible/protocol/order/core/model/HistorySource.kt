@@ -5,5 +5,15 @@ enum class HistorySource {
     OPEN_SEA,
     CRYPTO_PUNKS,
     X2Y2,
-    LOOKSRARE
+    LOOKSRARE;
+
+    fun toPlatform(): Platform {
+        return when (this) {
+            RARIBLE -> Platform.RARIBLE
+            OPEN_SEA -> Platform.OPEN_SEA
+            CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
+            X2Y2 -> Platform.X2Y2
+            LOOKSRARE -> Platform.LOOKSRARE
+        }
+    }
 }

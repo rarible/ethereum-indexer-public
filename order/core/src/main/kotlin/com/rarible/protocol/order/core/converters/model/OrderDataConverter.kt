@@ -5,7 +5,7 @@ import com.rarible.protocol.dto.OrderBasicSeaportDataV1Dto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
-import com.rarible.protocol.dto.OrderLooksrareDataV1Dto
+import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataV2Dto
@@ -79,7 +79,7 @@ object OrderDataConverter : Converter<OrderDataDto, OrderData> {
             )
             is OrderCryptoPunksDataDto,
             is OrderBasicSeaportDataV1Dto,
-            is OrderLooksrareDataV1Dto,
+            is OrderLooksRareDataV1Dto,
             is OrderX2Y2DataDto -> throw IllegalArgumentException("Not supported converting  order data")
         }
     }

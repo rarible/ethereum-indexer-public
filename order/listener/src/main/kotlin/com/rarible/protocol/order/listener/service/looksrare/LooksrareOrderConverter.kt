@@ -47,7 +47,7 @@ class LooksrareOrderConverter(
         val data = OrderLooksrareDataV1(
             minPercentageToAsk = looksrareOrder.minPercentageToAsk,
             params = if (looksrareOrder.params?.length() == 0) null else looksrareOrder.params,
-            nonce = looksrareOrder.nonce,
+            counter = looksrareOrder.nonce,
             strategy = looksrareOrder.strategy
         )
         val (make, take) = kotlin.run {

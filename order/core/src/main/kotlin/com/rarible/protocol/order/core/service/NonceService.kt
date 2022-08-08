@@ -9,7 +9,7 @@ import scalether.domain.Address
 import java.time.Instant
 
 @Component
-class OpenSeaNonceService(
+class NonceService(
     private val nonceHistoryRepository: NonceHistoryRepository
 ) {
     suspend fun getLatestMakerNonce(maker: Address, protocol: Address): MakerNonce {
