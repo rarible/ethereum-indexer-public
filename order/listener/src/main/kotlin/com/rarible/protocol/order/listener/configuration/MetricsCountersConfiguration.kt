@@ -3,8 +3,6 @@ package com.rarible.protocol.order.listener.configuration
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelAllEventMetric
-import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelOrdersEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderErrorMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderLoadMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveMetric
@@ -23,7 +21,9 @@ import com.rarible.protocol.order.listener.misc.SeaportOrderDelayMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderSaveMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderCancelEventMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderMatchEventMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderSaveMetric
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.context.annotation.Bean
@@ -36,84 +36,84 @@ class MetricsCountersConfiguration(
 ) {
     /** OpenSea metrics **/
     @Bean
-    fun openSeaErrorCounter() : RegisteredCounter {
+    fun openSeaErrorCounter(): RegisteredCounter {
         return OpenSeaOrderErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun openSeaSaveCounter() : RegisteredCounter {
+    fun openSeaSaveCounter(): RegisteredCounter {
         return OpenSeaOrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun openSeaLoadCounter() : RegisteredCounter {
+    fun openSeaLoadCounter(): RegisteredCounter {
         return OpenSeaOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun openSeaDelaySaveCounter() : RegisteredCounter {
+    fun openSeaDelaySaveCounter(): RegisteredCounter {
         return OpenSeaOrderDelaySaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun openSeaDelayLoadCounter() : RegisteredCounter {
+    fun openSeaDelayLoadCounter(): RegisteredCounter {
         return OpenSeaOrderDelayLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     /** Seaport metrics **/
     @Bean
-    fun seaportErrorCounter() : RegisteredCounter {
+    fun seaportErrorCounter(): RegisteredCounter {
         return SeaportOrderErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportSaveCounter() : RegisteredCounter {
+    fun seaportSaveCounter(): RegisteredCounter {
         return SeaportOrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportLoadCounter() : RegisteredCounter {
+    fun seaportLoadCounter(): RegisteredCounter {
         return SeaportOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportEventErrorCounter() : RegisteredCounter {
+    fun seaportEventErrorCounter(): RegisteredCounter {
         return SeaportEventErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportFulfilledEventCounter() : RegisteredCounter {
+    fun seaportFulfilledEventCounter(): RegisteredCounter {
         return SeaportFulfilledEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportCancelEventCounter() : RegisteredCounter {
+    fun seaportCancelEventCounter(): RegisteredCounter {
         return SeaportCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportCounterEventCounter() : RegisteredCounter {
+    fun seaportCounterEventCounter(): RegisteredCounter {
         return SeaportCounterEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun seaportOrderDelayGauge() : RegisteredGauge<Long> {
+    fun seaportOrderDelayGauge(): RegisteredGauge<Long> {
         return SeaportOrderDelayMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     /** Looksrare metrics **/
     @Bean
-    fun looksrareErrorCounter() : RegisteredCounter {
+    fun looksrareErrorCounter(): RegisteredCounter {
         return LooksrareOrderErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun looksrareSaveCounter() : RegisteredCounter {
+    fun looksrareSaveCounter(): RegisteredCounter {
         return LooksrareOrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
-    fun looksrareLoadCounter() : RegisteredCounter {
+    fun looksrareLoadCounter(): RegisteredCounter {
         return LooksrareOrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
@@ -145,4 +145,12 @@ class MetricsCountersConfiguration(
     @Bean
     fun x2y2OrderLoadErrorCounter(): RegisteredCounter =
         X2Y2OrderLoadErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun x2y2OrderCancelEventCounter(): RegisteredCounter =
+        X2Y2OrderCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun x2y2OrderMatchEventCounter(): RegisteredCounter =
+        X2Y2OrderMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 }

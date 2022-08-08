@@ -71,14 +71,16 @@ class X2Y2OrderLoadHandler(
     }
 
     private suspend fun saveOrders(converted: List<OrderVersion>) {
-        converted.map {
-            coroutineScope {
-                async {
-                    orderUpdateService.save(it)
-                    x2y2OrderSaveCounter.increment()
-                    logger.info("Saved x2y2 order: ${it.hash}")
+        if (properties.saveEnabled) {
+            converted.map {
+                coroutineScope {
+                    async {
+                        orderUpdateService.save(it)
+                        x2y2OrderSaveCounter.increment()
+                        logger.info("Saved x2y2 order: ${it.hash}")
+                    }
                 }
-            }
-        }.awaitAll()
+            }.awaitAll()
+        }
     }
 }

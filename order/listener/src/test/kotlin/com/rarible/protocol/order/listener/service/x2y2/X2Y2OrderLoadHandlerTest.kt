@@ -72,7 +72,8 @@ class X2Y2OrderLoadHandlerTest : AbstractIntegrationTest() {
             errorCounter,
             orderUpdateService,
             X2Y2OrdersLoadWorkerProperties(
-                enabled = true
+                enabled = true,
+                saveEnabled = true
             )
         )
     }
@@ -128,6 +129,40 @@ class X2Y2OrderLoadHandlerTest : AbstractIntegrationTest() {
             assertThat(state?.lastError).isNotNull
         }
 
+    }
+
+    @Test
+    internal fun `should not save orders`() {
+        runBlocking {
+            val notSaveHandler = X2Y2OrderLoadHandler(
+                stateRepository,
+                x2y2ApiClient,
+                converter,
+                orderRepository,
+                saveCounter,
+                errorCounter,
+                orderUpdateService,
+                X2Y2OrdersLoadWorkerProperties(
+                    enabled = true,
+                    saveEnabled = false
+                )
+            )
+            coEvery {
+                x2y2ApiClient.orders(cursor = any())
+            } returns orders
+
+            notSaveHandler.handle()
+
+            verify(exactly = 0) {
+                saveCounter.increment()
+            }
+            val state = stateRepository.byId(X2Y2FetchState.ID)
+            assertThat(state).isNotNull
+            assertThat(state?.cursor).isNotNull
+            assertThat(state?.cursor).isEqualTo("WzE2NDQxNTk0NTUwMDBd")
+
+
+        }
     }
 }
 
