@@ -10,6 +10,8 @@ rarible:
     testnet: true
   seaport:
     testnet: true
+  looksrare:
+    testnet: true
 
 listener:
   openSeaEndpoint: ${rarible.opensea.endpoint}

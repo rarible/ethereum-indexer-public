@@ -133,7 +133,4 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         val price: EthUInt256,
         val isAsk: Boolean
     )
-
-    private companion object {
-    }
 }
