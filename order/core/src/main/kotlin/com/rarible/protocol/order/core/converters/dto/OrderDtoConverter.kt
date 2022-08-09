@@ -26,6 +26,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Binary
 import java.math.BigInteger
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 @Component
 class OrderDtoConverter(
@@ -75,11 +76,7 @@ class OrderDtoConverter(
                 taker = source.taker,
                 take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
-                fillValue = if (source.isMakeFillOrder) {
-                    priceNormalizer.normalize(source.make.type, source.fill.value)
-                } else {
-                    priceNormalizer.normalize(source.take.type, source.fill.value)
-               },
+                fillValue = convertFillValue(source),
                 makeStock = source.makeStock.value,
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
@@ -235,7 +232,7 @@ class OrderDtoConverter(
                 taker = source.taker,
                 take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
-                fillValue = priceNormalizer.normalize(source.take.type, source.fill.value),
+                fillValue = convertFillValue(source),
                 makeStock = source.makeStock.value,
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
@@ -260,6 +257,14 @@ class OrderDtoConverter(
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
+        }
+    }
+
+    private suspend fun convertFillValue(source: Order): BigDecimal {
+        return if (source.isMakeFillOrder) {
+            priceNormalizer.normalize(source.make.type, source.fill.value)
+        } else {
+            priceNormalizer.normalize(source.take.type, source.fill.value)
         }
     }
 }
