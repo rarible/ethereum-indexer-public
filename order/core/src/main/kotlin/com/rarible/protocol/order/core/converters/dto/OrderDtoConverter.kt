@@ -75,7 +75,7 @@ class OrderDtoConverter(
                 taker = source.taker,
                 take = assetDtoConverter.convert(source.take),
                 fill = source.fill.value,
-                fillValue = if (source.data.isMakeFillOrder) {
+                fillValue = if (source.isMakeFillOrder) {
                     priceNormalizer.normalize(source.make.type, source.fill.value)
                 } else {
                     priceNormalizer.normalize(source.take.type, source.fill.value)
@@ -84,7 +84,7 @@ class OrderDtoConverter(
                 makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
                 cancelled = source.cancelled,
                 salt = source.salt.value.toWord(),
-                signature = when(orderStatus) {
+                signature = when (orderStatus) {
                     OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
                     else -> source.signature.orEmpty()
                 },

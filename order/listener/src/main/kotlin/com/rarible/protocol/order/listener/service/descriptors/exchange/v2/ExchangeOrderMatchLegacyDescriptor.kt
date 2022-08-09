@@ -10,7 +10,6 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.isMakeFillOrder
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -67,12 +66,12 @@ class ExchangeOrderMatchLegacyDescriptor(
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
 
-        val leftFill = if (transactionOrders?.left?.data?.isMakeFillOrder == true) {
+        val leftFill = if (transactionOrders?.left?.isMakeFillOrder == true) {
             EthUInt256(event.newRightFill())
         } else {
             EthUInt256(event.newLeftFill())
         }
-        val rightFill = if (transactionOrders?.right?.data?.isMakeFillOrder == true) {
+        val rightFill = if (transactionOrders?.right?.isMakeFillOrder == true) {
             EthUInt256(event.newLeftFill())
         } else {
             EthUInt256(event.newRightFill())

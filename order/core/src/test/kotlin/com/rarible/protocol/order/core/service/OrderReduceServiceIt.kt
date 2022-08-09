@@ -377,6 +377,78 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `should set FILLED status for LooksRare erc721 sell order`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            hash = Word.apply(randomWord()),
+            type = OrderType.LOOKSRARE,
+            platform = Platform.LOOKSRARE,
+            data = createOrderLooksrareDataV1(),
+            make = randomErc721(),
+            take = randomErc20(EthUInt256.TEN)
+        )
+        orderUpdateService.save(order)
+
+        prepareStorage(
+            OrderSideMatch(
+                hash = order.hash,
+                counterHash = WordFactory.create(),
+                fill = EthUInt256.ONE,
+                make = order.make,
+                take = order.take,
+                maker = order.maker,
+                side = OrderSide.LEFT,
+                taker = Address.FOUR(),
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null,
+                makeValue = priceNormalizer.normalize(order.make),
+                takeValue = priceNormalizer.normalize(order.take),
+                source = HistorySource.LOOKSRARE
+            )
+        )
+        val result = orderReduceService.updateOrder(order.hash)!!
+        assertThat(result.fill).isEqualTo(EthUInt256.ONE)
+        assertThat(result.status).isEqualTo(OrderStatus.FILLED)
+    }
+
+    @Test
+    fun `should set FILLED status for LooksRare erc1155 sell order`() = runBlocking<Unit> {
+        val order = createOrderVersion().copy(
+            hash = Word.apply(randomWord()),
+            type = OrderType.LOOKSRARE,
+            platform = Platform.LOOKSRARE,
+            data = createOrderLooksrareDataV1(),
+            make = randomErc1155(EthUInt256.ONE),
+            take = randomErc20(EthUInt256.TEN)
+        )
+        orderUpdateService.save(order)
+
+        prepareStorage(
+            OrderSideMatch(
+                hash = order.hash,
+                counterHash = WordFactory.create(),
+                fill = EthUInt256.ONE,
+                make = order.make,
+                take = order.take,
+                maker = order.maker,
+                side = OrderSide.LEFT,
+                taker = Address.FOUR(),
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null,
+                makeValue = priceNormalizer.normalize(order.make),
+                takeValue = priceNormalizer.normalize(order.take),
+                source = HistorySource.LOOKSRARE
+            )
+        )
+        val result = orderReduceService.updateOrder(order.hash)!!
+        assertThat(result.fill).isEqualTo(EthUInt256.ONE)
+        assertThat(result.status).isEqualTo(OrderStatus.FILLED)
+    }
+
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(

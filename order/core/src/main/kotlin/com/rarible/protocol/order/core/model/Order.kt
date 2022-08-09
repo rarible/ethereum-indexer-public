@@ -131,8 +131,7 @@ data class Order(
                 cancelled = cancelled,
                 orderType = type,
                 feeSide = getFeeSide(make.type, take.type),
-                start = start,
-                end = end
+                sell =make.type.nft
             )
         )
     }
@@ -194,13 +193,12 @@ data class Order(
             orderType: OrderType,
             feeSide: FeeSide,
             cancelled: Boolean,
-            start: Long?,
-            end: Long?
+            sell: Boolean
         ): EthUInt256 {
             if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
                 return EthUInt256.ZERO
             }
-            val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled, data)
+            val (make) = calculateRemaining(makeValue, takeValue, fill, cancelled, data, sell)
             val fee = if (feeSide == FeeSide.MAKE) calculateFee(data, protocolCommission) else EthUInt256.ZERO
 
             val roundedMakeBalance = calculateRoundedMakeBalance(
@@ -231,10 +229,10 @@ data class Order(
             start: Long?,
             end: Long?,
             data: OrderData,
-            approved: Boolean
+            approved: Boolean,
         ): OrderStatus {
             return when {
-                data.isMakeFillOrder && fill >= make.value -> OrderStatus.FILLED
+                data.isMakeFillOrder(make.type.nft) && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 approved.not() -> OrderStatus.INACTIVE
@@ -262,11 +260,12 @@ data class Order(
             takeValue: EthUInt256,
             fill: EthUInt256,
             cancelled: Boolean,
-            data: OrderData
+            data: OrderData,
+            sell: Boolean
         ): Pair<EthUInt256, EthUInt256> {
             return if (cancelled) {
                 EthUInt256.ZERO to EthUInt256.ZERO
-            } else if (data.isMakeFillOrder) {
+            } else if (data.isMakeFillOrder(sell)) {
                 val make = if (makeValue > fill) makeValue - fill else EthUInt256.ZERO
                 val take = make * takeValue / makeValue
                 make to take
@@ -743,11 +742,8 @@ val AssetType.tokenId: EthUInt256?
         }
     }
 
-val Order.makeNftItemId: ItemId?
-    get() = make.type.tokenId?.let { ItemId(make.type.token, it.value) }
-
-val Order.takeNftItemId: ItemId?
-    get() = take.type.tokenId?.let { ItemId(take.type.token, it.value) }
+val Order.isMakeFillOrder: Boolean
+    get() = data.isMakeFillOrder(sell = make.type.nft)
 
 /**
  * All on-chain CryptoPunks orders have salt = 0.
