@@ -18,7 +18,7 @@ class LooksrareOrderLoadHandler(
     override suspend fun handle() {
         val state = looksrareFetchStateRepository.get(STATE_ID_PREFIX) ?: getDefaultFetchState()
         val listedAfter = state.listedAfter
-        val listedBefore = minOf(state.listedAfter + properties.loadPeriod, Instant.now())
+        val listedBefore = minOf(state.listedAfter + properties.loadPeriod, Instant.now() - properties.delay)
         val result = looksrareOrderLoader.load(listedAfter = listedAfter, listedBefore = listedBefore)
         if (result.isEmpty()) {
             delay(properties.pollingPeriod)
