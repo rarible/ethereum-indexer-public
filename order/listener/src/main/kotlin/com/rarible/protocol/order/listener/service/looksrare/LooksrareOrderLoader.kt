@@ -3,6 +3,7 @@ package com.rarible.protocol.order.listener.service.looksrare
 import com.rarible.core.common.flatMapAsync
 import com.rarible.core.logging.Logger
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
@@ -19,7 +20,8 @@ class LooksrareOrderLoader(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val properties: LooksrareLoadProperties,
-    private val looksrareSaveCounter: RegisteredCounter
+    private val looksrareSaveCounter: RegisteredCounter,
+    private val looksrareOrderDelayGauge: RegisteredGauge<Long>
 ) {
     suspend fun load(
         listedAfter: Instant,
@@ -46,7 +48,12 @@ class LooksrareOrderLoader(
 
     private suspend fun safeGetNextSellOrders(listedAfter: Instant, listedBefore: Instant): List<LooksrareOrder> {
         return try {
-            looksrareOrderService.getNextSellOrders(listedAfter, listedBefore)
+            looksrareOrderService.getNextSellOrders(listedAfter, listedBefore).also { orders ->
+                // Orders already sorted by startTime as desc
+                orders.firstOrNull()?.startTime?.let {
+                    looksrareOrderDelayGauge.set(Instant.now().epochSecond - it.epochSecond)
+                }
+            }
         } catch (ex: Throwable) {
             logger.looksrareError("Can't get next orders with listedAfter=${listedAfter.epochSecond}, listedBefore=${listedBefore.epochSecond}", ex)
             throw ex

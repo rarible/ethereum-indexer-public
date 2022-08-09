@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
+import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
@@ -24,6 +25,7 @@ internal class LooksrareOrderLoaderTest {
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val properties = LooksrareLoadProperties()
     private val looksrareSaveCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val looksrareOrderDelayGauge = mockk<RegisteredGauge<Long>> { every { set(any()) } returns Unit }
 
     private val loader = LooksrareOrderLoader(
         looksrareOrderService,
@@ -31,7 +33,8 @@ internal class LooksrareOrderLoaderTest {
         orderRepository,
         orderUpdateService,
         properties,
-        looksrareSaveCounter
+        looksrareSaveCounter,
+        looksrareOrderDelayGauge
     )
 
     @Test
