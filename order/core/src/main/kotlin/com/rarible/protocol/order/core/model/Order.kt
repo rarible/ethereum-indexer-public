@@ -211,12 +211,12 @@ data class Order(
 
             val calculatedMakeStock = minOf(make, roundedMakeBalance)
 
-            return when(orderType) {
+            return when (orderType) {
                 OrderType.RARIBLE_V2,
                 OrderType.RARIBLE_V1,
-                OrderType.CRYPTO_PUNKS,
+                OrderType.CRYPTO_PUNKS -> calculatedMakeStock
+                OrderType.LOOKSRARE,
                 OrderType.X2Y2,
-                OrderType.LOOKSRARE -> calculatedMakeStock
                 OrderType.OPEN_SEA_V1,
                 OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
             }
