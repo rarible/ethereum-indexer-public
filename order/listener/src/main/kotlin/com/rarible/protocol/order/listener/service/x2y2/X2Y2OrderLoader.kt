@@ -44,7 +44,7 @@ class X2Y2OrderLoader(
             coroutineScope {
                 @Suppress("ConvertCallChainIntoSequence")
                 orders
-                    .map {
+                    .mapNotNull {
                         x2Y2OrderConverter.convert(it)
                     }
                     .chunked(properties.saveBatchSize)

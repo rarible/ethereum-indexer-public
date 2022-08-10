@@ -83,6 +83,7 @@ class OpenSeaOrderConverter(
 
                 if (take.value != currentPrice) {
                     logger.seaportInfo("protocol total amount must be equal currentPrice: $clientSeaportOrder")
+                    seaportErrorCounter.increment()
                     return null
                 }
                 val data = OrderBasicSeaportDataV1(

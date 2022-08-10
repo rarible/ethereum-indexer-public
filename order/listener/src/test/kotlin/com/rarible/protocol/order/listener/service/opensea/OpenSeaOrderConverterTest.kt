@@ -37,8 +37,8 @@ internal class OpenSeaOrderConverterTest {
 
     private val featureFlags = mockk<OrderIndexerProperties.FeatureFlags>()
     private val exchangeContracts = mockk<OrderIndexerProperties.ExchangeContractAddresses>()
-    private val openSeaErrorCounter = mockk<RegisteredCounter>()
-    private val seaportErrorCounter = mockk<RegisteredCounter>()
+    private val openSeaErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val seaportErrorCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val properties = mockk<OrderListenerProperties> {
         every { openSeaExchangeDomainHashV2 } returns randomWord()
     }

@@ -9,6 +9,7 @@ import com.rarible.core.test.data.randomLong
 import com.rarible.core.test.data.randomWord
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
 import com.rarible.looksrare.client.model.v1.Status
+import com.rarible.x2y2.client.model.ErcType
 import com.rarible.x2y2.client.model.Order
 import com.rarible.x2y2.client.model.OrderStatus
 import com.rarible.x2y2.client.model.OrderType
@@ -21,6 +22,7 @@ import java.time.Instant
 
 fun randomX2Y2Order(): Order {
     return Order(
+        amount = randomBigInt(),
         id = randomBigInt(),
         maker = randomAddress(),
         currency = randomAddress(),
@@ -36,7 +38,8 @@ fun randomX2Y2Order(): Order {
         status = OrderStatus.values().random(),
         token = Token(
             contract = randomAddress(),
-            tokenId = randomBigInt()
+            tokenId = randomBigInt(),
+            ercType = ErcType.values().random()
         ),
         updatedAt = Instant.now()
     )
