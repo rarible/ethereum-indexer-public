@@ -19,7 +19,7 @@ data class RaribleMatchedOrders(
             get() = when (data) {
                 is OrderRaribleV2DataV3Sell -> true
                 is OrderRaribleV2DataV3Buy -> false
-                else -> data.isMakeFillOrder
+                else -> data.isMakeFillOrder(makeAssetType.nft)
             }
 
         val hash: Word

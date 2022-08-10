@@ -27,9 +27,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 import java.util.concurrent.CopyOnWriteArrayList
@@ -73,9 +71,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         consumingJobs.forEach { it.cancelAndJoin() }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `on minting the ownership is transferred from the zero address`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `on minting the ownership is transferred from the zero address`() = withReducer(ReduceVersion.V2) {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
@@ -106,6 +103,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                     features = it.collection.features,
                     supportsLazyMint = it.collection.supportsLazyMint,
                     minters = listOf(creatorAddress),
+                    isRaribleContract = true,
                     meta = NftCollectionMetaDto(
                         name = "Untitled",
                         description = null,
@@ -118,10 +116,8 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @Disabled // TODO PT-798 doesn't work with V2 reducer/scanner
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `ownership transferred`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `ownership transferred`() = withReducer(ReduceVersion.V2) {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
@@ -145,13 +141,14 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
                 it is NftCollectionUpdateEventDto && it.collection == NftCollectionDto(
                     id = token.address(),
                     type = NftCollectionDto.Type.ERC721,
-                    owner = creatorAddress,
+                    owner = newOwnerAddress,
                     status = NftCollectionDto.Status.CONFIRMED,
                     name = "Test",
                     symbol = "TEST",
                     features = it.collection.features,
                     supportsLazyMint = it.collection.supportsLazyMint,
-                    minters = listOf(creatorAddress),
+                    minters = listOf(newOwnerAddress),
+                    isRaribleContract = true,
                     meta = NftCollectionMetaDto(
                         name = "Untitled",
                         description = null,

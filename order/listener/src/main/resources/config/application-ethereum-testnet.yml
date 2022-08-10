@@ -1,0 +1,7 @@
+common:
+  exchange-contract-addresses:
+    looksrare-V1: "0x1aa777972073ff66dcfded85749bdd555c0665da"
+  currency-contract-addresses:
+    weth: "0xc778417e063141139fce010982780140aa0cd5ab"
+listener:
+  open-sea-exchange-domain-hash-v2: "0xd38471a54d114ee69fbb07d1769a0bbecd4f429ddf5932c7098093908e24bd9d"
