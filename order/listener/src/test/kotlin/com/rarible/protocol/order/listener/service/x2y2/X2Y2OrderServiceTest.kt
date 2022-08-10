@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.x2y2
 
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
-import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import com.rarible.protocol.order.listener.data.randomX2Y2Order
 import com.rarible.x2y2.client.X2Y2ApiClient
 import com.rarible.x2y2.client.model.ApiListResponse
