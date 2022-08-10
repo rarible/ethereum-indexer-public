@@ -6,11 +6,11 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.token
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.Order
 import io.mockk.coEvery
-import io.mockk.coJustRun
 import io.mockk.mockk
 import kotlin.random.Random
 import kotlinx.coroutines.runBlocking
@@ -36,7 +36,7 @@ class X21Y2ConverterTest {
     internal fun `should convert order`() {
         runBlocking {
             val order = orders.shuffled()[Random.nextInt(0, 19)]
-            val converted = converter.convertOrder(order)
+            val converted = converter.convert(order)
             assertThat(converted.hash).isEqualTo(order.itemHash)
             assertThat(converted.maker).isEqualTo(order.maker)
             assertThat(converted.taker).isNull()
@@ -46,6 +46,7 @@ class X21Y2ConverterTest {
             assertThat(converted.take.value.value).isEqualTo(order.price)
             assertThat(converted.take.type.token).isEqualTo(order.currency)
             assertThat(converted.type).isEqualTo(OrderType.X2Y2)
+            assertThat(converted.platform).isEqualTo(Platform.X2Y2)
             assertThat(converted.start).isEqualTo(order.createdAt.epochSecond)
             assertThat(converted.end).isEqualTo(order.endAt.epochSecond)
             assertThat(converted.createdAt).isEqualTo(order.createdAt)

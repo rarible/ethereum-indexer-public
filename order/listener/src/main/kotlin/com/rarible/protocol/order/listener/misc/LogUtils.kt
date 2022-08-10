@@ -4,6 +4,7 @@ import org.slf4j.Logger
 
 const val SEAPORT_LOG = "[Seaport]"
 const val LOOKSRARE_LOG = "[Looksrare]"
+const val X2Y2_LOG = "[X2Y2]"
 
 internal fun Logger.prefixedInfo(prefix: String, message: String) {
     info("{} {}", prefix, message)
@@ -22,3 +23,7 @@ fun Logger.seaportError(message: String, ex: Throwable) = prefixedError(SEAPORT_
 fun Logger.looksrareInfo(message: String) = prefixedInfo(LOOKSRARE_LOG, message)
 fun Logger.looksrareError(message: String) = prefixedError(LOOKSRARE_LOG, message)
 fun Logger.looksrareError(message: String, ex: Throwable) = prefixedError(LOOKSRARE_LOG, message, ex)
+
+fun Logger.x2y2Info(message: String) = prefixedInfo(X2Y2_LOG, message)
+fun Logger.x2y2Error(message: String) = prefixedError(X2Y2_LOG, message)
+fun Logger.x2y2Error(message: String, ex: Throwable) = prefixedError(X2Y2_LOG, message, ex)

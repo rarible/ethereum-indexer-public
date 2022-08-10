@@ -23,7 +23,7 @@ import scalether.domain.response.Transaction
 class X2Y2OrderCancelDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val converter: X2Y2EventConverter,
-    private val x2y2OrderCancelEventCounter: RegisteredCounter
+    private val x2y2CancelEventCounter: RegisteredCounter
 ) : ItemExchangeHistoryLogEventDescriptor<OrderCancel> {
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -33,7 +33,7 @@ class X2Y2OrderCancelDescriptor(
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderCancel> {
         val event = EvCancelEvent.apply(log)
         val converted = converter.convert(event, date)
-        x2y2OrderCancelEventCounter.increment()
+        x2y2CancelEventCounter.increment()
         return listOf(converted)
     }
 

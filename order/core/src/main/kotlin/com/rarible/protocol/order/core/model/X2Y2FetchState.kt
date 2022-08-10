@@ -15,6 +15,10 @@ data class X2Y2FetchState(
     val lastError: String? = null
 ) {
     companion object {
+        fun withCursor(cursor: String): X2Y2FetchState {
+            return X2Y2FetchState(cursor = cursor)
+        }
+
         const val ID = "x2y2_order_fetch"
     }
 }

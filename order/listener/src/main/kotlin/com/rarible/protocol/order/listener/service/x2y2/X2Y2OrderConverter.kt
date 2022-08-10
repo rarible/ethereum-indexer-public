@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.x2y2.client.model.Order
 import java.math.BigInteger
@@ -18,9 +19,7 @@ import scalether.domain.Address
 class X2Y2OrderConverter(
     private val priceUpdateService: PriceUpdateService
 ) {
-
-    suspend fun convertOrder(order: Order): OrderVersion {
-
+    suspend fun convert(order: Order): OrderVersion {
         val data = OrderX2Y2DataV1(
             itemHash = order.itemHash,
             isCollectionOffer = order.isCollectionOffer,
@@ -45,6 +44,7 @@ class X2Y2OrderConverter(
             ),
             taker = null,
             type = OrderType.X2Y2,
+            platform = Platform.X2Y2,
             start = order.createdAt.epochSecond,
             end = order.endAt.epochSecond,
             createdAt = order.createdAt,
@@ -56,12 +56,11 @@ class X2Y2OrderConverter(
             makeUsd = null,
             takeUsd = null,
             salt = EthUInt256.ZERO,
-            signature = null, // TODO realize if need
+            signature = null,
             hash = order.itemHash
         ).let {
             priceUpdateService.withUpdatedPrices(it)
         }
-
     }
 }
 
