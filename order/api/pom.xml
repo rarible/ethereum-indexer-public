@@ -24,6 +24,11 @@
     <dependencies>
         <!-- =========== Internal dependencies =========== -->
         <dependency>
+            <groupId>com.rarible.x2y2</groupId>
+            <artifactId>rarible-x2y2-client-starter</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.rarible.protocol</groupId>
             <artifactId>protocol-order-indexer-core</artifactId>
         </dependency>
