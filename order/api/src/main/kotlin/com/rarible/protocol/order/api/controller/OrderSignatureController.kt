@@ -21,7 +21,7 @@ class OrderSignatureController(
         return ResponseEntity.ok(result)
     }
 
-    override suspend fun x2y2CancelSign(x2Y2GetCancelInputRequestDto: X2Y2GetCancelInputRequestDto): ResponseEntity<X2Y2SignResponseDto> {
+    override suspend fun cancelSignX2Y2(x2Y2GetCancelInputRequestDto: X2Y2GetCancelInputRequestDto): ResponseEntity<X2Y2SignResponseDto> {
         val response = with(x2Y2GetCancelInputRequestDto) {
             x2Y2ApiClient.getCancelInput(
                 caller = caller,
@@ -35,7 +35,7 @@ class OrderSignatureController(
         return ResponseEntity.ok(X2Y2SignResponseDto(response.data.single().input))
     }
 
-    override suspend fun x2y2OrderSign(x2Y2OrderSignRequestDto: X2Y2OrderSignRequestDto): ResponseEntity<X2Y2SignResponseDto> {
+    override suspend fun orderSignX2Y2(x2Y2OrderSignRequestDto: X2Y2OrderSignRequestDto): ResponseEntity<X2Y2SignResponseDto> {
         val response = with(x2Y2OrderSignRequestDto) {
             x2Y2ApiClient.fetchOrderSign(
                 caller = caller,
