@@ -8,6 +8,7 @@ import com.rarible.protocol.order.listener.misc.x2y2Info
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Instant
 import java.util.*
 
 class X2Y2OrderLoadHandler(
@@ -33,7 +34,8 @@ class X2Y2OrderLoadHandler(
     }
 
     private fun getDefaultStartCursor(): String {
-        return Base64.getDecoder().decode("[${properties.startCursor}]").toString()
+        return (properties.startCursor ?: Instant.now().toEpochMilli())
+            .let { Base64.getEncoder().encodeToString("[${it}]".toByteArray()) }
     }
 
     private companion object {
