@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
 import com.rarible.protocol.order.core.model.X2Y2FetchState
-import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
+import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
 import com.rarible.x2y2.client.model.ApiListResponse
 import io.mockk.coEvery
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import java.time.Duration
 
 internal class X2Y2OrderLoadHandlerTest {
-    private val stateRepository = mockk<X2Y2FetchStateRepository>()
+    private val stateRepository = mockk<AggregatorStateRepository>()
     private val x2y2OrderLoader = mockk<X2Y2OrderLoader>()
     private val properties = X2Y2LoadProperties(startCursor = 1660125759000, pollingPeriod = Duration.ZERO)
 
@@ -25,13 +25,13 @@ internal class X2Y2OrderLoadHandlerTest {
 
     @Test
     fun `should get init state and save it`() = runBlocking<Unit> {
-        coEvery { stateRepository.get(X2Y2FetchState.ID) } returns null
+        coEvery { stateRepository.getX2Y2State() } returns null
         coEvery { x2y2OrderLoader.load("WzE2NjAxMjU3NTkwMDBd") } returns ApiListResponse(next = "next", data = emptyList(), success = true)
         coEvery { stateRepository.save(any()) } returns mockk()
 
         handler.handle()
 
-        coVerify { stateRepository.get(X2Y2FetchState.ID) }
+        coVerify { stateRepository.getX2Y2State() }
         coVerify { x2y2OrderLoader.load("WzE2NjAxMjU3NTkwMDBd") }
         coVerify { stateRepository.save(withArg {
             assertThat(it.cursor).isEqualTo("next")
@@ -41,7 +41,7 @@ internal class X2Y2OrderLoadHandlerTest {
     @Test
     fun `should save current state if cursor not use fully`() = runBlocking<Unit> {
         val state = X2Y2FetchState(cursor = "current")
-        coEvery { stateRepository.get(X2Y2FetchState.ID) } returns state
+        coEvery { stateRepository.getX2Y2State() } returns state
         coEvery { x2y2OrderLoader.load(state.cursor) } returns ApiListResponse(next = null, data = emptyList(), success = true)
         coEvery { stateRepository.save(any()) } returns mockk()
 

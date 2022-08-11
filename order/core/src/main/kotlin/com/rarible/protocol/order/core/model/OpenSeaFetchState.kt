@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
 @Document("open_sea_state")
+@Deprecated("Remove in release 1.33")
 data class OpenSeaFetchState(
     val listedAfter: Long,
     val cursor: String? = null,

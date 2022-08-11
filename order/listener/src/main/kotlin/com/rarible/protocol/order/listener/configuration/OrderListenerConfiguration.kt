@@ -20,7 +20,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
+import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
@@ -318,7 +318,7 @@ class OrderListenerConfiguration(
     )
     fun x2y2OrderFetchWorker(
         meterRegistry: MeterRegistry,
-        stateRepository: X2Y2FetchStateRepository,
+        stateRepository: AggregatorStateRepository,
         x2y2OrderLoader: X2Y2OrderLoader,
         properties: X2Y2LoadProperties
     ): X2Y2OrdersFetchWorker {
