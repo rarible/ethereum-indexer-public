@@ -17,7 +17,9 @@ class OpenseaItemPropertiesService(
 
     private val excludedFromOpenseaResolver = setOf(
         Address.apply(nftIndexerProperties.ensDomainsContractAddress)
-    )
+    ) + nftIndexerProperties.excludedFromOpenseaMetaResolution.split(",")
+        .filter { it.isNotBlank() }
+        .map { Address.apply(it) }.toSet()
 
     suspend fun extendWithOpenSea(itemId: ItemId, itemProperties: ItemProperties): ItemProperties {
         // Workaround for preventing receiving dummy data from Opensea PT-422
@@ -86,8 +88,12 @@ class OpenseaItemPropertiesService(
             content = ContentBuilder.getItemMetaContent(
                 imageOriginal = extend(rarible.content.imageOriginal?.url, openSea.content.imageOriginal?.url, "image"),
                 imageBig = extend(rarible.content.imageBig?.url, openSea.content.imageBig?.url, "imageBig"),
-                imagePreview = extend(rarible.content.imagePreview?.url, openSea.content.imagePreview?.url, "imagePreview"),
-                videoOriginal = extend(rarible.content.videoOriginal?.url, openSea.content.videoOriginal?.url, "animationUrl"),
+                imagePreview = extend(
+                    rarible.content.imagePreview?.url, openSea.content.imagePreview?.url, "imagePreview"
+                ),
+                videoOriginal = extend(
+                    rarible.content.videoOriginal?.url, openSea.content.videoOriginal?.url, "animationUrl"
+                ),
             )
         )
     }
