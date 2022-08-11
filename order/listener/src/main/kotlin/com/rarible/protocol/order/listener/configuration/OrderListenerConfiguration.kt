@@ -180,6 +180,7 @@ class OrderListenerConfiguration(
     fun seaportOrdersFetchWorker(
         openSeaOrderService: OpenSeaOrderService,
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,
+        aggregatorStateRepository: AggregatorStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
@@ -199,6 +200,7 @@ class OrderListenerConfiguration(
         val handler = SeaportOrderLoadHandler(
             seaportOrderLoader = loader,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
+            aggregatorStateRepository = aggregatorStateRepository,
             properties = properties
         )
         return SeaportOrdersFetchWorker(
