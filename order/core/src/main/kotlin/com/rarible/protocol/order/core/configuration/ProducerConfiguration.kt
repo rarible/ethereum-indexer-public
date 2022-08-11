@@ -29,9 +29,6 @@ class ProducerConfiguration(
     fun ordersPriceUpdateEventProducer(producerFactory: ProducerFactory) = producerFactory.createOrderPriceUpdateEventsProducer()
 
     @Bean
-    fun globalOrderEventProducer(producerFactory: ProducerFactory) = producerFactory.createGlobalOrderEventsProducer()
-
-    @Bean
     fun auctionActivityProducer(producerFactory: ProducerFactory) = producerFactory.createAuctionActivitiesProducer()
 
     @Bean

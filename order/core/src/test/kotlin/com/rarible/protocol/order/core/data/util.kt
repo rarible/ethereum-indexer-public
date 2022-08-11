@@ -207,6 +207,119 @@ fun createOrderDto() =
         priceHistory = listOf()
     )
 
+fun createX2Y2OrderDto(): X2Y2OrderDto {
+    return X2Y2OrderDto(
+        maker = AddressFactory.create(),
+        taker = null,
+        make = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        take = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        fill = BigInteger.ZERO,
+        fillValue = BigDecimal.ZERO,
+        makeStock = BigInteger.TEN,
+        makeStockValue = BigDecimal.TEN,
+        cancelled = false,
+        salt = Word.apply(ByteArray(32)),
+        data = createX2Y2OrderData(),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        pending = emptyList(),
+        hash = WordFactory.create(),
+        makeBalance = BigInteger.TEN,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        start = null,
+        end = null,
+        priceHistory = listOf()
+    )
+}
+
+fun createX2Y2OrderData(): OrderX2Y2DataDto {
+    return OrderX2Y2DataDto(
+        isBundle = false,
+        isCollectionOffer = false,
+        itemHash = Word.apply(randomWord()),
+        orderId = randomBigInt(),
+        side = randomInt()
+    )
+}
+
+fun createLooksrareOrderDto(): LooksRareOrderDto {
+    return LooksRareOrderDto(
+        maker = AddressFactory.create(),
+        taker = null,
+        make = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        take = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        fill = BigInteger.ZERO,
+        fillValue = BigDecimal.ZERO,
+        makeStock = BigInteger.TEN,
+        makeStockValue = BigDecimal.TEN,
+        cancelled = false,
+        salt = Word.apply(ByteArray(32)),
+        data = createLooksrareOrderData(),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        pending = emptyList(),
+        hash = WordFactory.create(),
+        makeBalance = BigInteger.TEN,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        start = null,
+        end = null,
+        priceHistory = listOf()
+    )
+}
+
+fun createLooksrareOrderData(): OrderLooksRareDataV1Dto {
+    return OrderLooksRareDataV1Dto(
+        minPercentageToAsk = randomInt(),
+        strategy = randomAddress(),
+        nonce = randomLong(),
+        params = randomBinary()
+    )
+}
+
+fun createSeaportOrderDto(): SeaportV1OrderDto {
+    return SeaportV1OrderDto(
+        maker = AddressFactory.create(),
+        taker = null,
+        make = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        take = AssetDto(Erc20AssetTypeDto(AddressFactory.create()), BigInteger.TEN, BigDecimal.TEN),
+        fill = BigInteger.ZERO,
+        fillValue = BigDecimal.ZERO,
+        makeStock = BigInteger.TEN,
+        makeStockValue = BigDecimal.TEN,
+        cancelled = false,
+        salt = Word.apply(ByteArray(32)),
+        data = createSeaportOrderDataDto(),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        pending = emptyList(),
+        hash = WordFactory.create(),
+        makeBalance = BigInteger.TEN,
+        makePriceUsd = null,
+        takePriceUsd = null,
+        start = null,
+        end = null,
+        priceHistory = listOf()
+    )
+}
+
+fun createSeaportOrderDataDto(): OrderBasicSeaportDataV1Dto {
+    return OrderBasicSeaportDataV1Dto(
+        protocol = randomAddress(),
+        orderType = SeaportOrderTypeDto.values().random(),
+        offer = emptyList(),
+        consideration = emptyList(),
+        zone = randomAddress(),
+        zoneHash = Word.apply(randomWord()),
+        conduitKey = Word.apply(randomWord()),
+        counter = randomLong()
+    )
+}
+
 fun createOrderCancel(): OrderCancel {
     return OrderCancel(
         hash = WordFactory.create(),
@@ -310,5 +423,13 @@ fun randomSellOrderUsdValue(): OrderUsdValue.SellOrder {
     return OrderUsdValue.SellOrder(
         makePriceUsd = randomBigDecimal(),
         takeUsd = randomBigDecimal()
+    )
+}
+
+fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto {
+    return OrderUpdateEventDto(
+        eventId = randomString(),
+        order = order,
+        orderId = randomWord()
     )
 }
