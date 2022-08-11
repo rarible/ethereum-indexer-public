@@ -43,7 +43,7 @@ class SeaportOrderLoadHandler(
         return legacyState ?: SeaportFetchState(cursor = "")
     }
 
-    private companion object {
+    internal companion object {
         val loader: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
         const val STATE_ID_PREFIX = "seaport_order_fetch"
     }
