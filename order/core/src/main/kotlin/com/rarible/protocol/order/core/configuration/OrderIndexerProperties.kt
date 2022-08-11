@@ -83,6 +83,7 @@ data class OrderIndexerProperties(
     data class FeatureFlags(
         val showAllOrdersByDefault: Boolean = false,
         val showOpenSeaOrdersWithOtherPlatforms: Boolean = false,
+        val showX2Y2OrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
         val hideInactiveOrders: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
