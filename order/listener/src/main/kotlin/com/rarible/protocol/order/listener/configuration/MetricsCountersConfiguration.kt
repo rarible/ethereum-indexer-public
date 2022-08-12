@@ -3,6 +3,8 @@ package com.rarible.protocol.order.listener.configuration
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.listener.metric.rarible.RaribleCancelEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.RaribleMatchEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -25,6 +27,17 @@ class MetricsCountersConfiguration(
     private val properties: OrderIndexerProperties,
     private val meterRegistry: MeterRegistry
 ) {
+    /** Rarible metrics **/
+    @Bean
+    fun raribleMatchEventMetric(): RegisteredCounter {
+    return RaribleMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun raribleCancelEventMetric(): RegisteredCounter {
+    return RaribleCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
     /** OpenSea metrics **/
     @Bean
     fun openSeaErrorCounter() : RegisteredCounter {

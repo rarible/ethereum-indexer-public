@@ -1,4 +1,4 @@
-package com.rarible.protocol.order.core.misc
+package com.rarible.protocol.order.core.metric
 
 import com.rarible.core.telemetry.metrics.CountingMetric
 import com.rarible.ethereum.domain.Blockchain

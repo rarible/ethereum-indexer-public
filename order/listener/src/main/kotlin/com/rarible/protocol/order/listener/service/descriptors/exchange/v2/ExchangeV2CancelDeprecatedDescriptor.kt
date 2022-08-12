@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.CancelEventDeprecated
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -24,7 +25,8 @@ import java.time.Instant
 @CaptureSpan(type = SpanType.EVENT)
 class ExchangeV2CancelDeprecatedDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val raribleCancelEventMetric: RegisteredCounter
 ): LogEventDescriptor<OrderCancel> {
 
     override val collection: String = ExchangeHistoryRepository.COLLECTION
@@ -49,6 +51,6 @@ class ExchangeV2CancelDeprecatedDescriptor(
             date = date,
             maker = order?.maker,
             source = HistorySource.RARIBLE
-        )
+        ).also { raribleCancelEventMetric.increment() }
     }
 }
