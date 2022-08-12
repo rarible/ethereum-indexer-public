@@ -50,7 +50,11 @@ data class OrderSideMatch(
     // Fees which were got above price
     val originFees: List<Part>? = emptyList(),
     val marketplaceMarker: Word? = null
-) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH)
+) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH) {
+    companion object {
+        val CALL_DATA_MARKER = listOf(9, 97, 108, 108, 100, 97, 116, 97)
+    }
+}
 
 data class OrderCancel(
     override val hash: Word,

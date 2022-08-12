@@ -36,7 +36,8 @@ class ZeroExOrderEventConverter(
         orderHash: Word,
         makerAddress: Address,
         makerAssetFilledAmount: BigInteger,
-        takerAssetFilledAmount: BigInteger
+        takerAssetFilledAmount: BigInteger,
+        lastBytes: List<Byte>
     ): List<OrderSideMatch> {
         // filling orders
         val orders = listOfNotNull(matchOrdersData.leftOrder, matchOrdersData.rightOrder)
@@ -65,6 +66,10 @@ class ZeroExOrderEventConverter(
         }
 
         val secondOrderHash = secondOrder?.orderHash()
+        val marketplaceMarker = lastBytes
+            .takeIf { adhoc && it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
         return listOf(
             OrderSideMatch(
                 hash = orderHash,
@@ -85,7 +90,8 @@ class ZeroExOrderEventConverter(
                 externalOrderExecutedOnRarible = false,
                 date = date,
                 adhoc = adhoc,
-                counterAdhoc = counterAdhoc
+                counterAdhoc = counterAdhoc,
+                marketplaceMarker = marketplaceMarker
             )
         )
     }

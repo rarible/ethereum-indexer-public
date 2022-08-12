@@ -66,6 +66,15 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val rightMaker = getOriginMaker(event.rightMaker(), transactionOrders?.right?.data)
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
+        val lastBytes = transaction.input().bytes().takeLast(32)
+        val leftMarketplaceMarker = lastBytes
+            .takeIf { leftAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
+        val rightMarketplaceMarker = lastBytes
+            .takeIf { rightAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
 
         return listOf(
             OrderSideMatch(
@@ -87,7 +96,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 date = date,
                 data = transactionOrders?.left?.data,
                 adhoc = leftAdhoc,
-                counterAdhoc = rightAdhoc
+                counterAdhoc = rightAdhoc,
+                marketplaceMarker = leftMarketplaceMarker
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -108,7 +118,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 date = date,
                 data = transactionOrders?.right?.data,
                 adhoc = rightAdhoc,
-                counterAdhoc = leftAdhoc
+                counterAdhoc = leftAdhoc,
+                marketplaceMarker = rightMarketplaceMarker
             )
         )
     }

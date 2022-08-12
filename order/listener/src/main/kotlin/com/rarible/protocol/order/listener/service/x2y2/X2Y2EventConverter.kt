@@ -23,6 +23,7 @@ import java.math.BigInteger
 import java.time.Instant
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import scalether.domain.response.Transaction
 
 @Component
 class X2Y2EventConverter(
@@ -44,7 +45,7 @@ class X2Y2EventConverter(
             )
     }
 
-    suspend fun convert(event: EvInventoryEvent, date: Instant): List<OrderSideMatch> {
+    suspend fun convert(event: EvInventoryEvent, date: Instant, transaction: Transaction): List<OrderSideMatch> {
         if (event.detail()._1() != BigInteger.ONE) return emptyList()
         val maker = event.maker()
         val taker = event.taker()
@@ -71,6 +72,11 @@ class X2Y2EventConverter(
         }
         val hash = Word.apply(event.itemHash())
         val counterHash = keccak256(hash)
+        val lastBytes = transaction.input().bytes().takeLast(32)
+        val marketplaceMarker = lastBytes
+            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
         return listOf(
             OrderSideMatch(
                 hash = hash,
@@ -90,7 +96,8 @@ class X2Y2EventConverter(
                 source = HistorySource.X2Y2,
                 originFees = fee,
                 adhoc = true,
-                counterAdhoc = false
+                counterAdhoc = false,
+                marketplaceMarker = marketplaceMarker
             ),
             OrderSideMatch(
                 hash = counterHash,

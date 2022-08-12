@@ -47,7 +47,8 @@ class OpenSeaOrderEventConverter(
         openSeaOrders: OpenSeaMatchedOrders,
         from: Address,
         price: BigInteger,
-        date: Instant
+        date: Instant,
+        lastBytes: List<Byte>
     ): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id
         val origin = openSeaOrders.origin
@@ -89,6 +90,15 @@ class OpenSeaOrderEventConverter(
             sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
         }
 
+        val buyMarketplaceMarker = lastBytes
+            .takeIf { buyAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
+        val sellMarketplaceMarker = lastBytes
+            .takeIf { sellAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
+
         return listOf(
             OrderSideMatch(
                 hash = buyOrder.hash,
@@ -111,7 +121,8 @@ class OpenSeaOrderEventConverter(
                 date = date,
                 adhoc = buyAdhoc,
                 counterAdhoc = sellAdhoc,
-                originFees = buyOrder.originFees
+                originFees = buyOrder.originFees,
+                marketplaceMarker = sellMarketplaceMarker
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -134,7 +145,8 @@ class OpenSeaOrderEventConverter(
                 source = HistorySource.OPEN_SEA,
                 adhoc = sellAdhoc,
                 counterAdhoc = buyAdhoc,
-                originFees = sellOrder.originFees
+                originFees = sellOrder.originFees,
+                marketplaceMarker = buyMarketplaceMarker
             )
         )
     }

@@ -55,7 +55,8 @@ class WyvernExchangeOrderMatchDescriptor(
                 openSeaOrders = orders,
                 from = transaction.from(),
                 price = event.price(),
-                date = date
+                date = date,
+                lastBytes = transaction.input().bytes().takeLast(32)
             )
         } else {
             emptyList()

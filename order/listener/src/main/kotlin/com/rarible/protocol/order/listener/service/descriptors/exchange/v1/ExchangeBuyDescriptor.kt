@@ -49,6 +49,11 @@ class ExchangeBuyDescriptor(
 
         val adhoc = false
         val counterAdhoc = true
+        val lastBytes = transaction.input().bytes().takeLast(32)
+        val marketplaceMarker = lastBytes
+            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
 
         return listOf(
             OrderSideMatch(
@@ -89,7 +94,8 @@ class ExchangeBuyDescriptor(
                 source = HistorySource.RARIBLE,
                 adhoc = counterAdhoc,
                 counterAdhoc = adhoc,
-                date = date
+                date = date,
+                marketplaceMarker = marketplaceMarker
             )
         )
     }

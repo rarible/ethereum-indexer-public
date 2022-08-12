@@ -45,7 +45,13 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderSideMatch> {
+    override fun convert(
+        log: Log,
+        transaction: Transaction,
+        timestamp: Long,
+        index: Int,
+        totalLogs: Int
+    ): Publisher<OrderSideMatch> {
         return mono { convert(log, transaction, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
     }
 
@@ -74,6 +80,11 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         }
         val leftUsdValue = priceUpdateService.getAssetsUsdValue(make, take, date)
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(take, make, date)
+        val lastBytes = transaction.input().bytes().takeLast(32)
+        val marketplaceMarker = lastBytes
+            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
         return listOf(
             OrderSideMatch(
                 hash = event.orderHash,
@@ -114,6 +125,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 source = HistorySource.LOOKSRARE,
                 adhoc = true,
                 counterAdhoc = false,
+                marketplaceMarker = marketplaceMarker
             )
         ).also { looksrareTakeEventMetric.increment() }
     }

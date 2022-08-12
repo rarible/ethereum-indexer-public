@@ -45,7 +45,8 @@ class SeaportEventConverter(
 
     suspend fun convert(
         event: OrderFulfilledEvent,
-        date: Instant
+        date: Instant,
+        transaction: Transaction
     ): List<OrderSideMatch> {
         val spentItems = convert(event.offer())
         val receivedItems = convert(event.consideration())
@@ -57,7 +58,11 @@ class SeaportEventConverter(
         val counterHash = keccak256(hash)
         val leftUsdValue = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = date)
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(make = take, take = make, at = date)
-
+        val lastBytes = transaction.input().bytes().takeLast(32)
+        val marketplaceMarker = lastBytes
+            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
+            ?.toByteArray()
+            ?.let { Word.apply(it) }
         return listOf(
             OrderSideMatch(
                 hash = hash,
@@ -104,6 +109,7 @@ class SeaportEventConverter(
                 originFees = null,
                 origin = null,
                 externalOrderExecutedOnRarible = null,
+                marketplaceMarker = marketplaceMarker
             )
         )
     }
