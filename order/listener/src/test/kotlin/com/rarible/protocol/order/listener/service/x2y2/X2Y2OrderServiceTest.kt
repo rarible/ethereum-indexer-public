@@ -37,7 +37,7 @@ internal class X2Y2OrderServiceTest {
 
         val result = service.getNextSellOrders(cursor)
         assertThat(result).isEqualTo(expectedResult)
-        verify { x2y2OrderDelayGauge.set(orders.last().createdAt.epochSecond) }
+        verify { x2y2OrderDelayGauge.set(any()) }
         verify { x2y2LoadCounter.increment(orders.size) }
     }
 

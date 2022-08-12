@@ -37,6 +37,6 @@ class AggregatorStateRepository(
     }
 
     private companion object {
-        const val COLLECTION = "order_fetch_stats"
+        const val COLLECTION = "order_fetch_state"
     }
 }

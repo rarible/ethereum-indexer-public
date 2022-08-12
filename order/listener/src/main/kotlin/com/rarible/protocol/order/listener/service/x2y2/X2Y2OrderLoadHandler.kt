@@ -24,7 +24,7 @@ class X2Y2OrderLoadHandler(
         val next = result.next
         val (nextCursor, needDelay) = if (next == null) {
             loader.x2y2Info("Previous cursor (${state.cursor}) is not finalized, reuse it")
-            state.cursor to false
+            state.cursor to true
         } else {
             loader.x2y2Info("Use next cursor $next")
             next to false
