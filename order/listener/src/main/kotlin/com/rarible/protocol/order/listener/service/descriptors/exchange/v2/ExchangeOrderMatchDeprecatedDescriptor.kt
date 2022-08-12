@@ -69,7 +69,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
         val leftAdhoc = transactionOrders?.left?.salt == EthUInt256.ZERO
         val rightAdhoc = transactionOrders?.right?.salt == EthUInt256.ZERO
 
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = leftHash,
                 counterHash = rightHash,
@@ -89,7 +89,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 date = date,
                 data = transactionOrders?.left?.data,
                 adhoc = leftAdhoc,
-                counterAdhoc = rightAdhoc
+                counterAdhoc = rightAdhoc,
             ),
             OrderSideMatch(
                 hash = rightHash,
@@ -110,9 +110,10 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 date = date,
                 data = transactionOrders?.right?.data,
                 adhoc = rightAdhoc,
-                counterAdhoc = leftAdhoc
+                counterAdhoc = leftAdhoc,
             ).also { raribleMatchEventMetric.increment() }
         )
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

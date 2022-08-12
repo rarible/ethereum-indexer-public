@@ -24,6 +24,7 @@ import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -47,7 +48,8 @@ class OpenSeaOrderEventConverter(
         openSeaOrders: OpenSeaMatchedOrders,
         from: Address,
         price: BigInteger,
-        date: Instant
+        date: Instant,
+        input: Bytes,
     ): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id
         val origin = openSeaOrders.origin
@@ -89,7 +91,7 @@ class OpenSeaOrderEventConverter(
             sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
         }
 
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = buyOrder.hash,
                 counterHash = sellOrder.hash,
@@ -111,7 +113,7 @@ class OpenSeaOrderEventConverter(
                 date = date,
                 adhoc = buyAdhoc,
                 counterAdhoc = sellAdhoc,
-                originFees = buyOrder.originFees
+                originFees = buyOrder.originFees,
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -134,9 +136,10 @@ class OpenSeaOrderEventConverter(
                 source = HistorySource.OPEN_SEA,
                 adhoc = sellAdhoc,
                 counterAdhoc = buyAdhoc,
-                originFees = sellOrder.originFees
+                originFees = sellOrder.originFees,
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, input)
     }
 
     suspend fun convert(order: OpenSeaTransactionOrder, date: Instant, event: OrderCancelledEvent, eip712: Boolean): List<OrderCancel> {
