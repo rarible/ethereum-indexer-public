@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.service.order
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.LazyErc1155Dto
 import com.rarible.protocol.dto.LazyErc721Dto
@@ -40,7 +41,8 @@ class OrderService(
     private val orderUpdateService: OrderUpdateService,
     private val nftItemApiService: NftItemApiService,
     private val orderValidator: OrderValidator,
-    private val priceUpdateService: PriceUpdateService
+    private val priceUpdateService: PriceUpdateService,
+    private val raribleOrderSaveMetric: RegisteredCounter
 ) {
 
     suspend fun convertFormToVersion(form: OrderFormDto): OrderVersion {
@@ -78,7 +80,9 @@ class OrderService(
         if (existingOrder != null) {
             orderValidator.validate(existingOrder, orderVersion)
         }
-        return orderUpdateService.save(orderVersion)
+        return orderUpdateService
+            .save(orderVersion)
+            .also { raribleOrderSaveMetric.increment() }
     }
 
     suspend fun get(hash: Word): Order {

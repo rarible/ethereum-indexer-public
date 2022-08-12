@@ -11,6 +11,8 @@ import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveM
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeAskEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeBidEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelayMetric
+import com.rarible.protocol.order.listener.metric.rarible.RaribleCancelEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.RaribleMatchEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -39,6 +41,17 @@ class MetricsCountersConfiguration(
     private val properties: OrderIndexerProperties,
     private val meterRegistry: MeterRegistry
 ) {
+    /** Rarible metrics **/
+    @Bean
+    fun raribleMatchEventMetric(): RegisteredCounter {
+    return RaribleMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun raribleCancelEventMetric(): RegisteredCounter {
+    return RaribleCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
     /** OpenSea metrics **/
     @Bean
     fun openSeaErrorCounter(): RegisteredCounter {
