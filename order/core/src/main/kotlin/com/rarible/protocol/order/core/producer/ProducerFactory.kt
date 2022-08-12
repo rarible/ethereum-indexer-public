@@ -36,16 +36,6 @@ class ProducerFactory(
         )
     }
 
-    fun createGlobalOrderEventsProducer(): RaribleKafkaProducer<OrderEventDto> {
-        return RaribleKafkaProducer(
-            clientId = orderEventsClientId,
-            valueSerializerClass = JsonSerializer::class.java,
-            valueClass = OrderEventDto::class.java,
-            defaultTopic = "${OrderIndexerTopicProvider.getOrderUpdateTopic(environment, blockchain.value)}.global",
-            bootstrapServers = kafkaReplicaSet
-        )
-    }
-
     fun createOrderActivitiesProducer(): RaribleKafkaProducer<ActivityDto> {
         return RaribleKafkaProducer(
             clientId = orderActivityClientId,

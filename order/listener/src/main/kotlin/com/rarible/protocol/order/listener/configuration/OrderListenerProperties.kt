@@ -30,7 +30,7 @@ data class OrderListenerProperties(
     val raribleExpiredBidWorker: RaribleExpiredBidWorkerProperties = RaribleExpiredBidWorkerProperties(),
     val seaportLoad: SeaportLoadProperties = SeaportLoadProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
-    val x2y2Load: X2Y2OrdersLoadWorkerProperties = X2Y2OrdersLoadWorkerProperties(),
+    val x2y2Load: X2Y2LoadProperties = X2Y2LoadProperties(),
 ) {
     enum class OrderSide {
         ALL,
@@ -105,10 +105,12 @@ data class RaribleExpiredBidWorkerProperties(
     val pollingPeriod: Duration = Duration.ofMinutes(10)
 )
 
-data class X2Y2OrdersLoadWorkerProperties(
+data class X2Y2LoadProperties(
     val enabled: Boolean = false,
+    val saveEnabled: Boolean = false,
+    val saveBatchSize: Int = 50,
+    val startCursor: Long? = 1657843200000, // Friday, July 15, 2022 12:00:00 AM
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(10),
     val errorDelay: Duration = Duration.ofSeconds(5),
-    val saveEnabled: Boolean = false
 )

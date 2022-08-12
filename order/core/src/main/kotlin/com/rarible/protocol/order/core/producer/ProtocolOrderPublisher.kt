@@ -39,7 +39,6 @@ class ProtocolOrderPublisher(
     private val orderActivityProducer: RaribleKafkaProducer<ActivityDto>,
     private val orderEventProducer: RaribleKafkaProducer<OrderEventDto>,
     private val ordersPriceUpdateEventProducer: RaribleKafkaProducer<NftOrdersPriceUpdateEventDto>,
-    private val globalOrderEventProducer: RaribleKafkaProducer<OrderEventDto>,
     private val publishProperties: PublishProperties
 ) {
     private val orderActivityHeaders = mapOf("protocol.order.activity.version" to ActivityTopicProvider.VERSION)
@@ -56,8 +55,6 @@ class ProtocolOrderPublisher(
             headers = orderEventHeaders,
             id = event.eventId
         )
-        globalOrderEventProducer.send(message).ensureSuccess()
-
         if (platform.needPublish) {
             orderEventProducer.send(message).ensureSuccess()
         }
@@ -96,10 +93,10 @@ class ProtocolOrderPublisher(
     private val PlatformDto.needPublish: Boolean
         get() = when (this) {
             PlatformDto.RARIBLE -> true
-            PlatformDto.OPEN_SEA -> publishProperties.publishOpenSeaOrdersToCommonTopic
-            PlatformDto.CRYPTO_PUNKS -> true
-            PlatformDto.X2Y2 -> true
-            PlatformDto.LOOKSRARE -> true
+            PlatformDto.OPEN_SEA, -> publishProperties.publishSeaportOrders
+            PlatformDto.X2Y2 -> publishProperties.publishX2Y2Orders
+            PlatformDto.LOOKSRARE -> publishProperties.publishLooksrareOrders
+            PlatformDto.CRYPTO_PUNKS -> publishProperties.publishCryptoPunksOrders
         }
 
     private val AssetTypeDto.itemId: String?

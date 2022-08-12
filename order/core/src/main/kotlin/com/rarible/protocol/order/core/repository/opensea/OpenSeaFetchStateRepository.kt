@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component
 
 @CaptureSpan(type = SpanType.DB)
 @Component
+@Deprecated("Remove in release 1.33")
 class OpenSeaFetchStateRepository(
     private val template: ReactiveMongoTemplate
 ) {

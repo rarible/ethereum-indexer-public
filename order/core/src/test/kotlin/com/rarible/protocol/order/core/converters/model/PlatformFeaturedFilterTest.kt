@@ -8,11 +8,12 @@ import org.junit.jupiter.api.Test
 class PlatformFeaturedFilterTest {
 
     @Test
-    fun `show only rarible, opensea disabled`() {
+    fun `show only rarible, opensea and x2y2 disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = false,
-                showOpenSeaOrdersWithOtherPlatforms = false
+                showOpenSeaOrdersWithOtherPlatforms = false,
+                showX2Y2OrdersWithOtherPlatforms = false
             )
         )
 
@@ -21,14 +22,18 @@ class PlatformFeaturedFilterTest {
 
         val onlyOpenSea = filter.filter(PlatformDto.OPEN_SEA)
         assertThat(onlyOpenSea).isEqualTo(listOf(PlatformDto.OPEN_SEA))
+
+        val onlyX2Y2 = filter.filter(PlatformDto.X2Y2)
+        assertThat(onlyX2Y2).isEqualTo(listOf(PlatformDto.X2Y2))
     }
 
     @Test
-    fun `show only rarible, opensea enabled`() {
+    fun `show only rarible, opensea and x2y2 enabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = false,
-                showOpenSeaOrdersWithOtherPlatforms = true
+                showOpenSeaOrdersWithOtherPlatforms = true,
+                showX2Y2OrdersWithOtherPlatforms = true
             )
         )
 
@@ -37,6 +42,9 @@ class PlatformFeaturedFilterTest {
 
         val onlyOpenSea = filter.filter(PlatformDto.OPEN_SEA)
         assertThat(onlyOpenSea).isEqualTo(listOf(PlatformDto.OPEN_SEA))
+
+        val onlyX2Y2 = filter.filter(PlatformDto.X2Y2)
+        assertThat(onlyX2Y2).isEqualTo(listOf(PlatformDto.X2Y2))
     }
 
     @Test
@@ -44,7 +52,8 @@ class PlatformFeaturedFilterTest {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
-                showOpenSeaOrdersWithOtherPlatforms = false
+                showOpenSeaOrdersWithOtherPlatforms = false,
+                showX2Y2OrdersWithOtherPlatforms = true
             )
         )
 
@@ -53,11 +62,26 @@ class PlatformFeaturedFilterTest {
     }
 
     @Test
-    fun `show all, opensea enabled`() {
+    fun `show all, x2y2 disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
-                showOpenSeaOrdersWithOtherPlatforms = true
+                showOpenSeaOrdersWithOtherPlatforms = true,
+                showX2Y2OrdersWithOtherPlatforms = false
+            )
+        )
+
+        val allByDefaultExceptOpenSea = filter.filter(null)
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.LOOKSRARE))
+    }
+
+    @Test
+    fun `show all, opensea and x2y2 enabled`() {
+        val filter = PlatformFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                showAllOrdersByDefault = true,
+                showOpenSeaOrdersWithOtherPlatforms = true,
+                showX2Y2OrdersWithOtherPlatforms = true
             )
         )
 
@@ -66,5 +90,4 @@ class PlatformFeaturedFilterTest {
             emptyList<PlatformDto>()
         )
     }
-
 }

@@ -20,7 +20,7 @@ import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.event.OrderVersionListener
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
-import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
+import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
@@ -41,9 +41,8 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
-import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderConverter
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
-import com.rarible.x2y2.client.X2Y2ApiClient
+import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -96,6 +95,11 @@ class OrderListenerConfiguration(
     @Bean
     fun looksrareLoadProperties(): LooksrareLoadProperties {
         return listenerProperties.looksrareLoad
+    }
+
+    @Bean
+    fun x2y2LoadProperties(): X2Y2LoadProperties {
+        return listenerProperties.x2y2Load
     }
 
     @Bean
@@ -176,6 +180,7 @@ class OrderListenerConfiguration(
     fun seaportOrdersFetchWorker(
         openSeaOrderService: OpenSeaOrderService,
         openSeaFetchStateRepository: OpenSeaFetchStateRepository,
+        aggregatorStateRepository: AggregatorStateRepository,
         openSeaOrderConverter: OpenSeaOrderConverter,
         openSeaOrderValidator: OpenSeaOrderValidator,
         orderRepository: OrderRepository,
@@ -195,6 +200,7 @@ class OrderListenerConfiguration(
         val handler = SeaportOrderLoadHandler(
             seaportOrderLoader = loader,
             openSeaFetchStateRepository = openSeaFetchStateRepository,
+            aggregatorStateRepository = aggregatorStateRepository,
             properties = properties
         )
         return SeaportOrdersFetchWorker(
@@ -314,26 +320,19 @@ class OrderListenerConfiguration(
     )
     fun x2y2OrderFetchWorker(
         meterRegistry: MeterRegistry,
-        x2y2FetchStateRepository: X2Y2FetchStateRepository,
-        x2y2ApiClient: X2Y2ApiClient,
-        x2Y2OrderConverter: X2Y2OrderConverter,
-        orderRepository: OrderRepository,
-        x2y2OrderSaveMetric: RegisteredCounter,
-        orderUpdateService: OrderUpdateService,
-        x2Y2OrderLoadErrorMetric: RegisteredCounter
+        stateRepository: AggregatorStateRepository,
+        x2y2OrderLoader: X2Y2OrderLoader,
+        properties: X2Y2LoadProperties
     ): X2Y2OrdersFetchWorker {
         val handler = X2Y2OrderLoadHandler(
-            x2y2FetchStateRepository,
-            x2y2ApiClient,
-            x2Y2OrderConverter,
-            orderRepository,
-            x2y2OrderSaveMetric,
-            x2Y2OrderLoadErrorMetric,
-            orderUpdateService,
-            listenerProperties.x2y2Load
+            stateRepository,
+            x2y2OrderLoader,
+            properties
         )
         return X2Y2OrdersFetchWorker(
-            handler, properties = listenerProperties.x2y2Load, meterRegistry
+            handler = handler,
+            properties = listenerProperties.x2y2Load,
+            meterRegistry = meterRegistry
         ).apply { start() }
     }
 
