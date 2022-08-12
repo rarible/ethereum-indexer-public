@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
@@ -35,7 +36,8 @@ class ExchangeOrderMatchDeprecatedDescriptor(
     private val orderRepository: OrderRepository,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val raribleOrderParser: RaribleExchangeV2OrderParser
+    private val raribleOrderParser: RaribleExchangeV2OrderParser,
+    private val raribleMatchEventMetric: RegisteredCounter
 ) : LogEventDescriptor<OrderSideMatch> {
 
     override val collection: String
@@ -109,7 +111,7 @@ class ExchangeOrderMatchDeprecatedDescriptor(
                 data = transactionOrders?.right?.data,
                 adhoc = rightAdhoc,
                 counterAdhoc = leftAdhoc,
-            )
+            ).also { raribleMatchEventMetric.increment() }
         )
         return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
