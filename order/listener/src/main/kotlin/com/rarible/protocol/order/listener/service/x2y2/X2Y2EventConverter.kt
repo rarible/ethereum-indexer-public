@@ -20,11 +20,10 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
-import java.math.BigInteger
-import java.time.Instant
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import scalether.domain.response.Transaction
+import java.math.BigInteger
+import java.time.Instant
 
 @Component
 class X2Y2EventConverter(
