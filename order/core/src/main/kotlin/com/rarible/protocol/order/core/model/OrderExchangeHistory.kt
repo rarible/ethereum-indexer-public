@@ -61,6 +61,7 @@ data class OrderSideMatch(
          * Doesn't add marker if it's already present in the event
          */
         fun addMarketplaceMarker(list: List<OrderSideMatch>, input: Bytes): List<OrderSideMatch> {
+            if (input.length() < 32) return list
             val lastBytes = input.bytes().takeLast(32)
             val marketplaceMarker = lastBytes
                 .takeIf { it.takeLast(8) == MARKER }
