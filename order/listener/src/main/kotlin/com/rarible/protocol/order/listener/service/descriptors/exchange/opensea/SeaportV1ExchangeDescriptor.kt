@@ -41,7 +41,7 @@ class SeaportV1ExchangeDescriptor(
 
     private suspend fun convert(log: Log, date: Instant, transaction: Transaction): List<OrderSideMatch> {
         val event = OrderFulfilledEvent.apply(log)
-        val orderSideMatches = seaportEventConverter.convert(event, date, transaction)
+        val orderSideMatches = seaportEventConverter.convert(event, date, transaction.input())
         recordMetric(orderSideMatches, log)
         return orderSideMatches
     }

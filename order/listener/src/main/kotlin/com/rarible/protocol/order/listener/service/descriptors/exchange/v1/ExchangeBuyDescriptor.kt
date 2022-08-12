@@ -49,13 +49,8 @@ class ExchangeBuyDescriptor(
 
         val adhoc = false
         val counterAdhoc = true
-        val lastBytes = transaction.input().bytes().takeLast(32)
-        val marketplaceMarker = lastBytes
-            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
 
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = hash,
                 counterHash = counterHash,
@@ -95,9 +90,9 @@ class ExchangeBuyDescriptor(
                 adhoc = counterAdhoc,
                 counterAdhoc = adhoc,
                 date = date,
-                marketplaceMarker = marketplaceMarker
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
     override fun getAddresses(): Mono<Collection<Address>> =

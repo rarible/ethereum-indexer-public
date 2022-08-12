@@ -80,12 +80,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
         }
         val leftUsdValue = priceUpdateService.getAssetsUsdValue(make, take, date)
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(take, make, date)
-        val lastBytes = transaction.input().bytes().takeLast(32)
-        val marketplaceMarker = lastBytes
-            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = event.orderHash,
                 counterHash = keccak256(event.orderHash),
@@ -125,9 +120,10 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
                 source = HistorySource.LOOKSRARE,
                 adhoc = true,
                 counterAdhoc = false,
-                marketplaceMarker = marketplaceMarker
             )
-        ).also { looksrareTakeEventMetric.increment() }
+        )
+        looksrareTakeEventMetric.increment()
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

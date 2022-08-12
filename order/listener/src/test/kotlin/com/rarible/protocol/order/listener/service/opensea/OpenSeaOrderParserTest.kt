@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -50,7 +51,7 @@ internal class OpenSeaOrderParserTest {
 
         val from = orders!!.buyOrder.maker
         val date = nowMillis()
-        val matchers = openSeaOrdersSideMatcher.convert(orders, from, price, date)
+        val matchers = openSeaOrdersSideMatcher.convert(orders, from, price, date, WordFactory.create())
 
         val buyMatch = matchers[0]
         val sellMatch = matchers[1]
@@ -101,7 +102,7 @@ internal class OpenSeaOrderParserTest {
 
         val from = orders!!.sellOrder.maker
         val date = nowMillis()
-        val matchers = openSeaOrdersSideMatcher.convert(orders, from, BigInteger.valueOf(1000), date)
+        val matchers = openSeaOrdersSideMatcher.convert(orders, from, BigInteger.valueOf(1000), date, WordFactory.create())
         val price = BigInteger.valueOf(1000)
 
         val buyMatch = matchers[0]

@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigDecimal
@@ -52,7 +53,27 @@ data class OrderSideMatch(
     val marketplaceMarker: Word? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH) {
     companion object {
-        val CALL_DATA_MARKER = listOf(9, 97, 108, 108, 100, 97, 116, 97)
+        private val MARKER = listOf<Byte>(9, 97, 108, 108, 100, 97, 116, 97)
+        val MARKER_BYTES: Bytes = Binary.apply(MARKER.toByteArray())
+
+        /**
+         * Checks if marketplace marker is present in tx input and adds it to OrderSideMatch event if it's adhoc
+         * Doesn't add marker if it's already present in the event
+         */
+        fun addMarketplaceMarker(list: List<OrderSideMatch>, input: Bytes): List<OrderSideMatch> {
+            val lastBytes = input.bytes().takeLast(32)
+            val marketplaceMarker = lastBytes
+                .takeIf { it.takeLast(8) == MARKER }
+                ?.toByteArray()
+                ?.let { Word.apply(it) }
+            return list.map {
+                if (it.marketplaceMarker == null && marketplaceMarker != null && it.adhoc == true) {
+                    it.copy(marketplaceMarker = marketplaceMarker)
+                } else {
+                    it
+                }
+            }
+        }
     }
 }
 

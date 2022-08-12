@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import io.daonomic.rpc.domain.WordFactory
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
@@ -40,7 +41,7 @@ class ZeroExOrderEventConverterTest {
     private lateinit var priceNormalizer: PriceNormalizer
 
     @BeforeEach
-    fun setUp() = runBlocking<Unit> {
+    fun setUp() = runBlocking {
         every {
             runBlocking {
                 priceUpdateService.getAssetsUsdValue(any(), any(), any())
@@ -78,6 +79,7 @@ class ZeroExOrderEventConverterTest {
                 makerAddress = makerAddress,
                 makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
+                input = WordFactory.create(),
             )
 
             assertThat(result).containsExactly(
@@ -125,6 +127,7 @@ class ZeroExOrderEventConverterTest {
                 makerAddress = makerAddress,
                 makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
+                input = WordFactory.create(),
             )
 
             assertThat(result).containsExactly(
@@ -261,6 +264,7 @@ class ZeroExOrderEventConverterTest {
                 makerAddress = makerAddress,
                 makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
+                input = WordFactory.create(),
             )
 
             assertThat(result).containsExactly(
@@ -308,6 +312,7 @@ class ZeroExOrderEventConverterTest {
                 makerAddress = makerAddress,
                 makerAssetFilledAmount = makerAssetFilledAmount,
                 takerAssetFilledAmount = takerAssetFilledAmount,
+                input = WordFactory.create(),
             )
 
             assertThat(result).containsExactly(

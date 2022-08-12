@@ -76,7 +76,7 @@ class ZeroExExchangeOrderMatchDescriptor(
                 makerAddress = event.makerAddress(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
-                lastBytes = transaction.input().bytes().takeLast(32)
+                input = transaction.input(),
             )
         }.flatten()
     }

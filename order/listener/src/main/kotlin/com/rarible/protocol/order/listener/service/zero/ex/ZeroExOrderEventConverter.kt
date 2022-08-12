@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -37,7 +38,7 @@ class ZeroExOrderEventConverter(
         makerAddress: Address,
         makerAssetFilledAmount: BigInteger,
         takerAssetFilledAmount: BigInteger,
-        lastBytes: List<Byte>
+        input: Bytes,
     ): List<OrderSideMatch> {
         // filling orders
         val orders = listOfNotNull(matchOrdersData.leftOrder, matchOrdersData.rightOrder)
@@ -66,11 +67,7 @@ class ZeroExOrderEventConverter(
         }
 
         val secondOrderHash = secondOrder?.orderHash()
-        val marketplaceMarker = lastBytes
-            .takeIf { adhoc && it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = orderHash,
                 counterHash = secondOrderHash,
@@ -91,9 +88,9 @@ class ZeroExOrderEventConverter(
                 date = date,
                 adhoc = adhoc,
                 counterAdhoc = counterAdhoc,
-                marketplaceMarker = marketplaceMarker
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, input)
     }
 
     private fun createAsset(

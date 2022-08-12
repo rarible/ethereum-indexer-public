@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.zero.ex
 
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.zero.ex.FillEvent
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.data.randomErc20
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderSide
@@ -41,9 +40,6 @@ class ZeroExExchangeOrderMatchDescriptorTest {
     private lateinit var zeroExExchangeOrderMatchDescriptor: ZeroExExchangeOrderMatchDescriptor
 
     @MockK
-    private lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
-
-    @MockK
     private lateinit var zeroExOrderEventConverter: ZeroExOrderEventConverter
 
     @MockK
@@ -59,7 +55,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
 
         every {
             runBlocking {
-                zeroExOrderEventConverter.convert(any(), any(), any(), any(), any(), any(), any())
+                zeroExOrderEventConverter.convert(any(), any(), any(), any(), any(), any(), any(), WordFactory.create())
             }
         } returns listOf(orderSideMatchFromConverter)
     }
@@ -150,6 +146,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = WordFactory.create(),
             )
         }
 
@@ -302,6 +299,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = WordFactory.create(),
             )
         }
 
@@ -467,6 +465,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = WordFactory.create(),
             )
         }
 
@@ -619,6 +618,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = WordFactory.create(),
             )
         }
     }

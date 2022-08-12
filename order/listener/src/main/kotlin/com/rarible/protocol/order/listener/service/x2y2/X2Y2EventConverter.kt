@@ -72,12 +72,7 @@ class X2Y2EventConverter(
         }
         val hash = Word.apply(event.itemHash())
         val counterHash = keccak256(hash)
-        val lastBytes = transaction.input().bytes().takeLast(32)
-        val marketplaceMarker = lastBytes
-            .takeIf { it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = hash,
                 counterHash = counterHash,
@@ -97,7 +92,6 @@ class X2Y2EventConverter(
                 originFees = fee,
                 adhoc = true,
                 counterAdhoc = false,
-                marketplaceMarker = marketplaceMarker
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -120,5 +114,6 @@ class X2Y2EventConverter(
                 counterAdhoc = true
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 }

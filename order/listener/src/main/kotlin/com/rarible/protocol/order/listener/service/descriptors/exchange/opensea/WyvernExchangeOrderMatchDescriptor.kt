@@ -5,7 +5,6 @@ import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.wyvern.OrdersMatchedEvent
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
-import com.rarible.protocol.order.core.model.OpenSeaMatchedOrders
 import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderEventConverter
@@ -56,7 +55,7 @@ class WyvernExchangeOrderMatchDescriptor(
                 from = transaction.from(),
                 price = event.price(),
                 date = date,
-                lastBytes = transaction.input().bytes().takeLast(32)
+                input = transaction.input()
             )
         } else {
             emptyList()

@@ -24,6 +24,7 @@ import com.rarible.protocol.order.core.service.CallDataEncoder
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -48,7 +49,7 @@ class OpenSeaOrderEventConverter(
         from: Address,
         price: BigInteger,
         date: Instant,
-        lastBytes: List<Byte>
+        input: Bytes,
     ): List<OrderSideMatch> {
         val externalOrderExecutedOnRarible = openSeaOrders.origin == Platform.RARIBLE.id
         val origin = openSeaOrders.origin
@@ -90,16 +91,7 @@ class OpenSeaOrderEventConverter(
             sellAdhoc = EthUInt256.of(sellOrder.salt) == EthUInt256.ZERO
         }
 
-        val buyMarketplaceMarker = lastBytes
-            .takeIf { buyAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
-        val sellMarketplaceMarker = lastBytes
-            .takeIf { sellAdhoc &&  it.takeLast(8) == OrderSideMatch.CALL_DATA_MARKER }
-            ?.toByteArray()
-            ?.let { Word.apply(it) }
-
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = buyOrder.hash,
                 counterHash = sellOrder.hash,
@@ -122,7 +114,6 @@ class OpenSeaOrderEventConverter(
                 adhoc = buyAdhoc,
                 counterAdhoc = sellAdhoc,
                 originFees = buyOrder.originFees,
-                marketplaceMarker = sellMarketplaceMarker
             ),
             OrderSideMatch(
                 hash = sellOrder.hash,
@@ -146,9 +137,9 @@ class OpenSeaOrderEventConverter(
                 adhoc = sellAdhoc,
                 counterAdhoc = buyAdhoc,
                 originFees = sellOrder.originFees,
-                marketplaceMarker = buyMarketplaceMarker
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, input)
     }
 
     suspend fun convert(order: OpenSeaTransactionOrder, date: Instant, event: OrderCancelledEvent, eip712: Boolean): List<OrderCancel> {
