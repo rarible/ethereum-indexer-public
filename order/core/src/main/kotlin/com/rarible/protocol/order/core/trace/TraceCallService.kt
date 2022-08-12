@@ -16,7 +16,8 @@ class TraceCallService(
 ) {
 
     //todo get only successfull traces
-    suspend fun findAllRequiredCallInputs(txHash: Word, txInput: Binary, to: Address, id: Binary): List<Binary> {
+    suspend fun findAllRequiredCallInputs(txHash: Word, txInput: Binary, to: Address, vararg ids: Binary): List<Binary> {
+        val set = ids.toSet()
         val metaTxSignature = EIP712MetaTransaction.executeMetaTransactionSignature()
         val realInput = if (txInput.methodSignatureId() == metaTxSignature.id()) {
             val decoded = metaTxSignature.`in`().decode(txInput, 4)
@@ -25,14 +26,14 @@ class TraceCallService(
             txInput
         }
 
-        if (id == realInput.methodSignatureId()) {
+        if (realInput.methodSignatureId() in set) {
             return listOf(realInput)
         } else if (featureFlags.skipGetTrace) {
             return emptyList()
         } else {
             var attempts = 0
             do {
-                val tracesFound = traceProvider.traceAndFindAllCallsTo(txHash, to, id)
+                val tracesFound = traceProvider.traceAndFindAllCallsTo(txHash, to, set)
                 if (tracesFound.isNotEmpty()) {
                     return tracesFound.map { it.input }
                 }

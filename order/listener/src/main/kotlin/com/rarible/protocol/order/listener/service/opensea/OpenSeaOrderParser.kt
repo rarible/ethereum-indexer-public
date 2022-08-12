@@ -45,7 +45,7 @@ class OpenSeaOrderParser(
                 txHash = txHash,
                 txInput = txInput,
                 to = event.log().address(),
-                id = signatureId
+                ids = arrayOf(signatureId)
             )
         }
         assert(inputs.size == totalLogs) {
