@@ -73,7 +73,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
                     zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
                 )
             ),
-            zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
+            zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()))
         )
     }
 

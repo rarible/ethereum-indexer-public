@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,7 +9,6 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
     override fun hashToSign(structHash: Word): Word = eip712Domain.hashToSign(structHash)

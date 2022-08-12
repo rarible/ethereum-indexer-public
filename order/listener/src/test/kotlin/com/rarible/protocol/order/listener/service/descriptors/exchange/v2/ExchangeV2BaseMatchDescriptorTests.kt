@@ -33,7 +33,6 @@ import com.rarible.protocol.order.listener.misc.sign
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.verify
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -45,7 +44,6 @@ import scalether.domain.request.Transaction
 import java.math.BigDecimal
 import java.math.BigInteger
 
-@FlowPreview
 abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
     abstract fun hashToSign(structHash: Word): Word
     abstract fun fills(hash: ByteArray): Mono<BigInteger>
