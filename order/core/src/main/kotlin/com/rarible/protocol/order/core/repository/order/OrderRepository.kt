@@ -41,7 +41,7 @@ interface OrderRepository {
 
     fun findByTargetBalanceAndNotCanceled(maker: Address, token: Address): Flow<Order>
 
-    fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order>
+    fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?): Flow<Order>
 
     fun findMakeTypesOfBidOrders(token: Address, tokenId: EthUInt256): Flow<AssetType>
 

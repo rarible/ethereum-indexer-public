@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.ifNotBlank
 import com.rarible.core.task.TaskHandler
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderStatus
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
@@ -34,7 +36,8 @@ class OrderUpdateTaskHandler(
     }
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
-        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) })
+        val status = param.ifNotBlank()?.let { OrderStatus.valueOf(it) }
+        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, status)
             .chunked(properties.parallelOrderUpdateStreams)
             .map { orders ->
                 coroutineScope {
@@ -47,9 +50,9 @@ class OrderUpdateTaskHandler(
     }
 
     private suspend fun handleOrder(order: Order) {
-        val (_, updated) = orderUpdateService.updateMakeStockFull(hash = order.hash)
+        val (updatedOrder, updated) = orderUpdateService.updateMakeStockFull(hash = order.hash)
         if (updated) {
-            logger.info("Order ${order.hash} has been updated by task '$ORDER_UPDATE'")
+            logger.info("Order ${updatedOrder?.hash} has been updated by task '$ORDER_UPDATE', oldStatus=${order.status}, newStatus=${updatedOrder?.status}")
             delay(Duration.ofMillis(properties.publishTaskDelayMs))
         }
     }

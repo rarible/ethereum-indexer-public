@@ -13,7 +13,6 @@ import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.Platform
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
@@ -245,9 +244,10 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order> {
+    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?): Flow<Order> {
         val criteria = Criteria()
             .run { lastUpdatedAt?.let { and(Order::lastUpdateAt).lte(it) } ?: this }
+            .run { status?.let { and(Order::status).isEqualTo(it) } ?: this }
             .run { and(Order::cancelled).ne(true) }
 
         val queue = Query().addCriteria(criteria)
