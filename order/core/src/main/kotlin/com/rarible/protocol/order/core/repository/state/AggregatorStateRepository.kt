@@ -17,7 +17,7 @@ class AggregatorStateRepository(
     private val template: ReactiveMongoTemplate
 ) {
     suspend fun <T: AggregatorFetchState> save(fetchState: T) {
-        template.save(fetchState).awaitFirst()
+        template.save(fetchState, COLLECTION).awaitFirst()
     }
 
     suspend fun getSeaportState(): SeaportFetchState? {
@@ -33,6 +33,10 @@ class AggregatorStateRepository(
     }
 
     private suspend fun <T: AggregatorFetchState> get(id: String, type: Class<T>): T? {
-        return template.findById(id, type).awaitFirstOrNull()
+        return template.findById(id, type, COLLECTION).awaitFirstOrNull()
+    }
+
+    private companion object {
+        const val COLLECTION = "order_fetch_stats"
     }
 }
