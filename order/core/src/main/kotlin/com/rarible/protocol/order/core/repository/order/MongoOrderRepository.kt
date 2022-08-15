@@ -232,6 +232,7 @@ class MongoOrderRepository(
                 Order::maker isEqualTo maker,
                 Order::status ne OrderStatus.CANCELLED,
                 Order::data / OrderCounterableData::counter lt counter,
+                Order::data / OrderCounterableData::counter exists true
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
