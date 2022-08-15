@@ -30,8 +30,8 @@ ethereum-order-api:
 ethereum-order-listener:
   resources:
     jvm:
-      xmx_megabytes: 2048
-      max_direct_memory_megabytes: 512
+      xmx_megabytes: 4096
+      max_direct_memory_megabytes: 1024
 
 ethereum-nft-api:
   replicas: 3
