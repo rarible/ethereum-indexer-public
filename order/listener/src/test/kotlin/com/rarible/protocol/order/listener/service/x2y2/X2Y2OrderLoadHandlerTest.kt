@@ -1,168 +1,54 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
-import com.fasterxml.jackson.core.type.TypeReference
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.ninjasquad.springmockk.MockkBean
-import com.rarible.core.telemetry.metrics.RegisteredCounter
-import com.rarible.core.test.wait.Wait
-import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.X2Y2FetchState
-import com.rarible.protocol.order.core.repository.x2y2.X2Y2FetchStateRepository
-import com.rarible.protocol.order.listener.configuration.X2Y2OrdersLoadWorkerProperties
-import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
-import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.x2y2.client.X2Y2ApiClient
+import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
+import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
 import com.rarible.x2y2.client.model.ApiListResponse
-import com.rarible.x2y2.client.model.Order
-import io.mockk.Runs
-import io.mockk.clearMocks
 import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.just
+import io.mockk.coVerify
 import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.io.ClassPathResource
+import java.time.Duration
 
-@FlowPreview
-@IntegrationTest
-class X2Y2OrderLoadHandlerTest : AbstractIntegrationTest() {
+internal class X2Y2OrderLoadHandlerTest {
+    private val stateRepository = mockk<AggregatorStateRepository>()
+    private val x2y2OrderLoader = mockk<X2Y2OrderLoader>()
+    private val properties = X2Y2LoadProperties(startCursor = 1660125759000, pollingPeriod = Duration.ZERO)
 
-    @Autowired
-    private lateinit var stateRepository: X2Y2FetchStateRepository
+    private val handler = X2Y2OrderLoadHandler(
+        stateRepository,
+        x2y2OrderLoader,
+        properties
+    )
 
-    private val mapper = jacksonObjectMapper().registerModule(JavaTimeModule())
+    @Test
+    fun `should get init state and save it`() = runBlocking<Unit> {
+        coEvery { stateRepository.getX2Y2State() } returns null
+        coEvery { x2y2OrderLoader.load("WzE2NjAxMjU3NTkwMDBd") } returns ApiListResponse(next = "next", data = emptyList(), success = true)
+        coEvery { stateRepository.save(any()) } returns mockk()
 
-    @MockkBean
-    private lateinit var x2y2ApiClient: X2Y2ApiClient
+        handler.handle()
 
-    @Autowired
-    private lateinit var converter: X2Y2OrderConverter
-
-    private val saveCounter = mockk<RegisteredCounter> {
-        every { increment() } just Runs
-    }
-    private val errorCounter = mockk<RegisteredCounter> {
-        every { increment() } just Runs
-    }
-
-    private val orders = ClassPathResource("json/x2y2/orders.json").inputStream.use {
-        mapper.readValue(it, object : TypeReference<ApiListResponse<Order>>() {})
-    }
-
-    private lateinit var handler: X2Y2OrderLoadHandler
-
-    @BeforeEach
-    fun setUpTest() {
-        clearMocks(x2y2ApiClient)
-        handler = X2Y2OrderLoadHandler(
-            stateRepository,
-            x2y2ApiClient,
-            converter,
-            orderRepository,
-            saveCounter,
-            errorCounter,
-            orderUpdateService,
-            X2Y2OrdersLoadWorkerProperties(
-                enabled = true,
-                saveEnabled = true
-            )
-        )
+        coVerify { stateRepository.getX2Y2State() }
+        coVerify { x2y2OrderLoader.load("WzE2NjAxMjU3NTkwMDBd") }
+        coVerify { stateRepository.save(withArg {
+            assertThat(it.cursor).isEqualTo("next")
+        }) }
     }
 
     @Test
-    internal fun `should save new orders`() {
-        runBlocking {
-            coEvery {
-                x2y2ApiClient.orders(cursor = any())
-            } returns orders
+    fun `should save current state if cursor not use fully`() = runBlocking<Unit> {
+        val state = X2Y2FetchState(cursor = "current")
+        coEvery { stateRepository.getX2Y2State() } returns state
+        coEvery { x2y2OrderLoader.load(state.cursor) } returns ApiListResponse(next = null, data = emptyList(), success = true)
+        coEvery { stateRepository.save(any()) } returns mockk()
 
-            handler.handle()
+        handler.handle()
 
-            verify(exactly = 20) {
-                saveCounter.increment()
-            }
-
-            verify(exactly = 0) {
-                errorCounter.increment()
-            }
-
-            Wait.waitAssert {
-                val expectedHashes = orders.data.map { it.itemHash }
-                val saved = orderRepository.findAll(expectedHashes).toList()
-                assertThat(saved.size).isEqualTo(20)
-                val state = stateRepository.byId(X2Y2FetchState.ID)
-                assertThat(state).isNotNull
-                assertThat(state?.cursor).isNotNull
-                assertThat(state?.cursor).isEqualTo("WzE2NDQxNTk0NTUwMDBd")
-            }
-        }
-    }
-
-
-    @Test
-    internal fun `should increment error counter`() {
-        runBlocking {
-            coEvery {
-                x2y2ApiClient.orders(cursor = any())
-            } throws IllegalStateException("Something went wrong")
-
-            assertThrows<IllegalStateException>(message = "Unable to load x2y2 orders! Something went wrong") {
-                handler.handle()
-            }
-
-            verify(atLeast = 1) {
-                errorCounter.increment()
-            }
-
-            val state = stateRepository.byId(X2Y2FetchState.ID)
-            assertThat(state).isNotNull
-            assertThat(state?.cursor).isNull()
-            assertThat(state?.lastError).isNotNull
-        }
-
-    }
-
-    @Test
-    internal fun `should not save orders`() {
-        runBlocking {
-            val notSaveHandler = X2Y2OrderLoadHandler(
-                stateRepository,
-                x2y2ApiClient,
-                converter,
-                orderRepository,
-                saveCounter,
-                errorCounter,
-                orderUpdateService,
-                X2Y2OrdersLoadWorkerProperties(
-                    enabled = true,
-                    saveEnabled = false
-                )
-            )
-            coEvery {
-                x2y2ApiClient.orders(cursor = any())
-            } returns orders
-
-            notSaveHandler.handle()
-
-            verify(exactly = 0) {
-                saveCounter.increment()
-            }
-            val state = stateRepository.byId(X2Y2FetchState.ID)
-            assertThat(state).isNotNull
-            assertThat(state?.cursor).isNotNull
-            assertThat(state?.cursor).isEqualTo("WzE2NDQxNTk0NTUwMDBd")
-
-
-        }
+        coVerify { stateRepository.save(withArg {
+            assertThat(it.cursor).isEqualTo(state.cursor)
+        }) }
     }
 }
-

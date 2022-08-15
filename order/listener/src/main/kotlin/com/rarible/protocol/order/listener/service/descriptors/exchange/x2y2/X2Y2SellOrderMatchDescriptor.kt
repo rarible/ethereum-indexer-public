@@ -23,7 +23,7 @@ import scalether.domain.response.Transaction
 class X2Y2SellOrderMatchDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val converter: X2Y2EventConverter,
-    private val x2y2OrderMatchEventCounter: RegisteredCounter,
+    private val x2y2MatchEventCounter: RegisteredCounter,
 ): ItemExchangeHistoryLogEventDescriptor<OrderSideMatch> {
     override val collection: String
         get() = ExchangeHistoryRepository.COLLECTION
@@ -32,8 +32,8 @@ class X2Y2SellOrderMatchDescriptor(
 
     override suspend fun convert(log: Log, transaction: Transaction, date: Instant): List<OrderSideMatch> {
         val event = EvInventoryEvent.apply(log)
-        val converted = converter.convert(event, date)
-        if (converted.isNotEmpty()) x2y2OrderMatchEventCounter.increment()
+        val converted = converter.convert(event, date, transaction.input())
+        x2y2MatchEventCounter.increment()
         return converted
     }
 

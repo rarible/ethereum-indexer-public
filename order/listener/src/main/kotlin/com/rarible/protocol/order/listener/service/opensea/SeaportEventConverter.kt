@@ -22,6 +22,7 @@ import com.rarible.protocol.order.core.model.SeaportSpentItem
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -45,7 +46,8 @@ class SeaportEventConverter(
 
     suspend fun convert(
         event: OrderFulfilledEvent,
-        date: Instant
+        date: Instant,
+        input: Bytes,
     ): List<OrderSideMatch> {
         val spentItems = convert(event.offer())
         val receivedItems = convert(event.consideration())
@@ -57,8 +59,7 @@ class SeaportEventConverter(
         val counterHash = keccak256(hash)
         val leftUsdValue = priceUpdateService.getAssetsUsdValue(make = make, take = take, at = date)
         val rightUsdValue = priceUpdateService.getAssetsUsdValue(make = take, take = make, at = date)
-
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = hash,
                 counterHash = counterHash,
@@ -106,6 +107,7 @@ class SeaportEventConverter(
                 externalOrderExecutedOnRarible = null,
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, input)
     }
 
     suspend fun convert(

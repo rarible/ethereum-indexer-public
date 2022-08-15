@@ -54,6 +54,7 @@ class SeaportOrderLoader(
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
                                     orderUpdateService.save(it)
                                     seaportSaveCounter.increment()
+                                    orderUpdateService.updateMakeStock(it.hash)
                                     logger.seaportInfo("Saved new order ${it.hash}")
                                 }
                             }

@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
@@ -33,7 +34,8 @@ class ExchangeOrderMatchLegacyDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
-    private val raribleOrderParser: RaribleExchangeV2OrderParser
+    private val raribleOrderParser: RaribleExchangeV2OrderParser,
+    private val raribleMatchEventMetric: RegisteredCounter
 ) : LogEventDescriptor<OrderSideMatch> {
 
     override val collection: String
@@ -120,7 +122,7 @@ class ExchangeOrderMatchLegacyDescriptor(
                 counterAdhoc = leftAdhoc,
                 originFees = transactionOrders?.right?.originFees,
                 marketplaceMarker = transactionOrders?.right?.marketplaceMarker
-            )
+            ).also { raribleMatchEventMetric.increment() }
         )
     }
 

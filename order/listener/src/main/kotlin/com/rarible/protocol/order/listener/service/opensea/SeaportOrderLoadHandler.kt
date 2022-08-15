@@ -1,25 +1,26 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.common.ifNotBlank
 import com.rarible.core.daemon.job.JobHandler
-import com.rarible.protocol.order.core.model.OpenSeaFetchState
+import com.rarible.protocol.order.core.model.SeaportFetchState
 import com.rarible.protocol.order.core.repository.opensea.OpenSeaFetchStateRepository
+import com.rarible.protocol.order.core.repository.state.AggregatorStateRepository
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.time.delay
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Instant
 
 class SeaportOrderLoadHandler(
     private val seaportOrderLoader: SeaportOrderLoader,
     private val openSeaFetchStateRepository: OpenSeaFetchStateRepository,
+    private val aggregatorStateRepository: AggregatorStateRepository,
     private val properties: SeaportLoadProperties,
 ) : JobHandler {
-    private val stateId = STATE_ID_PREFIX
 
     override suspend fun handle() {
-        val state = openSeaFetchStateRepository.get(stateId) ?: getDefaultFetchState()
-        val cursor = state.cursor
+        val state = aggregatorStateRepository.getSeaportState() ?: getDefaultFetchState()
+        val cursor = state.cursor.ifNotBlank()
         val result = seaportOrderLoader.load(cursor)
 
         val (nextCursor, needDelay) = if (result.previous == null && cursor != null) {
@@ -30,15 +31,19 @@ class SeaportOrderLoadHandler(
             loader.seaportInfo("Use next cursor $next")
             next to false
         }
-        openSeaFetchStateRepository.save(state.withCursor(nextCursor))
+        aggregatorStateRepository.save(state.withCursor(nextCursor))
         if (result.orders.isEmpty() || needDelay) delay(properties.pollingPeriod)
     }
 
-    private fun getDefaultFetchState(): OpenSeaFetchState {
-        return OpenSeaFetchState(id = stateId, cursor = null, listedAfter = Instant.EPOCH.epochSecond)
+    private suspend fun getDefaultFetchState(): SeaportFetchState {
+        val legacyState = openSeaFetchStateRepository
+            .get(STATE_ID_PREFIX)?.cursor
+            ?.let { SeaportFetchState(cursor = it) }
+
+        return legacyState ?: SeaportFetchState(cursor = "")
     }
 
-    private companion object {
+    internal companion object {
         val loader: Logger = LoggerFactory.getLogger(SeaportOrderLoadHandler::class.java)
         const val STATE_ID_PREFIX = "seaport_order_fetch"
     }

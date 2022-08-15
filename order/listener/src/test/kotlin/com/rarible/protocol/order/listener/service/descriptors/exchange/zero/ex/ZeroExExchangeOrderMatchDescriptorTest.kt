@@ -40,6 +40,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
     @InjectMockKs
     private lateinit var zeroExExchangeOrderMatchDescriptor: ZeroExExchangeOrderMatchDescriptor
 
+    @Suppress("unused")
     @MockK
     private lateinit var exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses
 
@@ -59,7 +60,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
 
         every {
             runBlocking {
-                zeroExOrderEventConverter.convert(any(), any(), any(), any(), any(), any(), any())
+                zeroExOrderEventConverter.convert(any(), any(), any(), any(), any(), any(), any(), any())
             }
         } returns listOf(orderSideMatchFromConverter)
     }
@@ -150,6 +151,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = transaction.input(),
             )
         }
 
@@ -302,6 +304,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = transaction.input(),
             )
         }
 
@@ -467,6 +470,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = transaction.input(),
             )
         }
 
@@ -533,7 +537,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
     }
 
     @Test
-    fun `convert fill order via execute transaction`() = runBlocking<Unit> {
+    fun `convert fill order via execute transaction`() = runBlocking {
         // https://polygonscan.com/tx/0x48a3a2fdccbbb61a9dc90f88969b9095d5b64aac11c504492bf105a00184558e
         val log = log(
             data = "0000000000000000000000000000000000000000000000000000000000000160" +
@@ -619,6 +623,7 @@ class ZeroExExchangeOrderMatchDescriptorTest {
                 makerAddress = event.makerAddress(),
                 takerAssetFilledAmount = event.takerAssetFilledAmount(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
+                input = transaction.input(),
             )
         }
     }

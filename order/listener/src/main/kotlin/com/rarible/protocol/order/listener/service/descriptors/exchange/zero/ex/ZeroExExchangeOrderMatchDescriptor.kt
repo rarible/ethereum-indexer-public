@@ -75,7 +75,8 @@ class ZeroExExchangeOrderMatchDescriptor(
                 orderHash = Word.apply(event.orderHash()),
                 makerAddress = event.makerAddress(),
                 makerAssetFilledAmount = event.makerAssetFilledAmount(),
-                takerAssetFilledAmount = event.takerAssetFilledAmount()
+                takerAssetFilledAmount = event.takerAssetFilledAmount(),
+                input = transaction.input(),
             )
         }.flatten()
     }

@@ -10,7 +10,9 @@ import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderLoadM
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderSaveMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeAskEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeBidEventMetric
-import com.rarible.protocol.order.listener.misc.LooksrareOrderDelayMetric
+import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelayMetric
+import com.rarible.protocol.order.listener.metric.rarible.RaribleCancelEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.RaribleMatchEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -25,7 +27,9 @@ import com.rarible.protocol.order.listener.misc.SeaportOrderErrorMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderLoadMetric
 import com.rarible.protocol.order.listener.misc.SeaportOrderSaveMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderCancelEventMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderDelayMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadErrorMetric
+import com.rarible.protocol.order.listener.misc.X2Y2OrderLoadMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderMatchEventMetric
 import com.rarible.protocol.order.listener.misc.X2Y2OrderSaveMetric
 import io.micrometer.core.instrument.MeterRegistry
@@ -37,6 +41,17 @@ class MetricsCountersConfiguration(
     private val properties: OrderIndexerProperties,
     private val meterRegistry: MeterRegistry
 ) {
+    /** Rarible metrics **/
+    @Bean
+    fun raribleMatchEventMetric(): RegisteredCounter {
+    return RaribleMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun raribleCancelEventMetric(): RegisteredCounter {
+    return RaribleCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
     /** OpenSea metrics **/
     @Bean
     fun openSeaErrorCounter(): RegisteredCounter {
@@ -147,18 +162,27 @@ class MetricsCountersConfiguration(
 
     /** X2Y2 */
     @Bean
-    fun x2y2OrderSaveCounter(): RegisteredCounter =
+    fun x2y2SaveCounter(): RegisteredCounter =
         X2Y2OrderSaveMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
     @Bean
-    fun x2y2OrderLoadErrorCounter(): RegisteredCounter =
+    fun x2y2LoadCounter(): RegisteredCounter =
+        X2Y2OrderLoadMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun x2y2LoadErrorCounter(): RegisteredCounter =
         X2Y2OrderLoadErrorMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
     @Bean
-    fun x2y2OrderCancelEventCounter(): RegisteredCounter =
+    fun x2y2OrderDelayGauge(): RegisteredGauge<Long> {
+        return X2Y2OrderDelayMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun x2y2CancelEventCounter(): RegisteredCounter =
         X2Y2OrderCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 
     @Bean
-    fun x2y2OrderMatchEventCounter(): RegisteredCounter =
+    fun x2y2MatchEventCounter(): RegisteredCounter =
         X2Y2OrderMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 }

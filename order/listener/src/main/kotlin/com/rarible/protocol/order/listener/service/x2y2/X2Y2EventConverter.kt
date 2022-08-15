@@ -18,11 +18,12 @@ import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
-import java.math.BigInteger
-import java.time.Instant
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
+import java.time.Instant
 
 @Component
 class X2Y2EventConverter(
@@ -44,7 +45,7 @@ class X2Y2EventConverter(
             )
     }
 
-    suspend fun convert(event: EvInventoryEvent, date: Instant): List<OrderSideMatch> {
+    suspend fun convert(event: EvInventoryEvent, date: Instant, input: Bytes): List<OrderSideMatch> {
         if (event.detail()._1() != BigInteger.ONE) return emptyList()
         val maker = event.maker()
         val taker = event.taker()
@@ -71,7 +72,7 @@ class X2Y2EventConverter(
         }
         val hash = Word.apply(event.itemHash())
         val counterHash = keccak256(hash)
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = hash,
                 counterHash = counterHash,
@@ -90,7 +91,7 @@ class X2Y2EventConverter(
                 source = HistorySource.X2Y2,
                 originFees = fee,
                 adhoc = true,
-                counterAdhoc = false
+                counterAdhoc = false,
             ),
             OrderSideMatch(
                 hash = counterHash,
@@ -113,5 +114,6 @@ class X2Y2EventConverter(
                 counterAdhoc = true
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, input)
     }
 }

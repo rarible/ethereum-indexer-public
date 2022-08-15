@@ -16,12 +16,14 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
+import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
+import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -75,7 +77,7 @@ internal class SeaportEventConverterTest {
         coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns bidOrderUsd
 
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, data)
+        val matches = converter.convert(event, data, WordFactory.create())
 
         assertThat(matches).hasSize(2)
         val left = matches[0]
@@ -146,7 +148,8 @@ internal class SeaportEventConverterTest {
         coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns bidOrderUsd
 
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, data)
+        val marker = Word.apply(WordFactory.create().slice(0, 24).add(OrderSideMatch.MARKER_BYTES))
+        val matches = converter.convert(event, data, marker)
 
         assertThat(matches).hasSize(2)
         val left = matches[0]
@@ -167,6 +170,7 @@ internal class SeaportEventConverterTest {
         assertThat(left.source).isEqualTo(HistorySource.OPEN_SEA)
         assertThat(left.adhoc).isFalse()
         assertThat(left.counterAdhoc).isTrue()
+        assertThat(left.marketplaceMarker).isNull()
         val right = matches[1]
         assertThat(right.counterHash).isEqualTo(Word.apply("0x19a1a135c643899e688647411a33b7a54d02d27a9e85523c0072a5f5752524c0"))
         assertThat(right.side).isEqualTo(OrderSide.RIGHT)
@@ -183,8 +187,9 @@ internal class SeaportEventConverterTest {
         assertThat(right.takeValue).isEqualTo(BigDecimal("0.120000000000000000"))
         assertThat(right.makeValue).isEqualTo(BigDecimal.ONE)
         assertThat(right.source).isEqualTo(HistorySource.OPEN_SEA)
-        assertThat(left.adhoc).isFalse()
-        assertThat(left.counterAdhoc).isTrue()
+        assertThat(right.adhoc).isTrue()
+        assertThat(right.counterAdhoc).isFalse()
+        assertThat(right.marketplaceMarker).isEqualTo(marker)
     }
 
     @Test
@@ -213,7 +218,7 @@ internal class SeaportEventConverterTest {
         coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns null
 
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, data)
+        val matches = converter.convert(event, data, WordFactory.create())
 
         val left = matches[0]
         assertThat(left.side).isEqualTo(OrderSide.LEFT)
@@ -259,7 +264,7 @@ internal class SeaportEventConverterTest {
         coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns null
 
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, data)
+        val matches = converter.convert(event, data, WordFactory.create())
 
         val left = matches[0]
         assertThat(left.side).isEqualTo(OrderSide.LEFT)
@@ -303,7 +308,7 @@ internal class SeaportEventConverterTest {
         coEvery { priceUpdateService.getAssetsUsdValue(make = expectedPayment, take = expectedNft, at = data) } returns null
 
         val event = OrderFulfilledEvent.apply(log)
-        val matches = converter.convert(event, data)
+        val matches = converter.convert(event, data, WordFactory.create())
 
         val left = matches[0]
         assertThat(left.hash).isEqualTo(Word.apply("0x5ec2493878f9575f3ae7568b94b3a021dd830e46e5b0005d8e23a825dfb7323a"))

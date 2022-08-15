@@ -50,7 +50,7 @@ class ExchangeBuyDescriptor(
         val adhoc = false
         val counterAdhoc = true
 
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = hash,
                 counterHash = counterHash,
@@ -89,9 +89,10 @@ class ExchangeBuyDescriptor(
                 source = HistorySource.RARIBLE,
                 adhoc = counterAdhoc,
                 counterAdhoc = adhoc,
-                date = date
+                date = date,
             )
         )
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
     override fun getAddresses(): Mono<Collection<Address>> =

@@ -36,12 +36,12 @@ class SeaportV1ExchangeDescriptor(
     override val topic: Word = OrderFulfilledEvent.id()
 
     override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OrderSideMatch> {
-        return mono { convert(log, Instant.ofEpochSecond(timestamp)) }.flatMapMany { it.toFlux() }
+        return mono { convert(log, Instant.ofEpochSecond(timestamp), transaction) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, date: Instant): List<OrderSideMatch> {
+    private suspend fun convert(log: Log, date: Instant, transaction: Transaction): List<OrderSideMatch> {
         val event = OrderFulfilledEvent.apply(log)
-        val orderSideMatches = seaportEventConverter.convert(event, date)
+        val orderSideMatches = seaportEventConverter.convert(event, date, transaction.input())
         recordMetric(orderSideMatches, log)
         return orderSideMatches
     }

@@ -73,13 +73,18 @@ data class OrderIndexerProperties(
     )
 
     data class PublishProperties(
-        val publishOpenSeaOrdersToCommonTopic: Boolean = false,
-        val publishAuctionActivity: Boolean = false
+        val publishSeaportOrders: Boolean = true,
+        val publishX2Y2Orders: Boolean = false,
+        val publishLooksrareOrders: Boolean = false,
+        val publishCryptoPunksOrders: Boolean = true,
+        val publishAuctionActivity: Boolean = false,
     )
 
     data class FeatureFlags(
         val showAllOrdersByDefault: Boolean = false,
         val showOpenSeaOrdersWithOtherPlatforms: Boolean = false,
+        val showX2Y2OrdersWithOtherPlatforms: Boolean = false,
+        val showLooksrareOrdersWithOtherPlatforms: Boolean = false,
         val hideOpenSeaSignatures: Boolean = false,
         val hideInactiveOrders: Boolean = false,
         val maxOpenSeaNonceCalculation: Int = 10,
