@@ -23,14 +23,17 @@ class PlatformFeaturedFilter(
             if (!featureFlags.showX2Y2OrdersWithOtherPlatforms) {
                 all.remove(PlatformDto.X2Y2)
             }
+            if (!featureFlags.showLooksrareOrdersWithOtherPlatforms) {
+                all.remove(PlatformDto.LOOKSRARE)
+            }
             if (featureFlags.showOpenSeaOrdersWithOtherPlatforms &&
-                featureFlags.showX2Y2OrdersWithOtherPlatforms
+                featureFlags.showX2Y2OrdersWithOtherPlatforms &&
+                featureFlags.showLooksrareOrdersWithOtherPlatforms
             ) {
                 return emptyList() // means there is no filter by platform
             }
             return all
         }
-
         return listOfNotNull(defaultPlatform)
     }
 }
