@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.looksrare.TokenStandardProvider
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.every
@@ -66,7 +67,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert erc721 sell event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
+        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val bidOrderUsd = randomBidOrderUsdValue()
         val sellOrderUsd = randomSellOrderUsdValue()
@@ -138,7 +139,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
 
     @Test
     fun `should convert erc721 bid event`() = runBlocking<Unit> {
-        val transaction = mockk<Transaction>()
+        val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
         val data = Instant.now().truncatedTo(ChronoUnit.SECONDS)
         val contract = Erc20Token(name = "", id = randomAddress(), symbol = "", decimals = 18)
         val bidOrderUsd = randomBidOrderUsdValue()
