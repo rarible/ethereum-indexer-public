@@ -6,6 +6,7 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.X2Y2LoadProperties
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import com.rarible.protocol.order.listener.misc.x2y2Error
+import com.rarible.protocol.order.listener.misc.x2y2Info
 import com.rarible.x2y2.client.model.ApiListResponse
 import com.rarible.x2y2.client.model.Order
 import kotlinx.coroutines.async
@@ -32,7 +33,7 @@ class X2Y2OrderLoader(
             val minCreatedAt = createdAts.minOrNull()
             val maxCreatedAt = createdAts.maxOrNull()
 
-            logger.x2y2Error(
+            logger.x2y2Info(
                 buildString {
                     append("Fetched ${orders.size}, ")
                     append("minCreatedAt=$minCreatedAt, ")
