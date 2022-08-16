@@ -110,7 +110,7 @@ class ExchangeOrderMatchDescriptor(
                 fill = rightFill,
                 make = rightMake,
                 take = rightTake,
-                maker = rightMaker,
+                maker = rightMaker.takeUnless { it == Address.ZERO() } ?: transaction.from(),
                 taker = leftMaker,
                 makeUsd = rightUsdValue?.makeUsd,
                 takeUsd = rightUsdValue?.takeUsd,

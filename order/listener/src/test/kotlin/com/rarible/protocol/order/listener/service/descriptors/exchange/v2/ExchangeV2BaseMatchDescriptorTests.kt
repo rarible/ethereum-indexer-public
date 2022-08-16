@@ -275,6 +275,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             assertThat(right).isNotNull; right!!
 
             assertThat(left.hash).isEqualTo(sellOrder.hash)
+            assertThat(left.maker).isEqualTo(sellOrder.maker)
             assertThat(left.fill).isEqualTo(EthUInt256.TEN)
             assertThat(left.side).isEqualTo(OrderSide.LEFT)
             assertThat(left.adhoc).isFalse
@@ -284,6 +285,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
                 currencyApi.getCurrencyRate(any(), any(), left.date.toEpochMilli())
             }
             assertThat(right.hash).isEqualTo(rightOrderHash)
+            assertThat(right.maker).isEqualTo(userSender2.from())
             assertThat(right.fill).isEqualTo(EthUInt256.TEN)
             assertThat(right.side).isEqualTo(OrderSide.RIGHT)
             assertThat(right.adhoc).isTrue
