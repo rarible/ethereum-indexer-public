@@ -29,7 +29,7 @@ class OrderPublishTaskHandler(
     }
 
     override fun runLongTask(from: Long?, param: String): Flow<Long> {
-        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) })
+        return orderRepository.findAllBeforeLastUpdateAt(from?.let { Date(it) }, null)
             .map { order ->
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),

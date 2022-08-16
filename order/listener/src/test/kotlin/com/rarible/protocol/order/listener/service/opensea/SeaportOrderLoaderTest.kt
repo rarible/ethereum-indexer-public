@@ -66,6 +66,7 @@ internal class SeaportOrderLoaderTest {
         coEvery { orderRepository.findById(validOrderVersion2.hash) } returns createOrder()
 
         coEvery { orderUpdateService.save(validOrderVersion1) } returns createOrder()
+        coEvery { orderUpdateService.updateMakeStock(validOrderVersion1.hash) } returns mockk()
         every { seaportSaveCounter.increment() } returns Unit
 
         handler.load(null)

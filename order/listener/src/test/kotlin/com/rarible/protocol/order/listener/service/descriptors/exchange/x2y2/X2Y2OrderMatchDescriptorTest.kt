@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2EventConverter
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.Runs
 import io.mockk.coEvery
@@ -26,6 +27,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
+import scalether.domain.response.Transaction
 
 class X2Y2OrderMatchDescriptorTest {
 
@@ -56,7 +58,8 @@ class X2Y2OrderMatchDescriptorTest {
     ) {
         runBlocking {
             val expectedCounterHash = keccak256(expectedHash)
-            val actual = descriptor.convert(log, mockk(), 1L, 1, 1).toFlux().collectList().awaitSingle()
+            val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
+            val actual = descriptor.convert(log, transaction, 1L, 1, 1).toFlux().collectList().awaitSingle()
             assertThat(actual).isNotEmpty
             assertThat(actual.size).isEqualTo(2)
 

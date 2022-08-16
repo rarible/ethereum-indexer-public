@@ -232,6 +232,7 @@ class MongoOrderRepository(
                 Order::maker isEqualTo maker,
                 Order::status ne OrderStatus.CANCELLED,
                 Order::data / OrderCounterableData::counter lt counter,
+                Order::data / OrderCounterableData::counter exists true
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
@@ -259,9 +260,10 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?): Flow<Order> {
+    override fun findAllBeforeLastUpdateAt(lastUpdatedAt: Date?, status: OrderStatus?): Flow<Order> {
         val criteria = Criteria()
             .run { lastUpdatedAt?.let { and(Order::lastUpdateAt).lte(it) } ?: this }
+            .run { status?.let { and(Order::status).isEqualTo(it) } ?: this }
             .run { and(Order::cancelled).ne(true) }
 
         val queue = Query().addCriteria(criteria)
