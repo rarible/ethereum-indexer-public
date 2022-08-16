@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.common.flatMapAsync
 import com.rarible.core.logging.Logger
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
@@ -10,6 +9,9 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.misc.looksrareInfo
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -29,19 +31,27 @@ class LooksrareOrderLoader(
     ): List<LooksrareOrder> {
         val orders = safeGetNextSellOrders(listedAfter, listedBefore)
         logOrderLoad(orders, listedAfter, listedBefore)
-
-        orders
-            .mapNotNull{ looksrareOrderConverter.convert(it) }
-            .chunked(properties.saveBatchSize)
-            .flatMapAsync { chunk ->
-                chunk.map {
-                    if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                        orderUpdateService.save(it)
-                        looksrareSaveCounter.increment()
-                        logger.looksrareInfo("Saved new order ${it.hash}")
-                    }
+        coroutineScope {
+            orders
+                .chunked(properties.saveBatchSize)
+                .map { chunk ->
+                    chunk.map {
+                        async {
+                            if (orderRepository.findById(it.hash) == null) {
+                                val order = looksrareOrderConverter.convert(it)
+                                if (order != null && properties.saveEnabled) {
+                                    orderUpdateService.save(order)
+                                    looksrareSaveCounter.increment()
+                                    logger.looksrareInfo("Saved new order ${it.hash}")
+                                }
+                            }
+                        }
+                    }.awaitAll()
                 }
-            }.lastOrNull()
+                .flatten()
+                .lastOrNull()
+        }
+
 
         return orders
     }
