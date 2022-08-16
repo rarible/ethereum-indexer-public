@@ -34,7 +34,7 @@ class OpenSeaOrderServiceImpl(
     override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
         val request = SeaportOrdersRequest(
             cursor = nextCursor,
-            limit = MAX_SIZE
+            limit = seaportLoad.loadMaxSize
         )
         var lastError: OpenSeaError? = null
         var retries = 0
