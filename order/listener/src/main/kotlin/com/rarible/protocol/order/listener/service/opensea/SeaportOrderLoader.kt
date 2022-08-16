@@ -42,20 +42,21 @@ class SeaportOrderLoader(
             coroutineScope {
                 @Suppress("ConvertCallChainIntoSequence")
                 orders
-                    .mapNotNull {
-                        openSeaOrderConverter.convert(it)
-                    }.filter {
-                        openSeaOrderValidator.validate(it)
-                    }
                     .chunked(properties.saveBatchSize)
                     .map { chunk ->
                         chunk.map {
                             async {
-                                if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                                    orderUpdateService.save(it)
+                                val order = openSeaOrderConverter.convert(it)
+                                if (
+                                    order != null &&
+                                    properties.saveEnabled &&
+                                    openSeaOrderValidator.validate(order) &&
+                                    orderRepository.findById(order.hash) == null
+                                ) {
+                                    orderUpdateService.save(order)
                                     seaportSaveCounter.increment()
-                                    orderUpdateService.updateMakeStock(it.hash)
-                                    logger.seaportInfo("Saved new order ${it.hash}")
+                                    orderUpdateService.updateMakeStock(order.hash)
+                                    logger.seaportInfo("Saved new order ${order.hash}")
                                 }
                             }
                         }.awaitAll()
