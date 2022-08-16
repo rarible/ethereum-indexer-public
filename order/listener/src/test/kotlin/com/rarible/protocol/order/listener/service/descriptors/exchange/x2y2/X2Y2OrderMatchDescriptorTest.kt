@@ -28,6 +28,7 @@ import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.time.Instant
 
 class X2Y2OrderMatchDescriptorTest {
 
@@ -57,9 +58,10 @@ class X2Y2OrderMatchDescriptorTest {
         expectedBuyer: Address,
     ) {
         runBlocking {
+            val expectedDate = Instant.ofEpochSecond(1)
             val expectedCounterHash = keccak256(expectedHash)
             val transaction = mockk<Transaction> { every { input() } returns Binary.empty() }
-            val actual = descriptor.convert(log, transaction, 1L, 1, 1).toFlux().collectList().awaitSingle()
+            val actual = descriptor.convert(log, transaction, expectedDate.epochSecond, 1, 1).toFlux().collectList().awaitSingle()
             assertThat(actual).isNotEmpty
             assertThat(actual.size).isEqualTo(2)
 
@@ -75,6 +77,7 @@ class X2Y2OrderMatchDescriptorTest {
             assertThat((left.make.type as Erc721AssetType).tokenId.value).isEqualTo(expectedTokenId)
             assertThat(left.source).isEqualTo(HistorySource.X2Y2)
             assertThat(left.adhoc).isTrue
+            assertThat(left.date).isEqualTo(expectedDate)
             assertThat(left.counterAdhoc).isFalse
 
             val right = actual.last()
@@ -89,6 +92,7 @@ class X2Y2OrderMatchDescriptorTest {
             assertThat(right.source).isEqualTo(HistorySource.X2Y2)
             assertThat(right.adhoc).isFalse
             assertThat(right.counterAdhoc).isTrue
+            assertThat(left.date).isEqualTo(expectedDate)
             assertThat((right.take.type as Erc721AssetType).token).isEqualTo(expectedToken)
             assertThat((right.take.type as Erc721AssetType).tokenId.value).isEqualTo(expectedTokenId)
 
