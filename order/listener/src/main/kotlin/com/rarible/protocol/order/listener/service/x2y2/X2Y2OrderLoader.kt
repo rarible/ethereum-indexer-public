@@ -55,7 +55,7 @@ class X2Y2OrderLoader(
                                 if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
                                     orderUpdateService.save(it)
                                     x2y2SaveCounter.increment()
-                                    logger.x2y2Error("Saved new order ${it.hash}")
+                                    logger.x2y2Info("Saved new order ${it.hash}")
                                 }
                             }
                         }.awaitAll()
