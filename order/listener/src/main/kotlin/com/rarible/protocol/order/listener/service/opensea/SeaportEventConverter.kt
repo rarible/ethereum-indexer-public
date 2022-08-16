@@ -127,7 +127,7 @@ class SeaportEventConverter(
                     txHash = transaction.hash(),
                     txInput = transaction.input(),
                     to = event.log().address(),
-                    id = CANCEL_SIGNATURE_ID
+                    ids = arrayOf(CANCEL_SIGNATURE_ID)
                 )
             }
         }

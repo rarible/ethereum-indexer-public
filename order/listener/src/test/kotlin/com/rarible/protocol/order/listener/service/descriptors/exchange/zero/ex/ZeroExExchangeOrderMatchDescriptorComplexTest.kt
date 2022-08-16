@@ -9,11 +9,10 @@ import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSide
 import com.rarible.protocol.order.core.model.OrderSideMatch
-import com.rarible.protocol.order.core.model.SimpleTraceResult
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
+import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TraceCallService
-import com.rarible.protocol.order.core.trace.TransactionTraceProvider
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
@@ -73,7 +72,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
                     zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
                 )
             ),
-            zeroExOrderParser = ZeroExOrderParser(TraceCallService(TestTransactionTraceProvider()))
+            zeroExOrderParser = ZeroExOrderParser(TraceCallService(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()))
         )
     }
 
@@ -705,18 +704,4 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
             transactionInput
         )
     )
-
-    private class TestTransactionTraceProvider : TransactionTraceProvider {
-        override suspend fun traceAndFindFirstCallTo(
-            transactionHash: Word,
-            to: Address,
-            id: Binary
-        ): SimpleTraceResult? = null
-
-        override suspend fun traceAndFindAllCallsTo(
-            transactionHash: Word,
-            to: Address,
-            id: Binary
-        ): List<SimpleTraceResult> = listOf()
-    }
 }
