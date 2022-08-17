@@ -35,7 +35,7 @@ class LooksrareOrderService(
                 sort = Sort.NEWEST,
                 pagination = Pagination(first = properties.loadMaxSize, cursor = nextHash?.prefixed())
             )
-            logger.looksrareInfo("Load next: startTime=${request.startTime.epochSecond}, cursor=${request.pagination?.cursor}")
+            logger.looksrareInfo("Load next: startTime=${request.startTime?.epochSecond}, cursor=${request.pagination?.cursor}")
 
             val result = looksrareClient.getOrders(request).ensureSuccess()
             if (result.success.not()) throw IllegalStateException("$LOOKSRARE_LOG Can't load orders: ${result.message}")
