@@ -43,7 +43,7 @@ class SandboxPropertiesResolver(
 
         return if (content.url.endsWith(WEBP)) {
             val startFrom = API_PATH.length
-            val guid = content.url.substring(startFrom, startFrom + 36)
+            val guid = content.url.substring(startFrom, startFrom + GUID_LENGTH)
             content.copy(url = API_PATH + guid + PREVIEW_PATH)
         } else content
     }
