@@ -20,6 +20,7 @@ import java.math.BigInteger
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
@@ -53,9 +54,9 @@ class CollectionService(
     }
 
     suspend fun get(ids: List<Address>): List<NftCollectionDto> {
-        return tokenRepository.findByIds(ids).map {
-            collectionDtoConverter.convert(ExtendedToken(it, tokenMetaService.get(it.id)))
-        }.toList()
+        val tokens = tokenRepository.findByIds(ids).toList()
+        val enriched = enrichWithMeta(tokens)
+        return enriched.map { collectionDtoConverter.convert(it) }
     }
 
     suspend fun resetMeta(collectionId: Address) {
@@ -63,14 +64,9 @@ class CollectionService(
         tokenMetaService.reset(collectionId)
     }
 
-    suspend fun search(filter: TokenFilter): List<ExtendedToken> = coroutineScope {
+    suspend fun search(filter: TokenFilter): List<ExtendedToken> {
         val tokens = tokenRepository.search(filter).collectList().awaitFirst()
-        tokens.map { token ->
-            async {
-                val meta = tokenMetaService.get(token.id)
-                ExtendedToken(token, meta)
-            }
-        }.awaitAll()
+        return enrichWithMeta(tokens)
     }
 
     suspend fun generateId(collectionId: Address, minter: Address): SignedTokenId {
@@ -113,5 +109,14 @@ class CollectionService(
             Uint256Type.encode(value)
         }
         return Sign.signMessage(toSign.bytes(), operatorPublicKey, operatorPrivateKey)
+    }
+
+    private suspend fun enrichWithMeta(tokens: List<Token>): List<ExtendedToken> = coroutineScope {
+        tokens.map { token ->
+            async {
+                val meta = tokenMetaService.get(token.id)
+                ExtendedToken(token, meta)
+            }
+        }.awaitAll()
     }
 }
