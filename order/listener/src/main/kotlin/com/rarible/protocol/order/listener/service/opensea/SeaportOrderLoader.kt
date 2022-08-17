@@ -26,7 +26,7 @@ class SeaportOrderLoader(
 ) {
     suspend fun load(cursor: String?) = coroutineScope {
         var lastSeaResult: SeaportOrders? = null
-        for (result in produceNextSellOrders(cursor, properties.channelCapacity)) {
+        for (result in produceNextSellOrders(cursor, properties.maxLoadResults)) {
             lastSeaResult = result
             val orders = result.orders
             val createdAts = orders.map { it.createdAt }
@@ -70,18 +70,20 @@ class SeaportOrderLoader(
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
-    private fun CoroutineScope.produceNextSellOrders(cursor: String?, capacity: Int) = produce(capacity = capacity) {
+    private fun CoroutineScope.produceNextSellOrders(cursor: String?, maxLoadResults: Int) = produce(capacity = maxLoadResults) {
+        var results = 0
         var previous = cursor
         do {
             try {
                 val result = openSeaOrderService.getNextSellOrders(previous)
                 previous = result.previous
+                results += 1
                 send(result)
             } catch (ex: Throwable) {
                 logger.seaportError("Can't get next orders with cursor $cursor", ex)
                 throw ex
             }
-        } while (previous != null)
+        } while (previous != null && results < maxLoadResults)
     }
 
     private companion object {

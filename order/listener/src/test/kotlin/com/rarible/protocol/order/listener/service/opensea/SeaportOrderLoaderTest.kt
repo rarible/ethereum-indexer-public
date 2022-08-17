@@ -15,10 +15,10 @@ import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.mockk.verifyOrder
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class eaportOrderLoaderTest {
     private val openSeaOrderService = mockk<OpenSeaOrderService>()
@@ -27,6 +27,7 @@ internal class eaportOrderLoaderTest {
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val seaportSaveCounter = mockk<RegisteredCounter>()
+    private val properties = SeaportLoadProperties(saveEnabled = true)
 
     private val handler =  SeaportOrderLoader(
         openSeaOrderService = openSeaOrderService,
@@ -34,7 +35,7 @@ internal class eaportOrderLoaderTest {
         openSeaOrderValidator = openSeaOrderValidator,
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
-        properties = SeaportLoadProperties(saveEnabled = true),
+        properties = properties,
         seaportSaveCounter = seaportSaveCounter
     )
 
@@ -151,5 +152,60 @@ internal class eaportOrderLoaderTest {
         coVerify(exactly = 1) { orderUpdateService.save(orderVersion1) }
         coVerify(exactly = 1) { orderUpdateService.save(orderVersion2) }
         coVerify(exactly = 1) { orderUpdateService.save(orderVersion3) }
+    }
+
+    @Test
+    fun `should throw exception if client fail`() = runBlocking<Unit> {
+        val clientOrder1 = randomSeaportOrder()
+        val orderVersion1 = createOrderVersion()
+
+        val previous = "previous0"
+
+        val seaportOrders1 = SeaportOrders(
+            next = "next1",
+            previous = "previous1",
+            orders = listOf(clientOrder1)
+        )
+        coEvery { openSeaOrderService.getNextSellOrders(previous) } returns seaportOrders1
+        coEvery { openSeaOrderService.getNextSellOrders(seaportOrders1.previous) } throws RuntimeException("Fail")
+
+        coEvery { openSeaOrderConverter.convert(clientOrder1) } returns orderVersion1
+        every { openSeaOrderValidator.validate(orderVersion1) } returns true
+        coEvery { orderRepository.findById(orderVersion1.hash) } returns null
+        coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
+        coEvery { orderUpdateService.updateMakeStock(orderVersion1.hash) } returns mockk()
+        every { seaportSaveCounter.increment() } returns Unit
+
+        assertThrows<RuntimeException> {
+            runBlocking {
+                handler.load(previous)
+            }
+        }
+    }
+
+    @Test
+    fun `should get only maxLoadResults`() = runBlocking<Unit> {
+        for (i in 1..(properties.maxLoadResults * 2)) {
+            val clientOrder = randomSeaportOrder()
+            val orderVersion = createOrderVersion()
+
+            val seaportOrders = SeaportOrders(
+                next = "next$i",
+                previous = "previous$i",
+                orders = listOf(clientOrder)
+            )
+            coEvery { openSeaOrderService.getNextSellOrders("previous${i-1}") } returns seaportOrders
+            coEvery { openSeaOrderConverter.convert(clientOrder) } returns orderVersion
+            every { openSeaOrderValidator.validate(orderVersion) } returns true
+            coEvery { orderRepository.findById(orderVersion.hash) } returns null
+            coEvery { orderUpdateService.save(orderVersion) } returns createOrder()
+            coEvery { orderUpdateService.updateMakeStock(orderVersion.hash) } returns mockk()
+        }
+        every { seaportSaveCounter.increment() } returns Unit
+
+        val result = handler.load("previous0")
+        assertThat(result.previous).isEqualTo("previous${properties.maxLoadResults}")
+        coVerify(exactly = properties.maxLoadResults) { openSeaOrderService.getNextSellOrders(any()) }
+        coVerify(exactly = properties.maxLoadResults) { orderUpdateService.save(any()) }
     }
 }
