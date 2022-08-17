@@ -53,6 +53,7 @@ class LooksrareOrderLoader(
                 }
                 .flatten()
                 .filterNotNull()
+                .also { logger.looksrareInfo("Saved ${it.size}") }
         }
     }
 
