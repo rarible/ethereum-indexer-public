@@ -65,18 +65,16 @@ class GethTransactionTraceProvider(
         val input: Binary,
         val calls: List<TraceResult> = emptyList()
     ) {
-        private fun findTrace(to: Address, ids: Set<Binary>): TraceResult? {
-            if (this.to == to && input.methodSignatureId() in ids) {
-                return this
-            }
-            return calls
-                .asSequence()
-                .mapNotNull { it.findTrace(to, ids) }
-                .firstOrNull()
+        fun findTraces(to: Address, ids: Set<Binary>): List<TraceResult> {
+            return calls.flatMap { it.findTracesRaw(to, ids) }
         }
 
-        fun findTraces(to: Address, ids: Set<Binary>): List<TraceResult> {
-            return calls.mapNotNull { it.findTrace(to, ids) }
+        private fun findTracesRaw(to: Address, ids: Set<Binary>): List<TraceResult> {
+            if (this.to == to && input.methodSignatureId() in ids) {
+                return listOf(this)
+            }
+            return calls
+                .flatMap { it.findTracesRaw(to, ids) }
         }
 
         fun toSimpleTraceResult(): SimpleTraceResult {
