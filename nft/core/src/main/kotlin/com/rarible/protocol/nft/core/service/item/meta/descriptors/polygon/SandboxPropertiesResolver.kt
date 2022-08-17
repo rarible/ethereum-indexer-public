@@ -10,8 +10,6 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.RaribleProper
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import org.springframework.stereotype.Component
 import scalether.domain.Address
-import java.net.URI
-import kotlin.io.path.toPath
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
@@ -43,15 +41,18 @@ class SandboxPropertiesResolver(
     private fun fixUrl(content: EthMetaContent?): EthMetaContent? {
         content ?: return null
 
-        return if(content.url.endsWith(WEBP)) {
-            val res = URI(content.url).toPath().parent.parent.resolve(PREVIEW_PATH)
-            content.copy(url = res.toString())
+        return if (content.url.endsWith(WEBP)) {
+            val startFrom = API_PATH.length
+            val guid = content.url.substring(startFrom, startFrom + 36)
+            content.copy(url = API_PATH + guid + PREVIEW_PATH)
         } else content
     }
 
     companion object {
         val SANDBOX_NFT_ADDRESS: Address = Address.apply("0x9d305a42a3975ee4c1c57555bed5919889dce63f")
         const val WEBP = ".webp"
-        const val PREVIEW_PATH = "preview"
+        const val PREVIEW_PATH = "/preview"
+        const val API_PATH = "https://api.sandbox.game/lands/"
+        const val GUID_LENGTH = 36
     }
 }

@@ -29,7 +29,9 @@ internal class SandboxPropertiesResolverUnitTest {
 
     @Test
     fun `should replace images urls`() = runBlocking<Unit> {
-        val meta = SandboxPropertiesResolver(raribleResolver).resolve(createRandomItemId())!!
+        val meta = SandboxPropertiesResolver(raribleResolver).resolve(
+            createRandomItemId().copy(token = SandboxPropertiesResolver.SANDBOX_NFT_ADDRESS)
+        )!!
 
         Assertions.assertThat(meta.content.imageOriginal!!.url).isEqualTo(
             "https://api.sandbox.game/lands/cb61dd01-f82a-4081-a3dd-8a9d22360ecb/preview"
