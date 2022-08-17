@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
+import com.rarible.protocol.order.core.model.order.logger
 import com.rarible.protocol.order.core.model.toAssetType
 import com.rarible.protocol.order.core.model.toPart
 import com.rarible.protocol.order.core.trace.TraceCallService
@@ -41,7 +42,9 @@ class RaribleExchangeV2OrderParser(
 ) {
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEventRev3): RaribleMatchedOrders? {
         val inputs = getInputs(txHash, txInput)
-        return inputs.map { parseMatchedOrders(it) }.firstOrNull {
+        val parsed = inputs.map { parseMatchedOrders(it) }
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: $parsed")
+        return parsed.firstOrNull {
             Word.apply(event.leftHash()) == it.left.hash && Word.apply(event.rightHash()) == it.right.hash
         }
     }
@@ -52,7 +55,9 @@ class RaribleExchangeV2OrderParser(
         val leftAssetType = event.leftAsset().toAssetType()
         val rightAssetType = event.rightAsset().toAssetType()
 
-        return inputs.map { parseMatchedOrders(it) }.firstOrNull { orders ->
+        val parsed = inputs.map { parseMatchedOrders(it) }
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: $parsed")
+        return parsed.firstOrNull { orders ->
             val leftHash = Order.hashKey(
                 event.leftMaker(),
                 if (orders.left.makeAssetType.isCollection) leftAssetType.tryToConvertInCollection() else leftAssetType,
