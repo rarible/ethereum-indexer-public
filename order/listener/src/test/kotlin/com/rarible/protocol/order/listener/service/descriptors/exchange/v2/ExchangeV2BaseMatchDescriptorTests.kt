@@ -224,7 +224,7 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             originFeeFirst = null,
             originFeeSecond = null,
             marketplaceMarker = Word.apply(randomWord()),
-            payout = null,
+            payout = Part(userSender2.from(), EthUInt256.of(10000)),
         )
 
         // Imitate the balance of the seller: 0 ERC1155
@@ -248,18 +248,12 @@ abstract class ExchangeV2BaseMatchDescriptorTests : AbstractExchangeV2Test() {
             buyOrderData.toEthereum().bytes()
         )).withSender(userSender2).execute().verifySuccess()
 
-        val rightOrderData = OrderRaribleV2DataV3Buy(
-            payout = null,
-            originFeeFirst = null,
-            originFeeSecond = null,
-            marketplaceMarker = buyOrderData.marketplaceMarker
-        )
         val rightOrderHash = Order.hashKey(
             Address.ZERO(),
             sellOrder.take.type,
             sellOrder.make.type,
             BigInteger.ZERO,
-            rightOrderData
+            buyOrderData
         )
         assertThat(fills(sellOrder.hash.bytes()).awaitFirst()).isEqualTo(BigInteger.TEN)
 
