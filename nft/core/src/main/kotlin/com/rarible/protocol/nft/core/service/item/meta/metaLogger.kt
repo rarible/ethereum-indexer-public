@@ -10,8 +10,8 @@ fun logMetaLoading(itemId: ItemId, message: String, warn: Boolean = false) {
     logMetaLoading(itemId.decimalStringValue, message, warn)
 }
 
-fun <T> logMetaLoading(id: T, message: String, warn: Boolean = false) =
-    logger.logMetaLoading(id.toString(), message, warn)
+//fun <T> logMetaLoading(id: T, message: String, warn: Boolean = false) =
+//    logger.logMetaLoading(id.toString(), message, warn)
 
 fun logMetaLoading(id: String, message: String, warn: Boolean = false) = logger.logMetaLoading(id, message, warn)
 
