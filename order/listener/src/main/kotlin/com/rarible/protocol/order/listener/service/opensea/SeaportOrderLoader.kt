@@ -71,8 +71,8 @@ class SeaportOrderLoader(
 
     @Suppress("EXPERIMENTAL_API_USAGE", "OPT_IN_USAGE")
     private fun CoroutineScope.produceNextSellOrders(cursor: String?, capacity: Int) = produce(capacity = capacity) {
+        var previous = cursor
         do {
-            var previous = cursor
             try {
                 val result = openSeaOrderService.getNextSellOrders(previous)
                 previous = result.previous
