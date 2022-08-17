@@ -59,8 +59,7 @@ class LooksrareOrderLoader(
     private suspend fun safeGetNextSellOrders(listedAfter: Instant, listedBefore: Instant): List<LooksrareOrder> {
         return try {
             looksrareOrderService.getNextSellOrders(listedAfter, listedBefore).also { orders ->
-                // Orders already sorted by startTime as desc
-                orders.firstOrNull()?.startTime?.let {
+                orders.maxOfOrNull { it.startTime }?.let {
                     looksrareOrderDelayGauge.set(Instant.now().epochSecond - it.epochSecond)
                 }
             }
