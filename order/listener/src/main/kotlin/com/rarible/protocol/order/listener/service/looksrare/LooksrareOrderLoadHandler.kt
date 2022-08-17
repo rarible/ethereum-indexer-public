@@ -20,10 +20,10 @@ class LooksrareOrderLoadHandler(
         val listedAfter = state.listedAfter
         val listedBefore = minOf(state.listedAfter + properties.loadPeriod, Instant.now() - properties.delay)
         val result = looksrareOrderLoader.load(listedAfter = listedAfter, listedBefore = listedBefore)
+        aggregatorStateRepository.save(state.withListedAfter(listedBefore))
         if (result.isEmpty()) {
             delay(properties.pollingPeriod)
         }
-        aggregatorStateRepository.save(state.withListedAfter(listedBefore))
     }
 
     private fun getDefaultFetchState(): LooksrareFetchState {

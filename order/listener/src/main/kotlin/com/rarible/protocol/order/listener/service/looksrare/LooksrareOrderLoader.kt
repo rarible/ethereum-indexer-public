@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.misc.looksrareInfo
+import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -28,32 +29,31 @@ class LooksrareOrderLoader(
     suspend fun load(
         listedAfter: Instant,
         listedBefore: Instant
-    ): List<LooksrareOrder> {
+    ): List<Word> {
         val orders = safeGetNextSellOrders(listedAfter, listedBefore)
         logOrderLoad(orders, listedAfter, listedBefore)
-        coroutineScope {
+        return coroutineScope {
             orders
                 .chunked(properties.saveBatchSize)
                 .map { chunk ->
                     chunk.map {
                         async {
-                            if (orderRepository.findById(it.hash) == null) {
-                                val order = looksrareOrderConverter.convert(it)
-                                if (order != null && properties.saveEnabled) {
-                                    orderUpdateService.save(order)
-                                    looksrareSaveCounter.increment()
-                                    logger.looksrareInfo("Saved new order ${it.hash}")
-                                }
+                            if (orderRepository.findById(it.hash) != null) {
+                                return@async null
                             }
+                            val order = looksrareOrderConverter.convert(it)
+                            if (order != null && properties.saveEnabled) {
+                                orderUpdateService.save(order)
+                                looksrareSaveCounter.increment()
+                                logger.looksrareInfo("Saved new order ${it.hash}")
+                            }
+                            return@async order?.hash
                         }
                     }.awaitAll()
                 }
                 .flatten()
-                .lastOrNull()
+                .filterNotNull()
         }
-
-
-        return orders
     }
 
     private suspend fun safeGetNextSellOrders(listedAfter: Instant, listedBefore: Instant): List<LooksrareOrder> {
