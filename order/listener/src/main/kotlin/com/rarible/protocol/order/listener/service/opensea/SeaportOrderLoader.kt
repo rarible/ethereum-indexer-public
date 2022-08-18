@@ -8,6 +8,7 @@ import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import com.rarible.protocol.order.listener.misc.seaportError
 import com.rarible.protocol.order.listener.misc.seaportInfo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.channels.produce
@@ -26,46 +27,52 @@ class SeaportOrderLoader(
 ) {
     suspend fun load(cursor: String?) = coroutineScope {
         var lastSeaResult: SeaportOrders? = null
+        val handlesAsync = mutableListOf<Deferred<Unit?>>()
         for (result in produceNextSellOrders(cursor, properties.maxLoadResults)) {
             lastSeaResult = result
-            val orders = result.orders
-            val createdAts = orders.map { it.createdAt }
-            val minCreatedAt = createdAts.minOrNull()
-            val maxCreatedAt = createdAts.maxOrNull()
 
-            logger.seaportInfo(
-                buildString {
-                    append("Fetched ${orders.size}, ")
-                    append("minCreatedAt=$minCreatedAt, ")
-                    append("maxCreatedAt=$maxCreatedAt, ")
-                    append("cursor=${result.previous}, ")
-                    append("new orders: ${orders.joinToString { it.orderHash.toString() }}")
-                }
-            )
-            @Suppress("ConvertCallChainIntoSequence")
-            orders
-                .chunked(properties.saveBatchSize)
-                .map { chunk ->
-                    chunk.map {
-                        async {
-                            val order = openSeaOrderConverter.convert(it)
-                            if (
-                                order != null &&
-                                properties.saveEnabled &&
-                                openSeaOrderValidator.validate(order) &&
-                                orderRepository.findById(order.hash) == null
-                            ) {
-                                orderUpdateService.save(order)
-                                seaportSaveCounter.increment()
-                                orderUpdateService.updateMakeStock(order.hash)
-                                logger.seaportInfo("Saved new order ${order.hash}")
+            val handleAsync = async {
+                val orders = result.orders
+                val createdAts = orders.map { it.createdAt }
+                val minCreatedAt = createdAts.minOrNull()
+                val maxCreatedAt = createdAts.maxOrNull()
+
+                logger.seaportInfo(
+                    buildString {
+                        append("Fetched ${orders.size}, ")
+                        append("minCreatedAt=$minCreatedAt, ")
+                        append("maxCreatedAt=$maxCreatedAt, ")
+                        append("cursor=${result.previous}, ")
+                        append("new orders: ${orders.joinToString { it.orderHash.toString() }}")
+                    }
+                )
+                @Suppress("ConvertCallChainIntoSequence")
+                orders
+                    .chunked(properties.saveBatchSize)
+                    .map { chunk ->
+                        chunk.map {
+                            async {
+                                val order = openSeaOrderConverter.convert(it)
+                                if (
+                                    order != null &&
+                                    properties.saveEnabled &&
+                                    openSeaOrderValidator.validate(order) &&
+                                    orderRepository.findById(order.hash) == null
+                                ) {
+                                    orderUpdateService.save(order)
+                                    seaportSaveCounter.increment()
+                                    orderUpdateService.updateMakeStock(order.hash)
+                                    logger.seaportInfo("Saved new order ${order.hash}")
+                                }
                             }
-                        }
-                    }.awaitAll()
-                }
-                .flatten()
-                .lastOrNull()
+                        }.awaitAll()
+                    }
+                    .flatten()
+                    .lastOrNull()
+            }
+            handlesAsync.add(handleAsync)
         }
+        handlesAsync.awaitAll()
         lastSeaResult ?: throw IllegalStateException("Unexpected null result for cursor $cursor")
     }
 
