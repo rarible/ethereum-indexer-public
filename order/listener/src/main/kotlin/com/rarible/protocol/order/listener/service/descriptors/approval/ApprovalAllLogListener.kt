@@ -32,8 +32,7 @@ class ApprovalAllLogListener(
     }.then()
 
     private suspend fun reduceOrders(history: ApprovalHistory) {
-        val owner = history.owner
-        orderRepository.findActiveSaleOrdersHashesByMaker(owner).collect {
+        orderRepository.findActiveSaleOrdersHashesByMakerAndToken(maker = history.owner, token = history.collection).collect {
             orderReduceService.updateOrder(it)
         }
     }

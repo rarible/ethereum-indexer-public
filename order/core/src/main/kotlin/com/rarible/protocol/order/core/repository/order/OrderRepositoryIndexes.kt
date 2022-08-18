@@ -228,9 +228,17 @@ object OrderRepositoryIndexes {
         )
         .background()
 
+    @Deprecated("Remove in release 1.33")
     val BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS = Index()
         .on(Order::maker.name, Sort.Direction.ASC)
         .on(Order::status.name, Sort.Direction.ASC)
+        .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
+        .background()
+
+    val BY_MAKER_AND_STATUS_AND_TOKEN_ONLY_SALE_ORDERS = Index()
+        .on(Order::maker.name, Sort.Direction.ASC)
+        .on(Order::status.name, Sort.Direction.ASC)
+        .on("${Order::make.name}.${Asset::type.name}.${NftAssetType::token.name}", Sort.Direction.ASC)
         .partial(PartialIndexFilter.of(Order::make / Asset::type / AssetType::nft isEqualTo true))
         .background()
 
@@ -274,6 +282,7 @@ object OrderRepositoryIndexes {
 
         BY_BID_PLATFORM_STATUS_LAST_UPDATED_AT,
         BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS,
+        BY_MAKER_AND_STATUS_AND_TOKEN_ONLY_SALE_ORDERS,
         BY_CREATED_AT_AND_ID
     )
 }

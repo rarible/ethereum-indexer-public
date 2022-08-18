@@ -323,10 +323,11 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word> {
+    override fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address): Flow<Word> {
         val criteria = where(Order::maker).isEqualTo(maker)
             .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
             .and(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
+            .and(Order::make / AssetType::type / NftAssetType::token).isEqualTo(token)
         val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS.indexKeys)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
