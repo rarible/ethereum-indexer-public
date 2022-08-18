@@ -55,13 +55,13 @@ data class LooksrareLoadProperties(
     val enabled: Boolean = false,
     var saveEnabled: Boolean = false,
     val delay: Duration = Duration.ofMinutes(1),
-    val loadPeriod: Duration = Duration.ofSeconds(5),
+    val loadPeriod: Duration = Duration.ofSeconds(30),
     val loadMaxSize: Int = 150,
     val retry: Int = 5,
     val saveBatchSize: Int = 50,
     val retryDelay: Duration = Duration.ofMillis(500),
-    val pollingPeriod: Duration = Duration.ofSeconds(5),
-    val errorDelay: Duration = Duration.ofSeconds(5)
+    val pollingPeriod: Duration = Duration.ofSeconds(60),
+    val errorDelay: Duration = Duration.ofSeconds(1)
 )
 
 sealed class BaseOpenSeaOrderLoadWorkerProperties {

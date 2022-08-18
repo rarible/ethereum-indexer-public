@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -14,6 +15,7 @@ import com.rarible.protocol.order.core.model.TokenStandard
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.data.randomLooksrareOrder
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -24,13 +26,17 @@ internal class LooksrareOrderConverterTest {
     private val priceUpdateService = mockk<PriceUpdateService> {
         coEvery { withUpdatedPrices(any<OrderVersion>()) } answers { it.invocation.args.first() as OrderVersion }
     }
+    private val looksrareErrorCounter = mockk<RegisteredCounter> {
+        every { increment() } returns Unit
+    }
     private val currencyAddresses = OrderIndexerProperties.CurrencyContractAddresses(weth = randomAddress())
     private val tokenStandardProvider = mockk<TokenStandardProvider>()
 
     private val converter = LooksrareOrderConverter(
         priceUpdateService = priceUpdateService,
         tokenStandardProvider = tokenStandardProvider,
-        currencyAddresses = currencyAddresses
+        currencyAddresses = currencyAddresses,
+        looksrareErrorCounter = looksrareErrorCounter
     )
 
     @Test
