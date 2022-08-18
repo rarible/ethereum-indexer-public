@@ -1,6 +1,7 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.michaelbull.retry.retry
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -65,8 +66,8 @@ class EnsDomainsPropertiesProvider(
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
 
         // Let's try one more time in case of ENS API's 404 response
-        for (i in 1..RETRIES_ON_404) {
-            fetchProperties(itemId)?.let { return it }
+        retry {
+            fetchProperties(itemId) ?: throw Exception("Retry loading ENS properties")
         }
 
         // There is no reason to proceed with default resolvers (Rarible/OpenSea)
@@ -115,6 +116,6 @@ class EnsDomainsPropertiesProvider(
     companion object {
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
-        private const val RETRIES_ON_404 = 2
+        private const val RETRIES_ON_404 = 2L
     }
 }
