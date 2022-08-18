@@ -327,7 +327,7 @@ class MongoOrderRepository(
         val criteria = where(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
             .and(Order::maker).isEqualTo(maker)
             .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
-        val query = Query(criteria)
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS.indexKeys)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
     }
