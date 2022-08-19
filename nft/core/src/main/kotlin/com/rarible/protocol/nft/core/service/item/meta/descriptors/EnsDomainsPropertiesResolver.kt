@@ -127,6 +127,5 @@ class EnsDomainsPropertiesProvider(
     companion object {
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
-        private const val RETRIES_ON_404 = 2L
     }
 }
