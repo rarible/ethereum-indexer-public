@@ -3,8 +3,6 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
-import com.github.michaelbull.retry.policy.binaryExponentialBackoff
-import com.github.michaelbull.retry.retry
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -24,7 +22,6 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import scalether.domain.Address
-import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 
 @Component
@@ -69,16 +66,7 @@ class EnsDomainsPropertiesProvider(
 
     suspend fun get(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
-
-        // Will throw ItemResolutionAbortedException after unsuccessful retries
-        return retry(
-            binaryExponentialBackoff(
-                Duration.seconds(5).inWholeMilliseconds,
-                Duration.seconds(20).inWholeMilliseconds
-            )
-        ) {
-            fetchProperties(itemId)
-        }
+        return fetchProperties(itemId)
     }
 
     private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
