@@ -3,6 +3,8 @@
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.michaelbull.retry.policy.binaryExponentialBackoff
+import com.github.michaelbull.retry.retry
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -66,7 +68,9 @@ class EnsDomainsPropertiesProvider(
 
     suspend fun get(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
-        return fetchProperties(itemId)
+        return retry(binaryExponentialBackoff(500, 2000)) { // retry in 500, 1000 and 2000 ms
+            fetchProperties(itemId) ?: throw ItemResolutionAbortedException()
+        }
     }
 
     private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
