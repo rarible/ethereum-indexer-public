@@ -69,11 +69,11 @@ class EnsDomainsPropertiesProvider(
     suspend fun get(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
         return retry(binaryExponentialBackoff(500, 2000)) { // retry in 500, 1000 and 2000 ms
-            fetchProperties(itemId) ?: throw ItemResolutionAbortedException()
+            fetchProperties(itemId)
         }
     }
 
-    private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
+    private suspend fun fetchProperties(itemId: ItemId): ItemProperties {
         val url = "${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}"
         val (req, timeout) = externalHttpClient.getResponseSpec(url = url, id = itemId.toString()) ?: return null
         return try {
