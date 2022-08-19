@@ -11,7 +11,6 @@ import com.rarible.ethereum.converters.EnableScaletherMongoConversions
 import com.rarible.ethereum.domain.Blockchain
 import com.rarible.ethereum.listener.log.EnableLogListeners
 import com.rarible.ethereum.listener.log.persist.BlockRepository
-import com.rarible.ethereum.monitoring.BlockchainMonitoringWorker
 import com.rarible.protocol.dto.Erc20BalanceEventDto
 import com.rarible.protocol.dto.NftOwnershipEventDto
 import com.rarible.protocol.erc20.api.subscriber.Erc20IndexerEventsConsumerFactory
@@ -140,17 +139,6 @@ class OrderListenerConfiguration(
                 )
             }
         ).apply { start() }
-    }
-
-    // TODO: this bean is apparently configured in the ethereum-core (BlockchainMonitoringConfiguration), no need to configure here.
-    @Bean
-    fun blockchainMonitoringWorker(): BlockchainMonitoringWorker {
-        return BlockchainMonitoringWorker(
-            properties = listenerProperties.monitoringWorker,
-            blockchain = commonProperties.blockchain,
-            meterRegistry = meterRegistry,
-            blockRepository = blockRepository
-        )
     }
 
     @Bean
