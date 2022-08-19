@@ -65,6 +65,11 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionConsumerWorker(internalActionHandler: ActionEventHandler): ConsumerWorkerHolder<ActionEvent> {
         logger.info("Creating batch of ${nftIndexerProperties.actionWorkersCount} action workers")
         val workers = (1..nftIndexerProperties.actionWorkersCount).map {
@@ -99,6 +104,11 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionConsumerWorkerStarter(actionConsumerWorker: ConsumerWorkerHolder<ActionEvent>): CommandLineRunner {
         return CommandLineRunner {
             actionConsumerWorker.start()
