@@ -71,7 +71,12 @@ class EnsDomainsPropertiesProvider(
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
 
         // Will throw ItemResolutionAbortedException after unsuccessful retries
-        return retry(binaryExponentialBackoff(0, Duration.minutes(5L).inWholeMilliseconds)) {
+        return retry(
+            binaryExponentialBackoff(
+                Duration.seconds(5).inWholeMilliseconds,
+                Duration.seconds(20).inWholeMilliseconds
+            )
+        ) {
             fetchProperties(itemId)
         }
     }
@@ -96,7 +101,11 @@ class EnsDomainsPropertiesProvider(
                 }?.awaitFirstOrNull() ?: return null
 
             val json = JsonPropertiesParser.parse(itemId, rawProperties)
-            json?.let { map(json, rawProperties) } ?: throw ItemResolutionAbortedException()
+            if (json == null || json.isEmpty) {
+                throw ItemResolutionAbortedException()
+            } else {
+                map(json, rawProperties)
+            }
         } catch (e: Throwable) {
             logMetaLoading(itemId.toString(), "failed to get EnsDomains properties by $url due to ${e.message}}", true)
             throw ItemResolutionAbortedException()
