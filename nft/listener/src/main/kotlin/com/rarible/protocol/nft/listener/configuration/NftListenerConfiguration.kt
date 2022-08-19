@@ -61,7 +61,7 @@ class NftListenerConfiguration(
                 workerName = "nftCollectionMetaExtender.$it"
             )
         }
-        return ConsumerWorkerHolder(workers)
+        return ConsumerWorkerHolder(workers).apply { start() }
     }
 
     @Bean
@@ -114,8 +114,4 @@ class NftListenerConfiguration(
             actionConsumerWorker.start()
         }
     }
-
-    @Bean
-    fun collectionMetaExtenderWorkerStarter(collectionMetaExtenderWorker: ConsumerWorkerHolder<NftCollectionEventDto>): CommandLineRunner =
-        CommandLineRunner { collectionMetaExtenderWorker.start() }
 }
