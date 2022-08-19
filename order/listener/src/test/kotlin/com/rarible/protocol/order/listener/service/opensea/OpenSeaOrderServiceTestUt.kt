@@ -6,6 +6,7 @@ import com.rarible.opensea.client.model.v1.OpenSeaOrderItems
 import com.rarible.opensea.client.model.OperationResult
 import com.rarible.opensea.client.model.v1.OrdersRequest
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -18,10 +19,18 @@ import java.time.Duration
 import java.util.stream.Stream
 
 internal class OpenSeaOrderServiceTestUt {
+    private val seaportRequestCursorProducer = mockk<SeaportRequestCursorProducer>()
     private val openSeaClient: OpenSeaClient = mockk()
     private val seaportProtocolClient: SeaportProtocolClient = mockk()
     private val properties =  OrderListenerProperties()
-    private val openSeaOrderService = OpenSeaOrderServiceImpl(openSeaClient, seaportProtocolClient, properties)
+    private val seaportLoad = SeaportLoadProperties()
+    private val openSeaOrderService = OpenSeaOrderServiceImpl(
+        seaportRequestCursorProducer,
+        openSeaClient,
+        seaportProtocolClient,
+        seaportLoad,
+        properties
+    )
 
     private companion object {
         @JvmStatic

@@ -10,6 +10,7 @@ import com.rarible.opensea.client.model.v1.*
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.opensea.client.model.v2.OrdersRequest as SeaportOrdersRequest
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
+import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -19,35 +20,54 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.ceil
+import kotlin.math.max
 
 @Component
 @CaptureSpan(type = SpanType.EXT)
 class OpenSeaOrderServiceImpl(
+    private val seaportRequestCursorProducer: SeaportRequestCursorProducer,
     private val openSeaClient: OpenSeaClient,
     private val seaportProtocolClient: SeaportProtocolClient,
+    private val seaportLoad: SeaportLoadProperties,
     properties: OrderListenerProperties
 ) : OpenSeaOrderService {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val loadOpenSeaOrderSide = convert(properties.openSeaOrderSide)
-    private val seaportLoad = properties.seaportLoad
 
     override suspend fun getNextSellOrders(nextCursor: String?): SeaportOrders {
-        val request = SeaportOrdersRequest(
-            cursor = nextCursor,
-            limit = seaportLoad.loadMaxSize
+        val requests = mutableListOf<SeaportOrdersRequest>()
+        requests.add(
+            SeaportOrdersRequest(
+                cursor = nextCursor,
+                limit = seaportLoad.loadMaxSize
+            )
         )
-        var lastError: OpenSeaError? = null
-        var retries = 0
-
-        while (retries < seaportLoad.retry) {
-            when (val result = seaportProtocolClient.getListOrders(request)) {
-                is OperationResult.Success -> return result.result
-                is OperationResult.Fail -> lastError = result.error
+        if (nextCursor != null && seaportLoad.asyncRequestsEnabled) {
+            seaportRequestCursorProducer.produceNextFromCursor(
+                cursor = nextCursor,
+                step = seaportLoad.loadMaxSize,
+                amount = max(0, seaportLoad.maxAsyncRequests - 1)
+            ).forEach { cursor ->
+                requests.add(
+                    SeaportOrdersRequest(
+                        cursor = cursor,
+                        limit = seaportLoad.loadMaxSize
+                    )
+                )
             }
-            retries += 1
-            delay(seaportLoad.retryDelay)
         }
-        throw IllegalStateException("Can't fetch Seaport orders, number of attempts exceeded, last error: $lastError")
+        return coroutineScope {
+            val results = requests.map { async { getOrders(it) } }.awaitAll()
+            when (results.size) {
+                0 -> throw IllegalStateException("Unexpected results size for $nextCursor")
+                1 -> results.single()
+                else -> {
+                    val orders = results.map { it.orders }.flatten().distinct()
+                    val result = results.lastWithPreviousCursor() ?: results.first()
+                    result.copy(orders = orders)
+                }
+            }
+        }
     }
 
     override suspend fun getNextOrdersBatch(
@@ -94,6 +114,32 @@ class OpenSeaOrderServiceImpl(
         } while (result.isNotEmpty() && result.size >= MAX_SIZE && orders.size <= MAX_OFFSET)
 
         return orders
+    }
+
+    private suspend fun getOrders(request: SeaportOrdersRequest): SeaportOrders {
+        var lastError: OpenSeaError? = null
+        var retries = 0
+
+        while (retries < seaportLoad.retry) {
+            when (val result = seaportProtocolClient.getListOrders(request)) {
+                is OperationResult.Success -> return result.result
+                is OperationResult.Fail -> lastError = result.error
+            }
+            retries += 1
+            delay(seaportLoad.retryDelay)
+        }
+        throw IllegalStateException("Can't fetch Seaport orders, number of attempts exceeded, last error: $lastError")
+    }
+
+    private fun List<SeaportOrders>.lastWithPreviousCursor(): SeaportOrders? {
+        var lastSeenWithPrevias: SeaportOrders? = null
+        for (result in this) {
+            if (result.previous != null)
+                lastSeenWithPrevias = result
+            if (result.previous == null)
+                return lastSeenWithPrevias
+        }
+        return lastSeenWithPrevias
     }
 
     private suspend fun getOrders(request: OrdersRequest): List<OpenSeaOrder> {

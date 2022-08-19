@@ -46,6 +46,8 @@ data class SeaportLoadProperties(
     val saveBatchSize: Int = 50,
     val loadMaxSize: Int = 50,
     val maxLoadResults: Int = 10,
+    var asyncRequestsEnabled: Boolean = false,
+    var maxAsyncRequests: Int = 5,
     val retryDelay: Duration = Duration.ofMillis(500),
     val pollingPeriod: Duration = Duration.ofSeconds(10),
     val errorDelay: Duration = Duration.ofSeconds(5)
