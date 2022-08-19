@@ -21,6 +21,7 @@ import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -83,22 +84,18 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionExecutorWorker(handler: ActionJobHandler): JobDaemonWorker {
         return JobDaemonWorker(
             jobHandler = handler,
             meterRegistry = meterRegistry,
             properties = nftListenerProperties.actionExecute.daemon,
             workerName = "action-executor-worker"
-        )
-    }
-
-    @Bean
-    fun actionExecutorWorkerStarter(actionExecutorWorker: JobDaemonWorker): CommandLineRunner {
-        return CommandLineRunner {
-            if (nftListenerProperties.actionExecute.enabled) {
-                actionExecutorWorker.start()
-            }
-        }
+        ).apply { start() }
     }
 
     @Bean
