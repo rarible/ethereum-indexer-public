@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.api.configuration
 
-import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.blockchain.scanner.ethereum.EnableEthereumScanner
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.lockredis.EnableRaribleRedisLock
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Configuration
 import scalether.transaction.MonoTransactionSender
 import java.math.BigInteger
 
-@EnableMongock
 @Configuration
 @EnableConfigurationProperties(NftIndexerApiProperties::class)
 @EnableRaribleCache
