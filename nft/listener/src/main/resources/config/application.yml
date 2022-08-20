@@ -23,10 +23,6 @@ spring:
 mongock:
   change-logs-scan-package:
     - com.rarible.ethereum.listener.log.mongock
-  mongo-db:
-    write-concern:
-      w: 0
-    read-concern: local
 
 rarible:
   core:
