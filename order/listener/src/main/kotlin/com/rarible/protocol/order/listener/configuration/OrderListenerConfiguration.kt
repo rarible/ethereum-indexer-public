@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.configuration
 
-import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.daemon.sequential.ConsumerWorker
 import com.rarible.core.kafka.RaribleKafkaConsumer
@@ -50,7 +49,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
-@EnableMongock
 @EnableContractService
 @EnableScaletherMongoConversions
 @EnableLogListeners(scanPackage = [OrderListenerConfiguration::class])

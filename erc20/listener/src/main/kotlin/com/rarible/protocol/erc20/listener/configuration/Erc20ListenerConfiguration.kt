@@ -1,6 +1,5 @@
 package com.rarible.protocol.erc20.listener.configuration
 
-import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.reduce.blockchain.BlockchainSnapshotStrategy
 import com.rarible.core.reduce.service.ReduceService
 import com.rarible.ethereum.contract.EnableContractService
@@ -27,7 +26,6 @@ import scalether.core.MonoEthereum
 import scalether.domain.Address
 import scalether.transaction.ReadOnlyMonoTransactionSender
 
-@EnableMongock
 @Configuration
 @EnableContractService
 @EnableScaletherMongoConversions
