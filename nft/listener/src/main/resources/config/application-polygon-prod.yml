@@ -1,7 +1,7 @@
 spring:
   data:
     mongodb:
-      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}/?w=0&readConcernLevel=local
+      uri: mongodb://${mongodb.username}:${mongodb.password}@${mongodb.hosts}/?w=1&readConcernLevel=local
 
 blockchain:
   scanner:
