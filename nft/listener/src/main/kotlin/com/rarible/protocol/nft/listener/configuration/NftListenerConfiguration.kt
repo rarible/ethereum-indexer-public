@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.listener.configuration
 
+import com.github.cloudyrock.spring.v5.EnableMongock
 import com.rarible.core.application.ApplicationEnvironmentInfo
 import com.rarible.core.cache.EnableRaribleCache
 import com.rarible.core.daemon.job.JobDaemonWorker
@@ -25,6 +26,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
+@EnableMongock
 @EnableRaribleRedisLock
 @EnableRaribleCache
 @Configuration
