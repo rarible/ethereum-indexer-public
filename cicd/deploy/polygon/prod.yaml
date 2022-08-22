@@ -41,6 +41,8 @@ polygon-nft-api:
       max_direct_memory_megabytes: 512
 
 polygon-nft-listener:
+  environments:
+    MANAGEMENT_HEALTH_PROBES_ENABLED: false
   resources:
     jvm:
       xmx_megabytes: 2048

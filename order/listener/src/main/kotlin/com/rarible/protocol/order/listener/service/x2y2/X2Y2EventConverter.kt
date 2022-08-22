@@ -89,6 +89,7 @@ class X2Y2EventConverter(
                 makeValue = prizeNormalizer.normalize(make),
                 takeValue = prizeNormalizer.normalize(take),
                 source = HistorySource.X2Y2,
+                date = date,
                 originFees = fee,
                 adhoc = true,
                 counterAdhoc = false,
@@ -109,6 +110,7 @@ class X2Y2EventConverter(
                 makeValue = prizeNormalizer.normalize(take),
                 takeValue = prizeNormalizer.normalize(make),
                 source = HistorySource.X2Y2,
+                date = date,
                 originFees = fee,
                 adhoc = false,
                 counterAdhoc = true

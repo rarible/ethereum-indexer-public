@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
-import com.rarible.core.common.flatMapAsync
 import com.rarible.core.logging.Logger
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
@@ -10,6 +9,10 @@ import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.listener.configuration.LooksrareLoadProperties
 import com.rarible.protocol.order.listener.misc.looksrareError
 import com.rarible.protocol.order.listener.misc.looksrareInfo
+import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.springframework.stereotype.Component
 import java.time.Instant
 
@@ -26,31 +29,38 @@ class LooksrareOrderLoader(
     suspend fun load(
         listedAfter: Instant,
         listedBefore: Instant
-    ): List<LooksrareOrder> {
+    ): List<Word> {
         val orders = safeGetNextSellOrders(listedAfter, listedBefore)
         logOrderLoad(orders, listedAfter, listedBefore)
-
-        orders
-            .mapNotNull{ looksrareOrderConverter.convert(it) }
-            .chunked(properties.saveBatchSize)
-            .flatMapAsync { chunk ->
-                chunk.map {
-                    if (properties.saveEnabled && orderRepository.findById(it.hash) == null) {
-                        orderUpdateService.save(it)
-                        looksrareSaveCounter.increment()
-                        logger.looksrareInfo("Saved new order ${it.hash}")
-                    }
+        return coroutineScope {
+            orders
+                .chunked(properties.saveBatchSize)
+                .map { chunk ->
+                    chunk.map {
+                        async {
+                            if (orderRepository.findById(it.hash) != null) {
+                                return@async null
+                            }
+                            val order = looksrareOrderConverter.convert(it)
+                            if (order != null && properties.saveEnabled) {
+                                orderUpdateService.save(order)
+                                looksrareSaveCounter.increment()
+                                logger.looksrareInfo("Saved new order ${it.hash}")
+                            }
+                            return@async order?.hash
+                        }
+                    }.awaitAll()
                 }
-            }.lastOrNull()
-
-        return orders
+                .flatten()
+                .filterNotNull()
+                .also { logger.looksrareInfo("Saved ${it.size}") }
+        }
     }
 
     private suspend fun safeGetNextSellOrders(listedAfter: Instant, listedBefore: Instant): List<LooksrareOrder> {
         return try {
             looksrareOrderService.getNextSellOrders(listedAfter, listedBefore).also { orders ->
-                // Orders already sorted by startTime as desc
-                orders.firstOrNull()?.startTime?.let {
+                orders.maxOfOrNull { it.startTime }?.let {
                     looksrareOrderDelayGauge.set(Instant.now().epochSecond - it.epochSecond)
                 }
             }

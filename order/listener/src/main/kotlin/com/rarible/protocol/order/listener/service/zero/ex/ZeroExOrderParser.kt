@@ -46,7 +46,7 @@ class ZeroExOrderParser(
             txHash = txHash,
             txInput = txInput,
             to = event.log().address(),
-            id = calledMethodSignatureId!!
+            ids = arrayOf(calledMethodSignatureId!!)
         )
         return parse(
             txHash = txHash,

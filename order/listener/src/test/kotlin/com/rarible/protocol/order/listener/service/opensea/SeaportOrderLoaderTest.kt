@@ -11,19 +11,23 @@ import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.data.randomSeaportOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
-internal class SeaportOrderLoaderTest {
+internal class eaportOrderLoaderTest {
     private val openSeaOrderService = mockk<OpenSeaOrderService>()
     private val openSeaOrderConverter = mockk<OpenSeaOrderConverter>()
     private val openSeaOrderValidator = mockk<OpenSeaOrderValidator>()
     private val orderRepository = mockk<OrderRepository>()
     private val orderUpdateService = mockk<OrderUpdateService>()
     private val seaportSaveCounter = mockk<RegisteredCounter>()
+    private val properties = SeaportLoadProperties(saveEnabled = true)
 
     private val handler =  SeaportOrderLoader(
         openSeaOrderService = openSeaOrderService,
@@ -31,7 +35,7 @@ internal class SeaportOrderLoaderTest {
         openSeaOrderValidator = openSeaOrderValidator,
         orderRepository = orderRepository,
         orderUpdateService = orderUpdateService,
-        properties = SeaportLoadProperties(saveEnabled = true),
+        properties = properties,
         seaportSaveCounter = seaportSaveCounter
     )
 
@@ -82,5 +86,126 @@ internal class SeaportOrderLoaderTest {
         coVerify(exactly = 1) { orderUpdateService.save(any()) }
         coVerify(exactly = 1) { orderUpdateService.save(validOrderVersion1) }
         verify(exactly = 1) { seaportSaveCounter.increment() }
+    }
+
+    @Test
+    fun `should get and save all new seaport orders while previas is not null`() = runBlocking<Unit> {
+        val clientOrder1 = randomSeaportOrder()
+        val orderVersion1 = createOrderVersion()
+
+        val clientOrder2 = randomSeaportOrder()
+        val orderVersion2 = createOrderVersion()
+
+        val clientOrder3 = randomSeaportOrder()
+        val orderVersion3 = createOrderVersion()
+
+        val previous = "previous0"
+
+        val seaportOrders1 = SeaportOrders(
+            next = "next1",
+            previous = "previous1",
+            orders = listOf(clientOrder1)
+        )
+        val seaportOrders2 = SeaportOrders(
+            next = "next2",
+            previous = "previous2",
+            orders = listOf(clientOrder2)
+        )
+        val seaportOrders3 = SeaportOrders(
+            next = "next3",
+            previous = null,
+            orders = listOf(clientOrder3)
+        )
+        coEvery { openSeaOrderService.getNextSellOrders(previous) } returns seaportOrders1
+        coEvery { openSeaOrderService.getNextSellOrders(seaportOrders1.previous) } returns seaportOrders2
+        coEvery { openSeaOrderService.getNextSellOrders(seaportOrders2.previous) } returns seaportOrders3
+
+        coEvery { openSeaOrderConverter.convert(clientOrder1) } returns orderVersion1
+        coEvery { openSeaOrderConverter.convert(clientOrder2) } returns orderVersion2
+        coEvery { openSeaOrderConverter.convert(clientOrder3) } returns orderVersion3
+
+        every { openSeaOrderValidator.validate(orderVersion1) } returns true
+        every { openSeaOrderValidator.validate(orderVersion2) } returns true
+        every { openSeaOrderValidator.validate(orderVersion3) } returns true
+
+        coEvery { orderRepository.findById(orderVersion1.hash) } returns null
+        coEvery { orderRepository.findById(orderVersion2.hash) } returns null
+        coEvery { orderRepository.findById(orderVersion3.hash) } returns null
+
+        coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
+        coEvery { orderUpdateService.save(orderVersion2) } returns createOrder()
+        coEvery { orderUpdateService.save(orderVersion3) } returns createOrder()
+
+        coEvery { orderUpdateService.updateMakeStock(orderVersion1.hash) } returns mockk()
+        coEvery { orderUpdateService.updateMakeStock(orderVersion2.hash) } returns mockk()
+        coEvery { orderUpdateService.updateMakeStock(orderVersion3.hash) } returns mockk()
+        every { seaportSaveCounter.increment() } returns Unit
+
+        val result = handler.load(previous)
+        assertThat(result).isEqualTo(seaportOrders3)
+
+        coVerifyOrder {
+            openSeaOrderService.getNextSellOrders(previous)
+            openSeaOrderService.getNextSellOrders(seaportOrders1.previous)
+            openSeaOrderService.getNextSellOrders(seaportOrders2.previous)
+        }
+        coVerify(exactly = 1) { orderUpdateService.save(orderVersion1) }
+        coVerify(exactly = 1) { orderUpdateService.save(orderVersion2) }
+        coVerify(exactly = 1) { orderUpdateService.save(orderVersion3) }
+    }
+
+    @Test
+    fun `should throw exception if client fail`() = runBlocking<Unit> {
+        val clientOrder1 = randomSeaportOrder()
+        val orderVersion1 = createOrderVersion()
+
+        val previous = "previous0"
+
+        val seaportOrders1 = SeaportOrders(
+            next = "next1",
+            previous = "previous1",
+            orders = listOf(clientOrder1)
+        )
+        coEvery { openSeaOrderService.getNextSellOrders(previous) } returns seaportOrders1
+        coEvery { openSeaOrderService.getNextSellOrders(seaportOrders1.previous) } throws RuntimeException("Fail")
+
+        coEvery { openSeaOrderConverter.convert(clientOrder1) } returns orderVersion1
+        every { openSeaOrderValidator.validate(orderVersion1) } returns true
+        coEvery { orderRepository.findById(orderVersion1.hash) } returns null
+        coEvery { orderUpdateService.save(orderVersion1) } returns createOrder()
+        coEvery { orderUpdateService.updateMakeStock(orderVersion1.hash) } returns mockk()
+        every { seaportSaveCounter.increment() } returns Unit
+
+        assertThrows<RuntimeException> {
+            runBlocking {
+                handler.load(previous)
+            }
+        }
+    }
+
+    @Test
+    fun `should get only maxLoadResults`() = runBlocking<Unit> {
+        for (i in 1..(properties.maxLoadResults * 2)) {
+            val clientOrder = randomSeaportOrder()
+            val orderVersion = createOrderVersion()
+
+            val seaportOrders = SeaportOrders(
+                next = "next$i",
+                previous = "previous$i",
+                orders = listOf(clientOrder)
+            )
+            coEvery { openSeaOrderService.getNextSellOrders("previous${i-1}") } returns seaportOrders
+            coEvery { openSeaOrderConverter.convert(clientOrder) } returns orderVersion
+            every { openSeaOrderValidator.validate(orderVersion) } returns true
+            coEvery { orderRepository.findById(orderVersion.hash) } returns null
+            coEvery { orderUpdateService.save(orderVersion) } returns createOrder()
+            coEvery { orderUpdateService.updateMakeStock(orderVersion.hash) } returns mockk()
+        }
+        every { seaportSaveCounter.increment() } returns Unit
+
+        val result = handler.load("previous0")
+        assertThat(result.previous).isEqualTo("previous${properties.maxLoadResults}")
+        coVerify(exactly = properties.maxLoadResults) { openSeaOrderService.getNextSellOrders(any()) }
+        coVerify(exactly = properties.maxLoadResults) { orderUpdateService.save(any()) }
     }
 }

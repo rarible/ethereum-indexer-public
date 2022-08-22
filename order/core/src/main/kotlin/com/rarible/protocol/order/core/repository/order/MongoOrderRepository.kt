@@ -232,6 +232,7 @@ class MongoOrderRepository(
                 Order::maker isEqualTo maker,
                 Order::status ne OrderStatus.CANCELLED,
                 Order::data / OrderCounterableData::counter lt counter,
+                Order::data / OrderCounterableData::counter exists true
             )
         )
         query.withHint(OrderRepositoryIndexes.BY_PLATFORM_MAKER_COUNTER_STATUS.indexKeys)
@@ -322,11 +323,12 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    override fun findActiveSaleOrdersHashesByMaker(maker: Address): Flow<Word> {
-        val criteria = where(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
-            .and(Order::maker).isEqualTo(maker)
+    override fun findActiveSaleOrdersHashesByMakerAndToken(maker: Address, token: Address): Flow<Word> {
+        val criteria = where(Order::maker).isEqualTo(maker)
             .and(Order::status).isEqualTo(OrderStatus.ACTIVE)
-        val query = Query(criteria)
+            .and(Order::make / AssetType::type / AssetType::nft).isEqualTo(true)
+            .and(Order::make / AssetType::type / NftAssetType::token).isEqualTo(token)
+        val query = Query(criteria).withHint(OrderRepositoryIndexes.BY_MAKER_AND_STATUS_ONLY_SALE_ORDERS.indexKeys)
         query.fields().include("_id")
         return template.find(query, Document::class.java, COLLECTION).map { Word.apply(it.getString("_id")) }.asFlow()
     }

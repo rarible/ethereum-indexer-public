@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.rarible.protocol.order.core.trace
 
 import com.fasterxml.jackson.annotation.JsonInclude
@@ -11,7 +13,6 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
-import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters
 import scalether.core.MonoEthereum
 import scalether.domain.Address
@@ -20,7 +21,6 @@ import scalether.java.Lists
 class GethTransactionTraceProvider(
     private val ethereum: MonoEthereum
 ) : TransactionTraceProvider {
-    private val logger = LoggerFactory.getLogger(javaClass)
 
     private val mapper = ObjectMapper().apply {
         registerModule(KotlinModule())
@@ -28,16 +28,12 @@ class GethTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
-        return trace(transactionHash).findTrace(to, id)?.toSimpleTraceResult()
-    }
-
     override suspend fun traceAndFindAllCallsTo(
         transactionHash: Word,
         to: Address,
-        id: Binary
+        ids: Set<Binary>,
     ): List<SimpleTraceResult> {
-        return trace(transactionHash).findTraces(to, id).mapNotNull { it.toSimpleTraceResult() }
+        return trace(transactionHash).findTraces(to, ids).map { it.toSimpleTraceResult() }
     }
 
     suspend fun trace(transactionHash: Word): TraceResult {
@@ -69,18 +65,16 @@ class GethTransactionTraceProvider(
         val input: Binary,
         val calls: List<TraceResult> = emptyList()
     ) {
-        fun findTrace(to: Address, id: Binary): TraceResult? {
-            if (to == to && input.methodSignatureId() == id) {
-                return this
-            }
-            return calls
-                .asSequence()
-                .mapNotNull { it.findTrace(to, id) }
-                .firstOrNull()
+        fun findTraces(to: Address, ids: Set<Binary>): List<TraceResult> {
+            return calls.flatMap { it.findTracesRaw(to, ids) }
         }
 
-        fun findTraces(to: Address, id: Binary): List<TraceResult> {
-            return calls.mapNotNull { it.findTrace(to, id) }
+        private fun findTracesRaw(to: Address, ids: Set<Binary>): List<TraceResult> {
+            if (this.to == to && input.methodSignatureId() in ids) {
+                return listOf(this)
+            }
+            return calls
+                .flatMap { it.findTracesRaw(to, ids) }
         }
 
         fun toSimpleTraceResult(): SimpleTraceResult {

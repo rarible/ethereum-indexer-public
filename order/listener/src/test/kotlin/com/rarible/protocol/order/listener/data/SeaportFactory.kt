@@ -4,6 +4,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomBinary
 import com.rarible.core.test.data.randomLong
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.opensea.client.model.v2.Account
 import com.rarible.opensea.client.model.v2.Consideration
@@ -68,7 +69,7 @@ fun randomProtocolData(): ProtocolData {
 
 fun randomAccount(): Account {
     return Account(
-        address = randomAddress()
+        address = randomString()
     )
 }
 

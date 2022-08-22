@@ -58,7 +58,7 @@ internal class LooksrareOrderLoaderTest {
         coEvery { orderUpdateService.save(orderVersion2) } returns order2
 
         val orders = loader.load(listedAfter, listedBefore)
-        assertThat(orders).containsExactlyInAnyOrder(looksrareOrder1, looksrareOrder2)
+        assertThat(orders).containsExactlyInAnyOrder(looksrareOrder1.hash, looksrareOrder2.hash)
 
         coVerify(exactly = 1) { orderUpdateService.save(orderVersion1) }
         coVerify(exactly = 1) { orderUpdateService.save(orderVersion2) }

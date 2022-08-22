@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.event
 
 import com.rarible.protocol.order.core.converters.dto.OrderActivityConverter
-import com.rarible.protocol.order.core.model.ActivityResult
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher

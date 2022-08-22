@@ -1,7 +1,6 @@
 package com.rarible.protocol.nft.listener.job
 
 import com.rarible.core.common.nowMillis
-import com.rarible.core.daemon.job.JobDaemonWorker
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
@@ -17,6 +16,7 @@ import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.EnsDomainService
+import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import com.rarible.protocol.nft.listener.data.createRandomItemProperties
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
@@ -24,7 +24,6 @@ import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -41,7 +40,7 @@ internal class BurnActionExecutorFt : AbstractIntegrationTest() {
     private lateinit var reduceService: ItemReduceService
 
     @Autowired
-    private lateinit var actionExecutorWorker: JobDaemonWorker
+    private lateinit var handler: ActionJobHandler
 
     @Test
     fun `should execute burn action for ens domain`() = withReducer(ReduceVersion.V1) {
@@ -75,13 +74,12 @@ internal class BurnActionExecutorFt : AbstractIntegrationTest() {
             )
         )
         endDoomainService.onGetProperties(itemId, properties)
-        actionExecutorWorker.start()
+        handler.handle()
 
         Wait.waitAssert {
             val updatedItem = itemRepository.findById(itemId).awaitFirst()
             assertThat(updatedItem.deleted).isTrue()
         }
-        actionExecutorWorker.close()
     }
 
     suspend fun saveItemHistory(data: ItemHistory): ItemHistory {

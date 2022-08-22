@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.v2
 
 import com.rarible.protocol.order.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -10,11 +9,10 @@ import reactor.core.publisher.Mono
 import scalether.domain.Address
 import java.math.BigInteger
 
-@FlowPreview
 @IntegrationTest
 class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
     override fun hashToSign(structHash: Word): Word = eip712Domain.hashToSign(structHash)
-    override fun fills(hash: ByteArray): Mono<BigInteger> = exchange.fills(hash)
+    override fun fills(hash: ByteArray): Mono<BigInteger> = exchange.fills(hash).call()
     override fun exchangeAddress(): Address = exchange.address()
 
     @BeforeEach
@@ -31,6 +29,11 @@ class ExchangeV2MatchDescriptorTest : ExchangeV2BaseMatchDescriptorTests() {
     @Test
     fun `fully match order sell order - data V3`() = runBlocking<Unit> {
         `test fully match order sell order - data V3`()
+    }
+
+    @Test
+    fun directPurchase() = runBlocking {
+        `test directPurchase`()
     }
 
     @Test

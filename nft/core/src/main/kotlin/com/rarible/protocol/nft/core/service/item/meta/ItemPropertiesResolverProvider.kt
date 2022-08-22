@@ -19,10 +19,13 @@ import com.rarible.protocol.nft.core.service.item.meta.descriptors.RectguyCatsPr
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.StonerCatsPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.WaifusionPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.YInsurePropertiesResolver
+import com.rarible.protocol.nft.core.service.item.meta.descriptors.polygon.SandboxPropertiesResolver
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
+//TODO separate ethereum and polygon resolvers
 @Component
+
 class ItemPropertiesResolverProvider(
     raribleResolver: RariblePropertiesResolver,
     cryptoKittiesResolver: CryptoKittiesPropertiesResolver,
@@ -40,7 +43,8 @@ class ItemPropertiesResolverProvider(
     aavegotchiPropertiesResolver: AavegotchiPropertiesResolver,
     alchemistCruciblePropertiesResolver: AlchemistCruciblePropertiesResolver,
     pegaxyPropertiesResolver: PegaxyPropertiesResolver,
-    rectguyCatsPropertiesResolver: RectguyCatsPropertiesResolver
+    rectguyCatsPropertiesResolver: RectguyCatsPropertiesResolver,
+    sandboxPropertiesResolver: SandboxPropertiesResolver
 ) {
     /**
      * Must not be returned from the [orderedResolvers]
@@ -65,6 +69,7 @@ class ItemPropertiesResolverProvider(
         alchemistCruciblePropertiesResolver,
         pegaxyPropertiesResolver,
         rectguyCatsPropertiesResolver,
+        sandboxPropertiesResolver,
         // Default resolvers, should be last in the list
         lazyItemPropertiesResolver,
         raribleResolver

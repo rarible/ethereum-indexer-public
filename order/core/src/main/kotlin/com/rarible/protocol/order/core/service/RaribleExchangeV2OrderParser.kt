@@ -1,33 +1,50 @@
 package com.rarible.protocol.order.core.service
 
-import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
-import com.rarible.protocol.contracts.exchange.v2.ExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent
-import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent as MatchEventRev3
-import com.rarible.protocol.contracts.exchange.metatx.EIP712MetaTransaction
+import com.rarible.protocol.contracts.exchange.v2.rev3.ExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.misc.zeroWord
-import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.model.AssetType
+import com.rarible.protocol.order.core.model.CollectionAssetType
+import com.rarible.protocol.order.core.model.Erc20AssetType
+import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.GenerativeArtAssetType
+import com.rarible.protocol.order.core.model.NftAssetType
+import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderData
+import com.rarible.protocol.order.core.model.OrderDataVersion
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
+import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
+import com.rarible.protocol.order.core.model.Part
+import com.rarible.protocol.order.core.model.RaribleMatchedOrders
 import com.rarible.protocol.order.core.model.RaribleMatchedOrders.SimpleOrder
+import com.rarible.protocol.order.core.model.order.logger
+import com.rarible.protocol.order.core.model.toAssetType
+import com.rarible.protocol.order.core.model.toPart
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
+import scala.Tuple2
 import scalether.domain.Address
 import java.math.BigInteger
+import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent as MatchEventRev3
 
 @Component
 class RaribleExchangeV2OrderParser(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val traceCallService: TraceCallService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
 ) {
     suspend fun parseMatchedOrders(txHash: Word, txInput: Binary, event: MatchEventRev3): RaribleMatchedOrders? {
         val inputs = getInputs(txHash, txInput)
-        return inputs.map { parseOrders(it) }.firstOrNull {
+        val parsed = inputs.map { parseMatchedOrders(it) }
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: ${parsed.map { Triple(it, it.left.hash, it.right.hash) }}")
+        return parsed.firstOrNull {
             Word.apply(event.leftHash()) == it.left.hash && Word.apply(event.rightHash()) == it.right.hash
         }
     }
@@ -38,7 +55,9 @@ class RaribleExchangeV2OrderParser(
         val leftAssetType = event.leftAsset().toAssetType()
         val rightAssetType = event.rightAsset().toAssetType()
 
-        return inputs.map { parseOrders(it) }.firstOrNull { orders ->
+        val parsed = inputs.map { parseMatchedOrders(it) }
+        logger.info("Hash: $txHash; Event: $event; Parsed Matched Orders: ${parsed.map { Triple(it, it.left.hash, it.right.hash) }}")
+        return parsed.firstOrNull { orders ->
             val leftHash = Order.hashKey(
                 event.leftMaker(),
                 if (orders.left.makeAssetType.isCollection) leftAssetType.tryToConvertInCollection() else leftAssetType,
@@ -58,98 +77,91 @@ class RaribleExchangeV2OrderParser(
     }
 
     suspend fun getInputs(txHash: Word, txInput: Binary): List<Binary> {
-        val matchOrderSignature = ExchangeV2.matchOrdersSignature().id()
-        val metaTransactionSignature = EIP712MetaTransaction.executeMetaTransactionSignature().id()
-        return if (txInput.methodSignatureId() in setOf(matchOrderSignature, metaTransactionSignature)) {
-            listOf(txInput)
-        } else if (featureFlags.skipGetTrace) {
-            emptyList()
-        } else {
-            traceCallService.findAllRequiredCallInputs(
-                txHash,
-                txInput,
-                exchangeContractAddresses.v2,
-                ExchangeV2.matchOrdersSignature().id()
-            )
-        }
-    }
-
-    fun parseOrders(input: Binary): RaribleMatchedOrders {
-        return if (input.methodSignatureId() == EIP712MetaTransaction.executeMetaTransactionSignature().id()) {
-            parseMetaTransaction(input)
-        } else {
-            parseMatchedOrders(input)
-        }
+        return traceCallService.findAllRequiredCallInputs(
+            txHash,
+            txInput,
+            exchangeContractAddresses.v2,
+            ExchangeV2.matchOrdersSignature().id(),
+            ExchangeV2.directPurchaseSignature().id(),
+        )
     }
 
     fun parseMatchedOrders(input: Binary): RaribleMatchedOrders {
-        val signature = ExchangeV2.matchOrdersSignature()
-        val decoded = signature.`in`().decode(input, 4)
-        return RaribleMatchedOrders(
-            left = SimpleOrder(
-                maker = decoded.value()._1()._1(),
-                makeAssetType = decoded.value()._1()._2()._1().toAssetType(),
-                takeAssetType = decoded.value()._1()._4()._1().toAssetType(),
-                data = convertOrderData(
-                    version = Binary.apply(decoded.value()._1()._8()),
-                    data = Binary.apply(decoded.value()._1()._9())
+        return if (input.methodSignatureId() == ExchangeV2.matchOrdersSignature().id()) {
+            val signature = ExchangeV2.matchOrdersSignature()
+            val value = signature.`in`().decode(input, 4).value()
+            RaribleMatchedOrders(
+                left = SimpleOrder(
+                    maker = value._1()._1(),
+                    makeAssetType = value._1()._2()._1().toAssetType(),
+                    takeAssetType = value._1()._4()._1().toAssetType(),
+                    data = convertOrderData(
+                        version = Binary.apply(value._1()._8()),
+                        data = Binary.apply(value._1()._9())
+                    ),
+                    salt = EthUInt256.of(value._1()._5())
                 ),
-                salt = EthUInt256.of(decoded.value()._1()._5())
-            ),
-            right = SimpleOrder(
-                maker = decoded.value()._3()._1(),
-                makeAssetType = decoded.value()._3()._2()._1().toAssetType(),
-                takeAssetType = decoded.value()._3()._4()._1().toAssetType(),
-                data = convertOrderData(
-                    version = Binary.apply(decoded.value()._3()._8()),
-                    data = Binary.apply(decoded.value()._3()._9())
-                ),
-                salt = EthUInt256.of(decoded.value()._3()._5())
+                right = SimpleOrder(
+                    maker = value._3()._1(),
+                    makeAssetType = value._3()._2()._1().toAssetType(),
+                    takeAssetType = value._3()._4()._1().toAssetType(),
+                    data = convertOrderData(
+                        version = Binary.apply(value._3()._8()),
+                        data = Binary.apply(value._3()._9())
+                    ),
+                    salt = EthUInt256.of(value._3()._5())
+                )
             )
-        )
-    }
+        } else if (input.methodSignatureId() == ExchangeV2.directPurchaseSignature().id()) {
+            /*struct Purchase {
+                1 address sellOrderMaker;
+                2 uint256 sellOrderNftAmount;
+                3 bytes4 nftAssetClass;
+                4 bytes nftData;
+                5 uint256 sellOrderPaymentAmount;
+                6 address paymentToken;
+                7 uint256 sellOrderSalt;
+                8 uint sellOrderStart;
+                9 uint sellOrderEnd;
+                10 bytes4 sellOrderDataType;
+                11 bytes sellOrderData;
+                12 bytes sellOrderSignature;
 
-    private fun parseMetaTransaction(input: Binary): RaribleMatchedOrders {
-        val signature = EIP712MetaTransaction.executeMetaTransactionSignature()
-        val decoded = signature.`in`().decode(input, 4)
-        return parseMatchedOrders(Binary.apply(decoded.value()._2()))
-    }
-
-    fun parseOnChainOrder(data: Binary): OnChainOrder {
-        val orderInput = ExchangeV2.upsertOrderSignature().`in`().decode(data, 0).value()
-        val maker = orderInput._1()
-        val makeAssetType = orderInput._2()._1().toAssetType()
-        val makeValue = EthUInt256.of(orderInput._2()._2())
-        val make = Asset(makeAssetType, makeValue)
-
-        val taker = orderInput._3().takeUnless { it == Address.ZERO() }
-        val takeAssetType = orderInput._4()._1().toAssetType()
-        val takeValue = EthUInt256.of(orderInput._4()._2())
-        val take = Asset(takeAssetType, takeValue)
-
-        val salt = EthUInt256.of(orderInput._5())
-        val start = orderInput._6().takeUnless { it == BigInteger.ZERO }?.toLong()
-        val end = orderInput._7().takeUnless { it == BigInteger.ZERO }?.toLong()
-        val orderData = convertOrderData(Binary.apply(orderInput._8()), Binary.apply(orderInput._9()))
-        val createdAt = nowMillis()
-        return OnChainOrder(
-            maker = maker,
-            taker = taker,
-            make = make,
-            take = take,
-            createdAt = createdAt,
-            date = createdAt,
-            platform = Platform.RARIBLE,
-            salt = salt,
-            start = start,
-            end = end,
-            data = orderData,
-            signature = null,
-            orderType = OrderType.RARIBLE_V2,
-            priceUsd = null,
-            source = HistorySource.RARIBLE,
-            hash = Order.hashKey(maker, makeAssetType, takeAssetType, salt.value)
-        )
+                13 uint256 buyOrderPaymentAmount;
+                14 uint256 buyOrderNftAmount;
+                15 bytes buyOrderData;
+            }*/
+            val signature = ExchangeV2.directPurchaseSignature()
+            val value = signature.`in`().decode(input, 4).value()
+            val paymentToken = value._6()
+            val nftAssetType = Tuple2(value._3(), value._4()).toAssetType()
+            val paymentAssetType = if (paymentToken == Address.ZERO()) EthAssetType else Erc20AssetType(paymentToken)
+            val sellOrderData = convertOrderData(
+                version = Binary.apply(value._10()),
+                data = Binary.apply(value._11())
+            )
+            val buyOrderData = convertOrderData(
+                version = if (sellOrderData.version == OrderDataVersion.RARIBLE_V2_DATA_V3_SELL) OrderDataVersion.RARIBLE_V2_DATA_V3_BUY.ethDataType!! else sellOrderData.version.ethDataType!!,
+                data = Binary.apply(value._15())
+            )
+            val leftOrder = SimpleOrder(
+                maker = value._1(),
+                makeAssetType = nftAssetType,
+                takeAssetType = paymentAssetType,
+                data = sellOrderData,
+                salt = EthUInt256.of(value._7())
+            )
+            val rightOrder = SimpleOrder(
+                maker = Address.ZERO(),
+                makeAssetType = paymentAssetType,
+                takeAssetType = nftAssetType,
+                data = buyOrderData,
+                salt = EthUInt256.ZERO
+            )
+            RaribleMatchedOrders(left = leftOrder, right = rightOrder)
+        } else {
+            throw IllegalArgumentException("Unsupported function: ${input.methodSignatureId()}")
+        }
     }
 
     fun convertOrderData(version: Binary, data: Binary): OrderData {

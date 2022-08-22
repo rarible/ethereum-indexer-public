@@ -21,6 +21,7 @@ import com.rarible.protocol.nft.core.service.action.ActionJobHandler
 import io.micrometer.core.instrument.MeterRegistry
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -60,10 +61,15 @@ class NftListenerConfiguration(
                 workerName = "nftCollectionMetaExtender.$it"
             )
         }
-        return ConsumerWorkerHolder(workers)
+        return ConsumerWorkerHolder(workers).apply { start() }
     }
 
     @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionConsumerWorker(internalActionHandler: ActionEventHandler): ConsumerWorkerHolder<ActionEvent> {
         logger.info("Creating batch of ${nftIndexerProperties.actionWorkersCount} action workers")
         val workers = (1..nftIndexerProperties.actionWorkersCount).map {
@@ -83,32 +89,29 @@ class NftListenerConfiguration(
     }
 
     @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionExecutorWorker(handler: ActionJobHandler): JobDaemonWorker {
         return JobDaemonWorker(
             jobHandler = handler,
             meterRegistry = meterRegistry,
             properties = nftListenerProperties.actionExecute.daemon,
             workerName = "action-executor-worker"
-        )
+        ).apply { start() }
     }
 
     @Bean
-    fun actionExecutorWorkerStarter(actionExecutorWorker: JobDaemonWorker): CommandLineRunner {
-        return CommandLineRunner {
-            if (nftListenerProperties.actionExecute.enabled) {
-                actionExecutorWorker.start()
-            }
-        }
-    }
-
-    @Bean
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER_STORAGE,
+        name=["action-execute.enabled"],
+        havingValue="true"
+    )
     fun actionConsumerWorkerStarter(actionConsumerWorker: ConsumerWorkerHolder<ActionEvent>): CommandLineRunner {
         return CommandLineRunner {
             actionConsumerWorker.start()
         }
     }
-
-    @Bean
-    fun collectionMetaExtenderWorkerStarter(collectionMetaExtenderWorker: ConsumerWorkerHolder<NftCollectionEventDto>): CommandLineRunner =
-        CommandLineRunner { collectionMetaExtenderWorker.start() }
 }

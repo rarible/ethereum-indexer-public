@@ -5,10 +5,13 @@ import com.rarible.opensea.client.OpenSeaClient
 import com.rarible.opensea.client.SeaportProtocolClient
 import com.rarible.opensea.client.model.OpenSeaError
 import com.rarible.opensea.client.model.OpenSeaErrorCode
+import com.rarible.opensea.client.model.OpenSeaResult
 import com.rarible.opensea.client.model.OperationResult
+import com.rarible.opensea.client.model.v2.OrdersRequest
 import com.rarible.opensea.client.model.v2.SeaportOrders
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.configuration.SeaportLoadProperties
+import com.rarible.protocol.order.listener.data.randomSeaportOrder
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -20,15 +23,20 @@ import org.junit.jupiter.api.assertThrows
 import java.time.Duration
 
 internal class OpenSeaOrderServiceImplTest {
+    private val seaportRequestCursorProducer = mockk<SeaportRequestCursorProducer> {
+        every { produceNextFromCursor(any(), any(), any()) } returns emptyList()
+    }
     private val openSeaClient = mockk<OpenSeaClient>()
     private val seaportProtocolClient = mockk<SeaportProtocolClient>()
+    private val seaportLoad = SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)
     private val properties = mockk<OrderListenerProperties> {
-        every { seaportLoad } returns SeaportLoadProperties(retry = 2, retryDelay = Duration.ZERO)
         every { openSeaOrderSide } returns OrderListenerProperties.OrderSide.SELL
     }
     private val openSeaOrderService = OpenSeaOrderServiceImpl(
+        seaportRequestCursorProducer = seaportRequestCursorProducer,
         seaportProtocolClient = seaportProtocolClient,
         openSeaClient = openSeaClient,
+        seaportLoad = seaportLoad,
         properties = properties
     )
 
@@ -76,5 +84,91 @@ internal class OpenSeaOrderServiceImplTest {
                 openSeaOrderService.getNextSellOrders(next)
             }
         }
+    }
+
+    @Test
+    fun `should handle multiply request`() = runBlocking<Unit> {
+        seaportLoad.asyncRequestsEnabled = true
+        seaportLoad.maxAsyncRequests = 3
+
+        val cursor1 = randomString()
+        val cursor2 = randomString()
+        val cursor3 = randomString()
+
+        val orders1 = listOf(randomSeaportOrder(), randomSeaportOrder())
+        val orders2 = listOf(randomSeaportOrder(), randomSeaportOrder())
+        val orders3 = listOf(randomSeaportOrder(), randomSeaportOrder())
+
+        every {
+            seaportRequestCursorProducer.produceNextFromCursor(cursor1, step = seaportLoad.loadMaxSize, amount = seaportLoad.maxAsyncRequests - 1)
+        } returns listOf(cursor2, cursor3)
+
+        coEvery {
+            seaportProtocolClient.getListOrders(
+                OrdersRequest(
+                    cursor = cursor1,
+                    limit = seaportLoad.loadMaxSize
+                )
+            )
+        } returns OpenSeaResult.success(SeaportOrders(next = "next1", previous = "previous1", orders = orders1))
+        coEvery {
+            seaportProtocolClient.getListOrders(
+                OrdersRequest(
+                    cursor = cursor2,
+                    limit = seaportLoad.loadMaxSize
+                )
+            )
+        } returns OpenSeaResult.success(SeaportOrders(next = "next12", previous = "previous2", orders = orders2))
+        coEvery {
+            seaportProtocolClient.getListOrders(
+                OrdersRequest(
+                    cursor = cursor3,
+                    limit = seaportLoad.loadMaxSize
+                )
+            )
+        } returns OpenSeaResult.success(SeaportOrders(next = "next3", previous = "previous3", orders = orders3))
+
+        val result = openSeaOrderService.getNextSellOrders(cursor1)
+        assertThat(result.orders).isEqualTo(orders1 + orders2 + orders3)
+        assertThat(result.next).isEqualTo("next3")
+        assertThat(result.previous).isEqualTo("previous3")
+    }
+
+    @Test
+    fun `should handle get last result with not null previous`() = runBlocking<Unit> {
+        seaportLoad.asyncRequestsEnabled = true
+        seaportLoad.maxAsyncRequests = 3
+
+        val cursor1 = randomString()
+        val cursor2 = randomString()
+
+        val orders1 = listOf(randomSeaportOrder(), randomSeaportOrder())
+        val orders2 = listOf(randomSeaportOrder(), randomSeaportOrder())
+
+        every {
+            seaportRequestCursorProducer.produceNextFromCursor(cursor1, step = seaportLoad.loadMaxSize, amount = seaportLoad.maxAsyncRequests - 1)
+        } returns listOf(cursor2)
+
+        coEvery {
+            seaportProtocolClient.getListOrders(
+                OrdersRequest(
+                    cursor = cursor1,
+                    limit = seaportLoad.loadMaxSize
+                )
+            )
+        } returns OpenSeaResult.success(SeaportOrders(next = "next1", previous = "previous1", orders = orders1))
+        coEvery {
+            seaportProtocolClient.getListOrders(
+                OrdersRequest(
+                    cursor = cursor2,
+                    limit = seaportLoad.loadMaxSize
+                )
+            )
+        } returns OpenSeaResult.success(SeaportOrders(next = "next12", previous = null, orders = orders2))
+
+        val result = openSeaOrderService.getNextSellOrders(cursor1)
+        assertThat(result.orders).isEqualTo(orders1 + orders2)
+        assertThat(result.next).isEqualTo("next1")
+        assertThat(result.previous).isEqualTo("previous1")
     }
 }

@@ -7,7 +7,6 @@ import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.ethereum.sign.service.ERC1271SignService
 import com.rarible.protocol.contracts.common.TransferProxy
 import com.rarible.protocol.contracts.erc20.proxy.ERC20TransferProxy
-import com.rarible.protocol.contracts.exchange.v2.ExchangeV2 as LegacyExchangeV2
 import com.rarible.protocol.contracts.exchange.v2.rev3.ExchangeV2
 import com.rarible.protocol.contracts.royalties.TestRoyaltiesProvider
 import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
@@ -16,7 +15,6 @@ import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import kotlinx.coroutines.FlowPreview
 import org.apache.commons.lang3.RandomUtils
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -25,8 +23,8 @@ import reactor.core.publisher.Mono
 import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import java.math.BigInteger
+import com.rarible.protocol.contracts.exchange.v2.ExchangeV2 as LegacyExchangeV2
 
-@FlowPreview
 abstract class AbstractExchangeV2Test : AbstractIntegrationTest() {
     protected lateinit var userSender1: MonoSigningTransactionSender
     protected lateinit var userSender2: MonoSigningTransactionSender

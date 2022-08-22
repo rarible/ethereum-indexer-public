@@ -38,7 +38,7 @@ internal class LooksrareOrderLoadHandlerTest {
             every{ Instant.now() } returns now
             coEvery { aggregatorStateRepository.getLooksrareState() } returns null
             coEvery { aggregatorStateRepository.save(any()) } returns Unit
-            coEvery { looksrareOrderLoader.load(any(), any()) } returns listOf(randomLooksrareOrder())
+            coEvery { looksrareOrderLoader.load(any(), any()) } returns listOf(randomLooksrareOrder().hash)
 
             handler.handle()
 
@@ -63,7 +63,7 @@ internal class LooksrareOrderLoadHandlerTest {
 
         coEvery { aggregatorStateRepository.getLooksrareState() } returns LooksrareFetchState.withListedAfter(expectedListedAfter)
         coEvery { aggregatorStateRepository.save(any()) } returns Unit
-        coEvery { looksrareOrderLoader.load(any(), any()) } returns listOf(randomLooksrareOrder())
+        coEvery { looksrareOrderLoader.load(any(), any()) } returns listOf(randomLooksrareOrder().hash)
 
         handler.handle()
 

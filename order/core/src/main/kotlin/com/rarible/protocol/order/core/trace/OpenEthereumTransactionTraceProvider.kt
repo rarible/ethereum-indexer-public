@@ -25,21 +25,13 @@ class OpenEthereumTransactionTraceProvider(
         setSerializationInclusion(JsonInclude.Include.NON_NULL)
     }
 
-    override suspend fun traceAndFindFirstCallTo(transactionHash: Word, to: Address, id: Binary): SimpleTraceResult? {
-        return traces(transactionHash)
-            .asSequence()
-            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id }
-            .mapNotNull { convert(it) }
-            .firstOrNull()
-    }
-
     override suspend fun traceAndFindAllCallsTo(
         transactionHash: Word,
         to: Address,
-        id: Binary
+        ids: Set<Binary>
     ): List<SimpleTraceResult> {
         return traces(transactionHash)
-            .filter { it.action?.to == to && it.action.input?.methodSignatureId() == id && it.error != "Reverted" }
+            .filter { it.action?.to == to && it.action.input?.methodSignatureId() in ids && it.error != "Reverted" }
             .mapNotNull { convert(it) }
     }
 

@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.looksrare
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.looksrare.client.model.v1.LooksrareOrder
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
@@ -18,17 +19,24 @@ import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.misc.looksrareError
 import org.springframework.stereotype.Component
 import scalether.domain.Address
+import java.math.BigInteger
 
 @Component
 class LooksrareOrderConverter(
     private val priceUpdateService: PriceUpdateService,
     private val tokenStandardProvider: TokenStandardProvider,
-    private val currencyAddresses: OrderIndexerProperties.CurrencyContractAddresses
+    private val currencyAddresses: OrderIndexerProperties.CurrencyContractAddresses,
+    private val looksrareErrorCounter: RegisteredCounter
 ) {
     suspend fun convert(looksrareOrder: LooksrareOrder): OrderVersion? {
-        if (looksrareOrder.tokenId == null) return null // skip collection orders
-        if (looksrareOrder.signature == null) return null
-
+        if (
+            looksrareOrder.tokenId == null ||
+            looksrareOrder.signature == null ||
+            looksrareOrder.nonce > MAX_NONCE
+        ) return run {
+            looksrareErrorCounter.increment()
+            null
+        }
         val tokenId = looksrareOrder.tokenId!!
         val orderHash = looksrareOrder.hash
         val maker = looksrareOrder.signer
@@ -40,6 +48,7 @@ class LooksrareOrderConverter(
         val collectionAddress = looksrareOrder.collectionAddress
         val collectionStandard = tokenStandardProvider.getTokenStandard(collectionAddress) ?: run {
             logger.looksrareError("Can't get collection $collectionAddress standard")
+            looksrareErrorCounter.increment()
             return null
         }
         val currencyAddress = looksrareOrder.currencyAddress
@@ -47,7 +56,7 @@ class LooksrareOrderConverter(
         val data = OrderLooksrareDataV1(
             minPercentageToAsk = looksrareOrder.minPercentageToAsk,
             params = if (looksrareOrder.params?.length() == 0) null else looksrareOrder.params,
-            counter = looksrareOrder.nonce,
+            counter = looksrareOrder.nonce.toLong(),
             strategy = looksrareOrder.strategy
         )
         val (make, take) = kotlin.run {
@@ -90,4 +99,7 @@ class LooksrareOrderConverter(
         }
     }
 
+    private companion object {
+        val MAX_NONCE: BigInteger = BigInteger.valueOf(Long.MAX_VALUE)
+    }
 }

@@ -18,6 +18,9 @@ class OrderBlockProcessor(
 ) : LogEventsListener {
 
     override fun postProcessLogs(logs: List<LogEvent>): Mono<Void> {
+        val blockNumber = logs.firstOrNull()?.blockNumber
+
+        logger.info("Order logs process start, blockNumber=$blockNumber")
         val hashes = logs
             .map { log -> log.data }
             .filterIsInstance<OrderExchangeHistory>()
@@ -31,7 +34,7 @@ class OrderBlockProcessor(
             }
                 .toOptional()
                 .elapsed()
-                .doOnNext { logger.info(marker, "Order logs process time: ${it.t1}ms") }
+                .doOnNext { logger.info(marker, "Order logs process time (blockNumber=$blockNumber): ${it.t1}ms") }
                 .then()
         }
     }

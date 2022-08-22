@@ -24,7 +24,7 @@ fun randomLooksrareOrder(): LooksrareOrder {
         currencyAddress = randomAddress(),
         amount = randomBigInt(),
         price = randomBigInt(),
-        nonce = randomLong(),
+        nonce = (1..1000).random().toBigInteger(),
         startTime = Instant.now(),
         endTime = Instant.now() + Duration.ofHours(1),
         minPercentageToAsk = randomInt(),
