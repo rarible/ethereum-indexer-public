@@ -1,6 +1,10 @@
+@file:OptIn(ExperimentalTime::class)
+
 package com.rarible.protocol.nft.core.service.item.meta.descriptors
 
 import com.fasterxml.jackson.databind.node.ObjectNode
+import com.github.michaelbull.retry.policy.binaryExponentialBackoff
+import com.github.michaelbull.retry.retry
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.meta.resource.http.ExternalHttpClient
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
@@ -20,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.springframework.web.reactive.function.client.bodyToMono
 import reactor.core.publisher.Mono
 import scalether.domain.Address
+import kotlin.time.ExperimentalTime
 
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
@@ -63,17 +68,12 @@ class EnsDomainsPropertiesProvider(
 
     suspend fun get(itemId: ItemId): ItemProperties? {
         logMetaLoading(itemId.toString(), "get EnsDomains properties")
-
-        // Let's try one more time in case of ENS API's 404 response
-        for (i in 1..RETRIES_ON_404) {
-            fetchProperties(itemId)?.let { return it }
+        return retry(binaryExponentialBackoff(500, 2000)) { // retry in 500, 1000 and 2000 ms
+            fetchProperties(itemId)
         }
-
-        // There is no reason to proceed with default resolvers (Rarible/OpenSea)
-        throw ItemResolutionAbortedException()
     }
 
-    private suspend fun fetchProperties(itemId: ItemId): ItemProperties? {
+    private suspend fun fetchProperties(itemId: ItemId): ItemProperties {
         val url = "${URL}/${NETWORK}/${contractAddress}/${itemId.tokenId.value}"
         val (req, timeout) = externalHttpClient.getResponseSpec(url = url, id = itemId.toString()) ?: return null
         return try {
@@ -93,7 +93,11 @@ class EnsDomainsPropertiesProvider(
                 }?.awaitFirstOrNull() ?: return null
 
             val json = JsonPropertiesParser.parse(itemId, rawProperties)
-            json?.let { map(json, rawProperties) }
+            if (json == null || json.isEmpty) {
+                throw ItemResolutionAbortedException()
+            } else {
+                map(json, rawProperties)
+            }
         } catch (e: Throwable) {
             logMetaLoading(itemId.toString(), "failed to get EnsDomains properties by $url due to ${e.message}}", true)
             throw ItemResolutionAbortedException()
@@ -115,6 +119,5 @@ class EnsDomainsPropertiesProvider(
     companion object {
         private const val URL = "https://metadata.ens.domains/"
         private const val NETWORK = "mainnet"
-        private const val RETRIES_ON_404 = 2
     }
 }
