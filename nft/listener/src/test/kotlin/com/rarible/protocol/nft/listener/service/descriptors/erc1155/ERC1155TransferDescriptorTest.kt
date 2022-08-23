@@ -29,7 +29,7 @@ import java.math.BigInteger
 class ERC1155TransferDescriptorTest : AbstractIntegrationTest() {
 
     @Test
-    fun convert(version: ReduceVersion) = runBlocking<Unit> {
+    fun convert() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

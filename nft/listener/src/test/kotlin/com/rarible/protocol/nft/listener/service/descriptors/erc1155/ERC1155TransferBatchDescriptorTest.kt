@@ -7,7 +7,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemType
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
@@ -17,8 +16,6 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
 import org.web3j.utils.Numeric
 import reactor.core.publisher.Mono
@@ -32,7 +29,7 @@ import kotlin.random.Random
 class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
 
     @Test
-    fun convert(version: ReduceVersion) = runBlocking<Unit> {
+    fun convert() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

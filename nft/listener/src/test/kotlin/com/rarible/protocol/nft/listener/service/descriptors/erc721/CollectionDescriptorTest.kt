@@ -66,7 +66,7 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should get CreateERC721RaribleUserEvent event`(version: ReduceVersion) = runBlocking<Unit> {
+    fun `should get CreateERC721RaribleUserEvent event`() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

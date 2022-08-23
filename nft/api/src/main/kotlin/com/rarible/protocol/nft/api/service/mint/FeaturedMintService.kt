@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component
 @Primary
 @Component
 class FeaturedMintService(
-    private val legacyMintService: LegacyMintService,
     private val mintService: MintServiceImp,
     private var featureFlags: FeatureFlags
 ) : MintService {
@@ -27,7 +26,6 @@ class FeaturedMintService(
 
     private fun getService(): MintService {
         return when (featureFlags.reduceVersion) {
-            ReduceVersion.V1 -> legacyMintService
             ReduceVersion.V2 -> mintService
         }
     }

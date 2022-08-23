@@ -63,7 +63,7 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `should make reduce target token`(version: ReduceVersion) = runBlocking<Unit> {
+    fun `should make reduce target token`() = runBlocking<Unit> {
         when (featureFlags.scannerVersion) {
             ScannerVersion.V2 -> {
                 assertThat(itemReduceTaskHandler.isAbleToRun("")).isTrue()

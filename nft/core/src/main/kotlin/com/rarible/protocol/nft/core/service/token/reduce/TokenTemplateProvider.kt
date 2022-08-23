@@ -9,12 +9,13 @@ import scalether.domain.Address
 
 @Component
 class TokenTemplateProvider : EntityTemplateProvider<Address, Token> {
-    override fun getEntityTemplate(id: Address): Token {
+    override fun getEntityTemplate(id: Address, version: Long?): Token {
         return Token(
             id = id,
             name = "",
             status = ContractStatus.PENDING,
-            standard = TokenStandard.NONE
+            standard = TokenStandard.NONE,
+            version = version
         )
     }
 }

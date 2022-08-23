@@ -95,7 +95,8 @@ class ItemReduceServiceV2(
         }
     }
 
-    private companion object {
+    companion object {
+        val WORD_ZERO: Word = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000000")
         private val logger = LoggerFactory.getLogger(ItemReduceServiceV2::class.java)
     }
 }

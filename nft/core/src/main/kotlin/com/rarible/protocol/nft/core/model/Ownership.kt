@@ -36,7 +36,7 @@ data class Ownership(
     val lastLazyEventTimestamp: Long? = null,
     override val revertableEvents: List<OwnershipEvent> = emptyList(),
     @Version
-    val version: Long? = null
+    override val version: Long? = null
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
@@ -88,7 +88,7 @@ data class Ownership(
             return OwnershipId(Address.apply(parts[0].trim()), tokenId, Address.apply(parts[2].trim()))
         }
 
-        fun empty(token: Address, tokenId: EthUInt256, owner: Address): Ownership {
+        fun empty(token: Address, tokenId: EthUInt256, owner: Address, version: Long?): Ownership {
             return Ownership(
                 token = token,
                 tokenId = tokenId,
@@ -98,7 +98,8 @@ data class Ownership(
                 lazyValue = EthUInt256.ZERO,
                 date = nowMillis(),
                 lastUpdatedAt = nowMillis(),
-                pending = emptyList()
+                pending = emptyList(),
+                version = version
             )
         }
     }

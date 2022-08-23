@@ -26,7 +26,7 @@ import java.math.BigInteger
 class TransferDescriptorTest : AbstractIntegrationTest() {
 
     @Test
-    fun convert(version: ReduceVersion) = runBlocking<Unit> {
+    fun convert() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
 
         val userSender = MonoSigningTransactionSender(

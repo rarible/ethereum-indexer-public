@@ -35,7 +35,7 @@ data class Item(
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
     @Version
-    val version: Long? = null
+    override val version: Long? = null
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
@@ -73,7 +73,7 @@ data class Item(
             return ItemId(Address.apply(parts[0].trim()), tokenId)
         }
 
-        fun empty(token: Address, tokenId: EthUInt256): Item {
+        fun empty(token: Address, tokenId: EthUInt256, version: Long? = null): Item {
             return Item(
                 token = token,
                 tokenId = tokenId,
@@ -82,7 +82,8 @@ data class Item(
                 royalties = emptyList(),
                 date = nowMillis(),
                 revertableEvents = emptyList(),
-                isRaribleContract = false
+                isRaribleContract = false,
+                version = version
             )
         }
     }

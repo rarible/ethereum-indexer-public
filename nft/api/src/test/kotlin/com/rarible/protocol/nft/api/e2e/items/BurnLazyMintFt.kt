@@ -29,7 +29,7 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.service.item.ItemReduceService
-import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV1
+import com.rarible.protocol.nft.core.service.item.ItemReduceServiceV2
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.LazyItemPropertiesResolver
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.RariblePropertiesResolver
 import io.daonomic.rpc.domain.Binary
@@ -165,8 +165,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logMint = LogEvent(
             data = eventMint,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV1.WORD_ZERO,
-            transactionHash = ItemReduceServiceV1.WORD_ZERO,
+            topic = ItemReduceServiceV2.WORD_ZERO,
+            transactionHash = ItemReduceServiceV2.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 2,
             logIndex = 2,
@@ -183,8 +183,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logCreator = LogEvent(
             data = eventCreator,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV1.WORD_ZERO,
-            transactionHash = ItemReduceServiceV1.WORD_ZERO,
+            topic = ItemReduceServiceV2.WORD_ZERO,
+            transactionHash = ItemReduceServiceV2.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 3,
             logIndex = 1,
@@ -197,14 +197,6 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         // checking after minting
         val item = itemRepository.findById(itemId).awaitSingle()
 
-        when (version) {
-            ReduceVersion.V1 -> {
-                assertEquals(creator, item.owners[0])
-            }
-            ReduceVersion.V2 -> {
-
-            }
-        }
         assertEquals(EthUInt256.ONE, item.supply)
         assertEquals(EthUInt256.ZERO, item.lazySupply)
 
@@ -220,8 +212,8 @@ class BurnLazyMintFt : SpringContainerBaseTest() {
         val logBurn = LogEvent(
             data = eventBurn,
             address = Address.ZERO(),
-            topic = ItemReduceServiceV1.WORD_ZERO,
-            transactionHash = ItemReduceServiceV1.WORD_ZERO,
+            topic = ItemReduceServiceV2.WORD_ZERO,
+            transactionHash = ItemReduceServiceV2.WORD_ZERO,
             status = LogEventStatus.CONFIRMED,
             blockNumber = 4,
             logIndex = Int.MAX_VALUE,
