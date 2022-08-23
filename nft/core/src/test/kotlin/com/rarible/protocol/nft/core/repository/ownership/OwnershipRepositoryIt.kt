@@ -4,11 +4,15 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.data.createRandomOwnership
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.misc.isEqualToItem
+import com.rarible.protocol.nft.core.misc.isEqualToOwnership
+import com.rarible.protocol.nft.core.model.Item
 import com.rarible.protocol.nft.core.model.Ownership
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -24,22 +28,20 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 
     @Test
     fun `should save and get ownership`() = runBlocking<Unit> {
-        val item = createRandomOwnership()
-
-        ownershipRepository.save(item).awaitFirst()
-
-        val savedItem = ownershipRepository.findById(item.id).awaitFirstOrNull()
-        Assertions.assertThat(savedItem).isEqualTo(item)
-    }
-
-    @Test
-    fun `should return ownership if removed`() = runBlocking {
         val ownership = createRandomOwnership()
 
         ownershipRepository.save(ownership).awaitFirst()
-        val deleted = ownershipRepository.deleteById(ownership.id).awaitFirst()
 
-        assertEquals(deleted, ownership)
+        val savedOwnership = ownershipRepository.findById(ownership.id).awaitFirstOrNull()
+        assertThat(savedOwnership).isEqualToOwnership(ownership)
+    }
+
+    @Test
+    fun `should return ownership if removed`() = runBlocking<Unit> {
+        val ownership = createRandomOwnership()
+        ownershipRepository.save(ownership).awaitFirst()
+        val deleted = ownershipRepository.deleteById(ownership.id).awaitFirst()
+        assertThat(deleted).isEqualToOwnership(deleted)
     }
 
     @Test

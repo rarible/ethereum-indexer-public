@@ -10,9 +10,11 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
@@ -26,9 +28,8 @@ import java.math.BigInteger
 @IntegrationTest
 class CollectionDescriptorTest : AbstractIntegrationTest() {
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun convert(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun convert() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -64,9 +65,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should get CreateERC721RaribleUserEvent event`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should get CreateERC721RaribleUserEvent event`(version: ReduceVersion) = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -91,9 +91,8 @@ class CollectionDescriptorTest : AbstractIntegrationTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should get CreateERC721RaribleEvent event`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should get CreateERC721RaribleEvent event`() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

@@ -13,8 +13,10 @@ import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.web3j.crypto.Keys
@@ -29,9 +31,8 @@ import kotlin.random.Random
 @IntegrationTest
 class ERC1155TransferBatchDescriptorTest : AbstractIntegrationTest() {
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun convert(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun convert(version: ReduceVersion) = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

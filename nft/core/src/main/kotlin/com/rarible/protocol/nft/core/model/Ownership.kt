@@ -7,6 +7,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
@@ -33,7 +34,9 @@ data class Ownership(
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
-    override val revertableEvents: List<OwnershipEvent> = emptyList()
+    override val revertableEvents: List<OwnershipEvent> = emptyList(),
+    @Version
+    val version: Long? = null
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
@@ -41,6 +44,10 @@ data class Ownership(
 
     fun getPendingEvents(): List<OwnershipEvent> {
         return revertableEvents.filter { it.log.status == EthereumLogStatus.PENDING }
+    }
+
+    fun withVersion(version: Long?): Ownership {
+        return copy(version = version)
     }
 
     fun isLazyOwnership(): Boolean {

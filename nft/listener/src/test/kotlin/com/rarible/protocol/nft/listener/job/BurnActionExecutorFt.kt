@@ -24,7 +24,9 @@ import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
@@ -43,7 +45,8 @@ internal class BurnActionExecutorFt : AbstractIntegrationTest() {
     private lateinit var handler: ActionJobHandler
 
     @Test
-    fun `should execute burn action for ens domain`() = withReducer(ReduceVersion.V1) {
+    @Disabled
+    fun `should execute burn action for ens domain`() = runBlocking<Unit> {
         val expirationDate = "1970-04-01T17:26:15Z"
 
         val owner = AddressFactory.create()

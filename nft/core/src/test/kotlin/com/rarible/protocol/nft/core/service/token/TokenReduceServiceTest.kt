@@ -12,16 +12,15 @@ import com.rarible.protocol.nft.core.integration.IntegrationTest
 import com.rarible.protocol.nft.core.model.CollectionEvent
 import com.rarible.protocol.nft.core.model.CollectionOwnershipTransferred
 import com.rarible.protocol.nft.core.model.CreateCollection
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenEvent
 import com.rarible.protocol.nft.core.model.TokenStandard
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import reactor.kotlin.core.publisher.toMono
 import scalether.domain.AddressFactory
@@ -32,9 +31,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
     @Autowired
     lateinit var tokenRegistrationService: TokenRegistrationService
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `change owner for a token registered via service`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `change owner for a token registered via service`() = runBlocking<Unit> {
         val id = randomAddress()
         val previousOwner = randomAddress()
         val newOwner = randomAddress()
@@ -82,9 +80,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         )
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `return token registered with via service having no log events`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `return token registered with via service having no log events`() = runBlocking<Unit> {
         val id = randomAddress()
         val token = Token(
             id = id,
@@ -98,9 +95,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         assertThat(updated).isEqualTo(updated)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should not change lastEventId`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should not change lastEventId`() = runBlocking<Unit> {
         val collectionId = randomAddress()
         prepareStorage(
             CreateCollection(
@@ -113,20 +109,14 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         val token = tokenReduceService.updateToken(collectionId)
         assertNotNull(token)
 
-        when (version) {
-            ReduceVersion.V1 -> assertNotNull(token!!.lastEventId)
-            ReduceVersion.V2 -> {
-                assertThat(token!!.revertableEvents).hasSize(1)
-                assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
-            }
-        }
+        assertThat(token!!.revertableEvents).hasSize(1)
+        assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
         val sameToken = tokenReduceService.updateToken(collectionId)
         assertEquals(token.copy(version = 0), sameToken?.copy(version = 0, dbUpdatedAt = token.dbUpdatedAt))
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should change lastEventId if a new event is added`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should change lastEventId if a new event is added`() = runBlocking<Unit> {
         val collectionId = randomAddress()
         val previousOwner = randomAddress()
         prepareStorage(
@@ -140,13 +130,8 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
         )
         val token = tokenReduceService.updateToken(collectionId)
         assertNotNull(token)
-        when (version) {
-            ReduceVersion.V1 -> assertNotNull(token!!.lastEventId)
-            ReduceVersion.V2 -> {
-                assertThat(token!!.revertableEvents).hasSize(1)
-                assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
-            }
-        }
+        assertThat(token!!.revertableEvents).hasSize(1)
+        assertThat(token.revertableEvents.single()).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
 
         val newOwner = randomAddress()
         prepareStorage(
@@ -164,14 +149,9 @@ class TokenReduceServiceTest : AbstractIntegrationTest() {
 
         assertNotNull(withUpdatedOwner)
         assertEquals(newOwner, withUpdatedOwner!!.owner)
-        when (version) {
-            ReduceVersion.V1 -> assertNotEquals(token.lastEventId, withUpdatedOwner.lastEventId)
-            ReduceVersion.V2 -> {
-                assertThat(withUpdatedOwner.revertableEvents).hasSize(2)
-                assertThat(withUpdatedOwner.revertableEvents[0]).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
-                assertThat(withUpdatedOwner.revertableEvents[1]).isInstanceOf(TokenEvent.TokenChangeOwnershipEvent::class.java)
-            }
-        }
+        assertThat(withUpdatedOwner.revertableEvents).hasSize(2)
+        assertThat(withUpdatedOwner.revertableEvents[0]).isInstanceOf(TokenEvent.TokenCreateEvent::class.java)
+        assertThat(withUpdatedOwner.revertableEvents[1]).isInstanceOf(TokenEvent.TokenChangeOwnershipEvent::class.java)
     }
 
     private suspend fun prepareStorage(

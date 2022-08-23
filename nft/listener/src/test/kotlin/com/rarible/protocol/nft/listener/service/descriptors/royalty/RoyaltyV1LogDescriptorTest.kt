@@ -30,7 +30,7 @@ import java.math.BigInteger
 class RoyaltyV1LogDescriptorTest : AbstractIntegrationTest() {
 
     @Test
-    fun convert() = withReducer(ReduceVersion.V1) {
+    fun convert() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 

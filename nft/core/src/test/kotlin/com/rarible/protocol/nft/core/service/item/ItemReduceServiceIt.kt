@@ -32,6 +32,7 @@ import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -63,9 +64,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     @Autowired
     private lateinit var nftItemActionEventRepository: NftItemActionEventRepository
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun mintItem(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun mintItem() = runBlocking {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -87,11 +87,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         historyService.update(token, tokenId).awaitFirstOrNull()
 
         val item = itemRepository.findById(ItemId(token, tokenId)).awaitFirst()
-
-        when (version) {
-            ReduceVersion.V1 -> assertThat(item.mintedAt).isEqualTo(transfer.date)
-            ReduceVersion.V2 -> assertThat(item.mintedAt).isEqualTo(blockTimestamp)
-        }
+        assertThat(item.mintedAt).isEqualTo(blockTimestamp)
 
         assertThat(item.creators).isEqualTo(listOf(Part.fullPart(owner)))
         assertThat(item.supply).isEqualTo(EthUInt256.ONE)
@@ -104,9 +100,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should get creator from tokenId for OpenSea tokenId`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should get creator from tokenId for OpenSea tokenId`() = runBlocking {
         val token = Address.apply("0x495f947276749ce646f68ac8c248420045cb7b5e")
 
         val owner = AddressFactory.create()
@@ -144,9 +139,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         )
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun deleteErrorEntities(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun deleteErrorEntities() = runBlocking {
         val token = AddressFactory.create()
         val owner = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -209,9 +203,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun transferToSelf(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun transferToSelf() = runBlocking {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -244,9 +237,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkItem(token = token, tokenId = tokenId, expSupply = EthUInt256.TEN)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun burnItem(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun burnItem() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -299,9 +291,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun confirmedItemTransfer(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun confirmedItemTransfer() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val instantDate1 = LocalDate.parse("2022-04-12").atStartOfDay().toInstant(ZoneOffset.UTC)
@@ -339,7 +330,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
 
     @Test
     @Disabled
-    fun confirmedItemRoyalty() = withReducer(ReduceVersion.V1) {
+    fun confirmedItemRoyalty() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -360,9 +351,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.royalties).isEqualTo(listOf(Part(owner, 2)))
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun confirmedItemMint(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun confirmedItemMint() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val minter = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -384,9 +374,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(item.creators).isEqualTo(creatorsList)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `update ownership for ERC1155`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `update ownership for ERC1155`() = runBlocking<Unit> {
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
         val owner = AddressFactory.create()
@@ -428,9 +417,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
     /**
      * Check that ownership of ERC721 is removed for the previous owner and a new ownership for the new owner is created
      */
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `ownership transferred for ERC721`(version: ReduceVersion) = withReducer(version) {
+    fun `ownership transferred for ERC721`() = runBlocking<Unit> {
 
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -471,10 +458,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnershipEventWasPublished(token, tokenId, owner, NftOwnershipDeleteEventDto::class.java)
     }
 
-
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should lazy mint`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should lazy mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -503,9 +488,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         checkOwnership(creator, token, tokenId, expValue = EthUInt256.of(20), expLazyValue = EthUInt256.of(20))
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should calculate lazy after real mint`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should calculate lazy after real mint`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val creator = AddressFactory.create()
@@ -667,7 +651,7 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
      */
     @Test
     @Disabled
-    fun `should calculate royalties after real mint of lazy nft`() = withReducer(ReduceVersion.V1) {
+    fun `should calculate royalties after real mint of lazy nft`() = runBlocking<Unit> {
         val token = Address.ONE()
         val tokenId = EthUInt256.ONE
         val royalties = listOf(Part(AddressFactory.create(), 1), Part(AddressFactory.create(), 2))
@@ -709,9 +693,9 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(realItem.royalties).isEqualTo(realRoyalties)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should burn item by action`(version: ReduceVersion) = withReducer(ReduceVersion.V1) {
+    @Test
+    @Disabled
+    fun `should burn item by action`() = runBlocking<Unit> {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE
@@ -750,9 +734,8 @@ class ItemReduceServiceIt : AbstractIntegrationTest() {
         assertThat(ownerships).hasSize(0)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should not burn item by action if action not time to apply`(version: ReduceVersion) = withReducer(ReduceVersion.V1) {
+    @Test
+    fun `should not burn item by action if action not time to apply`() = runBlocking<Unit> {
         val owner = AddressFactory.create()
         val token = AddressFactory.create()
         val tokenId = EthUInt256.ONE

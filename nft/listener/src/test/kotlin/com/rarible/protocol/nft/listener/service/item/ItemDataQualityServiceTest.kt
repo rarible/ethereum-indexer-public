@@ -60,7 +60,7 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     private lateinit var inconsistentItemRepository: InconsistentItemRepository
 
     @Test
-    fun `should alert invalid items`() = withReducer(ReduceVersion.V1) {
+    fun `should alert invalid items`() = runBlocking<Unit> {
         val now = nowMillis()
         val counter = mockk<RegisteredCounter> {
             every { increment() } returns Unit
@@ -108,9 +108,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    internal fun `should fix item`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    internal fun `should fix item`(version: ReduceVersion) = runBlocking<Unit> {
         val item = createRandomItem().copy(supply = EthUInt256.ONE)
         itemRepository.save(item).awaitFirst()
         val ownerships = listOf(

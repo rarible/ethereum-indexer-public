@@ -20,12 +20,8 @@ class OwnershipUpdateService(
     }
 
     override suspend fun update(entity: Ownership): Ownership {
-        // Cleanup of deprecated data from ReducerV1, replaced by revertableEvents
-        val cleanedUp = entity.copy(pending = emptyList())
-
-        val savedOwnership = ownershipService.save(cleanedUp)
+        val savedOwnership = ownershipService.save(entity)
         eventListenerListener.onOwnershipChanged(savedOwnership).awaitFirstOrNull()
-
         logUpdatedOwnership(savedOwnership)
         return savedOwnership
     }

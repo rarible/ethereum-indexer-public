@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import org.springframework.data.annotation.AccessType
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.Transient
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.index.CompoundIndex
 import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
@@ -33,6 +34,8 @@ data class Item(
     val lastLazyEventTimestamp: Long? = null,
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
+    @Version
+    val version: Long? = null
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
@@ -54,6 +57,10 @@ data class Item(
 
     override fun withRevertableEvents(events: List<ItemEvent>): Item {
         return copy(revertableEvents = events)
+    }
+
+    fun withVersion(version: Long?): Item {
+        return copy(version = version)
     }
 
     companion object {
