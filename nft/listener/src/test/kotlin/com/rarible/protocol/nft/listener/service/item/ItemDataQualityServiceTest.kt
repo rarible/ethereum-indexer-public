@@ -60,7 +60,7 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     private lateinit var inconsistentItemRepository: InconsistentItemRepository
 
     @Test
-    fun `should alert invalid items`() = withReducer(ReduceVersion.V1) {
+    fun `should alert invalid items`() = runBlocking<Unit> {
         val now = nowMillis()
         val counter = mockk<RegisteredCounter> {
             every { increment() } returns Unit
@@ -108,9 +108,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         assertThat(invalidItems.single().id).isEqualTo(invalidItem.id)
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    internal fun `should fix item`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    internal fun `should fix item`() = runBlocking<Unit> {
         val item = createRandomItem().copy(supply = EthUInt256.ONE)
         itemRepository.save(item).awaitFirst()
         val ownerships = listOf(
@@ -142,13 +141,14 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     }
 
     private fun createValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
-        return ownerships.map { ownership ->
+        return ownerships.mapIndexed { index, ownership ->
             createLog(
                 token = item.token,
                 tokenId = item.tokenId,
                 value = EthUInt256.ONE,
                 from = Address.ZERO(),
-                owner = ownership.owner
+                owner = ownership.owner,
+                logIndex = index
             )
         }
     }
@@ -179,7 +179,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         tokenId: EthUInt256 = EthUInt256.of(randomBigInt()),
         value: EthUInt256 = EthUInt256.ONE,
         owner: Address = randomAddress(),
-        from: Address = Address.ZERO()
+        from: Address = Address.ZERO(),
+        logIndex: Int
     ): LogEvent {
         val transfer = ItemTransfer(
             owner = owner,
@@ -197,10 +198,11 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
             status = LogEventStatus.CONFIRMED,
             from = randomAddress(),
             index = 0,
-            logIndex = 1,
+            logIndex = logIndex,
             blockNumber = blockNumber,
             minorLogIndex = 0,
-            blockTimestamp = nowMillis().epochSecond
+            blockTimestamp = nowMillis().epochSecond,
+            createdAt = nowMillis()
         )
     }
 }

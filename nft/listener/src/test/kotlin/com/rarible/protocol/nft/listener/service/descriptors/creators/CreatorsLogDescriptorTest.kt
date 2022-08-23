@@ -12,20 +12,19 @@ import com.rarible.protocol.nft.core.model.ItemTransfer
 import com.rarible.protocol.nft.core.model.ItemType
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.Part
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.listener.integration.IntegrationTest
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import org.apache.commons.lang3.RandomUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.api.Test
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -56,9 +55,8 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
         nftIndexerProperties.featureFlags.validateCreatorByTransactionSender = false
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should handle mint event`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should handle mint event`() = runBlocking<Unit> {
         val privateKey = Numeric.toBigInt(RandomUtils.nextBytes(32))
         val address = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
 
@@ -151,9 +149,8 @@ class CreatorsLogDescriptorTest : AbstractIntegrationTest() {
      *   }
      *```
      */
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should leave creators empty if minted by random user`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should leave creators empty if minted by random user`() = runBlocking<Unit> {
         val (_, deployerSender) = newSender()
         val fakeCreatorERC721 = FakeCreatorERC721.deployAndWait(deployerSender, poller).awaitFirst()
         val token = fakeCreatorERC721.address()

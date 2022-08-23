@@ -31,7 +31,7 @@
 
         <rarible.ethereum.version>1.6.1</rarible.ethereum.version>
         <rarible.ethereum.contracts.version>1.0.32</rarible.ethereum.contracts.version>
-        <rarible.core.version>2.4.19</rarible.core.version>
+        <rarible.core.version>2.4.22</rarible.core.version>
         <rarible.blockchain.scanner.version>2.3.6</rarible.blockchain.scanner.version>
 
         <rarible.protocol.ethereum.version>1.34.1</rarible.protocol.ethereum.version>

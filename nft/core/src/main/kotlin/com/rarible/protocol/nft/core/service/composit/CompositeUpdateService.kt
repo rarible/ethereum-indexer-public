@@ -22,7 +22,7 @@ class CompositeUpdateService(
     private val logger = LoggerFactory.getLogger(CompositeUpdateService::class.java)
 
     override suspend fun get(id: ItemId): CompositeEntity? {
-        throw UnsupportedOperationException("Must not be called")
+        return null
     }
 
     override suspend fun update(entity: CompositeEntity): CompositeEntity {
@@ -33,14 +33,16 @@ class CompositeUpdateService(
 
                 val savedItem = entity.item?.let {
                     async {
-                        itemUpdateService.update(it)
+                        val version = it.version ?: itemUpdateService.get(it.id)?.version
+                        itemUpdateService.update(it.withVersion(version))
                     }
                 }
                 val savedOwnerships = entity.ownerships.values.chunked(properties.ownershipSaveBatch)
                     .flatMap { ownerships ->
                         ownerships.map {
                             async {
-                                ownershipUpdateService.update(it)
+                                val version = it.version ?: ownershipUpdateService.get(it.id)?.version
+                                ownershipUpdateService.update(it.withVersion(version))
                             }
                         }.awaitAll()
                     }

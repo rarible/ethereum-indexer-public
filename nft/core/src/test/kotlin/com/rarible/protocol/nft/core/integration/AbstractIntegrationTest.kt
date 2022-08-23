@@ -28,7 +28,6 @@ import com.rarible.protocol.dto.NftOwnershipUpdateEventDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.ContractStatus
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.model.ReduceVersion
 import com.rarible.protocol.nft.core.model.Token
 import com.rarible.protocol.nft.core.model.TokenFeature
 import com.rarible.protocol.nft.core.model.TokenStandard
@@ -44,7 +43,6 @@ import com.rarible.protocol.nft.core.service.token.meta.descriptors.StandardToke
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.clearMocks
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -80,7 +78,6 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.coroutines.EmptyCoroutineContext
 
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractIntegrationTest : BaseCoreTest() {
@@ -358,11 +355,6 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
         val publicKey = Sign.publicKeyFromPrivate(privateKey)
         val signer = Address.apply(Keys.getAddressFromPrivateKey(privateKey))
         return NewKeys(privateKey, publicKey, signer)
-    }
-
-    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
-        featureFlags.reduceVersion = version
-        runBlocking(EmptyCoroutineContext, block)
     }
 
     protected fun createToken(): Token {

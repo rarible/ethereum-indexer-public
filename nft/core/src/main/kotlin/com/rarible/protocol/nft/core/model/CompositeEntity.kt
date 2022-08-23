@@ -7,4 +7,6 @@ data class CompositeEntity(
     override val id: ItemId,
     val item: Item?,
     val ownerships: MutableMap<Address, Ownership>,
-) : Identifiable<ItemId>
+) : Identifiable<ItemId> {
+    override val version: Long? = null
+}

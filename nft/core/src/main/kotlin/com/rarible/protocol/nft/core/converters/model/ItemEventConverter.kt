@@ -23,10 +23,6 @@ class ItemEventConverter(
 ) {
     private val openSeaLazyMintAddress = Address.apply(properties.openseaLazyMintAddress)
 
-    fun convertToItemId(source: ReversedEthereumLogRecord): ItemId? {
-        return (source.data as? ItemHistory)?.let { ItemId(it.token, it.tokenId) }
-    }
-
     fun convertToOwnershipId(source: ReversedEthereumLogRecord): OwnershipId? {
         return (source.data as? ItemHistory)?.let { it.owner?.let { owner -> OwnershipId(it.token, it.tokenId, owner) } }
     }

@@ -20,6 +20,7 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.springframework.beans.factory.annotation.Autowired
@@ -36,15 +37,11 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
         nftItemHistoryRepository.createIndexes()
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should make reduce all items`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should make reduce all items`() = runBlocking<Unit> {
         when (featureFlags.scannerVersion) {
             ScannerVersion.V2 -> {
                 assertThat(itemReduceTaskHandler.isAbleToRun("")).isTrue()
-            }
-            ScannerVersion.V1 -> {
-
             }
         }
         val log1 = createMintLog(blockNumber = 1)
@@ -65,15 +62,11 @@ internal class ItemReduceTaskHandlerTest : AbstractIntegrationTest() {
         }
     }
 
-    @ParameterizedTest
-    @EnumSource(ReduceVersion::class)
-    fun `should make reduce target token`(version: ReduceVersion) = withReducer(version) {
+    @Test
+    fun `should make reduce target token`() = runBlocking<Unit> {
         when (featureFlags.scannerVersion) {
             ScannerVersion.V2 -> {
                 assertThat(itemReduceTaskHandler.isAbleToRun("")).isTrue()
-            }
-            ScannerVersion.V1 -> {
-
             }
         }
         val token = Address.THREE()

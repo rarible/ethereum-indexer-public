@@ -24,7 +24,7 @@ data class Token(
     @Indexed(background = true)
     val standard: TokenStandard,
     @Version
-    val version: Long? = null,
+    override val version: Long? = null,
 
     // Better off would be to introduce a TokenVersion enum (RPN-1264).
     val isRaribleContract: Boolean = false,

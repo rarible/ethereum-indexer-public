@@ -11,7 +11,6 @@ import scalether.domain.Address
 @Primary
 @Component
 class FeaturedTokenReduceService(
-    private val reducerV1: TokenReduceServiceV1,
     private val reducerV2: TokenReduceServiceV2,
     private var featureFlags: FeatureFlags
 ) : TokenReduceService {
@@ -26,7 +25,6 @@ class FeaturedTokenReduceService(
 
     fun getReducer(): TokenReduceService {
         return when (featureFlags.reduceVersion) {
-            ReduceVersion.V1 -> reducerV1
             ReduceVersion.V2 -> reducerV2
         }
     }

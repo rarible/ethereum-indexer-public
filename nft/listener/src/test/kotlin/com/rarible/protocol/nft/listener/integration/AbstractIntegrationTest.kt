@@ -17,8 +17,6 @@ import com.rarible.protocol.dto.NftActivityDto
 import com.rarible.protocol.dto.TransferDto
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.model.FeatureFlags
-import com.rarible.protocol.nft.core.model.ReduceVersion
-import com.rarible.protocol.nft.core.model.ScannerVersion
 import com.rarible.protocol.nft.core.repository.token.TokenRepository
 import com.rarible.protocol.nft.core.repository.history.NftHistoryRepository
 import com.rarible.protocol.nft.core.repository.history.NftItemHistoryRepository
@@ -26,7 +24,6 @@ import com.rarible.protocol.nft.core.repository.item.ItemRepository
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import com.rarible.protocol.nft.listener.test.TestEthereumBlockchainClient
 import io.daonomic.rpc.domain.Word
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
@@ -58,7 +55,6 @@ import java.math.BigInteger
 import java.time.Instant
 import java.util.concurrent.CopyOnWriteArrayList
 import javax.annotation.PostConstruct
-import kotlin.coroutines.EmptyCoroutineContext
 
 abstract class AbstractIntegrationTest {
     private lateinit var sender: MonoTransactionSender
@@ -236,15 +232,5 @@ abstract class AbstractIntegrationTest {
                 }
         }
         job.cancel()
-    }
-
-    fun <T> withReducer(version: ReduceVersion, block: suspend CoroutineScope.() -> T) {
-        featureFlags.reduceVersion = version
-
-        if (featureFlags.scannerVersion == ScannerVersion.V1 ||
-            (featureFlags.scannerVersion == ScannerVersion.V2 && featureFlags.reduceVersion == ReduceVersion.V2)
-        ) {
-            runBlocking(EmptyCoroutineContext, block)
-        }
     }
 }

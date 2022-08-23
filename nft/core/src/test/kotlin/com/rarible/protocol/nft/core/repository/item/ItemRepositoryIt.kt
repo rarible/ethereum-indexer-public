@@ -4,6 +4,7 @@ import com.rarible.core.common.nowMillis
 import com.rarible.core.test.wait.Wait
 import com.rarible.protocol.nft.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.nft.core.integration.IntegrationTest
+import com.rarible.protocol.nft.core.misc.isEqualToItem
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.data.createItem
 import com.rarible.protocol.nft.core.repository.item.ItemFilterCriteria.toCriteria
@@ -50,14 +51,14 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
         val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2)).toList()
         assertThat(items1).hasSize(2)
         Wait.waitAssert {
-            assertThat(items1[0]).isEqualTo(item1)
-            assertThat(items1[1]).isEqualTo(item2)
+            assertThat(items1[0]).isEqualToItem(item1)
+            assertThat(items1[1]).isEqualToItem(item2)
         }
         val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2)).toList()
         assertThat(items2).hasSize(2)
         Wait.waitAssert {
-            assertThat(items2[0]).isEqualTo(item3)
-            assertThat(items2[1]).isEqualTo(item4)
+            assertThat(items2[0]).isEqualToItem(item3)
+            assertThat(items2[1]).isEqualToItem(item4)
         }
     }
 
@@ -76,14 +77,14 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
         val items1 = itemRepository.search(filter.toCriteria(continuation = null, limit = 2)).toList()
         assertThat(items1).hasSize(2)
         Wait.waitAssert {
-            assertThat(items1[0]).isEqualTo(item1)
-            assertThat(items1[1]).isEqualTo(item2)
+            assertThat(items1[0]).isEqualToItem(item1)
+            assertThat(items1[1]).isEqualToItem(item2)
         }
         val items2 = itemRepository.search(filter.toCriteria(continuation = ItemContinuation(items1.last().date, items1.last().id), limit = 2)).toList()
         assertThat(items2).hasSize(2)
         Wait.waitAssert {
-            assertThat(items2[0]).isEqualTo(item3)
-            assertThat(items2[1]).isEqualTo(item4)
+            assertThat(items2[0]).isEqualToItem(item3)
+            assertThat(items2[1]).isEqualToItem(item4)
         }
     }
 
@@ -97,7 +98,7 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
             .isEqualTo(item.id.stringValue)
 
         val savedItem = itemRepository.findById(item.id).awaitFirstOrNull()
-        assertThat(savedItem).isEqualTo(item)
+        assertThat(savedItem).isEqualToItem(item)
     }
 
     @Test
@@ -113,10 +114,9 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
         mongo.updateFirst<Item>(
             Query(Item::id isEqualTo item.id),
             Update().set("royalties", royalties)
-        ).block()
+        ).awaitFirstOrNull()
 
         val savedItem = itemRepository.findById(item.id).awaitFirstOrNull()
-        assertThat(savedItem).isEqualTo(item.copy(royalties = listOf(Part(create, 100))))
+        assertThat(savedItem).isEqualToItem(item.copy(royalties = listOf(Part(create, 100))))
     }
-
 }

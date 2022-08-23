@@ -72,7 +72,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `on minting the ownership is transferred from the zero address`() = withReducer(ReduceVersion.V2) {
+    fun `on minting the ownership is transferred from the zero address`() = runBlocking<Unit> {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
@@ -117,7 +117,7 @@ class CollectionOwnershipTransferDescriptorTest : AbstractIntegrationTest() {
     }
 
     @Test
-    fun `ownership transferred`() = withReducer(ReduceVersion.V2) {
+    fun `ownership transferred`() = runBlocking<Unit> {
         val (creatorAddress, creatorSender) = newSender()
 
         val token = ERC721Rarible.deployAndWait(creatorSender, poller).awaitFirst()
