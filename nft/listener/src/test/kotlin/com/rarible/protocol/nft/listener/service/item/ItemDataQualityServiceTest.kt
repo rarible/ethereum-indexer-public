@@ -96,7 +96,7 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
 
         val continuations = itemDataQualityService.checkItems(from = null).toList()
 
-        //assertThat(continuations).hasSize(3)
+        assertThat(continuations).hasSize(3)
         assertThat(continuations[0].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(validItem.id)
         assertThat(continuations[1].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(fixableItem.id)
         assertThat(continuations[2].let { ItemContinuation.parse(it)?.afterId }).isEqualTo(invalidItem.id)
@@ -141,13 +141,14 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
     }
 
     private fun createValidLog(item: Item, ownerships: List<Ownership>): List<LogEvent> {
-        return ownerships.map { ownership ->
+        return ownerships.mapIndexed { index, ownership ->
             createLog(
                 token = item.token,
                 tokenId = item.tokenId,
                 value = EthUInt256.ONE,
                 from = Address.ZERO(),
-                owner = ownership.owner
+                owner = ownership.owner,
+                logIndex = index
             )
         }
     }
@@ -178,7 +179,8 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
         tokenId: EthUInt256 = EthUInt256.of(randomBigInt()),
         value: EthUInt256 = EthUInt256.ONE,
         owner: Address = randomAddress(),
-        from: Address = Address.ZERO()
+        from: Address = Address.ZERO(),
+        logIndex: Int
     ): LogEvent {
         val transfer = ItemTransfer(
             owner = owner,
@@ -196,10 +198,11 @@ internal class ItemDataQualityServiceTest : AbstractIntegrationTest() {
             status = LogEventStatus.CONFIRMED,
             from = randomAddress(),
             index = 0,
-            logIndex = 1,
+            logIndex = logIndex,
             blockNumber = blockNumber,
             minorLogIndex = 0,
-            blockTimestamp = nowMillis().epochSecond
+            blockTimestamp = nowMillis().epochSecond,
+            createdAt = nowMillis()
         )
     }
 }

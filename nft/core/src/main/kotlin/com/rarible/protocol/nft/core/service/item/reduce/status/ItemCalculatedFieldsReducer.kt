@@ -19,8 +19,6 @@ class ItemCalculatedFieldsReducer : Reducer<ItemEvent, Item> {
         val updatedAt =
             // We try to get timestamp of the latest blockchain event
             entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.CONFIRMED }?.log?.createdAt ?:
-            // If no blockchain event, we get the latest pending createdAt event timestamp
-            entity.revertableEvents.lastOrNull { it.log.status == EthereumLogStatus.PENDING }?.log?.createdAt ?:
             entity.date
 
         return entity.copy(deleted = deleted, supply = value, date = updatedAt)
