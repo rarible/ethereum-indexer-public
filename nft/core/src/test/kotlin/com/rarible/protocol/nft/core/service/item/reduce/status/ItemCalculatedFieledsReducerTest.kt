@@ -43,18 +43,6 @@ internal class ItemCalculatedFieledsReducerTest {
     }
 
     @Test
-    fun `should get the latest pending log for updatedAt field`() = runBlocking<Unit> {
-        val now = nowMillis()
-        val event1 =createRandomMintItemEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now - Duration.ofMinutes(1))
-        val event2 =createRandomMintItemEvent().withNewValues(status = EthereumLogStatus.PENDING, createdAt = now)
-        val item = createRandomItem().copy(
-            revertableEvents = listOf(event1, event2)
-        )
-        val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
-        assertThat(reducedItem.date).isEqualTo(event2.log.createdAt)
-    }
-
-    @Test
     fun `should not change updateAt field if event list is empty`() = runBlocking<Unit> {
         val item = createRandomItem().copy(revertableEvents = emptyList())
         val reducedItem = reducer.reduce(item, createRandomMintItemEvent())
