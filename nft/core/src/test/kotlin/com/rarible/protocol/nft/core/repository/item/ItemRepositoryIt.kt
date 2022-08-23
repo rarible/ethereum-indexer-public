@@ -117,9 +117,6 @@ internal class ItemRepositoryIt : AbstractIntegrationTest() {
         ).awaitFirstOrNull()
 
         val savedItem = itemRepository.findById(item.id).awaitFirstOrNull()
-        assertThat(savedItem)
-            .usingRecursiveComparison()
-            .ignoringFields(Item::version.name)
-            .isEqualTo(item.copy(royalties = listOf(Part(create, 100))))
+        assertThat(savedItem).isEqualToItem(item.copy(royalties = listOf(Part(create, 100))))
     }
 }
