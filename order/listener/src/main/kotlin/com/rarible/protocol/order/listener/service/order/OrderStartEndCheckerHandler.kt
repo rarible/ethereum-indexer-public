@@ -47,7 +47,7 @@ class OrderStartEndCheckerHandler(
             .collect { order ->
                 val saved = orderRepository.save(order.withUpdatedStatus(now))
                 if (order.isEnded()) orderExpiredMetric.increment() else orderStartedMetric.increment()
-                logger.info("Change order ${saved.hash} status from ${order.status}} to ${saved.status}")
+                logger.info("Change order ${saved.hash} status to ${saved.status}")
                 val updateEvent = OrderUpdateEventDto(
                     eventId = UUID.randomUUID().toString(),
                     orderId = saved.hash.toString(),

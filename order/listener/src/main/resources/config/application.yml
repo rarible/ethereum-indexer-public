@@ -83,6 +83,9 @@ listener:
   rarible-expired-bid-worker:
     enabled: true
     polling-period: 10m
+  start-end-worker:
+    enabled: true
+    polling-period: 1m
 
 ethereumMaxFrameSize: 209715200
 ethereumBlockBatchSize: 50
