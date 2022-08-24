@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.api.data
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.test.data.randomBigInt
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.sign.domain.EIP712Domain
 import com.rarible.protocol.dto.LegacyOrderFormDto
@@ -45,13 +46,14 @@ fun createOrder(
         type = OrderType.RARIBLE_V2,
         fill = EthUInt256.ZERO,
         cancelled = false,
-        salt = EthUInt256.TEN,
+        salt = EthUInt256.of(randomBigInt()),
         start = start,
         end = end,
         data = OrderRaribleV2DataV1(emptyList(), emptyList()),
         signature = null,
         createdAt = nowMillis(),
-        lastUpdateAt = nowMillis()
+        lastUpdateAt = nowMillis(),
+        version = null
     )
 }
 

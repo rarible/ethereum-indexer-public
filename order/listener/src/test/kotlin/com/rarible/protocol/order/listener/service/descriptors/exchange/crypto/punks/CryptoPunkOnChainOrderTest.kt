@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.OrderActivityListDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
+import com.rarible.protocol.order.core.data.isEqualToOrder
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -88,7 +89,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = listOrder.lastEventId,
             dbUpdatedAt = listOrder.dbUpdatedAt
         )
-        assertThat(listOrder).isEqualTo(expectedListOrder)
+        assertThat(listOrder).isEqualToOrder(expectedListOrder)
 
         checkActivityWasPublished {
             assertThat(this).isInstanceOfSatisfying(OrderActivityListDto::class.java) {
@@ -139,7 +140,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 lastEventId = sellOrder.lastEventId,
                 dbUpdatedAt = sellOrder.dbUpdatedAt
             )
-            assertThat(sellOrder).isEqualTo(expectedSellOrder)
+            assertThat(sellOrder).isEqualToOrder(expectedSellOrder)
         }
 
         cryptoPunksMarket.withdraw().withSender(sellerSender).execute().verifySuccess()
@@ -284,7 +285,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = firstOrder.lastEventId,
             dbUpdatedAt = firstOrder.dbUpdatedAt
         )
-        assertThat(firstOrder).isEqualTo(expectedListOrder)
+        assertThat(firstOrder).isEqualToOrder(expectedListOrder)
 
         // Make the second sell order with new price.
         val secondPrice = BigInteger.valueOf(200000)
@@ -296,7 +297,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             val secondPriceUsd = secondPrice.toBigDecimal(18) * TestPropertiesConfiguration.ETH_CURRENCY_RATE
             val secondMakePrice = secondPrice.toBigDecimal(18)
             val secondTake = take.copy(value = EthUInt256(secondPrice))
-            assertThat(secondOrder).isEqualTo(
+            assertThat(secondOrder).isEqualToOrder(
                 expectedListOrder.copy(
                     take = secondTake,
                     createdAt = secondSellTimestamp,
@@ -359,7 +360,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = bidOrder.lastEventId,
             dbUpdatedAt = bidOrder.dbUpdatedAt
         )
-        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+        assertThat(bidOrder).isEqualToOrder(expectedBidOrder)
 
         checkActivityWasPublished {
             assertThat(this).isInstanceOfSatisfying(OrderActivityBidDto::class.java) {
@@ -405,7 +406,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 lastEventId = buyOrder.lastEventId,
                 dbUpdatedAt = buyOrder.dbUpdatedAt
             )
-            assertThat(buyOrder).isEqualTo(expectedBuyOrder)
+            assertThat(buyOrder).isEqualToOrder(expectedBuyOrder)
         }
 
         cryptoPunksMarket.withdraw().withSender(ownerSender).execute().verifySuccess()
@@ -555,7 +556,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = firstBidOrder.lastEventId,
             dbUpdatedAt = firstBidOrder.dbUpdatedAt
         )
-        assertThat(firstBidOrder).isEqualTo(expectedFirstBidOrder)
+        assertThat(firstBidOrder).isEqualToOrder(expectedFirstBidOrder)
 
         // Second user makes a bid with higher price => th first user's bid must be cancelled.
         val (secondBidderAddress, secondBidderSender) = newSender()
@@ -572,7 +573,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val firstBidCancelledOrder = orderRepository.findById(firstBidOrder.hash)
-            assertThat(firstBidCancelledOrder).isEqualTo(
+            assertThat(firstBidCancelledOrder).isEqualToOrder(
                 firstBidOrder.copy(
                     cancelled = true,
                     status = OrderStatus.CANCELLED,
@@ -587,7 +588,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             assertThat(activeOrders).hasSize(1)
 
             val secondBidOrder = activeOrders.single()
-            assertThat(secondBidOrder).isEqualTo(
+            assertThat(secondBidOrder).isEqualToOrder(
                 expectedFirstBidOrder.copy(
                     maker = secondBidderAddress,
                     make = secondMake,
@@ -666,7 +667,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = bidOrder.lastEventId,
             dbUpdatedAt = bidOrder.dbUpdatedAt
         )
-        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+        assertThat(bidOrder).isEqualToOrder(expectedBidOrder)
 
         // Transfer punk to the bidder for free.
         val transferTimestamp = cryptoPunksMarket.transferPunk(bidderAddress, punkIndex)
@@ -674,7 +675,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val bidCancelledOrder = orderRepository.findById(bidOrder.hash)
-            assertThat(bidCancelledOrder).isEqualTo(
+            assertThat(bidCancelledOrder).isEqualToOrder(
                 bidOrder.copy(
                     cancelled = true,
                     status = OrderStatus.CANCELLED,
@@ -732,7 +733,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = sellOrder.lastEventId,
             dbUpdatedAt = sellOrder.dbUpdatedAt
         )
-        assertThat(sellOrder).isEqualTo(expectedSellOrder)
+        assertThat(sellOrder).isEqualToOrder(expectedSellOrder)
 
         val (newOwnerAddress) = newSender()
 
@@ -743,7 +744,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val sellCancelledOrder = orderRepository.findById(sellOrder.hash)
-            assertThat(sellCancelledOrder).isEqualTo(
+            assertThat(sellCancelledOrder).isEqualToOrder(
                 sellOrder.copy(
                     cancelled = true,
                     status = OrderStatus.CANCELLED,
@@ -808,7 +809,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = sellOrder.lastEventId,
             dbUpdatedAt = sellOrder.dbUpdatedAt
         )
-        assertThat(sellOrder).isEqualTo(expectedSellOrder)
+        assertThat(sellOrder).isEqualToOrder(expectedSellOrder)
 
         val (bidderAddress, bidderSender) = newSender()
         val bidPrice = 100000.toBigInteger()
@@ -854,7 +855,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = bidOrder.lastEventId,
             dbUpdatedAt = bidOrder.dbUpdatedAt
         )
-        assertThat(bidOrder).isEqualTo(expectedBidOrder)
+        assertThat(bidOrder).isEqualToOrder(expectedBidOrder)
 
         // Seller accepts the bid.
         val acceptBidTimestamp = cryptoPunksMarket.acceptBidForPunk(punkIndex, bidPrice).withSender(sellerSender)
@@ -862,7 +863,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val sellCancelledOrder = orderRepository.findById(sellOrder.hash)
-            assertThat(sellCancelledOrder).isEqualTo(
+            assertThat(sellCancelledOrder).isEqualToOrder(
                 sellOrder.copy(
                     cancelled = true,
                     status = OrderStatus.CANCELLED,
@@ -875,7 +876,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             )
 
             val filledBidOrder = orderRepository.findById(bidOrder.hash)
-            assertThat(filledBidOrder).isEqualTo(
+            assertThat(filledBidOrder).isEqualToOrder(
                 expectedBidOrder.copy(
                     maker = bidderAddress,
                     make = bidMake,
@@ -957,7 +958,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 lastEventId = order.lastEventId,
                 dbUpdatedAt = order.dbUpdatedAt
             )
-            assertThat(order).isEqualTo(expectedOrder)
+            assertThat(order).isEqualToOrder(expectedOrder)
         }
     }
 
@@ -1018,7 +1019,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
                 lastEventId = order.lastEventId,
                 dbUpdatedAt = order.dbUpdatedAt
             )
-            assertThat(order).isEqualTo(expectedOrder)
+            assertThat(order).isEqualToOrder(expectedOrder)
         }
     }
 
@@ -1069,7 +1070,7 @@ class CryptoPunkOnChainOrderTest : AbstractCryptoPunkTest() {
             lastEventId = listOrder.lastEventId,
             dbUpdatedAt = listOrder.dbUpdatedAt
         )
-        assertThat(listOrder).isEqualTo(expectedListOrder)
+        assertThat(listOrder).isEqualToOrder(expectedListOrder)
 
         // We can check here that 'OrderActivityListDto' with a specific granted address has been published,
         // but currently, such activities are ignored because frontend does not support "for-specific-address" sale orders.

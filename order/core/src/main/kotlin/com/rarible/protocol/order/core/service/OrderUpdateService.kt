@@ -35,7 +35,6 @@ class OrderUpdateService(
     private val orderVersionListener: OrderVersionListener,
     private val orderListener: OrderListener
 ) {
-
     private val logger = LoggerFactory.getLogger(OrderUpdateService::class.java)
 
     /**
@@ -49,19 +48,20 @@ class OrderUpdateService(
      */
     suspend fun save(orderVersion: OrderVersion): Order {
         orderVersionRepository.save(orderVersion).awaitFirst()
-        val order = optimisticLock { orderReduceService.updateOrder(orderVersion.hash) }
+        val order = optimisticLock {
+            orderReduceService.updateOrder(orderVersion.hash)
+        }
         checkNotNull(order) { "Order ${orderVersion.hash} has not been updated" }
-
         orderListener.onOrder(order)
         orderVersionListener.onOrderVersion(orderVersion)
         return order
     }
 
     suspend fun update(hash: Word) {
-        val order = orderRepository.findById(hash)
-        val updatedOrder = orderReduceService.updateOrder(hash)
-
-        if (updatedOrder != null && order?.lastEventId != updatedOrder.lastEventId) {
+        val updatedOrder = optimisticLock {
+            orderReduceService.updateOrder(hash)
+        }
+        if (updatedOrder != null) {
             orderListener.onOrder(updatedOrder)
         }
     }
@@ -69,8 +69,7 @@ class OrderUpdateService(
     suspend fun updateMakeStock(
         hash: Word,
         makeBalanceState: MakeBalanceState? = null
-    ): Order? =
-        updateMakeStockFull(hash, makeBalanceState).first
+    ): Order? = updateMakeStockFull(hash, makeBalanceState).first
 
     /**
      * Updates the order's make stock and prices without calling the OrderReduceService.
@@ -78,8 +77,8 @@ class OrderUpdateService(
     suspend fun updateMakeStockFull(
         hash: Word,
         makeBalanceState: MakeBalanceState? = null
-    ): Pair<Order?, Boolean> {
-        val order = orderRepository.findById(hash) ?: return null to false
+    ): Pair<Order?, Boolean> = optimisticLock {
+        val order = orderRepository.findById(hash) ?: return@optimisticLock null to false
 
         val makeBalance = makeBalanceState ?: assetMakeBalanceProvider.getMakeBalance(order)
         val knownMakeBalance = makeBalance.value
@@ -102,7 +101,7 @@ class OrderUpdateService(
 
         // We need to allow updates even if only lastUpdatedAt has been changed
         // otherwise we won't be able to update some of existing orders by background reduce job
-        return if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
+        if (order.makeStock != updated.makeStock || order.lastUpdateAt != updated.lastUpdateAt) {
             val savedOrder = orderRepository.save(updated)
             orderListener.onOrder(savedOrder)
             logger.info("Make stock of order updated ${savedOrder.hash}: makeStock=${savedOrder.makeStock}, old makeStock=${order.makeStock}, makeBalance=$makeBalance, knownMakeBalance=$knownMakeBalance, cancelled=${savedOrder.cancelled}")

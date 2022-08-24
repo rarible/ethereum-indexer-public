@@ -3,6 +3,7 @@ package com.rarible.protocol.order.core.service
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
+import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
@@ -63,7 +64,16 @@ class OrderReduceService(
                 .map { OrderUpdate.ByLogEvent(it) }
         )
             .windowUntilChanged { it.orderHash }
-            .concatMap { updateOrder(it) }
+            .concatMap {
+                it.switchOnFirst { first, logs ->
+                    val log = first.get()
+                    if (log != null) {
+                        updateOrder(log.orderHash, logs)
+                    } else {
+                        Mono.empty()
+                    }
+                }
+            }
     }
 
     private sealed class OrderUpdate {
@@ -81,7 +91,8 @@ class OrderReduceService(
         }
     }
 
-    private fun updateOrder(updates: Flux<OrderUpdate>): Mono<Order> = mono {
+    private fun updateOrder(hash: Word, updates: Flux<OrderUpdate>): Mono<Order> = mono {
+        val version = orderRepository.findById(hash)?.version
         // Fields used for logging only.
         var seenRevertedOnChainOrder = false
         var seenOrderHash: Word? = null
@@ -130,7 +141,7 @@ class OrderReduceService(
             }
             return@mono emptyOrder
         }
-        updateOrderWithState(result)
+        updateOrderWithState(result.withVersion(version))
     }
 
     private suspend fun Order.updateWith(

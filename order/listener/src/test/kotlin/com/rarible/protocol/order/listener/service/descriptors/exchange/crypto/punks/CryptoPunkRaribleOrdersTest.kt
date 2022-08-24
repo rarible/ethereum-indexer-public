@@ -18,6 +18,7 @@ import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderActivityListDto
 import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.PrepareOrderTxFormDto
+import com.rarible.protocol.order.core.data.isEqualToOrder
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CRYPTO_PUNKS_SALT
@@ -294,7 +295,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
 
         Wait.waitAssert {
             val inactiveRaribleOrder = orderRepository.findById(sellOrder.hash)
-            assertThat(inactiveRaribleOrder).isEqualTo(
+            assertThat(inactiveRaribleOrder).isEqualToOrder(
                 sellOrder.copy(
                     status = OrderStatus.INACTIVE,
                     makeStock = EthUInt256.ZERO,
@@ -307,7 +308,7 @@ class CryptoPunkRaribleOrdersTest : AbstractCryptoPunkTest() {
             val activeOrders = orderRepository.findActive().toList()
             assertThat(activeOrders).hasSize(1)
             val onChainSellOrder = activeOrders.single()
-            assertThat(onChainSellOrder).isEqualTo(
+            assertThat(onChainSellOrder).isEqualToOrder(
                 Order(
                     maker = sellerAddress,
                     taker = null,

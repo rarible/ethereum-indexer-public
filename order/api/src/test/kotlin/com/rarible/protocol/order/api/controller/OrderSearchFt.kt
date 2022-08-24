@@ -164,7 +164,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
         orders: List<Order>,
         other: List<Order>
     ) = runBlocking<Unit> {
-        saveOrder(*(orders + orders).shuffled().toTypedArray())
+        saveOrder(*(orders + other).shuffled().toTypedArray())
 
         Wait.waitAssert {
             val allOrders = mutableListOf<OrderDto>()
@@ -303,7 +303,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(2L)
         )
-        saveOrderVersions(order1V, order2V)
+        reduceOrder(order1V, order2V)
 
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
@@ -358,10 +358,10 @@ class OrderSearchFt : AbstractIntegrationTest() {
             takePrice = order1V.takePrice
         )
 
-        saveOrderVersions(order1V, order2V)
+        val (savedOrdersV1, savedOrder2V) = reduceOrder(order1V, order2V)
 
         // orderV1 should be associated with existing active order to be retrieved as ACTIVE
-        val order1 = createOrderFully().copy(hash = order1V.hash)
+        val order1 = createOrderFully().copy(hash = savedOrdersV1.hash, version = savedOrder2V.version)
         orderRepository.save(order1)
 
         // Ensure for all statuses we got "historical" order only
@@ -426,7 +426,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             takePrice = BigDecimal.valueOf(2L),
             createdAt = Instant.now()
         )
-        saveOrderVersions(order1V, order2V, order3V)
+        reduceOrder(order1V, order2V, order3V)
 
         val result = orderClient.getOrderBidsByMakerAndByStatus(
             listOf(maker),
@@ -506,7 +506,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(123L)
         )
-        saveOrderVersions(order1V)
+        reduceOrder(order1V)
 
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
@@ -534,14 +534,14 @@ class OrderSearchFt : AbstractIntegrationTest() {
             take = Asset(Erc721AssetType(makeAddress, EthUInt256.ONE), EthUInt256.TEN),
             takePrice = BigDecimal.valueOf(123L)
         )
-        saveOrderVersions(order1V)
+        reduceOrder(order1V)
         val order1VEth = createErc721BidOrderVersion().copy(
             maker = order1V.maker,
             make = Asset(EthAssetType, EthUInt256.of(123)),
             take = order1V.take,
             takePrice = BigDecimal.valueOf(123L)
         )
-        saveOrderVersions(order1VEth)
+        reduceOrder(order1VEth)
 
         val result = orderClient.getOrderBidsByItemAndByStatus(
             order1V.take.type.token.toString(),
@@ -601,7 +601,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
         coEvery { assetMakeBalanceProvider.getMakeBalance(any()) } answers {
             MakeBalanceState(firstArg<Order>().make.value)
         }
-        saveOrderVersions(*orderVersions.toTypedArray())
+        reduceOrder(*orderVersions.toTypedArray())
         val bids = orderClient.getOrderBidsByItemAndByStatus(
             contract.prefixed(),
             take.type.tokenId?.value.toString(),
@@ -630,7 +630,7 @@ class OrderSearchFt : AbstractIntegrationTest() {
         order.forEach { orderRepository.save(it) }
     }
 
-    private suspend fun saveOrderVersions(vararg order: OrderVersion) {
-        order.forEach { orderUpdateService.save(it) }
+    private suspend fun reduceOrder(vararg order: OrderVersion): List<Order> {
+        return order.map { orderUpdateService.save(it) }
     }
 }
