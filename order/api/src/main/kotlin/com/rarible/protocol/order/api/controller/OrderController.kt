@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.api.controller
 
+import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.LegacyOrderFormDto
@@ -84,7 +85,9 @@ class OrderController(
         produces = ["application/json"]
     )
     suspend fun reduceOrder(@PathVariable hash: String): OrderDto? {
-        val order = orderReduceService.updateOrder(Word.apply(hash))
+        val order = optimisticLock {
+            orderReduceService.updateOrder(Word.apply(hash))
+        }
         return order?.let { orderDtoConverter.convert(it) }
     }
 
