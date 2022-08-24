@@ -3,6 +3,8 @@ package com.rarible.protocol.order.listener.configuration
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.listener.metric.OrderExpiredMetric
+import com.rarible.protocol.order.listener.metric.OrderStartedMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelAllEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareCancelOrdersEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderErrorMetric
@@ -41,6 +43,17 @@ class MetricsCountersConfiguration(
     private val properties: OrderIndexerProperties,
     private val meterRegistry: MeterRegistry
 ) {
+    /** Common metrics **/
+    @Bean
+    fun orderExpiredMetric(): RegisteredCounter {
+        return OrderExpiredMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun orderStartedMetric(): RegisteredCounter {
+        return OrderStartedMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
     /** Rarible metrics **/
     @Bean
     fun raribleMatchEventMetric(): RegisteredCounter {

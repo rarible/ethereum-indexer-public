@@ -16,11 +16,9 @@ data class OrderListenerProperties(
     val publishTaskDelayMs: Long = 1000L,
     val parallelOrderUpdateStreams: Int = 10,
     val openSeaOrderSide: OrderSide? = null,
-    val updateStatusByStartEndEnabled: Boolean = false,
     val updateAuctionOngoingStateEnabled: Boolean = false,
     val updateAuctionOngoingStateEndLag: Duration = Duration.ofMinutes(5),
     val openSeaClientUserAgents: String = "",
-    val metricJobStartEnd: String = "",
     val ownershipConsumerWorkersCount: Int = 4,
     val zeroExExchangeDomainHash: String = "0x",
     val openSeaExchangeDomainHashV2: String = "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -31,6 +29,7 @@ data class OrderListenerProperties(
     val seaportLoad: SeaportLoadProperties = SeaportLoadProperties(),
     val looksrareLoad: LooksrareLoadProperties = LooksrareLoadProperties(),
     val x2y2Load: X2Y2LoadProperties = X2Y2LoadProperties(),
+    val startEndWorker: StartEndWorkerProperties = StartEndWorkerProperties()
 ) {
     enum class OrderSide {
         ALL,
@@ -107,6 +106,12 @@ data class OpenSeaOrdersLoadPeriodWorkerProperties(
 data class RaribleExpiredBidWorkerProperties(
     val enabled: Boolean = true,
     val pollingPeriod: Duration = Duration.ofMinutes(10)
+)
+
+data class StartEndWorkerProperties(
+    val enabled: Boolean = true,
+    val pollingPeriod: Duration = Duration.ofMinutes(1),
+    val errorDelay: Duration = Duration.ofMinutes(2)
 )
 
 data class X2Y2LoadProperties(
