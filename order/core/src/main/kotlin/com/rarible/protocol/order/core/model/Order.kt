@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.Version
 import org.springframework.data.mongodb.core.mapping.Document
 import scala.*
 import scalether.abi.AddressType
@@ -70,17 +71,11 @@ data class Order(
 
     val platform: Platform = Platform.RARIBLE,
 
-    val lastEventId: String? = null,
-
     @Id
     val hash: Word = hashKey(maker, make.type, take.type, salt.value, data),
 
-    /**
-     * TODO: we need this field only temporarily, until the "OrderReduceService" refactoring commit is released and is proven to be stable.
-     *  This is needed to not corrupt production database completely if we need to revert the above commit.
-     *  That commit removes the field, and the old production release will not be able to start.
-     */
-    val version: Long? = 1,
+    @Version
+    val version: Long? = null,
 
     /**
      * Has been ApproveForAll or Approve event applied for sale/bid token
