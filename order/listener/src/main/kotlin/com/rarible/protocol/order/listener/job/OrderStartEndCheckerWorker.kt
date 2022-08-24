@@ -6,7 +6,7 @@ import com.rarible.protocol.order.listener.configuration.StartEndWorkerPropertie
 import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
 import io.micrometer.core.instrument.MeterRegistry
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.time.delay
 
 @ExperimentalCoroutinesApi
 class OrderStartEndCheckerWorker(
