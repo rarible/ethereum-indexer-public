@@ -2,23 +2,20 @@ package com.rarible.protocol.order.listener.service.order
 
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.converters.dto.OrderDtoConverter
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.OrderStatus
-import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
 import com.rarible.protocol.order.core.repository.order.MongoOrderRepository
-import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.data.createOrderVersion
 import com.rarible.protocol.order.listener.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.listener.integration.IntegrationTest
-import com.rarible.protocol.order.listener.job.OrderStartEndCheckerJob
 import io.daonomic.rpc.domain.Word
 import io.mockk.clearMocks
 import io.mockk.coEvery
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
@@ -26,7 +23,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query.Query
 import org.springframework.data.mongodb.core.query.Update
@@ -35,24 +31,10 @@ import java.time.Duration
 import java.time.Instant
 
 @IntegrationTest
-internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
-
+@ExperimentalCoroutinesApi
+internal class OrderStartEndCheckerHandlerTest : AbstractIntegrationTest() {
     @Autowired
-    private lateinit var reactiveMongoTemplate: ReactiveMongoTemplate
-    @Autowired
-    private lateinit var  protocolOrderPublisher: ProtocolOrderPublisher
-    @Autowired
-    private lateinit var orderDtoConverter: OrderDtoConverter
-
-    private val updaterJob
-        get() = OrderStartEndCheckerJob(
-            reactiveMongoTemplate,
-            OrderListenerProperties(updateStatusByStartEndEnabled = true),
-            orderDtoConverter,
-            protocolOrderPublisher,
-            orderIndexerProperties,
-            meterRegistry
-        )
+    private lateinit var handler: OrderStartEndCheckerHandler
 
     @BeforeEach
     fun setup() {
@@ -87,7 +69,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         check(orderVersion.hash, OrderStatus.ACTIVE)
 
         val updateTime = nowMillis()
-        updaterJob.update(updateTime)
+        handler.update(updateTime)
         assertThat(check(orderVersion.hash, OrderStatus.ENDED)).isEqualTo(updateTime)
     }
 
@@ -111,7 +93,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         // rewind end for matching expired query
         mongo.updateMulti(Query(), Update().set("end", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
 
-        updaterJob.update(nowMillis())
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ENDED)
     }
 
@@ -132,7 +114,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         val updated =  mongo.save(order.copy(makeStock = EthUInt256.ZERO)).awaitSingle()
         assertThat(updated.status).isEqualTo(OrderStatus.INACTIVE)
 
-        updaterJob.update(nowMillis())
+        handler.handle()
         check(orderVersion.hash, OrderStatus.INACTIVE)
     }
 
@@ -156,7 +138,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.NOT_STARTED)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ACTIVE)
     }
 
@@ -180,7 +162,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.NOT_STARTED)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ACTIVE)
     }
 
@@ -205,7 +187,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.NOT_STARTED)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.INACTIVE)
     }
 
@@ -229,7 +211,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.NOT_STARTED)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ACTIVE)
     }
 
@@ -253,7 +235,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("start", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.NOT_STARTED)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ACTIVE)
     }
 
@@ -277,7 +259,7 @@ internal class OrderStartEndCheckerTest : AbstractIntegrationTest() {
         mongo.updateMulti(Query(), Update().set("end", nowMillis().minus(Duration.ofMinutes(5)).epochSecond), MongoOrderRepository.COLLECTION).awaitFirst()
         check(orderVersion.hash, OrderStatus.ACTIVE)
 
-        updaterJob.update()
+        handler.handle()
         check(orderVersion.hash, OrderStatus.ENDED)
     }
 

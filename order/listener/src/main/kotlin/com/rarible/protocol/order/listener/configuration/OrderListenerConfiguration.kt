@@ -27,6 +27,7 @@ import com.rarible.protocol.order.listener.consumer.BatchedConsumerWorker
 import com.rarible.protocol.order.listener.job.LooksrareOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersFetcherWorker
 import com.rarible.protocol.order.listener.job.OpenSeaOrdersPeriodFetcherWorker
+import com.rarible.protocol.order.listener.job.OrderStartEndCheckerWorker
 import com.rarible.protocol.order.listener.job.RaribleBidsCanceledAfterExpiredJob
 import com.rarible.protocol.order.listener.job.SeaportOrdersFetchWorker
 import com.rarible.protocol.order.listener.job.X2Y2OrdersFetchWorker
@@ -41,9 +42,11 @@ import com.rarible.protocol.order.listener.service.opensea.OpenSeaOrderValidator
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoadHandler
 import com.rarible.protocol.order.listener.service.opensea.SeaportOrderLoader
 import com.rarible.protocol.order.listener.service.order.OrderBalanceService
+import com.rarible.protocol.order.listener.service.order.OrderStartEndCheckerHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoadHandler
 import com.rarible.protocol.order.listener.service.x2y2.X2Y2OrderLoader
 import io.micrometer.core.instrument.MeterRegistry
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -103,6 +106,11 @@ class OrderListenerConfiguration(
     }
 
     @Bean
+    fun startEndWorkerProperties(): StartEndWorkerProperties {
+        return listenerProperties.startEndWorker
+    }
+
+    @Bean
     fun erc20BalanceChangeWorker(orderBalanceService: OrderBalanceService): ConsumerWorker<Erc20BalanceEventDto> {
         val args = erc20IndexerEventsConsumerFactory.createErc20BalanceEventsConsumer(
             consumerGroup = erc20BalanceConsumerGroup,
@@ -151,6 +159,21 @@ class OrderListenerConfiguration(
             meterRegistry = meterRegistry,
             blockRepository = blockRepository
         )
+    }
+
+    @Bean
+    @ExperimentalCoroutinesApi
+    @ConditionalOnProperty(
+        prefix = RARIBLE_PROTOCOL_LISTENER,
+        name=["start-end-worker.enabled"],
+        havingValue="true"
+    )
+    fun startEndWorker(
+        handler: OrderStartEndCheckerHandler,
+        properties: StartEndWorkerProperties,
+        meterRegistry: MeterRegistry
+    ): OrderStartEndCheckerWorker {
+        return OrderStartEndCheckerWorker(handler, properties, meterRegistry).apply { start() }
     }
 
     @Bean

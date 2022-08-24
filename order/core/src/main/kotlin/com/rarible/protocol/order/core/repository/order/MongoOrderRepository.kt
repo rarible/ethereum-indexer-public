@@ -223,7 +223,6 @@ class MongoOrderRepository(
             .asFlow()
     }
 
-
     override fun findNotCanceledByMakerAndCounterLtThen(platform: Platform, maker: Address, counter: Long): Flow<Word> {
         val idFiled = "_id"
         val query = Query(
@@ -285,7 +284,7 @@ class MongoOrderRepository(
             .asFlow()
     }
 
-    fun findExpiredOrders(now: Instant): Flow<Order> {
+    override fun findExpiredOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
                 Order::status inValues listOf(OrderStatus.ACTIVE, OrderStatus.INACTIVE),
@@ -297,7 +296,7 @@ class MongoOrderRepository(
         return template.query<Order>().matching(query).all().asFlow()
     }
 
-    fun findNotStartedOrders(now: Instant): Flow<Order> {
+    override fun findNotStartedOrders(now: Instant): Flow<Order> {
         val query = Query(
             Criteria().andOperator(
                 Order::status isEqualTo OrderStatus.NOT_STARTED,
