@@ -49,18 +49,4 @@ internal class OrderUpdateServiceTest {
 
         coVerify { orderListener.onOrder(eq(updatedOrder)) }
     }
-
-    @Test
-    fun `should not send event if lastEventId was not changed`() = runBlocking<Unit> {
-        val hash =WordFactory.create()
-        val order = createOrder().copy(lastEventId = "2")
-        val updatedOrder = createOrder().copy(lastEventId = "2")
-
-        coEvery { orderRepository.findById(eq(hash)) } returns order
-        coEvery { orderReduceService.updateOrder(eq(hash)) } returns updatedOrder
-
-        orderUpdateService.update(hash)
-
-        coVerify(exactly = 0) { orderListener.onOrder(any()) }
-    }
 }

@@ -71,6 +71,8 @@ data class Order(
 
     val platform: Platform = Platform.RARIBLE,
 
+    val lastEventId: String? = null,
+
     @Id
     val hash: Word = hashKey(maker, make.type, take.type, salt.value, data),
 
@@ -170,6 +172,10 @@ data class Order(
         } else {
             false
         }
+    }
+
+    fun withVersion(version: Long?): Order {
+        return copy(version = version)
     }
 
     companion object {

@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.data.isEqualToOrder
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
@@ -367,7 +368,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                     )
                 )
             )
-            assertThat(order.copy(lastEventId = null)).isEqualTo(
+            assertThat(order.copy(lastEventId = null)).isEqualToOrder(
                 expectedOrder.copy(takePrice = order.takePrice, makePrice = order.makePrice, dbUpdatedAt = order.dbUpdatedAt)
             )
         }
