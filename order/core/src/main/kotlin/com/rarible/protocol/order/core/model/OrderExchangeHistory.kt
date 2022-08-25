@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.model
 
 import com.rarible.core.common.nowMillis
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Binary
@@ -60,7 +61,7 @@ data class OrderSideMatch(
          * Checks if marketplace marker is present in tx input and adds it to OrderSideMatch event if it's adhoc
          * Doesn't add marker if it's already present in the event
          */
-        fun addMarketplaceMarker(list: List<OrderSideMatch>, input: Bytes): List<OrderSideMatch> {
+        fun addMarketplaceMarker(list: List<OrderSideMatch>, input: Bytes, counter: RegisteredCounter? = null): List<OrderSideMatch> {
             if (input.length() < 32) return list
             val lastBytes = input.bytes().takeLast(32)
             val marketplaceMarker = lastBytes
@@ -69,6 +70,7 @@ data class OrderSideMatch(
                 ?.let { Word.apply(it) }
             return list.map {
                 if (it.marketplaceMarker == null && marketplaceMarker != null && it.adhoc == true) {
+                    counter?.increment()
                     it.copy(marketplaceMarker = marketplaceMarker)
                 } else {
                     it
