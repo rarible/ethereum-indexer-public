@@ -1,9 +1,11 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.AmmOrderDto
 import com.rarible.protocol.dto.CryptoPunkOrderDto
 import com.rarible.protocol.dto.LegacyOrderDto
 import com.rarible.protocol.dto.LooksRareOrderDto
 import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderAmmDataDto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
@@ -256,6 +258,37 @@ class OrderDtoConverter(
                 start = source.start,
                 end = source.end,
                 priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+            )
+            OrderType.AMM -> AmmOrderDto(
+                maker = source.maker,
+                make = assetDtoConverter.convert(source.make),
+                taker = source.taker,
+                take = assetDtoConverter.convert(source.take),
+                fill = source.fill.value,
+                fillValue = convertFillValue(source),
+                makeStock = source.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.make.type, source.makeStock.value),
+                cancelled = source.cancelled,
+                salt = source.salt.value.toWord(),
+                signature = if (properties.featureFlags.hideOpenSeaSignatures) Binary.apply() else when(orderStatus) {
+                    OrderStatusDto.INACTIVE, OrderStatusDto.CANCELLED -> null
+                    else -> source.signature.orEmpty()
+                },
+                createdAt = source.createdAt,
+                lastUpdateAt = source.lastUpdateAt,
+                dbUpdatedAt = source.dbUpdatedAt,
+                pending = null,
+                hash = source.hash,
+                data = OrderDataDtoConverter.convert(source.data) as OrderAmmDataDto,
+                makePrice = source.makePrice,
+                takePrice = source.takePrice,
+                makePriceUsd = source.makePriceUsd,
+                takePriceUsd = source.takePriceUsd,
+                makeBalance = BigInteger.ZERO,
+                status = OrderStatusDtoConverter.convert(source.status),
+                start = source.start,
+                end = source.end,
+                priceHistory = source.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) },
             )
         }
     }

@@ -167,7 +167,8 @@ data class Order(
                 is OrderRaribleV2DataV3Sell,
                 is OrderBasicSeaportDataV1,
                 is OrderLooksrareDataV1,
-                is OrderX2Y2DataV1 -> false
+                is OrderX2Y2DataV1,
+                is OrderSudoSwapAmmDataV1 -> false
             }
         } else {
             false
@@ -214,6 +215,7 @@ data class Order(
                 OrderType.RARIBLE_V2,
                 OrderType.RARIBLE_V1,
                 OrderType.CRYPTO_PUNKS -> calculatedMakeStock
+                OrderType.AMM,
                 OrderType.LOOKSRARE,
                 OrderType.X2Y2,
                 OrderType.OPEN_SEA_V1,
@@ -291,6 +293,7 @@ data class Order(
                 is OrderBasicSeaportDataV1 -> EthUInt256.ZERO
                 is OrderX2Y2DataV1 -> EthUInt256.ZERO
                 is OrderLooksrareDataV1 -> EthUInt256.ZERO
+                is OrderSudoSwapAmmDataV1 -> EthUInt256.ZERO
             }
         }
 
@@ -326,10 +329,11 @@ data class Order(
                 OrderType.RARIBLE_V2 -> raribleExchangeV2Hash(maker, make, taker, take, salt, start, end, data)
                 OrderType.RARIBLE_V1 -> raribleExchangeV1Hash(maker, make,  take, salt, data)
                 OrderType.OPEN_SEA_V1 -> openSeaV1Hash(maker, make, taker, take, salt, start, end, data)
-                OrderType.SEAPORT_V1 -> throw UnsupportedOperationException("Can't calculate seaport order hash")
-                OrderType.LOOKSRARE -> throw UnsupportedOperationException("Can't calculate looksrare order hash")
-                OrderType.CRYPTO_PUNKS -> throw IllegalArgumentException("On-chain CryptoPunks orders are not hashable")
-                OrderType.X2Y2 -> throw IllegalArgumentException("Can't calculate x2y2 order hash") //TODO ???
+                OrderType.SEAPORT_V1,
+                OrderType.LOOKSRARE,
+                OrderType.CRYPTO_PUNKS,
+                OrderType.X2Y2,
+                OrderType.AMM -> throw IllegalArgumentException("Can't calculate $type order hash")
             }
         }
 

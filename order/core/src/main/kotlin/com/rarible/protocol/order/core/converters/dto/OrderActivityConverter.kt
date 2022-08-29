@@ -215,6 +215,7 @@ class OrderActivityConverter(
             CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
             X2Y2 -> OrderActivityDto.Source.X2Y2
             LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
+            SUDOSWAP -> OrderActivityDto.Source.SUDOSWAP
         }
     }
 
@@ -225,6 +226,7 @@ class OrderActivityConverter(
             HistorySource.CRYPTO_PUNKS -> OrderActivityDto.Source.CRYPTO_PUNKS
             HistorySource.X2Y2 -> OrderActivityDto.Source.X2Y2
             HistorySource.LOOKSRARE -> OrderActivityDto.Source.LOOKSRARE
+            HistorySource.SUDOSWAP -> OrderActivityDto.Source.SUDOSWAP
         }
     }
 

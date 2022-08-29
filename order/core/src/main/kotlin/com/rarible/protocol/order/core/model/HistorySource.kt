@@ -5,7 +5,9 @@ enum class HistorySource {
     OPEN_SEA,
     CRYPTO_PUNKS,
     X2Y2,
-    LOOKSRARE;
+    LOOKSRARE,
+    SUDOSWAP,
+    ;
 
     fun toPlatform(): Platform {
         return when (this) {
@@ -14,6 +16,7 @@ enum class HistorySource {
             CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
             X2Y2 -> Platform.X2Y2
             LOOKSRARE -> Platform.LOOKSRARE
+            SUDOSWAP -> Platform.SUDOSWAP
         }
     }
 }

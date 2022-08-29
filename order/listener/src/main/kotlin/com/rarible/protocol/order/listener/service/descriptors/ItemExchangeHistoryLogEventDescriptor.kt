@@ -12,6 +12,7 @@ import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV1
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3
+import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import kotlinx.coroutines.reactor.mono
@@ -39,8 +40,9 @@ fun getOriginMaker(maker: Address, data: OrderData?): Address {
         is OrderRaribleV2DataV2 -> if (data.payouts.isSingleton) data.payouts.first().account else maker
         is OrderRaribleV2DataV3 -> data.payout?.account ?: maker
         is OrderDataLegacy, is OrderOpenSeaV1DataV1, is OrderBasicSeaportDataV1, is OrderCryptoPunksData,
-        is OrderX2Y2DataV1 -> maker
-        is OrderLooksrareDataV1 -> maker
+        is OrderX2Y2DataV1,
+        is OrderLooksrareDataV1,
+        is OrderSudoSwapAmmDataV1 -> maker
         null -> maker
     }
 }

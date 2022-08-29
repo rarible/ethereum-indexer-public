@@ -1,9 +1,11 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.AmmOrderDto
 import com.rarible.protocol.dto.CryptoPunkOrderDto
 import com.rarible.protocol.dto.LegacyOrderDto
 import com.rarible.protocol.dto.LooksRareOrderDto
 import com.rarible.protocol.dto.OpenSeaV1OrderDto
+import com.rarible.protocol.dto.OrderAmmDataDto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
@@ -11,8 +13,10 @@ import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
+import com.rarible.protocol.dto.OrderX2Y2DataDto
 import com.rarible.protocol.dto.RaribleV2OrderDto
 import com.rarible.protocol.dto.SeaportV1OrderDto
+import com.rarible.protocol.dto.X2Y2OrderDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.misc.toWord
 import com.rarible.protocol.order.core.model.CompositeBid
@@ -195,7 +199,58 @@ class CompositeBidConverter(
                 start = order.start,
                 priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
             )
-            X2Y2 -> TODO("Not realized yet. Add after offer support")
+            X2Y2 -> X2Y2OrderDto(
+                hash = source.order.hash,
+                status = BidStatusConverter.convert(source.status),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+                fill = source.order.fill.value,
+                fillValue = priceNormalizer.normalize(source.order.take.type, source.order.fill.value),
+                makeStock = source.order.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.order.make.type, source.order.makeStock.value),
+                cancelled = source.order.cancelled,
+                salt = source.order.salt.value.toWord(),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderX2Y2DataDto,
+                makeBalance = BigInteger.ZERO,
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+            )
+            AMM -> AmmOrderDto(
+                hash = source.order.hash,
+                status = BidStatusConverter.convert(source.status),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePrice = source.version.makePrice,
+                takePrice = source.version.takePrice,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+                fill = source.order.fill.value,
+                fillValue = priceNormalizer.normalize(source.order.take.type, source.order.fill.value),
+                makeStock = source.order.makeStock.value,
+                makeStockValue = priceNormalizer.normalize(source.order.make.type, source.order.makeStock.value),
+                cancelled = source.order.cancelled,
+                salt = source.order.salt.value.toWord(),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderAmmDataDto,
+                makeBalance = BigInteger.ZERO,
+                lastUpdateAt = source.order.lastUpdateAt,
+                end = order.end,
+                start = order.start,
+                priceHistory = order.priceHistory.map { OrderPriceHistoryDtoConverter.convert(it) }
+            )
         }
     }
 }

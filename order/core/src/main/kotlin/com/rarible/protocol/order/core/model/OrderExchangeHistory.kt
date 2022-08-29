@@ -111,5 +111,6 @@ data class OnChainOrder(
         Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
         Platform.X2Y2 -> HistorySource.X2Y2
         Platform.LOOKSRARE -> HistorySource.LOOKSRARE
+        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
     }
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)

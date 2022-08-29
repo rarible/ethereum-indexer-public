@@ -28,9 +28,11 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
+import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
@@ -84,6 +86,11 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
     )
 
     fun orderLooksrareData(maker: Address) = orderLooksrareData(
+        maker,
+        Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
+    )
+
+    fun orderSudoSwapAmmData(maker: Address) = ammOrderSudoSwapData(
         maker,
         Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.TEN)
     )
@@ -197,6 +204,27 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis(),
         platform = Platform.LOOKSRARE
+    )
+
+    fun ammOrderSudoSwapData(maker: Address, make: Asset) = Order(
+        maker = maker,
+        taker = null,
+        make = make,
+        take = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(5)),
+        makeStock = make.value,
+        type = OrderType.AMM,
+        fill = EthUInt256.ZERO,
+        cancelled = false,
+        salt = EthUInt256.TEN,
+        start = null,
+        end = null,
+        data = OrderSudoSwapAmmDataV1(
+            contract = randomAddress(),
+        ),
+        signature = null,
+        createdAt = nowMillis(),
+        lastUpdateAt = nowMillis(),
+        platform = Platform.SUDOSWAP
     )
 
     @PostConstruct

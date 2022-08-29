@@ -368,6 +368,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     OrderType.CRYPTO_PUNKS -> OrderCryptoPunksData
                     OrderType.LOOKSRARE -> createOrderLooksrareDataV1()
                     OrderType.X2Y2 -> createOrderX2Y2DataV1()
+                    OrderType.AMM -> createOrderSudoSwapAmmDataV1()
                     OrderType.OPEN_SEA_V1 -> throw IllegalArgumentException("Illegal order data for this test")
                 },
                 createdAt = nowMillis()

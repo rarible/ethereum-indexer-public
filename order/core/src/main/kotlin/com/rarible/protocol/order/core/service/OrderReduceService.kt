@@ -8,6 +8,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.dto.OrderAmmDataDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
@@ -391,6 +392,7 @@ class OrderReduceService(
             OrderType.RARIBLE_V2 -> exchangeContractAddresses.v2
             OrderType.LOOKSRARE -> exchangeContractAddresses.looksrareV1
             OrderType.X2Y2 -> exchangeContractAddresses.x2y2V1
+            OrderType.AMM -> (data as OrderAmmData).contract
         }
 
     companion object {

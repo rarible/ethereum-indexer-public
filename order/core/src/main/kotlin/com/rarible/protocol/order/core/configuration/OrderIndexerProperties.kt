@@ -77,6 +77,7 @@ data class OrderIndexerProperties(
         val publishX2Y2Orders: Boolean = false,
         val publishLooksrareOrders: Boolean = false,
         val publishCryptoPunksOrders: Boolean = true,
+        val publishAmmOrders: Boolean = false,
         val publishAuctionActivity: Boolean = false,
     )
 

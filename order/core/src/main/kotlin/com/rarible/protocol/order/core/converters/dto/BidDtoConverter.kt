@@ -1,17 +1,21 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.AmmOrderBidDto
 import com.rarible.protocol.dto.CryptoPunksOrderBidDto
 import com.rarible.protocol.dto.LegacyOrderBidDto
 import com.rarible.protocol.dto.LooksRareOrderBidDto
 import com.rarible.protocol.dto.OpenSeaV1OrderBidDto
+import com.rarible.protocol.dto.OrderAmmDataDto
 import com.rarible.protocol.dto.OrderBidDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderLooksRareDataV1Dto
 import com.rarible.protocol.dto.OrderOpenSeaV1DataV1Dto
 import com.rarible.protocol.dto.OrderRaribleV2DataDto
 import com.rarible.protocol.dto.OrderSeaportDataV1Dto
+import com.rarible.protocol.dto.OrderX2Y2DataDto
 import com.rarible.protocol.dto.RaribleV2OrderBidDto
 import com.rarible.protocol.dto.SeaportV1OrderBidDto
+import com.rarible.protocol.dto.X2Y2OrderBidDto
 import com.rarible.protocol.order.core.misc.orEmpty
 import com.rarible.protocol.order.core.model.CompositeBid
 import com.rarible.protocol.order.core.model.OrderType
@@ -29,7 +33,6 @@ class BidDtoConverter(
             OrderType.RARIBLE_V1 -> LegacyOrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -37,7 +40,6 @@ class BidDtoConverter(
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
-
                 fill = source.order.fill.value,
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
@@ -49,7 +51,6 @@ class BidDtoConverter(
             OrderType.RARIBLE_V2 -> RaribleV2OrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -57,7 +58,6 @@ class BidDtoConverter(
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
-
                 fill = source.order.fill.value,
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
@@ -69,7 +69,6 @@ class BidDtoConverter(
             OrderType.OPEN_SEA_V1 -> OpenSeaV1OrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -77,7 +76,6 @@ class BidDtoConverter(
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
-
                 fill = source.order.fill.value,
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
@@ -89,7 +87,6 @@ class BidDtoConverter(
             OrderType.SEAPORT_V1 -> SeaportV1OrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -97,7 +94,6 @@ class BidDtoConverter(
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
-
                 fill = source.order.fill.value,
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
@@ -109,7 +105,6 @@ class BidDtoConverter(
             OrderType.CRYPTO_PUNKS -> CryptoPunksOrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -117,7 +112,6 @@ class BidDtoConverter(
                 makePriceUsd = source.version.makePriceUsd,
                 takePriceUsd = source.version.takePriceUsd,
                 createdAt = source.version.createdAt,
-
                 fill = source.order.fill.value,
                 makeStock = source.order.makeStock.value,
                 cancelled = source.order.cancelled,
@@ -128,7 +122,6 @@ class BidDtoConverter(
             OrderType.LOOKSRARE -> LooksRareOrderBidDto(
                 orderHash = source.order.hash,
                 status = BidStatusDtoConverter.convert(source.status),
-
                 make = assetDtoConverter.convert(source.version.make),
                 take = assetDtoConverter.convert(source.version.take),
                 maker = source.version.maker,
@@ -142,9 +135,44 @@ class BidDtoConverter(
                 salt = Uint256Type.encode(source.order.salt.value),
                 signature = source.order.signature.orEmpty(),
                 data = OrderDataDtoConverter.convert(source.order.data) as OrderLooksRareDataV1Dto,
-                makeBalance = BigInteger.ZERO
+                makeBalance = BigInteger.ZERO,
             )
-            OrderType.X2Y2 -> TODO("Not realized yet. Add after offer support")
+            OrderType.X2Y2 -> X2Y2OrderBidDto(
+                orderHash = source.order.hash,
+                status = BidStatusDtoConverter.convert(source.status),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+                fill = source.order.fill.value,
+                makeStock = source.order.makeStock.value,
+                cancelled = source.order.cancelled,
+                salt = Uint256Type.encode(source.order.salt.value),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderX2Y2DataDto,
+                makeBalance = BigInteger.ZERO,
+            )
+            OrderType.AMM -> AmmOrderBidDto(
+                orderHash = source.order.hash,
+                status = BidStatusDtoConverter.convert(source.status),
+                make = assetDtoConverter.convert(source.version.make),
+                take = assetDtoConverter.convert(source.version.take),
+                maker = source.version.maker,
+                taker = source.version.taker,
+                makePriceUsd = source.version.makePriceUsd,
+                takePriceUsd = source.version.takePriceUsd,
+                createdAt = source.version.createdAt,
+                fill = source.order.fill.value,
+                makeStock = source.order.makeStock.value,
+                cancelled = source.order.cancelled,
+                salt = Uint256Type.encode(source.order.salt.value),
+                signature = source.order.signature.orEmpty(),
+                data = OrderDataDtoConverter.convert(source.order.data) as OrderAmmDataDto,
+                makeBalance = BigInteger.ZERO,
+            )
         }
     }
 }

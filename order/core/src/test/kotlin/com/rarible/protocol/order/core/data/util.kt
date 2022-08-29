@@ -148,6 +148,10 @@ fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
     orderId = randomBigInt()
 )
 
+fun createOrderSudoSwapAmmDataV1() = OrderSudoSwapAmmDataV1(
+    contract = randomAddress(),
+)
+
 fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
     minPercentageToAsk = randomInt(),
     strategy = randomAddress(),

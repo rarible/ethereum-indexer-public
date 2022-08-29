@@ -58,6 +58,7 @@ class OrderSignatureValidator(
             OrderType.CRYPTO_PUNKS -> Unit
             OrderType.X2Y2 -> Unit
             OrderType.LOOKSRARE -> Unit
+            OrderType.AMM -> Unit
         }
     }
 

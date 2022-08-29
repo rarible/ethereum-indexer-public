@@ -72,6 +72,7 @@ class EncodeController(
             OrderType.SEAPORT_V1,
             OrderType.X2Y2,
             OrderType.LOOKSRARE,
+            OrderType.AMM,
             OrderType.CRYPTO_PUNKS -> throw ValidationApiException("Unsupported order type ${order.type}")
         }
         val encodedOrder = EncodedOrderDto(transferProxyService.getTransferProxy(order.make.type), signMessage)

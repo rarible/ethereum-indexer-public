@@ -12,6 +12,7 @@ object PlatformConverter : Converter<PlatformDto, Platform> {
             PlatformDto.CRYPTO_PUNKS -> Platform.CRYPTO_PUNKS
             PlatformDto.X2Y2 -> Platform.X2Y2
             PlatformDto.LOOKSRARE -> Platform.LOOKSRARE
+            PlatformDto.SUDOSWAP -> Platform.SUDOSWAP
             null -> null
         }
     }

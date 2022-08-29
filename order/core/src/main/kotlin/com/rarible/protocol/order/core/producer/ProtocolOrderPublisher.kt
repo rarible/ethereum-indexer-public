@@ -6,6 +6,7 @@ import com.rarible.core.kafka.KafkaMessage
 import com.rarible.core.kafka.RaribleKafkaProducer
 import com.rarible.protocol.dto.ActivityDto
 import com.rarible.protocol.dto.ActivityTopicProvider
+import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -45,9 +46,11 @@ class ProtocolOrderPublisher(
     private val orderEventHeaders = mapOf("protocol.order.event.version" to OrderIndexerTopicProvider.VERSION)
 
     suspend fun publish(event: OrderEventDto) {
-        val (key, platform) = when (event) {
+        val (key, needPublish) = when (event) {
             is OrderUpdateEventDto ->
-                (event.order.key ?: event.orderId) to event.order.platform
+                (event.order.key ?: event.orderId) to event.order.platform.needPublish
+            is AmmOrderNftUpdateEventDto ->
+                event.orderId to publishProperties.publishAmmOrders
         }
         val message = KafkaMessage(
             key = key,
@@ -55,7 +58,7 @@ class ProtocolOrderPublisher(
             headers = orderEventHeaders,
             id = event.eventId
         )
-        if (platform.needPublish) {
+        if (needPublish) {
             orderEventProducer.send(message).ensureSuccess()
         }
     }
@@ -97,6 +100,7 @@ class ProtocolOrderPublisher(
             PlatformDto.X2Y2 -> publishProperties.publishX2Y2Orders
             PlatformDto.LOOKSRARE -> publishProperties.publishLooksrareOrders
             PlatformDto.CRYPTO_PUNKS -> publishProperties.publishCryptoPunksOrders
+            PlatformDto.SUDOSWAP -> publishProperties.publishAmmOrders
         }
 
     private val AssetTypeDto.itemId: String?
