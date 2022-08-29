@@ -80,7 +80,7 @@ class ExchangeOrderMatchDescriptor(
         } else {
             EthUInt256(event.newRightFill())
         }
-        return listOf(
+        val events = listOf(
             OrderSideMatch(
                 hash = leftHash,
                 counterHash = rightHash,
@@ -126,6 +126,7 @@ class ExchangeOrderMatchDescriptor(
                 marketplaceMarker = transactionOrders.right.marketplaceMarker
             ).also { raribleMatchEventMetric.increment() }
         )
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
     }
 
     override fun getAddresses(): Mono<Collection<Address>> {

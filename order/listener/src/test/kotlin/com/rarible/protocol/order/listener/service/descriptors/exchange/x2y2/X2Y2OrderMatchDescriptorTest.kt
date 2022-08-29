@@ -39,7 +39,7 @@ class X2Y2OrderMatchDescriptorTest {
         mockk {
               coEvery { getAssetsUsdValue(any(), any(), any()) } returns null
         },
-        PriceNormalizer(mockk())
+        PriceNormalizer(mockk()), mockk()
     )
 
     private val descriptor = X2Y2SellOrderMatchDescriptor(

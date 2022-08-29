@@ -32,7 +32,7 @@ class X2Y2OrderCancelDescriptorTest {
             coEvery { findById(existsOrderHash) } returns createOrder()
             coEvery { findById(nonExistsOrderHash) } returns null
         },
-        mockk(), mockk()
+        mockk(), mockk(), mockk()
     )
 
     private val descriptor = X2Y2OrderCancelDescriptor(

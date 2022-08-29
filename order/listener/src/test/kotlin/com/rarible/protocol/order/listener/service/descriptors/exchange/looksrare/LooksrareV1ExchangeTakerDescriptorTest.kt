@@ -39,6 +39,9 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
     private val looksrareTakeEventMetric = mockk<RegisteredCounter> {
         every { increment() } returns Unit
     }
+    private val wrapperLooksrareMetric = mockk<RegisteredCounter> {
+        every { increment() } returns Unit
+    }
     private val currencyContractAddresses = OrderIndexerProperties.CurrencyContractAddresses(
         weth = Address.apply("0xc778417e063141139fce010982780140aa0cd5ab")
     )
@@ -50,6 +53,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
 
     private val descriptorBid = LooksrareV1ExchangeTakerBidDescriptor(
         looksrareTakeEventMetric,
+        wrapperLooksrareMetric,
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
@@ -58,6 +62,7 @@ internal class LooksrareV1ExchangeTakerDescriptorTest {
     )
     private val descriptorAsk = LooksrareV1ExchangeTakerAskDescriptor(
         looksrareTakeEventMetric,
+        wrapperLooksrareMetric,
         tokenStandardProvider,
         priceUpdateService,
         prizeNormalizer,
