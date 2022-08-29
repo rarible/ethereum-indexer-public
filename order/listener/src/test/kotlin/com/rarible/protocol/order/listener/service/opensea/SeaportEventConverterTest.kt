@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.listener.service.opensea
 
 import com.rarible.core.contract.model.Erc20Token
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
@@ -25,6 +26,7 @@ import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -41,12 +43,14 @@ internal class SeaportEventConverterTest {
     private val prizeNormalizer = PriceNormalizer(contractService)
     private val traceCallService = mockk<TraceCallService>()
     private val featureFlags = OrderIndexerProperties.FeatureFlags()
+    private val wrapperLooksrareMetric = mockk<RegisteredCounter> { every { increment() } returns Unit }
 
     private val converter = SeaportEventConverter(
         priceUpdateService,
         prizeNormalizer,
         traceCallService,
-        featureFlags
+        featureFlags,
+        wrapperLooksrareMetric
     )
 
     @Test

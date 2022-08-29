@@ -14,7 +14,10 @@ import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeAskEve
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareTakeBidEventMetric
 import com.rarible.protocol.order.listener.metrics.looksrare.LooksrareOrderDelayMetric
 import com.rarible.protocol.order.listener.metric.rarible.RaribleCancelEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.WrapperLooksrareMatchEventMetric
 import com.rarible.protocol.order.listener.metric.rarible.RaribleMatchEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.WrapperSeaportMatchEventMetric
+import com.rarible.protocol.order.listener.metric.rarible.WrapperX2Y2MatchEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -57,12 +60,27 @@ class MetricsCountersConfiguration(
     /** Rarible metrics **/
     @Bean
     fun raribleMatchEventMetric(): RegisteredCounter {
-    return RaribleMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+        return RaribleMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun wrapperX2Y2MatchEventMetric(): RegisteredCounter {
+        return WrapperX2Y2MatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun wrapperLooksrareMatchEventMetric(): RegisteredCounter {
+        return WrapperLooksrareMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+    }
+
+    @Bean
+    fun wrapperSeaportMatchEventMetric(): RegisteredCounter {
+        return WrapperSeaportMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     @Bean
     fun raribleCancelEventMetric(): RegisteredCounter {
-    return RaribleCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+        return RaribleCancelEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
     }
 
     /** OpenSea metrics **/

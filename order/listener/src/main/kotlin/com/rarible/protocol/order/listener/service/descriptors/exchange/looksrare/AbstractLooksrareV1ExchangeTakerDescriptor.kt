@@ -32,6 +32,7 @@ import java.time.Instant
 
 abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
     private val looksrareTakeEventMetric: RegisteredCounter,
+    private val wrapperLooksrareMatchEventMetric: RegisteredCounter,
     private val tokenStandardProvider: TokenStandardProvider,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
@@ -123,7 +124,7 @@ abstract class AbstractLooksrareV1ExchangeTakerDescriptor(
             )
         )
         looksrareTakeEventMetric.increment()
-        return OrderSideMatch.addMarketplaceMarker(events, transaction.input())
+        return OrderSideMatch.addMarketplaceMarker(events, transaction.input(), wrapperLooksrareMatchEventMetric)
     }
 
     override fun getAddresses(): Mono<Collection<Address>> = Mono.just(

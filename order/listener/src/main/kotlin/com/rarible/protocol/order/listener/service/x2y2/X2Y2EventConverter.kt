@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.x2y2
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.Tuples
@@ -30,8 +31,8 @@ class X2Y2EventConverter(
     private val orderRepository: OrderRepository,
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
+    private val wrapperX2Y2MatchEventMetric: RegisteredCounter,
 ) {
-
     suspend fun convert(event: EvCancelEvent, date: Instant): OrderCancel {
             val hash = Word.apply(event.itemHash())
             val order = orderRepository.findById(hash)
@@ -116,6 +117,6 @@ class X2Y2EventConverter(
                 counterAdhoc = true
             )
         )
-        return OrderSideMatch.addMarketplaceMarker(events, input)
+        return OrderSideMatch.addMarketplaceMarker(events, input, wrapperX2Y2MatchEventMetric)
     }
 }

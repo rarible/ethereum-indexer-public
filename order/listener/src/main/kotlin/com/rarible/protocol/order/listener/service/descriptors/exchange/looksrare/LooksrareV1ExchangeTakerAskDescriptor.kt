@@ -17,6 +17,7 @@ import scalether.domain.response.Log
 @CaptureSpan(type = SpanType.EVENT)
 class LooksrareV1ExchangeTakerAskDescriptor(
     looksrareTakeAskEventMetric: RegisteredCounter,
+    wrapperLooksrareMatchEventMetric: RegisteredCounter,
     tokenStandardProvider: TokenStandardProvider,
     priceUpdateService: PriceUpdateService,
     prizeNormalizer: PriceNormalizer,
@@ -24,6 +25,7 @@ class LooksrareV1ExchangeTakerAskDescriptor(
     currencyContractAddresses: OrderIndexerProperties.CurrencyContractAddresses
 ) : AbstractLooksrareV1ExchangeTakerDescriptor(
     looksrareTakeAskEventMetric,
+    wrapperLooksrareMatchEventMetric,
     tokenStandardProvider,
     priceUpdateService,
     prizeNormalizer,

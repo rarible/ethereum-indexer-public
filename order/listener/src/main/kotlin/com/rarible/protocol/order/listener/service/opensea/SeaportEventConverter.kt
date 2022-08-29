@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.opensea
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.contracts.exchange.seaport.v1.OrderCancelledEvent
 import com.rarible.protocol.contracts.exchange.seaport.v1.SeaportV1
@@ -40,7 +41,8 @@ class SeaportEventConverter(
     private val priceUpdateService: PriceUpdateService,
     private val prizeNormalizer: PriceNormalizer,
     private val traceCallService: TraceCallService,
-    private val featureFlags: OrderIndexerProperties.FeatureFlags
+    private val featureFlags: OrderIndexerProperties.FeatureFlags,
+    private val wrapperSeaportMatchEventMetric: RegisteredCounter,
 ) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -107,7 +109,7 @@ class SeaportEventConverter(
                 externalOrderExecutedOnRarible = null,
             )
         )
-        return OrderSideMatch.addMarketplaceMarker(events, input)
+        return OrderSideMatch.addMarketplaceMarker(events, input, wrapperSeaportMatchEventMetric)
     }
 
     suspend fun convert(
