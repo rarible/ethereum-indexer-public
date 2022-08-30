@@ -4,6 +4,7 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.misc.ownershipId
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -55,6 +56,10 @@ class AssetBalanceProviderImpl(
                 MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is CollectionAssetType -> {
+                MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
+            }
+            is AmmNftAssetType -> {
+                // TODD: Think about it
                 MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is EthAssetType -> {

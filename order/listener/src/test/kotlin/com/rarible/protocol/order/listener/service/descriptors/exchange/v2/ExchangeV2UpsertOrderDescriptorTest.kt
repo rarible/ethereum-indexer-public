@@ -6,6 +6,7 @@ import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.data.isEqualToOrder
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
@@ -354,6 +355,7 @@ class ExchangeV2UpsertOrderDescriptorTest : AbstractExchangeV2Test() {
                 is Erc721LazyAssetType -> 0
                 is CryptoPunksAssetType -> 0
                 is CollectionAssetType -> 0
+                is AmmNftAssetType -> 0
                 is EthAssetType -> 18
             }
 

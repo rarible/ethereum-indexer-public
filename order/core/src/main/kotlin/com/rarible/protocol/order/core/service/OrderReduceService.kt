@@ -183,6 +183,7 @@ class OrderReduceService(
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
                 is OnChainOrder -> error("Must have been processed above")
+                is OnChainAmmOrder -> TODO()
             }
             else -> this
         }

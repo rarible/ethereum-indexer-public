@@ -7,6 +7,7 @@ import com.rarible.protocol.contracts.exchange.v2.rev3.ExchangeV2
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.misc.zeroWord
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
@@ -237,6 +238,7 @@ class RaribleExchangeV2OrderParser(
     private fun AssetType.tryToConvertInCollection(): AssetType {
         return when (this) {
             is NftAssetType -> CollectionAssetType(token)
+            is AmmNftAssetType -> CollectionAssetType(token)
             is CollectionAssetType,
             is Erc20AssetType,
             is EthAssetType,

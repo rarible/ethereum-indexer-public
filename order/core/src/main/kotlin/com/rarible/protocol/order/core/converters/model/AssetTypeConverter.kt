@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.converters.model
 
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.protocol.dto.AmmNftAssetTypeDto
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -11,6 +12,7 @@ import com.rarible.protocol.dto.Erc721AssetTypeDto
 import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -62,6 +64,9 @@ object AssetTypeConverter : Converter<AssetTypeDto, AssetType> {
                 tokenId = EthUInt256.of(source.tokenId)
             )
             is CollectionAssetTypeDto -> CollectionAssetType(
+                token = source.contract
+            )
+            is AmmNftAssetTypeDto -> AmmNftAssetType(
                 token = source.contract
             )
         }

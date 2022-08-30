@@ -11,9 +11,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class PriceNormalizer(
+    @Suppress("SpringJavaInjectionPointsAutowiringInspection")
     private val contractService: ContractService
 ) {
-
     // There are not a lot of Erc20 contracts and they can't be updated in runtime,
     // so we can store decimal count in cache in order to avoid DB access on each call
     private val erc20Cache = ConcurrentHashMap<Address, Int>()
@@ -37,6 +37,7 @@ class PriceNormalizer(
             is CryptoPunksAssetType -> 0
             is GenerativeArtAssetType -> 0
             is CollectionAssetType -> 0
+            is AmmNftAssetType -> 0
         }
     }
 

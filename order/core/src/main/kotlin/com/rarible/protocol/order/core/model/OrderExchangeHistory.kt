@@ -114,3 +114,25 @@ data class OnChainOrder(
         Platform.SUDOSWAP -> HistorySource.SUDOSWAP
     }
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)
+
+data class OnChainAmmOrder(
+    override val maker: Address,
+    override val make: Asset,
+    override val take: Asset,
+    val createdAt: Instant,
+    val platform: Platform,
+    val data: OrderAmmData,
+    val inNft: List<EthUInt256>,
+    val price: BigDecimal,
+    val priceUsd: BigDecimal?,
+    override val hash: Word,
+    override val date: Instant = createdAt,
+    override val source: HistorySource = when (platform) {
+        Platform.RARIBLE -> HistorySource.RARIBLE
+        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
+        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
+        Platform.X2Y2 -> HistorySource.X2Y2
+        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
+        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
+    }
+) : OrderExchangeHistory(ItemType.AMM_ORDER)

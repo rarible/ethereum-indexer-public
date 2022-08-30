@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.core.converters.dto
 
+import com.rarible.protocol.dto.AmmNftAssetTypeDto
 import com.rarible.protocol.dto.AssetTypeDto
 import com.rarible.protocol.dto.CollectionAssetTypeDto
 import com.rarible.protocol.dto.CryptoPunksAssetTypeDto
@@ -11,6 +12,7 @@ import com.rarible.protocol.dto.Erc721LazyAssetTypeDto
 import com.rarible.protocol.dto.EthAssetTypeDto
 import com.rarible.protocol.dto.GenerativeArtAssetTypeDto
 import com.rarible.protocol.dto.PartDto
+import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.CollectionAssetType
 import com.rarible.protocol.order.core.model.CryptoPunksAssetType
@@ -65,6 +67,9 @@ object AssetTypeDtoConverter : Converter<AssetType, AssetTypeDto> {
                 tokenId = source.tokenId.value.toInt()
             )
             is CollectionAssetType -> CollectionAssetTypeDto(
+                contract = source.token
+            )
+            is AmmNftAssetType -> AmmNftAssetTypeDto(
                 contract = source.token
             )
         }

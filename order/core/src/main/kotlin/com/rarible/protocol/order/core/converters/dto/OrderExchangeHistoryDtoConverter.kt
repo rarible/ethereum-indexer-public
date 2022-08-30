@@ -41,6 +41,7 @@ class OrderExchangeHistoryDtoConverter(
                 date = source.date,
                 maker = source.maker
             )
+            is OnChainAmmOrder -> TODO()
         }
     }
 

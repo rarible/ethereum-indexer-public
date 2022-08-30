@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainAmmOrder
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderCancel
@@ -150,6 +151,7 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             }
+            is OnChainAmmOrder -> TODO()
         }
     }
 

@@ -26,6 +26,7 @@ class TransferProxyService(
             is GenerativeArtAssetType -> null
             is CollectionAssetType -> null
             is EthAssetType -> null
+            is AmmNftAssetType -> null
         }
     }
 
