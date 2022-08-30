@@ -5,7 +5,7 @@ import com.rarible.protocol.dto.CryptoPunkOrderDto
 import com.rarible.protocol.dto.LegacyOrderDto
 import com.rarible.protocol.dto.LooksRareOrderDto
 import com.rarible.protocol.dto.OpenSeaV1OrderDto
-import com.rarible.protocol.dto.OrderAmmDataDto
+import com.rarible.protocol.dto.OrderAmmDataV1Dto
 import com.rarible.protocol.dto.OrderCryptoPunksDataDto
 import com.rarible.protocol.dto.OrderDataLegacyDto
 import com.rarible.protocol.dto.OrderDto
@@ -279,7 +279,7 @@ class OrderDtoConverter(
                 dbUpdatedAt = source.dbUpdatedAt,
                 pending = null,
                 hash = source.hash,
-                data = OrderDataDtoConverter.convert(source.data) as OrderAmmDataDto,
+                data = OrderDataDtoConverter.convert(source.data) as OrderAmmDataV1Dto,
                 makePrice = source.makePrice,
                 takePrice = source.takePrice,
                 makePriceUsd = source.makePriceUsd,

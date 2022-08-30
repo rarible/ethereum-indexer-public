@@ -3,12 +3,10 @@ package com.rarible.protocol.order.core.service
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.core.common.nowMillis
-import com.rarible.core.common.retryOptimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
-import com.rarible.protocol.dto.OrderAmmDataDto
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.core.converters.model.PlatformToHistorySourceConverter
 import com.rarible.protocol.order.core.misc.toWord
