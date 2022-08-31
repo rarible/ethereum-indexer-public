@@ -5,9 +5,11 @@ import com.rarible.core.apm.SpanType
 import com.rarible.core.apm.withSpan
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.Blockchain
+import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.currency.api.client.CurrencyControllerApi
 import com.rarible.protocol.currency.dto.BlockchainDto
 import com.rarible.protocol.order.core.model.Asset
+import com.rarible.protocol.order.core.model.AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.Order
@@ -18,6 +20,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import scalether.domain.Address
 import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Instant
 
 @Service
@@ -28,6 +31,13 @@ class PriceUpdateService(
     private val priceNormalizer: PriceNormalizer
 ) {
     private val logger = LoggerFactory.getLogger(javaClass)
+
+    suspend fun getAssetUsdValue(assetType: AssetType, value: BigInteger, at: Instant): BigDecimal? {
+        val asset = Asset(assetType, EthUInt256.of(value))
+        val normalized = priceNormalizer.normalize(asset)
+        val usdRate = getAssetPrice(asset, at) ?: return null
+        return usdValue(usdRate, normalized)
+    }
 
     suspend fun getAssetsUsdValue(make: Asset, take: Asset, at: Instant): OrderUsdValue? {
         val normalizedMake = priceNormalizer.normalize(make)

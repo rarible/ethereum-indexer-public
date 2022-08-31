@@ -731,6 +731,7 @@ val AssetType.token: Address
             is GenerativeArtAssetType -> Address.ZERO()
             is CryptoPunksAssetType -> token
             is CollectionAssetType -> token
+            is AmmNftAssetType -> token
             is EthAssetType -> Address.ZERO()
         }
     }
@@ -743,7 +744,7 @@ val AssetType.tokenId: EthUInt256?
             is Erc1155LazyAssetType -> tokenId
             is Erc721LazyAssetType -> tokenId
             is CryptoPunksAssetType -> tokenId
-            is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType, is CollectionAssetType -> null
+            is GenerativeArtAssetType, is EthAssetType, is Erc20AssetType, is CollectionAssetType, is AmmNftAssetType -> null
         }
     }
 

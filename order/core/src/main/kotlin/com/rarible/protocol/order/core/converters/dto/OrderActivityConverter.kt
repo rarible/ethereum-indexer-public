@@ -13,6 +13,7 @@ import com.rarible.protocol.dto.OrderActivityMatchDto
 import com.rarible.protocol.dto.OrderActivityMatchSideDto
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.HistorySource
+import com.rarible.protocol.order.core.model.OnChainAmmOrder
 import com.rarible.protocol.order.core.model.OnChainOrder
 import com.rarible.protocol.order.core.model.OrderActivityResult
 import com.rarible.protocol.order.core.model.OrderCancel
@@ -146,6 +147,21 @@ class OrderActivityConverter(
                     price = price(data.take, data.make),
                     source = convert(data.source),
                     priceUsd = data.priceUsd,
+                    reverted = reverted,
+                    lastUpdatedAt = history.updatedAt
+                )
+            }
+            is OnChainAmmOrder -> {
+                OrderActivityListDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = assetDtoConverter.convert(data.make),
+                    take = assetDtoConverter.convert(data.take),
+                    price = data.priceValue,
+                    priceUsd = data.priceUsd,
+                    source = convert(data.source),
                     reverted = reverted,
                     lastUpdatedAt = history.updatedAt
                 )

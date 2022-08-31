@@ -183,6 +183,7 @@ class OrderReduceService(
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
                 is OnChainOrder -> error("Must have been processed above")
+                is OnChainAmmOrder -> TODO()
             }
             else -> this
         }
@@ -390,7 +391,7 @@ class OrderReduceService(
             OrderType.RARIBLE_V2 -> exchangeContractAddresses.v2
             OrderType.LOOKSRARE -> exchangeContractAddresses.looksrareV1
             OrderType.X2Y2 -> exchangeContractAddresses.x2y2V1
-            OrderType.AMM -> (data as OrderAmmData).contract
+            OrderType.AMM -> (data as OrderAmmData).poolAddress
         }
 
     companion object {

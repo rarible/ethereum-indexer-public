@@ -50,7 +50,8 @@ class ExchangeWrapperUnitTest {
             zeroEx = Address.ZERO(),
             seaportV1 = Address.ZERO(),
             looksrareV1 = Address.ZERO(),
-            x2y2V1 = Address.ZERO()
+            x2y2V1 = Address.ZERO(),
+            sudoswapPairFactoryV1 = Address.ZERO()
         ),
         openSeaOrdersSideMatcher = OpenSeaOrderEventConverter(
             priceUpdateService = priceUpdateService,

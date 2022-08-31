@@ -28,7 +28,6 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -36,6 +35,7 @@ import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
 import io.daonomic.rpc.domain.Binary
@@ -219,7 +219,12 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         start = null,
         end = null,
         data = OrderSudoSwapAmmDataV1(
-            contract = randomAddress(),
+            poolAddress = randomAddress(),
+            bondingCurve = randomAddress(),
+            assetRecipient = randomAddress(),
+            poolType = SudoSwapPoolType.values().random(),
+            delta = randomBigInt(),
+            fee = randomBigInt()
         ),
         signature = null,
         createdAt = nowMillis(),

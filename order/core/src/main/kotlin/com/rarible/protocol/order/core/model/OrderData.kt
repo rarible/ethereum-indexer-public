@@ -243,12 +243,17 @@ data class OrderLooksrareDataV1(
 }
 
 sealed class OrderAmmData: OrderData() {
-    abstract val contract: Address
+    abstract val poolAddress: Address
     override fun toEthereum(wrongEncode: Boolean): Binary = Binary.empty()
 }
 
 data class OrderSudoSwapAmmDataV1(
-    override val contract: Address,
+    override val poolAddress: Address,
+    val bondingCurve: Address,
+    val assetRecipient: Address,
+    val poolType: SudoSwapPoolType,
+    val delta: BigInteger,
+    val fee: BigInteger
 ): OrderAmmData() {
     @get:Transient
     override val version get() = OrderDataVersion.SUDOSWAP_V1

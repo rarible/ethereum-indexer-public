@@ -1,6 +1,7 @@
 package com.rarible.protocol.order.core.misc
 
 import io.daonomic.rpc.domain.Binary
+import java.math.BigInteger
 import java.util.*
 
 operator fun Binary.plus(other: Binary): Binary {
@@ -24,3 +25,19 @@ fun Binary?.orEmpty(): Binary {
 fun Binary.methodSignatureId(): Binary? = if (length() >= 4) slice(0, 4) else null
 
 fun String.toBinary(): Binary = Binary.apply(this)
+
+fun String.paddingHex(): String {
+    return if (this == "0x") {
+        this
+    } else if (this.length % 2 != 0) {
+        val wrongHex = this.removePrefix("0x")
+        "0x0$wrongHex"
+    } else {
+        this
+    }
+}
+
+fun String.fromHexToBigInteger(): BigInteger? {
+    val binary = paddingHex().toBinary()
+    return if (binary != Binary.empty()) binary.toBigInteger() else null
+}
