@@ -35,6 +35,7 @@ import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.CommonSigner
 import com.rarible.protocol.order.core.service.PrepareTxService
@@ -221,6 +222,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         data = OrderSudoSwapAmmDataV1(
             poolAddress = randomAddress(),
             bondingCurve = randomAddress(),
+            curveType = SudoSwapCurveType.values().random(),
             assetRecipient = randomAddress(),
             poolType = SudoSwapPoolType.values().random(),
             delta = randomBigInt(),

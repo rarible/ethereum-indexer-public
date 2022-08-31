@@ -4,6 +4,10 @@ common:
   open-sea-nonce-increment: 1
   currency-contract-addresses:
     weth: "0xc778417e063141139fce010982780140aa0cd5ab"
+  sudo-swap-addresses:
+    pair-factory-v1: "0xcB1514FE29db064fa595628E0BFFD10cdf998F33"
+    exponential-curve-v1: "0xBc6760B11e433D25aAf5c8fCBC6cE99b14aC5D52"
+    linear-curve-v1: "0x3764b9FE584719C4570725A2b5A2485d418A186E"
 
 rarible:
   opensea:

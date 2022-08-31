@@ -40,7 +40,9 @@ data class OrderIndexerProperties(
     val blockCountBeforeSnapshot: Int = 12,
     val nodeType: NodeType?,
     @NestedConfigurationProperty
-    val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties()
+    val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties(),
+    @NestedConfigurationProperty
+    val sudoSwapAddresses: SudoSwapAddresses = SudoSwapAddresses()
 ) {
     data class CurrencyContractAddresses(
         var weth: Address
@@ -57,7 +59,6 @@ data class OrderIndexerProperties(
         var zeroEx: Address,
         var looksrareV1: Address,
         var x2y2V1: Address,
-        val sudoswapPairFactoryV1: Address
     )
 
     data class AuctionContractAddresses(
@@ -100,3 +101,10 @@ data class OrderIndexerProperties(
         val delayPeriod: Duration = Duration.ofMinutes(10L)
     )
 }
+
+data class SudoSwapAddresses(
+    val pairFactoryV1: Address = Address.ZERO(),
+    val exponentialCurveV1: Address = Address.ZERO(),
+    val linearCurveV1: Address = Address.ZERO(),
+)
+

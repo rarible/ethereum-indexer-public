@@ -8,7 +8,6 @@ import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -152,6 +151,7 @@ fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
 fun createOrderSudoSwapAmmDataV1() = OrderSudoSwapAmmDataV1(
     poolAddress = randomAddress(),
     bondingCurve = randomAddress(),
+    curveType = SudoSwapCurveType.values().random(),
     assetRecipient = randomAddress(),
     poolType = SudoSwapPoolType.values().random(),
     delta = randomBigInt(),

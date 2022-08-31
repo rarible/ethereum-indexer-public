@@ -6,13 +6,14 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
+import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -37,10 +38,11 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class SudoSwapCreatePairDescriptorTest {
-    private val sudoswap = randomAddress()
-    private val addresses = mockk<OrderIndexerProperties.ExchangeContractAddresses> {
-        every { sudoswapPairFactoryV1 } returns sudoswap
-    }
+    private val addresses = SudoSwapAddresses(
+        pairFactoryV1 = randomAddress(),
+        linearCurveV1 = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
+        exponentialCurveV1 = randomAddress()
+    )
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val contractService = mockk<ContractService>()
@@ -48,7 +50,7 @@ internal class SudoSwapCreatePairDescriptorTest {
     private val priceUpdateService = mockk<PriceUpdateService>()
 
     private val descriptor = SudoSwapCreatePairDescriptor(
-        exchangeContractAddresses = addresses,
+        sudoSwapAddresses = addresses,
         sudoSwapEventConverter = sudoSwapEventConverter,
         priceUpdateService = priceUpdateService,
         priceNormalizer = priceNormalizer,
@@ -76,6 +78,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         val expectedData = OrderSudoSwapAmmDataV1(
             poolAddress = Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
+            curveType = SudoSwapCurveType.LINEAR,
             assetRecipient = Address.apply("0x2a3B53e1Ce8CB9f3290e9Ba70033951F07c686f3"),
             poolType = SudoSwapPoolType.NFT,
             delta = BigInteger("10000000000000000"),
@@ -123,6 +126,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         val expectedData = OrderSudoSwapAmmDataV1(
             poolAddress = Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
+            curveType = SudoSwapCurveType.LINEAR,
             assetRecipient = Address.apply("0x0000000000000000000000000000000000000000"),
             poolType = SudoSwapPoolType.TRADE,
             delta = BigInteger("100000000000000000"),

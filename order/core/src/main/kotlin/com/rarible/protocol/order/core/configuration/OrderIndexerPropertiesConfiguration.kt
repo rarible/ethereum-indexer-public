@@ -22,6 +22,9 @@ class OrderIndexerPropertiesConfiguration(
     fun auctionContractAddresses() = indexerProperties.auctionContractAddresses
 
     @Bean
+    fun sudoSwapAddresses() = indexerProperties.sudoSwapAddresses
+
+    @Bean
     fun transferProxyAddresses() = indexerProperties.transferProxyAddresses
 
     @Bean
