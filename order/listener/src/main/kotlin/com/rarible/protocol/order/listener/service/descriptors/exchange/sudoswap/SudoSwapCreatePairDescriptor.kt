@@ -32,6 +32,7 @@ import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
+import java.math.BigInteger
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
@@ -39,7 +40,7 @@ class SudoSwapCreatePairDescriptor(
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val priceUpdateService: PriceUpdateService,
-    private val prizeNormalizer: PriceNormalizer,
+    private val priceNormalizer: PriceNormalizer,
 ): LogEventDescriptor<OnChainAmmOrder> {
 
     override val collection: String = ExchangeHistoryRepository.COLLECTION
@@ -80,17 +81,25 @@ class SudoSwapCreatePairDescriptor(
                 currency to nft
             }
         }
+        val data = OrderSudoSwapAmmDataV1(
+            poolAddress = event.poolAddress(),
+            bondingCurve = details.bondingCurve,
+            assetRecipient = details.assetRecipient,
+            poolType = details.poolType,
+            delta = details.delta,
+            fee = details.fee
+        )
         return OnChainAmmOrder(
             hash = keccak256(event.poolAddress()),
-            maker = transaction.from(),
+            maker = event.poolAddress(),
             make = make,
             take = take,
             inNft = details.inNft.map { EthUInt256.of(it) },
             createdAt = date,
             platform = Platform.SUDOSWAP,
-            data = OrderSudoSwapAmmDataV1(event.poolAddress()),
+            data = data,
             price = EthUInt256.of(details.spotPrice),
-            priceValue = prizeNormalizer.normalize(take.type, details.spotPrice),
+            priceValue = priceNormalizer.normalize(take.type, details.spotPrice),
             priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date)
         )
     }

@@ -6,7 +6,7 @@ import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 object SudoSwapAmmDataV1DtoConverter {
     fun convert(source: OrderSudoSwapAmmDataV1): OrderSudoSwapAmmDataV1Dto {
         return OrderSudoSwapAmmDataV1Dto(
-            contract = source.contract,
+            contract = source.poolAddress,
         )
     }
 }

@@ -28,7 +28,6 @@ import com.rarible.protocol.order.core.model.OpenSeaOrderHowToCall
 import com.rarible.protocol.order.core.model.OpenSeaOrderSaleKind
 import com.rarible.protocol.order.core.model.OpenSeaOrderSide
 import com.rarible.protocol.order.core.model.Order
-import com.rarible.protocol.order.core.model.OrderAmmData
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
 import com.rarible.protocol.order.core.model.OrderLooksrareDataV1
 import com.rarible.protocol.order.core.model.OrderOpenSeaV1DataV1
@@ -219,7 +218,7 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         start = null,
         end = null,
         data = OrderSudoSwapAmmDataV1(
-            contract = randomAddress(),
+            poolAddress = randomAddress(),
         ),
         signature = null,
         createdAt = nowMillis(),
