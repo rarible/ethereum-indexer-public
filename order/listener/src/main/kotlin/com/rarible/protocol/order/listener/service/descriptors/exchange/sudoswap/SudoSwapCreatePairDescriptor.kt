@@ -32,7 +32,6 @@ import reactor.kotlin.core.publisher.toMono
 import scalether.domain.Address
 import scalether.domain.response.Log
 import scalether.domain.response.Transaction
-import java.math.BigInteger
 
 @Service
 @CaptureSpan(type = SpanType.EVENT)
