@@ -52,14 +52,14 @@ class AssetBalanceProviderImpl(
                     MakeBalanceState(EthUInt256.of(it.value), it.date)
                 }
             }
+            is AmmNftAssetType -> {
+                // TODD: Think about it
+                MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
+            }
             is GenerativeArtAssetType -> {
                 MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is CollectionAssetType -> {
-                MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
-            }
-            is AmmNftAssetType -> {
-                // TODD: Think about it
                 MakeBalanceState(EthUInt256.of(Long.MAX_VALUE), null)
             }
             is EthAssetType -> {

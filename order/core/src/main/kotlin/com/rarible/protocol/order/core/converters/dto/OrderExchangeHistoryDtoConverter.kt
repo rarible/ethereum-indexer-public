@@ -41,7 +41,13 @@ class OrderExchangeHistoryDtoConverter(
                 date = source.date,
                 maker = source.maker
             )
-            is OnChainAmmOrder -> TODO()
+            is OnChainAmmOrder -> OnChainAmmOrderDto(
+                hash = source.hash,
+                make = assetDtoConverter.convert(source.make),
+                take = assetDtoConverter.convert(source.take),
+                date = source.date,
+                maker = source.maker
+            )
         }
     }
 

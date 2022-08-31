@@ -151,7 +151,21 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             }
-            is OnChainAmmOrder -> TODO()
+            is OnChainAmmOrder -> {
+                OrderActivityListDto(
+                    date = data.date,
+                    id = history.id.toString(),
+                    hash = data.hash,
+                    maker = data.maker,
+                    make = assetDtoConverter.convert(data.make),
+                    take = assetDtoConverter.convert(data.take),
+                    price = data.price,
+                    priceUsd = data.priceUsd,
+                    source = convert(data.source),
+                    reverted = reverted,
+                    lastUpdatedAt = history.updatedAt
+                )
+            }
         }
     }
 

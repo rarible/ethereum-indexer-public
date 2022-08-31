@@ -89,7 +89,8 @@ class SudoSwapCreatePairDescriptor(
             createdAt = date,
             platform = Platform.SUDOSWAP,
             data = OrderSudoSwapAmmDataV1(event.poolAddress()),
-            price = prizeNormalizer.normalize(take.type, details.spotPrice),
+            price = EthUInt256.of(details.spotPrice),
+            priceValue = prizeNormalizer.normalize(take.type, details.spotPrice),
             priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date)
         )
     }
