@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.treeToValue
+import com.rarible.protocol.order.core.misc.fromHexToBigInteger
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.RpcCodeException
@@ -57,7 +58,8 @@ class OpenEthereumTransactionTraceProvider(
             SimpleTraceResult(
                 from = trace.action.from,
                 to = trace.action.to,
-                input = trace.action.input ?: Binary.empty()
+                input = trace.action.input ?: Binary.empty(),
+                value = trace.action.value?.fromHexToBigInteger()
             )
         } else {
             null

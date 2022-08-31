@@ -159,7 +159,7 @@ class OrderActivityConverter(
                     maker = data.maker,
                     make = assetDtoConverter.convert(data.make),
                     take = assetDtoConverter.convert(data.take),
-                    price = data.price,
+                    price = data.priceValue,
                     priceUsd = data.priceUsd,
                     source = convert(data.source),
                     reverted = reverted,

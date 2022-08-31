@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.rarible.protocol.order.core.misc.fromHexToBigInteger
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.SimpleTraceResult
 import io.daonomic.rpc.RpcCodeException
@@ -63,6 +64,7 @@ class GethTransactionTraceProvider(
         val from: Address,
         val to: Address?,
         val input: Binary,
+        val value: String?,
         val calls: List<TraceResult> = emptyList()
     ) {
         fun findTraces(to: Address, ids: Set<Binary>): List<TraceResult> {
@@ -78,7 +80,7 @@ class GethTransactionTraceProvider(
         }
 
         fun toSimpleTraceResult(): SimpleTraceResult {
-            return SimpleTraceResult(from, to, input)
+            return SimpleTraceResult(from, to, input, value?.fromHexToBigInteger())
         }
     }
 }
