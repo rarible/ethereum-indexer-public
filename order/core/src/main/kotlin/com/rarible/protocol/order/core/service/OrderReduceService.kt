@@ -185,7 +185,9 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
-                is OnChainAmmOrder -> poolReducer.reduce(this, orderExchangeHistory).copy(
+                is OnChainAmmOrder,
+                is PoolTargetNftOut,
+                is PoolAnyNftOut -> poolReducer.reduce(this, orderExchangeHistory as PoolExchangeHistory).copy(
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
                 is OnChainOrder -> error("Must have been processed above")

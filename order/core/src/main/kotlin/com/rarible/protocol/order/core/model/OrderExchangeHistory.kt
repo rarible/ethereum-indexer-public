@@ -115,14 +115,37 @@ data class OnChainAmmOrder(
     override val maker: Address,
     override val make: Asset,
     override val take: Asset,
-    val createdAt: Instant,
-    val platform: Platform,
     val data: OrderAmmData,
     val inNft: List<EthUInt256>,
     val price: EthUInt256,
     val priceValue: BigDecimal,
     val priceUsd: BigDecimal?,
     override val hash: Word,
-    override val date: Instant = createdAt,
-    override val source: HistorySource = platform.toHistorySource()
+    override val date: Instant,
+    override val source: HistorySource,
 ) : PoolExchangeHistory(ItemType.AMM_ORDER)
+
+data class PoolAnyNftOut(
+    override val hash: Word,
+    val numberNft: EthUInt256,
+    val recipient: Address,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_NFT_OUT) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}
+
+data class PoolTargetNftOut(
+    override val hash: Word,
+    val nft: List<EthUInt256>,
+    val recipient: Address,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_NFT_OUT) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}
+

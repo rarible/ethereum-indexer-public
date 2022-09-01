@@ -11,6 +11,7 @@ import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelMultipleOrders
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerAskEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerBidEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTOutPairEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
 import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
@@ -42,6 +43,11 @@ enum class ItemType(
     AMM_ORDER(
         topic = setOf(
             NewPairEvent.id(),
+        )
+    ),
+    POOL_NFT_OUT(
+        topic = setOf(
+            SwapNFTOutPairEvent.id(),
         )
     ),
     ORDER_SIDE_MATCH(

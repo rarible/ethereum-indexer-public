@@ -3,7 +3,9 @@ package com.rarible.protocol.order.core.service.pool
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.order.core.model.OnChainAmmOrder
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.PoolAnyNftOut
 import com.rarible.protocol.order.core.model.PoolExchangeHistory
+import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import org.springframework.stereotype.Component
 
 @Component
@@ -13,6 +15,7 @@ class EventPoolReducer : Reducer<PoolExchangeHistory, Order> {
             is OnChainAmmOrder -> {
                 onOnChainAmmOrder(entity, event)
             }
+            is PoolAnyNftOut, is PoolTargetNftOut -> TODO()
         }
     }
 
@@ -21,9 +24,9 @@ class EventPoolReducer : Reducer<PoolExchangeHistory, Order> {
             maker = event.maker,
             make = event.make,
             take = event.take,
-            createdAt = event.createdAt,
+            createdAt = event.date,
             lastUpdateAt = maxOf(entity.lastUpdateAt, event.date),
-            platform = event.platform,
+            platform = event.source.toPlatform(),
             data = event.data,
             hash = event.hash,
             makePrice = event.priceValue.takeIf { event.isSell() },

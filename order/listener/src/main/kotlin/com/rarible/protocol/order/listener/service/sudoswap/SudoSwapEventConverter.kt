@@ -1,14 +1,21 @@
 package com.rarible.protocol.order.listener.service.sudoswap
 
+import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.HeadTransaction
+import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
+import com.rarible.protocol.order.core.model.SudoSwapOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.trace.TraceCallService
+import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 
@@ -16,7 +23,9 @@ import java.math.BigInteger
 class SudoSwapEventConverter(
     private val traceCallService: TraceCallService,
 ) {
-    suspend fun getTransactionDetails(transient: Transaction): List<SudoSwapPairDetail> {
+    fun getPoolHash(pollAddress: Address): Word = keccak256(pollAddress)
+
+    suspend fun getCreatePairDetails(transient: Transaction): List<SudoSwapPairDetail> {
         val inputs = traceCallService.findAllRequiredCalls(
             headTransaction = HeadTransaction.from(transient),
             to = transient.to(),
@@ -52,6 +61,36 @@ class SudoSwapEventConverter(
                         spotPrice = decoded.value()._8(),
                         inNft = decoded.value()._9().toList(),
                         tokenBalance = decoded.value()._10(),
+                    )
+                }
+                else -> null
+            }
+        }
+    }
+
+    suspend fun getSwapOutNftDetails(transient: Transaction): List<SudoSwapOutNftDetail> {
+        val inputs = traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = transient.to(),
+            LSSVMPairV1.swapTokenForAnyNFTsSignature().id(),
+            LSSVMPairV1.swapTokenForSpecificNFTsSignature().id()
+        )
+        return inputs.mapNotNull {
+            when (it.input.methodSignatureId()) {
+                LSSVMPairV1.swapTokenForAnyNFTsSignature().id() -> {
+                    val decoded = LSSVMPairV1.swapTokenForAnyNFTsSignature().`in`().decode(it.input, 4)
+                    SudoSwapAnyOutNftDetail(
+                        numberNft = decoded.value()._1(),
+                        maxExpectedTokenInput = decoded.value()._2(),
+                        nftRecipient = decoded.value()._3(),
+                    )
+                }
+                LSSVMPairV1.swapTokenForSpecificNFTsSignature().id() -> {
+                    val decoded = LSSVMPairV1.swapTokenForSpecificNFTsSignature().`in`().decode(it.input, 4)
+                    SudoSwapTargetOutNftDetail(
+                        nft = decoded.value()._1().toList(),
+                        maxExpectedTokenInput = decoded.value()._2(),
+                        nftRecipient = decoded.value()._3(),
                     )
                 }
                 else -> null

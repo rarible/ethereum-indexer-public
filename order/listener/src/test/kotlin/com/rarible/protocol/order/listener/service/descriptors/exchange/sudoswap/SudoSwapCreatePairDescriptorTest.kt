@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -92,8 +91,6 @@ internal class SudoSwapCreatePairDescriptorTest {
         assertThat(onChainAmmOrder.maker).isEqualTo(Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"))
         assertThat(onChainAmmOrder.make).isEqualTo(expectedNftAsset)
         assertThat(onChainAmmOrder.take).isEqualTo(expectedCurrencyAsset)
-        assertThat(onChainAmmOrder.createdAt).isEqualTo(date)
-        assertThat(onChainAmmOrder.platform).isEqualTo(Platform.SUDOSWAP)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
         assertThat(onChainAmmOrder.inNft).isEqualTo(listOf(EthUInt256.of(4623)))
         assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)

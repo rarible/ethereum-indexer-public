@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component
 class OrderExchangeHistoryDtoConverter(
     private val assetDtoConverter: AssetDtoConverter
 ) {
-
     suspend fun convert(source: OrderExchangeHistory): OrderExchangeHistoryDto {
         return when (source) {
             is OrderSideMatch -> OrderSideMatchDto(
@@ -47,6 +46,36 @@ class OrderExchangeHistoryDtoConverter(
                 take = assetDtoConverter.convert(source.take),
                 date = source.date,
                 maker = source.maker
+            )
+            is PoolAnyNftOut -> OrderSideMatchDto(
+                hash = source.hash,
+                taker = source.recipient,
+                fill = source.numberNft.value,
+                date = source.date,
+                maker = source.maker,
+                make = source.make?.let { assetDtoConverter.convert(it) },
+                take = source.take?.let { assetDtoConverter.convert(it) },
+                side = OrderSideDto.LEFT,
+                counterHash = null,
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null
+            )
+            is PoolTargetNftOut -> OrderSideMatchDto(
+                hash = source.hash,
+                taker = source.recipient,
+                fill = source.nft.size.toBigInteger(),
+                date = source.date,
+                maker = source.maker,
+                make = source.make?.let { assetDtoConverter.convert(it) },
+                take = source.take?.let { assetDtoConverter.convert(it) },
+                side = OrderSideDto.LEFT,
+                counterHash = null,
+                makeUsd = null,
+                takeUsd = null,
+                makePriceUsd = null,
+                takePriceUsd = null
             )
         }
     }

@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
@@ -11,9 +10,9 @@ import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.EthAssetType
+import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OnChainAmmOrder
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
-import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
@@ -55,7 +54,7 @@ class SudoSwapCreatePairDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): OnChainAmmOrder? {
         val event = NewPairEvent.apply(log)
-        val details = sudoSwapEventConverter.getTransactionDetails(transaction).let {
+        val details = sudoSwapEventConverter.getCreatePairDetails(transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
@@ -96,17 +95,17 @@ class SudoSwapCreatePairDescriptor(
             fee = details.fee
         )
         return OnChainAmmOrder(
-            hash = keccak256(event.poolAddress()),
+            hash = sudoSwapEventConverter.getPoolHash(event.poolAddress()),
             maker = event.poolAddress(),
             make = make,
             take = take,
             inNft = details.inNft.map { EthUInt256.of(it) },
-            createdAt = date,
-            platform = Platform.SUDOSWAP,
+            date = date,
             data = data,
             price = EthUInt256.of(details.spotPrice),
             priceValue = priceNormalizer.normalize(take.type, details.spotPrice),
-            priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date)
+            priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date),
+            source = HistorySource.SUDOSWAP
         )
     }
 

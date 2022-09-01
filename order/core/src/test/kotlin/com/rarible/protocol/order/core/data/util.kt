@@ -450,8 +450,6 @@ fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
         maker = randomAddress(),
         make = randomErc721(),
         take = randomErc20(EthUInt256.of(randomInt())),
-        createdAt = Instant.now(),
-        platform = Platform.values().random(),
         data = createOrderSudoSwapAmmDataV1(),
         inNft = (1..10).map { EthUInt256.of(randomInt()) },
         price = EthUInt256.of(randomInt()),

@@ -22,6 +22,8 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.Platform.*
+import com.rarible.protocol.order.core.model.PoolAnyNftOut
+import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -166,6 +168,8 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             }
+            is PoolAnyNftOut -> null //TODO()
+            is PoolTargetNftOut -> null  //TODO()
         }
     }
 
