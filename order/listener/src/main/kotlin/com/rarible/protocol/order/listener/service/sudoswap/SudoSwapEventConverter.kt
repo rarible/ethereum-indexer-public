@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.HeadTransaction
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
+import com.rarible.protocol.order.core.model.SudoSwapNftWithdrawDetail
 import com.rarible.protocol.order.core.model.SudoSwapOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
@@ -91,6 +92,26 @@ class SudoSwapEventConverter(
                         nft = decoded.value()._1().toList(),
                         maxExpectedTokenInput = decoded.value()._2(),
                         nftRecipient = decoded.value()._3(),
+                    )
+                }
+                else -> null
+            }
+        }
+    }
+
+    suspend fun getNftWithdrawDetails(transient: Transaction): List<SudoSwapNftWithdrawDetail> {
+        val inputs = traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = transient.to(),
+            LSSVMPairV1.withdrawERC721Signature().id()
+        )
+        return inputs.mapNotNull {
+            when (it.input.methodSignatureId()) {
+                LSSVMPairV1.withdrawERC721Signature().id() -> {
+                    val decoded = LSSVMPairV1.withdrawERC721Signature().`in`().decode(it.input, 4)
+                    SudoSwapNftWithdrawDetail(
+                        collection = decoded.value()._1(),
+                        nft = decoded.value()._2().toList()
                     )
                 }
                 else -> null

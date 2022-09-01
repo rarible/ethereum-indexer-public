@@ -19,7 +19,7 @@ internal class EventPoolReducerTest {
         assertThat(reduced.maker).isEqualTo(event.maker)
         assertThat(reduced.make).isEqualTo(event.make)
         assertThat(reduced.take).isEqualTo(event.take)
-        assertThat(reduced.createdAt).isEqualTo(event.data)
+        assertThat(reduced.createdAt).isEqualTo(event.date)
         assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
         assertThat(reduced.platform).isEqualTo(event.source.toPlatform())
         assertThat(reduced.data).isEqualTo(event.data)

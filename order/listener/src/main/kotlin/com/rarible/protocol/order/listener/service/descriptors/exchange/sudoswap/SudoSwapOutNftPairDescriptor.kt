@@ -60,7 +60,7 @@ class SudoSwapOutNftPairDescriptor(
             is SudoSwapTargetOutNftDetail -> {
                 PoolTargetNftOut(
                     hash = hash,
-                    nft = details.nft.map { EthUInt256.of(it) },
+                    nftIds = details.nft.map { EthUInt256.of(it) },
                     recipient = details.nftRecipient,
                     date = date,
                     source = HistorySource.SUDOSWAP
