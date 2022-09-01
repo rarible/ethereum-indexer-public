@@ -105,14 +105,7 @@ data class OnChainOrder(
     val priceUsd: BigDecimal?,
     override val hash: Word,
     override val date: Instant = createdAt,
-    override val source: HistorySource = when (platform) {
-        Platform.RARIBLE -> HistorySource.RARIBLE
-        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
-        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
-        Platform.X2Y2 -> HistorySource.X2Y2
-        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
-        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
-    }
+    override val source: HistorySource = platform.toHistorySource()
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)
 
 data class OnChainAmmOrder(
@@ -128,12 +121,5 @@ data class OnChainAmmOrder(
     val priceUsd: BigDecimal?,
     override val hash: Word,
     override val date: Instant = createdAt,
-    override val source: HistorySource = when (platform) {
-        Platform.RARIBLE -> HistorySource.RARIBLE
-        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
-        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
-        Platform.X2Y2 -> HistorySource.X2Y2
-        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
-        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
-    }
+    override val source: HistorySource = platform.toHistorySource()
 ) : OrderExchangeHistory(ItemType.AMM_ORDER)
