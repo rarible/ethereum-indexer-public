@@ -20,7 +20,10 @@ sealed class OrderExchangeHistory(var type: ItemType) : EventData {
     abstract val source: HistorySource
 
     fun isBid() = take?.type?.nft ?: false
+    fun isSell() = isBid().not()
 }
+
+sealed class PoolExchangeHistory(type: ItemType) : OrderExchangeHistory(type)
 
 enum class OrderSide {
     LEFT,
@@ -122,4 +125,4 @@ data class OnChainAmmOrder(
     override val hash: Word,
     override val date: Instant = createdAt,
     override val source: HistorySource = platform.toHistorySource()
-) : OrderExchangeHistory(ItemType.AMM_ORDER)
+) : PoolExchangeHistory(ItemType.AMM_ORDER)

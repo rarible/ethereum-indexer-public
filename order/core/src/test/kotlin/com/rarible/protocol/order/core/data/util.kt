@@ -11,6 +11,7 @@ import io.daonomic.rpc.domain.WordFactory
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Instant
 
 fun createOrder() =
     Order(
@@ -441,5 +442,23 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
         eventId = randomString(),
         order = order,
         orderId = randomWord()
+    )
+}
+
+fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
+    return OnChainAmmOrder(
+        maker = randomAddress(),
+        make = randomErc721(),
+        take = randomErc20(EthUInt256.of(randomInt())),
+        createdAt = Instant.now(),
+        platform = Platform.values().random(),
+        data = createOrderSudoSwapAmmDataV1(),
+        inNft = (1..10).map { EthUInt256.of(randomInt()) },
+        price = EthUInt256.of(randomInt()),
+        priceValue = randomBigDecimal(),
+        priceUsd = randomBigDecimal(),
+        hash = Word.apply(randomWord()),
+        date = Instant.now(),
+        source = HistorySource.values().random()
     )
 }

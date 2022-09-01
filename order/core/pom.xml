@@ -110,6 +110,10 @@
             <groupId>com.rarible.core</groupId>
             <artifactId>rarible-core-metrics</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.rarible.core</groupId>
+            <artifactId>rarible-core-entity-reducer</artifactId>
+        </dependency>
 
         <!-- ================== Spring =================== -->
         <dependency>

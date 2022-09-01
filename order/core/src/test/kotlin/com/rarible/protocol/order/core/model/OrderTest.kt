@@ -192,8 +192,7 @@ class OrderTest {
                 take = randomErc20(EthUInt256.of(100)),
                 type = OrderType.OPEN_SEA_V1
             )
-        assertThat(order.withMakeBalance(EthUInt256.of(7), EthUInt256.ZERO).makeStock)
-            .isEqualTo(EthUInt256.ZERO)
+        assertThat(order.withMakeBalance(EthUInt256.of(7), EthUInt256.ZERO).makeStock).isEqualTo(EthUInt256.ZERO)
     }
 
     @Test

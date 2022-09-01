@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
+import com.rarible.protocol.order.core.service.pool.EventPoolReducer
 import io.daonomic.rpc.domain.Word
 import java.time.Instant
 import kotlinx.coroutines.flow.fold
@@ -47,7 +48,8 @@ class OrderReduceService(
     private val nonceService: NonceService,
     private val exchangeContractAddresses: OrderIndexerProperties.ExchangeContractAddresses,
     private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
-    private val approvalHistoryRepository: ApprovalHistoryRepository
+    private val approvalHistoryRepository: ApprovalHistoryRepository,
+    private val poolReducer: EventPoolReducer,
 ) {
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
@@ -109,7 +111,8 @@ class OrderReduceService(
                 }
                 is OrderUpdate.ByLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
-                    if (exchangeHistory is OnChainOrder && update.logEvent.status != LogEventStatus.CONFIRMED) {
+
+                    if (exchangeHistory.isOnChainOrder() && update.logEvent.status != LogEventStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
                     order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
@@ -182,8 +185,10 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
+                is OnChainAmmOrder -> poolReducer.reduce(this, orderExchangeHistory).copy(
+                    lastEventId = accumulateEventId(lastEventId, eventId)
+                )
                 is OnChainOrder -> error("Must have been processed above")
-                is OnChainAmmOrder -> TODO()
             }
             else -> this
         }
@@ -450,5 +455,9 @@ class OrderReduceService(
 
         fun EventData.toExchangeHistory(): OrderExchangeHistory =
             requireNotNull(this as? OrderExchangeHistory) { "Unexpected exchange history type ${this::class}" }
+
+        fun OrderExchangeHistory.isOnChainOrder(): Boolean {
+            return this is OnChainOrder || this is OnChainAmmOrder
+        }
     }
 }
