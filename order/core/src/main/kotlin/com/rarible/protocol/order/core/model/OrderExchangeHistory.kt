@@ -155,9 +155,20 @@ data class PoolNftWithdraw(
     val nftIds: List<EthUInt256>,
     override val date: Instant,
     override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_OUT) {
+) : PoolExchangeHistory(ItemType.POOL_NFT_WITHDRAW) {
     override val maker: Address? = null
     override val make: Asset? = null
     override val take: Asset? = null
 }
 
+data class PoolNftDeposit(
+    override val hash: Word,
+    val collection: Address,
+    val nftIds: List<EthUInt256>,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_NFT_DEPOSIT) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}

@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.HeadTransaction
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
+import com.rarible.protocol.order.core.model.SudoSwapNftDepositDetail
 import com.rarible.protocol.order.core.model.SudoSwapNftWithdrawDetail
 import com.rarible.protocol.order.core.model.SudoSwapOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapPairDetail
@@ -105,17 +106,28 @@ class SudoSwapEventConverter(
             to = transient.to(),
             LSSVMPairV1.withdrawERC721Signature().id()
         )
-        return inputs.mapNotNull {
-            when (it.input.methodSignatureId()) {
-                LSSVMPairV1.withdrawERC721Signature().id() -> {
-                    val decoded = LSSVMPairV1.withdrawERC721Signature().`in`().decode(it.input, 4)
-                    SudoSwapNftWithdrawDetail(
-                        collection = decoded.value()._1(),
-                        nft = decoded.value()._2().toList()
-                    )
-                }
-                else -> null
-            }
+        return inputs.map {
+            val decoded = LSSVMPairV1.withdrawERC721Signature().`in`().decode(it.input, 4)
+            SudoSwapNftWithdrawDetail(
+                collection = decoded.value()._1(),
+                nft = decoded.value()._2().toList()
+            )
+        }
+    }
+
+    suspend fun getNftDepositDetails(transient: Transaction): List<SudoSwapNftDepositDetail> {
+        val inputs = traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = transient.to(),
+            LSSVMPairFactoryV1.depositNFTsSignature().id()
+        )
+        return inputs.map {
+            val decoded = LSSVMPairFactoryV1.depositNFTsSignature().`in`().decode(it.input, 4)
+            SudoSwapNftDepositDetail(
+                collection = decoded.value()._1(),
+                tokenIds = decoded.value()._2().toList(),
+                pollAddress = decoded.value()._3()
+            )
         }
     }
 
