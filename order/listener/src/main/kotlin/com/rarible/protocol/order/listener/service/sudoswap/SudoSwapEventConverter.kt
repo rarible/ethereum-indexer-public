@@ -73,7 +73,7 @@ class SudoSwapEventConverter(
         val inputs = traceCallService.findAllRequiredCalls(
             headTransaction = HeadTransaction.from(transient),
             to = transient.to(),
-            LSSVMPairV1.swapTokenForAnyNFTsSignature().id(),
+            LSSVMPairV1.swapTokenForSpecificNFTsSignature().id(),
             LSSVMPairV1.swapTokenForSpecificNFTsSignature().id()
         )
         return inputs.mapNotNull {
