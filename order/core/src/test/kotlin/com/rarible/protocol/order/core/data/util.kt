@@ -452,7 +452,7 @@ fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
         take = randomErc20(EthUInt256.of(randomInt())),
         data = createOrderSudoSwapAmmDataV1(),
         inNft = (1..10).map { EthUInt256.of(randomInt()) },
-        price = EthUInt256.of(randomInt()),
+        price = randomBigInt(),
         priceValue = randomBigDecimal(),
         priceUsd = randomBigDecimal(),
         hash = Word.apply(randomWord()),

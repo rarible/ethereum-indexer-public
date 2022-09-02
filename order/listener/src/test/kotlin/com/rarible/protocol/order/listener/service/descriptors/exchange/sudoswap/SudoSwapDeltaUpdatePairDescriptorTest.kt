@@ -48,7 +48,7 @@ internal class SudoSwapDeltaUpdatePairDescriptorTest {
         )
         val update = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         Assertions.assertThat(update.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        Assertions.assertThat(update.newDelta).isEqualTo(EthUInt256.of("1022500000000000000"))
+        Assertions.assertThat(update.newDelta).isEqualTo(BigInteger("1022500000000000000"))
         Assertions.assertThat(update.date).isEqualTo(date)
         Assertions.assertThat(update.source).isEqualTo(HistorySource.SUDOSWAP)
     }

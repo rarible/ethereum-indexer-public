@@ -1,13 +1,18 @@
 package com.rarible.protocol.order.core.service.pool
 
+import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
+import com.rarible.protocol.order.core.service.PriceNormalizer
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 internal class EventPoolReducerTest {
-    private val eventPoolReducer = EventPoolReducer()
+    private val contractService = mockk<ContractService>()
+    private val normalizer = PriceNormalizer(contractService)
+    private val eventPoolReducer = EventPoolReducer(normalizer)
 
     @Test
     fun `should reduce onChainAmmOrder event`() = runBlocking<Unit> {

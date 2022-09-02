@@ -102,7 +102,7 @@ class SudoSwapCreatePairDescriptor(
             inNft = details.inNft.map { EthUInt256.of(it) },
             date = date,
             data = data,
-            price = EthUInt256.of(details.spotPrice),
+            price = details.spotPrice,
             priceValue = priceNormalizer.normalize(take.type, details.spotPrice),
             priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date),
             source = HistorySource.SUDOSWAP

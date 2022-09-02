@@ -83,9 +83,9 @@ internal class SudoSwapCreatePairDescriptorTest {
             delta = BigInteger("10000000000000000"),
             fee = BigInteger.ZERO
         )
-        val expectedPrice = EthUInt256.of("308407960199005000")
+        val expectedPrice = BigInteger("308407960199005000")
 
-        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice.value, date) } returns BigDecimal.valueOf(3)
+        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns BigDecimal.valueOf(3)
 
         val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         assertThat(onChainAmmOrder.maker).isEqualTo(Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"))
@@ -129,9 +129,9 @@ internal class SudoSwapCreatePairDescriptorTest {
             delta = BigInteger("100000000000000000"),
             fee = BigInteger("20000000000000000")
         )
-        val expectedPrice = EthUInt256.of("241463414634146360")
+        val expectedPrice = BigInteger("241463414634146360")
 
-        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice.value, date) } returns randomBigDecimal()
+        coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns randomBigDecimal()
 
         val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         assertThat(onChainAmmOrder.maker).isEqualTo(Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"))

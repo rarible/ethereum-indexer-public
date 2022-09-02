@@ -51,7 +51,7 @@ class SudoSwapOutNftPairDescriptor(
             is SudoSwapAnyOutNftDetail -> {
                 PoolAnyNftOut(
                     hash = hash,
-                    numberNft = EthUInt256.of(details.numberNft),
+                    numberNft = details.numberNft,
                     tokenIds = emptyList(),
                     recipient = details.nftRecipient,
                     date = date,

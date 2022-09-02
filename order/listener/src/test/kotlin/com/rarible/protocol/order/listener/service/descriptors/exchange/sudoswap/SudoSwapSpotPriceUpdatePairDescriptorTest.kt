@@ -50,7 +50,7 @@ internal class SudoSwapSpotPriceUpdatePairDescriptorTest {
         )
         val update = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         Assertions.assertThat(update.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        Assertions.assertThat(update.newSpotPrice).isEqualTo(EthUInt256.of("328431178488150608"))
+        Assertions.assertThat(update.newSpotPrice).isEqualTo(BigInteger("328431178488150608"))
         Assertions.assertThat(update.date).isEqualTo(date)
         Assertions.assertThat(update.source).isEqualTo(HistorySource.SUDOSWAP)
     }

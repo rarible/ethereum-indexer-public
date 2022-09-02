@@ -2,12 +2,10 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SpotPriceUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
-import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Word
@@ -42,7 +40,7 @@ class SudoSwapSpotPriceUpdatePairDescriptor(
         val event = SpotPriceUpdateEvent.apply(log)
         return PoolSpotPriceUpdate(
             hash = sudoSwapEventConverter.getPoolHash(log.address()),
-            newSpotPrice = EthUInt256.of(event.newSpotPrice()),
+            newSpotPrice = event.newSpotPrice(),
             date = date,
             source = HistorySource.SUDOSWAP
         )

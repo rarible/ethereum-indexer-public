@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.DeltaUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
@@ -41,7 +40,7 @@ class SudoSwapDeltaUpdatePairDescriptor(
         val event = DeltaUpdateEvent.apply(log)
         return PoolDeltaUpdate(
             hash = sudoSwapEventConverter.getPoolHash(log.address()),
-            newDelta = EthUInt256.of(event.newDelta()),
+            newDelta = event.newDelta(),
             date = date,
             source = HistorySource.SUDOSWAP
         )
