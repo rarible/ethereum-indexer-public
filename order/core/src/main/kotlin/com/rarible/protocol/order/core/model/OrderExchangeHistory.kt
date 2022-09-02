@@ -184,3 +184,15 @@ data class PoolNftDeposit(
     override val make: Asset? = null
     override val take: Asset? = null
 }
+
+data class PoolSpotPriceUpdate(
+    override val hash: Word,
+    val newSpotPrice: EthUInt256,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_SPOT_PRICE_UPDATE) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}
+
