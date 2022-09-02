@@ -5,6 +5,7 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFact
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.HeadTransaction
+import com.rarible.protocol.order.core.model.SimpleTraceResult
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
@@ -16,6 +17,7 @@ import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.model.SudoSwapTargetInNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.trace.TraceCallService
+import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -29,9 +31,8 @@ class SudoSwapEventConverter(
     fun getPoolHash(pollAddress: Address): Word = keccak256(pollAddress)
 
     suspend fun getCreatePairDetails(transient: Transaction): List<SudoSwapPairDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+        val inputs = findAllRequiredCalls(
+            transient,
             LSSVMPairFactoryV1.createPairETHSignature().id(),
             LSSVMPairFactoryV1.createPairERC20Signature().id()
         )
@@ -72,9 +73,8 @@ class SudoSwapEventConverter(
     }
 
     suspend fun getSwapOutNftDetails(transient: Transaction): List<SudoSwapOutNftDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+        val inputs = findAllRequiredCalls(
+            transient,
             LSSVMPairV1.swapTokenForSpecificNFTsSignature().id(),
             LSSVMPairV1.swapTokenForSpecificNFTsSignature().id()
         )
@@ -102,9 +102,8 @@ class SudoSwapEventConverter(
     }
 
     suspend fun getSwapInNftDetails(transient: Transaction): List<SudoSwapTargetInNftDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+        val inputs = findAllRequiredCalls(
+            transient,
             LSSVMPairV1.swapNFTsForTokenSignature().id()
         )
         return inputs.map {
@@ -118,9 +117,8 @@ class SudoSwapEventConverter(
     }
 
     suspend fun getNftWithdrawDetails(transient: Transaction): List<SudoSwapNftWithdrawDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+        val inputs = findAllRequiredCalls(
+            transient,
             LSSVMPairV1.withdrawERC721Signature().id()
         )
         return inputs.map {
@@ -133,9 +131,8 @@ class SudoSwapEventConverter(
     }
 
     suspend fun getNftDepositDetails(transient: Transaction): List<SudoSwapNftDepositDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+        val inputs = findAllRequiredCalls(
+            transient,
             LSSVMPairFactoryV1.depositNFTsSignature().id()
         )
         return inputs.map {
@@ -146,6 +143,14 @@ class SudoSwapEventConverter(
                 pollAddress = decoded.value()._3()
             )
         }
+    }
+
+    private suspend fun findAllRequiredCalls(transient: Transaction, vararg ids: Binary): List<SimpleTraceResult> {
+        return traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = transient.to(),
+            ids = ids
+        )
     }
 
     private fun convert(value: BigInteger): SudoSwapPoolType {

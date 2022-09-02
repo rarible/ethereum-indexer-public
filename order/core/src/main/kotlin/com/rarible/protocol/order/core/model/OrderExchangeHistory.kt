@@ -125,13 +125,22 @@ data class OnChainAmmOrder(
     override val source: HistorySource,
 ) : PoolExchangeHistory(ItemType.AMM_ORDER)
 
+sealed class PoolNftOut(type: ItemType) : PoolExchangeHistory(type) {
+    abstract val tokenIds: List<EthUInt256>
+}
+
+sealed class PoolNftIn(type: ItemType) : PoolExchangeHistory(type) {
+    abstract val tokenIds: List<EthUInt256>
+}
+
 data class PoolAnyNftOut(
     override val hash: Word,
+    override val tokenIds: List<EthUInt256>,
+    override val date: Instant,
+    override val source: HistorySource,
     val numberNft: EthUInt256,
     val recipient: Address,
-    override val date: Instant,
-    override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_OUT) {
+) : PoolNftOut(ItemType.POOL_NFT_OUT) {
     override val maker: Address? = null
     override val make: Asset? = null
     override val take: Asset? = null
@@ -139,23 +148,11 @@ data class PoolAnyNftOut(
 
 data class PoolTargetNftOut(
     override val hash: Word,
-    val nftIds: List<EthUInt256>,
+    override val tokenIds: List<EthUInt256>,
+    override val date: Instant,
+    override val source: HistorySource,
     val recipient: Address,
-    override val date: Instant,
-    override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_OUT) {
-    override val maker: Address? = null
-    override val make: Asset? = null
-    override val take: Asset? = null
-}
-
-data class PoolTargetNftIn(
-    override val hash: Word,
-    val nftIds: List<EthUInt256>,
-    val tokenRecipient: Address,
-    override val date: Instant,
-    override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_IN) {
+) : PoolNftOut(ItemType.POOL_NFT_OUT) {
     override val maker: Address? = null
     override val make: Asset? = null
     override val take: Asset? = null
@@ -163,11 +160,23 @@ data class PoolTargetNftIn(
 
 data class PoolNftWithdraw(
     override val hash: Word,
-    val collection: Address,
-    val nftIds: List<EthUInt256>,
+    override val tokenIds: List<EthUInt256>,
     override val date: Instant,
-    override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_WITHDRAW) {
+    override val source: HistorySource,
+    val collection: Address,
+) : PoolNftOut(ItemType.POOL_NFT_WITHDRAW) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}
+
+data class PoolTargetNftIn(
+    override val hash: Word,
+    override val tokenIds: List<EthUInt256>,
+    override val date: Instant,
+    override val source: HistorySource,
+    val tokenRecipient: Address,
+) : PoolNftIn(ItemType.POOL_NFT_IN) {
     override val maker: Address? = null
     override val make: Asset? = null
     override val take: Asset? = null
@@ -175,11 +184,11 @@ data class PoolNftWithdraw(
 
 data class PoolNftDeposit(
     override val hash: Word,
-    val collection: Address,
-    val nftIds: List<EthUInt256>,
+    override val tokenIds: List<EthUInt256>,
     override val date: Instant,
-    override val source: HistorySource
-) : PoolExchangeHistory(ItemType.POOL_NFT_DEPOSIT) {
+    override val source: HistorySource,
+    val collection: Address,
+) : PoolNftIn(ItemType.POOL_NFT_DEPOSIT) {
     override val maker: Address? = null
     override val make: Asset? = null
     override val take: Asset? = null
@@ -187,9 +196,9 @@ data class PoolNftDeposit(
 
 data class PoolSpotPriceUpdate(
     override val hash: Word,
-    val newSpotPrice: EthUInt256,
     override val date: Instant,
-    override val source: HistorySource
+    override val source: HistorySource,
+    val newSpotPrice: EthUInt256,
 ) : PoolExchangeHistory(ItemType.POOL_SPOT_PRICE_UPDATE) {
     override val maker: Address? = null
     override val make: Asset? = null
@@ -198,9 +207,9 @@ data class PoolSpotPriceUpdate(
 
 data class PoolDeltaUpdate(
     override val hash: Word,
-    val newDelta: EthUInt256,
     override val date: Instant,
-    override val source: HistorySource
+    override val source: HistorySource,
+    val newDelta: EthUInt256,
 ) : PoolExchangeHistory(ItemType.POOL_DELTA_UPDATE) {
     override val maker: Address? = null
     override val make: Asset? = null
@@ -209,9 +218,9 @@ data class PoolDeltaUpdate(
 
 data class PoolFeeUpdate(
     override val hash: Word,
-    val newFee: EthUInt256,
     override val date: Instant,
-    override val source: HistorySource
+    override val source: HistorySource,
+    val newFee: EthUInt256,
 ) : PoolExchangeHistory(ItemType.POOL_FEE_UPDATE) {
     override val maker: Address? = null
     override val make: Asset? = null

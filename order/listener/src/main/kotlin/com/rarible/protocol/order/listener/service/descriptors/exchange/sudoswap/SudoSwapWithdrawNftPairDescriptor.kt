@@ -45,7 +45,7 @@ class SudoSwapWithdrawNftPairDescriptor(
         return PoolNftWithdraw(
             hash = sudoSwapEventConverter.getPoolHash(log.address()),
             collection = details.collection,
-            nftIds = details.nft.map { EthUInt256.of(it) },
+            tokenIds = details.nft.map { EthUInt256.of(it) },
             date = date,
             source = HistorySource.SUDOSWAP
         )

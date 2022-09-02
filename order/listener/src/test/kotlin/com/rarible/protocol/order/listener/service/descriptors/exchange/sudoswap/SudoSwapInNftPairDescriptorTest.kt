@@ -5,7 +5,6 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
-import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -16,7 +15,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
@@ -55,7 +53,7 @@ internal class SudoSwapInNftPairDescriptorTest {
         nftOut as PoolTargetNftIn
 
         Assertions.assertThat(nftOut.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        Assertions.assertThat(nftOut.nftIds).containsExactlyInAnyOrder(EthUInt256.of(6209))
+        Assertions.assertThat(nftOut.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(6209))
         Assertions.assertThat(nftOut.tokenRecipient).isEqualTo(Address.apply("0x3Cb23ccc26a1870eb9E79B7A061907BDaeF4F7D6"))
         Assertions.assertThat(nftOut.date).isEqualTo(date)
         Assertions.assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)

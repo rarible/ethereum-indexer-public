@@ -49,7 +49,7 @@ internal class SudoSwapWithdrawNftPairDescriptorTest {
         )
         val withdraw = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         Assertions.assertThat(withdraw.collection).isEqualTo(Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90"))
-        Assertions.assertThat(withdraw.nftIds).containsExactlyInAnyOrder(EthUInt256.of(4623))
+        Assertions.assertThat(withdraw.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(4623))
         Assertions.assertThat(withdraw.date).isEqualTo(date)
         Assertions.assertThat(withdraw.source).isEqualTo(HistorySource.SUDOSWAP)
     }

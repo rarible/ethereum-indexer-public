@@ -48,7 +48,7 @@ class SudoSwapDepositNftPairDescriptor(
         return PoolNftDeposit(
             hash = sudoSwapEventConverter.getPoolHash(event.poolAddress()),
             collection = details.collection,
-            nftIds = details.tokenIds.map { EthUInt256.of(it) },
+            tokenIds = details.tokenIds.map { EthUInt256.of(it) },
             date = date,
             source = HistorySource.SUDOSWAP
         )

@@ -53,7 +53,7 @@ internal class SudoSwapOutNftPairDescriptorTest {
         nftOut as PoolTargetNftOut
 
         assertThat(nftOut.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(log.address()))
-        assertThat(nftOut.nftIds).containsExactlyInAnyOrder(EthUInt256.of(13596))
+        assertThat(nftOut.tokenIds).containsExactlyInAnyOrder(EthUInt256.of(13596))
         assertThat(nftOut.recipient).isEqualTo(Address.apply("0xc2681D0606EbD7719040f2Bc1c0fdA3E9215Db90"))
         assertThat(nftOut.date).isEqualTo(date)
         assertThat(nftOut.source).isEqualTo(HistorySource.SUDOSWAP)

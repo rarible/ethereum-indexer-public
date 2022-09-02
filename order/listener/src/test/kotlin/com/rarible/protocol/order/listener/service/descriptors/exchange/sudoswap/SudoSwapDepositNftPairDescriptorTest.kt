@@ -15,7 +15,6 @@ import io.mockk.mockk
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import reactor.kotlin.core.publisher.toFlux
 import scalether.domain.Address
@@ -53,7 +52,7 @@ internal class SudoSwapDepositNftPairDescriptorTest {
         val deposit = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
         Assertions.assertThat(deposit.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(Address.apply("0xB4d6af08Afb69FE9D190731aB4FbAF9F899Ee46f")))
         Assertions.assertThat(deposit.collection).isEqualTo(Address.apply("0x1895C2da9155d7720a7957dA06Ce898A6a29d0A7"))
-        Assertions.assertThat(deposit.nftIds).containsExactlyInAnyOrder(
+        Assertions.assertThat(deposit.tokenIds).containsExactlyInAnyOrder(
             EthUInt256.of(1752),
             EthUInt256.of(2981),
             EthUInt256.of(2979),

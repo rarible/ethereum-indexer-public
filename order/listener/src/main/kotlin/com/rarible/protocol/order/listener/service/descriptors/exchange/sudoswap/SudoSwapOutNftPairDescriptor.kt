@@ -52,6 +52,7 @@ class SudoSwapOutNftPairDescriptor(
                 PoolAnyNftOut(
                     hash = hash,
                     numberNft = EthUInt256.of(details.numberNft),
+                    tokenIds = emptyList(),
                     recipient = details.nftRecipient,
                     date = date,
                     source = HistorySource.SUDOSWAP
@@ -60,7 +61,7 @@ class SudoSwapOutNftPairDescriptor(
             is SudoSwapTargetOutNftDetail -> {
                 PoolTargetNftOut(
                     hash = hash,
-                    nftIds = details.nft.map { EthUInt256.of(it) },
+                    tokenIds = details.nft.map { EthUInt256.of(it) },
                     recipient = details.nftRecipient,
                     date = date,
                     source = HistorySource.SUDOSWAP

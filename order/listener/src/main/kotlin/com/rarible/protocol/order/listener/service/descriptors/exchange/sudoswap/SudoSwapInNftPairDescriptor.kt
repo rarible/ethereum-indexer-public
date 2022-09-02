@@ -44,7 +44,7 @@ class SudoSwapInNftPairDescriptor(
         }
         return PoolTargetNftIn(
             hash = sudoSwapEventConverter.getPoolHash(log.address()),
-            nftIds = details.tokenIds.map { EthUInt256.of(it) },
+            tokenIds = details.tokenIds.map { EthUInt256.of(it) },
             tokenRecipient = details.tokenRecipient,
             date = date,
             source = HistorySource.SUDOSWAP
