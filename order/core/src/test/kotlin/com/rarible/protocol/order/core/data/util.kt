@@ -8,6 +8,7 @@ import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
+import scalether.domain.Address
 import scalether.domain.AddressFactory
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -31,6 +32,10 @@ fun createOrder() =
         createdAt = nowMillis(),
         lastUpdateAt = nowMillis()
     )
+
+fun createSellOrder(
+    data: OrderData = createOrderRaribleV2DataV1()
+) = createOrder().copy(make = randomErc721(), take = randomErc20(), data = data)
 
 fun createOrderVersion(): OrderVersion {
     return OrderVersion(
@@ -361,9 +366,15 @@ fun createOrderSideMatch(): OrderSideMatch {
 
 fun randomErc20(value: EthUInt256) = Asset(Erc20AssetType(AddressFactory.create()), value)
 
+fun randomErc20() = Asset(Erc20AssetType(AddressFactory.create()), EthUInt256.of(randomInt()))
+
+fun randomEth() = Asset(EthAssetType, EthUInt256.of(randomInt()))
+
 fun randomErc1155(value: EthUInt256) = Asset(Erc1155AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), value)
 
 fun randomErc721() = Asset(Erc721AssetType(AddressFactory.create(), EthUInt256(randomBigInt())), EthUInt256.ONE)
+
+fun randomAmmNftAsset(token: Address = randomAddress()) = Asset(AmmNftAssetType(token), EthUInt256.of(randomInt()))
 
 fun randomPart() = Part(randomAddress(), EthUInt256(randomBigInt()))
 
@@ -458,5 +469,62 @@ fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
         hash = Word.apply(randomWord()),
         date = Instant.now(),
         source = HistorySource.values().random()
+    )
+}
+
+fun randomPoolTargetNftOut(): PoolTargetNftOut {
+    return PoolTargetNftOut(
+        hash = Word.apply(randomWord()),
+        tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
+        recipient = randomAddress(),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+    )
+}
+
+fun randomPoolTargetNftIn(): PoolTargetNftIn {
+    return PoolTargetNftIn(
+        hash = Word.apply(randomWord()),
+        tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
+        tokenRecipient = randomAddress(),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+    )
+}
+
+fun randomPoolNftDeposit(): PoolNftDeposit {
+    return PoolNftDeposit(
+        hash = Word.apply(randomWord()),
+        tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
+        collection = randomAddress(),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+    )
+}
+
+fun randomPoolSpotPriceUpdate(): PoolSpotPriceUpdate {
+    return PoolSpotPriceUpdate(
+        newSpotPrice = randomBigInt(),
+        hash = Word.apply(randomWord()),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+    )
+}
+
+fun randomPoolDeltaUpdate(): PoolDeltaUpdate {
+    return PoolDeltaUpdate(
+        newDelta = randomBigInt(),
+        hash = Word.apply(randomWord()),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+    )
+}
+
+fun randomPoolFeeUpdate(): PoolFeeUpdate {
+    return PoolFeeUpdate(
+        newFee = randomBigInt(),
+        hash = Word.apply(randomWord()),
+        date = Instant.now(),
+        source = HistorySource.values().random(),
     )
 }

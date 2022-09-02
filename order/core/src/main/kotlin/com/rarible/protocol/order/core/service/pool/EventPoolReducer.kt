@@ -26,6 +26,7 @@ import com.rarible.protocol.order.core.model.PoolNftOut
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
+import java.time.Instant
 
 @Component
 class EventPoolReducer(
@@ -49,7 +50,7 @@ class EventPoolReducer(
             make = event.make,
             take = event.take,
             createdAt = event.date,
-            lastUpdateAt = maxOf(entity.lastUpdateAt, event.date),
+            lastUpdateAt = getLastUpdateAt(entity, event),
             platform = event.source.toPlatform(),
             data = event.data,
             hash = event.hash,
@@ -63,7 +64,7 @@ class EventPoolReducer(
         return entity.copy(
             make = entity.make.copy(value = newVale),
             makeStock = newVale,
-            lastUpdateAt = maxOf(entity.lastUpdateAt, event.date)
+            lastUpdateAt = getLastUpdateAt(entity, event)
         )
     }
 
@@ -80,15 +81,15 @@ class EventPoolReducer(
         return entity.copy(
             make = entity.make.copy(value = newVale),
             makeStock = newVale,
-            lastUpdateAt = maxOf(entity.lastUpdateAt, event.date)
+            lastUpdateAt = getLastUpdateAt(entity, event)
         )
     }
 
     private suspend fun onPoolSpotPriceUpdate(entity: Order, event: PoolSpotPriceUpdate): Order {
         return entity.copy(
-            makePrice = if (entity.make.type.nft) normalizer.normalize(entity.make.type, event.newSpotPrice) else null,
-            takePrice = if (entity.take.type.nft) normalizer.normalize(entity.take.type, event.newSpotPrice) else null,
-            lastUpdateAt = maxOf(entity.lastUpdateAt, event.date)
+            makePrice = if (entity.make.type.nft) normalizer.normalize(entity.take.type, event.newSpotPrice) else null,
+            takePrice = if (entity.take.type.nft) normalizer.normalize(entity.make.type, event.newSpotPrice) else null,
+            lastUpdateAt = getLastUpdateAt(entity, event)
         )
     }
 
@@ -111,7 +112,7 @@ class EventPoolReducer(
             is OrderX2Y2DataV1 -> entity.data
         }
         return entity.copy(
-            lastUpdateAt = maxOf(entity.lastUpdateAt, event.date),
+            lastUpdateAt = getLastUpdateAt(entity, event),
             data = data
         )
     }
@@ -122,5 +123,9 @@ class EventPoolReducer(
 
     private fun EthUInt256.subSafe(value: EthUInt256): EthUInt256 {
         return if (this > value) this - value else EthUInt256.ZERO
+    }
+
+    private fun getLastUpdateAt(entity: Order, event: PoolExchangeHistory): Instant {
+        return maxOf(entity.lastUpdateAt, event.date)
     }
 }
