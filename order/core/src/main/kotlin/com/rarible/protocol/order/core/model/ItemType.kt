@@ -13,6 +13,7 @@ import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerBidEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NFTDepositEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.DeltaUpdateEvent
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.FeeUpdateEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.NFTWithdrawalEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SpotPriceUpdateEvent
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTInPairEvent
@@ -78,6 +79,11 @@ enum class ItemType(
     POOL_DELTA_UPDATE(
         topic = setOf(
             DeltaUpdateEvent.id(),
+        )
+    ),
+    POOL_FEE_UPDATE(
+        topic = setOf(
+            FeeUpdateEvent.id(),
         )
     ),
     ORDER_SIDE_MATCH(
