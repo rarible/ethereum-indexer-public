@@ -23,6 +23,7 @@ import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.Platform.*
 import com.rarible.protocol.order.core.model.PoolAnyNftOut
+import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
@@ -178,6 +179,7 @@ class OrderActivityConverter(
             is PoolNftDeposit -> null
             is PoolTargetNftIn -> null
             is PoolSpotPriceUpdate -> null
+            is PoolDeltaUpdate -> null
         }
     }
 

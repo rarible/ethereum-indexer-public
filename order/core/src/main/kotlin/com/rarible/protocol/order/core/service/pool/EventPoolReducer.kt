@@ -4,6 +4,7 @@ import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.protocol.order.core.model.OnChainAmmOrder
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.PoolAnyNftOut
+import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.model.PoolExchangeHistory
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
@@ -24,7 +25,8 @@ class EventPoolReducer : Reducer<PoolExchangeHistory, Order> {
             is PoolTargetNftOut,
             is PoolNftWithdraw,
             is PoolNftDeposit,
-            is PoolSpotPriceUpdate -> entity
+            is PoolSpotPriceUpdate,
+            is PoolDeltaUpdate -> entity
         }
     }
 

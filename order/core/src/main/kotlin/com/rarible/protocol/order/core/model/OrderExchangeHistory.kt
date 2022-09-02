@@ -196,3 +196,13 @@ data class PoolSpotPriceUpdate(
     override val take: Asset? = null
 }
 
+data class PoolDeltaUpdate(
+    override val hash: Word,
+    val newDelta: EthUInt256,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_DELTA_UPDATE) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}

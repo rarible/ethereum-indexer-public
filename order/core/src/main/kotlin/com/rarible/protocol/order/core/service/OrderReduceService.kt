@@ -191,6 +191,7 @@ class OrderReduceService(
                 is PoolTargetNftIn,
                 is PoolNftDeposit,
                 is PoolSpotPriceUpdate,
+                is PoolDeltaUpdate,
                 is PoolAnyNftOut -> poolReducer.reduce(this, orderExchangeHistory as PoolExchangeHistory).copy(
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
