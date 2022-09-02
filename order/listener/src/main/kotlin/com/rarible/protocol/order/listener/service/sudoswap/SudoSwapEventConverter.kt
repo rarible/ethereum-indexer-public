@@ -13,6 +13,7 @@ import com.rarible.protocol.order.core.model.SudoSwapNftWithdrawDetail
 import com.rarible.protocol.order.core.model.SudoSwapOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.model.SudoSwapTargetInNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.trace.TraceCallService
 import io.daonomic.rpc.domain.Word
@@ -97,6 +98,22 @@ class SudoSwapEventConverter(
                 }
                 else -> null
             }
+        }
+    }
+
+    suspend fun getSwapInNftDetails(transient: Transaction): List<SudoSwapTargetInNftDetail> {
+        val inputs = traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = transient.to(),
+            LSSVMPairV1.swapNFTsForTokenSignature().id()
+        )
+        return inputs.map {
+            val decoded = LSSVMPairV1.swapNFTsForTokenSignature().`in`().decode(it.input, 4)
+            SudoSwapTargetInNftDetail(
+                tokenIds = decoded.value()._1().toList(),
+                minExpectedTokenOutput = decoded.value()._2(),
+                tokenRecipient = decoded.value()._3(),
+            )
         }
     }
 

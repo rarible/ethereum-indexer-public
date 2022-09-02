@@ -149,6 +149,18 @@ data class PoolTargetNftOut(
     override val take: Asset? = null
 }
 
+data class PoolTargetNftIn(
+    override val hash: Word,
+    val nftIds: List<EthUInt256>,
+    val tokenRecipient: Address,
+    override val date: Instant,
+    override val source: HistorySource
+) : PoolExchangeHistory(ItemType.POOL_NFT_IN) {
+    override val maker: Address? = null
+    override val make: Asset? = null
+    override val take: Asset? = null
+}
+
 data class PoolNftWithdraw(
     override val hash: Word,
     val collection: Address,

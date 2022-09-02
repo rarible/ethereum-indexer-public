@@ -25,6 +25,7 @@ import com.rarible.protocol.order.core.model.Platform.*
 import com.rarible.protocol.order.core.model.PoolAnyNftOut
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
+import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
@@ -174,6 +175,7 @@ class OrderActivityConverter(
             is PoolTargetNftOut -> null
             is PoolNftWithdraw -> null
             is PoolNftDeposit -> null
+            is PoolTargetNftIn -> null
         }
     }
 
