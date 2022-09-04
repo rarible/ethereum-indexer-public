@@ -8,7 +8,7 @@ import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NFTDepositEve
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolNftDeposit
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -29,7 +29,7 @@ class SudoSwapDepositNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter
 ): LogEventDescriptor<PoolNftDeposit> {
 
-    override val collection: String = ExchangeHistoryRepository.COLLECTION
+    override val collection: String = PoolHistoryRepository.COLLECTION
 
     override val topic: Word = NFTDepositEvent.id()
 

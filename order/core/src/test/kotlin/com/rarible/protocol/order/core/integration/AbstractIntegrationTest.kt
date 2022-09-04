@@ -7,6 +7,7 @@ import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryReposi
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -42,6 +43,9 @@ abstract class AbstractIntegrationTest : BaseCoreTest() {
 
     @Autowired
     protected lateinit var exchangeHistoryRepository: ExchangeHistoryRepository
+
+    @Autowired
+    protected lateinit var poolHistoryRepository: PoolHistoryRepository
 
     @Autowired
     protected lateinit var orderRepository: OrderRepository

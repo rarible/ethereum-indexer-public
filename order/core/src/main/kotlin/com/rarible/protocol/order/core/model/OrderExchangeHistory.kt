@@ -3,17 +3,14 @@ package com.rarible.protocol.order.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
 import java.math.BigDecimal
-import java.math.BigInteger
 import java.time.Instant
 
-sealed class OrderExchangeHistory(var type: ItemType) : EventData {
-    abstract val hash: Word
+sealed class OrderExchangeHistory(var type: ItemType) : OrderHistory {
     abstract val make: Asset?
     abstract val take: Asset?
     abstract val date: Instant
@@ -21,7 +18,6 @@ sealed class OrderExchangeHistory(var type: ItemType) : EventData {
     abstract val source: HistorySource
 
     fun isBid() = take?.type?.nft ?: false
-    fun isSell() = isBid().not()
 }
 
 enum class OrderSide {
@@ -109,92 +105,3 @@ data class OnChainOrder(
     override val date: Instant = createdAt,
     override val source: HistorySource = platform.toHistorySource()
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)
-
-sealed class PoolExchangeHistory(type: ItemType) : OrderExchangeHistory(type)
-
-data class OnChainAmmOrder(
-    override val maker: Address,
-    override val make: Asset,
-    override val take: Asset,
-    val data: OrderAmmData,
-    val inNft: List<EthUInt256>,
-    val price: BigInteger,
-    val priceValue: BigDecimal,
-    val priceUsd: BigDecimal?,
-    override val hash: Word,
-    override val date: Instant,
-    override val source: HistorySource,
-) : PoolExchangeHistory(ItemType.AMM_ORDER)
-
-sealed class PoolNftOut(type: ItemType) : PoolExchangeHistory(type) {
-    abstract val tokenIds: List<EthUInt256>
-    override val maker: Address? = null
-    override val make: Asset? = null
-    override val take: Asset? = null
-}
-
-data class PoolTargetNftOut(
-    override val hash: Word,
-    override val tokenIds: List<EthUInt256>,
-    override val date: Instant,
-    override val source: HistorySource,
-    val recipient: Address,
-) : PoolNftOut(ItemType.POOL_NFT_OUT)
-
-data class PoolNftWithdraw(
-    override val hash: Word,
-    override val tokenIds: List<EthUInt256>,
-    override val date: Instant,
-    override val source: HistorySource,
-    val collection: Address,
-) : PoolNftOut(ItemType.POOL_NFT_WITHDRAW)
-
-sealed class PoolNftIn(type: ItemType) : PoolExchangeHistory(type) {
-    abstract val tokenIds: List<EthUInt256>
-    override val maker: Address? = null
-    override val make: Asset? = null
-    override val take: Asset? = null
-}
-
-data class PoolTargetNftIn(
-    override val hash: Word,
-    override val tokenIds: List<EthUInt256>,
-    override val date: Instant,
-    override val source: HistorySource,
-    val tokenRecipient: Address,
-) : PoolNftIn(ItemType.POOL_NFT_IN)
-
-data class PoolNftDeposit(
-    override val hash: Word,
-    override val tokenIds: List<EthUInt256>,
-    override val date: Instant,
-    override val source: HistorySource,
-    val collection: Address,
-) : PoolNftIn(ItemType.POOL_NFT_DEPOSIT)
-
-sealed class PoolDataUpdate(type: ItemType) : PoolExchangeHistory(type) {
-    override val maker: Address? = null
-    override val make: Asset? = null
-    override val take: Asset? = null
-}
-
-data class PoolSpotPriceUpdate(
-    override val hash: Word,
-    override val date: Instant,
-    override val source: HistorySource,
-    val newSpotPrice: BigInteger,
-) : PoolDataUpdate(ItemType.POOL_SPOT_PRICE_UPDATE)
-
-data class PoolDeltaUpdate(
-    override val hash: Word,
-    override val date: Instant,
-    override val source: HistorySource,
-    val newDelta: BigInteger,
-) : PoolDataUpdate(ItemType.POOL_DELTA_UPDATE)
-
-data class PoolFeeUpdate(
-    override val hash: Word,
-    override val date: Instant,
-    override val source: HistorySource,
-    val newFee: BigInteger,
-) : PoolDataUpdate(ItemType.POOL_FEE_UPDATE)

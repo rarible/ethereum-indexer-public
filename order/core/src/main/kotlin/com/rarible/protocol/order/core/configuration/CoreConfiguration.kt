@@ -15,12 +15,14 @@ import com.rarible.protocol.order.core.converters.ConvertersPackage
 import com.rarible.protocol.order.core.event.EventPackage
 import com.rarible.protocol.order.core.model.AuctionHistoryType
 import com.rarible.protocol.order.core.model.ItemType
+import com.rarible.protocol.order.core.model.PoolHistoryType
 import com.rarible.protocol.order.core.producer.ProducerPackage
 import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionHistoryRepository
 import com.rarible.protocol.order.core.repository.auction.AuctionSnapshotRepository
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.nonce.NonceHistoryRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.Package
 import com.rarible.protocol.order.core.service.auction.AuctionReduceService
 import com.rarible.protocol.order.core.service.auction.AuctionReducer
@@ -70,6 +72,7 @@ class CoreConfiguration {
     fun logEventService(mongo: ReactiveMongoOperations): LogEventService = LogEventService(
         ItemType.values().flatMap { it.topic }.associateWith { ExchangeHistoryRepository.COLLECTION } +
         AuctionHistoryType.values().flatMap { it.topic }.associateWith { AuctionHistoryRepository.COLLECTION } +
+        PoolHistoryType.values().flatMap { it.topic }.associateWith { PoolHistoryRepository.COLLECTION } +
         mapOf(
             NonceIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,
             CounterIncrementedEvent.id() to NonceHistoryRepository.COLLECTION,

@@ -43,7 +43,6 @@ internal class EventPoolReducerTest {
         assertThat(reduced.make).isEqualTo(event.make)
         assertThat(reduced.take).isEqualTo(event.take)
         assertThat(reduced.createdAt).isEqualTo(event.date)
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
         assertThat(reduced.platform).isEqualTo(event.source.toPlatform())
         assertThat(reduced.data).isEqualTo(event.data)
         assertThat(reduced.makePrice).isEqualTo(event.priceValue)
@@ -58,7 +57,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.make.value).isEqualTo(EthUInt256.of(3))
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     @Test
@@ -69,7 +67,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.make.value).isEqualTo(EthUInt256.ZERO)
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     @Test
@@ -80,7 +77,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.make.value).isEqualTo(EthUInt256.TEN)
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     @Test
@@ -92,7 +88,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.make.value).isEqualTo(EthUInt256.TEN)
-        assertThat(reduced.lastUpdateAt).isEqualTo(init.lastUpdateAt)
     }
 
     @Test
@@ -103,7 +98,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.make.value).isEqualTo(EthUInt256.of(5))
-        assertThat(reduced.lastUpdateAt).isEqualTo(init.lastUpdateAt)
     }
 
     @Test
@@ -114,7 +108,6 @@ internal class EventPoolReducerTest {
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.makePrice).isEqualTo(BigDecimal("0.200000000000000000"))
         assertThat(reduced.takePrice).isNull()
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     @Test
@@ -124,7 +117,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat((reduced.data as OrderSudoSwapAmmDataV1).delta).isEqualTo(event.newDelta)
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     @Test
@@ -134,7 +126,6 @@ internal class EventPoolReducerTest {
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat((reduced.data as OrderSudoSwapAmmDataV1).fee).isEqualTo(event.newFee)
-        assertThat(reduced.lastUpdateAt).isEqualTo(event.date)
     }
 
     private fun past(): Instant = Instant.now() - Duration.ofDays(1)

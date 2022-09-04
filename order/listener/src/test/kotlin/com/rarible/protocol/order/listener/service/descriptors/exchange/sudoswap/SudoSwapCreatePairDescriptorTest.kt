@@ -92,7 +92,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         assertThat(onChainAmmOrder.make).isEqualTo(expectedNftAsset)
         assertThat(onChainAmmOrder.take).isEqualTo(expectedCurrencyAsset)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
-        assertThat(onChainAmmOrder.inNft).isEqualTo(listOf(EthUInt256.of(4623)))
+        assertThat(onChainAmmOrder.tokenIds).isEqualTo(listOf(EthUInt256.of(4623)))
         assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)
         assertThat(onChainAmmOrder.priceValue).isEqualTo(BigDecimal("0.308407960199005000"))
         assertThat(onChainAmmOrder.priceUsd).isEqualTo(BigDecimal.valueOf(3))
@@ -138,7 +138,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         assertThat(onChainAmmOrder.make).isEqualTo(expectedNftAsset)
         assertThat(onChainAmmOrder.take).isEqualTo(expectedCurrencyAsset)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
-        assertThat(onChainAmmOrder.inNft).containsExactlyInAnyOrder(
+        assertThat(onChainAmmOrder.tokenIds).containsExactlyInAnyOrder(
             EthUInt256.of(5199),
             EthUInt256.of(5196),
             EthUInt256.of(5197),

@@ -16,6 +16,7 @@ import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryReposi
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.pool.EventPoolReducer
 import io.daonomic.rpc.domain.Word
@@ -39,6 +40,7 @@ import scalether.util.Hash
 @CaptureSpan(type = SpanType.APP)
 class OrderReduceService(
     private val exchangeHistoryRepository: ExchangeHistoryRepository,
+    private val poolHistoryRepository: PoolHistoryRepository,
     private val orderRepository: OrderRepository,
     private val orderVersionRepository: OrderVersionRepository,
     private val assetMakeBalanceProvider: AssetMakeBalanceProvider,
@@ -62,7 +64,9 @@ class OrderReduceService(
             orderVersionRepository.findAllByHash(orderHash, fromOrderHash, platforms)
                 .map { OrderUpdate.ByOrderVersion(it) },
             exchangeHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
-                .map { OrderUpdate.ByLogEvent(it) }
+                .map { OrderUpdate.ByExchangeLogEvent(it) },
+            poolHistoryRepository.findLogEvents(orderHash, fromOrderHash, platforms?.map(PlatformToHistorySourceConverter::convert))
+                .map { OrderUpdate.ByPoolLogEvent(it) },
         )
             .windowUntilChanged { it.orderHash }
             .concatMap {
@@ -86,8 +90,13 @@ class OrderReduceService(
             override val eventId get() = orderVersion.id
         }
 
-        data class ByLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+        data class ByExchangeLogEvent(val logEvent: LogEvent) : OrderUpdate() {
             override val orderHash get() = logEvent.data.toExchangeHistory().hash
+            override val eventId get() = logEvent.id
+        }
+
+        data class ByPoolLogEvent(val logEvent: LogEvent) : OrderUpdate() {
+            override val orderHash get() = logEvent.data.toPoolHistory().hash
             override val eventId get() = logEvent.id
         }
     }
@@ -109,13 +118,21 @@ class OrderReduceService(
                         order.updateWith(update.orderVersion, update.eventId.toHexString())
                     }
                 }
-                is OrderUpdate.ByLogEvent -> {
+                is OrderUpdate.ByExchangeLogEvent -> {
                     val exchangeHistory = update.logEvent.data.toExchangeHistory()
 
                     if (exchangeHistory.isOnChainOrder() && update.logEvent.status != LogEventStatus.CONFIRMED) {
                         seenRevertedOnChainOrder = true
                     }
                     order.updateWith(update.logEvent, exchangeHistory, update.eventId.toHexString())
+                }
+                is OrderUpdate.ByPoolLogEvent -> {
+                    val poolHistory = update.logEvent.data.toPoolHistory()
+
+                    if (poolHistory.isOnChainAmmOrder() && update.logEvent.status != LogEventStatus.CONFIRMED) {
+                        seenRevertedOnChainOrder = true
+                    }
+                    order.updateWith(update.logEvent, poolHistory, update.eventId.toHexString())
                 }
             }
         }
@@ -185,10 +202,23 @@ class OrderReduceService(
                     lastUpdateAt = maxOf(lastUpdateAt, orderExchangeHistory.date),
                     lastEventId = accumulateEventId(lastEventId, eventId)
                 )
-                is PoolExchangeHistory -> poolReducer.reduce(this, orderExchangeHistory).copy(
-                    lastEventId = accumulateEventId(lastEventId, eventId)
-                )
                 is OnChainOrder -> error("Must have been processed above")
+            }
+            else -> this
+        }
+    }
+
+    private suspend fun Order.updateWith(
+        logEvent: LogEvent,
+        poolHistory: PoolHistory,
+        eventId: String
+    ): Order {
+        return when (logEvent.status) {
+            LogEventStatus.CONFIRMED -> {
+                poolReducer.reduce(this, poolHistory).copy(
+                    lastEventId = accumulateEventId(lastEventId, eventId),
+                    lastUpdateAt = maxOf(lastUpdateAt, poolHistory.date),
+                )
             }
             else -> this
         }
@@ -440,10 +470,10 @@ class OrderReduceService(
             if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByOrderVersion) {
                 return@r u1.eventId.compareTo(u2.eventId)
             }
-            if (u1 is OrderUpdate.ByLogEvent && u2 is OrderUpdate.ByLogEvent) {
+            if (u1 is OrderUpdate.ByExchangeLogEvent && u2 is OrderUpdate.ByExchangeLogEvent) {
                 return@r logEventComparator.compare(u1.logEvent, u2.logEvent)
             }
-            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByLogEvent) return@r -1
+            if (u1 is OrderUpdate.ByOrderVersion && u2 is OrderUpdate.ByExchangeLogEvent) return@r -1
             return@r 1
         }
 
@@ -456,8 +486,15 @@ class OrderReduceService(
         fun EventData.toExchangeHistory(): OrderExchangeHistory =
             requireNotNull(this as? OrderExchangeHistory) { "Unexpected exchange history type ${this::class}" }
 
+        fun EventData.toPoolHistory(): PoolHistory =
+            requireNotNull(this as? PoolHistory) { "Unexpected pool history type ${this::class}" }
+
         fun OrderExchangeHistory.isOnChainOrder(): Boolean {
-            return this is OnChainOrder || this is OnChainAmmOrder
+            return this is OnChainOrder
+        }
+
+        fun PoolHistory.isOnChainAmmOrder(): Boolean {
+            return this is OnChainAmmOrder
         }
     }
 }

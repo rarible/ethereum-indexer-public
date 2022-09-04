@@ -17,7 +17,7 @@ import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
@@ -42,7 +42,7 @@ class SudoSwapCreatePairDescriptor(
     private val priceNormalizer: PriceNormalizer,
 ): LogEventDescriptor<OnChainAmmOrder> {
 
-    override val collection: String = ExchangeHistoryRepository.COLLECTION
+    override val collection: String = PoolHistoryRepository.COLLECTION
 
     override val topic: Word = NewPairEvent.id()
 
@@ -99,7 +99,7 @@ class SudoSwapCreatePairDescriptor(
             maker = event.poolAddress(),
             make = make,
             take = take,
-            inNft = details.inNft.map { EthUInt256.of(it) },
+            tokenIds = details.inNft.map { EthUInt256.of(it) },
             date = date,
             data = data,
             price = details.spotPrice,

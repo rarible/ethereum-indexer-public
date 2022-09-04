@@ -6,13 +6,12 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTOutPairEvent
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.PoolExchangeHistory
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.model.token
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Word
@@ -33,19 +32,19 @@ class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
     private val orderRepository: OrderRepository
-): LogEventDescriptor<PoolExchangeHistory> {
+): LogEventDescriptor<PoolTargetNftOut> {
 
-    override val collection: String = ExchangeHistoryRepository.COLLECTION
+    override val collection: String = PoolHistoryRepository.COLLECTION
 
     override val topic: Word = SwapNFTOutPairEvent.id()
 
     override fun getAddresses(): Mono<Collection<Address>> = emptyList<Address>().toMono()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<PoolExchangeHistory> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<PoolTargetNftOut> {
         return mono { listOfNotNull(convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolExchangeHistory {
+    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolTargetNftOut {
         val details = sudoSwapEventConverter.getSwapOutNftDetails(transaction).let {
             assert(it.size == totalLogs)
             it[index]

@@ -4,7 +4,7 @@ import com.rarible.core.common.toOptional
 import com.rarible.core.logging.LoggingUtils
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.log.LogEventsListener
-import com.rarible.protocol.order.core.model.OrderExchangeHistory
+import com.rarible.protocol.order.core.model.OrderHistory
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.Logger
@@ -23,7 +23,7 @@ class OrderBlockProcessor(
         logger.info("Order logs process start, blockNumber=$blockNumber")
         val hashes = logs
             .map { log -> log.data }
-            .filterIsInstance<OrderExchangeHistory>()
+            .filterIsInstance<OrderHistory>()
             .map { orderHistory -> orderHistory.hash }
             .distinct()
         return LoggingUtils.withMarker { marker ->

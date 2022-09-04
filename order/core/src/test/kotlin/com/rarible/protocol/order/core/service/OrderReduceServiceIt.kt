@@ -492,7 +492,31 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         }
     }
 
+    private suspend fun prepareStorage(status: LogEventStatus, vararg histories: PoolHistory) {
+        histories.forEachIndexed { index, history ->
+            poolHistoryRepository.save(
+                LogEvent(
+                    data = history,
+                    address = AddressFactory.create(),
+                    topic = Word.apply(randomWord()),
+                    transactionHash = Word.apply(randomWord()),
+                    status = status,
+                    blockNumber = 1,
+                    logIndex = 0,
+                    minorLogIndex = 0,
+                    index = index,
+                    createdAt = history.date,
+                    updatedAt = history.date
+                )
+            ).awaitFirst()
+        }
+    }
+
     private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
+        prepareStorage(LogEventStatus.CONFIRMED, *histories)
+    }
+
+    private suspend fun prepareStorage(vararg histories: PoolHistory) {
         prepareStorage(LogEventStatus.CONFIRMED, *histories)
     }
 

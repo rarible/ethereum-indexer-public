@@ -7,7 +7,7 @@ import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTInPairEvent
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
-import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -27,7 +27,7 @@ class SudoSwapInNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter
 ): LogEventDescriptor<PoolTargetNftIn> {
 
-    override val collection: String = ExchangeHistoryRepository.COLLECTION
+    override val collection: String = PoolHistoryRepository.COLLECTION
 
     override val topic: Word = SwapNFTInPairEvent.id()
 
