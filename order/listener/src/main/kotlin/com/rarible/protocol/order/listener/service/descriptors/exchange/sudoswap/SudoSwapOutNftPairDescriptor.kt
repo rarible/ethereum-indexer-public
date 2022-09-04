@@ -18,6 +18,7 @@ import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConvert
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -54,6 +55,7 @@ class SudoSwapOutNftPairDescriptor(
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         return when (details) {
             is SudoSwapAnyOutNftDetail -> {
+                logger.info("Detected swapTokenForAnyNFTs method call")
                 val order = orderRepository.findById(hash)
                     ?: throw IllegalStateException("Can't find pool order $hash, nftOutLog=$log")
                 val nftCollection =
@@ -86,5 +88,9 @@ class SudoSwapOutNftPairDescriptor(
                 )
             }
         }.also { sudoSwapOutNftEventCounter.increment() }
+    }
+
+    private companion object {
+        val logger = LoggerFactory.getLogger(SudoSwapOutNftPairDescriptor::class.java)
     }
 }
