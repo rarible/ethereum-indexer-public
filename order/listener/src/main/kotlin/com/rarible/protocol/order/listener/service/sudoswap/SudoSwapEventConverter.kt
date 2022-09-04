@@ -76,7 +76,7 @@ class SudoSwapEventConverter(
         val inputs = findAllRequiredCalls(
             transient,
             LSSVMPairV1.swapTokenForSpecificNFTsSignature().id(),
-            LSSVMPairV1.swapTokenForSpecificNFTsSignature().id()
+            LSSVMPairV1.swapTokenForAnyNFTsSignature().id()
         )
         return inputs.mapNotNull {
             when (it.input.methodSignatureId()) {

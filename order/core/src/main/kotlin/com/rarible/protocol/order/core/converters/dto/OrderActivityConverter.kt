@@ -22,14 +22,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.Platform.*
-import com.rarible.protocol.order.core.model.PoolAnyNftOut
-import com.rarible.protocol.order.core.model.PoolDeltaUpdate
-import com.rarible.protocol.order.core.model.PoolFeeUpdate
-import com.rarible.protocol.order.core.model.PoolNftDeposit
-import com.rarible.protocol.order.core.model.PoolNftWithdraw
-import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
-import com.rarible.protocol.order.core.model.PoolTargetNftIn
-import com.rarible.protocol.order.core.model.PoolTargetNftOut
+import com.rarible.protocol.order.core.model.PoolExchangeHistory
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
@@ -174,14 +167,7 @@ class OrderActivityConverter(
                     lastUpdatedAt = history.updatedAt
                 )
             }
-            is PoolAnyNftOut -> null
-            is PoolTargetNftOut -> null
-            is PoolNftWithdraw -> null
-            is PoolNftDeposit -> null
-            is PoolTargetNftIn -> null
-            is PoolSpotPriceUpdate -> null
-            is PoolDeltaUpdate -> null
-            is PoolFeeUpdate -> null
+            is PoolExchangeHistory -> null
         }
     }
 

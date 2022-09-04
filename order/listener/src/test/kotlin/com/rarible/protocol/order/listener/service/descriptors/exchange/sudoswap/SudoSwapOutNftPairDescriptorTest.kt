@@ -5,9 +5,11 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
+import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -26,9 +28,13 @@ import java.time.temporal.ChronoUnit
 internal class SudoSwapOutNftPairDescriptorTest {
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
+    private val nftTransferDetector = mockk<SudoSwapNftTransferDetector>()
+    private val orderRepository = mockk<OrderRepository>()
 
     private val descriptor = SudoSwapOutNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
+        nftTransferDetector = nftTransferDetector,
+        orderRepository = orderRepository
     )
 
     @Test

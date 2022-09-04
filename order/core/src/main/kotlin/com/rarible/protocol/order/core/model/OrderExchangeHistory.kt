@@ -133,15 +133,6 @@ sealed class PoolNftOut(type: ItemType) : PoolExchangeHistory(type) {
     override val take: Asset? = null
 }
 
-data class PoolAnyNftOut(
-    override val hash: Word,
-    override val tokenIds: List<EthUInt256>,
-    override val date: Instant,
-    override val source: HistorySource,
-    val numberNft: BigInteger,
-    val recipient: Address,
-) : PoolNftOut(ItemType.POOL_NFT_OUT)
-
 data class PoolTargetNftOut(
     override val hash: Word,
     override val tokenIds: List<EthUInt256>,
