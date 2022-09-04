@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
@@ -23,11 +24,13 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 internal class SudoSwapWithdrawNftPairDescriptorTest {
+    private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapWithdrawNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
+        sudoSwapWithdrawNftEventCounter = counter,
     )
 
     @Test

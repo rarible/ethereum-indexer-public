@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SpotPriceUpdateEvent
 import com.rarible.protocol.order.core.model.HistorySource
@@ -23,7 +24,8 @@ import scalether.domain.response.Transaction
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class SudoSwapSpotPriceUpdatePairDescriptor(
-    private val sudoSwapEventConverter: SudoSwapEventConverter
+    private val sudoSwapEventConverter: SudoSwapEventConverter,
+    private val sudoSwapUpdateSpotPriceEventCounter: RegisteredCounter
 ): LogEventDescriptor<PoolSpotPriceUpdate> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -43,6 +45,6 @@ class SudoSwapSpotPriceUpdatePairDescriptor(
             newSpotPrice = event.newSpotPrice(),
             date = date,
             source = HistorySource.SUDOSWAP
-        )
+        ).also { sudoSwapUpdateSpotPriceEventCounter.increment() }
     }
 }

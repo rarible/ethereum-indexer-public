@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.SwapNFTOutPairEvent
@@ -31,7 +32,8 @@ import scalether.domain.response.Transaction
 class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
-    private val orderRepository: OrderRepository
+    private val orderRepository: OrderRepository,
+    private val sudoSwapOutNftEventCounter: RegisteredCounter
 ): LogEventDescriptor<PoolTargetNftOut> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -83,6 +85,6 @@ class SudoSwapOutNftPairDescriptor(
                     source = HistorySource.SUDOSWAP
                 )
             }
-        }
+        }.also { sudoSwapOutNftEventCounter.increment() }
     }
 }

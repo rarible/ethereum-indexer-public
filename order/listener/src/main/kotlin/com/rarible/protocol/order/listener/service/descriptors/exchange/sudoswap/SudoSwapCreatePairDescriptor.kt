@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
@@ -40,6 +41,7 @@ class SudoSwapCreatePairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val priceUpdateService: PriceUpdateService,
     private val priceNormalizer: PriceNormalizer,
+    private val sudoSwapCreatePairEventCounter: RegisteredCounter
 ): LogEventDescriptor<OnChainAmmOrder> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -106,7 +108,7 @@ class SudoSwapCreatePairDescriptor(
             priceValue = priceNormalizer.normalize(take.type, details.spotPrice),
             priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date),
             source = HistorySource.SUDOSWAP
-        )
+        ).also { sudoSwapCreatePairEventCounter.increment() }
     }
 
     private companion object {

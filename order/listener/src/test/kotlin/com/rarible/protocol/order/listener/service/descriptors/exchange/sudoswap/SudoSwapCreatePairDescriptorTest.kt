@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswap
 
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomWord
@@ -42,6 +43,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         linearCurveV1 = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
         exponentialCurveV1 = randomAddress()
     )
+    private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val contractService = mockk<ContractService>()
@@ -53,6 +55,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         sudoSwapEventConverter = sudoSwapEventConverter,
         priceUpdateService = priceUpdateService,
         priceNormalizer = priceNormalizer,
+        sudoSwapCreatePairEventCounter = counter,
     )
 
     @Test

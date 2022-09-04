@@ -2,6 +2,7 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 
 import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
+import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.NFTWithdrawalEvent
@@ -24,7 +25,8 @@ import scalether.domain.response.Transaction
 @Service
 @CaptureSpan(type = SpanType.EVENT)
 class SudoSwapWithdrawNftPairDescriptor(
-    private val sudoSwapEventConverter: SudoSwapEventConverter
+    private val sudoSwapEventConverter: SudoSwapEventConverter,
+    private val sudoSwapWithdrawNftEventCounter: RegisteredCounter
 ): LogEventDescriptor<PoolNftWithdraw> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -48,6 +50,6 @@ class SudoSwapWithdrawNftPairDescriptor(
             tokenIds = details.nft.map { EthUInt256.of(it) },
             date = date,
             source = HistorySource.SUDOSWAP
-        )
+        ).also { sudoSwapWithdrawNftEventCounter.increment() }
     }
 }
