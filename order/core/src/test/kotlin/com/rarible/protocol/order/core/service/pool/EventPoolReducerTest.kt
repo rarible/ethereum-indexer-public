@@ -17,6 +17,7 @@ import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -38,6 +39,7 @@ internal class EventPoolReducerTest {
         val event = randomSellOnChainAmmOrder()
 
         val reduced = eventPoolReducer.reduce(init, event)
+        assertThat(reduced.type).isEqualTo(OrderType.AMM)
         assertThat(reduced.hash).isEqualTo(event.hash)
         assertThat(reduced.maker).isEqualTo(event.maker)
         assertThat(reduced.make).isEqualTo(event.make)

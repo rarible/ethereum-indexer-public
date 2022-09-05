@@ -15,6 +15,7 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV2
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Buy
 import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
 import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolDeltaUpdate
@@ -45,6 +46,7 @@ class EventPoolReducer(
 
     private fun onOnChainAmmOrder(entity: Order, event: OnChainAmmOrder): Order {
         return entity.copy(
+            type = OrderType.AMM,
             maker = event.maker,
             make = event.make,
             take = event.take,
