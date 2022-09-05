@@ -56,7 +56,7 @@ class SudoSwapCreatePairDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): OnChainAmmOrder? {
         val event = NewPairEvent.apply(log)
-        val details = sudoSwapEventConverter.getCreatePairDetails(transaction).let {
+        val details = sudoSwapEventConverter.getCreatePairDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }

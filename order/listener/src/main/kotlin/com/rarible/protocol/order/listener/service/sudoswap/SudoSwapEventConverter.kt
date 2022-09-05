@@ -30,9 +30,10 @@ class SudoSwapEventConverter(
 ) {
     fun getPoolHash(pollAddress: Address): Word = keccak256(pollAddress)
 
-    suspend fun getCreatePairDetails(transient: Transaction): List<SudoSwapPairDetail> {
+    suspend fun getCreatePairDetails(poolAddress: Address, transient: Transaction): List<SudoSwapPairDetail> {
         val inputs = findAllRequiredCalls(
             transient,
+            poolAddress,
             LSSVMPairFactoryV1.createPairETHSignature().id(),
             LSSVMPairFactoryV1.createPairERC20Signature().id()
         )
@@ -72,9 +73,10 @@ class SudoSwapEventConverter(
         }
     }
 
-    suspend fun getSwapOutNftDetails(transient: Transaction): List<SudoSwapOutNftDetail> {
+    suspend fun getSwapOutNftDetails(poolAddress: Address, transient: Transaction): List<SudoSwapOutNftDetail> {
         val inputs = findAllRequiredCalls(
             transient,
+            poolAddress,
             LSSVMPairV1.swapTokenForSpecificNFTsSignature().id(),
             LSSVMPairV1.swapTokenForAnyNFTsSignature().id()
         )
@@ -101,9 +103,10 @@ class SudoSwapEventConverter(
         }
     }
 
-    suspend fun getSwapInNftDetails(transient: Transaction): List<SudoSwapTargetInNftDetail> {
+    suspend fun getSwapInNftDetails(poolAddress: Address, transient: Transaction): List<SudoSwapTargetInNftDetail> {
         val inputs = findAllRequiredCalls(
             transient,
+            poolAddress,
             LSSVMPairV1.swapNFTsForTokenSignature().id()
         )
         return inputs.map {
@@ -116,9 +119,10 @@ class SudoSwapEventConverter(
         }
     }
 
-    suspend fun getNftWithdrawDetails(transient: Transaction): List<SudoSwapNftWithdrawDetail> {
+    suspend fun getNftWithdrawDetails(poolAddress: Address, transient: Transaction): List<SudoSwapNftWithdrawDetail> {
         val inputs = findAllRequiredCalls(
             transient,
+            poolAddress,
             LSSVMPairV1.withdrawERC721Signature().id()
         )
         return inputs.map {
@@ -130,9 +134,10 @@ class SudoSwapEventConverter(
         }
     }
 
-    suspend fun getNftDepositDetails(transient: Transaction): List<SudoSwapNftDepositDetail> {
+    suspend fun getNftDepositDetails(poolAddress: Address, transient: Transaction): List<SudoSwapNftDepositDetail> {
         val inputs = findAllRequiredCalls(
             transient,
+            poolAddress,
             LSSVMPairFactoryV1.depositNFTsSignature().id()
         )
         return inputs.map {
@@ -145,10 +150,14 @@ class SudoSwapEventConverter(
         }
     }
 
-    private suspend fun findAllRequiredCalls(transient: Transaction, vararg ids: Binary): List<SimpleTraceResult> {
+    private suspend fun findAllRequiredCalls(
+        transient: Transaction,
+        to: Address,
+        vararg ids: Binary
+    ): List<SimpleTraceResult> {
         return traceCallService.findAllRequiredCalls(
             headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+            to = to,
             ids = ids
         )
     }

@@ -40,7 +40,7 @@ class SudoSwapWithdrawNftPairDescriptor(
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolNftWithdraw {
-        val details = sudoSwapEventConverter.getNftWithdrawDetails(transaction).let {
+        val details = sudoSwapEventConverter.getNftWithdrawDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }

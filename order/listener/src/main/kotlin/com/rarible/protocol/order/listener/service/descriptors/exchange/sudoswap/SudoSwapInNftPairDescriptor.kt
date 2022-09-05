@@ -40,7 +40,7 @@ class SudoSwapInNftPairDescriptor(
     }
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolTargetNftIn {
-        val details = sudoSwapEventConverter.getSwapInNftDetails(transaction).let {
+        val details = sudoSwapEventConverter.getSwapInNftDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }

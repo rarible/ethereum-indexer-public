@@ -43,7 +43,7 @@ class SudoSwapDepositNftPairDescriptor(
 
     private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolNftDeposit {
         val event = NFTDepositEvent.apply(log)
-        val details = sudoSwapEventConverter.getNftDepositDetails(transaction).let {
+        val details = sudoSwapEventConverter.getNftDepositDetails(event.poolAddress(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
