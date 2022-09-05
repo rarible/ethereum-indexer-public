@@ -482,6 +482,17 @@ fun randomPoolTargetNftOut(): PoolTargetNftOut {
     )
 }
 
+fun randomPoolNftWithdraw(): PoolNftWithdraw {
+    return PoolNftWithdraw(
+        hash = Word.apply(randomWord()),
+        tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
+        date = Instant.now(),
+        source = HistorySource.values().random(),
+        collection = randomAddress()
+    )
+}
+
+
 fun randomPoolTargetNftIn(): PoolTargetNftIn {
     return PoolTargetNftIn(
         hash = Word.apply(randomWord()),
