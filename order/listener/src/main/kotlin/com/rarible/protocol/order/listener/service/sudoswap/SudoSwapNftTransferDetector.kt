@@ -46,7 +46,7 @@ class SudoSwapNftTransferDetector(
         val tokenIds = mutableListOf<BigInteger>()
         var foundTargertNftOutLog = false
 
-        val iterator = logs.listIterator()
+        val iterator = logs.listIterator(logs.size)
         while (iterator.hasPrevious()) {
             val log = iterator.previous()
             if (isTargetLog(log, SpotPriceUpdateEvent.id(), poolAddress)) break
