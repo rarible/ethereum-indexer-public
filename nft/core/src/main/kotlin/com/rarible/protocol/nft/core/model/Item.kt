@@ -39,7 +39,7 @@ data class Item(
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
-    private val _id: ItemId = ItemId(token, tokenId)
+    public val _id: ItemId = ItemId(token, tokenId)
 
     @get:Id
     @get:AccessType(AccessType.Type.PROPERTY)

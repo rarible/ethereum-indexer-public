@@ -40,7 +40,7 @@ data class Ownership(
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
-    private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
+    val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
     fun getPendingEvents(): List<OwnershipEvent> {
         return revertableEvents.filter { it.log.status == EthereumLogStatus.PENDING }

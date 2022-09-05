@@ -1,5 +1,6 @@
 package com.rarible.protocol.nft.core.repository.item
 
+import com.mongodb.client.result.UpdateResult
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.nft.core.model.*
 import com.rarible.protocol.nft.core.repository.item.ItemRepository.Indexes.ALL_INDEXES
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.index.Index
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
+import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.gt
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -28,6 +30,14 @@ class ItemRepository(
         ALL_INDEXES.forEach { index ->
             mongo.indexOps(COLLECTION).ensureIndex(index).awaitFirst()
         }
+    }
+
+    fun updateStartVersion(id: ItemId): Mono<UpdateResult> {
+        val query = Query(
+            Criteria.where(Item::_id.name).`is`(id)
+        )
+        val update = Update().set(Item::version.name, 0)
+        return mongo.updateFirst(query, update, Item::class.java)
     }
 
     fun save(item: Item): Mono<Item> {
