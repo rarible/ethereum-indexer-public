@@ -5,10 +5,11 @@ import com.rarible.core.apm.withSpan
 import com.rarible.core.entity.reducer.service.EventReduceService
 import com.rarible.protocol.nft.core.configuration.NftIndexerProperties
 import com.rarible.protocol.nft.core.converters.model.ItemEventConverter
-import com.rarible.protocol.nft.core.model.ItemEvent
 import com.rarible.protocol.nft.core.converters.model.ItemIdFromStringConverter
 import com.rarible.protocol.nft.core.misc.asEthereumLogRecord
-import com.rarible.protocol.nft.core.model.*
+import com.rarible.protocol.nft.core.model.ItemEvent
+import com.rarible.protocol.nft.core.model.ItemId
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -21,7 +22,9 @@ class ItemEventReduceService(
     private val itemEventConverter: ItemEventConverter,
     properties: NftIndexerProperties
 ) {
-    private val skipTransferContractTokens = properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
+    private val logger = LoggerFactory.getLogger(javaClass)
+    private val skipTransferContractTokens =
+        properties.scannerProperties.skipTransferContractTokens.map(ItemIdFromStringConverter::convert)
     private val delegate = EventReduceService(entityService, entityIdService, templateProvider, reducer)
 
     suspend fun reduce(events: List<ItemEvent>) {
@@ -31,13 +34,20 @@ class ItemEventReduceService(
     suspend fun onEntityEvents(events: List<LogRecordEvent>) {
         withSpan(
             name = "onItemEvents",
-            labels = listOf("itemId" to (events.firstOrNull()?.record?.asEthereumLogRecord()?.let { itemEventConverter.convert(it) } ?: "" ))
+            labels = listOf(
+                "itemId" to (events.firstOrNull()?.record?.asEthereumLogRecord()?.let { itemEventConverter.convert(it) }
+                    ?: ""))
         ) {
-            events
-                .onEach { onNftItemLogEventListener.onLogEvent(it) }
-                .mapNotNull { itemEventConverter.convert(it.record.asEthereumLogRecord()) }
-                .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
-                .let { delegate.reduceAll(it) }
+            try {
+                events
+                    .onEach { onNftItemLogEventListener.onLogEvent(it) }
+                    .mapNotNull { itemEventConverter.convert(it.record.asEthereumLogRecord()) }
+                    .filter { itemEvent -> ItemId.parseId(itemEvent.entityId) !in skipTransferContractTokens }
+                    .let { delegate.reduceAll(it) }
+            } catch (ex: Exception) {
+                logger.error("Error on entity events $events", ex)
+                throw ex
+            }
         }
     }
 }
