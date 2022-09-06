@@ -1,6 +1,5 @@
 package com.rarible.protocol.order.listener.service.sudoswap
 
-import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
@@ -28,7 +27,9 @@ import java.math.BigInteger
 class SudoSwapEventConverter(
     private val traceCallService: TraceCallService,
 ) {
-    fun getPoolHash(pollAddress: Address): Word = keccak256(pollAddress)
+    fun getPoolHash(pollAddress: Address): Word {
+        return Word.apply(EMPTY_PREFIX_BINARY.add(pollAddress))
+    }
 
     suspend fun getCreatePairDetails(poolAddress: Address, transient: Transaction): List<SudoSwapPairDetail> {
         val inputs = findAllRequiredCalls(
@@ -169,6 +170,10 @@ class SudoSwapEventConverter(
             2 -> SudoSwapPoolType.TRADE
             else -> throw IllegalArgumentException("Unrecognized pool type $value")
         }
+    }
+
+    private companion object {
+        val EMPTY_PREFIX_BINARY: Binary = Binary.apply(ByteArray(12))
     }
 }
 

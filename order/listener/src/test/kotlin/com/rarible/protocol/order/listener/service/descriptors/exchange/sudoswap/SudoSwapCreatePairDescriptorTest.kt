@@ -99,7 +99,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)
         assertThat(onChainAmmOrder.priceValue).isEqualTo(BigDecimal("0.308407960199005000"))
         assertThat(onChainAmmOrder.priceUsd).isEqualTo(BigDecimal.valueOf(3))
-        assertThat(onChainAmmOrder.hash).isEqualTo(keccak256(expectedData.poolAddress))
+        assertThat(onChainAmmOrder.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(expectedData.poolAddress))
         assertThat(onChainAmmOrder.date).isEqualTo(date)
         assertThat(onChainAmmOrder.source).isEqualTo(HistorySource.SUDOSWAP)
     }
