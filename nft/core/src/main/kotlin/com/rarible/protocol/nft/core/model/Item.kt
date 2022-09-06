@@ -33,7 +33,7 @@ data class Item(
     val lastLazyEventTimestamp: Long? = null,
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
-    val version: Long? = null
+    val version: Long = 0
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient

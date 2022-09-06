@@ -34,7 +34,7 @@ data class Ownership(
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
     override val revertableEvents: List<OwnershipEvent> = emptyList()
-    val version: Long? = null
+    val version: Long = 0
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
