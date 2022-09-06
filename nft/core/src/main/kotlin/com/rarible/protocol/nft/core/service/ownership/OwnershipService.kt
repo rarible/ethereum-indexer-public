@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.service.ownership
 
-import com.mongodb.client.result.UpdateResult
 import com.rarible.core.common.nowMillis
 import com.rarible.core.common.orNull
 import com.rarible.core.common.toOptional
@@ -10,7 +9,6 @@ import com.rarible.protocol.nft.core.model.OwnershipId
 import com.rarible.protocol.nft.core.model.OwnershipSaveResult
 import com.rarible.protocol.nft.core.repository.ownership.OwnershipRepository
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.Marker
@@ -27,10 +25,6 @@ class OwnershipService(
 
     fun get(id: OwnershipId): Mono<Ownership> {
         return ownershipRepository.findById(id)
-    }
-
-    suspend fun updateStartVersion(id: OwnershipId): UpdateResult? {
-        return ownershipRepository.updateStartVersion(id).awaitFirst()
     }
 
     fun get(token: Address, tokenId: EthUInt256, owner: Address): Mono<Ownership> {
@@ -61,8 +55,7 @@ class OwnershipService(
     }
 
     private fun isOwnershipChanged(existOwnership: Ownership?, updatedOwnership: Ownership): Boolean =
-        existOwnership == null || existOwnership != updatedOwnership.copy(lastUpdatedAt = existOwnership.lastUpdatedAt)
-            .withCalculatedFields()
+        existOwnership == null || existOwnership != updatedOwnership.copy(lastUpdatedAt = existOwnership.lastUpdatedAt).withCalculatedFields()
 
     private fun saveInternal(marker: Marker, ownership: Ownership): Mono<Ownership> {
         logger.info(marker, "Saving Ownership ${ownership.id}")

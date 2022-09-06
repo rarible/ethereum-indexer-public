@@ -15,6 +15,7 @@ import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import scalether.domain.Address
 
@@ -52,7 +53,8 @@ internal class OwnershipRepositoryIt : AbstractIntegrationTest() {
 
         mongo.save(unversionedOwnership).awaitFirst()
 
-        ownershipRepository.updateStartVersion(ownership.id).awaitFirst()
+        assertThrows<RuntimeException> { ownershipRepository.save(ownership).awaitFirst() }
+
         ownershipRepository.save(ownership.withVersion(0)).awaitFirst()
 
         val savedOwnership = ownershipRepository.findById(ownership.id).awaitFirstOrNull()
