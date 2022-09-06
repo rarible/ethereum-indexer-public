@@ -36,7 +36,7 @@ data class Ownership(
     val lastLazyEventTimestamp: Long? = null,
     override val revertableEvents: List<OwnershipEvent> = emptyList(),
     @Version
-    override val version: Long
+    override val version: Long? = null
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient

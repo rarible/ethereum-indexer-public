@@ -35,7 +35,7 @@ data class Item(
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
     @Version
-    override val version: Long
+    override val version: Long? = null
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
