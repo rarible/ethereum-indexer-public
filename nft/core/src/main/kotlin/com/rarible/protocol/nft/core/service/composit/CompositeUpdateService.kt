@@ -34,6 +34,7 @@ class CompositeUpdateService(
                 val savedItem = entity.item?.let {
                     async {
                         val version = it.version ?: itemUpdateService.get(it.id)?.version
+                        ?: itemUpdateService.updateStartVersion(it.id)
                         itemUpdateService.update(it.withVersion(version))
                     }
                 }
@@ -42,6 +43,7 @@ class CompositeUpdateService(
                         ownerships.map {
                             async {
                                 val version = it.version ?: ownershipUpdateService.get(it.id)?.version
+                                ?: ownershipUpdateService.updateStartVersion(it.id)
                                 ownershipUpdateService.update(it.withVersion(version))
                             }
                         }.awaitAll()
