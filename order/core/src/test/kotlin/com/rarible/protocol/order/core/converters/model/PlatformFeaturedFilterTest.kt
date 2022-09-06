@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 class PlatformFeaturedFilterTest {
 
     @Test
-    fun `show only rarible, opensea, x2y2, looksrare disabled`() {
+    fun `show only rarible, opensea, x2y2, looksrare, sudoswap disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = false,
@@ -31,7 +31,7 @@ class PlatformFeaturedFilterTest {
     }
 
     @Test
-    fun `show only rarible, opensea, x2y2, looksrare enabled`() {
+    fun `show only rarible, opensea, x2y2, looksrare, sudoswap enabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = false,
@@ -60,12 +60,29 @@ class PlatformFeaturedFilterTest {
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = false,
                 showX2Y2OrdersWithOtherPlatforms = true,
-                showLooksrareOrdersWithOtherPlatforms = true
+                showLooksrareOrdersWithOtherPlatforms = true,
+                showSudoSwapOrdersWithOtherPlatforms = true
             )
         )
 
         val allByDefaultExceptOpenSea = filter.filter(null)
         assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.LOOKSRARE, PlatformDto.SUDOSWAP))
+    }
+
+    @Test
+    fun `show all, sudoswap disabled`() {
+        val filter = PlatformFeaturedFilter(
+            OrderIndexerProperties.FeatureFlags(
+                showAllOrdersByDefault = true,
+                showOpenSeaOrdersWithOtherPlatforms = true,
+                showX2Y2OrdersWithOtherPlatforms = true,
+                showLooksrareOrdersWithOtherPlatforms = true,
+                showSudoSwapOrdersWithOtherPlatforms = false
+            )
+        )
+
+        val allByDefaultExceptOpenSea = filter.filter(null)
+        assertThat(allByDefaultExceptOpenSea).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.X2Y2, PlatformDto.LOOKSRARE))
     }
 
     @Test
@@ -75,6 +92,7 @@ class PlatformFeaturedFilterTest {
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showLooksrareOrdersWithOtherPlatforms = true,
+                showSudoSwapOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = false
             )
         )
@@ -90,6 +108,7 @@ class PlatformFeaturedFilterTest {
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = true,
+                showSudoSwapOrdersWithOtherPlatforms = true,
                 showLooksrareOrdersWithOtherPlatforms = false
             )
         )
@@ -99,13 +118,14 @@ class PlatformFeaturedFilterTest {
     }
 
     @Test
-    fun `show all, opensea, x2y2, looksrare enabled`() {
+    fun `show all, opensea, x2y2, looksrare, sudoswap enabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = true,
-                showLooksrareOrdersWithOtherPlatforms = true
+                showLooksrareOrdersWithOtherPlatforms = true,
+                showSudoSwapOrdersWithOtherPlatforms = true
             )
         )
 
@@ -116,30 +136,32 @@ class PlatformFeaturedFilterTest {
     }
 
     @Test
-    fun `show all, opensea, x2y2, looksrare disabled`() {
+    fun `show all, opensea, x2y2, looksrare, sudoswap disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = false,
                 showX2Y2OrdersWithOtherPlatforms = false,
-                showLooksrareOrdersWithOtherPlatforms = false
+                showLooksrareOrdersWithOtherPlatforms = false,
+                showSudoSwapOrdersWithOtherPlatforms = false
             )
         )
         val allWithRarible = filter.filter(null)
-        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS, PlatformDto.SUDOSWAP))
+        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.CRYPTO_PUNKS))
     }
 
     @Test
-    fun `show all, x2y2, looksrare disabled`() {
+    fun `show all, x2y2, looksrare, sudoswap disabled`() {
         val filter = PlatformFeaturedFilter(
             OrderIndexerProperties.FeatureFlags(
                 showAllOrdersByDefault = true,
                 showOpenSeaOrdersWithOtherPlatforms = true,
                 showX2Y2OrdersWithOtherPlatforms = false,
-                showLooksrareOrdersWithOtherPlatforms = false
+                showLooksrareOrdersWithOtherPlatforms = false,
+                showSudoSwapOrdersWithOtherPlatforms = false
             )
         )
         val allWithRarible = filter.filter(null)
-        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS, PlatformDto.SUDOSWAP))
+        assertThat(allWithRarible).isEqualTo(listOf(PlatformDto.RARIBLE, PlatformDto.OPEN_SEA, PlatformDto.CRYPTO_PUNKS))
     }
 }

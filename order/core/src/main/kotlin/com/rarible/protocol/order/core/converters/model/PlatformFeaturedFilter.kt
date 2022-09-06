@@ -26,9 +26,13 @@ class PlatformFeaturedFilter(
             if (!featureFlags.showLooksrareOrdersWithOtherPlatforms) {
                 all.remove(PlatformDto.LOOKSRARE)
             }
+            if (!featureFlags.showSudoSwapOrdersWithOtherPlatforms) {
+                all.remove(PlatformDto.SUDOSWAP)
+            }
             if (featureFlags.showOpenSeaOrdersWithOtherPlatforms &&
                 featureFlags.showX2Y2OrdersWithOtherPlatforms &&
-                featureFlags.showLooksrareOrdersWithOtherPlatforms
+                featureFlags.showLooksrareOrdersWithOtherPlatforms &&
+                featureFlags.showSudoSwapOrdersWithOtherPlatforms
             ) {
                 return emptyList() // means there is no filter by platform
             }
