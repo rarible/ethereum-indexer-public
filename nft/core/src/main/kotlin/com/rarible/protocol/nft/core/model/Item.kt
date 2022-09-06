@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.time.Instant
 
-@Document(Item.COLLECTION)
+@Document("item")
 @CompoundIndexes(
     CompoundIndex(def = "{token: 1, tokenId: 1}", background = true, unique = true, sparse = true)
 )
@@ -33,7 +33,6 @@ data class Item(
     val lastLazyEventTimestamp: Long? = null,
     val isRaribleContract: Boolean? = null,
     override val revertableEvents: List<ItemEvent> = emptyList(),
-    val version: Long? = null
 ) : Entity<ItemId, ItemEvent, Item> {
 
     @Transient
@@ -58,9 +57,6 @@ data class Item(
     }
 
     companion object {
-
-        const val COLLECTION = "item"
-
         fun parseId(id: String): ItemId {
             val parts = id.split(":")
             if (parts.size < 2) {
