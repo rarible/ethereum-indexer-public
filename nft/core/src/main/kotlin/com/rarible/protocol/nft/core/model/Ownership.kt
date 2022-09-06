@@ -14,7 +14,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.time.Instant
 
-@Document("ownership")
+@Document(Ownership.COLLECTION)
 @CompoundIndexes(
     CompoundIndex(def = "{token: 1, tokenId: 1, owner: 1}", background = true, unique = true, sparse = true),
     CompoundIndex(def = "{owner: 1, date: 1, _id: 1}", background = true),
@@ -40,7 +40,7 @@ data class Ownership(
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
-    val _id: OwnershipId = OwnershipId(token, tokenId, owner)
+    private val _id: OwnershipId = OwnershipId(token, tokenId, owner)
 
     fun getPendingEvents(): List<OwnershipEvent> {
         return revertableEvents.filter { it.log.status == EthereumLogStatus.PENDING }
@@ -78,6 +78,7 @@ data class Ownership(
     }
 
     companion object {
+        const val COLLECTION = "ownership"
 
         fun parseId(id: String): OwnershipId {
             val parts = id.split(":")

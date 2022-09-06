@@ -20,11 +20,6 @@ class ItemUpdateService(
         return itemRepository.findById(id).awaitFirstOrNull()
     }
 
-    suspend fun updateStartVersion(id: ItemId): Long {
-        itemRepository.updateStartVersion(id).awaitFirstOrNull()
-        return 0
-    }
-
     override suspend fun update(entity: Item): Item {
         val savedItem = itemRepository.save(entity).awaitFirst()
         eventListenerListener.onItemChanged(savedItem).awaitFirstOrNull()

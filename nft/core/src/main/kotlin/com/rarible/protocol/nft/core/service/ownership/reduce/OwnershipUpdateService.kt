@@ -19,11 +19,6 @@ class OwnershipUpdateService(
         return ownershipService.get(id).awaitFirstOrNull()
     }
 
-    suspend fun updateStartVersion(id: OwnershipId): Long {
-        ownershipService.updateStartVersion(id)
-        return 0
-    }
-
     override suspend fun update(entity: Ownership): Ownership {
         val savedOwnership = ownershipService.save(entity)
         eventListenerListener.onOwnershipChanged(savedOwnership).awaitFirstOrNull()

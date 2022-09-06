@@ -1,6 +1,5 @@
 package com.rarible.protocol.nft.core.repository.ownership
 
-import com.mongodb.client.result.UpdateResult
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.Ownership
 import com.rarible.protocol.nft.core.model.OwnershipId
@@ -14,7 +13,6 @@ import org.springframework.data.mongodb.core.findById
 import org.springframework.data.mongodb.core.query
 import org.springframework.data.mongodb.core.query.Criteria
 import org.springframework.data.mongodb.core.query.Query
-import org.springframework.data.mongodb.core.query.Update
 import org.springframework.data.mongodb.core.query.and
 import org.springframework.data.mongodb.core.query.inValues
 import org.springframework.data.mongodb.core.query.isEqualTo
@@ -30,14 +28,6 @@ class OwnershipRepository(
 
     fun save(ownership: Ownership): Mono<Ownership> {
         return mongo.save(ownership)
-    }
-
-    fun updateStartVersion(id: OwnershipId): Mono<UpdateResult> {
-        val query = Query(
-            Criteria.where(Ownership::_id.name).`is`(id)
-        )
-        val update = Update().set(Ownership::version.name, 0)
-        return mongo.updateFirst(query, update, Ownership::class.java)
     }
 
     fun findById(id: OwnershipId): Mono<Ownership> {
