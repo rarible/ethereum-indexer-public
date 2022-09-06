@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 import scalether.domain.Address
 import java.time.Instant
 
-@Document("ownership")
+@Document(Ownership.COLLECTION)
 @CompoundIndexes(
     CompoundIndex(def = "{token: 1, tokenId: 1, owner: 1}", background = true, unique = true, sparse = true),
     CompoundIndex(def = "{owner: 1, date: 1, _id: 1}", background = true),
@@ -33,7 +33,8 @@ data class Ownership(
     val pending: List<ItemTransfer>,
     val deleted: Boolean = false,
     val lastLazyEventTimestamp: Long? = null,
-    override val revertableEvents: List<OwnershipEvent> = emptyList()
+    override val revertableEvents: List<OwnershipEvent> = emptyList(),
+    val version: Long = 0
 ) : Entity<OwnershipId, OwnershipEvent, Ownership> {
 
     @Transient
@@ -71,6 +72,7 @@ data class Ownership(
     }
 
     companion object {
+        const val COLLECTION = "ownership"
 
         fun parseId(id: String): OwnershipId {
             val parts = id.split(":")
