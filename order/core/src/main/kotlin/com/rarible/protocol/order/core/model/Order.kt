@@ -588,8 +588,8 @@ data class Order(
                     .add(offerHash)
                     .add(considerationHash)
                     .add(Uint256Type.encode(components.orderType.value.toBigInteger()))
-                    .add(Uint256Type.encode((components.startTime.toBigInteger())))
-                    .add(Uint256Type.encode((components.endTime.toBigInteger())))
+                    .add(Uint256Type.encode((components.startTime)))
+                    .add(Uint256Type.encode((components.endTime)))
                     .add(components.zoneHash)
                     .add(Uint256Type.encode(components.salt))
                     .add(components.conduitKey)
@@ -611,8 +611,8 @@ data class Order(
                     offer = data.offer,
                     consideration = data.consideration,
                     orderType = data.orderType,
-                    startTime = start ?: 0,
-                    endTime = end ?: 0,
+                    startTime = start?.toBigInteger() ?: BigInteger.ZERO,
+                    endTime = end?.toBigInteger() ?: BigInteger.ZERO,
                     zoneHash = data.zoneHash,
                     salt = salt,
                     conduitKey = data.conduitKey,

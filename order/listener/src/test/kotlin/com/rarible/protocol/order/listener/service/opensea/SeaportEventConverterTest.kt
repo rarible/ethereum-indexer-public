@@ -407,7 +407,6 @@ internal class SeaportEventConverterTest {
     }
 
     @Test
-    @Disabled //TODO: Fix test
     fun `should convert OrderCancelledEvent`() = runBlocking<Unit> {
         val data = Instant.now()
         val log = log(
