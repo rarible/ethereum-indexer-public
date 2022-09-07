@@ -17,13 +17,13 @@ import com.rarible.protocol.order.core.model.OrderRaribleV2DataV3Sell
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.OrderX2Y2DataV1
-import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolDeltaUpdate
 import com.rarible.protocol.order.core.model.PoolFeeUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftDeposit
 import com.rarible.protocol.order.core.model.PoolNftIn
 import com.rarible.protocol.order.core.model.PoolNftOut
+import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
@@ -39,8 +39,8 @@ class EventPoolReducer(
             is PoolNftOut -> onPoolNftOut(entity, event)
             is PoolNftIn -> onPoolNftIn(entity, event)
             is PoolSpotPriceUpdate -> onPoolSpotPriceUpdate(entity, event)
-            is PoolFeeUpdate -> onUpdateData(entity, event) { it.copy(fee = event.newFee) }
-            is PoolDeltaUpdate -> onUpdateData(entity, event) { it.copy(delta = event.newDelta) }
+            is PoolFeeUpdate -> onUpdateData(entity) { it.copy(fee = event.newFee) }
+            is PoolDeltaUpdate -> onUpdateData(entity) { it.copy(delta = event.newDelta) }
         }
     }
 
@@ -61,6 +61,14 @@ class EventPoolReducer(
 
     private fun onPoolNftOut(entity: Order, event: PoolNftOut): Order {
         val newVale = entity.make.value.subSafe(event.tokenIds.size)
+        if (event is PoolNftWithdraw) {
+            val ammNftAssetType = when {
+                entity.make.type.nft -> entity.make.type as AmmNftAssetType
+                entity.take.type.nft -> entity.take.type as AmmNftAssetType
+                else -> return entity
+            }
+            if (event.collection != ammNftAssetType.token) return entity
+        }
         return entity.copy(
             make = entity.make.copy(value = newVale),
             makeStock = newVale,
@@ -92,7 +100,6 @@ class EventPoolReducer(
 
     private fun onUpdateData(
         entity: Order,
-        event: PoolDataUpdate,
         update: (data: OrderSudoSwapAmmDataV1) -> OrderSudoSwapAmmDataV1
     ): Order {
         val data = when (entity.data) {

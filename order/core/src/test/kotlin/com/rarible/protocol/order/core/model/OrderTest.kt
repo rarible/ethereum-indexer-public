@@ -255,6 +255,19 @@ class OrderTest {
     }
 
     @Test
+    fun `should calculate status for AMM order`() {
+        val amm = createOrder().copy(
+            make = randomErc721(),
+            take = randomErc20(EthUInt256.ZERO),
+            makeStock = EthUInt256.ZERO,
+            data = createOrderSudoSwapAmmDataV1(),
+            type = OrderType.AMM
+        ).withMakeBalance(EthUInt256.ONE, EthUInt256.ZERO)
+
+        assertThat(amm.status).isEqualTo(OrderStatus.ACTIVE)
+    }
+
+    @Test
     fun `stock is 0 when cancelled for OpenSea order`() {
         assertThat(
             createOrder().copy(
