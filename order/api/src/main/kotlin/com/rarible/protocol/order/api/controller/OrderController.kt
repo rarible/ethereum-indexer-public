@@ -3,7 +3,9 @@ package com.rarible.protocol.order.api.controller
 import com.rarible.core.common.optimisticLock
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
+import com.rarible.protocol.dto.HoldNftItemIdsDto
 import com.rarible.protocol.dto.LegacyOrderFormDto
+import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.OrderCurrenciesDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderFormDto
@@ -194,6 +196,15 @@ class OrderController(
         )
         val result = searchOrders(filter, continuation, size)
         return ResponseEntity.ok(result)
+    }
+
+    override suspend fun getAmmOrderItemIds(
+        hash: String,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<HoldNftItemIdsDto> {
+        val result = orderService.getAmmOrderHoldItemIds(Word.apply(hash), continuation, size)
+        return ResponseEntity.ok(HoldNftItemIdsDto(result.ids, result.continuation))
     }
 
     override suspend fun getOrdersAllByStatus(

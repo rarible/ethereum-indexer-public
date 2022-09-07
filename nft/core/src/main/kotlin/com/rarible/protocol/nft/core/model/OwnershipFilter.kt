@@ -19,7 +19,8 @@ data class OwnershipFilterAll(
 
 data class OwnershipFilterByOwner(
     override val sort: Sort,
-    val owner: Address
+    val owner: Address,
+    val collection: Address? = null
 ) : OwnershipFilter() {
     override val showDeleted: Boolean = false
 }

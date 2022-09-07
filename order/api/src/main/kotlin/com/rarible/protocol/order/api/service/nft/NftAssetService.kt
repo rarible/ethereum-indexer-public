@@ -20,7 +20,7 @@ class NftAssetService(
         val nftAsserts = mutableListOf<Item>()
 
         do {
-            val ownerships = nftOwnership.getNftOwnershipsByOwner(owner.prefixed(), continuation, null).awaitFirst()
+            val ownerships = nftOwnership.getNftOwnershipsByOwner(owner.prefixed(), null, continuation, null).awaitFirst()
 
             nftAsserts.addAll(ownerships.ownerships.map { item ->
                 Item(

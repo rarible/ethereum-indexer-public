@@ -1319,7 +1319,7 @@ class OrderActivityControllerFt : AbstractIntegrationTest() {
                         )
                     }
 
-                coEvery { nftOwnership.getNftOwnershipsByOwner(eq(user.prefixed()), any(), any()) } returns Mono.just(
+                coEvery { nftOwnership.getNftOwnershipsByOwner(eq(user.prefixed()), any(), any(), any()) } returns Mono.just(
                     NftOwnershipsDto(
                         total = (erc721Tokens.size + erc1155Tokens.size).toLong(),
                         continuation = null,

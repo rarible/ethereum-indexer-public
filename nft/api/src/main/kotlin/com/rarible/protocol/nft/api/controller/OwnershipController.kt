@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.NftOwnershipDto
 import com.rarible.protocol.dto.NftOwnershipIdsDto
 import com.rarible.protocol.dto.NftOwnershipsDto
 import com.rarible.protocol.dto.parser.AddressParser
+import com.rarible.protocol.dto.parser.parse
 import com.rarible.protocol.nft.api.service.ownership.OwnershipApiService
 import com.rarible.protocol.nft.core.model.OwnershipContinuation
 import com.rarible.protocol.nft.core.model.OwnershipFilter
@@ -70,10 +71,11 @@ class OwnershipController(
 
     override suspend fun getNftOwnershipsByOwner(
         owner: String,
+        collection: String?,
         continuation: String?,
         size: Int?
     ): ResponseEntity<NftOwnershipsDto> {
-        val filter = OwnershipFilterByOwner(defaultSorting, Address.apply(owner))
+        val filter = OwnershipFilterByOwner(defaultSorting, AddressParser.parse(owner), AddressParser.parse(collection))
         val result = getItems(filter, continuation, size)
         return ResponseEntity.ok(result)
     }
