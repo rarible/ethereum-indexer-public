@@ -27,8 +27,7 @@ class PoolEventListener(
         val reverted = event.status == LogEventStatus.REVERTED
         val poolHistory = event.data as PoolHistory
         val hash = poolHistory.hash
-        val order = orderRepository.findById(hash)
-            ?: throw IllegalStateException("Can't find order $hash")
+        val order = orderRepository.findById(hash) ?: return
         val collection = when {
             order.make.type.nft -> order.make.type.token
             order.take.type.nft -> order.take.type.token

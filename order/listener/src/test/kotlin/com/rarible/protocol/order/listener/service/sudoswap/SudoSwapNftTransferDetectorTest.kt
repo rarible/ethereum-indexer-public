@@ -2,7 +2,9 @@ package com.rarible.protocol.order.listener.service.sudoswap
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
+import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.order.listener.data.log
+import com.sun.jndi.cosnaming.IiopUrl
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
@@ -18,6 +20,13 @@ import java.math.BigInteger
 internal class SudoSwapNftTransferDetectorTest {
     private val ethereum = mockk<MonoEthereum>()
     private val detector = SudoSwapNftTransferDetector(ethereum)
+
+    @Test
+    fun t() {
+        println(
+            keccak256(Address.apply("0xd3f5a5195d7cd6028e05597cc95a7c1a833dba24"))
+        )
+    }
 
     @Test
     fun `should detect nft transfers`() = runBlocking<Unit> {

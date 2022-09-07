@@ -233,15 +233,24 @@ data class Order(
             approved: Boolean,
         ): OrderStatus {
             return when {
+                data.isAmmOrder() -> ammOrderStatus(makeStock, start, end)
                 data.isMakeFillOrder(make.type.nft) && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 approved.not() -> OrderStatus.INACTIVE
-                makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
+                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
                 else -> OrderStatus.INACTIVE
             }
+        }
+
+        private fun isActiveByMakeStock(makeStock: EthUInt256, start: Long?, end: Long?): Boolean {
+            return makeStock > EthUInt256.ZERO && isAlive(start, end)
+        }
+
+        private fun ammOrderStatus(makeStock: EthUInt256, start: Long?, end: Long?): OrderStatus {
+            return if (isActiveByMakeStock(makeStock, start, end)) OrderStatus.ACTIVE else OrderStatus.INACTIVE
         }
 
         private fun isAlive(start: Long?, end: Long?) = isStarted(start) && !isEnded(end)
