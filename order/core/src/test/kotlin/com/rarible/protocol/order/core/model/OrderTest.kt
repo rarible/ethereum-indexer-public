@@ -3,8 +3,10 @@ package com.rarible.protocol.order.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrder
+import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.randomErc1155
 import com.rarible.protocol.order.core.data.randomErc20
+import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.withMakeFill
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -226,6 +228,30 @@ class OrderTest {
             ).makeStock
         )
             .isEqualTo(EthUInt256.ZERO)
+    }
+
+    @Test
+    fun `should have active status for AMM order`() {
+        val amm = createOrder().copy(
+            make = randomErc721(),
+            take = randomErc20(EthUInt256.ZERO),
+            makeStock = EthUInt256.ONE,
+            data = createOrderSudoSwapAmmDataV1(),
+            type = OrderType.AMM
+        )
+        assertThat(amm.status).isEqualTo(OrderStatus.ACTIVE)
+    }
+
+    @Test
+    fun `should have inactive status for AMM order`() {
+        val amm = createOrder().copy(
+            make = randomErc721().copy(value = EthUInt256.ZERO),
+            take = randomErc20(EthUInt256.ZERO),
+            makeStock = EthUInt256.ZERO,
+            data = createOrderSudoSwapAmmDataV1(),
+            type = OrderType.AMM
+        )
+        assertThat(amm.status).isEqualTo(OrderStatus.INACTIVE)
     }
 
     @Test
