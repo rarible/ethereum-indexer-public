@@ -4,7 +4,6 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.order.listener.data.log
-import com.sun.jndi.cosnaming.IiopUrl
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
 import io.mockk.mockk
