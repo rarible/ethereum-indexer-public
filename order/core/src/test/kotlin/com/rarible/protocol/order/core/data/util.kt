@@ -154,8 +154,10 @@ fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
     orderId = randomBigInt()
 )
 
-fun createOrderSudoSwapAmmDataV1() = OrderSudoSwapAmmDataV1(
-    poolAddress = randomAddress(),
+fun createOrderSudoSwapAmmDataV1(
+    poolAddress: Address = randomAddress()
+) = OrderSudoSwapAmmDataV1(
+    poolAddress = poolAddress,
     bondingCurve = randomAddress(),
     curveType = SudoSwapCurveType.values().random(),
     assetRecipient = randomAddress(),
