@@ -4,13 +4,12 @@ import com.rarible.core.apm.CaptureSpan
 import com.rarible.core.apm.SpanType
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.misc.div
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftChange
 import io.daonomic.rpc.domain.Word
-import jdk.jfr.internal.LogLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirst
@@ -73,7 +72,8 @@ class PoolHistoryRepository(
     suspend fun getLatestPoolNftChange(collection: Address, tokenId: EthUInt256): List<LogEvent> {
         val criteria = Criteria().andOperator(
             LogEvent::data / PoolNftChange::collection isEqualTo collection,
-            LogEvent::data / PoolNftChange::tokenIds isEqualTo tokenId
+            LogEvent::data / PoolNftChange::tokenIds isEqualTo tokenId,
+            LogEvent::status  isEqualTo LogEventStatus.CONFIRMED,
         )
         val query = Query(criteria)
             .with(POOL_NFT_CHANGE_SORT_DESC)
