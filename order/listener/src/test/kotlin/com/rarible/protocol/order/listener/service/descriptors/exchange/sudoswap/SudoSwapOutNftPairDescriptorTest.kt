@@ -10,11 +10,11 @@ import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.token
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
@@ -36,12 +36,12 @@ internal class SudoSwapOutNftPairDescriptorTest {
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val nftTransferDetector = mockk<SudoSwapNftTransferDetector>()
-    private val orderRepository = mockk<OrderRepository>()
+    private val sudoSwapPoolCollectionProvider = mockk<SudoSwapPoolCollectionProvider>()
 
     private val descriptor = SudoSwapOutNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         nftTransferDetector = nftTransferDetector,
-        orderRepository = orderRepository,
+        sudoSwapPoolCollectionProvider = sudoSwapPoolCollectionProvider,
         sudoSwapOutNftEventCounter = counter,
     )
 
@@ -93,7 +93,6 @@ internal class SudoSwapOutNftPairDescriptorTest {
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
         val order = createSellOrder(createOrderSudoSwapAmmDataV1()).copy(hash = hash)
         val expectedTokenId = randomBigInt()
-        coEvery { orderRepository.findById(hash) } returns order
         coEvery { nftTransferDetector.detectNftTransfers(log, order.make.type.token) } returns listOf(expectedTokenId)
 
         val nftOut = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()

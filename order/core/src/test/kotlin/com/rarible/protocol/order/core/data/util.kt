@@ -477,6 +477,7 @@ fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
 fun randomPoolTargetNftOut(): PoolTargetNftOut {
     return PoolTargetNftOut(
         hash = Word.apply(randomWord()),
+        collection = randomAddress(),
         tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
         recipient = randomAddress(),
         date = Instant.now(),
@@ -498,6 +499,7 @@ fun randomPoolNftWithdraw(): PoolNftWithdraw {
 fun randomPoolTargetNftIn(): PoolTargetNftIn {
     return PoolTargetNftIn(
         hash = Word.apply(randomWord()),
+        collection = randomAddress(),
         tokenIds = (1..10).map { EthUInt256(randomBigInt()) },
         tokenRecipient = randomAddress(),
         date = Instant.now(),

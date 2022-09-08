@@ -9,6 +9,7 @@ import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
@@ -26,12 +27,14 @@ import java.time.temporal.ChronoUnit
 
 internal class SudoSwapInNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
+    private val sudoSwapPoolCollectionProvider = mockk<SudoSwapPoolCollectionProvider>()
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapInNftPairDescriptor(
         sudoSwapEventConverter = sudoSwapEventConverter,
         sudoSwapInNftEventCounter = counter,
+        sudoSwapPoolCollectionProvider = sudoSwapPoolCollectionProvider
     )
 
     @Test

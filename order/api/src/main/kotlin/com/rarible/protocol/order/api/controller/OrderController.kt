@@ -5,7 +5,6 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.HoldNftItemIdsDto
 import com.rarible.protocol.dto.LegacyOrderFormDto
-import com.rarible.protocol.dto.NftItemIdsDto
 import com.rarible.protocol.dto.OrderCurrenciesDto
 import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.dto.OrderFormDto
@@ -18,6 +17,7 @@ import com.rarible.protocol.dto.PrepareOrderTxFormDto
 import com.rarible.protocol.dto.PrepareOrderTxResponseDto
 import com.rarible.protocol.dto.PreparedOrderTxDto
 import com.rarible.protocol.dto.SyncSortDto
+import com.rarible.protocol.dto.parser.AddressParser
 import com.rarible.protocol.order.api.exceptions.ValidationApiException
 import com.rarible.protocol.order.api.service.order.OrderBidsService
 import com.rarible.protocol.order.api.service.order.OrderService
@@ -203,8 +203,24 @@ class OrderController(
         continuation: String?,
         size: Int?
     ): ResponseEntity<HoldNftItemIdsDto> {
-        val result = orderService.getAmmOrderHoldItemIds(Word.apply(hash), continuation, size)
-        return ResponseEntity.ok(HoldNftItemIdsDto(result.ids, result.continuation))
+        val result = orderService.getAmmOrderHoldItemIds(Word.apply(hash), continuation, limit(size))
+        return ResponseEntity.ok(HoldNftItemIdsDto(result.itemIds.map { it.toString() }, result.continuation))
+    }
+
+    override suspend fun getAmmOrdersByItem(
+        contract: String,
+        tokenId: String,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<OrdersPaginationDto> {
+        val requestSize = limit(size)
+        val result = orderService.getAmmOrdersByItemId(AddressParser.parse(contract), EthUInt256.of(tokenId), continuation, limit(size))
+        val nextContinuation = if (result.isEmpty() || result.size < requestSize) null else result.last().hash.prefixed()
+        val dto = OrdersPaginationDto(
+            result.map { orderDtoConverter.convert(it) },
+            nextContinuation
+        )
+        return ResponseEntity.ok(dto)
     }
 
     override suspend fun getOrdersAllByStatus(

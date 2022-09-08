@@ -90,7 +90,6 @@ class OrderServiceIt : AbstractOrderIt() {
     @Autowired
     private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
 
-
     @BeforeEach
     fun beforeEach() = runBlocking {
         runBlocking<Unit> {
@@ -921,7 +920,7 @@ class OrderServiceIt : AbstractOrderIt() {
         } returns Mono.just(NftOwnershipsDto(continuation = expectedContinuation, ownerships = listOf(ownership1, ownership2)))
 
         val result = orderService.getAmmOrderHoldItemIds(ammOrder.hash, continuation, size)
-        assertThat(result.ids).isEqualTo(expectedItemIds)
+        assertThat(result.itemIds).isEqualTo(expectedItemIds)
         assertThat(result.continuation).isEqualTo(expectedContinuation)
     }
 

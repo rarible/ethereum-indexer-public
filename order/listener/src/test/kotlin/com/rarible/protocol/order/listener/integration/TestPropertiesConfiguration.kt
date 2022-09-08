@@ -17,13 +17,20 @@ import org.springframework.context.annotation.Primary
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toMono
 import scalether.core.MonoEthereum
+import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
+import scalether.transaction.ReadOnlyMonoTransactionSender
 
 @TestConfiguration
 class TestPropertiesConfiguration {
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
+    }
+
+    @Bean
+    fun testReadOnlyMonoTransactionSender(ethereum: MonoEthereum): ReadOnlyMonoTransactionSender {
+        return ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
     }
 
     @Bean
