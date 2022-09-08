@@ -53,6 +53,7 @@ class OrderActivityConverter(
 
         return when (data) {
             is OrderSideMatch -> {
+                val marketplaceMarker = data.marketplaceMarker
                 OrderActivityMatchDto(
                     id = history.id.toString(),
                     date = data.date,
@@ -81,7 +82,8 @@ class OrderActivityConverter(
                     source = convert(data.source),
                     type = typeDto(data),
                     reverted = reverted,
-                    lastUpdatedAt = history.updatedAt
+                    lastUpdatedAt = history.updatedAt,
+                    marketplaceMarker = marketplaceMarker
                 )
             }
             is OrderCancel -> if (data.isBid()) {
