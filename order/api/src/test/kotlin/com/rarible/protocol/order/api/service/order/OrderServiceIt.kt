@@ -2,11 +2,14 @@ package com.rarible.protocol.order.api.service.order
 
 import com.rarible.contracts.test.erc1271.TestERC1271
 import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.data.randomInt
 import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
+import com.rarible.ethereum.listener.log.domain.LogEvent
+import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.Erc20DecimalBalanceDto
@@ -28,6 +31,7 @@ import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
+import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -50,6 +54,7 @@ import com.rarible.protocol.order.core.model.order.OrderFilterSellByItem
 import com.rarible.protocol.order.core.model.order.OrderFilterSellByMaker
 import com.rarible.protocol.order.core.model.order.OrderFilterSort
 import com.rarible.protocol.order.core.producer.ProtocolOrderPublisher
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import io.daonomic.rpc.domain.Word
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -84,6 +89,9 @@ class OrderServiceIt : AbstractOrderIt() {
     private lateinit var orderService: OrderService
 
     @Autowired
+    private lateinit var poolHistoryRepository: PoolHistoryRepository
+
+    @Autowired
     private lateinit var protocolOrderPublisher: ProtocolOrderPublisher
 
     @Autowired
@@ -96,6 +104,7 @@ class OrderServiceIt : AbstractOrderIt() {
             mongo.remove<Order>().allAndAwait()
         }
         orderRepository.createIndexes()
+        poolHistoryRepository.createIndexes()
     }
 
     @BeforeEach
@@ -921,6 +930,35 @@ class OrderServiceIt : AbstractOrderIt() {
         val result = orderService.getAmmOrderHoldItemIds(ammOrder.hash, continuation, size)
         assertThat(result.itemIds).isEqualTo(expectedItemIds)
         assertThat(result.continuation).isEqualTo(expectedContinuation)
+    }
+
+    @Test
+    fun `should get amm orders by itemId`() = runBlocking<Unit> {
+        val continuation = randomString()
+        val size = randomInt()
+        val collection = randomAddress()
+        val tokenId = EthUInt256.of(randomBigInt())
+        val ammOrder = createOrder()
+        val nftIn = randomPoolTargetNftIn().copy(hash = ammOrder.hash, collection = collection, tokenIds = listOf(tokenId))
+
+        orderRepository.save(ammOrder)
+        poolHistoryRepository.save(
+            LogEvent(
+                data = nftIn,
+                address = randomAddress(),
+                topic = Word.apply(ByteArray(32)),
+                transactionHash = Word.apply(randomWord()),
+                status = LogEventStatus.CONFIRMED,
+                blockNumber = 1,
+                logIndex = 1,
+                minorLogIndex = 1,
+                index = 0
+            )
+        ).awaitFirst()
+
+        val result = orderService.getAmmOrdersByItemId(collection, tokenId, continuation, size)
+        assertThat(result).hasSize(1)
+        assertThat(result.single().hash).isEqualTo(ammOrder.hash)
     }
 
     private suspend fun saveRandomOrderWithMakeBalance(): Order {
