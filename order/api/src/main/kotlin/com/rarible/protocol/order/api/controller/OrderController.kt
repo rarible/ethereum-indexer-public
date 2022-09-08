@@ -479,6 +479,16 @@ class OrderController(
         return ResponseEntity.ok(OrderCurrenciesDto(OrderCurrenciesDto.OrderType.BID, currencies))
     }
 
+    override suspend fun getAmmOrdersByItemAndByStatus(
+        contract: String,
+        tokenId: String,
+        status: List<OrderStatusDto>?,
+        continuation: String?,
+        size: Int?
+    ): ResponseEntity<OrdersPaginationDto> {
+        TODO("Not yet implemented")
+    }
+
     private suspend fun searchOrders(
         filter: OrderFilter,
         continuation: String?,
