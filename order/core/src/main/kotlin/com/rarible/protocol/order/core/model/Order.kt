@@ -128,7 +128,7 @@ data class Order(
                 cancelled = cancelled,
                 orderType = type,
                 feeSide = getFeeSide(make.type, take.type),
-                sell =make.type.nft
+                sell = make.type.nft
             )
         )
     }
@@ -197,6 +197,10 @@ data class Order(
             cancelled: Boolean,
             sell: Boolean
         ): EthUInt256 {
+            //TODO: Remove it after task PT-1177 will be done
+            if (orderType == OrderType.AMM) {
+                return makeValue
+            }
             if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
                 return EthUInt256.ZERO
             }
@@ -208,18 +212,16 @@ data class Order(
                 takeValue = takeValue,
                 makeBalance = (makeBalance * EthUInt256.of(10000)) / (fee + EthUInt256.of(10000))
             )
-
             val calculatedMakeStock = minOf(make, roundedMakeBalance)
-
             return when (orderType) {
                 OrderType.RARIBLE_V2,
                 OrderType.RARIBLE_V1,
                 OrderType.CRYPTO_PUNKS -> calculatedMakeStock
-                OrderType.AMM,
                 OrderType.LOOKSRARE,
                 OrderType.X2Y2,
                 OrderType.OPEN_SEA_V1,
                 OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
+                OrderType.AMM -> makeValue
             }
         }
 
@@ -235,15 +237,24 @@ data class Order(
             approved: Boolean,
         ): OrderStatus {
             return when {
+                data.isAmmOrder() -> ammOrderStatus(makeStock, start, end)
                 data.isMakeFillOrder(make.type.nft) && fill >= make.value -> OrderStatus.FILLED
                 fill >= take.value -> OrderStatus.FILLED
                 cancelled -> OrderStatus.CANCELLED
                 approved.not() -> OrderStatus.INACTIVE
-                makeStock > EthUInt256.ZERO && isAlive(start, end) -> OrderStatus.ACTIVE
+                isActiveByMakeStock(makeStock, start, end) -> OrderStatus.ACTIVE
                 !isStarted(start) -> OrderStatus.NOT_STARTED
                 isEnded(end) -> OrderStatus.ENDED
                 else -> OrderStatus.INACTIVE
             }
+        }
+
+        private fun isActiveByMakeStock(makeStock: EthUInt256, start: Long?, end: Long?): Boolean {
+            return makeStock > EthUInt256.ZERO && isAlive(start, end)
+        }
+
+        private fun ammOrderStatus(makeStock: EthUInt256, start: Long?, end: Long?): OrderStatus {
+            return if (isActiveByMakeStock(makeStock, start, end)) OrderStatus.ACTIVE else OrderStatus.INACTIVE
         }
 
         private fun isAlive(start: Long?, end: Long?) = isStarted(start) && !isEnded(end)
@@ -590,8 +601,8 @@ data class Order(
                     .add(offerHash)
                     .add(considerationHash)
                     .add(Uint256Type.encode(components.orderType.value.toBigInteger()))
-                    .add(Uint256Type.encode((components.startTime.toBigInteger())))
-                    .add(Uint256Type.encode((components.endTime.toBigInteger())))
+                    .add(Uint256Type.encode((components.startTime)))
+                    .add(Uint256Type.encode((components.endTime)))
                     .add(components.zoneHash)
                     .add(Uint256Type.encode(components.salt))
                     .add(components.conduitKey)
@@ -613,8 +624,8 @@ data class Order(
                     offer = data.offer,
                     consideration = data.consideration,
                     orderType = data.orderType,
-                    startTime = start ?: 0,
-                    endTime = end ?: 0,
+                    startTime = start?.toBigInteger() ?: BigInteger.ZERO,
+                    endTime = end?.toBigInteger() ?: BigInteger.ZERO,
                     zoneHash = data.zoneHash,
                     salt = salt,
                     conduitKey = data.conduitKey,

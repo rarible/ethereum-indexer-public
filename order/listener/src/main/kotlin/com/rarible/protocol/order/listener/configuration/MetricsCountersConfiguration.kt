@@ -1,7 +1,9 @@
 package com.rarible.protocol.order.listener.configuration
 
+import com.rarible.core.telemetry.metrics.CountingMetric
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.telemetry.metrics.RegisteredGauge
+import com.rarible.ethereum.domain.Blockchain
 import com.rarible.protocol.order.core.configuration.OrderIndexerProperties
 import com.rarible.protocol.order.listener.metric.OrderExpiredMetric
 import com.rarible.protocol.order.listener.metric.OrderStartedMetric
@@ -18,6 +20,14 @@ import com.rarible.protocol.order.listener.metric.rarible.WrapperLooksrareMatchE
 import com.rarible.protocol.order.listener.metric.rarible.RaribleMatchEventMetric
 import com.rarible.protocol.order.listener.metric.rarible.WrapperSeaportMatchEventMetric
 import com.rarible.protocol.order.listener.metric.rarible.WrapperX2Y2MatchEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapCreatePairEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapDepositNftEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapInNftEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapOutNftEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateDeltaEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateFeeEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapUpdateSpotPriceEventMetric
+import com.rarible.protocol.order.listener.metrics.sudoswap.SudoSwapWithdrawNftEventMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelayLoadMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderDelaySaveMetric
 import com.rarible.protocol.order.listener.misc.OpenSeaOrderErrorMetric
@@ -216,4 +226,37 @@ class MetricsCountersConfiguration(
     @Bean
     fun x2y2MatchEventCounter(): RegisteredCounter =
         X2Y2OrderMatchEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    /** SudoSwap */
+    @Bean
+    fun sudoSwapCreatePairEventCounter(): RegisteredCounter =
+        SudoSwapCreatePairEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapUpdateDeltaEventCounter(): RegisteredCounter =
+        SudoSwapUpdateDeltaEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapDepositNftEventCounter(): RegisteredCounter =
+        SudoSwapDepositNftEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapUpdateFeeEventCounter(): RegisteredCounter =
+        SudoSwapUpdateFeeEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapInNftEventCounter(): RegisteredCounter =
+        SudoSwapInNftEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapOutNftEventCounter(): RegisteredCounter =
+        SudoSwapOutNftEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapUpdateSpotPriceEventCounter(): RegisteredCounter =
+        SudoSwapUpdateSpotPriceEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
+
+    @Bean
+    fun sudoSwapWithdrawNftEventCounter(): RegisteredCounter =
+        SudoSwapWithdrawNftEventMetric(properties.metricRootPath, properties.blockchain).bind(meterRegistry)
 }

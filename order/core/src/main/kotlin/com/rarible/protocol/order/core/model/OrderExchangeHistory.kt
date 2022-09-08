@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.model
 import com.rarible.core.common.nowMillis
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.ethereum.listener.log.domain.EventData
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Bytes
 import io.daonomic.rpc.domain.Word
@@ -11,8 +10,7 @@ import scalether.domain.Address
 import java.math.BigDecimal
 import java.time.Instant
 
-sealed class OrderExchangeHistory(var type: ItemType) : EventData {
-    abstract val hash: Word
+sealed class OrderExchangeHistory(var type: ItemType) : OrderHistory {
     abstract val make: Asset?
     abstract val take: Asset?
     abstract val date: Instant
@@ -105,35 +103,5 @@ data class OnChainOrder(
     val priceUsd: BigDecimal?,
     override val hash: Word,
     override val date: Instant = createdAt,
-    override val source: HistorySource = when (platform) {
-        Platform.RARIBLE -> HistorySource.RARIBLE
-        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
-        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
-        Platform.X2Y2 -> HistorySource.X2Y2
-        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
-        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
-    }
+    override val source: HistorySource = platform.toHistorySource()
 ) : OrderExchangeHistory(ItemType.ON_CHAIN_ORDER)
-
-data class OnChainAmmOrder(
-    override val maker: Address,
-    override val make: Asset,
-    override val take: Asset,
-    val createdAt: Instant,
-    val platform: Platform,
-    val data: OrderAmmData,
-    val inNft: List<EthUInt256>,
-    val price: EthUInt256,
-    val priceValue: BigDecimal,
-    val priceUsd: BigDecimal?,
-    override val hash: Word,
-    override val date: Instant = createdAt,
-    override val source: HistorySource = when (platform) {
-        Platform.RARIBLE -> HistorySource.RARIBLE
-        Platform.OPEN_SEA -> HistorySource.OPEN_SEA
-        Platform.CRYPTO_PUNKS -> HistorySource.CRYPTO_PUNKS
-        Platform.X2Y2 -> HistorySource.X2Y2
-        Platform.LOOKSRARE -> HistorySource.LOOKSRARE
-        Platform.SUDOSWAP -> HistorySource.SUDOSWAP
-    }
-) : OrderExchangeHistory(ItemType.AMM_ORDER)

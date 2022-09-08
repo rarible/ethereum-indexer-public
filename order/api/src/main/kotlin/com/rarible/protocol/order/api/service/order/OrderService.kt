@@ -20,15 +20,21 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc1155LazyAssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.ItemId
+import com.rarible.protocol.order.core.model.NftItemIds
 import com.rarible.protocol.order.core.model.Order
+import com.rarible.protocol.order.core.model.OrderAmmData
+import com.rarible.protocol.order.core.model.OrderType
 import com.rarible.protocol.order.core.model.order.OrderFilter
 import com.rarible.protocol.order.core.model.OrderVersion
 import com.rarible.protocol.order.core.model.Part
 import com.rarible.protocol.order.core.model.Platform
+import com.rarible.protocol.order.core.model.token
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.service.nft.NftItemApiService
+import com.rarible.protocol.order.core.service.nft.NftOwnershipApiService
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import org.springframework.stereotype.Component
@@ -40,6 +46,7 @@ class OrderService(
     private val orderRepository: OrderRepository,
     private val orderUpdateService: OrderUpdateService,
     private val nftItemApiService: NftItemApiService,
+    private val nftOwnershipApiService: NftOwnershipApiService,
     private val orderValidator: OrderValidator,
     private val priceUpdateService: PriceUpdateService,
     private val raribleOrderSaveMetric: RegisteredCounter
@@ -99,6 +106,23 @@ class OrderService(
 
     suspend fun findOrders(legacyFilter: OrderFilter, size: Int, continuation: String?): List<Order> {
         return orderRepository.search(legacyFilter.toQuery(continuation, size))
+    }
+
+    suspend fun getAmmOrderHoldItemIds(hash: Word, continuation: String?, size: Int?): NftItemIds {
+        val order = orderRepository.findById(hash) ?: throw EntityNotFoundApiException("Order", hash)
+        if (order.type != OrderType.AMM) throw OrderDataException("Order $hash type is not AMM")
+        if (order.data !is OrderAmmData) throw OrderDataException("Order $hash data is no AMM")
+        val pollAddress = (order.data as OrderAmmData).poolAddress
+        val collection = when {
+            order.make.type.nft -> order.make.type.token
+            order.take.type.nft -> order.take.type.token
+            else -> throw OrderDataException("AMM order $hash has not nft asset")
+        }
+        val result = nftOwnershipApiService.getOwnershipsByOwnerAndCollection(pollAddress, collection, continuation, size)
+        return NftItemIds(
+            ids = result.ownerships.map { ItemId(it.contract, it.tokenId).toString() },
+            continuation = result.continuation
+        )
     }
 
     private suspend fun checkLazyNftMake(maker: Address, asset: Asset): Asset {

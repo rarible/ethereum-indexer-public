@@ -1,6 +1,9 @@
 package com.rarible.protocol.order.api.service.order
 
 import com.rarible.contracts.test.erc1271.TestERC1271
+import com.rarible.core.test.data.randomAddress
+import com.rarible.core.test.data.randomInt
+import com.rarible.core.test.data.randomString
 import com.rarible.core.test.data.randomWord
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.domain.EthUInt256
@@ -8,10 +11,12 @@ import com.rarible.ethereum.nft.domain.EIP712DomainNftFactory
 import com.rarible.protocol.dto.Continuation
 import com.rarible.protocol.dto.Erc20DecimalBalanceDto
 import com.rarible.protocol.dto.LazyErc721Dto
+import com.rarible.protocol.dto.NftOwnershipsDto
 import com.rarible.protocol.dto.OrderActivityDto
 import com.rarible.protocol.dto.OrderIdsDto
 import com.rarible.protocol.dto.PartDto
 import com.rarible.protocol.dto.PlatformDto
+import com.rarible.protocol.nft.api.client.NftOwnershipControllerApi
 import com.rarible.protocol.order.api.data.createOrder
 import com.rarible.protocol.order.api.data.sign
 import com.rarible.protocol.order.api.exceptions.OrderUpdateException
@@ -21,6 +26,9 @@ import com.rarible.protocol.order.core.converters.model.LazyAssetTypeToLazyNftCo
 import com.rarible.protocol.order.core.data.createNftCollectionDto
 import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
+import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.data.randomAmmNftAsset
+import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -28,6 +36,7 @@ import com.rarible.protocol.order.core.model.Erc1155AssetType
 import com.rarible.protocol.order.core.model.Erc20AssetType
 import com.rarible.protocol.order.core.model.Erc721AssetType
 import com.rarible.protocol.order.core.model.Erc721LazyAssetType
+import com.rarible.protocol.order.core.model.ItemId
 import com.rarible.protocol.order.core.model.MakeBalanceState
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderDataLegacy
@@ -77,6 +86,10 @@ class OrderServiceIt : AbstractOrderIt() {
 
     @Autowired
     private lateinit var protocolOrderPublisher: ProtocolOrderPublisher
+
+    @Autowired
+    private lateinit var nftOwnershipControllerApi: NftOwnershipControllerApi
+
 
     @BeforeEach
     fun beforeEach() = runBlocking {
@@ -882,6 +895,34 @@ class OrderServiceIt : AbstractOrderIt() {
             ), 10, null
         )
         assertThat(orders2).hasSize(1)
+    }
+
+    @Test
+    fun `should get hold item ids for amm order`() = runBlocking<Unit> {
+        val continuation = randomString()
+        val size = randomInt()
+        val collection = randomAddress()
+        val poolAddress = randomAddress()
+        val ownership1 = createNftOwnershipDto()
+        val ownership2 = createNftOwnershipDto()
+        val expectedItemIds = listOf(
+            ItemId(ownership1.contract, ownership1.tokenId).toString(),
+            ItemId(ownership2.contract, ownership2.tokenId).toString(),
+        )
+        val expectedContinuation = randomString()
+        val ammOrder = createOrder().copy(
+            type = OrderType.AMM,
+            make = randomAmmNftAsset(collection),
+            data = createOrderSudoSwapAmmDataV1(poolAddress = poolAddress)
+        )
+        orderRepository.save(ammOrder)
+        every {
+            nftOwnershipControllerApi.getNftOwnershipsByOwner(poolAddress.prefixed(), collection.prefixed(), continuation, size)
+        } returns Mono.just(NftOwnershipsDto(continuation = expectedContinuation, ownerships = listOf(ownership1, ownership2)))
+
+        val result = orderService.getAmmOrderHoldItemIds(ammOrder.hash, continuation, size)
+        assertThat(result.ids).isEqualTo(expectedItemIds)
+        assertThat(result.continuation).isEqualTo(expectedContinuation)
     }
 
     private suspend fun saveRandomOrderWithMakeBalance(): Order {

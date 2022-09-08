@@ -286,6 +286,10 @@ fun OrderData.isMakeFillOrder(sell: Boolean): Boolean {
     return isRaribleMakeFill || isLooksrareFill
 }
 
+fun OrderData.isAmmOrder(): Boolean {
+    return this is OrderAmmData
+}
+
 fun OrderData.getMarketplaceMarker() = if (this is OrderRaribleV2DataV3) this.marketplaceMarker else null
 
 fun OrderData.getOriginFees(): List<Part>? {

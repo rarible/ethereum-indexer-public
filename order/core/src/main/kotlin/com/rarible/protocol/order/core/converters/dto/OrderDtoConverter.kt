@@ -34,10 +34,8 @@ import java.math.BigDecimal
 class OrderDtoConverter(
     private val priceNormalizer: PriceNormalizer,
     private val assetDtoConverter: AssetDtoConverter,
-    private val orderExchangeHistoryDtoConverter: OrderExchangeHistoryDtoConverter,
     private val properties: OrderIndexerProperties,
 ) {
-
     suspend fun convert(source: Order): OrderDto {
         val orderStatus = OrderStatusDtoConverter.convert(source.status)
         return when (source.type) {
@@ -59,7 +57,6 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
-                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderDataLegacyDto,
                 makePrice = source.makePrice,
@@ -90,7 +87,6 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
-                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderRaribleV2DataDto,
                 makePrice = source.makePrice,
@@ -121,7 +117,6 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
-                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderOpenSeaV1DataV1Dto,
                 makePrice = source.makePrice,
@@ -152,7 +147,6 @@ class OrderDtoConverter(
                 createdAt = source.createdAt,
                 lastUpdateAt = source.lastUpdateAt,
                 dbUpdatedAt = source.dbUpdatedAt,
-                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 hash = source.hash,
                 data = OrderDataDtoConverter.convert(source.data) as OrderSeaportDataV1Dto,
                 makePrice = source.makePrice,
@@ -192,7 +186,6 @@ class OrderDtoConverter(
                 takePrice = source.takePrice,
                 makePriceUsd = source.makePriceUsd,
                 takePriceUsd = source.takePriceUsd,
-                pending = source.pending.map { orderExchangeHistoryDtoConverter.convert(it) },
                 status = orderStatus,
                 data = OrderDataDtoConverter.convert(source.data) as OrderCryptoPunksDataDto
             )

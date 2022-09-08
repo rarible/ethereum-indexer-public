@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.data
 
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Word
@@ -10,14 +11,17 @@ import java.math.BigInteger
 
 fun log(
     topics: List<Word> = listOf(Word.apply(randomWord())),
-    data: String = "0x"
+    data: String = "0x",
+    logIndex: Long = 0,
+    transactionHash: Word = Word.apply(randomWord()),
+    address: Address = randomAddress()
 ) = Log(
-    BigInteger.ONE, // logIndex
+    BigInteger.valueOf(logIndex), // logIndex
     BigInteger.TEN, // transactionIndex
-    Word.apply(ByteArray(32)), // transactionHash
+    transactionHash, // transactionHash
     Word.apply(ByteArray(32)), // blockHash
     BigInteger.ZERO, // blockNumber
-    Address.ZERO(), // address
+    address, // address
     Binary.apply( // data
         data
     ),

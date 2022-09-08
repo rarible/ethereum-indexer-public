@@ -108,9 +108,25 @@ class OwnershipControllerFt : SpringContainerBaseTest() {
         ownershipRepository.save(ownership).awaitFirst()
         ownershipRepository.save(deletedOwnership).awaitFirst()
 
-        val ownershipDto = nftOwnershipApiClient.getNftOwnershipsByOwner(ownership.owner.prefixed(), null, null).awaitFirst()
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipsByOwner(ownership.owner.prefixed(), null, null, null).awaitFirst()
         assertThat(ownershipDto.ownerships).hasSize(1)
         assertThat(ownershipDto.ownerships[0].id).isEqualTo(ownership.id.decimalStringValue)
+        assertThat(ownershipDto.continuation).isNull()
+    }
+
+    @Test
+    fun `should get ownership by owner and collection`() = runBlocking<Unit> {
+        val owner = randomAddress()
+        val collection = randomAddress()
+        val ownership1 = createOwnership().copy(owner = owner, token = collection)
+        val ownership2 = createOwnership().copy(owner = owner, token = collection)
+        val ownership3 = createOwnership().copy(owner = owner)
+        val ownership4 = createOwnership().copy(token = collection)
+        listOf(ownership1, ownership2, ownership3, ownership4).forEach {
+            ownershipRepository.save(it).awaitFirst()
+        }
+        val ownershipDto = nftOwnershipApiClient.getNftOwnershipsByOwner(owner.prefixed(), collection.prefixed(), null, null).awaitFirst()
+        assertThat(ownershipDto.ownerships.map { it.id }).containsExactlyInAnyOrder(ownership1.id.decimalStringValue, ownership2.id.decimalStringValue)
         assertThat(ownershipDto.continuation).isNull()
     }
 

@@ -1,14 +1,25 @@
 package com.rarible.protocol.order.listener.service.sudoswap
 
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.order.core.misc.methodSignatureId
 import com.rarible.protocol.order.core.model.HeadTransaction
+import com.rarible.protocol.order.core.model.SimpleTraceResult
+import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
+import com.rarible.protocol.order.core.model.SudoSwapNftDepositDetail
+import com.rarible.protocol.order.core.model.SudoSwapNftWithdrawDetail
+import com.rarible.protocol.order.core.model.SudoSwapOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.model.SudoSwapTargetInNftDetail
+import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
 import com.rarible.protocol.order.core.trace.TraceCallService
+import io.daonomic.rpc.domain.Binary
+import io.daonomic.rpc.domain.Word
 import org.springframework.stereotype.Component
+import scalether.domain.Address
 import scalether.domain.response.Transaction
 import java.math.BigInteger
 
@@ -16,10 +27,14 @@ import java.math.BigInteger
 class SudoSwapEventConverter(
     private val traceCallService: TraceCallService,
 ) {
-    suspend fun getTransactionDetails(transient: Transaction): List<SudoSwapPairDetail> {
-        val inputs = traceCallService.findAllRequiredCalls(
-            headTransaction = HeadTransaction.from(transient),
-            to = transient.to(),
+    fun getPoolHash(pollAddress: Address): Word {
+        return Word.apply(EMPTY_PREFIX_BINARY.add(pollAddress))
+    }
+
+    suspend fun getCreatePairDetails(poolAddress: Address, transient: Transaction): List<SudoSwapPairDetail> {
+        val inputs = findAllRequiredCalls(
+            transient,
+            poolAddress,
             LSSVMPairFactoryV1.createPairETHSignature().id(),
             LSSVMPairFactoryV1.createPairERC20Signature().id()
         )
@@ -59,6 +74,95 @@ class SudoSwapEventConverter(
         }
     }
 
+    suspend fun getSwapOutNftDetails(poolAddress: Address, transient: Transaction): List<SudoSwapOutNftDetail> {
+        val inputs = findAllRequiredCalls(
+            transient,
+            poolAddress,
+            LSSVMPairV1.swapTokenForSpecificNFTsSignature().id(),
+            LSSVMPairV1.swapTokenForAnyNFTsSignature().id()
+        )
+        return inputs.mapNotNull {
+            when (it.input.methodSignatureId()) {
+                LSSVMPairV1.swapTokenForAnyNFTsSignature().id() -> {
+                    val decoded = LSSVMPairV1.swapTokenForAnyNFTsSignature().`in`().decode(it.input, 4)
+                    SudoSwapAnyOutNftDetail(
+                        numberNft = decoded.value()._1(),
+                        maxExpectedTokenInput = decoded.value()._2(),
+                        nftRecipient = decoded.value()._3(),
+                    )
+                }
+                LSSVMPairV1.swapTokenForSpecificNFTsSignature().id() -> {
+                    val decoded = LSSVMPairV1.swapTokenForSpecificNFTsSignature().`in`().decode(it.input, 4)
+                    SudoSwapTargetOutNftDetail(
+                        nft = decoded.value()._1().toList(),
+                        maxExpectedTokenInput = decoded.value()._2(),
+                        nftRecipient = decoded.value()._3(),
+                    )
+                }
+                else -> null
+            }
+        }
+    }
+
+    suspend fun getSwapInNftDetails(poolAddress: Address, transient: Transaction): List<SudoSwapTargetInNftDetail> {
+        val inputs = findAllRequiredCalls(
+            transient,
+            poolAddress,
+            LSSVMPairV1.swapNFTsForTokenSignature().id()
+        )
+        return inputs.map {
+            val decoded = LSSVMPairV1.swapNFTsForTokenSignature().`in`().decode(it.input, 4)
+            SudoSwapTargetInNftDetail(
+                tokenIds = decoded.value()._1().toList(),
+                minExpectedTokenOutput = decoded.value()._2(),
+                tokenRecipient = decoded.value()._3(),
+            )
+        }
+    }
+
+    suspend fun getNftWithdrawDetails(poolAddress: Address, transient: Transaction): List<SudoSwapNftWithdrawDetail> {
+        val inputs = findAllRequiredCalls(
+            transient,
+            poolAddress,
+            LSSVMPairV1.withdrawERC721Signature().id()
+        )
+        return inputs.map {
+            val decoded = LSSVMPairV1.withdrawERC721Signature().`in`().decode(it.input, 4)
+            SudoSwapNftWithdrawDetail(
+                collection = decoded.value()._1(),
+                nft = decoded.value()._2().toList()
+            )
+        }
+    }
+
+    suspend fun getNftDepositDetails(poolAddress: Address, transient: Transaction): List<SudoSwapNftDepositDetail> {
+        val inputs = findAllRequiredCalls(
+            transient,
+            poolAddress,
+            LSSVMPairFactoryV1.depositNFTsSignature().id()
+        )
+        return inputs.map {
+            val decoded = LSSVMPairFactoryV1.depositNFTsSignature().`in`().decode(it.input, 4)
+            SudoSwapNftDepositDetail(
+                collection = decoded.value()._1(),
+                tokenIds = decoded.value()._2().toList(),
+                pollAddress = decoded.value()._3()
+            )
+        }
+    }
+
+    private suspend fun findAllRequiredCalls(
+        transient: Transaction,
+        to: Address,
+        vararg ids: Binary
+    ): List<SimpleTraceResult> {
+        return traceCallService.findAllRequiredCalls(
+            headTransaction = HeadTransaction.from(transient),
+            to = to,
+            ids = ids
+        )
+    }
+
     private fun convert(value: BigInteger): SudoSwapPoolType {
         return when (value.intValueExact()) {
             0 -> SudoSwapPoolType.TOKEN
@@ -66,6 +170,10 @@ class SudoSwapEventConverter(
             2 -> SudoSwapPoolType.TRADE
             else -> throw IllegalArgumentException("Unrecognized pool type $value")
         }
+    }
+
+    private companion object {
+        val EMPTY_PREFIX_BINARY: Binary = Binary.apply(ByteArray(12))
     }
 }
 

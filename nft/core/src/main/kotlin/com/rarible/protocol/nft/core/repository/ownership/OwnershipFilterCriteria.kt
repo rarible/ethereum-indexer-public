@@ -26,7 +26,7 @@ object OwnershipFilterCriteria {
             is OwnershipFilterAll -> all()
             is OwnershipFilterByCollection -> byCollection(collection)
             is OwnershipFilterByCreator -> byCreator(creator)
-            is OwnershipFilterByOwner -> byOwner(owner)
+            is OwnershipFilterByOwner -> byOwner(owner, collection)
             is OwnershipFilterByItem -> byItem(contract, EthUInt256(tokenId))
         } showDeleted showDeleted scrollTo continuation
 
@@ -40,8 +40,14 @@ object OwnershipFilterCriteria {
 
     private fun all() = Criteria()
 
-    private fun byOwner(user: Address): Criteria =
-        Criteria(Ownership::owner.name).`is`(user)
+    private fun byOwner(user: Address, collection: Address?): Criteria {
+        return Criteria().andOperator(
+            listOfNotNull(
+                Ownership::owner isEqualTo user,
+                collection?.let { Ownership::token isEqualTo collection }
+            )
+        )
+    }
 
     private fun byItem(token: Address, tokenId: EthUInt256): Criteria =
         Criteria().andOperator(

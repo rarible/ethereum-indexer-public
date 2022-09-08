@@ -6,11 +6,9 @@ import com.rarible.protocol.contracts.exchange.crypto.punks.PunkBoughtEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkNoLongerForSaleEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkOfferedEvent
 import com.rarible.protocol.contracts.exchange.crypto.punks.PunkTransferEvent
-import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelAllOrdersEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.CancelMultipleOrdersEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerAskEvent
 import com.rarible.protocol.contracts.exchange.looksrare.v1.TakerBidEvent
-import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEvent as MatchEventLegacy
 import com.rarible.protocol.contracts.exchange.v2.rev3.MatchEvent
 import com.rarible.protocol.contracts.exchange.v2.events.MatchEventDeprecated
@@ -37,11 +35,6 @@ enum class ItemType(
             UpsertOrderEvent.id(),
             PunkOfferedEvent.id(),
             PunkBidEnteredEvent.id()
-        )
-    ),
-    AMM_ORDER(
-        topic = setOf(
-            NewPairEvent.id(),
         )
     ),
     ORDER_SIDE_MATCH(

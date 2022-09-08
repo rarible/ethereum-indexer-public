@@ -12,7 +12,6 @@ import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -450,7 +449,30 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(result.status).isEqualTo(OrderStatus.FILLED)
     }
 
-    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
+    @Test
+    fun `should create amm sell order from OnChainAmmOrder`() = runBlocking<Unit> {
+        val onChainAmmOrder = randomSellOnChainAmmOrder()
+        prepareStorage(onChainAmmOrder)
+        val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
+        assertThat(result.hash).isEqualTo(onChainAmmOrder.hash)
+        assertThat(result.fill).isEqualTo(EthUInt256.ZERO)
+        assertThat(result.status).isEqualTo(OrderStatus.ACTIVE)
+        assertThat(result.makeStock).isEqualTo(onChainAmmOrder.make.value)
+    }
+
+    @Test
+    fun `should remove amm order if history reverted`() = runBlocking<Unit> {
+        val onChainAmmOrder = randomSellOnChainAmmOrder()
+        orderRepository.save(createOrder().copy(hash = onChainAmmOrder.hash))
+        prepareStorage(LogEventStatus.REVERTED, onChainAmmOrder)
+
+        val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
+
+        assertThat(result.hash).isEqualTo(OrderReduceService.EMPTY_ORDER_HASH)
+        assertThat(orderRepository.findById(onChainAmmOrder.hash)).isNull()
+    }
+
+    private suspend fun prepareStorage(status: LogEventStatus, vararg histories: OrderExchangeHistory) {
         histories.forEachIndexed { index, history ->
             exchangeHistoryRepository.save(
                 LogEvent(
@@ -458,7 +480,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     address = AddressFactory.create(),
                     topic = Word.apply(randomWord()),
                     transactionHash = Word.apply(randomWord()),
-                    status = LogEventStatus.CONFIRMED,
+                    status = status,
                     blockNumber = 1,
                     logIndex = 0,
                     minorLogIndex = 0,
@@ -468,6 +490,34 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 )
             ).awaitFirst()
         }
+    }
+
+    private suspend fun prepareStorage(status: LogEventStatus, vararg histories: PoolHistory) {
+        histories.forEachIndexed { index, history ->
+            poolHistoryRepository.save(
+                LogEvent(
+                    data = history,
+                    address = AddressFactory.create(),
+                    topic = Word.apply(randomWord()),
+                    transactionHash = Word.apply(randomWord()),
+                    status = status,
+                    blockNumber = 1,
+                    logIndex = 0,
+                    minorLogIndex = 0,
+                    index = index,
+                    createdAt = history.date,
+                    updatedAt = history.date
+                )
+            ).awaitFirst()
+        }
+    }
+
+    private suspend fun prepareStorage(vararg histories: OrderExchangeHistory) {
+        prepareStorage(LogEventStatus.CONFIRMED, *histories)
+    }
+
+    private suspend fun prepareStorage(vararg histories: PoolHistory) {
+        prepareStorage(LogEventStatus.CONFIRMED, *histories)
     }
 
     private suspend fun prepareStorage(vararg orderVersions: OrderVersion) {
