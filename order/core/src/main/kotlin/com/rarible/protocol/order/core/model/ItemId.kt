@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.model
 import scalether.domain.Address
 import java.math.BigInteger
 
-class ItemId(
+data class ItemId(
     val contract: Address,
     val tokenId: BigInteger
 ) {

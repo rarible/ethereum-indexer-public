@@ -28,7 +28,6 @@ import com.rarible.protocol.order.core.data.createNftItemDto
 import com.rarible.protocol.order.core.data.createNftOwnershipDto
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
-import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.misc.ownershipId
 import com.rarible.protocol.order.core.misc.platform
 import com.rarible.protocol.order.core.model.Asset
@@ -905,8 +904,8 @@ class OrderServiceIt : AbstractOrderIt() {
         val ownership1 = createNftOwnershipDto()
         val ownership2 = createNftOwnershipDto()
         val expectedItemIds = listOf(
-            ItemId(ownership1.contract, ownership1.tokenId).toString(),
-            ItemId(ownership2.contract, ownership2.tokenId).toString(),
+            ItemId(ownership1.contract, ownership1.tokenId),
+            ItemId(ownership2.contract, ownership2.tokenId),
         )
         val expectedContinuation = randomString()
         val ammOrder = createOrder().copy(
