@@ -15,6 +15,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.delay
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -37,6 +38,7 @@ import java.time.Duration
 import java.util.*
 import kotlin.io.path.inputStream
 
+@Disabled("This is manual test")
 class SudoSwapTestnetTest {
     private val properties = Properties().apply {
         load(Paths.get("src/test/resources/local.properties").inputStream())
