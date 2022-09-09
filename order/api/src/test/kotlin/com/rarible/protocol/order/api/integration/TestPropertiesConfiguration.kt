@@ -24,7 +24,9 @@ import org.springframework.context.annotation.Primary
 import org.springframework.web.client.RestTemplate
 import reactor.core.publisher.Mono
 import scalether.core.MonoEthereum
+import scalether.domain.Address
 import scalether.transaction.MonoTransactionPoller
+import scalether.transaction.ReadOnlyMonoTransactionSender
 import java.math.BigDecimal
 
 @TestConfiguration
@@ -33,6 +35,11 @@ class TestPropertiesConfiguration {
     @Bean
     fun testEthereum(@Value("\${parityUrls}") url: String): MonoEthereum {
         return MonoEthereum(WebClientTransport(url, MonoEthereum.mapper(), 10000, 10000))
+    }
+
+    @Bean
+    fun testReadOnlyMonoTransactionSender(ethereum: MonoEthereum): ReadOnlyMonoTransactionSender {
+        return ReadOnlyMonoTransactionSender(ethereum, Address.ZERO())
     }
 
     @Bean

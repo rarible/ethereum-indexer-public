@@ -10,11 +10,10 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
 import com.rarible.protocol.order.core.model.SudoSwapAnyOutNftDetail
 import com.rarible.protocol.order.core.model.SudoSwapTargetOutNftDetail
-import com.rarible.protocol.order.core.model.token
-import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -33,8 +32,8 @@ import scalether.domain.response.Transaction
 class SudoSwapOutNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
     private val nftTransferDetector: SudoSwapNftTransferDetector,
-    private val orderRepository: OrderRepository,
-    private val sudoSwapOutNftEventCounter: RegisteredCounter
+    private val sudoSwapOutNftEventCounter: RegisteredCounter,
+    private val sudoSwapPoolCollectionProvider: SudoSwapPoolCollectionProvider
 ): LogEventDescriptor<PoolTargetNftOut> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -53,25 +52,21 @@ class SudoSwapOutNftPairDescriptor(
             it[index]
         }
         val hash = sudoSwapEventConverter.getPoolHash(log.address())
+        val collection = sudoSwapPoolCollectionProvider.getPoolCollection(log.address())
         return when (details) {
             is SudoSwapAnyOutNftDetail -> {
                 logger.info("Detected swapTokenForAnyNFTs method call")
-                val order = orderRepository.findById(hash)
-                    ?: throw IllegalStateException("Can't find pool order $hash, nftOutLog=$log")
-                val nftCollection =
-                    order.make.type.token.takeUnless { it == Address.ZERO() }
-                    ?: order.take.type.token.takeUnless { it == Address.ZERO() }
-                    ?: throw IllegalStateException("Can't find pool $hash nftCollection")
 
                 val tokenIds = nftTransferDetector.detectNftTransfers(
                     sudoSwapNftOutPairLog = log,
-                    nftCollection = nftCollection
+                    nftCollection = collection
                 )
                 require(tokenIds.size == details.numberNft.toInt()) {
                     "Found tokenIds amount didn't much event nft out number"
                 }
                 PoolTargetNftOut(
                     hash = hash,
+                    collection = collection,
                     tokenIds = tokenIds.map { EthUInt256.of(it) },
                     recipient = details.nftRecipient,
                     date = date,
@@ -81,6 +76,7 @@ class SudoSwapOutNftPairDescriptor(
             is SudoSwapTargetOutNftDetail -> {
                 PoolTargetNftOut(
                     hash = hash,
+                    collection = collection,
                     tokenIds = details.nft.map { EthUInt256.of(it) },
                     recipient = details.nftRecipient,
                     date = date,

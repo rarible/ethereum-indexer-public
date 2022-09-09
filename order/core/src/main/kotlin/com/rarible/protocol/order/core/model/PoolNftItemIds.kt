@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.model
 
-data class NftItemIds(
-    val ids: List<String>,
+data class PoolNftItemIds(
+    val itemIds: List<ItemId>,
     val continuation: String?
 )

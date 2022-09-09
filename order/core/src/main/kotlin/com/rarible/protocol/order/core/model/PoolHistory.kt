@@ -12,6 +12,15 @@ sealed class PoolHistory(var type: PoolHistoryType) : OrderHistory {
     abstract val source: HistorySource
 }
 
+sealed class PoolNftChange(type: PoolHistoryType) : PoolHistory(type) {
+    abstract val collection: Address
+    abstract val tokenIds: List<EthUInt256>
+}
+
+sealed class PoolNftOut(type: PoolHistoryType) : PoolNftChange(type)
+sealed class PoolNftIn(type: PoolHistoryType) : PoolNftChange(type)
+sealed class PoolDataUpdate(type: PoolHistoryType) : PoolHistory(type)
+
 data class OnChainAmmOrder(
     override val hash: Word,
     override val date: Instant,
@@ -29,12 +38,9 @@ data class OnChainAmmOrder(
     fun isSell() = isBid().not()
 }
 
-sealed class PoolNftOut(type: PoolHistoryType) : PoolHistory(type) {
-    abstract val tokenIds: List<EthUInt256>
-}
-
 data class PoolTargetNftOut(
     override val hash: Word,
+    override val collection: Address,
     override val tokenIds: List<EthUInt256>,
     override val date: Instant,
     override val source: HistorySource,
@@ -43,20 +49,16 @@ data class PoolTargetNftOut(
 
 data class PoolNftWithdraw(
     override val hash: Word,
+    override val collection: Address,
     override val tokenIds: List<EthUInt256>,
     override val date: Instant,
     override val source: HistorySource,
-    val collection: Address,
 ) : PoolNftOut(PoolHistoryType.POOL_NFT_WITHDRAW)
-
-
-sealed class PoolNftIn(type: PoolHistoryType) : PoolHistory(type) {
-    abstract val tokenIds: List<EthUInt256>
-}
 
 data class PoolTargetNftIn(
     override val hash: Word,
     override val tokenIds: List<EthUInt256>,
+    override val collection: Address,
     override val date: Instant,
     override val source: HistorySource,
     val tokenRecipient: Address,
@@ -64,13 +66,11 @@ data class PoolTargetNftIn(
 
 data class PoolNftDeposit(
     override val hash: Word,
+    override val collection: Address,
     override val tokenIds: List<EthUInt256>,
     override val date: Instant,
     override val source: HistorySource,
-    val collection: Address,
 ) : PoolNftIn(PoolHistoryType.POOL_NFT_DEPOSIT)
-
-sealed class PoolDataUpdate(type: PoolHistoryType) : PoolHistory(type)
 
 data class PoolSpotPriceUpdate(
     override val hash: Word,

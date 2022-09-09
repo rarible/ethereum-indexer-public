@@ -5,3 +5,4 @@ target
 cicd/**/Chart.lock
 cicd/**/charts
 cicd/**/resources
+local.properties

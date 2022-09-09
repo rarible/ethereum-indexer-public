@@ -10,6 +10,7 @@ import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
+import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
 import org.reactivestreams.Publisher
@@ -26,7 +27,8 @@ import scalether.domain.response.Transaction
 @CaptureSpan(type = SpanType.EVENT)
 class SudoSwapInNftPairDescriptor(
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val sudoSwapInNftEventCounter: RegisteredCounter
+    private val sudoSwapInNftEventCounter: RegisteredCounter,
+    private val sudoSwapPoolCollectionProvider: SudoSwapPoolCollectionProvider
 ): LogEventDescriptor<PoolTargetNftIn> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
@@ -46,6 +48,7 @@ class SudoSwapInNftPairDescriptor(
         }
         return PoolTargetNftIn(
             hash = sudoSwapEventConverter.getPoolHash(log.address()),
+            collection = sudoSwapPoolCollectionProvider.getPoolCollection(log.address()),
             tokenIds = details.tokenIds.map { EthUInt256.of(it) },
             tokenRecipient = details.tokenRecipient,
             date = date,
