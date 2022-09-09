@@ -1,8 +1,10 @@
 package com.rarible.protocol.order.listener.service.sudoswap.e2e
 
 import com.rarible.contracts.test.erc721.TestERC721
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
+import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
 import io.daonomic.rpc.domain.Response
@@ -11,6 +13,7 @@ import io.daonomic.rpc.mono.WebClientTransport
 import io.netty.channel.ChannelException
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.delay
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.slf4j.Logger
@@ -27,6 +30,7 @@ import scalether.transaction.MonoSigningTransactionSender
 import scalether.transaction.MonoSimpleNonceProvider
 import scalether.transaction.MonoTransactionPoller
 import java.io.IOException
+import java.math.BigDecimal
 import java.math.BigInteger
 import java.nio.file.Paths
 import java.time.Duration
@@ -40,6 +44,8 @@ class SudoSwapTestnetTest {
     private val ethereumUri = properties["TESTNET_HOST"].toString()
     private val privateKey = Binary.apply(properties["PRIVATE_KEY"].toString())
     private val sudoswapPairFactory = Address.apply(Binary.apply(properties["SUDOSWAP_PAIR_FACTORY"].toString()))
+    private val sudoswapExponentialCurve = Address.apply(Binary.apply(properties["SUDOSWAP_EXPONENTIAL_CURVE"].toString()))
+    private val sudoswapLinerCurve = Address.apply(Binary.apply(properties["SUDOSWAP_LINER_CURVE"].toString()))
 
     private val ethereum = createEthereum(ethereumUri)
     private val poller = MonoTransactionPoller(ethereum)
@@ -52,14 +58,25 @@ class SudoSwapTestnetTest {
     ) { Mono.just(BigInteger.valueOf(800000)) }
 
     @Test
-    fun `should create trade pool`() = runBlocking<Unit> {
+    fun `should create trade pool with liner curve`() = runBlocking<Unit> {
         val token = createToken(userSender, poller)
         logger.info("Create erc721 token ${token.address()}")
 
-        val result = TestERC721(Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"), userSender)
-            .mint(userSender.from(), EthUInt256.of(28).value, "test")
+        val tokenId1 = BigInteger.valueOf(1)
+        val tokenId2 = BigInteger.valueOf(2)
+
+        token
+            .mint(userSender.from(), tokenId1, "test#$tokenId1")
             .execute()
             .verifySuccess()
+
+        token
+            .mint(userSender.from(), tokenId2, "test#$tokenId2")
+            .execute()
+            .verifySuccess()
+
+        token.approve(sudoswapPairFactory, tokenId1).execute().verifySuccess()
+        token.approve(sudoswapPairFactory, tokenId2).execute().verifySuccess()
 
         val factory = LSSVMPairFactoryV1(sudoswapPairFactory, userSender)
         /**
@@ -74,6 +91,27 @@ class SudoSwapTestnetTest {
          *  _initialNFTIDs: Array[BigInteger]
          * )
          */
+        val result = factory.createPairETH(
+            token.address(),
+            sudoswapLinerCurve,
+            userSender.from(),
+            SudoSwapPoolType.NFT.value.toBigInteger(),
+            BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger(),
+            BigInteger.ZERO,
+            BigDecimal.valueOf(0.5).multiply(decimal).toBigInteger(),
+            arrayOf(tokenId1)
+        ).execute().verifySuccess()
+
+        val logs = result.logs()
+        val event = logs.find { it.topics().head() == NewPairEvent.id() }.get()
+        val poolAddress = NewPairEvent.apply(event).poolAddress()
+        logger.info("Pool $poolAddress was created")
+
+        factory.depositNFTs(
+            token.address(),
+            arrayOf(tokenId2),
+            poolAddress
+        ).execute().awaitFirst()
     }
 
     private suspend fun createToken(
@@ -113,7 +151,15 @@ class SudoSwapTestnetTest {
         val value = this.awaitFirst()
         logger.info("TxHash: $value")
         require(value != null) { "txHash is null" }
-        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
+
+        var attempts = 0
+        while (attempts < 20) {
+            val result = ethereum.ethGetTransactionReceipt(value).awaitFirst()
+            if (result.isDefined) return result.get()
+            delay(Duration.ofMillis(500))
+            attempts += 1
+        }
+        throw IllegalStateException("Can't geet Tx $value")
     }
 
     private suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
@@ -129,6 +175,7 @@ class SudoSwapTestnetTest {
     }
 
     companion object {
+        val decimal: BigDecimal = BigDecimal.valueOf(10).pow(18)
         val logger: Logger = LoggerFactory.getLogger(SudoSwapTestnetTest::class.java)
     }
 }
