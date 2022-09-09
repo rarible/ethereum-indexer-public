@@ -1,6 +1,10 @@
 common:
   chain-id: 3
   node-type: GETH
+  sudo-swap-addresses:
+    pair-factory-v1: "0x6c8ba1dafb22eae61e9cd3da724cbc3d164c27b9"
+    exponential-curve-v1: "0xf21A52a9eBeb480267eBc4C8d14Cb1d59889A392"
+    linear-curve-v1: "0x7aa8EC1028D36883bb3a94D2a04B5cf0D8231d26"
 rarible:
   ethereum:
     max-frame-size: 10485760
