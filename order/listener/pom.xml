@@ -147,6 +147,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.rarible.protocol.ethereum</groupId>
+            <artifactId>gateway-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>com.rarible.ethereum</groupId>
             <artifactId>rarible-ethereum-contracts-test</artifactId>
             <scope>test</scope>
