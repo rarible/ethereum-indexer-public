@@ -28,11 +28,13 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val tokenId2 = mint(userSender, token)
         val tokenId3 = mint(userSender, token)
         val tokenId4 = mint(userSender, token)
+        val tokenId5 = mint(userSender, token)
 
         token.approve(sudoswapPairFactory, tokenId1).execute().verifySuccess()
         token.approve(sudoswapPairFactory, tokenId2).execute().verifySuccess()
         token.approve(sudoswapPairFactory, tokenId3).execute().verifySuccess()
         token.approve(sudoswapPairFactory, tokenId4).execute().verifySuccess()
+        token.approve(sudoswapPairFactory, tokenId5).execute().verifySuccess()
 
         val initialNFTIDs = arrayOf(tokenId1, tokenId2)
         val delta = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger()
@@ -94,13 +96,46 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             Address.ZERO()
         ).withSender(userSender).withValue(BigDecimal.valueOf(1).multiply(decimal).toBigInteger()).execute().verifySuccess()
 
-        val expectedNextSpotPrice = BigDecimal("0.700000000000000000")
-
+        var expectedNextSpotPrice = BigDecimal("0.700000000000000000")
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(holdNFTIDs.size - 1)
             assertThat(expectedNextSpotPrice.multiply(decimal).toBigInteger()).isEqualTo(pair.spotPrice().call().awaitFirst())
             assertThat(it.makePrice).isEqualTo(expectedNextSpotPrice)
         }
+        val actualHoldIds = pair.allHeldIds.call().awaitFirst().toMutableList()
+        checkHoldItems(orderHash, token.address(), actualHoldIds.toList())
+
+        val toWithdraw = actualHoldIds.first()
+        val toSell = actualHoldIds - toWithdraw
+
+        pair.withdrawERC721(
+            token.address(),
+            arrayOf(toWithdraw)
+        ).execute().verifySuccess()
+
+        expectedNextSpotPrice = BigDecimal("0.700000000000000000")
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(holdNFTIDs.size - 2)
+            assertThat(expectedNextSpotPrice.multiply(decimal).toBigInteger()).isEqualTo(pair.spotPrice().call().awaitFirst())
+            assertThat(it.makePrice).isEqualTo(expectedNextSpotPrice)
+        }
+        checkHoldItems(orderHash, token.address(), toSell)
+
+        pair.swapTokenForSpecificNFTs(
+            toSell.toTypedArray(),
+            BigDecimal.valueOf(5).multiply(decimal).toBigInteger(),
+            userSender.from(),
+            false,
+            Address.ZERO()
+        ).withSender(userSender).withValue(BigDecimal.valueOf(5).multiply(decimal).toBigInteger()).execute().verifySuccess()
+
+        expectedNextSpotPrice = BigDecimal("1.100000000000000000")
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(BigInteger.ZERO)
+            assertThat(expectedNextSpotPrice.multiply(decimal).toBigInteger()).isEqualTo(pair.spotPrice().call().awaitFirst())
+            assertThat(it.makePrice).isEqualTo(expectedNextSpotPrice)
+        }
+        checkHoldItems(orderHash, token.address(), emptyList())
     }
 
     private suspend fun checkHoldItems(orderHash: Word, collection: Address, tokenIds: List<BigInteger>) {
