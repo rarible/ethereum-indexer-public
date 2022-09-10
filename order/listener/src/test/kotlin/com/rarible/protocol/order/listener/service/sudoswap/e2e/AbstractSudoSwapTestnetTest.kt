@@ -1,13 +1,17 @@
 package com.rarible.protocol.order.listener.service.sudoswap.e2e
 
 import com.rarible.contracts.test.erc721.TestERC721
+import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigInt
 import com.rarible.core.test.wait.Wait
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
+import com.rarible.protocol.contracts.exchange.sudoswap.v1.pair.LSSVMPairV1
 import com.rarible.protocol.dto.AmmOrderDto
-import com.rarible.protocol.dto.OrderDto
 import com.rarible.protocol.gateway.api.ApiClient
 import com.rarible.protocol.gateway.api.client.OrderControllerApi
+import com.rarible.protocol.order.core.model.ItemId
+import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
@@ -21,7 +25,6 @@ import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.time.delay
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.fail
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.web.reactive.function.client.WebClientException
@@ -49,15 +52,15 @@ abstract class AbstractSudoSwapTestnetTest {
     }
     private val ethereumUri = properties["TESTNET_HOST"].toString()
     private val privateKey = Binary.apply(properties["PRIVATE_KEY"].toString())
-    protected val sudoswapPairFactory = Address.apply(Binary.apply(properties["SUDOSWAP_PAIR_FACTORY"].toString()))
-    protected val sudoswapExponentialCurve = Address.apply(Binary.apply(properties["SUDOSWAP_EXPONENTIAL_CURVE"].toString()))
-    protected val sudoswapLinerCurve = Address.apply(Binary.apply(properties["SUDOSWAP_LINER_CURVE"].toString()))
+    protected val sudoswapPairFactory: Address = Address.apply(Binary.apply(properties["SUDOSWAP_PAIR_FACTORY"].toString()))
+    protected val sudoswapExponentialCurve: Address = Address.apply(Binary.apply(properties["SUDOSWAP_EXPONENTIAL_CURVE"].toString()))
+    protected val sudoswapLinerCurve: Address = Address.apply(Binary.apply(properties["SUDOSWAP_LINER_CURVE"].toString()))
     protected val sudoSwapEventConverter = SudoSwapEventConverter(mockk())
 
     protected val ethereum = createEthereum(ethereumUri)
     protected val poller = MonoTransactionPoller(ethereum)
 
-    protected val ethereumOrderApi = createEthereumOrderApi(properties["ETHEREUM_API_HOST"].toString())
+    private val ethereumOrderApi = createEthereumOrderApi(properties["ETHEREUM_API_HOST"].toString())
 
     protected val userSender = MonoSigningTransactionSender(
         ethereum,
@@ -98,7 +101,7 @@ abstract class AbstractSudoSwapTestnetTest {
         return TestERC721.deployAndWait(sender, poller, "ipfs:/", "test").awaitFirst()
     }
 
-    protected suspend fun mint(
+    private suspend fun mint(
         sender: MonoSigningTransactionSender,
         token: TestERC721,
         tokenId: BigInteger = randomBigInt()
@@ -111,13 +114,26 @@ abstract class AbstractSudoSwapTestnetTest {
         return tokenId
     }
 
-    protected fun getPoolAddressFromCreateLog(receipt: TransactionReceipt): Address {
+    private fun getPoolAddressFromCreateLog(receipt: TransactionReceipt): Address {
         val logs = receipt.logs()
         val event = logs.find { it.topics().head() == NewPairEvent.id() }.get()
         return NewPairEvent.apply(event).poolAddress()
     }
 
-    protected suspend fun getAmmOrder(hash: Word): AmmOrderDto {
+    protected suspend fun mintAndApprove(
+        mintCount: Int,
+        sender: MonoSigningTransactionSender,
+        token: TestERC721,
+        approveTo: Address
+    ): List<BigInteger> {
+        return (1..mintCount).map {
+            val tokenId = mint(sender, token)
+            token.approve(approveTo, tokenId).execute().verifySuccess()
+            tokenId
+        }
+    }
+
+    private suspend fun getAmmOrder(hash: Word): AmmOrderDto {
         val amm = Wait.waitFor(Duration.ofSeconds(20)) {
             try {
                 val order = ethereumOrderApi.getOrderByHash(hash.prefixed()).awaitFirstOrNull()
@@ -135,6 +151,101 @@ abstract class AbstractSudoSwapTestnetTest {
         Wait.waitAssert(Duration.ofSeconds(20)) {
             val amm = getAmmOrder(hash)
             callable(amm)
+        }
+    }
+
+    protected suspend fun createPool(
+        sender: MonoSigningTransactionSender,
+        nft: Address,
+        bondingCurve: Address = sudoswapLinerCurve,
+        assetRecipient: Address = randomAddress(),
+        poolType: SudoSwapPoolType = SudoSwapPoolType.NFT,
+        delta: BigInteger = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger(),
+        fee: BigInteger = BigInteger.ZERO,
+        spotPrice: BigInteger = BigDecimal("0.500000000000000000").multiply(decimal).toBigInteger(),
+        tokenIds: List<BigInteger> = emptyList()
+    ): Pair<Address, Word> {
+        val factory = LSSVMPairFactoryV1(sudoswapPairFactory, sender)
+        val result = factory.createPairETH(
+            nft, //_nft
+            bondingCurve, //_bondingCurve
+            assetRecipient, //_assetRecipient
+            poolType.value.toBigInteger(), //_poolType
+            delta, //_delta
+            fee, //_fee
+            spotPrice, //_spotPrice
+            tokenIds.toTypedArray() //_initialNFTIDs
+        ).execute().verifySuccess()
+
+        val poolAddress = getPoolAddressFromCreateLog(result)
+        val orderHash = sudoSwapEventConverter.getPoolHash(poolAddress)
+        return poolAddress to orderHash
+    }
+
+    protected suspend fun depositNFTs(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        nft: Address,
+        tokenIds: List<BigInteger>
+    ) {
+        val factory = LSSVMPairFactoryV1(sudoswapPairFactory, sender)
+        factory.depositNFTs(
+            nft,
+            tokenIds.toTypedArray(),
+            poolAddress
+        ).execute().awaitFirst()
+    }
+
+    protected suspend fun swapTokenForAnyNFTs(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        nftCount: Int,
+        value: BigInteger
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair.swapTokenForAnyNFTs(
+            nftCount.toBigInteger(),
+            value,
+            sender.from(),
+            false,
+            Address.ZERO()
+        ).withSender(sender).withValue(value).execute().verifySuccess()
+    }
+
+    protected suspend fun swapTokenForSpecificNFTs(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        tokenIds: List<BigInteger>,
+        value: BigInteger
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair.swapTokenForSpecificNFTs(
+            tokenIds.toTypedArray(),
+            value,
+            sender.from(),
+            false,
+            Address.ZERO()
+        ).withSender(sender).withValue(value).execute().verifySuccess()
+    }
+
+    protected suspend fun withdrawERC721(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        token: Address,
+        tokenIds: List<BigInteger>
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair.withdrawERC721(
+            token,
+            tokenIds.toTypedArray()
+        ).execute().verifySuccess()
+    }
+
+    protected suspend fun checkHoldItems(orderHash: Word, collection: Address, tokenIds: List<BigInteger>) {
+        val expectedItemIds = tokenIds.map { ItemId(collection, it).toString() }
+        Wait.waitAssert(Duration.ofSeconds(20)) {
+            val result = ethereumOrderApi.getAmmOrderItemIds(orderHash.prefixed(), null, null).awaitFirst()
+            assertThat(result.ids).containsExactlyInAnyOrderElementsOf(expectedItemIds)
         }
     }
 
