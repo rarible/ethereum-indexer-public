@@ -494,7 +494,7 @@ class OrderReduceService(
         }
 
         fun PoolHistory.isOnChainAmmOrder(): Boolean {
-            return this is OnChainAmmOrder
+            return this is PoolCreate
         }
     }
 }

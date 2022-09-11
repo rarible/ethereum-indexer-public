@@ -1,6 +1,6 @@
 package com.rarible.protocol.order.core.model
 
-enum class SudoSwapPoolType(value: Int) {
+enum class SudoSwapPoolType(val value: Int) {
     TOKEN(0),
     NFT(1),
     TRADE(2),

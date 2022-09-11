@@ -12,6 +12,7 @@ sealed class SudoSwapPairDetail {
     abstract val fee: BigInteger
     abstract val inNft: List<BigInteger>
     abstract val spotPrice: BigInteger
+    abstract fun currencyAssetType(): AssetType
 }
 
 class SudoSwapEthPairDetail(
@@ -24,7 +25,9 @@ class SudoSwapEthPairDetail(
     override val spotPrice: BigInteger,
     override val inNft: List<BigInteger>,
     val ethBalance: BigInteger,
-) : SudoSwapPairDetail()
+) : SudoSwapPairDetail() {
+    override fun currencyAssetType() = EthAssetType
+}
 
 class SudoSwapErc20PairDetail(
     override val nft: Address,
@@ -37,4 +40,6 @@ class SudoSwapErc20PairDetail(
     override val inNft: List<BigInteger>,
     val token: Address,
     val tokenBalance: BigInteger,
-) : SudoSwapPairDetail()
+) : SudoSwapPairDetail() {
+    override fun currencyAssetType() = Erc20AssetType(token)
+}

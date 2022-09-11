@@ -3,7 +3,7 @@ package com.rarible.protocol.order.core.service.pool
 import com.rarible.core.entity.reducer.service.Reducer
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.AmmNftAssetType
-import com.rarible.protocol.order.core.model.OnChainAmmOrder
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.Order
 import com.rarible.protocol.order.core.model.OrderBasicSeaportDataV1
 import com.rarible.protocol.order.core.model.OrderCryptoPunksData
@@ -35,7 +35,7 @@ class EventPoolReducer(
 
     override suspend fun reduce(entity: Order, event: PoolHistory): Order {
         return when (event) {
-            is OnChainAmmOrder -> onOnChainAmmOrder(entity, event)
+            is PoolCreate -> onOnChainAmmOrder(entity, event)
             is PoolNftOut -> onPoolNftOut(entity, event)
             is PoolNftIn -> onPoolNftIn(entity, event)
             is PoolSpotPriceUpdate -> onPoolSpotPriceUpdate(entity, event)
@@ -44,18 +44,17 @@ class EventPoolReducer(
         }
     }
 
-    private fun onOnChainAmmOrder(entity: Order, event: OnChainAmmOrder): Order {
+    private fun onOnChainAmmOrder(entity: Order, event: PoolCreate): Order {
         return entity.copy(
             type = OrderType.AMM,
-            maker = event.maker,
-            make = event.make,
-            take = event.take,
+            maker = event.data.poolAddress,
+            make = event.nftAsset(),
+            take = event.currencyAsset(),
             createdAt = event.date,
             platform = event.source.toPlatform(),
-            data = event.data,
+            data = event.data.toOrderData(),
             hash = event.hash,
-            makePrice = event.priceValue.takeIf { event.isSell() },
-            takePrice = event.priceValue.takeIf { event.isBid() },
+            makePrice = event.priceValue
         )
     }
 

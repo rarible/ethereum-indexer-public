@@ -154,6 +154,18 @@ fun createOrderX2Y2DataV1() = OrderX2Y2DataV1(
     orderId = randomBigInt()
 )
 
+fun createSudoSwapPoolDataV1(
+    poolAddress: Address = randomAddress()
+) = SudoSwapPoolDataV1(
+    poolAddress = poolAddress,
+    bondingCurve = randomAddress(),
+    curveType = SudoSwapCurveType.values().random(),
+    assetRecipient = randomAddress(),
+    poolType = SudoSwapPoolType.values().random(),
+    delta = randomBigInt(),
+    fee = randomBigInt(),
+)
+
 fun createOrderSudoSwapAmmDataV1(
     poolAddress: Address = randomAddress()
 ) = OrderSudoSwapAmmDataV1(
@@ -458,13 +470,13 @@ fun randomOrderEventDto(order: OrderDto = createOrderDto()): OrderUpdateEventDto
     )
 }
 
-fun randomSellOnChainAmmOrder(): OnChainAmmOrder {
-    return OnChainAmmOrder(
-        maker = randomAddress(),
-        make = randomErc721(),
-        take = randomErc20(EthUInt256.of(randomInt())),
-        data = createOrderSudoSwapAmmDataV1(),
+fun randomSellOnChainAmmOrder(data: PoolData = createSudoSwapPoolDataV1()): PoolCreate {
+    return PoolCreate(
+        data = data,
+        collection = randomAddress(),
         tokenIds = (1..10).map { EthUInt256.of(randomInt()) },
+        currency = randomAddress(),
+        currencyBalance = randomBigInt(),
         price = randomBigInt(),
         priceValue = randomBigDecimal(),
         priceUsd = randomBigDecimal(),

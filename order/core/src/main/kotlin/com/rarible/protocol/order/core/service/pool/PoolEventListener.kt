@@ -5,7 +5,7 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.dto.AmmOrderNftUpdateEventDto
 import com.rarible.protocol.order.core.model.ItemId
-import com.rarible.protocol.order.core.model.OnChainAmmOrder
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.PoolDataUpdate
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftDeposit
@@ -34,7 +34,7 @@ class PoolEventListener(
             else -> return
         }
         val nftDelta = when (poolHistory) {
-            is OnChainAmmOrder -> {
+            is PoolCreate -> {
                 NftDelta(inNft = poolHistory.tokenIds)
             }
             is PoolNftDeposit -> {

@@ -4,7 +4,6 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomWord
-import com.rarible.ethereum.common.keccak256
 import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
@@ -14,6 +13,7 @@ import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
+import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
@@ -75,9 +75,10 @@ internal class SudoSwapCreatePairDescriptorTest {
             ),
             "0x00000000000000000000000023a46b04d72d9ad624e99fb432c5a9ce212ac2f7"
         )
-        val expectedNftAsset = Asset(AmmNftAssetType(Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90")), EthUInt256.ONE)
+        val expectedCollection = Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90")
+        val expectedNftAsset = Asset(AmmNftAssetType(expectedCollection), EthUInt256.ONE)
         val expectedCurrencyAsset = Asset(EthAssetType, EthUInt256.ZERO)
-        val expectedData = OrderSudoSwapAmmDataV1(
+        val expectedData = SudoSwapPoolDataV1(
             poolAddress = Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
             curveType = SudoSwapCurveType.LINEAR,
@@ -91,9 +92,12 @@ internal class SudoSwapCreatePairDescriptorTest {
         coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns BigDecimal.valueOf(3)
 
         val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
-        assertThat(onChainAmmOrder.maker).isEqualTo(Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"))
-        assertThat(onChainAmmOrder.make).isEqualTo(expectedNftAsset)
-        assertThat(onChainAmmOrder.take).isEqualTo(expectedCurrencyAsset)
+        assertThat(onChainAmmOrder.data.poolAddress).isEqualTo(Address.apply("0x23a46b04d72d9ad624e99fb432c5a9ce212ac2f7"))
+        assertThat(onChainAmmOrder.collection).isEqualTo(expectedCollection)
+        assertThat(onChainAmmOrder.nftAsset()).isEqualTo(expectedNftAsset)
+        assertThat(onChainAmmOrder.currency).isEqualTo(Address.ZERO())
+        assertThat(onChainAmmOrder.currencyBalance).isEqualTo(BigInteger.ZERO)
+        assertThat(onChainAmmOrder.currencyAsset()).isEqualTo(expectedCurrencyAsset)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
         assertThat(onChainAmmOrder.tokenIds).isEqualTo(listOf(EthUInt256.of(4623)))
         assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)
@@ -121,9 +125,10 @@ internal class SudoSwapCreatePairDescriptorTest {
             ),
             "0x00000000000000000000000056b69cbcbac832a3a1c8c4f195654a610f96777b"
         )
-        val expectedNftAsset = Asset(AmmNftAssetType(Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90")), EthUInt256.of(4))
+        val expectedCollection = Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90")
+        val expectedNftAsset = Asset(AmmNftAssetType(expectedCollection), EthUInt256.of(4))
         val expectedCurrencyAsset = Asset(EthAssetType, EthUInt256.of("3787004998077662"))
-        val expectedData = OrderSudoSwapAmmDataV1(
+        val expectedData = SudoSwapPoolDataV1(
             poolAddress = Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
             curveType = SudoSwapCurveType.LINEAR,
@@ -137,9 +142,10 @@ internal class SudoSwapCreatePairDescriptorTest {
         coEvery { priceUpdateService.getAssetUsdValue(expectedNftAsset.type, expectedPrice, date) } returns randomBigDecimal()
 
         val onChainAmmOrder = descriptor.convert(log, transaction, date.epochSecond, 0, 1).toFlux().awaitSingle()
-        assertThat(onChainAmmOrder.maker).isEqualTo(Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"))
-        assertThat(onChainAmmOrder.make).isEqualTo(expectedNftAsset)
-        assertThat(onChainAmmOrder.take).isEqualTo(expectedCurrencyAsset)
+        assertThat(onChainAmmOrder.data.poolAddress).isEqualTo(Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"))
+        assertThat(onChainAmmOrder.collection).isEqualTo(expectedCollection)
+        assertThat(onChainAmmOrder.nftAsset()).isEqualTo(expectedNftAsset)
+        assertThat(onChainAmmOrder.currencyAsset()).isEqualTo(expectedCurrencyAsset)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
         assertThat(onChainAmmOrder.tokenIds).containsExactlyInAnyOrder(
             EthUInt256.of(5199),

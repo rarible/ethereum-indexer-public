@@ -1,135 +1,165 @@
 package com.rarible.protocol.order.listener.service.sudoswap.e2e
 
-import com.rarible.contracts.test.erc721.TestERC721
-import com.rarible.ethereum.domain.EthUInt256
-import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.LSSVMPairFactoryV1
-import io.daonomic.rpc.domain.Binary
-import io.daonomic.rpc.domain.Request
-import io.daonomic.rpc.domain.Response
-import io.daonomic.rpc.domain.Word
-import io.daonomic.rpc.mono.WebClientTransport
-import io.netty.channel.ChannelException
-import kotlinx.coroutines.reactive.awaitFirst
+import com.rarible.protocol.dto.OrderStatusDto
+import com.rarible.protocol.dto.OrderSudoSwapAmmDataV1Dto
+import com.rarible.protocol.dto.SudoSwapCurveTypeDto
+import com.rarible.protocol.dto.SudoSwapPoolTypeDto
+import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import org.springframework.web.reactive.function.client.WebClientException
-import reactor.core.publisher.Mono
-import reactor.util.retry.Retry
-import scala.reflect.Manifest
-import scalether.core.MonoEthereum
-import scalether.domain.Address
-import scalether.domain.response.TransactionReceipt
-import scalether.java.Lists
-import scalether.transaction.MonoSigningTransactionSender
-import scalether.transaction.MonoSimpleNonceProvider
-import scalether.transaction.MonoTransactionPoller
-import java.io.IOException
+import java.math.BigDecimal
 import java.math.BigInteger
-import java.nio.file.Paths
-import java.time.Duration
-import java.util.*
-import kotlin.io.path.inputStream
 
-class SudoSwapTestnetTest {
-    private val properties = Properties().apply {
-        load(Paths.get("src/test/resources/local.properties").inputStream())
-    }
-    private val ethereumUri = properties["TESTNET_HOST"].toString()
-    private val privateKey = Binary.apply(properties["PRIVATE_KEY"].toString())
-    private val sudoswapPairFactory = Address.apply(Binary.apply(properties["SUDOSWAP_PAIR_FACTORY"].toString()))
-
-    private val ethereum = createEthereum(ethereumUri)
-    private val poller = MonoTransactionPoller(ethereum)
-
-    private val userSender = MonoSigningTransactionSender(
-        ethereum,
-        MonoSimpleNonceProvider(ethereum),
-        privateKey.toBigInteger(),
-        BigInteger.valueOf(8000000)
-    ) { Mono.just(BigInteger.valueOf(800000)) }
-
+@Disabled("Manual tests for SudoSwap on dev")
+class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
     @Test
-    fun `should create trade pool`() = runBlocking<Unit> {
+    fun `should create nft pool with liner curve`() = runBlocking<Unit> {
         val token = createToken(userSender, poller)
-        logger.info("Create erc721 token ${token.address()}")
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
 
-        val result = TestERC721(Address.apply("0x6ede7f3c26975aad32a475e1021d8f6f39c89d82"), userSender)
-            .mint(userSender.from(), EthUInt256.of(28).value, "test")
-            .execute()
-            .verifySuccess()
+        val delta = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger()
+        val fee = BigInteger.ZERO
+        val spotPrice = BigDecimal("0.500000000000000000")
 
-        val factory = LSSVMPairFactoryV1(sudoswapPairFactory, userSender)
-        /**
-         * def createPairETH(
-         *  _nft: Address,
-         *  _bondingCurve: Address,
-         *  _assetRecipient: Address,
-         *  _poolType: BigInteger,
-         *  _delta: BigInteger,
-         *  _fee: BigInteger,
-         *  _spotPrice: BigInteger,
-         *  _initialNFTIDs: Array[BigInteger]
-         * )
-         */
-    }
+        val (poolAddress, orderHash) = createPool(
+            sender = userSender,
+            nft = token.address(),
+            bondingCurve = sudoswapLinerCurve,
+            assetRecipient = userSender.from(),
+            poolType = SudoSwapPoolType.NFT,
+            delta = delta,
+            fee = fee,
+            spotPrice = spotPrice.multiply(decimal).toBigInteger(),
+            tokenIds = tokenIds
+        )
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
+            assertThat(it.makePrice).isEqualTo(spotPrice)
+            assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
 
-    private suspend fun createToken(
-        sender: MonoSigningTransactionSender,
-        poller: MonoTransactionPoller
-    ): TestERC721 {
-        return TestERC721.deployAndWait(sender, poller, "ipfs:/", "test").awaitFirst()
-    }
-
-    private fun createEthereum(ethereumUri: String): MonoEthereum {
-        val requestTimeoutMs = 10000
-        val readWriteTimeoutMs  = 10000
-        val maxFrameSize = 1024 * 1024
-        val retryMaxAttempts = 5L
-        val retryBackoffDelay = 100L
-
-        val retry = Retry
-            .backoff(retryMaxAttempts, Duration.ofMillis(retryBackoffDelay))
-            .filter { it is WebClientException || it is IOException || it is ChannelException }
-        val transport = object : WebClientTransport(
-            ethereumUri,
-            MonoEthereum.mapper(),
-            requestTimeoutMs,
-            readWriteTimeoutMs
-        ) {
-            override fun maxInMemorySize(): Int = maxFrameSize
-            override fun <T : Any?> get(url: String?, manifest: Manifest<T>?): Mono<T> =
-                super.get(url, manifest).retryWhen(retry)
-            override fun <T : Any?> send(request: Request?, manifest: Manifest<T>?): Mono<Response<T>> {
-                return super.send(request, manifest).retryWhen(retry)
+            with(it.data as OrderSudoSwapAmmDataV1Dto) {
+                assertThat(this.poolAddress).isEqualTo(poolAddress)
+                assertThat(this.poolType).isEqualTo(SudoSwapPoolTypeDto.NFT)
+                assertThat(this.bondingCurve).isEqualTo(sudoswapLinerCurve)
+                assertThat(this.curveType).isEqualTo(SudoSwapCurveTypeDto.LINEAR)
+                assertThat(this.delta).isEqualTo(delta)
+                assertThat(this.fee).isEqualTo(fee)
             }
         }
-        return MonoEthereum(transport)
+        checkHoldItems(orderHash, token.address(), tokenIds)
     }
 
-    private suspend fun Mono<Word>.waitReceipt(): TransactionReceipt {
-        val value = this.awaitFirst()
-        logger.info("TxHash: $value")
-        require(value != null) { "txHash is null" }
-        return ethereum.ethGetTransactionReceipt(value).awaitFirst().get()
-    }
+    @Test
+    fun `should deposit nft to pool`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
+        val (poolAddress, orderHash) = createPool(userSender, token.address())
 
-    private suspend fun Mono<Word>.verifySuccess(): TransactionReceipt {
-        val receipt = waitReceipt()
-        Assertions.assertTrue(receipt.success()) {
-            val result = ethereum.executeRaw(Request(1, "trace_replayTransaction", Lists.toScala(
-                receipt.transactionHash().toString(),
-                Lists.toScala("trace", "stateDiff")
-            ), "2.0")).block()!!
-            "traces: ${result.result().get()}"
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(BigInteger.ZERO)
+            assertThat(it.makeStock).isEqualTo(BigInteger.ZERO)
+            assertThat(it.status).isEqualTo(OrderStatusDto.INACTIVE)
         }
-        return receipt
+        checkHoldItems(orderHash, token.address(), emptyList())
+
+        depositNFTs(
+            userSender,
+            poolAddress,
+            token.address(),
+            tokenIds,
+        )
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.makeStock).isEqualTo(tokenIds.size)
+            assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
+        }
+        checkHoldItems(orderHash, token.address(), tokenIds)
     }
 
-    companion object {
-        val logger: Logger = LoggerFactory.getLogger(SudoSwapTestnetTest::class.java)
+    @Test
+    fun `should swap token to any nft`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
+        val (poolAddress, orderHash) = createPool(
+            userSender,
+            token.address(),
+            spotPrice = BigDecimal("0.001").multiply(decimal).toBigInteger(),
+            delta = BigDecimal("0.001").multiply(decimal).toBigInteger(),
+            tokenIds = tokenIds)
+
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(5)
+        }
+        swapTokenForAnyNFTs(
+            sender = userSender,
+            poolAddress = poolAddress,
+            nftCount = 3,
+            value = BigDecimal("1").multiply(decimal).toBigInteger()
+        )
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(2)
+        }
+    }
+
+    @Test
+    fun `should swap token to specific nft`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds1 = mintAndApprove(2, userSender, token, sudoswapPairFactory)
+        val tokenIds2 = mintAndApprove(3, userSender, token, sudoswapPairFactory)
+        val (poolAddress, orderHash) = createPool(
+            userSender,
+            token.address(),
+            spotPrice = BigDecimal("0.001").multiply(decimal).toBigInteger(),
+            delta = BigDecimal("0.001").multiply(decimal).toBigInteger(),
+            tokenIds = tokenIds1 + tokenIds2)
+
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(5)
+        }
+        swapTokenForSpecificNFTs(
+            sender = userSender,
+            poolAddress = poolAddress,
+            tokenIds = tokenIds1,
+            value = BigDecimal("1").multiply(decimal).toBigInteger()
+        )
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(3)
+        }
+        checkHoldItems(orderHash, token.address(), tokenIds2)
+
+        checkItemAmmOrderExist(orderHash, token.address(), tokenIds2)
+        checkItemAmmOrderNotExist(token.address(), tokenIds1)
+    }
+
+    @Test
+    fun `should withdraw nft from pool`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds1 = mintAndApprove(2, userSender, token, sudoswapPairFactory)
+        val tokenIds2 = mintAndApprove(3, userSender, token, sudoswapPairFactory)
+        val (poolAddress, orderHash) = createPool(
+            userSender,
+            token.address(),
+            tokenIds = tokenIds1 + tokenIds2
+        )
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(5)
+        }
+        withdrawERC721(
+            sender = userSender,
+            poolAddress = poolAddress,
+            token = token.address(),
+            tokenIds = tokenIds1
+        )
+        checkOrder(orderHash) {
+            assertThat(it.makeStock).isEqualTo(3)
+        }
+        checkHoldItems(orderHash, token.address(), tokenIds2)
+
+        checkItemAmmOrderExist(orderHash, token.address(), tokenIds2)
+        checkItemAmmOrderNotExist(token.address(), tokenIds1)
     }
 }
 
