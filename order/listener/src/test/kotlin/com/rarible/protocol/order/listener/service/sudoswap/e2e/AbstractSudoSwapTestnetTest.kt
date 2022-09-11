@@ -20,6 +20,9 @@ import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.mono.WebClientTransport
 import io.mockk.mockk
 import io.netty.channel.ChannelException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.time.delay
@@ -179,6 +182,7 @@ abstract class AbstractSudoSwapTestnetTest {
 
         val poolAddress = getPoolAddressFromCreateLog(result)
         val orderHash = sudoSwapEventConverter.getPoolHash(poolAddress)
+        logger.info("Created pool ($poolAddress), hash=$orderHash")
         return poolAddress to orderHash
     }
 
@@ -246,6 +250,33 @@ abstract class AbstractSudoSwapTestnetTest {
         Wait.waitAssert(Duration.ofSeconds(20)) {
             val result = ethereumOrderApi.getAmmOrderItemIds(orderHash.prefixed(), null, null).awaitFirst()
             assertThat(result.ids).containsExactlyInAnyOrderElementsOf(expectedItemIds)
+        }
+    }
+
+    protected suspend fun checkItemAmmOrderExist(orderHash: Word, collection: Address, tokenIds: List<BigInteger>) {
+        Wait.waitAssert(Duration.ofSeconds(20)) {
+            coroutineScope {
+                tokenIds.map { tokenId ->
+                    async {
+                        val result = ethereumOrderApi.getAmmOrdersByItem(collection.prefixed(), tokenId.toString(), null, null).awaitFirst()
+                        assertThat(result.orders).hasSize(1)
+                        assertThat(result.orders.single().hash).isEqualTo(orderHash)
+                    }
+                }.awaitAll()
+            }
+        }
+    }
+
+    protected suspend fun checkItemAmmOrderNotExist(collection: Address, tokenIds: List<BigInteger>) {
+        Wait.waitAssert(Duration.ofSeconds(20)) {
+            coroutineScope {
+                tokenIds.map { tokenId ->
+                    async {
+                        val result = ethereumOrderApi.getAmmOrdersByItem(collection.prefixed(), tokenId.toString(), null, null).awaitFirst()
+                        assertThat(result.orders).hasSize(0)
+                    }
+                }.awaitAll()
+            }
         }
     }
 

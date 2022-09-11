@@ -7,16 +7,12 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.ethereum.listener.log.LogEventDescriptor
 import com.rarible.protocol.contracts.exchange.sudoswap.v1.factory.NewPairEvent
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
-import com.rarible.protocol.order.core.model.AmmNftAssetType
-import com.rarible.protocol.order.core.model.Asset
-import com.rarible.protocol.order.core.model.Erc20AssetType
-import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.OnChainAmmOrder
-import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
+import com.rarible.protocol.order.core.model.PoolCreate
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapErc20PairDetail
 import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
+import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.PriceNormalizer
@@ -42,7 +38,7 @@ class SudoSwapCreatePairDescriptor(
     private val priceUpdateService: PriceUpdateService,
     private val priceNormalizer: PriceNormalizer,
     private val sudoSwapCreatePairEventCounter: RegisteredCounter
-): LogEventDescriptor<OnChainAmmOrder> {
+): LogEventDescriptor<PoolCreate> {
 
     override val collection: String = PoolHistoryRepository.COLLECTION
 
@@ -50,44 +46,31 @@ class SudoSwapCreatePairDescriptor(
 
     override fun getAddresses(): Mono<Collection<Address>> = listOf(sudoSwapAddresses.pairFactoryV1).toMono()
 
-    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<OnChainAmmOrder> {
+    override fun convert(log: Log, transaction: Transaction, timestamp: Long, index: Int, totalLogs: Int): Publisher<PoolCreate> {
         return mono { listOfNotNull(convert(log, transaction, index, totalLogs, Instant.ofEpochSecond(timestamp))) }.flatMapMany { it.toFlux() }
     }
 
-    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): OnChainAmmOrder? {
+    private suspend fun convert(log: Log, transaction: Transaction, index: Int, totalLogs: Int, date: Instant): PoolCreate? {
         val event = NewPairEvent.apply(log)
         val details = sudoSwapEventConverter.getCreatePairDetails(log.address(), transaction).let {
             assert(it.size == totalLogs)
             it[index]
         }
-        val nft = Asset(
-            type = AmmNftAssetType(details.nft),
-            value = EthUInt256.of(details.inNft.size)
-        )
-        val currency = when (details) {
+        val (currency, balance) = when (details) {
             is SudoSwapEthPairDetail ->
-                Asset(EthAssetType, EthUInt256.of(details.ethBalance))
+                Address.ZERO() to details.ethBalance
             is SudoSwapErc20PairDetail ->
-                Asset(Erc20AssetType(details.token), EthUInt256.of(details.tokenBalance))
+                details.token to details.tokenBalance
         }
         if (details.poolType !in SUPPORTED_POOL_TYPES) {
             return null
-        }
-        val (make, take) = when (details.poolType) {
-            SudoSwapPoolType.NFT,
-            SudoSwapPoolType.TRADE -> {
-                nft to currency
-            }
-            SudoSwapPoolType.TOKEN -> {
-                currency to nft
-            }
         }
         val curveType = when (details.bondingCurve) {
             sudoSwapAddresses.linearCurveV1 -> SudoSwapCurveType.LINEAR
             sudoSwapAddresses.exponentialCurveV1 -> SudoSwapCurveType.EXPONENTIAL
             else -> SudoSwapCurveType.UNKNOWN
         }
-        val data = OrderSudoSwapAmmDataV1(
+        val data = SudoSwapPoolDataV1(
             poolAddress = event.poolAddress(),
             bondingCurve = details.bondingCurve,
             curveType = curveType,
@@ -96,17 +79,17 @@ class SudoSwapCreatePairDescriptor(
             delta = details.delta,
             fee = details.fee
         )
-        return OnChainAmmOrder(
+        return PoolCreate(
             hash = sudoSwapEventConverter.getPoolHash(event.poolAddress()),
-            maker = event.poolAddress(),
-            make = make,
-            take = take,
+            collection = details.nft,
             tokenIds = details.inNft.map { EthUInt256.of(it) },
+            currency = currency,
+            currencyBalance = balance,
             date = date,
             data = data,
             price = details.spotPrice,
-            priceValue = priceNormalizer.normalize(take.type, details.spotPrice),
-            priceUsd = priceUpdateService.getAssetUsdValue(take.type, details.spotPrice, date),
+            priceValue = priceNormalizer.normalize(details.currencyAssetType(), details.spotPrice),
+            priceUsd = priceUpdateService.getAssetUsdValue(details.currencyAssetType(), details.spotPrice, date),
             source = HistorySource.SUDOSWAP
         ).also { sudoSwapCreatePairEventCounter.increment() }
     }

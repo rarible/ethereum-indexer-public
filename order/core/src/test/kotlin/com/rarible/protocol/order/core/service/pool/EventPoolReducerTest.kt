@@ -6,6 +6,7 @@ import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
+import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
 import com.rarible.protocol.order.core.data.randomAmmNftAsset
 import com.rarible.protocol.order.core.data.randomErc721
 import com.rarible.protocol.order.core.data.randomEth
@@ -36,14 +37,15 @@ internal class EventPoolReducerTest {
     @Test
     fun `should reduce onChainAmmOrder event`() = runBlocking<Unit> {
         val init = createOrder()
-        val event = randomSellOnChainAmmOrder()
+        val data = createSudoSwapPoolDataV1()
+        val event = randomSellOnChainAmmOrder(data)
 
         val reduced = eventPoolReducer.reduce(init, event)
         assertThat(reduced.type).isEqualTo(OrderType.AMM)
         assertThat(reduced.hash).isEqualTo(event.hash)
-        assertThat(reduced.maker).isEqualTo(event.maker)
-        assertThat(reduced.make).isEqualTo(event.make)
-        assertThat(reduced.take).isEqualTo(event.take)
+        assertThat(reduced.maker).isEqualTo(data.poolAddress)
+        assertThat(reduced.make).isEqualTo(event.nftAsset())
+        assertThat(reduced.take).isEqualTo(event.currencyAsset())
         assertThat(reduced.createdAt).isEqualTo(event.date)
         assertThat(reduced.platform).isEqualTo(event.source.toPlatform())
         assertThat(reduced.data).isEqualTo(event.data)

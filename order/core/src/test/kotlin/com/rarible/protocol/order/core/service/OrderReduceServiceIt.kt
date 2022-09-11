@@ -457,7 +457,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(result.hash).isEqualTo(onChainAmmOrder.hash)
         assertThat(result.fill).isEqualTo(EthUInt256.ZERO)
         assertThat(result.status).isEqualTo(OrderStatus.ACTIVE)
-        assertThat(result.makeStock).isEqualTo(onChainAmmOrder.make.value)
+        assertThat(result.makeStock).isEqualTo(onChainAmmOrder.tokenIds.size)
     }
 
     @Test

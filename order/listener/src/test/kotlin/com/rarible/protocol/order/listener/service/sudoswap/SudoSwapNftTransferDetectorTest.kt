@@ -22,13 +22,6 @@ internal class SudoSwapNftTransferDetectorTest {
     private val detector = SudoSwapNftTransferDetector(ethereum)
 
     @Test
-    fun t() {
-        println(
-            keccak256(Address.apply("0xd3f5a5195d7cd6028e05597cc95a7c1a833dba24"))
-        )
-    }
-
-    @Test
     fun `should detect nft transfers`() = runBlocking<Unit> {
         val transactionHash = Word.apply(randomWord())
         val poolAddress = Address.apply("0x3474606e53eae51f6a4f787e8c8d33999c6eae61")

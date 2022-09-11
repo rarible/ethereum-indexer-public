@@ -128,6 +128,10 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         checkOrder(orderHash) {
             assertThat(it.makeStock).isEqualTo(3)
         }
+        checkHoldItems(orderHash, token.address(), tokenIds2)
+
+        checkItemAmmOrderExist(orderHash, token.address(), tokenIds2)
+        checkItemAmmOrderNotExist(token.address(), tokenIds1)
     }
 
     @Test
@@ -152,6 +156,10 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         checkOrder(orderHash) {
             assertThat(it.makeStock).isEqualTo(3)
         }
+        checkHoldItems(orderHash, token.address(), tokenIds2)
+
+        checkItemAmmOrderExist(orderHash, token.address(), tokenIds2)
+        checkItemAmmOrderNotExist(token.address(), tokenIds1)
     }
 }
 

@@ -21,21 +21,32 @@ sealed class PoolNftOut(type: PoolHistoryType) : PoolNftChange(type)
 sealed class PoolNftIn(type: PoolHistoryType) : PoolNftChange(type)
 sealed class PoolDataUpdate(type: PoolHistoryType) : PoolHistory(type)
 
-data class OnChainAmmOrder(
+data class PoolCreate(
     override val hash: Word,
     override val date: Instant,
     override val source: HistorySource,
-    val maker: Address,
-    val make: Asset,
-    val take: Asset,
-    val data: OrderAmmData,
-    val tokenIds: List<EthUInt256>,
+    override val collection: Address,
+    override val tokenIds: List<EthUInt256>,
+    val currency: Address,
+    val currencyBalance: BigInteger,
+    val data: PoolData,
     val price: BigInteger,
     val priceValue: BigDecimal,
     val priceUsd: BigDecimal?,
-) : PoolHistory(PoolHistoryType.POOL_CREAT) {
-    fun isBid() = take.type.nft
-    fun isSell() = isBid().not()
+) : PoolNftIn(PoolHistoryType.POOL_CREAT) {
+    fun nftAsset(): Asset {
+        return Asset(
+            type = AmmNftAssetType(collection),
+            value = EthUInt256.of(tokenIds.size)
+        )
+    }
+
+    fun currencyAsset(): Asset {
+        return Asset(
+            type = if (currency == Address.ZERO()) EthAssetType else Erc20AssetType(currency),
+            value = EthUInt256.of(currencyBalance)
+        )
+    }
 }
 
 data class PoolTargetNftOut(
