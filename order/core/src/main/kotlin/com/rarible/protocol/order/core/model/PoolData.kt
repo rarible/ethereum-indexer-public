@@ -17,7 +17,7 @@ data class SudoSwapPoolDataV1(
     val delta: BigInteger,
     val fee: BigInteger
 ): PoolData() {
-    override fun toOrderData(): OrderAmmData {
+    override fun toOrderData(): OrderSudoSwapAmmDataV1 {
         return OrderSudoSwapAmmDataV1(
             poolAddress = poolAddress,
             bondingCurve = bondingCurve,

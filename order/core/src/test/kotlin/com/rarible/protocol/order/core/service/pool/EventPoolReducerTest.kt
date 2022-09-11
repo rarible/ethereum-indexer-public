@@ -48,7 +48,7 @@ internal class EventPoolReducerTest {
         assertThat(reduced.take).isEqualTo(event.currencyAsset())
         assertThat(reduced.createdAt).isEqualTo(event.date)
         assertThat(reduced.platform).isEqualTo(event.source.toPlatform())
-        assertThat(reduced.data).isEqualTo(event.data)
+        assertThat(reduced.data).isEqualTo(event.data.toOrderData())
         assertThat(reduced.makePrice).isEqualTo(event.priceValue)
         assertThat(reduced.takePrice).isNull()
     }
