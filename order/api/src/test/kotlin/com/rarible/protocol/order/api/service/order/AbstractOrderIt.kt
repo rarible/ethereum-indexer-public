@@ -222,9 +222,11 @@ abstract class AbstractOrderIt : AbstractIntegrationTest() {
         data = OrderSudoSwapAmmDataV1(
             poolAddress = randomAddress(),
             bondingCurve = randomAddress(),
+            factory = randomAddress(),
             curveType = SudoSwapCurveType.values().random(),
             assetRecipient = randomAddress(),
             poolType = SudoSwapPoolType.values().random(),
+            spotPrice = randomBigInt(),
             delta = randomBigInt(),
             fee = randomBigInt()
         ),

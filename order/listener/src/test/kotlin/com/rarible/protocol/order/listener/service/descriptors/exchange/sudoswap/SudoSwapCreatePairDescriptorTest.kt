@@ -4,18 +4,15 @@ import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomBigDecimal
 import com.rarible.core.test.data.randomWord
-import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.configuration.SudoSwapAddresses
 import com.rarible.protocol.order.core.model.AmmNftAssetType
 import com.rarible.protocol.order.core.model.Asset
 import com.rarible.protocol.order.core.model.EthAssetType
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
-import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.TraceCallService
 import com.rarible.protocol.order.listener.data.log
@@ -46,15 +43,11 @@ internal class SudoSwapCreatePairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val traceCallService = TraceCallService(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
-    private val contractService = mockk<ContractService>()
-    private val priceNormalizer = PriceNormalizer(contractService)
     private val priceUpdateService = mockk<PriceUpdateService>()
 
     private val descriptor = SudoSwapCreatePairDescriptor(
         sudoSwapAddresses = addresses,
         sudoSwapEventConverter = sudoSwapEventConverter,
-        priceUpdateService = priceUpdateService,
-        priceNormalizer = priceNormalizer,
         sudoSwapCreatePairEventCounter = counter,
     )
 
@@ -83,8 +76,10 @@ internal class SudoSwapCreatePairDescriptorTest {
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
             curveType = SudoSwapCurveType.LINEAR,
             assetRecipient = Address.apply("0x2a3B53e1Ce8CB9f3290e9Ba70033951F07c686f3"),
+            factory = log.address(),
             poolType = SudoSwapPoolType.NFT,
             delta = BigInteger("10000000000000000"),
+            spotPrice = BigInteger("308407960199005000"),
             fee = BigInteger.ZERO
         )
         val expectedPrice = BigInteger("308407960199005000")
@@ -100,9 +95,6 @@ internal class SudoSwapCreatePairDescriptorTest {
         assertThat(onChainAmmOrder.currencyAsset()).isEqualTo(expectedCurrencyAsset)
         assertThat(onChainAmmOrder.data).isEqualTo(expectedData)
         assertThat(onChainAmmOrder.tokenIds).isEqualTo(listOf(EthUInt256.of(4623)))
-        assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)
-        assertThat(onChainAmmOrder.priceValue).isEqualTo(BigDecimal("0.308407960199005000"))
-        assertThat(onChainAmmOrder.priceUsd).isEqualTo(BigDecimal.valueOf(3))
         assertThat(onChainAmmOrder.hash).isEqualTo(sudoSwapEventConverter.getPoolHash(expectedData.poolAddress))
         assertThat(onChainAmmOrder.date).isEqualTo(date)
         assertThat(onChainAmmOrder.source).isEqualTo(HistorySource.SUDOSWAP)
@@ -131,9 +123,11 @@ internal class SudoSwapCreatePairDescriptorTest {
         val expectedData = SudoSwapPoolDataV1(
             poolAddress = Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),
+            factory = log.address(),
             curveType = SudoSwapCurveType.LINEAR,
             assetRecipient = Address.apply("0x0000000000000000000000000000000000000000"),
             poolType = SudoSwapPoolType.TRADE,
+            spotPrice = BigInteger("241463414634146360"),
             delta = BigInteger("100000000000000000"),
             fee = BigInteger("20000000000000000")
         )
@@ -153,7 +147,6 @@ internal class SudoSwapCreatePairDescriptorTest {
             EthUInt256.of(5197),
             EthUInt256.of(4956),
         )
-        assertThat(onChainAmmOrder.price).isEqualTo(expectedPrice)
     }
 
 
