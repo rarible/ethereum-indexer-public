@@ -100,12 +100,10 @@ internal class EventPoolReducerTest {
 
     @Test
     fun `should reduce poll spot price update event`() = runBlocking<Unit> {
-        val init = createSellOrder().copy(makePrice = BigDecimal.valueOf(0.1), take = randomEth(), lastUpdateAt = past())
+        val init = createSellOrder(createOrderSudoSwapAmmDataV1())
         val event = randomPoolSpotPriceUpdate().copy(newSpotPrice = BigInteger("200000000000000000"), date = now())
-
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.makePrice).isEqualTo(BigDecimal("0.200000000000000000"))
-        assertThat(reduced.takePrice).isNull()
+        assertThat((reduced.data as OrderSudoSwapAmmDataV1).spotPrice).isEqualTo(event.newSpotPrice)
     }
 
     @Test
