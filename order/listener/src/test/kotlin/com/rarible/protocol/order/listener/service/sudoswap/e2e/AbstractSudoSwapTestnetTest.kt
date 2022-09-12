@@ -166,7 +166,8 @@ abstract class AbstractSudoSwapTestnetTest {
         delta: BigInteger = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger(),
         fee: BigInteger = BigInteger.ZERO,
         spotPrice: BigInteger = BigDecimal("0.500000000000000000").multiply(decimal).toBigInteger(),
-        tokenIds: List<BigInteger> = emptyList()
+        tokenIds: List<BigInteger> = emptyList(),
+        value: BigInteger? = null
     ): Pair<Address, Word> {
         val factory = LSSVMPairFactoryV1(sudoswapPairFactory, sender)
         val result = factory.createPairETH(
@@ -178,8 +179,9 @@ abstract class AbstractSudoSwapTestnetTest {
             fee, //_fee
             spotPrice, //_spotPrice
             tokenIds.toTypedArray() //_initialNFTIDs
-        ).execute().verifySuccess()
-
+        ).run {
+            (if (value != null) this.withValue(value) else this).execute().verifySuccess()
+        }
         val poolAddress = getPoolAddressFromCreateLog(result)
         val orderHash = sudoSwapEventConverter.getPoolHash(poolAddress)
         logger.info("Created pool ($poolAddress), hash=$orderHash")
@@ -243,6 +245,24 @@ abstract class AbstractSudoSwapTestnetTest {
             token,
             tokenIds.toTypedArray()
         ).execute().verifySuccess()
+    }
+
+    protected suspend fun changeDelta(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        newDelta: BigInteger
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair.changeDelta(newDelta,).execute().verifySuccess()
+    }
+
+    protected suspend fun changeFee(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        newFee: BigInteger
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair.changeFee(newFee).execute().verifySuccess()
     }
 
     protected suspend fun checkHoldItems(orderHash: Word, collection: Address, tokenIds: List<BigInteger>) {
