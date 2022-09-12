@@ -197,10 +197,6 @@ data class Order(
             cancelled: Boolean,
             sell: Boolean
         ): EthUInt256 {
-            //TODO: Remove it after task PT-1177 will be done
-            if (orderType == OrderType.AMM) {
-                return makeValue
-            }
             if (makeValue == EthUInt256.ZERO || takeValue == EthUInt256.ZERO) {
                 return EthUInt256.ZERO
             }

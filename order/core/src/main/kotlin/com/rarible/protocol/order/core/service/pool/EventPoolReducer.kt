@@ -25,20 +25,16 @@ import com.rarible.protocol.order.core.model.PoolNftIn
 import com.rarible.protocol.order.core.model.PoolNftOut
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import com.rarible.protocol.order.core.model.PoolSpotPriceUpdate
-import com.rarible.protocol.order.core.service.PriceNormalizer
 import org.springframework.stereotype.Component
 
 @Component
-class EventPoolReducer(
-    private val normalizer: PriceNormalizer
-) : Reducer<PoolHistory, Order> {
-
+class EventPoolReducer : Reducer<PoolHistory, Order> {
     override suspend fun reduce(entity: Order, event: PoolHistory): Order {
         return when (event) {
             is PoolCreate -> onOnChainAmmOrder(entity, event)
             is PoolNftOut -> onPoolNftOut(entity, event)
             is PoolNftIn -> onPoolNftIn(entity, event)
-            is PoolSpotPriceUpdate -> onPoolSpotPriceUpdate(entity, event)
+            is PoolSpotPriceUpdate -> onUpdateData(entity) { it.copy(spotPrice = event.newSpotPrice) }
             is PoolFeeUpdate -> onUpdateData(entity) { it.copy(fee = event.newFee) }
             is PoolDeltaUpdate -> onUpdateData(entity) { it.copy(delta = event.newDelta) }
         }
@@ -54,7 +50,6 @@ class EventPoolReducer(
             platform = event.source.toPlatform(),
             data = event.data.toOrderData(),
             hash = event.hash,
-            makePrice = event.priceValue
         )
     }
 
@@ -87,13 +82,6 @@ class EventPoolReducer(
         return entity.copy(
             make = entity.make.copy(value = newVale),
             makeStock = newVale,
-        )
-    }
-
-    private suspend fun onPoolSpotPriceUpdate(entity: Order, event: PoolSpotPriceUpdate): Order {
-        return entity.copy(
-            makePrice = if (entity.make.type.nft) normalizer.normalize(entity.take.type, event.newSpotPrice) else null,
-            takePrice = if (entity.take.type.nft) normalizer.normalize(entity.make.type, event.newSpotPrice) else null,
         )
     }
 

@@ -250,9 +250,11 @@ sealed class OrderAmmData: OrderData() {
 data class OrderSudoSwapAmmDataV1(
     override val poolAddress: Address,
     val bondingCurve: Address,
+    val factory: Address,
     val curveType: SudoSwapCurveType,
     val assetRecipient: Address,
     val poolType: SudoSwapPoolType,
+    val spotPrice: BigInteger,
     val delta: BigInteger,
     val fee: BigInteger
 ): OrderAmmData() {

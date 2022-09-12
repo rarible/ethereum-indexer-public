@@ -13,7 +13,9 @@ data class SudoSwapPoolDataV1(
     val bondingCurve: Address,
     val curveType: SudoSwapCurveType,
     val assetRecipient: Address,
+    val factory: Address,
     val poolType: SudoSwapPoolType,
+    val spotPrice: BigInteger,
     val delta: BigInteger,
     val fee: BigInteger
 ): PoolData() {
@@ -21,9 +23,11 @@ data class SudoSwapPoolDataV1(
         return OrderSudoSwapAmmDataV1(
             poolAddress = poolAddress,
             bondingCurve = bondingCurve,
+            factory = factory,
             curveType = curveType,
             assetRecipient = assetRecipient,
             poolType = poolType,
+            spotPrice = spotPrice,
             delta = delta,
             fee = fee
         )

@@ -3,7 +3,6 @@ package com.rarible.protocol.order.core.model
 import com.rarible.ethereum.domain.EthUInt256
 import io.daonomic.rpc.domain.Word
 import scalether.domain.Address
-import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
 
@@ -30,9 +29,6 @@ data class PoolCreate(
     val currency: Address,
     val currencyBalance: BigInteger,
     val data: PoolData,
-    val price: BigInteger,
-    val priceValue: BigDecimal,
-    val priceUsd: BigDecimal?,
 ) : PoolNftIn(PoolHistoryType.POOL_CREAT) {
     fun nftAsset(): Asset {
         return Asset(

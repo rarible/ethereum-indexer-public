@@ -15,8 +15,6 @@ import com.rarible.protocol.order.core.model.SudoSwapEthPairDetail
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
-import com.rarible.protocol.order.core.service.PriceNormalizer
-import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactor.mono
@@ -35,8 +33,6 @@ import scalether.domain.response.Transaction
 class SudoSwapCreatePairDescriptor(
     private val sudoSwapAddresses: SudoSwapAddresses,
     private val sudoSwapEventConverter: SudoSwapEventConverter,
-    private val priceUpdateService: PriceUpdateService,
-    private val priceNormalizer: PriceNormalizer,
     private val sudoSwapCreatePairEventCounter: RegisteredCounter
 ): LogEventDescriptor<PoolCreate> {
 
@@ -73,9 +69,11 @@ class SudoSwapCreatePairDescriptor(
         val data = SudoSwapPoolDataV1(
             poolAddress = event.poolAddress(),
             bondingCurve = details.bondingCurve,
+            factory = log.address(),
             curveType = curveType,
             assetRecipient = details.assetRecipient,
             poolType = details.poolType,
+            spotPrice = details.spotPrice,
             delta = details.delta,
             fee = details.fee
         )
@@ -85,12 +83,9 @@ class SudoSwapCreatePairDescriptor(
             tokenIds = details.inNft.map { EthUInt256.of(it) },
             currency = currency,
             currencyBalance = balance,
-            date = date,
             data = data,
-            price = details.spotPrice,
-            priceValue = priceNormalizer.normalize(details.currencyAssetType(), details.spotPrice),
-            priceUsd = priceUpdateService.getAssetUsdValue(details.currencyAssetType(), details.spotPrice, date),
-            source = HistorySource.SUDOSWAP
+            date = date,
+            source = HistorySource.SUDOSWAP,
         ).also { sudoSwapCreatePairEventCounter.increment() }
     }
 
