@@ -1,14 +1,9 @@
 package com.rarible.protocol.nft.core.service.action
 
 import com.rarible.core.daemon.job.JobHandler
-import com.rarible.protocol.nft.core.model.Action
-import com.rarible.protocol.nft.core.model.ActionState
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
 import com.rarible.protocol.nft.core.service.action.executor.ActionExecutor
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.reactive.awaitFirst
 import org.springframework.stereotype.Component
-import java.time.Instant
 
 @Component
 class ActionJobHandler(
@@ -18,6 +13,8 @@ class ActionJobHandler(
     private val executors = actionExecutors.groupBy { it.type }
 
     override suspend fun handle() {
+        //TODO PT-1214
+        /*
         val now = Instant.now()
         actionEventRepository.findPendingActions(now).collect { action ->
             val foundExecutors = requireNotNull(executors[action.type]) {
@@ -29,5 +26,6 @@ class ActionJobHandler(
             }
             actionEventRepository.save(action.withState(ActionState.EXECUTED)).awaitFirst()
         }
+        */
     }
 }

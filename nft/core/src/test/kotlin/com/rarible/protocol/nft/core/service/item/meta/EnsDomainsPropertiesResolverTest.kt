@@ -9,7 +9,6 @@ import com.rarible.protocol.nft.core.service.EnsDomainService
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesProvider
 import com.rarible.protocol.nft.core.service.item.meta.descriptors.EnsDomainsPropertiesResolver
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -40,7 +39,7 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
 
     @Suppress("DEPRECATION")
     @Test
-    fun `ensDomains resolver - happy path`() = runBlocking {
+    fun `ensDomains resolver - happy path`() = runBlocking<Unit> {
         val itemId = ItemId(
             ensDomainsAddress,
             EthUInt256.of("70978452926855298230627852209706669601671060584535678453189230628746785569329")
@@ -50,7 +49,9 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
         properties as ItemProperties
         assertThat(properties.name).isEqualTo("rarible.eth")
         assertThat(properties.description).isEqualTo("rarible.eth, an ENS name.")
-        assertThat(properties.content.imageOriginal!!.url).isEqualTo("https://raribleuserdata.org/ens/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image")
+        assertThat(properties.content.imageOriginal!!.url).isEqualTo(
+            "https://raribleuserdata.org/ens/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image"
+        )
         assertThat(properties.content.imagePreview).isNull()
         assertThat(properties.content.imageBig).isNull()
         assertThat(properties.content.videoOriginal).isNull()
@@ -63,20 +64,11 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
             ItemAttribute("Segment Length", "7")
         )
         assertThat(properties.rawJsonContent).isEqualTo("{\"is_normalized\":true,\"name\":\"rarible.eth\",\"description\":\"rarible.eth, an ENS name.\",\"attributes\":[{\"trait_type\":\"Created Date\",\"display_type\":\"date\",\"value\":1573589669000},{\"trait_type\":\"Length\",\"display_type\":\"number\",\"value\":7},{\"trait_type\":\"Segment Length\",\"display_type\":\"number\",\"value\":7},{\"trait_type\":\"Character Set\",\"display_type\":\"string\",\"value\":\"letter\"},{\"trait_type\":\"Registration Date\",\"display_type\":\"date\",\"value\":1580938356000},{\"trait_type\":\"Expiration Date\",\"display_type\":\"date\",\"value\":1920716141000}],\"name_length\":7,\"segment_length\":7,\"url\":\"https://app.ens.domains/name/rarible.eth\",\"version\":0,\"background_image\":\"https://metadata.ens.domains/mainnet/avatar/rarible.eth\",\"image\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\",\"image_url\":\"https://metadata.ens.domains/mainnet/0x57f1887a8bf19b14fc0df6fd9b2acc9af147ea85/0x9cec6175a02d670ee2b050842d150cf4233f9755111f9110836ea0305319ba31/image\"}")
-        coVerify(exactly = 1) {
-            ensDomainService.onGetProperties(
-                withArg {
-                        assertThat(it).isEqualTo(itemId)
-                },
-                withArg {
-                    assertThat(it).isEqualTo(properties)
-                }
-            )
-        }
     }
 
     @Test
     fun `ensDomains resolver - 404`() = runBlocking<Unit> {
+        // Ideally here we should ensure fact of 3 retries, but ATM it can be done only manually via logs
         assertThrows<ItemResolutionAbortedException> {
             resolver.resolve(
                 ItemId(
@@ -88,28 +80,16 @@ class EnsDomainsPropertiesResolverTest : BasePropertiesResolverTest() {
     }
 
     @Test
-    fun `ensDomain resolver happy path with 410 code`() {
+    fun `ensDomain resolver - domain expired`() {
         runBlocking {
             val itemId = ItemId(
                 ensDomainsAddress,
                 EthUInt256.of("55961161529594402122232949896472389206629650232556787123110068019425038245080")
             )
 
-            val properties = resolver.resolve(itemId)
-            assertThat(properties).isNotNull
-            assertThat(properties!!.name).isEmpty()
-            assertThat(properties.description).isEmpty()
-            assertThat(properties.attributes).isEmpty()
-
-            coVerify(exactly = 1) {
-                ensDomainService.onGetProperties(
-                    withArg {
-                        assertThat(it).isEqualTo(itemId)
-                    },
-                    withArg {
-                        assertThat(it).isEqualTo(properties)
-                    }
-                )
+            // Nothing should be returned here in order to do not overwrite existing meta
+            assertThrows<ItemResolutionAbortedException> {
+                resolver.resolve(itemId)
             }
         }
     }

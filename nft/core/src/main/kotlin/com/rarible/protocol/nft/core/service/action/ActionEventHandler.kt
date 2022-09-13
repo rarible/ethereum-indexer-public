@@ -28,7 +28,7 @@ class ActionEventHandler(
 
     override suspend fun handle(event: ActionEvent) = when(event) {
         is BurnItemActionEvent -> {
-            handleBurnActionEvent(event)
+            //handleBurnActionEvent(event) // TODO PT-1214
         }
     }
 

@@ -13,10 +13,13 @@ import io.mockk.verify
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 
+@Disabled // TODO PT-1214
 internal class ActionJobHandlerTest {
+
     private val actionEventRepository = mockk<NftItemActionEventRepository>()
     private val executor1 = mockk<ActionExecutor<Action>> {
         every { type } returns ActionType.BURN

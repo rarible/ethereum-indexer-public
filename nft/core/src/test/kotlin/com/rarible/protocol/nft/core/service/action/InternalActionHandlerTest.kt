@@ -13,22 +13,23 @@ import com.rarible.protocol.nft.core.model.BurnItemAction
 import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.repository.action.NftItemActionEventRepository
 import com.rarible.protocol.nft.core.service.item.FeaturedItemReduceService
-import com.rarible.protocol.nft.core.service.item.ItemReduceService
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
+import reactor.kotlin.core.publisher.toFlux
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
-import reactor.core.publisher.Flux
-import reactor.kotlin.core.publisher.toFlux
 
+@Disabled
 internal class InternalActionHandlerTest {
+
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
     private val clock = mockk<Clock>()
     private val registeredCounter = mockk<RegisteredCounter> { every { increment() } returns Unit }
