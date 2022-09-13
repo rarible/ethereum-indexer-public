@@ -20,6 +20,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.HttpHeaders
+import org.springframework.web.reactive.function.client.WebClientResponseException
 
 @IntegrationTest
 class RawPropertiesProviderIt : AbstractIntegrationTest() {
@@ -171,6 +173,12 @@ class RawPropertiesProviderIt : AbstractIntegrationTest() {
 
         val urlResource = urlParser.parse("https://test.com/${randomString()}")!!
 
+        // First call should be executed without proxy
+        coEvery {
+            mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = false)
+        } throws WebClientResponseException(404, "", HttpHeaders(), null, null, null)
+
+        // Since direct request has failed, proxy request should be executed
         coEvery {
             mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = true)
         } returns "rawProperties"
@@ -178,7 +186,26 @@ class RawPropertiesProviderIt : AbstractIntegrationTest() {
         rawPropertiesProvider.getContent(itemId, urlResource)
 
         // Content is not cached since it is not an IPFS URL
+        coVerify(exactly = 1) { mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = false) }
         coVerify(exactly = 1) { mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = true) }
+    }
+
+    @Test
+    fun `not cacheable url - proxy not used`() = runBlocking<Unit> {
+        rawPropertiesProvider = createProvider(enableCache = true, enableProxy = true)
+
+        val urlResource = urlParser.parse("https://test.com/${randomString()}")!!
+
+        // First call should be executed without proxy - and it returns data
+        coEvery {
+            mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = false)
+        } returns "rawProperties"
+
+        rawPropertiesProvider.getContent(itemId, urlResource)
+
+        // Even if useProxy == true, proxy should not be used since we got data via direct request
+        coVerify(exactly = 1) { mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = false) }
+        coVerify(exactly = 0) { mockExternalHttpClient.getBody(url = any(), id = itemId.toString(), useProxy = true) }
     }
 
     private fun createProvider(enableCache: Boolean = false, enableProxy: Boolean = false): RawPropertiesProvider {
