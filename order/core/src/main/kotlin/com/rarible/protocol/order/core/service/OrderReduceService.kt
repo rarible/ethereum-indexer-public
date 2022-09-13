@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
 import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.balance.AssetMakeBalanceProvider
 import com.rarible.protocol.order.core.service.pool.EventPoolReducer
+import com.rarible.protocol.order.core.service.pool.PoolPriceProvider
 import io.daonomic.rpc.domain.Word
 import java.time.Instant
 import kotlinx.coroutines.flow.fold
@@ -52,6 +53,7 @@ class OrderReduceService(
     private val raribleOrderExpiration: OrderIndexerProperties.RaribleOrderExpirationProperties,
     private val approvalHistoryRepository: ApprovalHistoryRepository,
     private val poolReducer: EventPoolReducer,
+    private val poolPriceProvider: PoolPriceProvider
 ) {
     suspend fun updateOrder(orderHash: Word): Order? = update(orderHash = orderHash).awaitFirstOrNull()
 
@@ -316,6 +318,11 @@ class OrderReduceService(
         return if (orderUsdValue != null) withOrderUsdValue(orderUsdValue) else this
     }
 
+    private suspend fun Order.withUpdatedPoolPrice(): Order {
+        if (this.type != OrderType.AMM) return this
+        return poolPriceProvider.updatePoolPrice(this)
+    }
+
     private suspend fun Order.withUpdatedCounter(): Order {
         val data = this.data as? OrderCounterableData ?: return this
         val makerCounter = nonceService.getLatestMakerNonce(this.maker, this.protocol)
@@ -397,6 +404,7 @@ class OrderReduceService(
 
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
+            .withUpdatedPoolPrice()
             .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedCounter()

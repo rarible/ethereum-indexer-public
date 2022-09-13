@@ -1,7 +1,6 @@
 package com.rarible.protocol.order.core.service.pool
 
 import com.rarible.core.test.data.randomAddress
-import com.rarible.ethereum.contract.service.ContractService
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.data.createOrder
 import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
@@ -19,8 +18,6 @@ import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
 import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.model.OrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.model.OrderType
-import com.rarible.protocol.order.core.service.PriceNormalizer
-import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -30,9 +27,7 @@ import java.time.Duration
 import java.time.Instant
 
 internal class EventPoolReducerTest {
-    private val contractService = mockk<ContractService>()
-    private val normalizer = PriceNormalizer(contractService)
-    private val eventPoolReducer = EventPoolReducer(normalizer)
+    private val eventPoolReducer = EventPoolReducer()
 
     @Test
     fun `should reduce onChainAmmOrder event`() = runBlocking<Unit> {
@@ -49,7 +44,6 @@ internal class EventPoolReducerTest {
         assertThat(reduced.createdAt).isEqualTo(event.date)
         assertThat(reduced.platform).isEqualTo(event.source.toPlatform())
         assertThat(reduced.data).isEqualTo(event.data.toOrderData())
-        assertThat(reduced.makePrice).isEqualTo(event.priceValue)
         assertThat(reduced.takePrice).isNull()
     }
 
@@ -106,12 +100,10 @@ internal class EventPoolReducerTest {
 
     @Test
     fun `should reduce poll spot price update event`() = runBlocking<Unit> {
-        val init = createSellOrder().copy(makePrice = BigDecimal.valueOf(0.1), take = randomEth(), lastUpdateAt = past())
+        val init = createSellOrder(createOrderSudoSwapAmmDataV1())
         val event = randomPoolSpotPriceUpdate().copy(newSpotPrice = BigInteger("200000000000000000"), date = now())
-
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.makePrice).isEqualTo(BigDecimal("0.200000000000000000"))
-        assertThat(reduced.takePrice).isNull()
+        assertThat((reduced.data as OrderSudoSwapAmmDataV1).spotPrice).isEqualTo(event.newSpotPrice)
     }
 
     @Test

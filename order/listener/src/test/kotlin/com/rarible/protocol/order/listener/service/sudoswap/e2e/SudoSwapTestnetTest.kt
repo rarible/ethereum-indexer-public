@@ -161,5 +161,30 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         checkItemAmmOrderExist(orderHash, token.address(), tokenIds2)
         checkItemAmmOrderNotExist(token.address(), tokenIds1)
     }
+
+    @Test
+    fun `should change pool delta`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val delta = BigDecimal("0.2").multiply(decimal).toBigInteger()
+        val (poolAddress, orderHash) = createPool(
+            userSender,
+            token.address(),
+            delta = delta
+        )
+        checkOrder(orderHash) {
+            val data = it.data as OrderSudoSwapAmmDataV1Dto
+            assertThat(data.delta).isEqualTo(delta)
+        }
+        val newDelta = BigDecimal("0.5").multiply(decimal).toBigInteger()
+        changeDelta(
+            sender = userSender,
+            poolAddress = poolAddress,
+            newDelta = newDelta,
+        )
+        checkOrder(orderHash) {
+            val data = it.data as OrderSudoSwapAmmDataV1Dto
+            assertThat(data.delta).isEqualTo(newDelta)
+        }
+    }
 }
 

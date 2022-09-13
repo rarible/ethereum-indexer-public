@@ -159,9 +159,11 @@ fun createSudoSwapPoolDataV1(
 ) = SudoSwapPoolDataV1(
     poolAddress = poolAddress,
     bondingCurve = randomAddress(),
+    factory = randomAddress(),
     curveType = SudoSwapCurveType.values().random(),
     assetRecipient = randomAddress(),
     poolType = SudoSwapPoolType.values().random(),
+    spotPrice = randomBigInt(),
     delta = randomBigInt(),
     fee = randomBigInt(),
 )
@@ -171,12 +173,32 @@ fun createOrderSudoSwapAmmDataV1(
 ) = OrderSudoSwapAmmDataV1(
     poolAddress = poolAddress,
     bondingCurve = randomAddress(),
+    factory = randomAddress(),
     curveType = SudoSwapCurveType.values().random(),
     assetRecipient = randomAddress(),
     poolType = SudoSwapPoolType.values().random(),
+    spotPrice = randomBigInt(),
     delta = randomBigInt(),
     fee = randomBigInt(),
 )
+
+fun createSudoSwapBuyInfo(): SudoSwapBuyInfo {
+    return SudoSwapBuyInfo(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        inputValue = randomBigInt(),
+        protocolFee = randomBigInt()
+    )
+}
+
+fun createSudoSwapSellInfo(): SudoSwapSellInfo {
+    return SudoSwapSellInfo(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        outputValue = randomBigInt(),
+        protocolFee = randomBigInt()
+    )
+}
 
 fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
     minPercentageToAsk = randomInt(),
@@ -477,9 +499,6 @@ fun randomSellOnChainAmmOrder(data: PoolData = createSudoSwapPoolDataV1()): Pool
         tokenIds = (1..10).map { EthUInt256.of(randomInt()) },
         currency = randomAddress(),
         currencyBalance = randomBigInt(),
-        price = randomBigInt(),
-        priceValue = randomBigDecimal(),
-        priceUsd = randomBigDecimal(),
         hash = Word.apply(randomWord()),
         date = Instant.now(),
         source = HistorySource.values().random()
