@@ -10,6 +10,8 @@ import com.rarible.protocol.order.core.data.*
 import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
+import com.sun.jndi.cosnaming.IiopUrl
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
@@ -18,6 +20,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import scalether.domain.AddressFactory
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.time.Duration
 
 @IntegrationTest
@@ -451,13 +455,22 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
 
     @Test
     fun `should create amm sell order from OnChainAmmOrder`() = runBlocking<Unit> {
-        val onChainAmmOrder = randomSellOnChainAmmOrder()
+        val poolData = createSudoSwapPoolDataV1()
+            .copy(
+                bondingCurve = sudoSwapAddresses.linearCurveV1,
+                spotPrice = BigInteger("1").eth(),
+                delta = BigInteger("3").eth(),
+                fee = BigInteger.ZERO
+            )
+        val onChainAmmOrder = randomSellOnChainAmmOrder(poolData).copy(currency = Address.ZERO())
         prepareStorage(onChainAmmOrder)
         val result = orderReduceService.updateOrder(onChainAmmOrder.hash)!!
         assertThat(result.hash).isEqualTo(onChainAmmOrder.hash)
         assertThat(result.fill).isEqualTo(EthUInt256.ZERO)
         assertThat(result.status).isEqualTo(OrderStatus.ACTIVE)
         assertThat(result.makeStock).isEqualTo(EthUInt256.of(onChainAmmOrder.tokenIds.size))
+        //With liner curve price should be 'spotPrice + delta' (all fee are zero)
+        assertThat(result.makePrice).isEqualTo(BigDecimal("4.000000000000000000"))
     }
 
     @Test
