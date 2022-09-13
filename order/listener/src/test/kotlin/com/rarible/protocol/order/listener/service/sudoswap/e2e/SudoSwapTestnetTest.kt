@@ -5,6 +5,7 @@ import com.rarible.protocol.dto.OrderSudoSwapAmmDataV1Dto
 import com.rarible.protocol.dto.SudoSwapCurveTypeDto
 import com.rarible.protocol.dto.SudoSwapPoolTypeDto
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
@@ -19,9 +20,10 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val token = createToken(userSender, poller)
         val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
 
-        val delta = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger()
+        val delta = BigDecimal("0.2").eth()
         val fee = BigInteger.ZERO
         val spotPrice = BigDecimal("0.500000000000000000")
+        val expectedPrice = BigDecimal("0.703500000000000000") //spotPrice + delta + protocolFee (0.5%)
 
         val (poolAddress, orderHash) = createPool(
             sender = userSender,
@@ -36,8 +38,9 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         )
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.take.value).isEqualTo(expectedPrice.eth())
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
-            assertThat(it.makePrice).isEqualTo(spotPrice)
+            assertThat(it.makePrice).isEqualTo(expectedPrice)
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
 
             with(it.data as OrderSudoSwapAmmDataV1Dto) {

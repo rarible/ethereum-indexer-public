@@ -288,12 +288,13 @@ abstract class AbstractSudoSwapTestnetTest {
     }
 
     protected suspend fun checkItemAmmOrderNotExist(collection: Address, tokenIds: List<BigInteger>) {
-        Wait.waitAssert(Duration.ofSeconds(20)) {
+        Wait.waitAssert(Duration.ofSeconds(30)) {
             coroutineScope {
                 tokenIds.map { tokenId ->
                     async {
                         val result = ethereumOrderApi.getAmmOrdersByItem(collection.prefixed(), tokenId.toString(), null, null).awaitFirst()
-                        assertThat(result.orders).hasSize(0)
+                        logger.info("Found amm orders: $result")
+                        assertThat(result.orders).hasSize(0).withFailMessage { "Found orders for $tokenId" }
                     }
                 }.awaitAll()
             }
