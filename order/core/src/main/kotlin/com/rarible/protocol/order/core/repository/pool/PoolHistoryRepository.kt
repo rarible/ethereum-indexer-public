@@ -120,12 +120,9 @@ class PoolHistoryRepository(
 
         val POOL_NFT_CHANGE_SORT_DESC: Sort = Sort
             .by(
-                Sort.Direction.DESC,
-                "${LogEvent::data.name}.${PoolNftChange::collection.name}",
-                "${LogEvent::data.name}.${PoolNftChange::tokenIds.name}",
-                LogEvent::blockNumber.name,
-                LogEvent::logIndex.name,
-                LogEvent::minorLogIndex.name
+                Sort.Order(Sort.Direction.DESC, LogEvent::blockNumber.name),
+                Sort.Order(Sort.Direction.DESC, LogEvent::logIndex.name),
+                Sort.Order(Sort.Direction.DESC, LogEvent::minorLogIndex.name),
             )
 
         val LOG_SORT_ASC: Sort = Sort
