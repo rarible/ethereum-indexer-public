@@ -182,6 +182,24 @@ fun createOrderSudoSwapAmmDataV1(
     fee = randomBigInt(),
 )
 
+fun createSudoSwapBuyInfo(): SudoSwapBuyInfo {
+    return SudoSwapBuyInfo(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        inputValue = randomBigInt(),
+        protocolFee = randomBigInt()
+    )
+}
+
+fun createSudoSwapSellInfo(): SudoSwapSellInfo {
+    return SudoSwapSellInfo(
+        newSpotPrice = randomBigInt(),
+        newDelta = randomBigInt(),
+        outputValue = randomBigInt(),
+        protocolFee = randomBigInt()
+    )
+}
+
 fun createOrderLooksrareDataV1() = OrderLooksrareDataV1(
     minPercentageToAsk = randomInt(),
     strategy = randomAddress(),

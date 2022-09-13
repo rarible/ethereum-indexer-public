@@ -404,8 +404,8 @@ class OrderReduceService(
 
     private suspend fun updateOrderWithState(orderStub: Order): Order {
         val order = orderStub
-            .withUpdatedMakeStock()
             .withUpdatedPoolPrice()
+            .withUpdatedMakeStock()
             .withNewPrice()
             .withUpdatedCounter()
             .withCancelOpenSea()
