@@ -104,7 +104,7 @@ abstract class AbstractSudoSwapTestnetTest {
         return TestERC721.deployAndWait(sender, poller, "ipfs:/", "test").awaitFirst()
     }
 
-    private suspend fun mint(
+    protected suspend fun mint(
         sender: MonoSigningTransactionSender,
         token: TestERC721,
         tokenId: BigInteger = randomBigInt()
@@ -180,7 +180,7 @@ abstract class AbstractSudoSwapTestnetTest {
             spotPrice, //_spotPrice
             tokenIds.toTypedArray() //_initialNFTIDs
         ).run {
-            (if (value != null) this.withValue(value) else this).execute().verifySuccess()
+            (if (value != null) this.withValue(value) else this).withSender(sender).execute().verifySuccess()
         }
         val poolAddress = getPoolAddressFromCreateLog(result)
         val orderHash = sudoSwapEventConverter.getPoolHash(poolAddress)
@@ -263,6 +263,19 @@ abstract class AbstractSudoSwapTestnetTest {
     ) {
         val pair = LSSVMPairV1(poolAddress, sender)
         pair.changeFee(newFee).execute().verifySuccess()
+    }
+
+    protected suspend fun swapNFTsForToken(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        tokenIds: List<BigInteger>,
+        minExpectedTokenOutput: BigInteger,
+        tokenRecipient: Address,
+    ) {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        pair
+            .swapNFTsForToken(tokenIds.toTypedArray(), minExpectedTokenOutput, tokenRecipient, false, Address.ZERO())
+            .execute().verifySuccess()
     }
 
     protected suspend fun checkHoldItems(orderHash: Word, collection: Address, tokenIds: List<BigInteger>) {
