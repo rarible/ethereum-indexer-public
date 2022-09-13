@@ -5,10 +5,12 @@ import com.rarible.protocol.dto.OrderSudoSwapAmmDataV1Dto
 import com.rarible.protocol.dto.SudoSwapCurveTypeDto
 import com.rarible.protocol.dto.SudoSwapPoolTypeDto
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import scalether.domain.Address
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -19,9 +21,10 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val token = createToken(userSender, poller)
         val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
 
-        val delta = BigDecimal.valueOf(0.2).multiply(decimal).toBigInteger()
+        val delta = BigDecimal("0.2").eth()
         val fee = BigInteger.ZERO
         val spotPrice = BigDecimal("0.500000000000000000")
+        val expectedPrice = BigDecimal("0.703500000000000000") //spotPrice + delta + protocolFee (0.5%)
 
         val (poolAddress, orderHash) = createPool(
             sender = userSender,
@@ -36,8 +39,9 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         )
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.take.value).isEqualTo(expectedPrice.eth())
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
-            assertThat(it.makePrice).isEqualTo(spotPrice)
+            assertThat(it.makePrice).isEqualTo(expectedPrice)
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
 
             with(it.data as OrderSudoSwapAmmDataV1Dto) {
@@ -50,6 +54,83 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             }
         }
         checkHoldItems(orderHash, token.address(), tokenIds)
+    }
+
+    @Test
+    fun `should create trade pool with exponential curve`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
+
+        val delta = BigDecimal("1.01").eth()
+        val fee = BigInteger.ZERO
+        val spotPrice = BigDecimal("0.500000000000000000")
+        val expectedPrice = BigDecimal("0.507525000000000000") //spotPrice + delta + protocolFee (0.5%)
+
+        val (poolAddress, orderHash) = createPool(
+            sender = userSender,
+            nft = token.address(),
+            bondingCurve = sudoswapExponentialCurve,
+            assetRecipient = Address.ZERO(),
+            poolType = SudoSwapPoolType.TRADE,
+            delta = delta,
+            fee = fee,
+            spotPrice = spotPrice.multiply(decimal).toBigInteger(),
+            tokenIds = tokenIds
+        )
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.take.value).isEqualTo(expectedPrice.eth())
+            assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
+            assertThat(it.makePrice).isEqualTo(expectedPrice)
+            assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
+
+            with(it.data as OrderSudoSwapAmmDataV1Dto) {
+                assertThat(this.poolAddress).isEqualTo(poolAddress)
+                assertThat(this.poolType).isEqualTo(SudoSwapPoolTypeDto.TRADE)
+                assertThat(this.bondingCurve).isEqualTo(sudoswapExponentialCurve)
+                assertThat(this.curveType).isEqualTo(SudoSwapCurveTypeDto.EXPONENTIAL)
+                assertThat(this.delta).isEqualTo(delta)
+                assertThat(this.fee).isEqualTo(fee)
+            }
+        }
+        checkHoldItems(orderHash, token.address(), tokenIds)
+    }
+
+    @Test
+    fun `should buy nft by pool`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
+
+        val delta = BigDecimal("0.1").eth()
+        val fee = BigDecimal("0.001").eth()
+        val spotPrice = BigDecimal("0.500000000000000000")
+        val (poolAddress, orderHash) = createPool(
+            sender = userSender,
+            nft = token.address(),
+            bondingCurve = sudoswapLinerCurve,
+            assetRecipient = Address.ZERO(),
+            poolType = SudoSwapPoolType.TRADE,
+            delta = delta,
+            fee = fee,
+            spotPrice = spotPrice.eth(),
+            tokenIds = tokenIds,
+            value = BigInteger("5").eth()
+        )
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+        }
+        val buyTokenIds = mintAndApprove(5, userSender, token, poolAddress)
+        swapNFTsForToken(
+            sender = userSender,
+            poolAddress = poolAddress,
+            tokenIds = buyTokenIds,
+            minExpectedTokenOutput = BigDecimal("0.01").eth(),
+            tokenRecipient = userSender.from(),
+        )
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo((tokenIds + buyTokenIds).size)
+        }
+        checkHoldItems(orderHash, token.address(), tokenIds + buyTokenIds)
     }
 
     @Test
@@ -184,6 +265,40 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         checkOrder(orderHash) {
             val data = it.data as OrderSudoSwapAmmDataV1Dto
             assertThat(data.delta).isEqualTo(newDelta)
+        }
+    }
+
+    @Test
+    fun `should change pool fee`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(1, userSender, token, sudoswapPairFactory)
+        val delta = BigDecimal("1.01").eth()
+        val fee = BigDecimal("0.0002").eth()
+        val spotPrice = BigDecimal("0.500000000000000000")
+        val (poolAddress, orderHash) = createPool(
+            sender = userSender,
+            nft = token.address(),
+            bondingCurve = sudoswapExponentialCurve,
+            assetRecipient = Address.ZERO(),
+            poolType = SudoSwapPoolType.TRADE,
+            delta = delta,
+            fee = fee,
+            spotPrice = spotPrice.multiply(decimal).toBigInteger(),
+            tokenIds = tokenIds
+        )
+        checkOrder(orderHash) {
+            val data = it.data as OrderSudoSwapAmmDataV1Dto
+            assertThat(data.fee).isEqualTo(fee)
+        }
+        val newFee = BigDecimal("0.0005").eth()
+        changeFee(
+            sender = userSender,
+            poolAddress = poolAddress,
+            newFee = newFee,
+        )
+        checkOrder(orderHash) {
+            val data = it.data as OrderSudoSwapAmmDataV1Dto
+            assertThat(data.fee).isEqualTo(newFee)
         }
     }
 }

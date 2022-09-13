@@ -10,10 +10,14 @@ import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
 import com.rarible.protocol.order.core.TestPropertiesConfiguration
 import com.rarible.protocol.order.core.configuration.RepositoryConfiguration
+import com.rarible.protocol.order.core.data.createSudoSwapPoolDataV1
+import com.rarible.protocol.order.core.data.randomPoolNftWithdraw
 import com.rarible.protocol.order.core.data.randomPoolTargetNftIn
 import com.rarible.protocol.order.core.data.randomPoolTargetNftOut
+import com.rarible.protocol.order.core.data.randomSellOnChainAmmOrder
 import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftChange
+import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
@@ -76,6 +80,30 @@ internal class PoolHistoryRepositoryTest {
         assertThat(events).hasSize(1)
         assertThat(events.single().blockNumber).isEqualTo(3)
         assertThat((events.single().data as PoolNftChange).tokenIds).contains(tokenId)
+    }
+
+    @Test
+    fun `get latest nft in change event for item withdraw`() = runBlocking<Unit> {
+        val collection = randomAddress()
+        val tokenIdsOut = listOf(EthUInt256.of(randomBigInt()), EthUInt256.of(randomBigInt()))
+        val tokenIds = (1..10).map { EthUInt256.of(randomBigInt()) } + tokenIdsOut
+
+        save(
+            history = randomSellOnChainAmmOrder().copy(collection = collection, tokenIds = tokenIds.shuffled()),
+            blockNumber = 1,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        save(
+            history = randomPoolNftWithdraw().copy(collection = collection, tokenIds = tokenIdsOut.shuffled()),
+            blockNumber = 2,
+            logIndex = 1,
+            minorLogIndex = 0
+        )
+        val events = poolHistoryRepository.getLatestPoolNftChange(collection, tokenIdsOut.first())
+        assertThat(events).hasSize(1)
+        assertThat(events.single().blockNumber).isEqualTo(2)
+        assertThat((events.single().data as PoolNftWithdraw).tokenIds).containsExactlyInAnyOrderElementsOf(tokenIdsOut)
     }
 
     @Test
