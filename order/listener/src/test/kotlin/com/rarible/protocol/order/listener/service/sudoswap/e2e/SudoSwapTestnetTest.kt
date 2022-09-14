@@ -7,12 +7,14 @@ import com.rarible.protocol.dto.SudoSwapPoolTypeDto
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.delay
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import scalether.domain.Address
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.time.Duration
 
 @Disabled("Manual tests for SudoSwap on dev")
 class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
@@ -163,6 +165,31 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
         }
         checkHoldItems(orderHash, token.address(), tokenIds)
+    }
+
+    @Test
+    fun `should not calculate deposit for not pool collection`() = runBlocking<Unit> {
+        val token = createToken(userSender, poller)
+        val wrongToken = createToken(userSender, poller)
+        val tokenIds = mintAndApprove(5, userSender, token, sudoswapPairFactory)
+        val wrongTokenIds = mintAndApprove(5, userSender, wrongToken, sudoswapPairFactory)
+        val (poolAddress, orderHash) = createPool(userSender, token.address(), tokenIds = tokenIds)
+
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.makeStock).isEqualTo(tokenIds.size)
+        }
+        depositNFTs(
+            userSender,
+            poolAddress,
+            wrongToken.address(),
+            wrongTokenIds,
+        )
+        delay(Duration.ofSeconds(5))
+        checkOrder(orderHash) {
+            assertThat(it.make.value).isEqualTo(tokenIds.size)
+            assertThat(it.makeStock).isEqualTo(tokenIds.size)
+        }
     }
 
     @Test
