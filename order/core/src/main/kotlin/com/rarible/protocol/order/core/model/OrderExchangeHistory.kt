@@ -49,7 +49,8 @@ data class OrderSideMatch(
     val counterAdhoc: Boolean? = null,
     // Fees which were got above price
     val originFees: List<Part>? = emptyList(),
-    val marketplaceMarker: Word? = null
+    val marketplaceMarker: Word? = null,
+    val counterMarketplaceMarker: Word? = null
 ) : OrderExchangeHistory(type = ItemType.ORDER_SIDE_MATCH) {
     companion object {
         private val MARKER = listOf<Byte>(9, 97, 108, 108, 100, 97, 116, 97)
@@ -67,9 +68,12 @@ data class OrderSideMatch(
                 ?.toByteArray()
                 ?.let { Word.apply(it) }
             return list.map {
-                if (it.marketplaceMarker == null && marketplaceMarker != null && it.adhoc == true) {
+                val shouldSetMarker = it.marketplaceMarker == null && marketplaceMarker != null
+                if (shouldSetMarker && it.adhoc == true) {
                     counter?.increment()
                     it.copy(marketplaceMarker = marketplaceMarker)
+                } else if (shouldSetMarker && it.counterAdhoc == true) {
+                    it.copy(counterMarketplaceMarker = marketplaceMarker)
                 } else {
                     it
                 }
