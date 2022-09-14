@@ -11,7 +11,9 @@ import com.rarible.protocol.dto.AmmOrderDto
 import com.rarible.protocol.gateway.api.ApiClient
 import com.rarible.protocol.gateway.api.client.OrderControllerApi
 import com.rarible.protocol.order.core.model.ItemId
+import com.rarible.protocol.order.core.model.SudoSwapBuyInfo
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
+import com.rarible.protocol.order.core.service.curve.SudoSwapCurve
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.Request
@@ -218,6 +220,28 @@ abstract class AbstractSudoSwapTestnetTest {
         ).withSender(sender).withValue(value).execute().verifySuccess()
     }
 
+    private suspend fun getBuyNFTQuote(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+        nftCount: Int,
+    ): SudoSwapBuyInfo {
+        val pair = LSSVMPairV1(poolAddress, sender)
+        val result = pair.getBuyNFTQuote(nftCount.toBigInteger()).call().awaitFirst()
+        return SudoSwapBuyInfo(
+            newSpotPrice = result._2(),
+            newDelta = result._3(),
+            inputValue = result._4(),
+            protocolFee = result._5()
+        )
+    }
+
+    protected suspend fun getSingleBuyNFTQuote(
+        sender: MonoSigningTransactionSender,
+        poolAddress: Address,
+    ): SudoSwapBuyInfo {
+        return getBuyNFTQuote(sender, poolAddress, 1)
+    }
+
     protected suspend fun swapTokenForSpecificNFTs(
         sender: MonoSigningTransactionSender,
         poolAddress: Address,
@@ -344,6 +368,8 @@ abstract class AbstractSudoSwapTestnetTest {
         }
         throw IllegalStateException("Can't geet Tx $value")
     }
+
+    fun SudoSwapBuyInfo.price(): BigDecimal = this.inputValue.toBigDecimal().divide(SudoSwapCurve.WAD.toBigDecimal()).stripTrailingZeros()
 
     private fun createEthereumOrderApi(endpoint: String): OrderControllerApi {
         return OrderControllerApi(ApiClient().setBasePath(endpoint))
