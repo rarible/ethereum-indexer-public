@@ -11,7 +11,6 @@ import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
-import com.sun.jndi.cosnaming.IiopUrl
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
