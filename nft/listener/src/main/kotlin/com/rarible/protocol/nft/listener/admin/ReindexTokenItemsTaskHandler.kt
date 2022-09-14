@@ -12,6 +12,7 @@ import com.rarible.protocol.nft.core.model.TokenStandard
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc1155TransferLogDescriptor
 import com.rarible.protocol.nft.listener.admin.descriptor.AdminErc721TransferLogDescriptor
+import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
 import io.daonomic.rpc.domain.Word
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
@@ -25,6 +26,7 @@ import scalether.core.MonoEthereum
  * Background job that re-indexes all items of a token (specified by `param`).
  */
 @Component
+@EnableOnScannerV1
 class ReindexTokenItemsTaskHandler(
     private val taskRepository: TaskRepository,
     private val logListenService: LogListenService,
