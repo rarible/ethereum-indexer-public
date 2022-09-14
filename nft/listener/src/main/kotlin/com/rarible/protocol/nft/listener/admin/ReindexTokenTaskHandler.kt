@@ -11,11 +11,7 @@ import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155LogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155RaribleLogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155RaribleUserLogDescriptor
-import com.rarible.protocol.nft.listener.service.descriptors.erc721.CollectionOwnershipTransferLogDescriptor
-import com.rarible.protocol.nft.listener.service.descriptors.erc721.CreateERC721LogDescriptor
-import com.rarible.protocol.nft.listener.service.descriptors.erc721.CreateERC721RaribleLogDescriptor
-import com.rarible.protocol.nft.listener.service.descriptors.erc721.CreateERC721RaribleUserLogDescriptor
-import com.rarible.protocol.nft.listener.service.descriptors.erc721.CreateERC721V4LogDescriptor
+import com.rarible.protocol.nft.listener.service.descriptors.erc721.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.reactive.asFlow
 import org.springframework.stereotype.Component
