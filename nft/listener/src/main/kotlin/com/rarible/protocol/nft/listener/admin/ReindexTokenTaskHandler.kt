@@ -6,7 +6,6 @@ import com.rarible.ethereum.listener.log.LogListenService
 import com.rarible.ethereum.listener.log.domain.EventData
 import com.rarible.protocol.nft.core.model.ReindexTokenTaskParams
 import com.rarible.protocol.nft.core.service.token.TokenRegistrationService
-import com.rarible.protocol.nft.listener.configuration.EnableOnScannerV1
 import com.rarible.protocol.nft.listener.configuration.NftListenerProperties
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155LogDescriptor
 import com.rarible.protocol.nft.listener.service.descriptors.erc1155.CreateERC1155RaribleLogDescriptor
@@ -29,7 +28,6 @@ import scalether.domain.Address
  * Background job that re-indexes tokens (specified by `param`).
  */
 @Component
-@EnableOnScannerV1
 class ReindexTokenTaskHandler(
     private val logListenService: LogListenService,
     private val tokenRegistrationService: TokenRegistrationService,

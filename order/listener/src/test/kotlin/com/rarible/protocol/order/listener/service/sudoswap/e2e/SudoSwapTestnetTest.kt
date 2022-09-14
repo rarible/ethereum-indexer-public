@@ -24,7 +24,6 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val delta = BigDecimal("0.2").eth()
         val fee = BigInteger.ZERO
         val spotPrice = BigDecimal("0.500000000000000000")
-        val expectedPrice = BigDecimal("0.703500000000000000") //spotPrice + delta + protocolFee (0.5%)
 
         val (poolAddress, orderHash) = createPool(
             sender = userSender,
@@ -37,11 +36,13 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             spotPrice = spotPrice.multiply(decimal).toBigInteger(),
             tokenIds = tokenIds
         )
+        val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress) //spotPrice + delta + protocolFee (0.5%)
+
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(tokenIds.size)
-            assertThat(it.take.value).isEqualTo(expectedPrice.eth())
+            assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
-            assertThat(it.makePrice).isEqualTo(expectedPrice)
+            assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
 
             with(it.data as OrderSudoSwapAmmDataV1Dto) {
@@ -64,7 +65,6 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
         val delta = BigDecimal("1.01").eth()
         val fee = BigInteger.ZERO
         val spotPrice = BigDecimal("0.500000000000000000")
-        val expectedPrice = BigDecimal("0.507525000000000000") //spotPrice + delta + protocolFee (0.5%)
 
         val (poolAddress, orderHash) = createPool(
             sender = userSender,
@@ -77,11 +77,13 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             spotPrice = spotPrice.multiply(decimal).toBigInteger(),
             tokenIds = tokenIds
         )
+        val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress)
+
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo(tokenIds.size)
-            assertThat(it.take.value).isEqualTo(expectedPrice.eth())
+            assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
             assertThat(it.makeStock).isEqualTo(tokenIds.size.toBigInteger())
-            assertThat(it.makePrice).isEqualTo(expectedPrice)
+            assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
             assertThat(it.status).isEqualTo(OrderStatusDto.ACTIVE)
 
             with(it.data as OrderSudoSwapAmmDataV1Dto) {
@@ -127,8 +129,11 @@ class SudoSwapTestnetTest : AbstractSudoSwapTestnetTest() {
             minExpectedTokenOutput = BigDecimal("0.01").eth(),
             tokenRecipient = userSender.from(),
         )
+        val expectedPrice = getSingleBuyNFTQuote(userSender, poolAddress)
         checkOrder(orderHash) {
             assertThat(it.make.value).isEqualTo((tokenIds + buyTokenIds).size)
+            assertThat(it.take.value).isEqualTo(expectedPrice.inputValue)
+            assertThat(it.makePrice?.stripTrailingZeros()).isEqualTo(expectedPrice.price())
         }
         checkHoldItems(orderHash, token.address(), tokenIds + buyTokenIds)
     }
