@@ -49,7 +49,6 @@ class SudoSwapNftTransferDetector(
         val iterator = logs.listIterator(logs.size)
         while (iterator.hasPrevious()) {
             val log = iterator.previous()
-            if (isTargetLog(log, SpotPriceUpdateEvent.id(), poolAddress)) break
 
             foundTargertNftOutLog = foundTargertNftOutLog ||
                 isTargetLog(log, SwapNFTOutPairEvent.id(), poolAddress) &&
@@ -60,6 +59,9 @@ class SudoSwapNftTransferDetector(
                 if (transfer.from() == poolAddress) {
                     tokenIds.add(transfer.tokenId())
                 }
+            }
+            if (foundTargertNftOutLog && isTargetLog(log, SpotPriceUpdateEvent.id(), poolAddress)) {
+                break
             }
         }
         return tokenIds
