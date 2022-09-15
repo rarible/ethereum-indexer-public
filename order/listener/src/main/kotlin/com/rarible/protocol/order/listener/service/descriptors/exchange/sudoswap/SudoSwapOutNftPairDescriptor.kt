@@ -62,7 +62,7 @@ class SudoSwapOutNftPairDescriptor(
                     nftCollection = collection
                 )
                 require(tokenIds.size == details.numberNft.toInt()) {
-                    "Found tokenIds amount didn't much event nft out number, tx=${transaction.hash()}, logIndex=${log.logIndex()}"
+                    "Found tokenIds amount (${tokenIds.size}) didn't much event nft out number (${details.numberNft.toInt()}), tx=${transaction.hash()}, logIndex=${log.logIndex()}"
                 }
                 PoolTargetNftOut(
                     hash = hash,
