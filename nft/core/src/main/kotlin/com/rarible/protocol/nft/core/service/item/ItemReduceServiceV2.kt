@@ -70,6 +70,8 @@ class ItemReduceServiceV2(
         }.filter {
             it.itemEvent != null || it.ownershipEvents.isNotEmpty()
         }
+            .onErrorContinue { ex, event -> logger.error("Cause of error is $event", ex) }
+
         compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
             send(entity.id)
         }
