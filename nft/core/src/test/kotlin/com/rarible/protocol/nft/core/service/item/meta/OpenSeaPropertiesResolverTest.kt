@@ -95,4 +95,16 @@ class OpenSeaPropertiesResolverTest : BasePropertiesResolverTest() {
             )
         )
     }
+
+    @Test
+    fun `empty meta filtered`() = runBlocking<Unit> {
+        val properties = openSeaPropertiesResolver.resolve(
+            ItemId(
+                Address.apply("0x8f4cac6469790a71514cda50e6d8fac3cdb1aa98"),
+                EthUInt256.of(2120)
+            )
+        )
+
+        assertThat(properties).isNull()
+    }
 }

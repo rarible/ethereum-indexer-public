@@ -5,9 +5,9 @@ import com.rarible.protocol.nft.core.model.ItemId
 import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 
-object ItemPropertiesProvider {
+object ItemPropertiesParser {
 
-    fun provide(
+    fun parse(
         itemId: ItemId,
         httpUrl: String,
         rawProperties: String,
@@ -17,10 +17,20 @@ object ItemPropertiesProvider {
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
             if (rawProperties.length > 1_000_000) {
-                logMetaLoading(itemId, "suspiciously big item properties ${rawProperties.length} for $httpUrl", warn = true)
+                logMetaLoading(
+                    itemId, "suspiciously big item properties ${rawProperties.length} for $httpUrl", warn = true
+                )
             }
             val json = parser(itemId, rawProperties)
-            json?.let { mapper(itemId, json) }
+            val result = json?.let { mapper(itemId, json) }
+
+            return if (result != null && result.isEmpty()) {
+                // TODO ideally we should track it, revisit in meta-pipeline
+                logMetaLoading(itemId, "empty meta json received by URI: $httpUrl")
+                null
+            } else {
+                result
+            }
         } catch (e: Error) {
             logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
             null

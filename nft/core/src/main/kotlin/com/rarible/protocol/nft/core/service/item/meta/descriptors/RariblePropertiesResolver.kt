@@ -8,7 +8,7 @@ import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
-import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesProvider
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
@@ -70,7 +70,7 @@ class RariblePropertiesResolver(
         val resource = urlService.parseUrl(uri, itemId.toString()) ?: return null
         val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
-        return ItemPropertiesProvider.provide(
+        return ItemPropertiesParser.parse(
             itemId = itemId,
             httpUrl = urlService.resolveInternalHttpUrl(resource),
             rawProperties = rawProperties

@@ -17,7 +17,25 @@ data class ItemProperties(
     val externalUri: String? = null,
     val tokenUri: String? = null,
     val content: ItemMetaContent = ItemMetaContent()
-)
+) {
+
+    fun isEmpty(): Boolean {
+        return name.isBlank()
+            && description.isNullOrBlank()
+            && attributes.isEmpty()
+            // && rawJsonContent.isNullOrBlank() // not an 'empty' marker
+            && createdAt == null
+            && tags.isEmpty()
+            && genres.isEmpty()
+            && language.isNullOrBlank()
+            && rights.isNullOrBlank()
+            && rightsUri.isNullOrBlank()
+            && externalUri.isNullOrBlank()
+            // && tokenUri.isNullOrBlank() // not an 'empty' marker
+            && content.isEmpty()
+
+    }
+}
 
 data class ItemMetaContent(
     val imageOriginal: EthMetaContent? = null,
@@ -25,6 +43,7 @@ data class ItemMetaContent(
     val imagePreview: EthMetaContent? = null,
     val videoOriginal: EthMetaContent? = null,
 ) {
+
     fun asList(): List<EthMetaContent> {
         val content = ArrayList<EthMetaContent>(4)
 
@@ -34,6 +53,13 @@ data class ItemMetaContent(
         this.videoOriginal?.let { content.add(it) }
 
         return content
+    }
+
+    fun isEmpty(): Boolean {
+        return imageBig == null
+            && imageOriginal == null
+            && imagePreview == null
+            && videoOriginal == null
     }
 }
 
