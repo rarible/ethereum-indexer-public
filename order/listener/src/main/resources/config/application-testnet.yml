@@ -1,7 +1,7 @@
 common:
-  chain-id: 4
   node-type: GETH
   open-sea-nonce-increment: 1
+  # TODO PT-1243
   currency-contract-addresses:
     weth: "0xc778417e063141139fce010982780140aa0cd5ab"
   sudo-swap-addresses:

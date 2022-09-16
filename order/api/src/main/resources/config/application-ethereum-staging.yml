@@ -1,6 +1,5 @@
 common:
-  chain-id: 4
-
+  chain-id: 200500
   exchange-contract-addresses:
     v1: "0x0000000000000000000000000000000000000000"
     v2: "0x5aB7F3B0A00868612e0883F4353493575D2cDCB2"

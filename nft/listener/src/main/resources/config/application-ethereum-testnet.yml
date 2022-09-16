@@ -1,7 +1,6 @@
-api:
-  chain-id: 4
 common:
-  openseaLazyMintAddress: "0x88b48f654c30e99bc2e4a1559b4dcf1ad93fa656"
+  #TODO PT-1246 check & cleanup consul
+  royaltyRegistryAddress: "0xdA8e7D4cF7BA4D5912a68c1e40d3D89828fA6EE8"
   factory:
     erc721Rarible: "0x31575E4426d195f6082aDdcD44e97cB4CEa1291C"
     erc721RaribleUser: "0xe5bF86F2FC1e0C704A8b2C095aD92C59100C63Ac"
