@@ -40,7 +40,7 @@ class FallbackTraceCallService(
     private fun createTraceCallServices(): List<TraceCallService> {
         val create: (TraceMethod) -> TraceCallService = {
             TraceCallServiceImpl(
-                traceProvider = traceProviderFactory.traceProvider(properties.traceMethod),
+                traceProvider = traceProviderFactory.traceProvider(it),
                 featureFlags = properties.featureFlags
             )
         }
