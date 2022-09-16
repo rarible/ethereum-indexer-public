@@ -9,7 +9,7 @@ import com.rarible.protocol.order.core.data.createOrderSudoSwapAmmDataV1
 import com.rarible.protocol.order.core.data.createSellOrder
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftOut
-import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapNftTransferDetector
@@ -32,7 +32,7 @@ import java.time.temporal.ChronoUnit
 
 internal class SudoSwapOutNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val traceCallService = TraceCallService(mockk(), mockk())
+    private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val nftTransferDetector = mockk<SudoSwapNftTransferDetector>()
     private val sudoSwapPoolCollectionProvider = mockk<SudoSwapPoolCollectionProvider>()

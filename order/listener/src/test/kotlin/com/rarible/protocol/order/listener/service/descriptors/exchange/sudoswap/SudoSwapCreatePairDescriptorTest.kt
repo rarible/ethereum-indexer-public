@@ -14,7 +14,7 @@ import com.rarible.protocol.order.core.model.SudoSwapCurveType
 import com.rarible.protocol.order.core.model.SudoSwapPoolDataV1
 import com.rarible.protocol.order.core.model.SudoSwapPoolType
 import com.rarible.protocol.order.core.service.PriceUpdateService
-import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
@@ -41,7 +41,7 @@ internal class SudoSwapCreatePairDescriptorTest {
         exponentialCurveV1 = randomAddress()
     )
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val traceCallService = TraceCallService(mockk(), mockk())
+    private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
     private val priceUpdateService = mockk<PriceUpdateService>()
 

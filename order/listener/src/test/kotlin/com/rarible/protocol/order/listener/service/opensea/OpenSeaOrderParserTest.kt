@@ -11,6 +11,7 @@ import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
 import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import io.daonomic.rpc.domain.Binary
 import io.daonomic.rpc.domain.WordFactory
 import io.mockk.coEvery
@@ -25,7 +26,7 @@ import java.math.BigInteger
 
 internal class OpenSeaOrderParserTest {
     private val parser = OpenSeaOrderParser(
-        traceCallService = TraceCallService(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()),
+        traceCallService = TraceCallServiceImpl(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()),
         callDataEncoder = CallDataEncoder(),
         featureFlags = OrderIndexerProperties.FeatureFlags()
     )

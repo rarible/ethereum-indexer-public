@@ -3,9 +3,8 @@ package com.rarible.protocol.order.listener.service.descriptors.exchange.sudoswa
 import com.rarible.core.telemetry.metrics.RegisteredCounter
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
-import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
-import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import io.daonomic.rpc.domain.Binary
@@ -24,7 +23,7 @@ import java.time.temporal.ChronoUnit
 
 internal class SudoSwapDeltaUpdatePairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
-    private val traceCallService = TraceCallService(mockk(), mockk())
+    private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapDeltaUpdatePairDescriptor(
