@@ -6,7 +6,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
 import com.rarible.protocol.nft.core.service.item.meta.ItemResolutionAbortedException
-import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesProvider
+import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.RawPropertiesProvider
 import org.springframework.stereotype.Component
 import scalether.domain.Address
@@ -29,7 +29,7 @@ class AlchemistCruciblePropertiesResolver(
         val resource = urlService.parseUrl(httpUrl, itemId.toString()) ?: return null
         val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
-        return ItemPropertiesProvider.provide(
+        return ItemPropertiesParser.parse(
             itemId = itemId,
             httpUrl = urlService.resolveInternalHttpUrl(resource),
             rawProperties = rawProperties
