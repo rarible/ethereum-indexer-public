@@ -1,5 +1,6 @@
 package com.rarible.protocol.order.listener.service.order
 
+import com.rarible.core.common.ifNotBlank
 import com.rarible.core.task.TaskHandler
 import com.rarible.core.task.TaskRepository
 import com.rarible.core.task.TaskStatus
@@ -26,7 +27,17 @@ class OrderReduceTaskHandler(
         verifyAllReindexingTasksCompleted(ItemType.values().flatMap { it.topic })
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        return orderReduceService.update(null, fromOrderHash = from?.let { Word.apply(it) }, platforms = listOf(Platform.SUDOSWAP))
+        val platforms = param
+            .ifNotBlank()
+            ?.split(",")
+            ?.map { Platform.valueOf(it) }
+            ?.takeUnless { it.isEmpty() }
+
+        return orderReduceService.update(
+            fromOrderHash = from?.let { Word.apply(it) },
+            platforms = platforms,
+            orderHash = null,
+        )
             .filter { it.hash != OrderReduceService.EMPTY_ORDER_HASH }
             .map { it.hash.toString() }
             .asFlow()
