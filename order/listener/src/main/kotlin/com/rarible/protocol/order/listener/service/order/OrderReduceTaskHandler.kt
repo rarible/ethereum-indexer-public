@@ -26,7 +26,7 @@ class OrderReduceTaskHandler(
         verifyAllReindexingTasksCompleted(ItemType.values().flatMap { it.topic })
 
     override fun runLongTask(from: String?, param: String): Flow<String> {
-        return orderReduceService.update(null, fromOrderHash = from?.let { Word.apply(it) }, platforms = listOf(Platform.RARIBLE))
+        return orderReduceService.update(null, fromOrderHash = from?.let { Word.apply(it) }, platforms = listOf(Platform.SUDOSWAP))
             .filter { it.hash != OrderReduceService.EMPTY_ORDER_HASH }
             .map { it.hash.toString() }
             .asFlow()
