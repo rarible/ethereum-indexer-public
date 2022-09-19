@@ -526,7 +526,6 @@ fun randomPoolNftWithdraw(): PoolNftWithdraw {
     )
 }
 
-
 fun randomPoolTargetNftIn(): PoolTargetNftIn {
     return PoolTargetNftIn(
         hash = Word.apply(randomWord()),
