@@ -31,7 +31,7 @@ import kotlin.time.ExperimentalTime
 @Component
 @CaptureSpan(type = ITEM_META_CAPTURE_SPAN_TYPE)
 class EnsDomainsPropertiesResolver(
-    private val ensDomainService: EnsDomainService, // TODO PT-1214
+    private val ensDomainService: EnsDomainService,
     private val ensDomainsPropertiesProvider: EnsDomainsPropertiesProvider,
     nftIndexerProperties: NftIndexerProperties,
 ) : ItemPropertiesResolver {
@@ -52,7 +52,7 @@ class EnsDomainsPropertiesResolver(
             )
             val newProperties = it.copy(content = it.content.copy(imageOriginal = image))
 
-            //ensDomainService.onGetProperties(itemId, newProperties) TODO PT-1214
+            ensDomainService.onGetProperties(itemId, newProperties)
 
             newProperties
         }

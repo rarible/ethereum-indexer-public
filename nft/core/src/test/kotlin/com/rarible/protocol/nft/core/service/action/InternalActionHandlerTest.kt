@@ -19,7 +19,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import reactor.core.publisher.Mono
 import reactor.kotlin.core.publisher.toFlux
@@ -27,7 +26,6 @@ import java.time.Clock
 import java.time.Duration
 import java.time.Instant
 
-@Disabled
 internal class InternalActionHandlerTest {
 
     private val nftItemActionEventRepository = mockk<NftItemActionEventRepository>()
