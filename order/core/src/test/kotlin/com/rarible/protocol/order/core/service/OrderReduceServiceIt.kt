@@ -11,7 +11,6 @@ import com.rarible.protocol.order.core.integration.AbstractIntegrationTest
 import com.rarible.protocol.order.core.integration.IntegrationTest
 import com.rarible.protocol.order.core.model.*
 import com.rarible.protocol.order.core.service.curve.SudoSwapCurve.Companion.eth
-import com.sun.jndi.cosnaming.IiopUrl
 import io.daonomic.rpc.domain.Word
 import io.daonomic.rpc.domain.WordFactory
 import kotlinx.coroutines.reactive.awaitFirst
@@ -474,6 +473,26 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
     }
 
     @Test
+    fun `should reduce amm sell order from several events`() = runBlocking<Unit> {
+        val hash = Word.apply(randomWord())
+        val poolData = createSudoSwapPoolDataV1()
+            .copy(
+                bondingCurve = sudoSwapAddresses.linearCurveV1,
+                spotPrice = BigInteger("1").eth(),
+                delta = BigInteger("3").eth(),
+                fee = BigInteger.ZERO
+            )
+        val createPool = randomSellOnChainAmmOrder(poolData).copy(hash = hash, currency = Address.ZERO())
+        val nftOut = randomPoolNftWithdraw().copy(hash = hash, collection = createPool.collection, tokenIds = createPool.tokenIds)
+
+        prepareStorage(createPool, nftOut)
+        val result = orderReduceService.updateOrder(hash)!!
+        assertThat(result.hash).isEqualTo(hash)
+        assertThat(result.make.value).isEqualTo(EthUInt256.ZERO)
+        assertThat(result.status).isEqualTo(OrderStatus.INACTIVE)
+    }
+
+    @Test
     fun `should remove amm order if history reverted`() = runBlocking<Unit> {
         val onChainAmmOrder = randomSellOnChainAmmOrder()
         orderRepository.save(createOrder().copy(hash = onChainAmmOrder.hash))
@@ -514,7 +533,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                     topic = Word.apply(randomWord()),
                     transactionHash = Word.apply(randomWord()),
                     status = status,
-                    blockNumber = 1,
+                    blockNumber = index.toLong(),
                     logIndex = 0,
                     minorLogIndex = 0,
                     index = index,

@@ -574,3 +574,22 @@ fun randomPoolFeeUpdate(): PoolFeeUpdate {
         source = HistorySource.values().random(),
     )
 }
+
+fun randomSimpleTrace(): SimpleTraceResult {
+    return SimpleTraceResult(
+        from = randomAddress(),
+        to = randomAddress(),
+        input = Binary.empty(),
+        value = randomBigInt()
+    )
+}
+
+fun randomHeadTransaction(): HeadTransaction {
+    return HeadTransaction(
+        hash = Word.apply(randomWord()),
+        input = randomBinary(),
+        from = randomAddress(),
+        to = randomAddress(),
+        value = randomBigInt()
+    )
+}

@@ -12,7 +12,7 @@ import com.rarible.protocol.order.core.model.OrderSideMatch
 import com.rarible.protocol.order.core.service.PriceNormalizer
 import com.rarible.protocol.order.core.service.PriceUpdateService
 import com.rarible.protocol.order.core.trace.NoopTransactionTraceProvider
-import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.configuration.OrderListenerProperties
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderEventConverter
 import com.rarible.protocol.order.listener.service.zero.ex.ZeroExOrderParser
@@ -72,7 +72,7 @@ class ZeroExExchangeOrderMatchDescriptorComplexTest {
                     zeroExExchangeDomainHash = "0x17068c8fc502c4938835d37c402e7c17f51ec6895246726893d5fe3198085a67"
                 )
             ),
-            zeroExOrderParser = ZeroExOrderParser(TraceCallService(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()))
+            zeroExOrderParser = ZeroExOrderParser(TraceCallServiceImpl(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags()))
         )
     }
 

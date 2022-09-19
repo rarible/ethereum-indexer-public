@@ -55,14 +55,14 @@ class SudoSwapOutNftPairDescriptor(
         val collection = sudoSwapPoolCollectionProvider.getPoolCollection(log.address())
         return when (details) {
             is SudoSwapAnyOutNftDetail -> {
-                logger.info("Detected swapTokenForAnyNFTs method call")
+                logger.info("Detected swapTokenForAnyNFTs method call in tx=${transaction.hash()}")
 
                 val tokenIds = nftTransferDetector.detectNftTransfers(
                     sudoSwapNftOutPairLog = log,
                     nftCollection = collection
                 )
                 require(tokenIds.size == details.numberNft.toInt()) {
-                    "Found tokenIds amount didn't much event nft out number"
+                    "Found tokenIds amount (${tokenIds.size}) didn't much event nft out number (${details.numberNft.toInt()}), tx=${transaction.hash()}, logIndex=${log.logIndex()}"
                 }
                 PoolTargetNftOut(
                     hash = hash,

@@ -49,7 +49,7 @@ class ItemReduceServiceV2(
     }
 
     override fun update(token: Address?, tokenId: EthUInt256?, from: ItemId?, to: ItemId?): Flux<ItemId> = flux {
-        logger.info("Update token=$token, tokenId=$tokenId")
+        logger.info("Update token=$token, tokenId=$tokenId from=$from to=$to")
         val events = Flux.mergeComparing(
             compareBy<HistoryLog>(
                 { it.item.token.toString() },
@@ -60,6 +60,7 @@ class ItemReduceServiceV2(
             findLazyItemsHistory(token, tokenId, from),
             historyRepository.findItemsHistory(token, tokenId, from = from, to = to)
         ).concatMap {
+            logger.info("Item reduce HistoryLog=$it")
             mono {
                 CompositeEvent(
                     itemEvent = itemEventConverter.convert(it.log),
@@ -69,6 +70,8 @@ class ItemReduceServiceV2(
         }.filter {
             it.itemEvent != null || it.ownershipEvents.isNotEmpty()
         }
+            .onErrorContinue { ex, event -> logger.error("Cause of error is $event", ex) }
+
         compositeFullReduceService.reduce(events.asFlow()).collect { entity ->
             send(entity.id)
         }

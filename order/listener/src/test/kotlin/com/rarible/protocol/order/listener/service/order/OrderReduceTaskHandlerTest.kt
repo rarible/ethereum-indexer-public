@@ -5,6 +5,7 @@ import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.wait.Wait
 import com.rarible.ethereum.listener.log.domain.LogEvent
 import com.rarible.ethereum.listener.log.domain.LogEventStatus
+import com.rarible.protocol.order.core.model.Platform
 import com.rarible.protocol.order.core.model.toLogEventKey
 import com.rarible.protocol.order.core.model.toOnChainOrder
 import com.rarible.protocol.order.listener.data.createOrderVersion
@@ -43,7 +44,7 @@ class OrderReduceTaskHandlerTest : AbstractIntegrationTest() {
         )
         exchangeHistoryRepository.save(logEvent).awaitFirst()
 
-        taskService.runTask(OrderReduceTaskHandler.ORDER_REDUCE, "")
+        taskService.runTask(OrderReduceTaskHandler.ORDER_REDUCE, Platform.RARIBLE.name)
 
         Wait.waitAssert {
             assertTrue(orderVersionRepository.existsByOnChainOrderKey(logEvent.toLogEventKey()).awaitSingle())

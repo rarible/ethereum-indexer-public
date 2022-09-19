@@ -19,6 +19,7 @@ import com.rarible.protocol.order.core.model.PoolHistory
 import com.rarible.protocol.order.core.model.PoolNftChange
 import com.rarible.protocol.order.core.model.PoolNftWithdraw
 import io.daonomic.rpc.domain.Word
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.runBlocking
 import org.assertj.core.api.Assertions.assertThat
@@ -142,6 +143,42 @@ internal class PoolHistoryRepositoryTest {
         assertThat(events.single().logIndex).isEqualTo(1)
         assertThat(events.single().minorLogIndex).isEqualTo(1)
         assertThat((events.single().data as PoolNftChange).tokenIds).contains(tokenId)
+    }
+
+    @Test
+    fun `should get all disctic hashes from pool history`() = runBlocking<Unit> {
+        val hashes = listOf(Word.apply(randomWord()), Word.apply(randomWord()), Word.apply(randomWord()))
+        (1..10).forEach { index ->
+            for (hash in hashes) {
+                save(
+                    history = randomPoolTargetNftOut().copy(hash = hash),
+                    blockNumber = 3,
+                    logIndex = index,
+                    minorLogIndex = 1
+                )
+            }
+        }
+        val distinct = poolHistoryRepository.findDistinctHashes().toList()
+        assertThat(distinct).containsExactlyInAnyOrderElementsOf(hashes)
+    }
+
+    @Test
+    fun `should get all disctic hashes from target hash`() = runBlocking<Unit> {
+        val hash1 = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000001")
+        val hash2 = Word.apply("0x0000000000000000000000000000000000000000000000000000000000000002")
+        val hashes = listOf(hash1, hash2)
+        (1..10).forEach { index ->
+            for (hash in hashes) {
+                save(
+                    history = randomPoolTargetNftOut().copy(hash = hash),
+                    blockNumber = 3,
+                    logIndex = index,
+                    minorLogIndex = 1
+                )
+            }
+        }
+        val distinct = poolHistoryRepository.findDistinctHashes(from = hash1).toList()
+        assertThat(distinct).containsExactlyInAnyOrder(hash2)
     }
 
     private suspend fun save(
