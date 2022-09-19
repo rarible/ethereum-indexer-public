@@ -22,12 +22,6 @@ class AdminErc721TransferLogDescriptor(
         ensDomainsContractAddress = Address.ZERO().hex(),
         openseaLazyMintAddress = Address.ZERO().hex(),
         royaltyRegistryAddress = Address.ZERO().hex(),
-        factory = NftIndexerProperties.FactoryAddresses(
-            erc721Rarible = Address.ZERO().hex(),
-            erc721RaribleUser = Address.ZERO().hex(),
-            erc1155Rarible = Address.ZERO().hex(),
-            erc1155RaribleUser = Address.ZERO().hex()
-        ),
         ipfs = NftIndexerProperties.IpfsProperties("", "")
     ),
     NftListenerProperties()
