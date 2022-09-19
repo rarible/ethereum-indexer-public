@@ -2,7 +2,6 @@ package com.rarible.protocol.order.listener.service.sudoswap
 
 import com.rarible.core.test.data.randomAddress
 import com.rarible.core.test.data.randomWord
-import com.rarible.ethereum.common.keccak256
 import com.rarible.protocol.order.listener.data.log
 import io.daonomic.rpc.domain.Word
 import io.mockk.every
