@@ -23,7 +23,6 @@ data class NftIndexerProperties(
     val excludedFromOpenseaMetaResolution: String = "",
     var openseaLazyMintAddress: String,
     var royaltyRegistryAddress: String,
-    val factory: FactoryAddresses,
     val daemonWorkerProperties: DaemonWorkerProperties = DaemonWorkerProperties(),
     val featureFlags: FeatureFlags = FeatureFlags(),
     val nftCollectionMetaExtenderWorkersCount: Int = 4,
@@ -45,13 +44,6 @@ data class NftIndexerProperties(
     data class ScannerProperties(
         val skipTransferContractTokens: List<String> = emptyList(),
         val senderCreatedTokens: List<String> = emptyList()
-    )
-
-    data class FactoryAddresses(
-        val erc721Rarible: String,
-        val erc721RaribleUser: String,
-        val erc1155Rarible: String,
-        val erc1155RaribleUser: String
     )
 
     data class ItemMetaProperties(
