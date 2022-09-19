@@ -33,14 +33,14 @@ data class PoolCreate(
     fun nftAsset(): Asset {
         return Asset(
             type = AmmNftAssetType(collection),
-            value = EthUInt256.of(tokenIds.size)
+            value = EthUInt256.ONE
         )
     }
 
     fun currencyAsset(): Asset {
         return Asset(
             type = if (currency == Address.ZERO()) EthAssetType else Erc20AssetType(currency),
-            value = EthUInt256.of(currencyBalance)
+            value = EthUInt256.ZERO
         )
     }
 }

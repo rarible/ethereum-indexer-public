@@ -46,6 +46,7 @@ class EventPoolReducer : Reducer<PoolHistory, Order> {
             maker = event.data.poolAddress,
             make = event.nftAsset(),
             take = event.currencyAsset(),
+            makeStock = EthUInt256.of(event.tokenIds.size),
             createdAt = event.date,
             platform = event.source.toPlatform(),
             data = event.data.toOrderData(),
@@ -54,7 +55,6 @@ class EventPoolReducer : Reducer<PoolHistory, Order> {
     }
 
     private fun onPoolNftOut(entity: Order, event: PoolNftOut): Order {
-        val newVale = entity.make.value.subSafe(event.tokenIds.size)
         if (event is PoolNftWithdraw) {
             val ammNftAssetType = when {
                 entity.make.type.nft -> entity.make.type as AmmNftAssetType
@@ -63,10 +63,8 @@ class EventPoolReducer : Reducer<PoolHistory, Order> {
             }
             if (event.collection != ammNftAssetType.token) return entity
         }
-        return entity.copy(
-            make = entity.make.copy(value = newVale),
-            makeStock = newVale,
-        )
+        val newVale = entity.makeStock.subSafe(event.tokenIds.size)
+        return entity.copy(makeStock = newVale)
     }
 
     private fun onPoolNftIn(entity: Order, event: PoolNftIn): Order {
@@ -78,11 +76,8 @@ class EventPoolReducer : Reducer<PoolHistory, Order> {
             }
             if (event.collection != ammNftAssetType.token) return entity
         }
-        val newVale = entity.make.value + EthUInt256.of(event.tokenIds.size)
-        return entity.copy(
-            make = entity.make.copy(value = newVale),
-            makeStock = newVale,
-        )
+        val newVale = entity.makeStock + EthUInt256.of(event.tokenIds.size)
+        return entity.copy(makeStock = newVale)
     }
 
     private fun onUpdateData(

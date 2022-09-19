@@ -217,7 +217,7 @@ data class Order(
                 OrderType.X2Y2,
                 OrderType.OPEN_SEA_V1,
                 OrderType.SEAPORT_V1 -> if (make > roundedMakeBalance) EthUInt256.ZERO else calculatedMakeStock
-                OrderType.AMM -> makeValue
+                OrderType.AMM -> makeBalance
             }
         }
 
