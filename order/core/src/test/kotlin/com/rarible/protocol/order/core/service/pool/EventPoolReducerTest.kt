@@ -49,43 +49,47 @@ internal class EventPoolReducerTest {
 
     @Test
     fun `should reduce poll nft out event`() = runBlocking<Unit> {
-        val amke = randomErc721().copy(value = EthUInt256.of(10))
-        val init = createSellOrder().copy(make = amke, lastUpdateAt = past())
+        val make = randomErc721().copy(value = EthUInt256.ONE)
+        val init = createSellOrder().copy(make = make, lastUpdateAt = past())
         val event = randomPoolTargetNftOut().copy(tokenIds = generateIds(7), date = now())
 
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.make.value).isEqualTo(EthUInt256.of(3))
+        assertThat(reduced.make.value).isEqualTo(EthUInt256.ONE)
+        assertThat(reduced.makeStock).isEqualTo(EthUInt256.of(3))
     }
 
     @Test
     fun `should reduce poll nft out event safely`() = runBlocking<Unit> {
-        val amke = randomErc721().copy(value = EthUInt256.of(5))
-        val init = createSellOrder().copy(make = amke, lastUpdateAt = past())
+        val make = randomAmmNftAsset()
+        val init = createSellOrder().copy(make = make, makeStock = EthUInt256.of(7), lastUpdateAt = past())
         val event = randomPoolTargetNftOut().copy(tokenIds = generateIds(7), date = now())
 
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.make.value).isEqualTo(EthUInt256.ZERO)
+        assertThat(reduced.makeStock).isEqualTo(EthUInt256.ZERO)
+        assertThat(reduced.make.value).isEqualTo(EthUInt256.ONE)
     }
 
     @Test
     fun `should reduce poll nft in event`() = runBlocking<Unit> {
-        val amke = randomErc721().copy(value = EthUInt256.of(5))
-        val init = createSellOrder().copy(make = amke, lastUpdateAt = past())
+        val make = randomAmmNftAsset()
+        val init = createSellOrder().copy(make = make, makeStock = EthUInt256.of(5), lastUpdateAt = past())
         val event = randomPoolTargetNftIn().copy(tokenIds = generateIds(5), date = now())
 
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.make.value).isEqualTo(EthUInt256.TEN)
+        assertThat(reduced.makeStock).isEqualTo(EthUInt256.TEN)
+        assertThat(reduced.make.value).isEqualTo(EthUInt256.ONE)
     }
 
     @Test
     fun `should reduce poll nft deposit event`() = runBlocking<Unit> {
         val collection = randomAddress()
-        val amke = randomAmmNftAsset(collection).copy(value = EthUInt256.of(5))
-        val init = createSellOrder(createOrderSudoSwapAmmDataV1()).copy(make = amke, lastUpdateAt = now())
+        val make = randomAmmNftAsset(collection)
+        val init = createSellOrder().copy(make = make, makeStock = EthUInt256.of(5))
         val event = randomPoolNftDeposit().copy(tokenIds = generateIds(5), collection = collection, date = past())
 
         val reduced = eventPoolReducer.reduce(init, event)
-        assertThat(reduced.make.value).isEqualTo(EthUInt256.TEN)
+        assertThat(reduced.make.value).isEqualTo(init.make.value)
+        assertThat(reduced.makeStock).isEqualTo(EthUInt256.TEN)
     }
 
     @Test

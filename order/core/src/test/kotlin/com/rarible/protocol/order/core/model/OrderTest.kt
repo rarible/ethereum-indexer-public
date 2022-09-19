@@ -257,12 +257,12 @@ class OrderTest {
     @Test
     fun `should calculate status for AMM order and make stock`() {
         val amm = createOrder().copy(
-            make = randomErc721().copy(value = EthUInt256.of(28)),
+            make = randomErc721().copy(value = EthUInt256.ONE),
             take = randomErc20(EthUInt256.ONE),
-            makeStock = EthUInt256.ZERO,
+            makeStock = EthUInt256.ONE,
             data = createOrderSudoSwapAmmDataV1(),
             type = OrderType.AMM
-        ).withMakeBalance(EthUInt256.ONE, EthUInt256.ZERO)
+        ).withMakeBalance(EthUInt256.of(28), EthUInt256.ZERO)
 
         assertThat(amm.makeStock).isEqualTo(EthUInt256.of(28))
         assertThat(amm.status).isEqualTo(OrderStatus.ACTIVE)
