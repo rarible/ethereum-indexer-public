@@ -118,8 +118,8 @@ internal class SudoSwapCreatePairDescriptorTest {
             "0x00000000000000000000000056b69cbcbac832a3a1c8c4f195654a610f96777b"
         )
         val expectedCollection = Address.apply("0xeF1a89cbfAbE59397FfdA11Fc5DF293E9bC5Db90")
-        val expectedNftAsset = Asset(AmmNftAssetType(expectedCollection), EthUInt256.of(4))
-        val expectedCurrencyAsset = Asset(EthAssetType, EthUInt256.of("3787004998077662"))
+        val expectedNftAsset = Asset(AmmNftAssetType(expectedCollection), EthUInt256.ONE)
+        val expectedCurrencyAsset = Asset(EthAssetType, EthUInt256.ZERO)
         val expectedData = SudoSwapPoolDataV1(
             poolAddress = Address.apply("0x56b69cbcbac832a3a1c8c4f195654a610f96777b"),
             bondingCurve = Address.apply("0x5B6aC51d9B1CeDE0068a1B26533CAce807f883Ee"),

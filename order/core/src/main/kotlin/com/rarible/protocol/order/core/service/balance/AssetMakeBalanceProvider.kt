@@ -18,7 +18,7 @@ class AssetMakeBalanceProvider(
 ) {
     suspend fun getMakeBalance(order: Order): MakeBalanceState = when {
         order.type == OrderType.CRYPTO_PUNKS -> handleCryptoPunkMarketOrder(order)
-        order.type == OrderType.AMM -> MakeBalanceState(order.make.value, order.lastUpdateAt)
+        order.type == OrderType.AMM -> MakeBalanceState(order.makeStock, order.lastUpdateAt)
         order.platform == Platform.RARIBLE -> handleRaribleOrder(order)
         else -> delegate.getAssetStock(order.maker, order.make)
     } ?: MakeBalanceState(EthUInt256.ZERO)

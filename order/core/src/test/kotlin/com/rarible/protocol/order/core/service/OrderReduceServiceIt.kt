@@ -496,6 +496,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         assertThat(result.hash).isEqualTo(onChainAmmOrder.hash)
         assertThat(result.fill).isEqualTo(EthUInt256.ZERO)
         assertThat(result.status).isEqualTo(OrderStatus.ACTIVE)
+        assertThat(result.make.value).isEqualTo(EthUInt256.ONE)
         assertThat(result.makeStock).isEqualTo(EthUInt256.of(onChainAmmOrder.tokenIds.size))
         //With liner curve price should be 'spotPrice + delta' (all fee are zero)
         assertThat(result.makePrice).isEqualTo(BigDecimal("4.000000000000000000"))
@@ -509,7 +510,7 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
                 bondingCurve = sudoSwapAddresses.linearCurveV1,
                 spotPrice = BigInteger("1").eth(),
                 delta = BigInteger("3").eth(),
-                fee = BigInteger.ZERO
+                fee = BigInteger.ZERO,
             )
         val createPool = randomSellOnChainAmmOrder(poolData).copy(hash = hash, currency = Address.ZERO())
         val nftOut = randomPoolNftWithdraw().copy(hash = hash, collection = createPool.collection, tokenIds = createPool.tokenIds)
@@ -517,7 +518,8 @@ class OrderReduceServiceIt : AbstractIntegrationTest() {
         prepareStorage(createPool, nftOut)
         val result = orderReduceService.updateOrder(hash)!!
         assertThat(result.hash).isEqualTo(hash)
-        assertThat(result.make.value).isEqualTo(EthUInt256.ZERO)
+        assertThat(result.make.value).isEqualTo(EthUInt256.ONE)
+        assertThat(result.makeStock).isEqualTo(EthUInt256.ZERO)
         assertThat(result.status).isEqualTo(OrderStatus.INACTIVE)
     }
 
