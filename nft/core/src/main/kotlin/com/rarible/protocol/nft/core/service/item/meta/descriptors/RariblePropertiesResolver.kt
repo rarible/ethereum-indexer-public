@@ -7,6 +7,7 @@ import com.rarible.protocol.nft.core.model.ItemProperties
 import com.rarible.protocol.nft.core.service.UrlService
 import com.rarible.protocol.nft.core.service.item.meta.BlockchainTokenUriResolver
 import com.rarible.protocol.nft.core.service.item.meta.ITEM_META_CAPTURE_SPAN_TYPE
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import com.rarible.protocol.nft.core.service.item.meta.logMetaLoading
 import com.rarible.protocol.nft.core.service.item.meta.properties.ItemPropertiesParser
 import com.rarible.protocol.nft.core.service.item.meta.properties.JsonPropertiesMapper
@@ -43,11 +44,15 @@ class RariblePropertiesResolver(
                 itemId.tokenId.value.toString()
             )
             for (substitution in substitutions) {
-                val fixedTokenUri = tokenUri.replace("{id}", substitution)
-                val itemProperties = resolve(itemId, fixedTokenUri)
-                if (itemProperties != null) {
-                    logMetaLoading(itemId, "substitution of {id} with $fixedTokenUri did work")
-                    return itemProperties
+                try {
+                    val fixedTokenUri = tokenUri.replace("{id}", substitution)
+                    val itemProperties = resolve(itemId, fixedTokenUri)
+
+                    if (itemProperties != null) {
+                        logMetaLoading(itemId, "substitution of {id} with $fixedTokenUri did work")
+                        return itemProperties
+                    }
+                } catch (_: Exception) {
                 }
             }
         }
@@ -56,9 +61,9 @@ class RariblePropertiesResolver(
 
     private suspend fun resolve(itemId: ItemId, tokenUri: String): ItemProperties? {
         // Sometimes there could be a json instead of URL
-        val json = JsonPropertiesParser.parse(itemId, tokenUri)
+        val json = runCatching { JsonPropertiesParser.parse(itemId, tokenUri) }.getOrNull()
         val properties = when {
-            (json != null) -> JsonPropertiesMapper.map(itemId, json)
+            json != null -> JsonPropertiesMapper.map(itemId, json)
             else -> getByUri(itemId, tokenUri)?.copy(tokenUri = tokenUri)
         } ?: return null
 
@@ -67,7 +72,10 @@ class RariblePropertiesResolver(
 
     private suspend fun getByUri(itemId: ItemId, uri: String): ItemProperties? {
         uri.ifNotBlank() ?: return null
-        val resource = urlService.parseUrl(uri, itemId.toString()) ?: return null
+        val resource = urlService.parseUrl(uri, itemId.toString()) ?: throw MetaException(
+            "$uri unparseable",
+            status = MetaException.Status.UnparseableLink
+        )
         val rawProperties = rawPropertiesProvider.getContent(itemId, resource) ?: return null
 
         return ItemPropertiesParser.parse(

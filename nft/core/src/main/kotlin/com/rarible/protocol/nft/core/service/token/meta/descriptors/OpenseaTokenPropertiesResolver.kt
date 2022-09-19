@@ -33,10 +33,12 @@ class OpenseaTokenPropertiesResolver(
             logProperties(id, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(id.prefixed(), rawProperties)
-            json?.let { map(json) }
+            map(json)
         } catch (e: Error) {
-            logProperties(id, "failed to parse properties by URI: $url", true)
-            null
+            val errorMessage = "failed to parse properties by URI: $url"
+            logProperties(id, errorMessage, true)
+
+            throw e
         }
     }
 

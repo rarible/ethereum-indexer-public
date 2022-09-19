@@ -11,8 +11,8 @@ object ItemPropertiesParser {
         itemId: ItemId,
         httpUrl: String,
         rawProperties: String,
-        parser: (ItemId, String) -> ObjectNode? = JsonPropertiesParser::parse,
-        mapper: (ItemId, ObjectNode) -> ItemProperties? = JsonPropertiesMapper::map
+        parser: (ItemId, String) -> ObjectNode = JsonPropertiesParser::parse,
+        mapper: (ItemId, ObjectNode) -> ItemProperties = JsonPropertiesMapper::map
     ): ItemProperties? {
         return try {
             logMetaLoading(itemId, "parsing properties by URI: $httpUrl")
@@ -22,9 +22,9 @@ object ItemPropertiesParser {
                 )
             }
             val json = parser(itemId, rawProperties)
-            val result = json?.let { mapper(itemId, json) }
+            val result = mapper(itemId, json)
 
-            return if (result != null && result.isEmpty()) {
+            if (result.isEmpty()) {
                 // TODO ideally we should track it, revisit in meta-pipeline
                 logMetaLoading(itemId, "empty meta json received by URI: $httpUrl")
                 null
@@ -33,7 +33,7 @@ object ItemPropertiesParser {
             }
         } catch (e: Error) {
             logMetaLoading(itemId, "failed to parse properties by URI: $httpUrl", warn = true)
-            null
+            throw e
         }
     }
 }

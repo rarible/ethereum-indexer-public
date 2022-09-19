@@ -45,10 +45,10 @@ class OpenSeaPropertiesResolver(
             logMetaLoading(itemId, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(itemId, rawProperties)
-            val result = json?.let { map(itemId, json, imageUrlParser.parseImage(json)) }
+            val result = map(itemId, json, imageUrlParser.parseImage(json))
             // There is no sense to return meta with name only
             // TODO ideally we should get rid of OpenSea meta at all
-            return if (result != null && result.copy(name = "").isEmpty()) {
+            if (result != null && result.copy(name = "").isEmpty()) {
                 logMetaLoading(itemId, "empty meta json received from OpenSea URI: $url")
                 null
             } else {
@@ -57,7 +57,7 @@ class OpenSeaPropertiesResolver(
         } catch (e: Throwable) {
             val errorMessage = if (e is WebClientResponseException) " ${e.rawStatusCode}: ${e.statusText}" else ""
             logMetaLoading(itemId, "OpenSea: failed to get properties $errorMessage", warn = true)
-            null
+            throw e
         }
     }
 

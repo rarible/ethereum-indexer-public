@@ -36,6 +36,15 @@ class ItemPropertiesService(
         logMetaLoading(itemId, "started getting")
         val itemProperties = try {
             callResolvers(itemId)
+        } catch (e: MetaException) {
+            logMetaLoading(itemId, "failed: ${e.message}", warn = true)
+            val openSeaItemProperties = openseaItemPropertiesService.fallbackToOpenSea(itemId)
+
+            if (openSeaItemProperties != null) {
+                return openSeaItemProperties
+            } else {
+                throw e
+            }
         } catch (e: ItemResolutionAbortedException) {
             logMetaLoading(itemId, "resolution aborted")
             return null
@@ -58,8 +67,8 @@ class ItemPropertiesService(
 
     private fun ItemProperties.isFull(): Boolean =
         this.name.isNotBlank()
-            && this.content.imageOriginal != null
-            && this.content.imagePreview != null
-            && this.content.imageBig != null
-            && this.attributes.isNotEmpty()
+                && this.content.imageOriginal != null
+                && this.content.imagePreview != null
+                && this.content.imageBig != null
+                && this.attributes.isNotEmpty()
 }

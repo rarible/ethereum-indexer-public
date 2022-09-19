@@ -25,7 +25,7 @@ class ItemMetaService(
             itemMetaResolver.resolveItemMeta(itemId)
         } catch (e: Exception) {
             logMetaLoading(itemId, "Synchronous meta loading for '$demander' failed. ${e.message}", warn = true)
-            null
+            throw e
         }
 
         if (itemMeta == null) {
@@ -50,11 +50,15 @@ class ItemMetaService(
         } catch (e: CancellationException) {
             val message = "Timeout synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
             logMetaLoading(itemId, message, warn = true)
-            null
+            throw MetaException(message, status = MetaException.Status.Timeout)
+        } catch (e: MetaException) {
+            val message = "Cannot synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
+            logMetaLoading(itemId, message, warn = true)
+            throw e
         } catch (e: Exception) {
             val message = "Cannot synchronously load meta for '$demander' with timeout ${timeout.toMillis()} ms. ${e.message}"
             logMetaLoading(itemId, message, warn = true)
-            null
+            throw MetaException(message, status = MetaException.Status.Unknown)
         }
     }
 

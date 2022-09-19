@@ -3,8 +3,10 @@ package com.rarible.protocol.nft.api.controller.advice
 import com.rarible.protocol.dto.ArgumentFormatException
 import com.rarible.protocol.dto.EthereumApiErrorBadRequestDto
 import com.rarible.protocol.dto.EthereumApiErrorServerErrorDto
+import com.rarible.protocol.dto.EthereumApiMetaErrorDto
 import com.rarible.protocol.nft.api.exceptions.NftIndexerApiException
 import com.rarible.protocol.nft.core.model.IncorrectItemFormat
+import com.rarible.protocol.nft.core.service.item.meta.MetaException
 import kotlinx.coroutines.reactor.mono
 import org.slf4j.LoggerFactory
 import org.springframework.core.convert.ConversionFailedException
@@ -22,6 +24,32 @@ class ErrorsController {
     @ExceptionHandler(NftIndexerApiException::class)
     fun handleIndexerApiException(ex: NftIndexerApiException) = mono {
         ResponseEntity.status(ex.status).body(ex.data)
+    }
+
+    @ExceptionHandler(MetaException::class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    fun handlerMetaException(ex: MetaException) = mono {
+        when (ex.status) {
+            MetaException.Status.UnparseableJson -> EthereumApiMetaErrorDto(
+                code = EthereumApiMetaErrorDto.Code.UNPARSEABLE_JSON,
+                message = ex.message
+            )
+
+            MetaException.Status.Timeout -> EthereumApiMetaErrorDto(
+                code = EthereumApiMetaErrorDto.Code.TIMEOUT,
+                message = ex.message
+            )
+
+            MetaException.Status.UnparseableLink -> EthereumApiMetaErrorDto(
+                code = EthereumApiMetaErrorDto.Code.UNPARSEABLE_LINK,
+                message = ex.message
+            )
+
+            MetaException.Status.Unknown -> EthereumApiMetaErrorDto(
+                code = EthereumApiMetaErrorDto.Code.ERROR,
+                message = ex.message
+            )
+        }
     }
 
     @ExceptionHandler(
@@ -54,6 +82,7 @@ class ErrorsController {
                 logger.warn("Conversion exception while handle request: {}", result.message)
                 result
             }
+
             else -> logUnexpectedError(ex)
         }
     }

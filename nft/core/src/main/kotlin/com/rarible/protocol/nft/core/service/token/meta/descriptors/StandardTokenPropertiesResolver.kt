@@ -43,7 +43,7 @@ class StandardTokenPropertiesResolver(
             logProperties(id, "parsing properties by URI: $url")
 
             val json = JsonPropertiesParser.parse(id.prefixed(), rawProperties)
-            json?.let { map(json) }
+            map(json)
         } catch (e: Throwable) {
             logProperties(id, "failed to parse properties by URI: $url", warn = true)
             null

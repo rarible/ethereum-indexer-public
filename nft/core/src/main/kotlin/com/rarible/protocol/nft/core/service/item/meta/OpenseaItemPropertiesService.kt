@@ -41,7 +41,7 @@ class OpenseaItemPropertiesService(
         itemPropertiesResolverProvider.openSeaResolver.resolve(itemId)
     } catch (e: Exception) {
         logMetaLoading(itemId, "unable to get properties from OpenSea: ${e.message}", warn = true)
-        null
+        throw e
     }
 
     private fun extendWithOpenSea(
