@@ -31,6 +31,7 @@ import com.rarible.protocol.order.core.repository.approval.ApprovalHistoryReposi
 import com.rarible.protocol.order.core.repository.exchange.ExchangeHistoryRepository
 import com.rarible.protocol.order.core.repository.order.OrderRepository
 import com.rarible.protocol.order.core.repository.order.OrderVersionRepository
+import com.rarible.protocol.order.core.repository.pool.PoolHistoryRepository
 import com.rarible.protocol.order.core.service.OrderReduceService
 import com.rarible.protocol.order.core.service.OrderUpdateService
 import com.rarible.protocol.order.core.service.asset.AssetBalanceProvider
@@ -142,6 +143,9 @@ abstract class AbstractIntegrationTest : BaseListenerApplicationTest() {
 
     @Autowired
     lateinit var approvalHistoryRepository: ApprovalHistoryRepository
+
+    @Autowired
+    lateinit var poolHistoryRepository: PoolHistoryRepository
 
     protected lateinit var parity: MonoParity
 

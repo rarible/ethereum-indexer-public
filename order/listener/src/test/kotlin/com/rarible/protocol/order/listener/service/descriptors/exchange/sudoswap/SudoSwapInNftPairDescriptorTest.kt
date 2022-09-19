@@ -6,7 +6,7 @@ import com.rarible.core.test.data.randomWord
 import com.rarible.ethereum.domain.EthUInt256
 import com.rarible.protocol.order.core.model.HistorySource
 import com.rarible.protocol.order.core.model.PoolTargetNftIn
-import com.rarible.protocol.order.core.trace.TraceCallService
+import com.rarible.protocol.order.core.trace.TraceCallServiceImpl
 import com.rarible.protocol.order.listener.data.log
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapEventConverter
 import com.rarible.protocol.order.listener.service.sudoswap.SudoSwapPoolCollectionProvider
@@ -29,7 +29,7 @@ import java.time.temporal.ChronoUnit
 internal class SudoSwapInNftPairDescriptorTest {
     private val counter = mockk<RegisteredCounter> { every { increment() } returns Unit }
     private val sudoSwapPoolCollectionProvider = mockk<SudoSwapPoolCollectionProvider>()
-    private val traceCallService = TraceCallService(mockk(), mockk())
+    private val traceCallService = TraceCallServiceImpl(mockk(), mockk())
     private val sudoSwapEventConverter = SudoSwapEventConverter(traceCallService)
 
     private val descriptor = SudoSwapInNftPairDescriptor(

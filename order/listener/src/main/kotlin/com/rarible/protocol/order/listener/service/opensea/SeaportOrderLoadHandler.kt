@@ -27,7 +27,7 @@ class SeaportOrderLoadHandler(
             loader.seaportInfo("Previous cursor ($cursor) is not finalized, reuse it")
             cursor to true
         } else {
-            val next = result.previous ?: result.next
+            val next = result.previous ?: result.next ?: error("Can't determine next Seaport cursor")
             loader.seaportInfo("Use next cursor $next")
             next to false
         }

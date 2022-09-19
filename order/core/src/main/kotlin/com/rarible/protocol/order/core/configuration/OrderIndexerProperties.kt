@@ -1,7 +1,7 @@
 package com.rarible.protocol.order.core.configuration
 
 import com.rarible.ethereum.domain.Blockchain
-import com.rarible.protocol.order.core.model.NodeType
+import com.rarible.protocol.order.core.model.TraceMethod
 import io.daonomic.rpc.domain.Binary
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.ConstructorBinding
@@ -38,7 +38,7 @@ data class OrderIndexerProperties(
     @NestedConfigurationProperty
     val featureFlags: FeatureFlags = FeatureFlags(),
     val blockCountBeforeSnapshot: Int = 12,
-    val nodeType: NodeType?,
+    val traceMethod: TraceMethod = TraceMethod.TRACE_TRANSACTION,
     @NestedConfigurationProperty
     val raribleOrderExpiration: RaribleOrderExpirationProperties = RaribleOrderExpirationProperties(),
     @NestedConfigurationProperty

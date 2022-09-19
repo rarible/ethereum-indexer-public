@@ -13,7 +13,7 @@ class TraceCallServiceTest {
 
     @Test
     fun testMetaTxTraceCall() {
-        val service = TraceCallService(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags())
+        val service = TraceCallServiceImpl(NoopTransactionTraceProvider(), OrderIndexerProperties.FeatureFlags())
         val transactionInput =
             ("0x0c53c51c00000000000000000000000019d2a55f2bd362a9e09f674b722782329f63f3fb000000000000000000" +
                 "00000000000000000000000000000000000000000000a0ea63d80a19f03e50bbf98943043a744c6e98780958dfecf7f" +

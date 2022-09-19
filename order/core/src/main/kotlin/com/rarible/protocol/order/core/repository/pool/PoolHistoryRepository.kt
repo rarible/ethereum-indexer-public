@@ -56,6 +56,17 @@ class PoolHistoryRepository(
         return template.findById(id, COLLECTION)
     }
 
+    fun findDistinctHashes(from: Word? = null): Flow<Word> {
+        val hashFiled = "${LogEvent::data.name}.${PoolHistory::hash.name}"
+        val criteria = when {
+            from != null -> Criteria(hashFiled).gt(from)
+            else -> Criteria()
+        }
+        val query = Query(criteria).withHint(Indexes.HASH_DEFINITION.indexKeys)
+        query.fields().include(hashFiled)
+        return template.findDistinct(query, hashFiled, COLLECTION, Word::class.java).asFlow()
+    }
+
     fun findLogEvents(hash: Word?, from: Word?, platforms: List<HistorySource>? = null): Flux<LogEvent> {
         var criteria = when {
             hash != null -> LogEvent::data / PoolHistory::hash isEqualTo hash
@@ -87,15 +98,15 @@ class PoolHistoryRepository(
         return template.findAll(COLLECTION)
     }
 
-    object Indexes {
-        private val HASH_DEFINITION: Index = Index()
+    private object Indexes {
+        val HASH_DEFINITION: Index = Index()
             .on("${LogEvent::data.name}.${PoolHistory::hash.name}", Sort.Direction.ASC)
             .on(LogEvent::blockNumber.name, Sort.Direction.ASC)
             .on(LogEvent::logIndex.name, Sort.Direction.ASC)
             .on(LogEvent::minorLogIndex.name, Sort.Direction.ASC)
             .background()
 
-        private val BY_UPDATED_AT_FIELD: Index = Index()
+        val BY_UPDATED_AT_FIELD: Index = Index()
             .on(LogEvent::updatedAt.name, Sort.Direction.ASC)
             .on("_id", Sort.Direction.ASC)
             .background()

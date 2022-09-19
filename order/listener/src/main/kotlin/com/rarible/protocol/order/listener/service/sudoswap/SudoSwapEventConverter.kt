@@ -135,10 +135,10 @@ class SudoSwapEventConverter(
         }
     }
 
-    suspend fun getNftDepositDetails(poolAddress: Address, transient: Transaction): List<SudoSwapNftDepositDetail> {
+    suspend fun getNftDepositDetails(pairFactory: Address, transient: Transaction): List<SudoSwapNftDepositDetail> {
         val inputs = findAllRequiredCalls(
             transient,
-            poolAddress,
+            pairFactory,
             LSSVMPairFactoryV1.depositNFTsSignature().id()
         )
         return inputs.map {
